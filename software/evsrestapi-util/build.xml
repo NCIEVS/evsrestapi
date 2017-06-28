@@ -1,0 +1,67 @@
+<project name="projectname" default="build" basedir=".">
+    <!--
+    <import file="C:/lib_util/build-junitpdfreport.xml"/>
+    -->
+ 
+    <property file="build.properties" />
+  
+    <property name="resources.dir" value = "./resources" />
+    <property name="test.dir" value = "${resources.dir}/Test.properties" />
+    <property name="test.xml" value = "${resources.dir}/Test.xml" />
+    <property name="test.reports" value="reports" />
+      
+    <path id="classpath">
+        <fileset dir="./extlib">
+            <include name="**/*.jar" />
+        </fileset>    
+        <fileset dir="./lib">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>   
+
+    <path id="classpath2">
+        <fileset dir="./extlib">
+            <include name="**/*.jar" />
+        </fileset>    
+        <fileset dir="./lib">
+            <include name="**/*.jar" />
+        </fileset>
+        <fileset dir=".">
+            <include name="**/*.jar" />
+        </fileset>        
+    </path> 
+      
+    <target name="clean" description="Delete the build directory">
+        <delete dir="${build.dir}" />
+    </target>
+    <target name="init" depends="clean">
+        <echo>JAVA_HOME: ${java.home}</echo>
+        <mkdir dir="${build.dir}" />
+    </target>
+  
+    <target name="compile" depends="init"
+        description="Compile source code">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" >
+            <classpath refid="classpath" />
+            <include name="**/*.java" />
+        </javac>
+    </target>
+
+    <tstamp>
+        <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+    </tstamp>
+
+    <target name="jar" depends="compile">
+        <jar jarfile="${project.name}.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class"
+                value="projectname" />
+                <attribute name="Built-Date" value="${TODAY}"/>
+            </manifest>
+        </jar>
+    </target>
+  
+  <target name="build" depends="jar,clean"
+      description="Build jar file" />
+  
+</project>
