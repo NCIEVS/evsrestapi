@@ -981,6 +981,32 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_disease_is_stage_source_codes(named_graph));
 	}
 
+	public String construct_get_disjoint_with_by_code(String named_graph, String code) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?y_label ?y_code ").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x owl:disjointWith ?y .").append("\n");
+		buf.append("		?y :NHC0 ?y_code .").append("\n");
+		buf.append("		?y rdfs:label ?y_label").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("	    ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getDisjointWithByCode(String named_graph, String code) {
+		return executeQuery(construct_get_disjoint_with_by_code(named_graph, code));
+	}
 
     public static void main(String[] args) {
 
