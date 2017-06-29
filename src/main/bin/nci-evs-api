@@ -1,0 +1,137 @@
+#!/bin/bash
+
+export JAVA_HOME=/home/immport/opt/java/current
+export PATH="${JAVA_HOME}/bin:${PATH}"
+USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
+APP_NAME=nci-evs-api
+APP_USER=immport
+APP_ROOT_DIR=/data/apps/${APP_NAME}
+ENV_FILE=${APP_ROOT_DIR}/bin/setenv.sh
+JAR_FILE=${APP_ROOT_DIR}/lib/${APP_NAME}.jar
+LOG_DIR=${APP_ROOT_DIR}/logs
+LOG_FILE=${LOG_DIR}/${APP_NAME}.log
+JAVA_OPTIONS="-Xmx8196m"
+JAVA_COMMAND="java $JAVA_OPTIONS -jar ${JAR_FILE}"
+SHUTDOWN_WAIT=45
+
+#
+# Set up the environment for this application if necessary
+#
+if
+    [ -f ${ENV_FILE} ]
+then
+    JAVA_COMMAND=". ${ENV_FILE} ; ${JAVA_COMMAND}"
+fi
+
+
+pid() {
+    echo `ps aux | fgrep java | fgrep -v fgrep | fgrep $APP_NAME | grep '^'$APP_USER | awk '{ print $2 }'`
+}
+
+start() {
+    pid=$(pid)
+    if
+        [ -n "$pid" ]
+    then
+        echo "Application $APP_NAME is already running (pid: $pid)."
+    else
+        #
+        # Create the log directory if necessary
+        #
+        if
+            [ ! -d $LOG_DIR ]
+        then
+            mkdir -p $LOG_DIR
+            if
+                [ "$USER" = "root" ]
+            then
+                chown ${APP_USER}:${APP_USER} $LOG_DIR
+            fi
+        fi
+
+        #
+        # Start the application
+        #
+        echo "Starting $APP_NAME"
+        if
+            [ "$USER" = "root" ]
+        then
+            /bin/su - -c "$JAVA_COMMAND" $APP_USER 2>>$LOG_FILE >>$LOG_FILE &
+            until
+                [ "`ls -l $LOG_FILE 2> /dev/null`" != "" ]
+            do
+                sleep 1
+            done
+            chown ${APP_USER}:${APP_USER} $LOG_FILE
+        else
+            eval "$JAVA_COMMAND" 2>>$LOG_FILE >>$LOG_FILE &
+        fi
+    fi
+    return 0
+}
+
+stop() {
+    pid=$(pid)
+    if
+        [ -n "$pid" ]
+    then
+        echo "Stopping $APP_NAME"
+        kill $pid
+
+        let kwait=$SHUTDOWN_WAIT
+        count=0
+        count_by=5
+        until
+            [ `ps -p $pid | grep -c $pid` = '0' ] || [ $count -gt $kwait ]
+        do
+            echo "Waiting for process to exit.  Timeout before killing the pid: ${count}/${kwait}."
+            sleep $count_by
+            let count=$count+$count_by;
+        done
+    
+        if
+            [ $count -gt $kwait ]
+        then
+            echo "Killing process which didn't stop after $SHUTDOWN_WAIT seconds."
+            kill -9 $pid
+        fi
+    else
+        echo "Application $APP_NAME is not running."
+    fi
+
+    return 0
+}
+
+case $1 in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    status)
+       pid=$(pid)
+        if
+            [ -n "$pid" ]
+        then
+            command="ps -ef | awk '{ if (\$2 == $pid) print }'"
+            echo ""
+            eval "$command"
+            echo ""
+        else
+           echo "Application $APP_NAME is not running."
+        fi
+        ;;
+    *)
+        echo ""
+        echo "usage: `basename $0` start | stop | restart | status"
+        echo ""
+        exit 1
+        ;;
+esac
+
+exit 0

@@ -1,0 +1,69 @@
+#
+# Spring Properties
+#
+spring:
+    #
+    # Application Properties
+    #
+    application:
+        name: nci-evs-api
+    
+    
+    
+          
+    #
+    # JSON Formatting Properties
+    #
+    jackson:
+        serialization:
+            INDENT_OUTPUT: true
+              
+   
+
+
+#
+# Management Properties
+#
+management:
+    contextPath: /admin
+
+
+
+
+#
+# Endpoint Properties
+#
+endpoints:
+    mappings:
+        enabled: true
+
+#
+# Logging Properties
+#
+logging:
+    level:
+        org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}       
+        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
+        
+  
+
+#
+# Server Properties
+#
+server:   
+    contextPath: /            
+    session:
+        persistent: false    
+        
+        
+nci:
+  evs:
+    stardog:
+      url: ${STARDOG_URL:REPLACE_WITH_URL}
+      queryUrl: ${STARDOG_QUERY_URL:REPLACE_WITH_QUERY_URL}
+      username: ${STARDOG_USERNAME:REPLACE_WITH_USERNAME}
+      password: ${STARDOG_PASSWORD:REPLACE_WITH_PASSWORD}     
+      readTimeout: ${STARDOG_READ_TIMEOUT:10000}
+      connectTimeout: ${STARDOG_CONNECT_TIMEOUT:10000}
+      graphName: ${STARDOG_GRAPH_NAME:REPLACE_WITH_GRAPH_NAME}      
+
