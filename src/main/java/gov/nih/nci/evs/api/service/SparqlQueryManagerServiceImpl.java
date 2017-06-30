@@ -227,9 +227,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 				break;
 
 			}
-			evsAxioms.add(evsAxiom);
+			
 		}
-		
+		evsAxioms.add(evsAxiom);
 		return evsAxioms;
 	}
 
