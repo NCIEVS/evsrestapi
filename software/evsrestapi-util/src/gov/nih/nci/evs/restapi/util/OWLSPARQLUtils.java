@@ -77,6 +77,7 @@ public class OWLSPARQLUtils {
     String named_graph = null;
     String prefixes = null;
     String serviceUrl = null;
+    String named_graph_id = ":NHC0";
 
 	public OWLSPARQLUtils() {
 		this.httpUtils = new HTTPUtils();
@@ -101,6 +102,10 @@ public class OWLSPARQLUtils {
 		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
         this.jsonUtils = new JSONUtils();
     }
+
+    public void set_named_graph_id(String named_graph_id) {
+		this.named_graph_id = named_graph_id;
+	}
 
     public String getServiceUrl() {
 		return this.serviceUrl;
@@ -452,7 +457,7 @@ public class OWLSPARQLUtils {
 	public Vector getOntologyVersionInfo(String named_graph) {
 		return executeQuery(construct_get_ontology_version_info(named_graph));
 	}
-
+/*
 	public String construct_get_synonyms(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -478,6 +483,30 @@ public class OWLSPARQLUtils {
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+*/
+	public String construct_get_synonyms(String named_graph, String code) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?z_axiom ?x_label ?x_code ?term_name ?y ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x " + named_graph_id + " \"" + code + "\"^^xsd:string .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label " + " \"FULL_SYN\"^^xsd:string .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
+		buf.append("            ?z_axiom ?y ?z ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
 
 	public Vector getSynonyms(String named_graph, String code) {
 		Vector v = getPropertyQualifiersByCode(named_graph, code);
@@ -1006,6 +1035,136 @@ public class OWLSPARQLUtils {
 
 	public Vector getDisjointWithByCode(String named_graph, String code) {
 		return executeQuery(construct_get_disjoint_with_by_code(named_graph, code));
+	}
+
+	public String construct_get_object_properties_domain_range(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_pt ?x_code ?x_domain_label ?x_range_label ").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:ObjectProperty .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:domain ?x_domain .").append("\n");
+		buf.append("		?x_domain rdfs:label ?x_domain_label .").append("\n");
+		buf.append("		?x rdfs:range ?x_range .").append("\n");
+		buf.append("		?x_range rdfs:label ?x_range_label .").append("\n");
+		buf.append("        ?x :P108 ?x_pt .").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("	    ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getObjectPropertiesDomainRange(String named_graph) {
+		return executeQuery(construct_get_object_properties_domain_range(named_graph));
+	}
+
+	public String construct_get_object_valued_annotation_properties(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_label ?x_code ").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("        ?x a owl:AnnotationProperty .").append("\n");
+		buf.append("        ?x :NHC0 ?x_code .").append("\n");
+		buf.append("        ?x rdfs:label ?x_label .").append("\n");
+		buf.append("        ?x rdfs:range ?x_range").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("    FILTER (str(?x_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getObjectValuedAnnotationProperties(String named_graph) {
+		return executeQuery(construct_get_object_valued_annotation_properties(named_graph));
+	}
+
+	public String construct_get_string_valued_annotation_properties(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_label ?x_code ").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("        ?x a owl:AnnotationProperty .").append("\n");
+		buf.append("        ?x :NHC0 ?x_code .").append("\n");
+		buf.append("        ?x rdfs:label ?x_label .").append("\n");
+		buf.append("        ?x rdfs:range ?x_range").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("    FILTER (str(?x_range)=\"http://www.w3.org/2001/XMLSchema#string\")").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getStringValuedAnnotationProperties(String named_graph) {
+		return executeQuery(construct_get_string_valued_annotation_properties(named_graph));
+	}
+
+	public Vector getSupportedProperties(String named_graph) {
+		return getStringValuedAnnotationProperties(named_graph);
+	}
+
+	public Vector getSupportedAssociations(String named_graph) {
+		return getObjectValuedAnnotationProperties(named_graph);
+	}
+
+	public Vector getSupportedRoles(String named_graph) {
+		return getObjectProperties(named_graph);
+	}
+
+	public String construct_get_hierarchical_relationships(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?z_label ?z_code ?x_label ?x_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("  {").append("\n");
+		buf.append("	  {").append("\n");
+		buf.append("		  {").append("\n");
+		buf.append("		    ?x a owl:Class .").append("\n");
+		buf.append("		    ?x rdfs:label ?x_label .").append("\n");
+		buf.append("		    ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("		    ?x rdfs:subClassOf ?z .").append("\n");
+		buf.append("		    ?z a owl:Class .").append("\n");
+		buf.append("		    ?z rdfs:label ?z_label .").append("\n");
+		buf.append("		    ?z " + named_graph_id + " ?z_code").append("\n");
+		buf.append("		  }").append("\n");
+		buf.append("		  FILTER (?x != ?z)").append("\n");
+		buf.append("	  }").append("\n");
+		buf.append("  	  UNION").append("\n");
+		buf.append("	  {").append("\n");
+		buf.append("		  {").append("\n");
+		buf.append("		    ?x a owl:Class .").append("\n");
+		buf.append("		    ?x rdfs:label ?x_label .").append("\n");
+		buf.append("		    ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("		    ?x owl:equivalentClass ?y .").append("\n");
+		buf.append("		    ?y owl:intersectionOf ?list .").append("\n");
+		buf.append("		    ?list rdf:rest*/rdf:first ?z .").append("\n");
+		buf.append("		    ?z a owl:Class .").append("\n");
+		buf.append("		    ?z rdfs:label ?z_label .").append("\n");
+		buf.append("		    ?z " + named_graph_id + " ?z_code").append("\n");
+		buf.append("		  }").append("\n");
+		buf.append("		  FILTER (?x != ?z)").append("\n");
+		buf.append("	  }").append("\n");
+		buf.append("  }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getHierarchicalRelationships(String named_graph) {
+		return executeQuery(construct_get_hierarchical_relationships(named_graph));
 	}
 
     public static void main(String[] args) {
