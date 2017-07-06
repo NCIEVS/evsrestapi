@@ -3,7 +3,7 @@
 export JAVA_HOME=/home/immport/opt/java/current
 export PATH="${JAVA_HOME}/bin:${PATH}"
 USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
-APP_NAME=nci-evs-api
+APP_NAME=evsrestapi
 APP_USER=immport
 APP_ROOT_DIR=/data/apps/${APP_NAME}
 ENV_FILE=${APP_ROOT_DIR}/bin/setenv.sh
