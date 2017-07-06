@@ -56,7 +56,7 @@ apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
-/*apply plugin: 'war'*/
+apply plugin: 'war'
 
 group = "gov.nih.nci.evs.api"
 version = "1.0.0-SNAPSHOT"
@@ -88,7 +88,7 @@ dependencies {
     compile 'org.projectlombok:lombok'
      
      
-    /*providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'*/
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     /*
      * This dependency is included to auto-configure class HttpComponentsClientHttpRequestFactory
@@ -147,7 +147,7 @@ task zipFile(type: Zip) {
         into "$zipFileRootDirectory/config"
     }
     from("$buildDir/libs") {
-        include '*.jar'
+        include '*.*'
         into "$zipFileRootDirectory/lib"
     }
     rename { String fileName ->
