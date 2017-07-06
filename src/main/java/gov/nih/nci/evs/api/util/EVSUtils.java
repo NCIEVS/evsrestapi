@@ -98,7 +98,7 @@ public class EVSUtils {
 				synonym.setTermGroup(axiom.getTermGroup());
 				synonym.setTermSource(axiom.getTermSource());
 				synonym.setSourceCode(axiom.getSourceCode());
-				synonym.setSubSourceName(axiom.getSubsourceName());
+				synonym.setSubsourceName(axiom.getSubsourceName());
 				results.add(synonym);
 			}
 		}
@@ -111,7 +111,8 @@ public class EVSUtils {
 			if (axiom.getAnnotatedProperty().equals("P97") || axiom.getAnnotatedProperty().equals("P325")) {
 				EvsDefinition definition = new EvsDefinition();
 				definition.setDescription(axiom.getAnnotatedTarget());
-				definition.setSource(axiom.getDefSource());
+				definition.setDefSource(axiom.getDefSource());
+				definition.setAttr(axiom.getAttr());
 				results.add(definition);
 			}
 		}

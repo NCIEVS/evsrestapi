@@ -9,7 +9,7 @@ public class EvsSynonym {
 	private String termGroup;
 	private String termSource;
 	private String sourceCode;
-	private String subSourceName;
+	private String subsourceName;
 
 	@JsonIgnore
 	public String getCode() {
@@ -42,18 +42,16 @@ public class EvsSynonym {
 	public void setTermSource(String termSource) {
 		this.termSource = termSource;
 	}
-	@JsonIgnore
 	public String getSourceCode() {
 		return sourceCode;
 	}
 	public void setSourceCode(String sourceCode) {
 		this.sourceCode = sourceCode;
 	}
-	@JsonIgnore
-	public String getSubSourceName() {
-		return subSourceName;
+	public String getSubsourceName() {
+		return subsourceName;
 	}
-	public void setSubSourceName(String subSourceName) {
-		this.subSourceName = subSourceName;
+	public void setSubsourceName(String subsourceName) {
+		this.subsourceName = subsourceName;
 	}
 }
