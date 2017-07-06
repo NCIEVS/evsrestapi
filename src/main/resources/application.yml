@@ -50,7 +50,8 @@ logging:
 #
 # Server Properties
 #
-server:   
+server:  
+    port: ${EVS_SERVER_PORT:8080} 
     contextPath: /            
     session:
         persistent: false    

@@ -111,6 +111,9 @@ dependencies {
 jar {
     baseName = project.name
     version =  project.version
+    manifest {
+        attributes 'Main-Class': 'main.java.gov.nih.nci.evs.api.Application'
+    }
 }
 
 test {
@@ -144,7 +147,7 @@ task zipFile(type: Zip) {
         into "$zipFileRootDirectory/config"
     }
     from("$buildDir/libs") {
-        include '*.jar'
+        include '*.*'
         into "$zipFileRootDirectory/lib"
     }
     rename { String fileName ->
