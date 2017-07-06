@@ -18,6 +18,7 @@ public class EvsSynonym {
 	public void setCode(String code) {
 		this.code = code;
 	}
+	@JsonIgnore
 	public String getLabel() {
 		return label;
 	}
