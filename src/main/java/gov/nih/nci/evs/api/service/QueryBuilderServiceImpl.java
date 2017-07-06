@@ -53,8 +53,10 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("    ?property a owl:AnnotationProperty .\n");
 		query.append("    ?property rdfs:label ?propertyLabel .\n");
 		query.append("    ?property :NHC0 ?propertyCode .\n");
-		query.append("    ?concept ?property ?propertyValue");
+		query.append("    ?concept ?property ?propertyValue .\n");
+		query.append("    ?property rdfs:range ?y_range \n");
 		query.append("  }\n");
+		query.append("  FILTER  (str(?y_range)!=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
 		query.append("}\n");
 
 		return query.toString();
@@ -212,7 +214,6 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("	   }\n");
 		query.append("   }\n");
 		query.append("}\n");
-		//System.out.println(query);
 		return query.toString();
 	}
 	

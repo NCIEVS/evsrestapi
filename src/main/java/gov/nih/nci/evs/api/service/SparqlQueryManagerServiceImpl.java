@@ -359,7 +359,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		String namedGraph = getNamedGraph();
 		String query = queryBuilderService.constructRolesQuery(conceptCode,namedGraph);
 		String res = restUtils.runSPARQL(queryPrefix + query);
-		System.out.println(queryPrefix + query);
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
