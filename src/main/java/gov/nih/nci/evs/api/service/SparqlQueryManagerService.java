@@ -15,6 +15,7 @@ import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
 import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
+import gov.nih.nci.evs.api.model.evs.Paths;
 
 public interface SparqlQueryManagerService {
 	
@@ -43,4 +44,8 @@ public interface SparqlQueryManagerService {
 	public boolean checkConceptExists(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 	
 	public HashMap<String,String> getDiseaseIsStageSourceCodes() throws JsonMappingException, JsonParseException, IOException;
+	
+	public Paths getPathToRoot(String conceptCode) throws JsonMappingException, JsonParseException, IOException;
+
+	public Paths getPathToParent(String conceptCode, String parentConceptCode) throws JsonMappingException, JsonParseException, IOException;
 }

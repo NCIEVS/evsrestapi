@@ -20,6 +20,10 @@ public class Bindings
     private Property relationship;
     private Property relatedConceptCode;
     private Property relatedConceptLabel;
+    private Property parentCode;
+    private Property parentLabel;
+    private Property childCode;
+    private Property childLabel;
 
     public Property getPropertyValue ()
     {
@@ -182,5 +186,37 @@ public class Bindings
 
 	public void setRelatedConceptLabel(Property relatedConceptLabel) {
 		this.relatedConceptLabel = relatedConceptLabel;
+	}
+
+	public Property getParentCode() {
+		return parentCode;
+	}
+
+	public void setParentCode(Property parentCode) {
+		this.parentCode = parentCode;
+	}
+
+	public Property getParentLabel() {
+		return parentLabel;
+	}
+
+	public void setParentLabel(Property parentLabel) {
+		this.parentLabel = parentLabel;
+	}
+
+	public Property getChildCode() {
+		return childCode;
+	}
+
+	public void setChildCode(Property childCode) {
+		this.childCode = childCode;
+	}
+
+	public Property getChildLabel() {
+		return childLabel;
+	}
+
+	public void setChildLabel(Property childLabel) {
+		this.childLabel = childLabel;
 	}
 }

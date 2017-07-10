@@ -23,6 +23,7 @@ import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
 import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
+import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
@@ -63,6 +64,29 @@ public class EvsController {
     	return relationships;
     }
 	
+	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/pathToRoot",produces = "application/json")
+    public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
+		EvsConcept evsConcept = null;
+		Paths paths = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else{
+			paths = sparqlQueryManagerService.getPathToRoot(conceptCode);
+		}
+    	return paths;
+    }
+
+	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/pathToParent/{parentConceptCode}",produces = "application/json")
+    public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode ,@PathVariable(value = "parentConceptCode") String parentConceptCode,HttpServletResponse response) throws IOException{
+		EvsConcept evsConcept = null;
+		Paths paths = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else{
+			paths = sparqlQueryManagerService.getPathToParent(conceptCode,parentConceptCode);
+		}
+    	return paths;
+    }
 	
    
 	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/properties",produces = "application/json")

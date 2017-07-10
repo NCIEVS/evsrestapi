@@ -1,8 +1,13 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -18,6 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.evs.Concept;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsAxiom;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
@@ -25,10 +31,14 @@ import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
 import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
+import gov.nih.nci.evs.api.model.evs.Path;
+import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.PathFinder;
 import gov.nih.nci.evs.api.util.RESTUtils;
 
 @Service
@@ -45,13 +55,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	private RESTUtils restUtils = null;
 	
 	private HashMap<String,String> diseaseconcepts;
+	private Paths paths;
+	
+	private HierarchyUtils hierarchy = null;
 
 	@PostConstruct
 	public void postInit() throws IOException{
 		restUtils = new RESTUtils(stardogProperties.getQueryUrl(), stardogProperties.getUsername(),
 				stardogProperties.getPassword(),stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
 		diseaseconcepts = getDiseaseIsStageSourceCodes();
-		
+		List <String> parentchild = getHierarchy();
+		hierarchy = new HierarchyUtils(parentchild);
+		PathFinder pathFinder = new PathFinder(hierarchy);
+		paths = pathFinder.findPaths();
 	}
 	
 	public String getNamedGraph() {
@@ -452,20 +468,144 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		HashMap<String,String> diseaseConcepts = new HashMap<String,String>();
 		
-			Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-			Bindings[] bindings = sparqlResult.getResults().getBindings();
-			for (Bindings b : bindings) {
-				diseaseConcepts.put(b.getConceptCode().getValue(), b.getConceptLabel().getValue());
-				/*if (b.getConceptCode().getValue().equalsIgnoreCase(conceptCode)){
-					isStage = true;
-					break;
-				}*/
-				//EvsConcept concept = new EvsConcept();
-				//concept.setLabel(b.getConceptLabel().getValue());
-				//concept.setCode(b.getConceptCode().getValue());
-				//concepts.add(concept);
-			}
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			diseaseConcepts.put(b.getConceptCode().getValue(), b.getConceptLabel().getValue());
+			/*if (b.getConceptCode().getValue().equalsIgnoreCase(conceptCode)){
+				isStage = true;
+				break;
+			}*/
+			//EvsConcept concept = new EvsConcept();
+			//concept.setLabel(b.getConceptLabel().getValue());
+			//concept.setCode(b.getConceptCode().getValue());
+			//concepts.add(concept);
+		}
 		
 		return diseaseConcepts;
+	}
+	
+	public ArrayList <String> getHierarchy() throws JsonMappingException, JsonParseException, IOException {
+		ArrayList<String> parentchild = new ArrayList <String>();
+		log.info("***** In getHierarchy******");
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph();
+		String query = queryBuilderService.constructHierarchyQuery(namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query);
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			StringBuffer str = new StringBuffer();
+			str.append(b.getParentCode().getValue());
+			str.append("\t");
+			str.append(b.getParentLabel().getValue());
+			str.append("\t");
+			str.append(b.getChildCode().getValue());
+			str.append("\t");
+			str.append(b.getChildLabel().getValue());
+			str.append("\n");
+			parentchild.add(str.toString());
+		}
+		
+		return parentchild;
+	}
+	
+	public Paths getPathToRoot(String code) {
+		Paths conceptPaths = new Paths();
+		for (Path path: paths.getPaths()) {
+			Boolean sw = false;
+			int idx = -1;
+			List <Concept> concepts = path.getConcepts();
+			for (int i = 0; i < concepts.size(); i++) {
+				Concept concept = concepts.get(i);
+				if (concept.getCode().equals(code)) {
+					sw = true;
+					idx = concept.getIdx();
+				}
+			}
+			if (sw) {
+				List <Concept>trimed_concepts = new ArrayList <Concept>();
+				if (idx == -1) {
+					idx = concepts.size()-1;
+				}
+				int j = 0;
+				for (int i=idx; i >= 0; i--) {
+					Concept c = new Concept();
+					c.setCode(concepts.get(i).getCode());
+					c.setLabel(concepts.get(i).getLabel());
+					c.setIdx(j);
+					j++;
+					trimed_concepts.add(c);
+				}
+				conceptPaths.add(new Path(1,trimed_concepts));
+			}
+		}
+		conceptPaths = removeDuplicatePaths(conceptPaths);
+		return conceptPaths;
+	}
+
+	public Paths getPathToParent(String code, String parentCode) {
+		Paths conceptPaths = new Paths();
+		for (Path path: paths.getPaths()) {
+			Boolean codeSW = false;
+			Boolean parentSW = false;
+			int idx = -1;
+			List <Concept> concepts = path.getConcepts();
+			for (int i = 0; i < concepts.size(); i++) {
+				Concept concept = concepts.get(i);
+				if (concept.getCode().equals(code)) {
+					codeSW = true;
+					idx = concept.getIdx();
+				}
+				if (concept.getCode().equals(parentCode)) {
+					parentSW = true;
+				}
+			}
+			if (codeSW && parentSW) {
+				List <Concept>trimed_concepts = new ArrayList <Concept>();
+				if (idx == -1) {
+					idx = concepts.size()-1;
+				}
+				int j = 0;
+				for (int i=idx; i >= 0; i--) {
+					Concept c = new Concept();
+					c.setCode(concepts.get(i).getCode());
+					c.setLabel(concepts.get(i).getLabel());
+					c.setIdx(j);
+					c.setIdx(j);
+					j++;
+					trimed_concepts.add(c);
+					if (c.getCode().equals(parentCode)) {
+						break;
+					}
+				}
+				conceptPaths.add(new Path(1,trimed_concepts));
+			}
+		}
+		conceptPaths = removeDuplicatePaths(conceptPaths);
+		return conceptPaths;
+	}
+		
+	private Paths removeDuplicatePaths(Paths paths) {
+		Paths uniquePaths = new Paths();
+		HashSet <String> seenPaths = new HashSet<String>();
+		for (Path path: paths.getPaths()) {
+			StringBuffer strPath = new StringBuffer();
+		    for (Concept concept: path.getConcepts()) {
+			    strPath.append(concept.getCode());
+				strPath.append("|");
+    		}
+			String pathString = strPath.toString();
+			if (!seenPaths.contains(pathString))  {
+				seenPaths.add(pathString);
+				uniquePaths.add(path);
+			}
+		}
+		
+		return uniquePaths;
 	}
 }
