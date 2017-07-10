@@ -33,7 +33,10 @@ ext {
 
    
   
-
+      /*
+     * Other third-party software versions
+     */
+      swaggerversion = "2.4.0"
    
     
     
@@ -86,9 +89,11 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'       
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.projectlombok:lombok'
+    compile "io.springfox:springfox-swagger2:$swaggerversion" 
+    compile "io.springfox:springfox-swagger-ui:$swaggerversion"
      
      
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+   providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     /*
      * This dependency is included to auto-configure class HttpComponentsClientHttpRequestFactory
