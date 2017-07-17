@@ -152,7 +152,6 @@ public class OWLSPARQLUtils {
         try {
 			query = httpUtils.encode(query);
             String json = httpUtils.executeQuery(query);
-			json = httpUtils.executeQuery(query);
 			v = new JSONUtils().parseJSON(json);
 		} catch (Exception ex) {
 			ex.printStackTrace();
