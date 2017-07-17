@@ -19,6 +19,7 @@ public class StardogProperties {
     private int readTimeout;
     private int connectTimeout;
     private String graphName;
+    private String owlfileName;
 
 	public String getUrl() {
 		return url;
@@ -74,6 +75,14 @@ public class StardogProperties {
 
 	public void setGraphName(String graphName) {
 		this.graphName = graphName;
+	}
+
+	public String getOwlfileName() {
+		return owlfileName;
+	}
+
+	public void setOwlfileName(String owlfileName) {
+		this.owlfileName = owlfileName;
 	}
 
 	

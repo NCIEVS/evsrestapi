@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import gov.nih.nci.evs.api.properties.StardogProperties;
+
 
 
 @Service
@@ -12,18 +14,26 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 	
 	private static final Logger log = LoggerFactory.getLogger(QueryBuilderServiceImpl.class);
 	
+	
+	@Autowired
+	StardogProperties stardogProperties;
+	
+	
+	
 	public String contructPrefix(){
 		
+		
+		
 		String prefix = String.join(System.getProperty("line.separator"), 
-			    "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>",
-		        "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>",
+			    "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/" + stardogProperties.getOwlfileName() + "#>",
+		        "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/" + stardogProperties.getOwlfileName() + "#>",
 		        "PREFIX owl:<http://www.w3.org/2002/07/owl#>",
 		        "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
 		        "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
 		        "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>"
 		);
 
-		
+		log.info("prefix - " + prefix);
 		
 	    return prefix;
 	}
@@ -38,6 +48,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("    ?concept rdfs:label ?conceptLabel \n");
 		query.append("  }\n");
 		query.append("}\n");
+		
+		log.info("constructConceptLabelQuery - " + query.toString());
+		
 		return query.toString();
 		
 	}
@@ -59,6 +72,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("  FILTER  (str(?y_range)!=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
 		query.append("}\n");
 
+		log.info("constructPropertyQuery - " + query.toString());
+		
 		return query.toString();
 	}
 
@@ -74,6 +89,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("}\n");
         query.append("ORDER BY ?axiom\n");
 		
+        log.info("constructAxiomQuery - " + query.toString());
+        
 		return query.toString();
 	}
 
@@ -111,6 +128,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("}\n");
 		query.append("ORDER by ?subclassLabel\n");
 		
+		log.info("constructSubconceptQuery - " + query.toString());
+		
 		return query.toString();
 	}
 
@@ -147,6 +166,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("		}\n");
 		query.append("}\n");
 		query.append("ORDER by ?superclassLabel\n");
+		
+		log.info("constructSuperconceptQuery - " + query.toString());
 
 		return query.toString();
 	}	
@@ -214,6 +235,10 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("	   }\n");
 		query.append("   }\n");
 		query.append("}\n");
+		
+		
+		log.info("constructDiseaseIsStageSourceCodesQuery - " + query.toString());
+		
 		return query.toString();
 	}
 
@@ -253,6 +278,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("	    }\n");
 		query.append("	  }\n");
 		query.append("	}\n");
+		
+		log.info("constructHierarchyQuery - " + query.toString());
+		
 		return query.toString();
 	}
 	
@@ -275,6 +303,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("    }\n");
 		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
 		query.append("}\n");
+		
+		log.info("constructAssociationsQuery - " + query.toString());
+		
 		return query.toString();	
 	}		
 
@@ -298,6 +329,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("    }").append("\n");
 		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")").append("\n");
 		query.append("}").append("\n");
+		
+		log.info("constructInverseAssociationsQuery - " + query.toString());
+		
 		return query.toString();		
 	}		
 
@@ -371,6 +405,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("	   }").append("\n");
 		query.append("   }").append("\n");
 		query.append("} ").append("\n");
+		
+		log.info("constructInverseRolesQuery - " + query.toString());
 
 		return query.toString();		
 	}		
@@ -443,6 +479,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("	   }").append("\n");
 		query.append("   }").append("\n");
 		query.append("} ").append("\n");
+		
+		log.info("constructRolesQuery - " + query.toString());
 
 		return query.toString();
 	}

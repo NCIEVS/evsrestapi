@@ -43,7 +43,7 @@ endpoints:
 logging:
     level:
         org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}       
-        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
+        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:DEBUG}
         
   
 
@@ -66,5 +66,6 @@ nci:
       password: ${STARDOG_PASSWORD:REPLACE_WITH_PASSWORD}     
       readTimeout: ${STARDOG_READ_TIMEOUT:10000}
       connectTimeout: ${STARDOG_CONNECT_TIMEOUT:10000}
-      graphName: ${STARDOG_GRAPH_NAME:REPLACE_WITH_GRAPH_NAME}      
+      graphName: ${STARDOG_GRAPH_NAME:REPLACE_WITH_GRAPH_NAME} 
+      owlfileName: ${STARDOG_OWL_FILENAME:REPLACE_WITH_OWL_FILENAME}     
 
