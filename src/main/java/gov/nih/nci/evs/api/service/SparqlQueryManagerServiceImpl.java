@@ -64,10 +64,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		restUtils = new RESTUtils(stardogProperties.getQueryUrl(), stardogProperties.getUsername(),
 				stardogProperties.getPassword(),stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
 		diseaseconcepts = getDiseaseIsStageSourceCodes();
-		//List <String> parentchild = getHierarchy();
-		//hierarchy = new HierarchyUtils(parentchild);
-		//PathFinder pathFinder = new PathFinder(hierarchy);
-		//paths = pathFinder.findPaths();
+		List <String> parentchild = getHierarchy();
+		hierarchy = new HierarchyUtils(parentchild);
+		PathFinder pathFinder = new PathFinder(hierarchy);
+		paths = pathFinder.findPaths();
 	}
 	
 	public String getNamedGraph() {
