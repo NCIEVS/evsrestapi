@@ -61,7 +61,7 @@ public class EVSUtils {
 	}
 
 	public static String[] COMMON_PROPERTIES = {"code", "label", "Preferred_Name", "Display_Name", "DEFINITION", "ALT_DEFINITION",
-            "FULL_SYN", "Concept_Status", "Semantic_Type", "Concept_In_Subset"};
+            "FULL_SYN", "Concept_Status", "Semantic_Type"};
 	public static List <EvsAdditionalProperty> getAdditionalProperties(List <EvsProperty>properties) {
 		List <EvsAdditionalProperty> results = new ArrayList<EvsAdditionalProperty>();
 		List commonProperties = Arrays.asList(COMMON_PROPERTIES);

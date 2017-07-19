@@ -11,7 +11,9 @@ public class EvsConcept {
 	private List <EvsDefinition> definitions;
 	private String displayName;
 	private String preferredName;
-	private boolean isStage;
+	private boolean isDiseaseStage;
+	private boolean isDiseaseGrade;
+	
 	private String neoplasticStatus;
 	private List <EvsSubconcept> subconcepts;
 	private List <EvsSuperconcept> superconcepts;
@@ -87,10 +89,19 @@ public class EvsConcept {
 	public void setAdditionalProperties(List <EvsAdditionalProperty> additionalProperties) {
 		this.additionalProperties = additionalProperties;
 	}
-	public boolean getIsStage() {
-		return isStage;
+	public boolean getIsDiseaseStage() {
+		return isDiseaseStage;
 	}
-	public void setIsStage(boolean isStage) {
-		this.isStage = isStage;
+	public void setIsDiseaseStage(boolean isDiseaseStage) {
+		this.isDiseaseStage = isDiseaseStage;
 	}
+	
+	public boolean getIsDiseaseGrade() {
+		return isDiseaseGrade;
+	}
+	
+	public void setIsDiseaseGrade(boolean isDiseaseGrade) {
+		this.isDiseaseGrade = isDiseaseGrade;
+	}
+	
 }

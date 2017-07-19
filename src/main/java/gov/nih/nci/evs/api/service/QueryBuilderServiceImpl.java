@@ -26,7 +26,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		
 		String prefix = String.join(System.getProperty("line.separator"), 
 			    "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/" + stardogProperties.getOwlfileName() + "#>",
-		        "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/" + stardogProperties.getOwlfileName() + "#>",
+		        "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/" + stardogProperties.getOwlfileName() + ">",
 		        "PREFIX owl:<http://www.w3.org/2002/07/owl#>",
 		        "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
 		        "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
@@ -238,6 +238,77 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		
 		
 		log.info("constructDiseaseIsStageSourceCodesQuery - " + query.toString());
+		
+		return query.toString();
+	}
+	
+	
+	public String constructDiseaseIsGradeSourceCodesQuery(String namedGraph) {
+		log.info("***In constructDiseaseIsGradeSourceCodesQuery");
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT distinct ?conceptLabel ?conceptCode\n");
+		query.append("{ \n");
+		query.append("    graph <" + namedGraph + ">\n");
+		query.append("    {\n");
+		query.append("	    {").append("\n");
+		query.append("		?x a owl:Class .\n");
+		query.append("		?x :NHC0 ?conceptCode .\n");
+		query.append("		?x rdfs:label ?conceptLabel .\n");
+		query.append("		?x rdfs:subClassOf ?z0 .\n");
+		query.append("		?z0 a owl:Class .\n");
+		query.append("		?z0 owl:intersectionOf ?list .\n");
+		query.append("		?list rdf:rest*/rdf:first ?z2 .\n");
+		query.append("		?z2 a owl:Restriction .\n");
+		query.append("		?z2 owl:onProperty ?p .\n");
+		query.append("		?p rdfs:label ?p_label .\n");
+		query.append("		FILTER (str(?p_label)=\"Disease_Is_Grade\"^^xsd:string)\n");
+		query.append("	   }\n");
+		query.append("	   UNION \n");
+		query.append("	   {\n");
+		query.append("		?x a owl:Class .\n");
+		query.append("		?x rdfs:label ?conceptLabel .\n");
+		query.append("		?x :NHC0 ?conceptCode .\n");
+		query.append("		?x rdfs:subClassOf ?r .\n");
+		query.append("		?r a owl:Restriction .\n");
+		query.append("		?r owl:onProperty ?p .\n");
+		query.append("		?p rdfs:label ?p_label .\n");
+		query.append("		FILTER (str(?p_label)=\"Disease_Is_Grade\"^^xsd:string)\n");
+		query.append("	   }\n");
+		query.append("	   UNION\n");
+		query.append("	   {\n");
+		query.append("		?x a owl:Class .\n");
+		query.append("		?x rdfs:label ?conceptLabel .\n");
+		query.append("		?x :NHC0 ?conceptCode .\n");
+		query.append("		?x owl:equivalentClass ?z .\n");
+		query.append("			?z owl:intersectionOf ?list .\n");
+		query.append("			?list rdf:rest*/rdf:first ?z2 .\n");
+		query.append("				?z2 a owl:Restriction .\n");
+		query.append("				?z2 owl:onProperty ?p .\n");
+		query.append("				?p rdfs:label ?p_label .\n");
+		query.append("				FILTER (str(?p_label)=\"Disease_Is_Grade\"^^xsd:string)\n");
+		query.append("	   }\n");
+		query.append("	   UNION\n");
+		query.append("	   {\n");
+		query.append("		?x a owl:Class .\n");
+		query.append("		?x rdfs:label ?conceptLabel .\n");
+		query.append("		?x :NHC0 ?conceptCode .\n");
+		query.append("		?x owl:equivalentClass ?z1 .\n");
+		query.append("			?z1 owl:intersectionOf ?list1 .\n");
+		query.append("			?list1 rdf:rest*/rdf:first ?z2 .\n");
+		query.append("			     ?z2 owl:unionOf ?list2 .\n");
+		query.append("			     ?list2 rdf:rest*/rdf:first ?z3 .\n");
+		query.append("				 ?z3 owl:intersectionOf ?list3 .\n");
+		query.append("				 ?list3 rdf:rest*/rdf:first ?z4 .\n");
+		query.append("					?z4 a owl:Restriction .\n");
+		query.append("					?z4 owl:onProperty ?p .\n");
+		query.append("					?p rdfs:label ?p_label .\n");
+		query.append("					FILTER (str(?p_label)=\"Disease_Is_Grade\"^^xsd:string)\n");
+		query.append("	   }\n");
+		query.append("   }\n");
+		query.append("}\n");
+		
+		
+		log.info("constructDiseaseIsGradeSourceCodesQuery - " + query.toString());
 		
 		return query.toString();
 	}

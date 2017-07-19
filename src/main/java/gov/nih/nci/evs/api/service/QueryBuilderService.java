@@ -24,6 +24,8 @@ public interface QueryBuilderService {
 	public String constructInverseRolesQuery(String conceptCode, String namedGraph);
 
 	public String constructDiseaseIsStageSourceCodesQuery(String namedGraph);
+	
+	public String constructDiseaseIsGradeSourceCodesQuery(String namedGraph);
 
 	public String constructHierarchyQuery(String namedGraph);
 }
