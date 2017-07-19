@@ -168,33 +168,32 @@ public class ConceptDetails
 		Vector superclass_vec,
 		Vector subclass_vec,
 		Boolean isStage) {
-
 		ParserUtils parser = new ParserUtils();
         HashMap prop_hmap = parser.parseProperties(property_vec);
         Vector code_vec = (Vector) prop_hmap.get("code");
-        String code = (String) code_vec.elementAt(0);
 
+		String code = null;
+		if (code_vec != null) {
+				code = (String) code_vec.elementAt(0);
+		}
         String label = parser.parseLabel(label_vec);
-        //String displayName = (String) prop_hmap.get("Display_Name");
+        Vector displayNames = (Vector) prop_hmap.get("Display_Name");
+        if (displayNames != null) {
+        	displayName = (String) displayNames.elementAt(0);
+		}
         Vector preferredName_vec = (Vector) prop_hmap.get("Preferred_Name");
         String preferredName = null;
         if (preferredName_vec != null) {
         	preferredName = (String) preferredName_vec.elementAt(0);
 		}
+
         Vector displayName_vec = (Vector) prop_hmap.get("Display_Name");
-        String displayName = null;
         if (displayName_vec != null) {
         	displayName = (String) displayName_vec.elementAt(0);
 		}
+
         List synonyms = parser.getSynonyms(synonym_vec);
         Vector conceptStatus_vec = (Vector) prop_hmap.get("Concept_Status");
-/*
-        Vector neoplasticStatus_vec = (Vector) prop_hmap.get("Neoplastic_Status");
-        String neoplasticStatus = null;
-        if (neoplasticStatus_vec != null) {
-        	neoplasticStatus = (String) neoplasticStatus_vec.elementAt(0);
-		}
-*/
         Vector semanticType_vec = (Vector) prop_hmap.get("Semantic_Type");
 
         HashMap superclasses_hmap = parser.parseSuperclasses(superclass_vec);
@@ -229,10 +228,10 @@ public class ConceptDetails
 		this.synonyms =synonyms;
 
 		this.conceptStatus = vector2List(conceptStatus_vec);
-		//this.neoplasticStatus = neoplasticStatus;
 		this.semanticTypes = vector2List(semanticType_vec);
 		this.superconcepts = superconcepts;
 		this.subconcepts = subconcepts;
+
 		List definitions = new ArrayList();
         Vector def_vec = parser.filterPropertyQualifiers(property_qualifier_vec, Constants.DEFINITION);//) { //type: FULL_SYN, DEFINITION, ALT_DEFINITION
         definitions = parser.getDefinitions(def_vec);
@@ -244,8 +243,9 @@ public class ConceptDetails
 				definitions.add(def);
 			}
 	    }
+
 		this.definitions = definitions;
-		this.additionalProperties = parser.getAdditionalProperties(property_vec);//) { //type: FULL_SYN, DEFINITION, ALT_DEFINITION
+		this.additionalProperties = parser.getAdditionalProperties(property_vec);
 		new SortUtils().quickSort(additionalProperties);
 		this.isStage = isStage;
 	}

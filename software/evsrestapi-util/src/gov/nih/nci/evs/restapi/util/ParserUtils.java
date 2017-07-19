@@ -97,7 +97,8 @@ public class ParserUtils {
 	}
 
 	public HashMap parseProperties(Vector v) {
-		return parse(v, 3, 1, 2);
+		//return parse(v, 3, 1, 2);
+		return parse(v, 2, 0, 1);
 	}
 
 	public HashMap parse(Vector v, int m, int d1, int d2) {
@@ -156,22 +157,6 @@ public class ParserUtils {
 	}
 
 
-/*
-        (7) z_axiom|bnode|bnode_8aeefc2e_62d6_4c80_af01_d3f8c0650595_1497620
-        (8) x_label|literal|Melanoma
-        (9) x_code|literal|C3224
-        (10) term_name|literal|A malignant neoplasm composed of melanocytes.
-        (11) y_label|literal|def-source
-        (12) z|literal|CDISC
-
-
-       (1) z_axiom|bnode|bnode_8aeefc2e_62d6_4c80_af01_d3f8c0650595_1247066
-       (2) x_label|literal|Spinal Cord
-       (3) x_code|literal|C12464
-       (4) term_name|literal|Medulla Spinalis
-       (5) y_label|literal|term-group
-       (6) z|literal|SY
-*/
 	public List getSynonyms(Vector v) {
 	    v = sortAxiomData(v);
 		List syn_list = new ArrayList();
@@ -197,6 +182,7 @@ public class ParserUtils {
 
 		String qualifier_name = null;
 		String qualifier_value = null;
+
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -238,17 +224,17 @@ public class ParserUtils {
 				qualifier_name = getValue(line);
 			} else if (t0.compareTo("z") == 0) {
 				qualifier_value = getValue(line);
-				if (qualifier_name.compareTo("term-source") == 0) {
+				if (qualifier_name.compareTo("term-source") == 0 || qualifier_name.compareTo("Term Source") == 0) {
 					termSource = qualifier_value;
 				} else if (qualifier_name.compareTo("P385") == 0) {
 					sourceCode = qualifier_value;
-				} else if (qualifier_name.compareTo("term-group") == 0) {
+				} else if (qualifier_name.compareTo("term-group") == 0 || qualifier_name.compareTo("Term Type") == 0) {
 					termGroup = qualifier_value;
-				} else if (qualifier_name.compareTo("source-code") == 0) {
+				} else if (qualifier_name.compareTo("source-code") == 0 || qualifier_name.compareTo("Source Code") == 0) {
 					sourceCode = qualifier_value;
-				} else if (qualifier_name.compareTo("subsource-name") == 0) {
+				} else if (qualifier_name.compareTo("subsource-name") == 0 || qualifier_name.compareTo("Subsource Name") == 0) {
 					subSourceName = qualifier_value;
-				} else if (qualifier_name.compareTo("subsource-code") == 0) {
+				} else if (qualifier_name.compareTo("subsource-code") == 0 || qualifier_name.compareTo("Subsource Code") == 0) {
 					subSourceCode = qualifier_value;
 				}
 			}
@@ -325,7 +311,7 @@ public class ParserUtils {
 				qualifier_name = getValue(line);
 			} else if (t0.compareTo("z") == 0) {
 				qualifier_value = getValue(line);
-                if (qualifier_name.compareTo("P378") == 0 || qualifier_name.compareTo("def-source") == 0) {
+                if (qualifier_name.compareTo("P378") == 0 || qualifier_name.compareTo("def-source") == 0 || qualifier_name.compareTo("Definition Source") == 0) {
 					defSource = qualifier_value;
 
 				}
@@ -338,67 +324,6 @@ public class ParserUtils {
 		return def_list;
 	}
 
-	public Vector filterPropertyQualifiers(Vector v, String type) { //FULL_SYN, DEFINITION, ALT_DEFINITION
-		Vector w = new Vector();
-		int n = v.size()/9;
-		Vector key_vec = new Vector();
-		for (int i=0; i<n; i++) {
-			String t0 = (String) v.elementAt(i*9);
-			String t3 = (String) v.elementAt(i*9+3);
-			t3 = getValue(t3);
-			if (t3.compareTo(type) == 0) {
-				if (!key_vec.contains(t0)) {
-					key_vec.add(t0);
-				}
-			}
-		}
-		key_vec = new SortUtils().quickSort(key_vec);
-		for (int i=0; i<key_vec.size(); i++) {
-		    String key = (String) key_vec.elementAt(i);
-		    for (int j=0; j<v.size(); j++) {
-				String value = (String) v.elementAt(j);
-				if (value.compareTo(key) == 0) {
-					w.add(value);
-					w.add((String) v.elementAt(j+1));
-					w.add((String) v.elementAt(j+2));
-					w.add((String) v.elementAt(j+5));
-					w.add((String) v.elementAt(j+6));
-					w.add((String) v.elementAt(j+8));
-				}
-			}
-		}
-		return w;
-	}
-
-/*
-	public Vector generateRelationships(Vector v, String type) {
-        Vector w = new Vector();
-        int n = v.size()/5;
-		String name = null;
-		String sourceCode = null;
-		String sourceLabel = null;
-		String targetCode = null;
-		String targetLabel = null;
-
-        for (int i=0; i<n; i++) {
-			int k = i*5;
-			name = getValue((String) v.elementAt(k+2));
-			sourceCode = getValue((String) v.elementAt(k+1));
-			sourceLabel = getValue((String) v.elementAt(k));
-			targetCode = getValue((String) v.elementAt(k+4));
-			targetLabel = getValue((String) v.elementAt(k+3));
-	        Relationship r = new Relationship(
-				type,
-				name,
-				sourceCode,
-				sourceLabel,
-				targetCode,
-				targetLabel);
-			w.add(r);
-		}
-		return w;
-	}
-*/
 	public Vector generateRelationships(Vector v, String type, String name) {
         ParserUtils parser = new ParserUtils();
         Vector w = new Vector();
@@ -426,7 +351,7 @@ public class ParserUtils {
 		return w;
 	}
 
-	public HashMap getStageConceptHashMap(Vector v) {
+	public HashMap getCode2LabelHashMap(Vector v) {
 		HashMap hmap = new HashMap();
 		int n = v.size()/2;
 		for (int i=0; i<n; i++) {
@@ -459,11 +384,11 @@ public class ParserUtils {
 		List additionalProperties = new ArrayList();
 		List commonProperties = Arrays.asList(Constants.COMMON_PROPERTIES);
 		if (v == null) return null;
-		int n = v.size()/3;
+		int n = v.size()/2;
 		for (int i=0; i<n; i++) {
-			String x_label = getValue((String) v.elementAt(i*3));
-			String y_label = getValue((String) v.elementAt(i*3+1));
-			String z = getValue((String) v.elementAt(i*3+2));
+			String y_label = getValue((String) v.elementAt(i*2));
+			String z_label = getValue((String) v.elementAt(i*2+1));
+			String z = getValue(z_label);
 			if (!commonProperties.contains(y_label)) {
 				Property property = new Property(y_label, z);
 				additionalProperties.add(property);
@@ -511,23 +436,121 @@ public class ParserUtils {
 		return new_paths;
 	}
 
-	public static void main(String[] args) {
-		String filename = args[0];
+	public Vector getResponseVariables(Vector v) {
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String var = (String) u.elementAt(0);
+			if (!w.contains(var)) {
+				w.add(var);
+			}
+		}
+		return w;
+	}
 
-		Vector w = Utils.readFile(filename);
-		HashMap hmap = new ParserUtils().parseProperties(w);
-		StringUtils.outputHashMap(hmap);
+	public String getVariableName(String line) {
+		Vector u = StringUtils.parseData(line, '|');
+		return (String) u.elementAt(0);
+	}
 
-        w = Utils.readFile(filename);
-		List list = new ParserUtils().getSynonyms(w);
-		for (int i=0; i<list.size(); i++) {
-			Synonym syn = (Synonym) list.get(i);
-			int j = i+1;
-			System.out.println("(" + j + ") " + syn.toString());
+
+	public Vector getResponseValues(Vector v) {
+		ParserUtils parser = new ParserUtils();
+		Vector w = new Vector();
+		Vector vars = getResponseVariables(v);
+		String firstVar = (String) vars.elementAt(0);
+		String[] values = new String[vars.size()];
+		for (int i=0; i<vars.size(); i++) {
+			values[i] = null;
+		}
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			String var = getVariableName(line);
+			if (var.compareTo(firstVar) == 0 && values[0] != null) {
+				StringBuffer buf = new StringBuffer();
+				for (int j=0; j<vars.size(); j++) {
+					String t = values[j];
+					if (t == null) {
+						t = "null";
+					}
+					buf.append(t);
+					if (j < vars.size()-1) {
+						buf.append("|");
+					}
+				}
+				String s = buf.toString();
+				w.add(s);
+
+				for (int k=0; k<vars.size(); k++) {
+					values[k] = null;
+			    }
+		    }
+		    String value = parser.getValue(line);
+			for (int k=0; k<vars.size(); k++) {
+				if (var.compareTo((String) vars.elementAt(k)) == 0) {
+					values[k] = value;
+				}
+			}
+
+		}
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<vars.size(); i++) {
+			String t = values[i];
+			if (t == null) {
+				t = "null";
+			}
+			buf.append(t);
+			if (i < vars.size()-1) {
+				buf.append("|");
+			}
+		}
+		String s = buf.toString();
+		w.add(s);
+		return w;
+	}
+
+
+
+	public Vector filterPropertyQualifiers(Vector v, String type) { //FULL_SYN, DEFINITION, ALT_DEFINITION
+		Vector w = new Vector();
+		int n = v.size()/9;
+		Vector key_vec = new Vector();
+		for (int i=0; i<n; i++) {
+			String t0 = (String) v.elementAt(i*9);
+			String t3 = (String) v.elementAt(i*9+3);
+			t3 = getValue(t3);
+			if (t3.compareTo(type) == 0) {
+				if (!key_vec.contains(t0)) {
+					key_vec.add(t0);
+				}
+			}
 		}
 
-		w = Utils.readFile(filename);
-		hmap = new ParserUtils().parseSuperclasses(w);
-		StringUtils.outputHashMap(hmap);
+		key_vec = new SortUtils().quickSort(key_vec);
+		for (int i=0; i<key_vec.size(); i++) {
+		    String key = (String) key_vec.elementAt(i);
+		    for (int j=0; j<v.size(); j++) {
+				String value = (String) v.elementAt(j);
+				if (value.compareTo(key) == 0) {
+					w.add(value);
+					w.add((String) v.elementAt(j+1));
+					w.add((String) v.elementAt(j+2));
+					w.add((String) v.elementAt(j+5));
+					w.add((String) v.elementAt(j+6));
+					w.add((String) v.elementAt(j+8));
+				}
+			}
+		}
+		return w;
 	}
+
+	public static void main(String[] args) {
+		String filename = args[0];
+        filename = "filterPropertyQualifiers.txt";
+		Vector w = Utils.readFile(filename);
+        Vector v = new ParserUtils().filterPropertyQualifiers(w, "FULL_SYN");
+	}
+
+
 }
