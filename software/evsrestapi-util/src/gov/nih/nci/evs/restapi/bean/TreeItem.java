@@ -185,20 +185,27 @@ public class TreeItem implements Serializable, Comparable<TreeItem> {
     }
 
     public static void printTree(TreeItem ti, int depth) {
+		printTree(ti, depth, true);
+	}
+
+    public static void printTree(TreeItem ti, int depth, boolean print_code_first) {
 		if (ti == null) return;
 
         StringBuffer indent = new StringBuffer();
-        for (int i = 0; i < depth * 2; i++) {
-            //indent.append("| ");
+        for (int i = 0; i < depth; i++) {
             indent.append("\t");
 		}
 
         StringBuffer codeAndText = new StringBuffer();
 
         codeAndText.append(indent);
-        codeAndText.append("").append(ti._code)
-                .append(':').append(ti._text).append(ti._expandable ? " [+]" : "");
 
+        if (print_code_first) {
+			codeAndText.append("").append(ti._code)
+					.append(':').append(ti._text).append(ti._expandable ? " [+]" : "");
+		} else {
+			codeAndText.append("").append(ti._text).append(" (").append(ti._code).append(")");
+		}
         System.out.println(codeAndText);
 
         for (String association : ti._assocToChildMap.keySet()) {
@@ -206,10 +213,38 @@ public class TreeItem implements Serializable, Comparable<TreeItem> {
             new SortUtils().quickSort(children);
             for (int i=0; i<children.size(); i++) {
 				TreeItem childItem = (TreeItem) children.get(i);
-                printTree(childItem, depth + 1);
+                printTree(childItem, depth + 1, print_code_first);
 			}
         }
     }
 
+    public static void printTree(PrintWriter pw, TreeItem ti, int depth, boolean print_code_first) {
+		if (ti == null) return;
 
+        StringBuffer indent = new StringBuffer();
+        for (int i = 0; i < depth; i++) {
+            indent.append("\t");
+		}
+
+        StringBuffer codeAndText = new StringBuffer();
+
+        codeAndText.append(indent);
+
+        if (print_code_first) {
+			codeAndText.append("").append(ti._code)
+					.append(':').append(ti._text).append(ti._expandable ? " [+]" : "");
+		} else {
+			codeAndText.append("").append(ti._text).append(" (").append(ti._code).append(")");
+		}
+        pw.println(codeAndText);
+
+        for (String association : ti._assocToChildMap.keySet()) {
+            List<TreeItem> children = ti._assocToChildMap.get(association);
+            new SortUtils().quickSort(children);
+            for (int i=0; i<children.size(); i++) {
+				TreeItem childItem = (TreeItem) children.get(i);
+                printTree(pw, childItem, depth + 1, print_code_first);
+			}
+        }
+    }
 }

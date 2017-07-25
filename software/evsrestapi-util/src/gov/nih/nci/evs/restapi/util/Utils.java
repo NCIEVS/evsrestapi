@@ -145,6 +145,15 @@ public class Utils {
 		}
 	 }
 
+	public static void saveToFile(PrintWriter pw, Vector v) {
+		if (v != null && v.size() > 0) {
+			for (int i=0; i<v.size(); i++) {
+				String t = (String) v.elementAt(i);
+				pw.println(t);
+			}
+		}
+	}
+
 	public static Vector readFile(String filename)
 	{
 		Vector v = new Vector();
@@ -163,7 +172,7 @@ public class Utils {
 		return v;
 	}
 
-    public Vector parseData(String line, char delimiter) {
+    public static Vector parseData(String line, char delimiter) {
 		if(line == null) return null;
 		Vector w = new Vector();
 		StringBuffer buf = new StringBuffer();
@@ -180,4 +189,50 @@ public class Utils {
 		return w;
 	}
 
+	public static String createStaticVariable(Vector v, String variableName) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("public static final String[] " + variableName + " = new String[] {").append("\n");
+		for (int i=0; i<v.size(); i++) {
+			int j = i+1;
+			String t = (String) v.elementAt(i);
+			buf.append("\"" + t + "\", ");
+			if (j % 10 == 0) {
+				buf.append("\n");
+			}
+		}
+		String s = buf.toString();
+		s = s.trim();
+		s = s.substring(0, s.length()-1) + "};";
+		return s;
+	}
+
+	public static HashSet vector2HashSet(Vector v) {
+		if (v == null) return null;
+		HashSet hset = new HashSet();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			hset.add(t);
+		}
+		return hset;
+	}
+
+	public static Vector hashSet2Vector(HashSet hset) {
+		if (hset == null) return null;
+		Vector v = new Vector();
+		Iterator it = hset.iterator();
+		while (it.hasNext()) {
+			String t = (String) it.next();
+			v.add(t);
+		}
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
+
+    public static String changeFileExtension(String filename, String ext) {
+		int n = filename.lastIndexOf(".");
+		if (n != -1) {
+			return filename.substring(0, n) + "." + ext;
+		}
+		return filename;
+	}
 }

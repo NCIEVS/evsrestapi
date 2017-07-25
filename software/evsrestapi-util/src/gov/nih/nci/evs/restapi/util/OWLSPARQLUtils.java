@@ -834,51 +834,6 @@ public class OWLSPARQLUtils {
 	}
 
 
-	public String construct_get_hierarchical_relationships(String named_graph) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT ?z_label ?z_code ?x_label ?x_code").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
-		buf.append("  {").append("\n");
-		buf.append("	  {").append("\n");
-		buf.append("		  {").append("\n");
-		buf.append("		    ?x a owl:Class .").append("\n");
-		buf.append("		    ?x rdfs:label ?x_label .").append("\n");
-		buf.append("		    ?x :NHC0 ?x_code .").append("\n");
-		buf.append("		    ?x rdfs:subClassOf ?z .").append("\n");
-		buf.append("		    ?z a owl:Class .").append("\n");
-		buf.append("		    ?z rdfs:label ?z_label .").append("\n");
-		buf.append("		    ?z :NHC0 ?z_code").append("\n");
-		buf.append("		  }").append("\n");
-		buf.append("		  FILTER (?x != ?z)").append("\n");
-		buf.append("	  }").append("\n");
-		buf.append("  	  UNION").append("\n");
-		buf.append("	  {").append("\n");
-		buf.append("		  {").append("\n");
-		buf.append("		    ?x a owl:Class .").append("\n");
-		buf.append("		    ?x rdfs:label ?x_label .").append("\n");
-		buf.append("		    ?x :NHC0 ?x_code .").append("\n");
-		buf.append("		    ?x owl:equivalentClass ?y .").append("\n");
-		buf.append("		    ?y owl:intersectionOf ?list .").append("\n");
-		buf.append("		    ?list rdf:rest*/rdf:first ?z .").append("\n");
-		buf.append("		    ?z a owl:Class .").append("\n");
-		buf.append("		    ?z rdfs:label ?z_label .").append("\n");
-		buf.append("		    ?z :NHC0 ?z_code").append("\n");
-		buf.append("		  }").append("\n");
-		buf.append("		  FILTER (?x != ?z)").append("\n");
-		buf.append("	  }").append("\n");
-		buf.append("  }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
-
-
-	public Vector getHierarchicalRelationships(String named_graph) {
-		return executeQuery(construct_get_hierarchical_relationships(named_graph));
-	}
-
 	public String construct_get_inverse_associations_by_code(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();

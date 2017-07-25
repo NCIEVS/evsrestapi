@@ -57,7 +57,7 @@ import java.util.*;
  */
 
 
-public class HierarchyHelper {
+public class HierarchyHelper implements Serializable {
     private static String TYPE_ROOT = "TYPE_ROOT";
     private static String TYPE_LEAF = "TYPE_LEAF";
 
@@ -66,7 +66,6 @@ public class HierarchyHelper {
 
     //private HashMap code2NameMap = null;
     private HashMap code2LabelMap = null;
-
 
     private Vector _PARENT_CHILDREN = null;
 	private String _ROOTS = null;
@@ -429,7 +428,6 @@ public class HierarchyHelper {
 			indent = indent + "\t";
 		}
 		String label = getLabel(code);
-		//System.out.println(indent + code);
 		System.out.println(indent + label + " (" + code + ")");
 		Vector child_codes = getSubclassCodes(code);
 		if (child_codes != null && child_codes.size() > 0) {
@@ -440,13 +438,10 @@ public class HierarchyHelper {
 		}
 	}
 
-
-
 	public void printTree(PrintWriter pw) {
 		if (roots == null) {
 			findRootAndLeafNodes();
 		}
-
 		Vector label_vec = new Vector();
 		HashMap label2codeMap = new HashMap();
 		for (int i=0; i<roots.size(); i++) {
@@ -461,7 +456,6 @@ public class HierarchyHelper {
 			String code = (String) label2codeMap.get(label);
 			printTree(pw, code, 0);
 		}
-
 	}
 
 	public void printTree(PrintWriter pw, String code, int level) {
@@ -495,6 +489,71 @@ public class HierarchyHelper {
 			}
 		}
 	}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+	public Vector exportTree() {
+		return exportTree(new Vector());
+	}
+
+	public Vector exportTree(Vector v) {
+		if (roots == null) {
+			findRootAndLeafNodes();
+		}
+		Vector label_vec = new Vector();
+		HashMap label2codeMap = new HashMap();
+		for (int i=0; i<roots.size(); i++) {
+			String root = (String) roots.elementAt(i);
+			String label = getLabel(root);
+			label2codeMap.put(label, root);
+			label_vec.add(label);
+		}
+		label_vec = new SortUtils().quickSort(label_vec);
+		for (int i=0; i<label_vec.size(); i++) {
+			String label = (String) label_vec.elementAt(i);
+			String code = (String) label2codeMap.get(label);
+			v = exportTree(v, code, 0);
+			//v.addAll(w);
+		}
+		return v;
+	}
+
+	public Vector exportTree(Vector v, String code, int level) {
+		String indent = INDENT;
+		for (int i=0; i<level; i++) {
+			indent = indent + "\t";
+		}
+		String label = getLabel(code);
+		if (show_code) {
+			v.add(indent + label + " (" + code + ")");
+		} else {
+			v.add(indent + label);
+		}
+
+		Vector child_codes = getSubclassCodes(code);
+        if (child_codes != null && child_codes.size() > 0) {
+			Vector label_vec = new Vector();
+			HashMap label2codeMap = new HashMap();
+			for (int i=0; i<child_codes.size(); i++) {
+				String root = (String) child_codes.elementAt(i);
+				label = getLabel(root);
+				label2codeMap.put(label, root);
+				label_vec.add(label);
+			}
+			label_vec = new SortUtils().quickSort(label_vec);
+
+			for (int i=0; i<label_vec.size(); i++) {
+				label = (String) label_vec.elementAt(i);
+				String child_code = (String) label2codeMap.get(label);
+				v = exportTree(v, child_code, level+1);
+				//v.addAll(w);
+			}
+		}
+		return v;
+	}
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 	public static int TRAVERSE_UP = 1;
 	public static int TRAVERSE_DOWN = 0;
@@ -545,6 +604,10 @@ public class HierarchyHelper {
 		if (roots.contains(code)) return;
 		roots.add(code);
 		code2LabelMap.put(code, label);
+	}
+
+	public HashMap getCode2LabelMap() {
+		return this.code2LabelMap;
 	}
 
     public static void main(String[] args) {
