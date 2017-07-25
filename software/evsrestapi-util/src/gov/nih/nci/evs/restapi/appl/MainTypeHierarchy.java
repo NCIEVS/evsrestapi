@@ -72,9 +72,6 @@ public class MainTypeHierarchy {
 		}
 		main_types = Utils.hashSet2Vector(main_type_set);
 
-        //generateMainTypeHierarchy("main_type_hierarchy.txt");
-        //levelMap = createMaxLevelHashMap("main_type_hierarchy.txt");
-
         Vector w = generate_main_type_hierarchy();
         levelMap = create_max_level_hashmap(w);
 
@@ -395,69 +392,13 @@ public class MainTypeHierarchy {
         return w;
 	}
 
+
 	public Vector findCode2MainTypesTree(String rootCode) {
 		return findCode2MainTypesTree(rootCode, main_type_set);
 	}
 
-	public Vector findCode2MainTypesTree(String rootCode, HashSet nodeSet) {
-        ParserUtils parser = new ParserUtils();
-		Vector w = new Vector();
-		HashSet visitedNodes = new HashSet();
-		FirstInFirstOutQueue queue = new FirstInFirstOutQueue();
-		queue.add("@|" + rootCode);
-		while (!queue.isEmpty()) {
-			String line = (String) queue.remove();
-			Vector u = StringUtils.parseData(line, '|');
-			String parentCode = parser.getValue((String) u.elementAt(0));
-			String code = parser.getValue((String) u.elementAt(1));
-
-			if (!visitedNodes.contains(parentCode)) {
-				visitedNodes.add(parentCode);
-			}
-			if (!visitedNodes.contains(code)) {
-				visitedNodes.add(code);
-			}
-
-			if (nodeSet.contains(parentCode) && nodeSet.contains(code)) {
-				String parentLabel = hh.getLabel(parentCode);
-				String childLabel = hh.getLabel(code);
-				String record = parentLabel + "|" + parentCode
-				              + "|" + childLabel + "|" + code;
-				if (!w.contains(record)) {
-					w.add(record);
-				}
 
 
-				if (visitedNodes.size() == nodeSet.size()) {
-					break;
-				}
-				Vector v = hh.getSuperclassCodes(code);
-				if (v != null) {
-					for (int j=0; j<v.size(); j++) {
-						String childCode = (String) v.elementAt(j);
-						queue.add(code + "|" + childCode);
-					}
-			    }
-			} else if (nodeSet.contains(parentCode) && !nodeSet.contains(code)) {
-				Vector v = hh.getSuperclassCodes(code);
-				if (v != null) {
-					for (int j=0; j<v.size(); j++) {
-						String childCode = (String) v.elementAt(j);
-						queue.add(parentCode + "|" + childCode);
-					}
-				}
-			} else if (!nodeSet.contains(parentCode)) {
-				Vector v = hh.getSuperclassCodes(code);
-				if (v != null) {
-					for (int j=0; j<v.size(); j++) {
-						String childCode = (String) v.elementAt(j);
-						queue.add(code + "|" + childCode);
-					}
-				}
-			}
-		}
-        return w;
-	}
 
 
 	public Vector findMainTypeAncestors(String rootCode) {
@@ -680,6 +621,88 @@ public class MainTypeHierarchy {
 		Vector v = Utils.readFile(ctrpdatafile);
 		run(v, outputfile, flatFormat);
 	}
+
+    public void testOneCode(String code) {
+		System.out.println("v: " + code);
+		Vector v = new Vector();
+		v.add(code);
+		String outputfile = code + ".txt";
+		boolean flatFormat = false;
+
+        run(v, outputfile, flatFormat);
+	}
+
+
+
+
+	public Vector findCode2MainTypesTree(String rootCode, HashSet nodeSet) {
+        ParserUtils parser = new ParserUtils();
+		Vector w = new Vector();
+		HashSet visitedNodes = new HashSet();
+		FirstInFirstOutQueue queue = new FirstInFirstOutQueue();
+		queue.add("@|" + rootCode);
+		while (!queue.isEmpty()) {
+			String line = (String) queue.remove();
+			Vector u = StringUtils.parseData(line, '|');
+			String parentCode = parser.getValue((String) u.elementAt(0));
+			String code = parser.getValue((String) u.elementAt(1));
+
+			if (!visitedNodes.contains(parentCode)) {
+				visitedNodes.add(parentCode);
+			}
+			if (!visitedNodes.contains(code)) {
+				visitedNodes.add(code);
+			}
+
+			if (nodeSet.contains(parentCode) && nodeSet.contains(code)) {
+				String parentLabel = hh.getLabel(parentCode);
+				String childLabel = hh.getLabel(code);
+				String record = parentLabel + "|" + parentCode
+				              + "|" + childLabel + "|" + code;
+				if (!w.contains(record)) {
+					w.add(record);
+				}
+
+				if (visitedNodes.size() == nodeSet.size()) {
+					break;
+				}
+				Vector v = hh.getSuperclassCodes(code);
+				if (v != null) {
+					for (int j=0; j<v.size(); j++) {
+						String childCode = (String) v.elementAt(j);
+						queue.add(code + "|" + childCode);
+					}
+			    }
+			} else if (nodeSet.contains(parentCode) && !nodeSet.contains(code)) {
+				Vector v = hh.getSuperclassCodes(code);
+				if (v != null) {
+					for (int j=0; j<v.size(); j++) {
+						String childCode = (String) v.elementAt(j);
+						queue.add(parentCode + "|" + childCode);
+					}
+				}
+			} else if (!nodeSet.contains(parentCode)) {
+				Vector v = hh.getSuperclassCodes(code);
+				if (v != null) {
+					for (int j=0; j<v.size(); j++) {
+						String childCode = (String) v.elementAt(j);
+						queue.add(code + "|" + childCode);
+					}
+				}
+			}
+		}
+		if (w.size() == 0) {
+			String parentLabel = hh.getLabel(rootCode);
+			String childLabel = hh.getLabel(DISEASES_AND_DISORDERS_CODE);
+			String record = parentLabel + "|" + rootCode
+						  + "|" + childLabel + "|" + DISEASES_AND_DISORDERS_CODE;
+			w.add(record);
+		}
+        return w;
+	}
+
+
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
