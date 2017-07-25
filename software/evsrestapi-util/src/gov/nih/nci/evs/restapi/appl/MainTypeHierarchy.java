@@ -727,8 +727,8 @@ public class MainTypeHierarchy {
         Vector neoplasm_codes = test.getTransitiveClosure(NEOPLASM_CODE);
         System.out.println("Number of neoplasm_codes: " + neoplasm_codes.size());
         Utils.saveToFile("neoplasm.txt", neoplasm_codes);
-        test.run(disease_codes, "neoplasm_ctrp_response_v1.txt", true);
-        test.run(disease_codes, "neoplasm_ctrp_response_v2.txt", false);
+        test.run(neoplasm_codes, "neoplasm_ctrp_response_v1.txt", true);
+        test.run(neoplasm_codes, "neoplasm_ctrp_response_v2.txt", false);
 
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
