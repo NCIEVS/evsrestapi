@@ -23,6 +23,7 @@ public class MainTypeHierarchy {
 	static String SUBTYPE_TREE = "subtype_tree";
 	static String STAGE_TREE = "stage_tree";
 	static String DISEASES_AND_DISORDERS_CODE = "C2991";
+	static String NEOPLASM_CODE = "C3262";
 
 	public static final String[] CTRP_MAIN_CANCER_TYPES = new String[] {
 		"C4715", "C4536", "C35850", "C54293", "C9315", "C8990", "C9272", "C9466", "C3871", "C9465",
@@ -721,6 +722,13 @@ public class MainTypeHierarchy {
         Utils.saveToFile("disease_codes.txt", disease_codes);
         test.run(disease_codes, "disease_and_disorder_ctrp_response_v1.txt", true);
         test.run(disease_codes, "disease_and_disorder_ctrp_response_v2.txt", false);
+
+        //Neoplasm (Code C3262)
+        Vector neoplasm_codes = test.getTransitiveClosure(NEOPLASM_CODE);
+        System.out.println("Number of neoplasm_codes: " + neoplasm_codes.size());
+        Utils.saveToFile("neoplasm.txt", neoplasm_codes);
+        test.run(disease_codes, "neoplasm_ctrp_response_v1.txt", true);
+        test.run(disease_codes, "neoplasm_ctrp_response_v2.txt", false);
 
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
