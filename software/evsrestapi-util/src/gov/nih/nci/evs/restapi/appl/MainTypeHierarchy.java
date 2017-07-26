@@ -69,7 +69,7 @@ public class MainTypeHierarchy {
 
     }
 
-    public MainTypeHierarchy(Vector parent_child_vec) {
+    public MainTypeHierarchy(String ncit_version, Vector parent_child_vec) {
 		this.parent_child_vec = parent_child_vec;
 		this.hh = new HierarchyHelper(parent_child_vec);
 		main_type_set = new HashSet();
@@ -83,7 +83,7 @@ public class MainTypeHierarchy {
         Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
         //Utils.dumpVector("mth_parent_child_vec", mth_parent_child_vec);
         this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
-        this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", "17.06d");
+        this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", ncit_version);
 
         category_vec = get_category_vec();
         category_hset = Utils.vector2HashSet(category_vec);
@@ -100,7 +100,7 @@ public class MainTypeHierarchy {
 		System.out.println("Number of grade terms: " + gradeConceptHashMap.keySet().size());
     }
 
-    public MainTypeHierarchy(Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
+    public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
         HashMap stageConceptHashMap, HashMap gradeConceptHashMap) {
 		this.parent_child_vec = parent_child_vec;
 		this.hh = new HierarchyHelper(parent_child_vec);
@@ -115,7 +115,7 @@ public class MainTypeHierarchy {
         main_type_hierarchy_data = generate_main_type_hierarchy();
         Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
         this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
-        this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", "17.06d");
+        this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", ncit_version);
         this.category_vec = category_vec;
         if (category_vec == null) {
 			this.category_vec = get_category_vec();
@@ -844,7 +844,7 @@ Disease or Disorder (C2991)
         v = Utils.readFile("DISEASE_IS_GRADE.txt");
 		HashMap gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(v);
 
-		MainTypeHierarchy test = new MainTypeHierarchy(parent_child_vec, null, null,
+		MainTypeHierarchy test = new MainTypeHierarchy("17.06d", parent_child_vec, null, null,
 		   stageConceptHashMap, gradeConceptHashMap);
 
         //MainTypeHierarchy test = new MainTypeHierarchy(parent_child_vec);
