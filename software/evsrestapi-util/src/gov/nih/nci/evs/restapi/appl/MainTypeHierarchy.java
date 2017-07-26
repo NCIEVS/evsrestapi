@@ -483,7 +483,7 @@ public class MainTypeHierarchy {
 		return findCode2MainTypesTree(rootCode, main_type_set);
 	}
 
-	public Vector findMainTypeAncestors(String rootCode) {
+	public Vector findMainMenuAncestors(String rootCode) {
 		Vector w = new Vector();
 		int maxLevel = -1;
 	    Vector v = findCode2MainTypesTree(rootCode);
@@ -532,7 +532,7 @@ public class MainTypeHierarchy {
         String label = hh.getLabel(code);
         if (label == null) return null;
 		List list = new ArrayList();
-	    Vector v = findMainTypeAncestors(code);
+	    Vector v = findMainMenuAncestors(code);
         for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -556,7 +556,7 @@ public class MainTypeHierarchy {
         pw.println("\tMain menu ancestor(s): ");
         Vector v = null;
         if (isSubtype(code)) {
-        	v = findMainTypeAncestors(code);
+        	v = findMainMenuAncestors(code);
 			for (int i=0; i<v.size(); i++) {
 				String line = (String) v.elementAt(i);
 				Vector u = StringUtils.parseData(line, '|');
@@ -592,7 +592,7 @@ public class MainTypeHierarchy {
 
 	public void get_ctrp_response(PrintWriter pw, String code) {
 		StringBuffer buf = new StringBuffer();
-	    Vector v = findMainTypeAncestors(code);
+	    Vector v = findMainMenuAncestors(code);
         boolean isMainType = isMainType(code);
         boolean isSubtype = isSubtype(code);
         boolean isDiseaseStage = isDiseaseStage(code);
