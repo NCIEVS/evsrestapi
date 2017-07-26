@@ -147,7 +147,6 @@ public class PathFinder {
 			String last_code = (String) u.elementAt(u.size()-1);
 			Vector subs = hierarchyHelper.getSubclassCodes(last_code);
 			if (subs == null) {
-				//System.out.println(path);
 				paths.add(createPath(path));
 			} else {
 				for (int k=0; k<subs.size(); k++) {
@@ -158,6 +157,64 @@ public class PathFinder {
 		}
         return paths;
 	}
+
+	public Paths findPathsToRoots(String code) {
+		Paths paths = new Paths();
+		Stack stack = new Stack();
+		stack.push(code);
+		while (!stack.isEmpty()) {
+			String path = (String) stack.pop();
+			Vector u = StringUtils.parseData(path, '|');
+			String last_code = (String) u.elementAt(u.size()-1);
+			System.out.println("last_code: " + last_code);
+			Vector sups = hierarchyHelper.getSuperclassCodes(last_code);
+			if (sups == null) {
+				paths.add(createPath(path));
+			} else {
+				System.out.println("sups.size(): " + sups.size());
+				for (int k=0; k<sups.size(); k++) {
+					String s = (String) sups.elementAt(k);
+					System.out.println(path + "|" + s);
+					stack.push(path + "|" + s);
+				}
+			}
+		}
+        return paths;
+	}
+
+	//hset: exclusion
+	public Paths findPathsToRoots(String code, HashSet hset) {
+		Paths paths = new Paths();
+		Stack stack = new Stack();
+		stack.push(code);
+		while (!stack.isEmpty()) {
+			String path = (String) stack.pop();
+			Vector u = StringUtils.parseData(path, '|');
+			String last_code = (String) u.elementAt(u.size()-1);
+			Vector sups = hierarchyHelper.getSuperclassCodes(last_code);
+			if (sups == null) {
+				paths.add(createPath(path));
+			} else {
+				Vector w = new Vector();
+				for (int i=0; i<sups.size(); i++) {
+					String sup = (String) sups.elementAt(i);
+					if (!hset.contains(sup)) {
+						w.add(sup);
+					}
+				}
+				if (w.size() == 0) {
+					paths.add(createPath(path));
+				} else {
+					for (int k=0; k<w.size(); k++) {
+						String s = (String) w.elementAt(k);
+						stack.push(path + "|" + s);
+					}
+				}
+			}
+		}
+        return paths;
+	}
+
 
 	public String marshalPaths(Paths paths) throws Exception {
 		XStream xstream_xml = new XStream(new DomDriver());
@@ -181,5 +238,44 @@ public class PathFinder {
 			}
 		}
 	}
+
+	public static Vector formatPaths(Paths paths) {
+		Vector w = new Vector();
+		List list = paths.getPaths();
+		for (int k=0; k<list.size(); k++) {
+			Path path = (Path) list.get(k);
+			List conceptList = path.getConcepts();
+			for (int k2=0; k2<conceptList.size(); k2++) {
+				Concept c = (Concept) conceptList.get(k2);
+				String indent = "";
+				for (int j=0; j<c.getIdx(); j++) {
+					indent = indent + "\t";
+				}
+				w.add(indent + c.getLabel() + " (" + c.getCode() + ")");
+			}
+		}
+		return w;
+	}
+
+	public static String format_paths(Paths paths) {
+		StringBuffer buf = new StringBuffer();
+		List list = paths.getPaths();
+		for (int k=0; k<list.size(); k++) {
+			Path path = (Path) list.get(k);
+			List conceptList = path.getConcepts();
+			for (int k2=0; k2<conceptList.size(); k2++) {
+				Concept c = (Concept) conceptList.get(k2);
+				buf.append(c.getLabel() + "|" + c.getCode());
+				if (k2 < conceptList.size()-1) {
+					buf.append("|");
+				}
+			}
+			if (k<list.size()-1) {
+				buf.append("$");
+			}
+		}
+		return buf.toString();
+	}
+
 }
 

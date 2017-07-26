@@ -1,9 +1,8 @@
 package gov.nih.nci.evs.restapi.util;
 import gov.nih.nci.evs.restapi.common.*;
 import gov.nih.nci.evs.restapi.bean.*;
-
 import java.io.*;
-//import java.sql.*;
+import java.sql.*;
 import java.text.*;
 import java.util.*;
 //import org.apache.commons.lang3.StringEscapeUtils;
@@ -62,7 +61,7 @@ import java.util.*;
 
 
 public class ASCIITreeUtils {
-    public static String ASSOCIATION_NAME = "inverse_is_a";
+
     public ASCIITreeUtils() {
 
 	}
@@ -209,7 +208,7 @@ public class ASCIITreeUtils {
 
     public TreeItem createTreeItem(Vector v, int maxLevel) {
 		//saveToFile(v, "echo_tree.txt");
-		String assocText = ASSOCIATION_NAME;
+		String assocText = Constants.ASSOCIATION_NAME;
 		int root_count = 0;
 		TreeItem[] treeItem_array = new TreeItem[maxLevel+1];
 		for (int k=0; k<treeItem_array.length; k++) {
@@ -234,7 +233,7 @@ public class ASCIITreeUtils {
 				if (level == 0) {
 					TreeItem item = treeItem_array[0];
 					if (item != null) {
-						root.addChild(ASSOCIATION_NAME, item);
+						root.addChild(Constants.ASSOCIATION_NAME, item);
 						root._expandable = true;
 					}
 					TreeItem new_item = new TreeItem(code, name);
@@ -248,13 +247,13 @@ public class ASCIITreeUtils {
 					String parent_id = parent_ti._id;
 					child_count++;
 					new_item._id = parent_id + "_" + child_count;
-					parent_ti.addChild(ASSOCIATION_NAME, new_item);
+					parent_ti.addChild(Constants.ASSOCIATION_NAME, new_item);
 					parent_ti._expandable = true;
 					treeItem_array[level] = new_item;
 				}
 			}
 			TreeItem item = treeItem_array[0];
-			root.addChild(ASSOCIATION_NAME, item);
+			root.addChild(Constants.ASSOCIATION_NAME, item);
 			root._expandable = true;
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -270,7 +269,7 @@ public class ASCIITreeUtils {
 		Vector v = new Vector();
 		String parent_code = root._code;
 		String parent_label = root._text;
-		List<TreeItem> children = root._assocToChildMap.get(ASSOCIATION_NAME);
+		List<TreeItem> children = root._assocToChildMap.get(Constants.ASSOCIATION_NAME);
 		if (children != null && children.size() > 0) {
 			TreeItem child_ti = null;
 			for (int i=0; i<children.size(); i++) {
@@ -297,7 +296,7 @@ public class ASCIITreeUtils {
 		if (root == null) return;
 		String parent_code = root._code;
 		String parent_label = root._text;
-		List<TreeItem> children = root._assocToChildMap.get(ASSOCIATION_NAME);
+		List<TreeItem> children = root._assocToChildMap.get(Constants.ASSOCIATION_NAME);
 		if (children != null && children.size() > 0) {
 			List<TreeItem> new_children = new ArrayList<TreeItem>();
 			for (int i=0; i<children.size(); i++) {
@@ -365,12 +364,20 @@ public class ASCIITreeUtils {
 	}
 
 	public Vector getLeafNodes(String asciifile) {
-		TreeItem root = createTreeItem(asciifile);
+		gov.nih.nci.evs.restapi.bean.TreeItem root = createTreeItem(asciifile);
 		Vector parent_child_vec = exportTree(root);
-		HierarchyHelper hh = new HierarchyHelper(parent_child_vec);
+		gov.nih.nci.evs.restapi.util.HierarchyHelper hh = new HierarchyHelper(parent_child_vec);
 		hh.findRootAndLeafNodes();
 		Vector leaves = hh.getLeaves();
 		return leaves;
+	}
+
+    public Vector get_parent_child_vec(Vector ascii_tree_vec) {
+		int maxLevel = findMaximumLevel(ascii_tree_vec);
+		TreeItem ti = createTreeItem(ascii_tree_vec, maxLevel);
+		Vector parent_child_vec = exportTree(ti);
+		parent_child_vec.remove(0);
+		return parent_child_vec;
 	}
 
 
