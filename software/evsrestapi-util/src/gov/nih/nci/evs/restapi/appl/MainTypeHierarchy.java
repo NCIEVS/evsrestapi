@@ -529,7 +529,7 @@ public class MainTypeHierarchy {
 	}
 
 	public List getMainMenuAncestors(String code) {
-		if (!isSubtype(code)) {
+		if (!isSubtype(code) && !isDiseaseStage(code) && !isDiseaseGrade(code)) {
 			return null;
 		}
         String label = hh.getLabel(code);
@@ -558,7 +558,7 @@ public class MainTypeHierarchy {
         pw.println("\n" + label + " (" + code + ")");
         pw.println("\tMain menu ancestor(s): ");
         Vector v = null;
-        if (isSubtype(code)) {
+        if (isSubtype(code) || isDiseaseStage(code) || isDiseaseGrade(code)) {
         	v = findMainMenuAncestors(code);
 			for (int i=0; i<v.size(); i++) {
 				String line = (String) v.elementAt(i);
@@ -856,7 +856,7 @@ Disease or Disorder (C2991)
         v = Utils.readFile("DISEASE_IS_GRADE.txt");
 		HashMap gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(v);
 
-		MainTypeHierarchy test = new MainTypeHierarchy("17.06d", parent_child_vec, null, null,
+		MainTypeHierarchy test = new MainTypeHierarchy("17.07c", parent_child_vec, null, null,
 		   stageConceptHashMap, gradeConceptHashMap);
 
         //MainTypeHierarchy test = new MainTypeHierarchy(parent_child_vec);
