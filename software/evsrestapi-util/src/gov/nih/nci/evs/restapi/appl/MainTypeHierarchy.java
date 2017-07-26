@@ -528,7 +528,10 @@ public class MainTypeHierarchy {
 		return w;
 	}
 
-	public List getMainTypeAncestors(String code) {
+	public List getMainMenuAncestors(String code) {
+		if (!isSubtype(code)) {
+			return null;
+		}
         String label = hh.getLabel(code);
         if (label == null) return null;
 		List list = new ArrayList();
