@@ -17,7 +17,6 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
 
-
 public class MainTypeHierarchy {
 	static String MAIN_TYPE_TREE = "main_type_tree";
 	static String SUBTYPE_TREE = "subtype_tree";
@@ -44,6 +43,8 @@ public class MainTypeHierarchy {
     Vector parent_child_vec = null;
     HierarchyHelper hh = null;
     HierarchyHelper mth_hh = null;
+    HierarchyHelper mth_hh_without_categories = null;
+
     PathFinder pathFinder = null;
 
     String ctrp_classification_data = null;
@@ -81,19 +82,32 @@ public class MainTypeHierarchy {
         main_type_hierarchy_data = generate_main_type_hierarchy();
 
         Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
-        //Utils.dumpVector("mth_parent_child_vec", mth_parent_child_vec);
         this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
         this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", ncit_version);
 
         category_vec = get_category_vec();
         category_hset = Utils.vector2HashSet(category_vec);
-        Utils.dumpVector("category_vec", category_vec);
 
+        Vector mth_parent_child_vec_v2 = new Vector();
+        for (int k=0; k<mth_parent_child_vec.size(); k++) {
+			String t = (String) mth_parent_child_vec.elementAt(k);
+			Vector u = StringUtils.parseData(t, '|');
+			String parent_code = (String) u.elementAt(1);
+			if (!category_hset.contains(parent_code)) {
+				mth_parent_child_vec_v2.add(t);
+			}
+		}
+
+		try {
+			mth_hh_without_categories = new HierarchyHelper(mth_parent_child_vec_v2);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
         levelMap = create_max_level_hashmap(main_type_hierarchy_data);
 
         Vector v = Utils.readFile("DISEASE_IS_STAGE.txt");
  		stageConceptHashMap = new ParserUtils().getCode2LabelHashMap(v);
-		System.out.println("Number of stage terms: " + stageConceptHashMap.keySet().size());
+	    System.out.println("Number of stage terms: " + stageConceptHashMap.keySet().size());
 
         v = Utils.readFile("DISEASE_IS_GRADE.txt");
 		gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(v);
@@ -115,12 +129,28 @@ public class MainTypeHierarchy {
         main_type_hierarchy_data = generate_main_type_hierarchy();
         Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
         this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
+
         this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", ncit_version);
         this.category_vec = category_vec;
         if (category_vec == null) {
 			this.category_vec = get_category_vec();
 		}
         category_hset = Utils.vector2HashSet(this.category_vec);
+        Vector mth_parent_child_vec_v2 = new Vector();
+        for (int k=0; k<mth_parent_child_vec.size(); k++) {
+			String t = (String) mth_parent_child_vec.elementAt(k);
+			Vector u = StringUtils.parseData(t, '|');
+			String parent_code = (String) u.elementAt(1);
+			if (!category_hset.contains(parent_code)) {
+				mth_parent_child_vec_v2.add(t);
+			}
+		}
+
+		try {
+			mth_hh_without_categories = new HierarchyHelper(mth_parent_child_vec_v2);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
         levelMap = create_max_level_hashmap(main_type_hierarchy_data);
         this.stageConceptHashMap = stageConceptHashMap;
         this.gradeConceptHashMap = gradeConceptHashMap;
@@ -169,22 +199,26 @@ public class MainTypeHierarchy {
 	}
 
     public boolean isSubtype(String code) {
-		if (isMainType(code)) {
-			if (code.compareTo(DISEASES_AND_DISORDERS_CODE) != 0) {
-				return true;
-			} else {
+		try {
+			if (isDiseaseStage(code)) {
+				String label = (String) stageConceptHashMap.get(code);
+				label = label.toLowerCase();
+				if (label.indexOf("stage") == -1) return true;
 				return false;
 			}
-		}
-		if (isDiseaseStage(code)) {
-			String label = (String) stageConceptHashMap.get(code);
-			label = label.toLowerCase();
-			if (label.indexOf("stage") == -1) return true;
-			return false;
-		}
-
-		if (isDiseaseGrade(code)) {
-			return false;
+			if (isDiseaseGrade(code)) {
+				return false;
+			}
+			if (isMainType(code)) {
+				Vector sups = mth_hh_without_categories.getSuperclassCodes(code);
+				if (sups != null && sups.size() > 0) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 		return true;
 	}
@@ -369,15 +403,10 @@ public class MainTypeHierarchy {
 
     public Vector generateEmbeddedHierarchy(String rootCode, HashSet nodeSet, boolean trim) {
 
-		System.out.println("rootCode: " + rootCode);
-
 		if (nodeSet == null) {
 			System.out.println("ERROR : nodeSet == null");
 			return null;
 		}
-
-		System.out.println("nodeSet: " + nodeSet.size());
-
 
         Vector v = getEmbeddedHierarchy(rootCode, nodeSet);
 		if (v.size() == 0) return v;
@@ -454,10 +483,6 @@ public class MainTypeHierarchy {
 		return findCode2MainTypesTree(rootCode, main_type_set);
 	}
 
-
-
-
-
 	public Vector findMainTypeAncestors(String rootCode) {
 		Vector w = new Vector();
 		int maxLevel = -1;
@@ -521,7 +546,6 @@ public class MainTypeHierarchy {
 
 
 	public void getCTRPResponse(PrintWriter pw, String code) {
-	    Vector v = findMainTypeAncestors(code);
         boolean isMainType = isMainType(code);
         boolean isSubtype = isSubtype(code);
         boolean isDiseaseStage = isDiseaseStage(code);
@@ -529,24 +553,24 @@ public class MainTypeHierarchy {
         String label = hh.getLabel(code);
         if (label == null) return;
         pw.println("\n" + label + " (" + code + ")");
-        pw.println("\tMain type ancestor(s): ");
-        for (int i=0; i<v.size(); i++) {
-			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			String ancestor_label = (String) u.elementAt(0);
-			String ancestor_code = (String) u.elementAt(1);
-			Paths paths = find_path_to_main_type_roots(ancestor_code);
-			Vector w = PathFinder.formatPaths(paths);
-			for (int k=0; k<w.size(); k++) {
-				String t = (String) w.elementAt(k);
-				pw.println("\t\t" + t);
+        pw.println("\tMain menu ancestor(s): ");
+        Vector v = null;
+        if (isSubtype(code)) {
+        	v = findMainTypeAncestors(code);
+			for (int i=0; i<v.size(); i++) {
+				String line = (String) v.elementAt(i);
+				Vector u = StringUtils.parseData(line, '|');
+				String ancestor_label = (String) u.elementAt(0);
+				String ancestor_code = (String) u.elementAt(1);
+				Paths paths = find_path_to_main_type_roots(ancestor_code);
+				Vector w = PathFinder.formatPaths(paths);
+				for (int k=0; k<w.size(); k++) {
+					String t = (String) w.elementAt(k);
+					pw.println("\t\t" + t);
+				}
 			}
-			/*
-			pw.println("\t\t" + ancestor_label + " (" + ancestor_code + ")");
-			if (ancestor_code.compareTo(code) == 0) {
-				System.out.println("\t\tERROR -- " + ancestor_code + " (" + code + ")");
-			}
-			*/
+		} else {
+			pw.println("\t\t" + "None");
 		}
 		pw.println("\tIs a main type? " + isMainType);
 		pw.println("\tIs a subype? " + isSubtype);
@@ -558,7 +582,7 @@ public class MainTypeHierarchy {
 		StringBuffer buf = new StringBuffer();
 		buf.append("Label").append("\t");
 		buf.append("Code").append("\t");
-		buf.append("main Type Ancestor(s)").append("\t");
+		buf.append("Main Menu Ancestor(s)").append("\t");
 		buf.append("Is Main Type?").append("\t");
 		buf.append("Is Subtype?").append("\t");
 		buf.append("Is Disease Stage?").append("\t");
@@ -587,16 +611,6 @@ public class MainTypeHierarchy {
 				Vector u = StringUtils.parseData(line, '|');
 				String ancestor_label = (String) u.elementAt(0);
 				String ancestor_code = (String) u.elementAt(1);
-
-				//b.append(ancestor_label).append("|").append(ancestor_code);
-				/*
-				if (i < v.size()-1) {
-					ancestors.append("$");
-				}
-				if (ancestor_code.compareTo(code) == 0) {
-					System.out.println("\t\tERROR -- " + ancestor_code + " (" + code + ")");
-				}
-				*/
 				Paths paths = find_path_to_main_type_roots(ancestor_code);
 				String t = PathFinder.format_paths(paths);
 				ancestors.append(t);
@@ -714,17 +728,12 @@ public class MainTypeHierarchy {
 	}
 
     public void testOneCode(String code) {
-		System.out.println("v: " + code);
 		Vector v = new Vector();
 		v.add(code);
 		String outputfile = code + ".txt";
 		boolean flatFormat = false;
-
         run(v, outputfile, flatFormat);
 	}
-
-
-
 
 	public Vector findCode2MainTypesTree(String rootCode, HashSet nodeSet) {
         ParserUtils parser = new ParserUtils();

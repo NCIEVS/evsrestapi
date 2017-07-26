@@ -106,7 +106,14 @@ public class ExportUtils {
 		return new RelatedConcepts(superconcepts, subconcepts, associations, inverseAssoications, roles, inverseRoles);
 	}
 
-    public ConceptDetails buildConceptDetails(String named_graph, String code, Boolean isStage) {
+
+    public ConceptDetails buildConceptDetails(String named_graph, String code,
+        List mainMenuAncestors,
+        Boolean isMainType,
+        Boolean isSubtype,
+        Boolean isDiseaseStage,
+        Boolean isDiseaseGrade) {
+
 		Vector label_vec = owlSPARQLUtils.getLabelByCode(named_graph, code);
 		Vector property_vec = owlSPARQLUtils.getPropertiesByCode(named_graph, code);
 		Vector property_qualifier_vec = owlSPARQLUtils.getPropertyQualifiersByCode(named_graph, code);
@@ -114,13 +121,35 @@ public class ExportUtils {
 		Vector superconcept_vec = owlSPARQLUtils.getSuperclassesByCode(named_graph, code);
 		Vector subconcept_vec = owlSPARQLUtils.getSubclassesByCode(named_graph, code);
 
+
+/*
+	public ConceptDetails(
+		Vector label_vec,
+		Vector property_vec,
+		Vector property_qualifier_vec,
+		Vector synonym_vec,
+		Vector superclass_vec,
+		Vector subclass_vec,
+		List mainMenuAncestors,
+	    Boolean isMainType,
+	    Boolean isSubtype,
+	    Boolean isDiseaseStage,
+	    Boolean isDiseaseGrade
+*/
+
 		return new ConceptDetails(
 				label_vec,
 				property_vec,
 				property_qualifier_vec,
 				synonym_vec,
 				superconcept_vec,
-		        subconcept_vec, isStage);
+		        subconcept_vec,
+		        mainMenuAncestors,
+		        isMainType,
+		        isSubtype,
+		        isDiseaseStage,
+		        isDiseaseGrade
+		        );
 	}
 
     public Paths buildPaths(String named_graph, String code, int direction) {

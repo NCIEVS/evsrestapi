@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.bean;
+
 import gov.nih.nci.evs.restapi.common.*;
 
 import gov.nih.nci.evs.restapi.util.*;
@@ -22,7 +23,11 @@ public class ConceptDetails
 	private String label;
 	private String preferredName;
 	private String displayName;
-	private Boolean isStage;
+	private Boolean isMainType;
+	private Boolean isSubtype;
+	private Boolean isDiseaseStage;
+	private Boolean isDiseaseGrade;
+	private List mainMenuAncestors;
 	private List definitions;
 	private List synonyms;
 	private List conceptStatus;
@@ -41,7 +46,11 @@ public class ConceptDetails
 		String label,
 		String preferredName,
 		String displayName,
-		Boolean isStage,
+		Boolean isMainType,
+		Boolean isSubtype,
+		Boolean isDiseaseStage,
+		Boolean isDiseaseGrade,
+		List mainMenuAncestors,
 		List definitions,
 		List synonyms,
 		List conceptStatus,
@@ -54,7 +63,11 @@ public class ConceptDetails
 		this.label = label;
 		this.preferredName = preferredName;
 		this.displayName = displayName;
-		this.isStage = isStage;
+		this.isMainType = isMainType;
+		this.isSubtype = isSubtype;
+		this.isDiseaseStage = isDiseaseStage;
+		this.isDiseaseGrade = isDiseaseGrade;
+		this.mainMenuAncestors = mainMenuAncestors;
 		this.definitions = definitions;
 		this.synonyms = synonyms;
 		this.conceptStatus = conceptStatus;
@@ -74,6 +87,10 @@ public class ConceptDetails
 		this.code = code;
 	}
 
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
 	public void setPreferredName(String preferredName) {
 		this.preferredName = preferredName;
 	}
@@ -81,9 +98,25 @@ public class ConceptDetails
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}
-
-	public void setIsStage(Boolean isStage) {
-		this.isStage = isStage;
+
+	public void setIsMainType(Boolean isMainType) {
+		this.isMainType = isMainType;
+	}
+
+	public void setIsSubtype(Boolean isSubtype) {
+		this.isSubtype = isSubtype;
+	}
+
+	public void setIsDiseaseStage(Boolean isDiseaseStage) {
+		this.isDiseaseStage = isDiseaseStage;
+	}
+
+	public void setIsDiseaseGrade(Boolean isDiseaseGrade) {
+		this.isDiseaseGrade = isDiseaseGrade;
+	}
+
+	public void setmainMenuAncestors(List mainMenuAncestors) {
+		this.mainMenuAncestors = mainMenuAncestors;
 	}
 
 	public void setDefinitions(List definitions) {
@@ -120,6 +153,10 @@ public class ConceptDetails
 		return this.code;
 	}
 
+	public String getLabel() {
+		return this.label;
+	}
+
 	public String getPreferredName() {
 		return this.preferredName;
 	}
@@ -127,9 +164,25 @@ public class ConceptDetails
 	public String getDisplayName() {
 		return this.displayName;
 	}
-
-	public Boolean getIsStage() {
-		return this.isStage;
+
+	public Boolean getIsMainType() {
+		return this.isMainType;
+	}
+
+	public Boolean getIsSubtype() {
+		return this.isSubtype;
+	}
+
+	public Boolean getIsDiseaseStage() {
+		return this.isDiseaseStage;
+	}
+
+	public Boolean getIsDiseaseGrade() {
+		return this.isDiseaseGrade;
+	}
+
+	public List getmainMenuAncestors() {
+		return this.mainMenuAncestors;
 	}
 
 	public List getDefinitions() {
@@ -167,7 +220,12 @@ public class ConceptDetails
 		Vector synonym_vec,
 		Vector superclass_vec,
 		Vector subclass_vec,
-		Boolean isStage) {
+		List mainMenuAncestors,
+	    Boolean isMainType,
+	    Boolean isSubtype,
+	    Boolean isDiseaseStage,
+	    Boolean isDiseaseGrade
+		) {
 		ParserUtils parser = new ParserUtils();
         HashMap prop_hmap = parser.parseProperties(property_vec);
         Vector code_vec = (Vector) prop_hmap.get("code");
@@ -247,7 +305,12 @@ public class ConceptDetails
 		this.definitions = definitions;
 		this.additionalProperties = parser.getAdditionalProperties(property_vec);
 		new SortUtils().quickSort(additionalProperties);
-		this.isStage = isStage;
+
+        this.mainMenuAncestors = mainMenuAncestors;
+	    this.isMainType = isMainType;
+	    this.isSubtype = isSubtype;
+	    this.isDiseaseStage = isDiseaseStage;
+	    this.isDiseaseGrade	= isDiseaseGrade;
 	}
 
 	public String toXML() {
@@ -264,5 +327,4 @@ public class ConceptDetails
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(this);
 	}
-
 }
