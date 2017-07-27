@@ -456,6 +456,7 @@ public class OWLSPARQLUtils {
 	public Vector getOntologyVersionInfo(String named_graph) {
 		return executeQuery(construct_get_ontology_version_info(named_graph));
 	}
+
 /*
 	public String construct_get_synonyms(String named_graph, String code) {
 		String prefixes = getPrefixes();
@@ -961,7 +962,82 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getDiseaseIsStageSourceCodes(String named_graph) {
-		return executeQuery(construct_get_disease_is_stage_source_codes(named_graph));
+		return executeQuery(construct_get_association_source_codes(named_graph, "Disease_Is_Stage"));
+	}
+
+	public Vector getDiseaseIsGradeSourceCodes(String named_graph) {
+		return executeQuery(construct_get_association_source_codes(named_graph, "Disease_Is_Grade"));
+	}
+
+	public Vector getAssociationSourceCodes(String named_graph, String associationName) {
+		return executeQuery(construct_get_association_source_codes(named_graph, associationName));
+	}
+
+	public String construct_get_association_source_codes(String named_graph, String associationName) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_label ?x_code").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x rdfs:subClassOf ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+		buf.append("		?list rdf:rest*/rdf:first ?z2 .").append("\n");
+		buf.append("		?z2 a owl:Restriction .").append("\n");
+		buf.append("		?z2 owl:onProperty ?p .").append("\n");
+		buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		FILTER (str(?p_label)=\"Disease_Is_Stage\"^^xsd:string)").append("\n");
+		buf.append("	   }").append("\n");
+		buf.append("	   UNION ").append("\n");
+		buf.append("	   {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:subClassOf ?r .").append("\n");
+		buf.append("		?r a owl:Restriction .").append("\n");
+		buf.append("		?r owl:onProperty ?p .").append("\n");
+		buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		FILTER (str(?p_label)=\"" + associationName + "\"^^xsd:string)").append("\n");
+		buf.append("	   }	").append("\n");
+		buf.append("	   UNION").append("\n");
+		buf.append("	   {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x owl:equivalentClass ?z .").append("\n");
+		buf.append("			?z owl:intersectionOf ?list .").append("\n");
+		buf.append("			?list rdf:rest*/rdf:first ?z2 .").append("\n");
+		buf.append("				?z2 a owl:Restriction .").append("\n");
+		buf.append("				?z2 owl:onProperty ?p .").append("\n");
+		buf.append("				?p rdfs:label ?p_label .").append("\n");
+		buf.append("				FILTER (str(?p_label)=\"" + associationName + "\"^^xsd:string)").append("\n");
+		buf.append("	   }").append("\n");
+		buf.append("	   UNION").append("\n");
+		buf.append("	   {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
+		buf.append("			?z1 owl:intersectionOf ?list1 .").append("\n");
+		buf.append("			?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
+		buf.append("			     ?z2 owl:unionOf ?list2 .").append("\n");
+		buf.append("			     ?list2 rdf:rest*/rdf:first ?z3 .").append("\n");
+		buf.append("				 ?z3 owl:intersectionOf ?list3 .").append("\n");
+		buf.append("				 ?list3 rdf:rest*/rdf:first ?z4 .").append("\n");
+		buf.append("					?z4 a owl:Restriction .").append("\n");
+		buf.append("					?z4 owl:onProperty ?p .").append("\n");
+		buf.append("					?p rdfs:label ?p_label .").append("\n");
+		buf.append("					FILTER (str(?p_label)=\"" + associationName + "\"^^xsd:string)").append("\n");
+		buf.append("	   }").append("\n");
+		buf.append("   }").append("\n");
+		buf.append("} ").append("\n");
+		return buf.toString();
 	}
 
 	public String construct_get_disjoint_with_by_code(String named_graph, String code) {
