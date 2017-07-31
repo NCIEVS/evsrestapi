@@ -13,6 +13,8 @@ public class EvsConcept {
 	private String preferredName;
 	private boolean isDiseaseStage;
 	private boolean isDiseaseGrade;
+	private boolean isMainType;
+	private boolean isSubtype;
 	
 	private String neoplasticStatus;
 	private List <EvsSubconcept> subconcepts;
@@ -102,6 +104,20 @@ public class EvsConcept {
 	
 	public void setIsDiseaseGrade(boolean isDiseaseGrade) {
 		this.isDiseaseGrade = isDiseaseGrade;
+	}
+	
+	public boolean getIsMainType() {
+		return isMainType;
+	}
+	public void setIsMainType(boolean isMainType) {
+		this.isMainType = isMainType;
+	}
+
+	public boolean getIsSubtype() {
+		return isSubtype;
+	}
+	public void setIsSubtype(boolean isSubtype) {
+		this.isSubtype = isSubtype;
 	}
 	
 }

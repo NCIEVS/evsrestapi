@@ -55,24 +55,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
 	private RESTUtils restUtils = null;
 	
-	private HashMap<String,String> diseaseconcepts;
-	private HashMap<String,String> diseaseGradeconcepts;
-	private HashMap<String,String> diseaseMainconcepts;
+	private HashMap<String,String> diseaseStageConcepts;
+	private HashMap<String,String> diseaseGradeConcepts;
+	private HashMap<String,String> diseaseMainConcepts;
 	private Paths paths;
 	
-	 public static final String[] CTRP_MAIN_CANCER_TYPES = new String[] {
-             "C27814", "C2916", "C2946", "C2947", "C2948", "C2955", "C2991", "C2996", "C3011", "C3059",
-             "C3088", "C3099", "C3158", "C3161", "C3163", "C3167", "C3171", "C3172", "C3174", "C3178",
-             "C3194", "C3208", "C3211", "C3224", "C3230", "C3234", "C3242", "C3247", "C3263", "C3267",
-             "C3270", "C3367", "C3403", "C3411", "C3422", "C34448", "C3510", "C3513", "C35850", "C3708",
-             "C3716", "C3728", "C3752", "C3753", "C3773", "C3790", "C3809", "C3844", "C3850", "C38661",
-             "C3867", "C3917", "C40022", "C4290", "C4436", "C4536", "C4665", "C4699", "C4715", "C4741",
-             "C4815", "C4817", "C4855", "C4863", "C4866", "C4872", "C4878", "C4896", "C4906", "C4908",
-             "C4910", "C4911", "C4912", "C4914", "C5669", "C6142", "C61574", "C7062", "C7352", "C7539",
-             "C7541", "C7558", "C7569", "C7724", "C7927", "C8711", "C8990", "C8993", "C9039", "C9061",
-             "C9063", "C9087", "C9106", "C9118", "C9145", "C9272", "C9290", "C9291", "C9306", "C9309",
-             "C9312", "C9325", "C9344", "C9349", "C9357", "C9382", "C9385", "C9466", "C9474", "C3908",
-             "C9330", "C3868", "C9465", "C9315", "C54293", "C3871", "C9105"};
+	public static String DISEASES_AND_DISORDERS_CODE = "C2991";
+	public static String NEOPLASM_CODE = "C3262";
+	public static final String[] CTRP_MAIN_CANCER_TYPES = new String[] {
+			"C4715", "C4536", "C35850", "C54293", "C9315", "C8990", "C9272", "C9466", "C3871", "C9465",
+			"C9105", "C4855", "C4815", "C8054", "C4035", "C3879", "C4906", "C7569", "C3513", "C4911",
+			"C3850", "C7927", "C3099", "C27814", "C4436", "C36077", "C35417", "C7109", "C3844", "C3908",
+			"C7724", "C9330", "C2955", "C4910", "C9382", "C9291", "C4878", "C2926", "C4917", "C4872",
+			"C4908", "C3867", "C7558", "C9039", "C3917", "C4866", "C9061", "C4863", "C40022", "C7352",
+			"C9325", "C9385", "C6142", "C8993", "C4912", "C9106", "C4914", "C9312", "C9145", "C2946",
+			"C9306", "C3158", "C3359", "C3194", "C3088", "C9087", "C3230", "C3059", "C3224", "C3510",
+			"C8711", "C4817", "C3270", "C3790", "C9344", "C2947", "C3716", "C5669", "C3728", "C3267",
+			"C6906", "C3403", "C3752", "C3753", "C2996", "C9309", "C3011", "C4290", "C9063", "C3422",
+			"C2948", "C4699", "C3161", "C3172", "C3171", "C3174", "C3178", "C7539", "C3167", "C3163",
+			"C9290", "C3247", "C4665", "C9349", "C3242", "C3208", "C9357", "C38661", "C3211", "C3773",
+			"C7541", "C3411", "C3234", "C61574", "C2991", "C3262", "C2916", "C9118", "C3268", "C3264",
+			"C3708", "C27134", "C3809", "C3058", "C3017"};
 	
 	private HierarchyUtils hierarchy = null;
 
@@ -80,9 +83,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	public void postInit() throws IOException{
 		restUtils = new RESTUtils(stardogProperties.getQueryUrl(), stardogProperties.getUsername(),
 				stardogProperties.getPassword(),stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
-		diseaseconcepts = getDiseaseIsStageSourceCodes();
-		diseaseGradeconcepts = getDiseaseIsGradeSourceCodes();
-		diseaseMainconcepts = getMainConcepts();
+		diseaseStageConcepts = getDiseaseIsStageSourceCodes();
+		diseaseGradeConcepts = getDiseaseIsGradeSourceCodes();
+		diseaseMainConcepts = getMainConcepts();
 		List <String> parentchild = getHierarchy();
 		hierarchy = new HierarchyUtils(parentchild);
 		PathFinder pathFinder = new PathFinder(hierarchy);
@@ -153,14 +156,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		ArrayList<EvsProperty> evsProperties = new ArrayList<EvsProperty>();
 	
+		/*
+		 * Because the original SPARQL query that filtered out the Annotations
+		 * was too slow, we will be filtering them out in the post processing.
+		 */
 		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
 		Bindings[] bindings = sparqlResult.getResults().getBindings();
 		for (Bindings b : bindings) {
-			EvsProperty evsProperty = new EvsProperty();
-			evsProperty.setCode(b.getPropertyCode().getValue());
-			evsProperty.setLabel(b.getPropertyLabel().getValue());
-			evsProperty.setValue(b.getPropertyValue().getValue());
-			evsProperties.add(evsProperty);
+			if (!b.getPropertyCode().getValue().startsWith("A")) {
+				EvsProperty evsProperty = new EvsProperty();
+				evsProperty.setCode(b.getPropertyCode().getValue());
+				evsProperty.setLabel(b.getPropertyLabel().getValue());
+				evsProperty.setValue(b.getPropertyValue().getValue());
+				evsProperties.add(evsProperty);
+			}
 		}
 		
 		return evsProperties;
@@ -420,52 +429,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	
 	
 	public EvsConcept getEvsConceptDetail(String conceptCode) throws JsonMappingException,JsonParseException ,IOException{
-		
-		if (diseaseMainconcepts.containsKey(conceptCode)){	
-			EvsConceptWithMainType evsConcept = new EvsConceptWithMainType();
-			evsConcept.setIsMainType(true);
-			return getConcept(evsConcept,conceptCode);
-		} else{
-			EvsConcept evsConcept = new EvsConcept();
-			evsConcept = new EvsConcept();
-			return getConcept(evsConcept,conceptCode);
-		}
-		/*evsConcept.setLabel(getEvsConceptLabel(conceptCode));
-		List <EvsProperty> properties = getEvsProperties(conceptCode);
-		List <EvsAxiom> axioms = getEvsAxioms(conceptCode);
-		evsConcept.setCode(EVSUtils.getConceptCode(properties));
-		evsConcept.setDefinitions(EVSUtils.getFullDefinitions(axioms));
-		evsConcept.setPreferredName(EVSUtils.getPreferredName(properties));
-		evsConcept.setDisplayName(EVSUtils.getDisplayName(properties));
-		evsConcept.setNeoplasticStatus(EVSUtils.getNeoplasticStatus(properties));
-		evsConcept.setSemanticTypes(EVSUtils.getSemanticType(properties));
-		List <EvsSubconcept> subconcepts = getEvsSubconcepts(conceptCode);
-		List <EvsSuperconcept> superconcepts = getEvsSuperconcepts(conceptCode);
-		evsConcept.setSubconcepts(subconcepts);
-		evsConcept.setSuperconcepts(superconcepts);
-		evsConcept.setSynonyms(EVSUtils.getFullSynonym(axioms));
-		evsConcept.setAdditionalProperties(EVSUtils.getAdditionalProperties(properties));
-		
-		
-		if (diseaseconcepts.containsKey(conceptCode)){		
-			evsConcept.setIsDiseaseStage(true);
-		} else{
-			evsConcept.setIsDiseaseStage(false);
-		}
-		
-		
-		//isGrade
-		if (diseaseGradeconcepts.containsKey(conceptCode)){		
-			evsConcept.setIsDiseaseGrade(true);
-		} else{
-			evsConcept.setIsDiseaseGrade(false);
-		}
-		
-		
-		
-		
-		
-		return evsConcept;*/
+		EvsConcept evsConcept = new EvsConcept();
+		return getConcept(evsConcept,conceptCode);
 	}
 	
 	public EvsConcept getConcept(EvsConcept evsConcept,String conceptCode) throws IOException{
@@ -486,46 +451,67 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		evsConcept.setSynonyms(EVSUtils.getFullSynonym(axioms));
 		evsConcept.setAdditionalProperties(EVSUtils.getAdditionalProperties(properties));
 		
-		/*
-		 * THIS SECTION FOR TESTING WILL BE REMOVED AT SOME POINT
-		 */
-		/*
-		String queryPrefix = queryBuilderService.contructPrefix();
-		String namedGraph = getNamedGraph();
-		String query = queryBuilderService.constructRolesQuery(conceptCode, namedGraph);
-		System.out.println(queryPrefix + query);
-		*/
-		
-		//log.info(stardogProperties.getGraphName());
-		//HashMap<String,String> diseaseConcepts = getDiseaseIsStageSourceCodes(stardogProperties.getGraphName());
-		if (diseaseconcepts.containsKey(conceptCode)){		
+		if (diseaseStageConcepts.containsKey(conceptCode)){		
 			evsConcept.setIsDiseaseStage(true);
 		} else{
 			evsConcept.setIsDiseaseStage(false);
 		}
 		
-		
-		//isGrade
-		if (diseaseGradeconcepts.containsKey(conceptCode)){		
+		if (diseaseGradeConcepts.containsKey(conceptCode)){		
 			evsConcept.setIsDiseaseGrade(true);
 		} else{
 			evsConcept.setIsDiseaseGrade(false);
 		}
 		
-		
+		if (diseaseMainConcepts.containsKey(conceptCode)){		
+			evsConcept.setIsMainType(true);
+		} else{
+			evsConcept.setIsMainType(false);
+		}
 		
 		/*
-		try {
-            ObjectMapper writer = new ObjectMapper();
-            System.out.println(writer.writerWithDefaultPrettyPrinter().writeValueAsString(concepts));
-        } catch (Exception ex){
-        	System.err.println(ex);
-        }	
-        */
+		 * This "isSubtype is temporary, will use new one developed by
+		 * Kim in next release
+		 */
+		if (isSubtype(conceptCode)) {
+			evsConcept.setIsSubtype(true);
+		} else {
+			evsConcept.setIsSubtype(false);
+		}		
+		
 		
 		return evsConcept;
 		
 	}
+	
+	/*
+	 * This "isSubtype is temporary, will use new one developed by
+	 * Kim in next release
+	 */
+	public boolean isSubtype(String code) {
+		if (diseaseStageConcepts.containsKey(code)) {
+			String label = hierarchy.getLabel(code).toLowerCase();
+			if (label.indexOf("stage") == -1) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		if (diseaseGradeConcepts.containsKey(code)) {
+			return false;
+		}
+
+		if (diseaseMainConcepts.containsKey(code)) {
+			if (code.compareTo(DISEASES_AND_DISORDERS_CODE) != 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return true;
+	}	
 
 	public EvsRelationships getEvsRelationships(String conceptCode) throws JsonMappingException,JsonParseException ,IOException{
 		EvsRelationships relationships = new EvsRelationships();
@@ -557,14 +543,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		Bindings[] bindings = sparqlResult.getResults().getBindings();
 		for (Bindings b : bindings) {
 			diseaseConcepts.put(b.getConceptCode().getValue(), b.getConceptLabel().getValue());
-			/*if (b.getConceptCode().getValue().equalsIgnoreCase(conceptCode)){
-				isStage = true;
-				break;
-			}*/
-			//EvsConcept concept = new EvsConcept();
-			//concept.setLabel(b.getConceptLabel().getValue());
-			//concept.setCode(b.getConceptCode().getValue());
-			//concepts.add(concept);
 		}
 		
 		return diseaseConcepts;
@@ -586,14 +564,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		Bindings[] bindings = sparqlResult.getResults().getBindings();
 		for (Bindings b : bindings) {
 			diseaseGradeConcepts.put(b.getConceptCode().getValue(), b.getConceptLabel().getValue());
-			/*if (b.getConceptCode().getValue().equalsIgnoreCase(conceptCode)){
-				isStage = true;
-				break;
-			}*/
-			//EvsConcept concept = new EvsConcept();
-			//concept.setLabel(b.getConceptLabel().getValue());
-			//concept.setCode(b.getConceptCode().getValue());
-			//concepts.add(concept);
 		}
 		
 		return diseaseGradeConcepts;

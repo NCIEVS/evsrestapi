@@ -66,6 +66,31 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("    ?property a owl:AnnotationProperty .\n");
 		query.append("    ?property rdfs:label ?propertyLabel .\n");
 		query.append("    ?property :NHC0 ?propertyCode .\n");
+		query.append("    ?concept ?property ?propertyValue\n");
+		query.append("  }\n");
+		query.append("}\n");
+
+		log.info("constructPropertyQuery - " + query.toString());
+		
+		return query.toString();
+	}
+
+	/*
+	 * This version of the query is slower in Stardog than the one above.
+	 * So for now we will use the faster query and filter in the JAVA code.
+	 * 	
+	 */
+	/*
+	public String constructPropertyQuery(String conceptCode, String namedGraph){
+		
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT ?property ?propertyCode  ?propertyLabel ?propertyValue\n");
+		query.append("{ GRAPH <" + namedGraph + ">");
+		query.append("  { ?concept a owl:Class .\n");
+		query.append("    ?concept :NHC0 "+ "\"" + conceptCode + "\" .\n");
+		query.append("    ?property a owl:AnnotationProperty .\n");
+		query.append("    ?property rdfs:label ?propertyLabel .\n");
+		query.append("    ?property :NHC0 ?propertyCode .\n");
 		query.append("    ?concept ?property ?propertyValue .\n");
 		query.append("    ?property rdfs:range ?y_range \n");
 		query.append("  }\n");
@@ -76,7 +101,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		
 		return query.toString();
 	}
-
+	*/
+	
 	public String constructAxiomQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();
         query.append("SELECT ?axiom ?axiomProperty  ?axiomValue\n");
