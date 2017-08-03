@@ -38,7 +38,6 @@ public class HierarchyUtils {
 	}
 	
 	public void initialize(List <String>parentchild) {
-		System.out.println("Size: " + parentchild.size());
 		/*
 		 * The parentchild string is expected to be in the order of parentCode, parentLabel
 		 * childCode, childLabel and Tab sepearated.
@@ -108,7 +107,7 @@ public class HierarchyUtils {
 	}
 	
 	public ArrayList <String> getRoots() {
-		return new ArrayList(this.roots);
+		return new ArrayList <String> (this.roots);
 	}
 
 	public ArrayList <String> getSubclassCodes(String code) {
@@ -118,6 +117,12 @@ public class HierarchyUtils {
 		return null;
 	}
 	
+	public ArrayList <String> getSuperclassCodes(String code) {
+		if (!child2parent.containsKey(code)) {
+			return null;
+		}
+		return child2parent.get(code);
+	}
 	
 	public String getLabel(String code) {
 		if (this.code2label.containsKey(code)) {
@@ -130,15 +135,8 @@ public class HierarchyUtils {
 	 * Will Remove once testing is completed
 	 */
 	public void testLoading ()  {
-		System.out.println("Parent2Child");
-		for (String child: parent2child.get("C3174")) {
-		    System.out.println(child + ": " + code2label.get(child));	
-		}
-		System.out.println("Child2Parent");
-		for (String parent: child2parent.get("C3174")) {
-		    System.out.println(parent + ": " + code2label.get(parent));	
-		}
-		
+		System.out.println("HierarchyUtils Loading");
+		System.out.println("======================");
 		System.out.println("Total: " + concepts.size());
 		System.out.println("Parents: " + parents.size());
 		System.out.println("Childrens: " + children.size());
@@ -152,8 +150,11 @@ public class HierarchyUtils {
 		for (String root: roots) {
 			System.out.println(root + ": " + code2label.get(root));
 		}
+		
+		/*
 		System.out.println("Leaves");
 		System.out.println("Size: " + leaves.size());
+		*/
 		
 		PathFinder pathFinder = new PathFinder(this);
 		Paths paths = pathFinder.findPaths();
@@ -179,6 +180,7 @@ public class HierarchyUtils {
 	    	}
 	    }
 		
+		/*
 		for (Path path: paths.getPaths()) {
 			Boolean sw = false;
 			for (Concept concept: path.getConcepts()) {
@@ -195,13 +197,6 @@ public class HierarchyUtils {
 		    	System.out.println(strPath.toString());
 			}
 		}
-		/*
-		List <Concept> concepts = paths.getPaths().get(0).getConcepts();
-		for (Concept concept: concepts) {
-			System.out.println("Concept: " + concept.getCode());
-		}
 		*/
-		
-		//ArrayList <String> allChildren = getTransitiveClosure(new ArrayList <String>(),"C3172",0);
 	}
 }

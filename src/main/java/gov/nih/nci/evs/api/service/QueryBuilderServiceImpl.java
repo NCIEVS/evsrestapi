@@ -21,9 +21,6 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 	
 	
 	public String contructPrefix(){
-		
-		
-		
 		String prefix = String.join(System.getProperty("line.separator"), 
 			    "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/" + stardogProperties.getOwlfileName() + "#>",
 		        "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/" + stardogProperties.getOwlfileName() + ">",
@@ -39,7 +36,6 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 	}
 	
 	public String constructConceptLabelQuery(String conceptCode, String namedGraph){
-		
 		StringBuffer query = new StringBuffer();
 		query.append("SELECT ?conceptLabel\n");
 		query.append("{ GRAPH <" + namedGraph + ">");
@@ -57,7 +53,6 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 	
 	
 	public String constructPropertyQuery(String conceptCode, String namedGraph){
-		
 		StringBuffer query = new StringBuffer();
 		query.append("SELECT ?property ?propertyCode  ?propertyLabel ?propertyValue\n");
 		query.append("{ GRAPH <" + namedGraph + ">");

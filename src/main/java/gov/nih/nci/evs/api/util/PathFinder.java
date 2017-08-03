@@ -4,9 +4,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Stack;
 import java.util.Vector;
 
+import gov.nih.nci.evs.api.maintype.util.StringUtils;
 import gov.nih.nci.evs.api.model.evs.Concept;
 import gov.nih.nci.evs.api.model.evs.Path;
 import gov.nih.nci.evs.api.model.evs.Paths;
@@ -70,4 +73,36 @@ public class PathFinder {
 		return paths;
 	}
 
+	
+	public Paths findPathsToRoots(String code, HashSet hset) {
+		Paths paths = new Paths();
+		Stack stack = new Stack();
+		stack.push(code);
+		while (!stack.isEmpty()) {
+			String path = (String) stack.pop();
+			Vector u = StringUtils.parseData(path, '|');
+			String last_code = (String) u.elementAt(u.size()-1);
+			List sups = hierarchy.getSuperclassCodes(last_code);
+			if (sups == null) {
+				paths.add(createPath(path));
+			} else {
+				Vector w = new Vector();
+				for (int i=0; i<sups.size(); i++) {
+					String sup = (String) sups.get(i);
+					if (!hset.contains(sup)) {
+						w.add(sup);
+					}
+				}
+				if (w.size() == 0) {
+					paths.add(createPath(path));
+				} else {
+					for (int k=0; k<w.size(); k++) {
+						String s = (String) w.elementAt(k);
+						stack.push(path + "|" + s);
+					}
+				}
+			}
+		}
+        return paths;
+	}
 }

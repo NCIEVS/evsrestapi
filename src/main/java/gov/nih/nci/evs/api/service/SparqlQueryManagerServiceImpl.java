@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Vector;
 
 import javax.annotation.PostConstruct;
 
@@ -39,6 +40,7 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchyUtils;
 import gov.nih.nci.evs.api.util.PathFinder;
 import gov.nih.nci.evs.api.util.RESTUtils;
 
@@ -78,6 +80,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			"C3708", "C27134", "C3809", "C3058", "C3017"};
 	
 	private HierarchyUtils hierarchy = null;
+	private MainTypeHierarchyUtils mainTypeHierarchyUtils = null;
 
 	@PostConstruct
 	public void postInit() throws IOException{
@@ -88,8 +91,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		diseaseMainConcepts = getMainConcepts();
 		List <String> parentchild = getHierarchy();
 		hierarchy = new HierarchyUtils(parentchild);
+		//hierarchy.testLoading();
 		PathFinder pathFinder = new PathFinder(hierarchy);
 		paths = pathFinder.findPaths();
+		
+		HashSet <String> mainTypeSet = new HashSet <String>();
+		for (int i = 0; i < CTRP_MAIN_CANCER_TYPES.length; i++) {
+		    mainTypeSet.add(CTRP_MAIN_CANCER_TYPES[i]);
+		}
+
+		ArrayList <String> categoryList = new ArrayList <String>();
+		categoryList.add("C2991");
+		categoryList.add("C3262");
+		categoryList.add("C2916");
+		mainTypeHierarchyUtils = new MainTypeHierarchyUtils(parentchild,mainTypeSet,categoryList,
+				diseaseStageConcepts,diseaseGradeConcepts);
+		
 	}
 	
 	public String getNamedGraph() {
@@ -437,13 +454,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		
 		evsConcept.setLabel(getEvsConceptLabel(conceptCode));
 		List <EvsProperty> properties = getEvsProperties(conceptCode);
-		List <EvsAxiom> axioms = getEvsAxioms(conceptCode);
 		evsConcept.setCode(EVSUtils.getConceptCode(properties));
-		evsConcept.setDefinitions(EVSUtils.getFullDefinitions(axioms));
 		evsConcept.setPreferredName(EVSUtils.getPreferredName(properties));
 		evsConcept.setDisplayName(EVSUtils.getDisplayName(properties));
 		evsConcept.setNeoplasticStatus(EVSUtils.getNeoplasticStatus(properties));
 		evsConcept.setSemanticTypes(EVSUtils.getSemanticType(properties));
+
+		List <EvsAxiom> axioms = getEvsAxioms(conceptCode);
+		evsConcept.setDefinitions(EVSUtils.getFullDefinitions(axioms));
+
 		List <EvsSubconcept> subconcepts = getEvsSubconcepts(conceptCode);
 		List <EvsSuperconcept> superconcepts = getEvsSuperconcepts(conceptCode);
 		evsConcept.setSubconcepts(subconcepts);
@@ -469,16 +488,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			evsConcept.setIsMainType(false);
 		}
 		
-		/*
-		 * This "isSubtype is temporary, will use new one developed by
-		 * Kim in next release
-		 */
-		if (isSubtype(conceptCode)) {
+		if (mainTypeHierarchyUtils.isSubtype(conceptCode)) {
 			evsConcept.setIsSubtype(true);
 		} else {
 			evsConcept.setIsSubtype(false);
 		}		
 		
+		List <Paths> paths = mainTypeHierarchyUtils.getMainMenuAncestors(conceptCode);
+		if (paths != null) {
+			paths = removeDuplicatePathsList(paths);
+			evsConcept.setMainMenuAncestors(paths);
+		} else {
+			evsConcept.setMainMenuAncestors(null);
+		}
 		
 		return evsConcept;
 		
@@ -701,6 +723,29 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 				seenPaths.add(pathString);
 				uniquePaths.add(path);
 			}
+		}
+		
+		return uniquePaths;
+	}
+
+	private List <Paths> removeDuplicatePathsList(List <Paths> paths) {
+        List <Paths> uniquePaths = new ArrayList <Paths>();
+		for (Paths newPaths: paths) {
+  			Paths newUniquePaths = new Paths();
+  			HashSet <String> seenPaths = new HashSet<String>();
+  			for (Path path: newPaths.getPaths()) {
+				StringBuffer strPath = new StringBuffer();
+				for (Concept concept: path.getConcepts()) {
+					strPath.append(concept.getCode());
+					strPath.append("|");
+				}
+				String pathString = strPath.toString();
+				if (!seenPaths.contains(pathString))  {
+					seenPaths.add(pathString);
+					newUniquePaths.add(path);
+				}
+  			}
+  			uniquePaths.add(newUniquePaths);
 		}
 		
 		return uniquePaths;

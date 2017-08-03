@@ -16,6 +16,8 @@ public class EvsConcept {
 	private boolean isMainType;
 	private boolean isSubtype;
 	
+	private List <Paths> mainMenuAncestors;
+	
 	private String neoplasticStatus;
 	private List <EvsSubconcept> subconcepts;
 	private List <EvsSuperconcept> superconcepts;
@@ -118,6 +120,12 @@ public class EvsConcept {
 	}
 	public void setIsSubtype(boolean isSubtype) {
 		this.isSubtype = isSubtype;
+	}
+	public List<Paths> getMainMenuAncestors() {
+		return mainMenuAncestors;
+	}
+	public void setMainMenuAncestors(List<Paths> mainMenuAncestors) {
+		this.mainMenuAncestors = mainMenuAncestors;
 	}
 	
 }
