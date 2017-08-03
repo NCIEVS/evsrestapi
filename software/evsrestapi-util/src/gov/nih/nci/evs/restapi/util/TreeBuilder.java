@@ -450,7 +450,6 @@ public class TreeBuilder {
 		String code = "C86567"; //Lifting
 		String outputfile = "tree.txt";
 
-//E:\jdk1.8.0_45\bin\java -d64 -Xms512m -Xmx4g -classpath %CLASSPATH% TreeBuilder "http://ncidb-d174-v.nci.nih.gov/sparql1?query=" triplereadonly triplereadonly "http://NCIt" C86567 tree.txt
         if (args.length == 6) {
 			serviceUrl = args[0];
 			username = args[1];
