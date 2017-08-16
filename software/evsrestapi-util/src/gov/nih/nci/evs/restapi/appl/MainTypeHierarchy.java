@@ -21,6 +21,9 @@ public class MainTypeHierarchy {
 	static String MAIN_TYPE_TREE = "main_type_tree";
 	static String SUBTYPE_TREE = "subtype_tree";
 	static String STAGE_TREE = "stage_tree";
+	static String DISEASE_DISORDER_OR_FINDING_CODE = "C7057";
+	static String FINDING_CODE = "C3367";
+
 	static String DISEASES_AND_DISORDERS_CODE = "C2991";
 	static String NEOPLASM_CODE = "C3262";
 	static Vector main_type_hierarchy_data = null;
@@ -198,8 +201,17 @@ public class MainTypeHierarchy {
 		return stageConceptHashMap.containsKey(code);
 	}
 
+    public boolean isNotDisease(String code) {
+		Vector v = findMainMenuAncestors(code);
+		if (v == null || v.size() == 0) {
+			return true;
+		}
+		return false;
+	}
+
     public boolean isSubtype(String code) {
 		try {
+			if (isNotDisease(code)) return false;
 			if (isDiseaseStage(code)) {
 				String label = (String) stageConceptHashMap.get(code);
 				label = label.toLowerCase();
@@ -547,12 +559,12 @@ public class MainTypeHierarchy {
 		return list;
 	}
 
-
 	public void getCTRPResponse(PrintWriter pw, String code) {
         boolean isMainType = isMainType(code);
         boolean isSubtype = isSubtype(code);
         boolean isDiseaseStage = isDiseaseStage(code);
         boolean isDiseaseGrade = isDiseaseGrade(code);
+        boolean isNotDisease = isNotDisease(code);
         String label = hh.getLabel(code);
         if (label == null) return;
         pw.println("\n" + label + " (" + code + ")");
@@ -577,8 +589,9 @@ public class MainTypeHierarchy {
 		}
 		pw.println("\tIs a main type? " + isMainType);
 		pw.println("\tIs a subype? " + isSubtype);
-		pw.println("\tis disease stage? " + isDiseaseStage);
-		pw.println("\tis disease grade? " + isDiseaseGrade);
+		pw.println("\tIs disease stage? " + isDiseaseStage);
+		pw.println("\tIs disease grade? " + isDiseaseGrade);
+		pw.println("\tIs not disease? " + isNotDisease);
   	}
 
   	public String getHeading() {
@@ -592,6 +605,27 @@ public class MainTypeHierarchy {
 		buf.append("Is Disease Grade?").append("\t");
 		return buf.toString();
 	}
+
+	public String format_paths(Paths paths) {
+		StringBuffer buf = new StringBuffer();
+		List list = paths.getPaths();
+		for (int k=0; k<list.size(); k++) {
+			Path path = (Path) list.get(k);
+			List conceptList = path.getConcepts();
+			for (int k2=0; k2<conceptList.size(); k2++) {
+				Concept c = (Concept) conceptList.get(k2);
+				buf.append(c.getLabel() + "|" + c.getCode());
+				if (k2 < conceptList.size()-1) {
+					buf.append("|");
+				}
+			}
+			if (k<list.size()-1) {
+				buf.append("$");
+			}
+		}
+		return buf.toString();
+	}
+
 
 	public void get_ctrp_response(PrintWriter pw, String code) {
 		StringBuffer buf = new StringBuffer();
@@ -608,14 +642,14 @@ public class MainTypeHierarchy {
         buf.append(label).append("\t").append(code).append("\t");
         StringBuffer ancestors = new StringBuffer();
         if (v != null && v.size() > 0) {
-
 			for (int i=0; i<v.size(); i++) {
 				String line = (String) v.elementAt(i);
 				Vector u = StringUtils.parseData(line, '|');
 				String ancestor_label = (String) u.elementAt(0);
 				String ancestor_code = (String) u.elementAt(1);
 				Paths paths = find_path_to_main_type_roots(ancestor_code);
-				String t = PathFinder.format_paths(paths);
+				//String t = PathFinder.format_paths(paths);
+				String t = format_paths(paths);
 				ancestors.append(t);
 				if (i<v.size()-1) {
 					ancestors.append("@");
@@ -794,6 +828,7 @@ public class MainTypeHierarchy {
 				}
 			}
 		}
+		/*
 		if (w.size() == 0) {
 			String parentLabel = hh.getLabel(rootCode);
 			String childLabel = hh.getLabel(DISEASES_AND_DISORDERS_CODE);
@@ -801,6 +836,7 @@ public class MainTypeHierarchy {
 						  + "|" + childLabel + "|" + DISEASES_AND_DISORDERS_CODE;
 			w.add(record);
 		}
+		*/
         return w;
 	}
 
@@ -844,6 +880,17 @@ Disease or Disorder (C2991)
 		return buf.toString();
 	}
 
+	public void generateMainTypeFile(String filename) {
+        Vector main_vec = new Vector();
+        for (int i=0; i<CTRP_MAIN_CANCER_TYPES.length; i++) {
+			String code = (String) CTRP_MAIN_CANCER_TYPES[i];
+			String label = getLabel(code);
+			main_vec.add(label + "|" + code);
+		}
+		main_vec = new SortUtils().quickSort(main_vec);
+		Utils.saveToFile(filename, main_vec);
+	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -856,24 +903,15 @@ Disease or Disorder (C2991)
         v = Utils.readFile("DISEASE_IS_GRADE.txt");
 		HashMap gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(v);
 
-		MainTypeHierarchy test = new MainTypeHierarchy("17.07c", parent_child_vec, null, null,
+		MainTypeHierarchy test = new MainTypeHierarchy("17.07d", parent_child_vec, null, null,
 		   stageConceptHashMap, gradeConceptHashMap);
 
-        //MainTypeHierarchy test = new MainTypeHierarchy(parent_child_vec);
-        Vector disease_codes = test.getTransitiveClosure(DISEASES_AND_DISORDERS_CODE);
-        System.out.println("Number of disease_codes: " + disease_codes.size());
-        Utils.saveToFile("disease_codes.txt", disease_codes);
-        test.run(disease_codes, "disease_and_disorder_ctrp_response_v1.txt", true);
-        test.run(disease_codes, "disease_and_disorder_ctrp_response_v2.txt", false);
-
-        //Neoplasm (Code C3262)
-        Vector neoplasm_codes = test.getTransitiveClosure(NEOPLASM_CODE);
-        System.out.println("Number of neoplasm_codes: " + neoplasm_codes.size());
-        Utils.saveToFile("neoplasm.txt", neoplasm_codes);
-        test.run(neoplasm_codes, "neoplasm_ctrp_response_v1.txt", true);
-        test.run(neoplasm_codes, "neoplasm_ctrp_response_v2.txt", false);
-
+        Vector ddf_codes = test.getTransitiveClosure(DISEASE_DISORDER_OR_FINDING_CODE);
+        System.out.println("Number of ddf_codes: " + ddf_codes.size());
+        Utils.saveToFile("ddf_codes.txt", ddf_codes);
+        test.run(ddf_codes, "disease_disorder_finding_ctrp_response_v2.txt", false);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
 	}
 }
 
