@@ -828,15 +828,16 @@ public class MainTypeHierarchy {
 				}
 			}
 		}
-		/*
+
 		if (w.size() == 0) {
-			String parentLabel = hh.getLabel(rootCode);
-			String childLabel = hh.getLabel(DISEASES_AND_DISORDERS_CODE);
-			String record = parentLabel + "|" + rootCode
-						  + "|" + childLabel + "|" + DISEASES_AND_DISORDERS_CODE;
-			w.add(record);
+			if (visitedNodes.contains(DISEASES_AND_DISORDERS_CODE)) {
+				String parentLabel = hh.getLabel(rootCode);
+				String childLabel = hh.getLabel(DISEASES_AND_DISORDERS_CODE);
+				String record = parentLabel + "|" + rootCode
+							  + "|" + childLabel + "|" + DISEASES_AND_DISORDERS_CODE;
+				w.add(record);
+			}
 		}
-		*/
         return w;
 	}
 
@@ -909,7 +910,7 @@ Disease or Disorder (C2991)
         Vector ddf_codes = test.getTransitiveClosure(DISEASE_DISORDER_OR_FINDING_CODE);
         System.out.println("Number of ddf_codes: " + ddf_codes.size());
         Utils.saveToFile("ddf_codes.txt", ddf_codes);
-        test.run(ddf_codes, "disease_disorder_finding_ctrp_response_v2.txt", false);
+        test.run(ddf_codes, "disease_disorder_finding_ctrp_response_v2_08172017.txt", false);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
 	}
