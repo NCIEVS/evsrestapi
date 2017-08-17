@@ -209,18 +209,29 @@ public class MainTypeHierarchy {
 		return false;
 	}
 
+    public boolean isDisease(String code) {
+		Vector v = findMainMenuAncestors(code);
+		if (v == null || v.size() == 0) {
+			return false;
+		}
+		return true;
+	}
+
     public boolean isSubtype(String code) {
 		try {
 			if (isNotDisease(code)) return false;
+
 			if (isDiseaseStage(code)) {
 				String label = (String) stageConceptHashMap.get(code);
 				label = label.toLowerCase();
 				if (label.indexOf("stage") == -1) return true;
 				return false;
 			}
+			/*
 			if (isDiseaseGrade(code)) {
 				return false;
 			}
+			*/
 			if (isMainType(code)) {
 				Vector sups = mth_hh_without_categories.getSuperclassCodes(code);
 				if (sups != null && sups.size() > 0) {
@@ -229,6 +240,16 @@ public class MainTypeHierarchy {
 					return false;
 				}
 			}
+
+			if (isDiseaseGrade(code)) {
+				String label = (String) gradeConceptHashMap.get(code);
+				label = label.toLowerCase();
+				if (label.indexOf("grade") == -1) {
+					return true;
+				}
+				return false;
+			}
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -564,7 +585,7 @@ public class MainTypeHierarchy {
         boolean isSubtype = isSubtype(code);
         boolean isDiseaseStage = isDiseaseStage(code);
         boolean isDiseaseGrade = isDiseaseGrade(code);
-        boolean isNotDisease = isNotDisease(code);
+        boolean isDisease = isDisease(code);
         String label = hh.getLabel(code);
         if (label == null) return;
         pw.println("\n" + label + " (" + code + ")");
@@ -591,7 +612,7 @@ public class MainTypeHierarchy {
 		pw.println("\tIs a subype? " + isSubtype);
 		pw.println("\tIs disease stage? " + isDiseaseStage);
 		pw.println("\tIs disease grade? " + isDiseaseGrade);
-		pw.println("\tIs not disease? " + isNotDisease);
+		pw.println("\tIs disease? " + isDisease);
   	}
 
   	public String getHeading() {
@@ -603,6 +624,7 @@ public class MainTypeHierarchy {
 		buf.append("Is Subtype?").append("\t");
 		buf.append("Is Disease Stage?").append("\t");
 		buf.append("Is Disease Grade?").append("\t");
+		buf.append("Is Disease?").append("\t");
 		return buf.toString();
 	}
 
@@ -893,6 +915,78 @@ Disease or Disorder (C2991)
 	}
 
 
+    public boolean isSubtype2(String code) {
+		String name = getLabel(code);
+		System.out.println("\n" + name + " (" + code + ")");
+		try {
+			System.out.println("\t(1)" + " isNotDisease? " + isNotDisease(code));
+			if (isNotDisease(code)) {
+				System.out.println("\t(2)" + code + " " + isNotDisease(code));
+				return false;
+			}
+
+			System.out.println("\t(3)" + " isDiseaseStage? " + isDiseaseStage(code));
+			if (isDiseaseStage(code)) {
+				System.out.println("\t(4)" + " isDiseaseStage "  + isDiseaseStage(code));
+
+				String label = (String) stageConceptHashMap.get(code);
+				label = label.toLowerCase();
+				if (label.indexOf("stage") == -1) {
+					System.out.println("\t(5)" + " isSubtype? true (does not contains the word stage.)" );
+					return true;
+				}
+				System.out.println("\t(6)" + " isSubtype? false -- contains the word stage." );
+				return false;
+			}
+
+			System.out.println("\t(8)" + " isDiseaseGrade "  + isDiseaseGrade(code));
+
+            System.out.println("\t(9)" + " isMainType? " + isMainType(code));
+			if (isMainType(code)) {
+				Vector sups = mth_hh_without_categories.getSuperclassCodes(code);
+				if (sups != null && sups.size() > 0) {
+
+					System.out.println("\t(10) sups != null && sups.size() > 0 -- isSubtype: true");
+					return true;
+				} else {
+
+					System.out.println("\t(11) sups == null -- isSubtype: false");
+					return false;
+				}
+			}
+
+            System.out.println("\t(12)" + " isDiseaseGrade? " + isDiseaseGrade(code));
+            /*
+			if (isDiseaseGrade(code)) {
+				System.out.println("\t(13)" + " isSubtype: false");
+				return false;
+			}
+			*/
+
+			if (isDiseaseGrade(code)) {
+				System.out.println("\t(13)" + " isDiseaseGrade "  + isDiseaseGrade(code));
+				String label = name;
+				label = label.toLowerCase();
+				if (label.indexOf("grade") == -1) {
+					System.out.println("\t(14)" + " isSubtype? true (does not contains the word grade.)" );
+					return true;
+				}
+				System.out.println("\t(15)" + " isSubtype? false -- contains the word grade." );
+				return false;
+			}
+
+
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		System.out.println("\t(14)" + " isSubtype: true");
+		return true;
+	}
+
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String parent_child_file = args[0];
@@ -907,11 +1001,36 @@ Disease or Disorder (C2991)
 		MainTypeHierarchy test = new MainTypeHierarchy("17.07d", parent_child_vec, null, null,
 		   stageConceptHashMap, gradeConceptHashMap);
 
+
+        String code = "C3058";
+        String label = test.getLabel(code);
+        System.out.println(label + " (" + code + ")");
+        boolean isSubtype = test.isSubtype(code);
+        System.out.println("\tisSubtype: " + isSubtype);
+        test.isSubtype2(code);
+        System.out.println("\n\n");
+
+        code = "C125890";
+        label = test.getLabel(code);
+        System.out.println(label + " (" + code + ")");
+        isSubtype = test.isSubtype(code);
+        System.out.println("\tisSubtype: " + isSubtype);
+        test.isSubtype2(code);
+        System.out.println("\n\n");
+
+        code = "C2924";
+        label = test.getLabel(code);
+        System.out.println(label + " (" + code + ")");
+        isSubtype = test.isSubtype(code);
+        System.out.println("\tisSubtype: " + isSubtype);
+        test.isSubtype2(code);
+
         Vector ddf_codes = test.getTransitiveClosure(DISEASE_DISORDER_OR_FINDING_CODE);
         System.out.println("Number of ddf_codes: " + ddf_codes.size());
         Utils.saveToFile("ddf_codes.txt", ddf_codes);
-        test.run(ddf_codes, "disease_disorder_finding_ctrp_response_v2_08172017.txt", false);
+        test.run(ddf_codes, "disease_disorder_finding_ctrp_response_v2_08172017a.txt", false);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
 
 	}
 }
