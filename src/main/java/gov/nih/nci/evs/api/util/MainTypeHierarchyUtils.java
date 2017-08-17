@@ -407,11 +407,13 @@ public class MainTypeHierarchyUtils {
 			}
 		}
 		if (w.size() == 0) {
-			String parentLabel = hh.getLabel(rootCode);
-			String childLabel = hh.getLabel(DISEASES_AND_DISORDERS_CODE);
-			String record = parentLabel + "|" + rootCode
-						  + "|" + childLabel + "|" + DISEASES_AND_DISORDERS_CODE;
-			w.add(record);
+			if (visitedNodes.contains(DISEASES_AND_DISORDERS_CODE)) {
+				String parentLabel = hh.getLabel(rootCode);
+				String childLabel = hh.getLabel(DISEASES_AND_DISORDERS_CODE);
+				String record = parentLabel + "|" + rootCode
+							  + "|" + childLabel + "|" + DISEASES_AND_DISORDERS_CODE;
+				w.add(record);
+			}			
 		}
         return w;
 	}	
@@ -429,7 +431,25 @@ public class MainTypeHierarchyUtils {
     public boolean isDiseaseStage(String code) {
 		return diseaseStageConcepts.containsKey(code);
 	}
+    
+    public boolean isDisease(String code) {
+  		Vector v = findMainMenuAncestors(code);
+  		if (v == null || v.size() == 0) {
+  			return false;
+  		}
+  		return true;
+  	}
+    
+    public boolean isNotDisease(String code) {
+ 		Vector v = findMainMenuAncestors(code);
+ 		if (v == null || v.size() == 0) {
+ 			return true;
+ 		}
+ 		return false;
+ 	}
+    
 
+    /*
     public boolean isSubtype(String code) {
 		try {
 			if (isDiseaseStage(code)) {
@@ -454,7 +474,46 @@ public class MainTypeHierarchyUtils {
 		}
 		return true;
 	}
+	*/
 
+    public boolean isSubtype(String code) {
+ 		try {
+ 			if (isNotDisease(code)) return false;
+
+ 			if (isDiseaseStage(code)) {
+ 				String label = (String) diseaseStageConcepts.get(code);
+ 				label = label.toLowerCase();
+ 				if (label.indexOf("stage") == -1) return true;
+ 				return false;
+ 			}
+ 			/*
+ 			if (isDiseaseGrade(code)) {
+ 				return false;
+ 			}
+ 			*/
+ 			if (isMainType(code)) {
+ 				List <String> sups = mth_hh_without_categories.getSuperclassCodes(code);
+ 				if (sups != null && sups.size() > 0) {
+ 					return true;
+ 				} else {
+ 					return false;
+ 				}
+ 			}
+
+ 			if (isDiseaseGrade(code)) {
+ 				String label = (String) diseaseGradeConcepts.get(code);
+ 				label = label.toLowerCase();
+ 				if (label.indexOf("grade") == -1) {
+ 					return true;
+ 				}
+ 				return false;
+ 			}
+
+ 		} catch (Exception ex) {
+ 			ex.printStackTrace();
+ 		}
+ 		return true;
+ 	}
 	
 }
 	

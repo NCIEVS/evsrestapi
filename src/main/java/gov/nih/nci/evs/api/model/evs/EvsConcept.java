@@ -15,7 +15,8 @@ public class EvsConcept {
 	private boolean isDiseaseGrade;
 	private boolean isMainType;
 	private boolean isSubtype;
-	
+	private boolean isDisease;
+
 	private List <Paths> mainMenuAncestors;
 	
 	private String neoplasticStatus;
@@ -127,6 +128,12 @@ public class EvsConcept {
 	}
 	public void setIsSubtype(boolean isSubtype) {
 		this.isSubtype = isSubtype;
+	}
+	public boolean getIsDisease() {
+		return isDisease;
+	}
+	public void setIsDisease(boolean isDisease) {
+		this.isDisease = isDisease;
 	}
 	public List<Paths> getMainMenuAncestors() {
 		return mainMenuAncestors;

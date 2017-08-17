@@ -495,6 +495,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			evsConcept.setIsSubtype(false);
 		}		
 		
+		if (mainTypeHierarchyUtils.isDisease(conceptCode)) {
+			evsConcept.setIsDisease(true);
+		} else {
+			evsConcept.setIsDisease(false);
+		}		
+		
+		
 		List <Paths> paths = mainTypeHierarchyUtils.getMainMenuAncestors(conceptCode);
 		if (paths != null) {
 			paths = removeDuplicatePathsList(paths);
