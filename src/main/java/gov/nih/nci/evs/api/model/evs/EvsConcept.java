@@ -22,6 +22,7 @@ public class EvsConcept {
 	private List <EvsSubconcept> subconcepts;
 	private List <EvsSuperconcept> superconcepts;
 	private List <String> semanticTypes;
+	private List <String> conceptStatus;
 	private List <EvsSynonym> synonyms;
 	private List <EvsAdditionalProperty> additionalProperties;
 
@@ -80,6 +81,12 @@ public class EvsConcept {
 	}
 	public void setSemanticTypes(List<String> semanticTypes) {
 		this.semanticTypes = semanticTypes;
+	}
+	public List<String> getConceptStatus() {
+		return conceptStatus;
+	}
+	public void setConceptStatus(List<String> conceptStatus) {
+		this.conceptStatus = conceptStatus;
 	}
 	public List<EvsSynonym> getSynonyms() {
 		return synonyms;

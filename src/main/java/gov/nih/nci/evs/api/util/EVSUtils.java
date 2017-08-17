@@ -87,6 +87,11 @@ public class EVSUtils {
 		return getProperty("P106",properties);
 	}
 
+	public static List <String> getConceptStatus(List <EvsProperty>properties) {
+		return getProperty("P310",properties);
+	}
+
+
 	public static List <EvsSynonym> getFullSynonym(List <EvsAxiom>axioms) {
 		ArrayList <EvsSynonym> results = new ArrayList<EvsSynonym>();
 		for ( EvsAxiom axiom: axioms) {

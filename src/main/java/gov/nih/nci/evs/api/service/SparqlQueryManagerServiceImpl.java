@@ -459,6 +459,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		evsConcept.setDisplayName(EVSUtils.getDisplayName(properties));
 		evsConcept.setNeoplasticStatus(EVSUtils.getNeoplasticStatus(properties));
 		evsConcept.setSemanticTypes(EVSUtils.getSemanticType(properties));
+		evsConcept.setConceptStatus(EVSUtils.getConceptStatus(properties));
 
 		List <EvsAxiom> axioms = getEvsAxioms(conceptCode);
 		evsConcept.setDefinitions(EVSUtils.getFullDefinitions(axioms));
