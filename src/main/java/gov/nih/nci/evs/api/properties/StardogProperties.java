@@ -3,9 +3,9 @@ package gov.nih.nci.evs.api.properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import lombok.Data;
 
-@Data
+
+
 public class StardogProperties {
 	
 	
