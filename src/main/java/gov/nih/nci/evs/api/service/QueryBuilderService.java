@@ -14,6 +14,8 @@ public interface QueryBuilderService {
 	public String constructSuperconceptQuery(String conceptCode, String namedGraph);
 	
 	public String constructConceptLabelQuery(String conceptCode, String namedGraph);
+	
+	public String constructGetClassCountsQuery(String namedGraph);
 
 	public String constructAssociationsQuery(String conceptCode, String namedGraph);
 

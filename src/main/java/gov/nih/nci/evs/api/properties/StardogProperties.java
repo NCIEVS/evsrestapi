@@ -20,6 +20,7 @@ public class StardogProperties {
     private int connectTimeout;
     private String graphName;
     private String owlfileName;
+    private String populateCacheCron;
 
 	public String getUrl() {
 		return url;
@@ -83,6 +84,14 @@ public class StardogProperties {
 
 	public void setOwlfileName(String owlfileName) {
 		this.owlfileName = owlfileName;
+	}
+
+	public String getPopulateCacheCron() {
+		return populateCacheCron;
+	}
+
+	public void setPopulateCacheCron(String populateCacheCron) {
+		this.populateCacheCron = populateCacheCron;
 	}
 
 	

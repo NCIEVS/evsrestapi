@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -61,6 +63,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	private HashMap<String,String> diseaseGradeConcepts;
 	private HashMap<String,String> diseaseMainConcepts;
 	private Paths paths;
+	private Long classCount;
 	
 	public static String DISEASES_AND_DISORDERS_CODE = "C2991";
 	public static String NEOPLASM_CODE = "C3262";
@@ -86,6 +89,31 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	public void postInit() throws IOException{
 		restUtils = new RESTUtils(stardogProperties.getQueryUrl(), stardogProperties.getUsername(),
 				stardogProperties.getPassword(),stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
+		
+		populateCache();
+		
+		
+	}
+	
+	@Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
+	public void callCronJob() throws IOException{
+		LocalDateTime currentTime = LocalDateTime.now();
+		log.info("callCronJob at " + currentTime);
+		Long classCountValueNow = getGetClassCounts();
+		
+		log.info("class count Value now at " + classCountValueNow);
+		log.info("previous class count value at " + classCount);
+		if (classCountValueNow.longValue() != classCount.longValue()){
+			log.info("****repopulating cache***");
+			populateCache();
+		}
+	}
+	
+	
+	public void populateCache() throws IOException{
+		LocalDateTime currentTime = LocalDateTime.now();
+        log.info("populating the cache at " + currentTime);
+        classCount = getGetClassCounts();
 		diseaseStageConcepts = getDiseaseIsStageSourceCodes();
 		diseaseGradeConcepts = getDiseaseIsGradeSourceCodes();
 		diseaseMainConcepts = getMainConcepts();
@@ -159,6 +187,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		}
 		
 		return conceptLabel;
+		
+	}
+	
+	
+	public Long getGetClassCounts() throws JsonMappingException,JsonParseException ,IOException{
+		
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph();
+		String query = queryBuilderService.constructGetClassCountsQuery(namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query);
+		
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		String count = "0";
+
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		if (bindings.length == 1) {
+			count =  bindings[0].getCount().getValue();
+		}
+		
+		
+		return Long.parseLong(count);
 		
 	}
 
@@ -452,7 +504,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	
 	public EvsConcept getConcept(EvsConcept evsConcept,String conceptCode) throws IOException{
 		
-		evsConcept.setLabel(getEvsConceptLabel(conceptCode));
+		evsConcept.setLabel(getEvsConceptLabel(conceptCode));		
 		List <EvsProperty> properties = getEvsProperties(conceptCode);
 		evsConcept.setCode(EVSUtils.getConceptCode(properties));
 		evsConcept.setPreferredName(EVSUtils.getPreferredName(properties));

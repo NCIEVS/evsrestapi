@@ -24,6 +24,7 @@ public class Bindings
     private Property parentLabel;
     private Property childCode;
     private Property childLabel;
+    private Property count;
 
     public Property getPropertyValue ()
     {
@@ -218,5 +219,13 @@ public class Bindings
 
 	public void setChildLabel(Property childLabel) {
 		this.childLabel = childLabel;
+	}
+
+	public Property getCount() {
+		return count;
+	}
+
+	public void setCount(Property count) {
+		this.count = count;
 	}
 }

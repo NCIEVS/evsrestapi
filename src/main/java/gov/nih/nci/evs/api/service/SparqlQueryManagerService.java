@@ -36,10 +36,14 @@ public interface SparqlQueryManagerService {
 	public List<EvsAssociation> getEvsInverseRoles(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 	
 	public EvsConcept getEvsConceptDetail(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
+	
+	public Long getGetClassCounts() throws JsonMappingException,JsonParseException,IOException;
 
 	public EvsRelationships getEvsRelationships(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 	
 	public String getNamedGraph();
+	
+	public void populateCache() throws IOException;
 	
 	public boolean checkConceptExists(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 	
