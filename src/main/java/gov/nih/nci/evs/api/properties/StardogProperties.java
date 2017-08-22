@@ -21,6 +21,7 @@ public class StardogProperties {
     private String graphName;
     private String owlfileName;
     private String populateCacheCron;
+    private String forcePopulateCache;
 
 	public String getUrl() {
 		return url;
@@ -92,6 +93,14 @@ public class StardogProperties {
 
 	public void setPopulateCacheCron(String populateCacheCron) {
 		this.populateCacheCron = populateCacheCron;
+	}
+
+	public String getForcePopulateCache() {
+		return forcePopulateCache;
+	}
+
+	public void setForcePopulateCache(String forcePopulateCache) {
+		this.forcePopulateCache = forcePopulateCache;
 	}
 
 	
