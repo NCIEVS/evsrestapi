@@ -103,9 +103,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		
 		log.info("class count Value now at " + classCountValueNow);
 		log.info("previous class count value at " + classCount);
+		log.info("ForcePopulateCache " + stardogProperties.getForcePopulateCache());
 		if ((classCountValueNow.longValue() != classCount.longValue()) || stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y")){
 			log.info("****repopulating cache***");
 			populateCache();
+			log.info("****repopulating cache done***");
 		}
 	}
 	
