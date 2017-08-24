@@ -18,6 +18,7 @@ import gov.nih.nci.evs.api.model.evs.Paths;
 
 public class MainTypeHierarchyUtils {
 	static String DISEASES_AND_DISORDERS_CODE = "C2991";
+	static String DISEASE_DISORDER_OR_FINDING_CODE = "C7057";
 	static String NEOPLASM_CODE = "C3262";
 	
 	private HashSet <String> mainTypeSet = null;
@@ -432,15 +433,14 @@ public class MainTypeHierarchyUtils {
 		return diseaseStageConcepts.containsKey(code);
 	}
     
+    
     public boolean isDisease(String code) {
-  		Vector v = findMainMenuAncestors(code);
-  		if (v == null || v.size() == 0) {
-  			return false;
-  		}
-  		return true;
-  	}
+ 		return !isNotDisease(code);
+ 	}
     
     public boolean isNotDisease(String code) {
+		if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) return false;
+		if (code.compareTo(DISEASES_AND_DISORDERS_CODE) == 0) return false;
  		Vector v = findMainMenuAncestors(code);
  		if (v == null || v.size() == 0) {
  			return true;
@@ -448,33 +448,6 @@ public class MainTypeHierarchyUtils {
  		return false;
  	}
     
-
-    /*
-    public boolean isSubtype(String code) {
-		try {
-			if (isDiseaseStage(code)) {
-				String label = (String) hh.getLabel(code);
-				label = label.toLowerCase();
-				if (label.indexOf("stage") == -1) return true;
-				return false;
-			}
-			if (isDiseaseGrade(code)) {
-				return false;
-			}
-			if (isMainType(code)) {
-				List <String> sups = mth_hh_without_categories.getSuperclassCodes(code);
-				if (sups != null && sups.size() > 0) {
-					return true;
-				} else {
-					return false;
-				}
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return true;
-	}
-	*/
 
     public boolean isSubtype(String code) {
  		try {
