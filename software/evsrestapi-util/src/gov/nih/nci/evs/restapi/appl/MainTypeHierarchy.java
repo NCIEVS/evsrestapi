@@ -222,6 +222,7 @@ public class MainTypeHierarchy {
 
     public boolean isSubtype(String code) {
 		try {
+			if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) return false;
 			if (isNotDisease(code)) return false;
 
 			if (isDiseaseStage(code)) {
