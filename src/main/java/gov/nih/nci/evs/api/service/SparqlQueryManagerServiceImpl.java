@@ -80,7 +80,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			"C2948", "C4699", "C3161", "C3172", "C3171", "C3174", "C3178", "C7539", "C3167", "C3163",
 			"C9290", "C3247", "C4665", "C9349", "C3242", "C3208", "C9357", "C38661", "C3211", "C3773",
 			"C7541", "C3411", "C3234", "C61574", "C2991", "C3262", "C2916", "C9118", "C3268", "C3264",
-			"C3708", "C27134", "C3809", "C3058", "C3017"};
+			"C3708", "C27134", "C3809", "C3058", "C3017","C9384", "C4767",  "C4016", "C7073", "C7515"};
 	
 	private HierarchyUtils hierarchy = null;
 	private MainTypeHierarchyUtils mainTypeHierarchyUtils = null;

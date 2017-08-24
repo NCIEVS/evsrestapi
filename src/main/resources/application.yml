@@ -68,6 +68,6 @@ nci:
       connectTimeout: ${STARDOG_CONNECT_TIMEOUT:10000}
       graphName: ${STARDOG_GRAPH_NAME:REPLACE_WITH_GRAPH_NAME} 
       owlfileName: ${STARDOG_OWL_FILENAME:REPLACE_WITH_OWL_FILENAME}
-      populateCacheCron: ${POPULATE_CACHE_CRON:0 0 0 * * *}
+      populateCacheCron: ${POPULATE_CACHE_CRON:0 0 1 * * *}
       forcePopulateCache: ${FORCE_POPULATE_CACHE:N}     
 
