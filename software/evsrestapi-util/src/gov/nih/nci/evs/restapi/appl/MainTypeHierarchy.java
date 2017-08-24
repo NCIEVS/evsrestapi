@@ -206,6 +206,8 @@ public class MainTypeHierarchy {
 	}
 
     public boolean isNotDisease(String code) {
+		if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) return false;
+		if (code.compareTo(DISEASES_AND_DISORDERS_CODE) == 0) return false;
 		Vector v = findMainMenuAncestors(code);
 		if (v == null || v.size() == 0) {
 			return true;
@@ -214,12 +216,9 @@ public class MainTypeHierarchy {
 	}
 
     public boolean isDisease(String code) {
-		Vector v = findMainMenuAncestors(code);
-		if (v == null || v.size() == 0) {
-			return false;
-		}
-		return true;
+		return !isNotDisease(code);
 	}
+
 
     public boolean isSubtype(String code) {
 		try {
