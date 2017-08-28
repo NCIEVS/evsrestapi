@@ -42,8 +42,10 @@ public class MainTypeHierarchy {
 		"C9290", "C3247", "C4665", "C9349", "C3242", "C3208", "C9357", "C38661", "C3211", "C3773",
 		"C7541", "C3411", "C3234", "C61574", "C2991", "C3262", "C2916", "C9118", "C3268", "C3264",
 		"C3708", "C27134", "C3809", "C3058", "C3017",
-		"C9384", "C4767",  "C4016", "C7073", "C7515"
+		"C9384", "C4767",  "C4016", "C7073", "C7515",
+		"C4896", "C54705"
 		};
+
 
     Vector parent_child_vec = null;
     HierarchyHelper hh = null;
@@ -911,6 +913,7 @@ Disease or Disorder (C2991)
 		String name = getLabel(code);
 		System.out.println("\n" + name + " (" + code + ")");
 		try {
+			if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) return false;
 			System.out.println("\t(1)" + " isNotDisease? " + isNotDisease(code));
 			if (isNotDisease(code)) {
 				System.out.println("\t(2)" + code + " " + isNotDisease(code));
@@ -948,13 +951,6 @@ Disease or Disorder (C2991)
 			}
 
             System.out.println("\t(12)" + " isDiseaseGrade? " + isDiseaseGrade(code));
-            /*
-			if (isDiseaseGrade(code)) {
-				System.out.println("\t(13)" + " isSubtype: false");
-				return false;
-			}
-			*/
-
 			if (isDiseaseGrade(code)) {
 				System.out.println("\t(13)" + " isDiseaseGrade "  + isDiseaseGrade(code));
 				String label = name;
@@ -970,7 +966,7 @@ Disease or Disorder (C2991)
 			ex.printStackTrace();
 		}
 
-		System.out.println("\t(14)" + " isSubtype: true");
+		System.out.println("\t(16)" + " isSubtype: true");
 		return true;
 	}
 
@@ -1011,12 +1007,28 @@ Disease or Disorder (C2991)
 	    Utils.saveToFile("DISEASE_IS_GRADE_" + today + ".txt", v);
 	}
 
-/*
+
+	public void testIsSubtype(Vector codes) {
+		for (int i=0; i<codes.size(); i++) {
+			String code = (String) codes.elementAt(i);
+			testIsSubtype(code);
+		}
+	}
+
+	public void testIsSubtype(String code) {
+		String label = getLabel(code);
+		System.out.println("\n\n" + label + " (" + code + ")");
+		boolean isSubtype = isSubtype(code);
+		System.out.println("\tisSubtype: " + isSubtype);
+		isSubtype2(code);
+	}
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String serviceUrl = "https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";//args[0];
 		String named_graph = "http://NCIt";
-		generate_data_files(serviceUrl, named_graph);
+		//generate_data_files(serviceUrl, named_graph);
 
 		String parent_child_file = args[0];
 
@@ -1031,33 +1043,28 @@ Disease or Disorder (C2991)
 		MainTypeHierarchy test = new MainTypeHierarchy("17.08c", parent_child_vec, null, null,
 		   stageConceptHashMap, gradeConceptHashMap);
 
-		save_main_type_hierarchy();
-		test.generate_main_type_label_code_file();
+//		save_main_type_hierarchy();
+//		test.generate_main_type_label_code_file();
 
 
-        String code = "C3058";
-        String label = test.getLabel(code);
-        System.out.println(label + " (" + code + ")");
-        boolean isSubtype = test.isSubtype(code);
-        System.out.println("\tisSubtype: " + isSubtype);
-        test.isSubtype2(code);
-        System.out.println("\n\n");
+        Vector codes = new Vector();
+        codes.add("C3058");
+        codes.add("C125890");
+        codes.add("C2924");
+        codes.add("C4896");
+        codes.add("C54705");
+        codes.add("C7057");
+        codes.add("C2991");
+        codes.add("C3262");
+        codes.add("C4897");
 
-        code = "C125890";
-        label = test.getLabel(code);
-        System.out.println(label + " (" + code + ")");
-        isSubtype = test.isSubtype(code);
-        System.out.println("\tisSubtype: " + isSubtype);
-        test.isSubtype2(code);
-        System.out.println("\n\n");
 
-        code = "C2924";
-        label = test.getLabel(code);
-        System.out.println(label + " (" + code + ")");
-        isSubtype = test.isSubtype(code);
-        System.out.println("\tisSubtype: " + isSubtype);
-        test.isSubtype2(code);
 
+        test.testIsSubtype(codes);
+
+
+
+/*
         Vector ddf_codes = test.getTransitiveClosure(DISEASE_DISORDER_OR_FINDING_CODE);
         System.out.println("Number of ddf_codes: " + ddf_codes.size());
         Utils.saveToFile("ddf_codes.txt", ddf_codes);
@@ -1065,8 +1072,8 @@ Disease or Disorder (C2991)
         String today = StringUtils.getToday();
         test.run(ddf_codes, "disease_disorder_finding_ctrp_response_v2_" + today + ".txt", false);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-
-	}
 */
+	}
+
 }
 
