@@ -236,11 +236,12 @@ public class SPARQLSearchUtils {
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
-    //Note: Need to remove Preferred_Name, Display_Name, Legacy_Concept_Name etc.
+
 	public Vector searchProperties(String named_graph, String searchString, String algorithm) {
 		return executeQuery(construct_search_properties(named_graph, searchString, algorithm));
 	}
 
+	//Note: Need to remove Preferred_Name, Display_Name, Legacy_etc.
 	public String getValue(String t) {
 		if (t == null) return null;
 		Vector u = StringUtils.parseData(t);
