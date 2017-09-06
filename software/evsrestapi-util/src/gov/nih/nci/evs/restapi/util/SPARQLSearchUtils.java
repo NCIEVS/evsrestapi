@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
 
-
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
@@ -152,7 +151,7 @@ public class SPARQLSearchUtils {
 		return construct_search_fullsyn(named_graph, searchString, null);
 	}
 
-	public Vector searchFullsyn(String named_graph, String searchString) {
+	public Vector searchByName(String named_graph, String searchString) {
 		return executeQuery(construct_search_fullsyn(named_graph, searchString, null));
 	}
 
@@ -164,15 +163,19 @@ public class SPARQLSearchUtils {
 		}
 
 		if (algorithm.compareTo(Constants.EXACT_MATCH) == 0) {
-			searchString = "\"" + searchString + "\"";
+			//searchString = "\"" + searchString + "\"";
+			searchString = "^" + searchString + "$";
+
 		} else if (algorithm.compareTo(Constants.STARTS_MATCH) == 0) {
-			searchString = searchString + "*";
+			//searchString = "'" + searchString + "*'";
+			searchString = "^" + searchString;
 		}
 
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("").append("\n");
-		buf.append("SELECT distinct ?x_label ?x_code ?term_name ?term_group ?score").append("\n");
+
+		buf.append("SELECT distinct ?x_label ?x_code ?term_name ?score").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + "> {").append("\n");
 		buf.append("            ?x a owl:Class .").append("\n");
@@ -183,18 +186,60 @@ public class SPARQLSearchUtils {
 		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
 		buf.append("            ?p :NHC0 \"P90\"^^xsd:string .").append("\n");
 		buf.append("	    ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
-		buf.append("	    ?z_axiom :term-group ?term_group").append("\n");
 		buf.append("    }").append("\n");
-		buf.append("    (?term_name ?score) <tag:stardog:api:property:textMatch> '" + searchString + "' ").append("\n");
+//		buf.append("    (?term_name ?score) <tag:stardog:api:property:textMatch> " + searchString + " ").append("\n");
+        buf.append("FILTER (regex(?term_name, '" + searchString + "'))").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
 
 
-	public Vector searchFullsyn(String named_graph, String searchString, String algorithm) {
+	public Vector searchByName(String named_graph, String searchString, String algorithm) {
 		return executeQuery(construct_search_fullsyn(named_graph, searchString, algorithm));
 	}
 
+
+
+	public String construct_search_properties(String named_graph, String searchString, String algorithm) {
+		String prefixes = getPrefixes();
+		searchString = searchString.replaceAll("%20", " ");
+		if (algorithm == null || algorithm.compareTo("") == 0) {
+			algorithm = Constants.EXACT_MATCH;
+		}
+
+		if (algorithm.compareTo(Constants.EXACT_MATCH) == 0) {
+			//searchString = "\"" + searchString + "\"";
+			searchString = "^" + searchString + "$";
+
+		} else if (algorithm.compareTo(Constants.STARTS_MATCH) == 0) {
+			//searchString = "'" + searchString + "*'";
+			searchString = "^" + searchString;
+		}
+
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?p_label ?p_value ?score").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?p a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?p ?p_value .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label . ").append("\n");
+		buf.append("            ?p :NHC0 ?p_code ").append("\n");
+
+		buf.append("    }").append("\n");
+        buf.append("	FILTER (str(?p_code) != \"P90\"^^xsd:string)").append("\n");
+        buf.append("	FILTER (regex(?p_value, '" + searchString + "'))").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+    //Note: Need to remove Preferred_Name, Display_Name, Legacy_Concept_Name etc.
+	public Vector searchProperties(String named_graph, String searchString, String algorithm) {
+		return executeQuery(construct_search_properties(named_graph, searchString, algorithm));
+	}
 
 	public String getValue(String t) {
 		if (t == null) return null;

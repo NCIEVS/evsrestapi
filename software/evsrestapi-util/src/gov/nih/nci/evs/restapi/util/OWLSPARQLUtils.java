@@ -457,6 +457,13 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_ontology_version_info(named_graph));
 	}
 
+	public String get_ontology_version(String named_graph) {
+		Vector v = getOntologyVersionInfo(named_graph);
+		String version = (String) v.elementAt(0);
+		version = new ParserUtils().getValue(version);
+		return version;
+	}
+
 /*
 	public String construct_get_synonyms(String named_graph, String code) {
 		String prefixes = getPrefixes();
@@ -1197,7 +1204,45 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_hierarchical_relationships(named_graph));
 	}
 
-    public static void main(String[] args) {
 
+	public String construct_get_concepts_in_subset(String named_graph, String subset_code) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?z " + named_graph_id + " \"" + subset_code + "\"^^xsd:string .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + "Concept_In_Subset" + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsInSubset(String named_graph, String subset_code) {
+		return executeQuery(construct_get_concepts_in_subset(named_graph, subset_code));
+	}
+
+	public String[] get_concept_in_subset_codes(String named_graph, String subset_code) {
+		Vector w = getConceptsInSubset(named_graph, subset_code);
+		ParserUtils parser = new ParserUtils();
+		w = parser.parse(w, 2);
+		String[] array = new String[w.size()];
+		for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String code = (String) u.elementAt(1);
+			array[i] = code;
+		}
+		return array;
+	}
+
+    public static void main(String[] args) {
     }
 }

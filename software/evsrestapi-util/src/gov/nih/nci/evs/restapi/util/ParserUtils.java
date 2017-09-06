@@ -545,6 +545,28 @@ public class ParserUtils {
 		return w;
 	}
 
+	public Vector parse(Vector v, int m) {
+		Vector w = new Vector();
+		if (w == null) return w;
+		int n = v.size()/m;
+		for (int i=0; i<n; i++) {
+			StringBuffer buf = new StringBuffer();
+			for (int j=0; j<m; j++) {
+				int i0 = i*m+j;
+				String t = (String) v.elementAt(i0);
+				t = getValue(t);
+				buf.append(t);
+				if (j < m-1) {
+					buf.append("|");
+				}
+			}
+			String s = buf.toString();
+			w.add(s);
+		}
+		return w;
+	}
+
+
 	public static void main(String[] args) {
 		String filename = args[0];
         filename = "filterPropertyQualifiers.txt";

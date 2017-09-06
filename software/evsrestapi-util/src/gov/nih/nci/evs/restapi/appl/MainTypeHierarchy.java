@@ -28,6 +28,9 @@ public class MainTypeHierarchy {
 	static String NEOPLASM_CODE = "C3262";
 	static Vector main_type_hierarchy_data = null;
 
+	static String RECURRENT = "recurrent";
+
+/*
 	public static final String[] CTRP_MAIN_CANCER_TYPES = new String[] {
 		"C4715", "C4536", "C35850", "C54293", "C9315", "C8990", "C9272", "C9466", "C3871", "C9465",
 		"C9105", "C4855", "C4815", "C8054", "C4035", "C3879", "C4906", "C7569", "C3513", "C4911",
@@ -45,7 +48,7 @@ public class MainTypeHierarchy {
 		"C9384", "C4767",  "C4016", "C7073", "C7515",
 		"C4896", "C54705"
 		};
-
+*/
 
     Vector parent_child_vec = null;
     HierarchyHelper hh = null;
@@ -77,14 +80,11 @@ public class MainTypeHierarchy {
 
     }
 
-    public MainTypeHierarchy(String ncit_version, Vector parent_child_vec) {
+/*
+    public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set) {
 		this.parent_child_vec = parent_child_vec;
 		this.hh = new HierarchyHelper(parent_child_vec);
-		main_type_set = new HashSet();
-		for (int i=0; i<CTRP_MAIN_CANCER_TYPES.length; i++) {
-			String t = CTRP_MAIN_CANCER_TYPES[i];
-			main_type_set.add(t);
-		}
+
 		main_types = Utils.hashSet2Vector(main_type_set);
         main_type_hierarchy_data = generate_main_type_hierarchy();
 
@@ -122,11 +122,13 @@ public class MainTypeHierarchy {
 		gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(v);
 		System.out.println("Number of grade terms: " + gradeConceptHashMap.keySet().size());
     }
+*/
 
     public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
         HashMap stageConceptHashMap, HashMap gradeConceptHashMap) {
 		this.parent_child_vec = parent_child_vec;
 		this.hh = new HierarchyHelper(parent_child_vec);
+		/*
         if (main_type_set == null || main_type_set.size() == 0) {
 			this.main_type_set = new HashSet();
 			for (int i=0; i<CTRP_MAIN_CANCER_TYPES.length; i++) {
@@ -134,6 +136,7 @@ public class MainTypeHierarchy {
 				this.main_type_set.add(t);
 			}
 		}
+		*/
 		main_types = Utils.hashSet2Vector(this.main_type_set);
         main_type_hierarchy_data = generate_main_type_hierarchy();
         Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
@@ -204,6 +207,10 @@ public class MainTypeHierarchy {
 	}
 
     public boolean isDiseaseStage(String code) {
+		//09062017
+		String label = hh.getLabel(code);
+		label = label.toLowerCase();
+		if (label.startsWith(RECURRENT)) return true;
 		return stageConceptHashMap.containsKey(code);
 	}
 
@@ -225,19 +232,21 @@ public class MainTypeHierarchy {
     public boolean isSubtype(String code) {
 		try {
 			if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) return false;
-			if (isNotDisease(code)) return false;
+			if (isNotDisease(code)) {
+				return false;
+			}
+			//09062017
+			String label = hh.getLabel(code);
+			label = label.toLowerCase();
+			if (label.startsWith(RECURRENT)) return false;
 
 			if (isDiseaseStage(code)) {
-				String label = (String) stageConceptHashMap.get(code);
-				label = label.toLowerCase();
-				if (label.indexOf("stage") == -1) return true;
+				String name = (String) stageConceptHashMap.get(code);
+				name = name.toLowerCase();
+				if (name.indexOf("stage") == -1) return true;
 				return false;
 			}
-			/*
-			if (isDiseaseGrade(code)) {
-				return false;
-			}
-			*/
+
 			if (isMainType(code)) {
 				Vector sups = mth_hh_without_categories.getSuperclassCodes(code);
 				if (sups != null && sups.size() > 0) {
@@ -248,9 +257,9 @@ public class MainTypeHierarchy {
 			}
 
 			if (isDiseaseGrade(code)) {
-				String label = (String) gradeConceptHashMap.get(code);
-				label = label.toLowerCase();
-				if (label.indexOf("grade") == -1) {
+				String name = (String) gradeConceptHashMap.get(code);
+				name = name.toLowerCase();
+				if (name.indexOf("grade") == -1) {
 					return true;
 				}
 				return false;
@@ -977,13 +986,22 @@ Disease or Disorder (C2991)
         Utils.saveToFile("main_type_hierarchy_" + today + ".txt", main_type_hierarchy_data);
     }
 
-    public void generate_main_type_label_code_file() {
+    public void generate_main_type_label_code_file(HashSet main_type_set) {
 		Vector w = new Vector();
+		/*
 		for (int i=0; i<CTRP_MAIN_CANCER_TYPES.length; i++) {
 			String code = CTRP_MAIN_CANCER_TYPES[i];
 			String label = hh.getLabel(code);
 			w.add(label + "|" + code);
 		}
+		*/
+		Iterator it = main_type_set.iterator();
+		while (it.hasNext()) {
+			String code = (String) it.next();
+			String label = hh.getLabel(code);
+			w.add(label + "|" + code);
+		}
+
 		w = new SortUtils().quickSort(w);
 		String today = StringUtils.getToday();
 		Utils.saveToFile("main_type_label_and_code_" + today + ".txt", w);
@@ -1031,7 +1049,6 @@ Disease or Disorder (C2991)
 		//generate_data_files(serviceUrl, named_graph);
 
 		String parent_child_file = args[0];
-
 		Vector parent_child_vec = Utils.readFile(parent_child_file);
 
         Vector v = Utils.readFile("DISEASE_IS_STAGE.txt");
@@ -1040,12 +1057,19 @@ Disease or Disorder (C2991)
         v = Utils.readFile("DISEASE_IS_GRADE.txt");
 		HashMap gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(v);
 
-		MainTypeHierarchy test = new MainTypeHierarchy("17.08c", parent_child_vec, null, null,
+		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
+		HashSet main_type_set = mthd.get_main_type_set();
+		System.out.println("main_type_set: " + main_type_set.size());
+		Vector category_vec = mthd.get_broad_category_vec();
+		System.out.println("category_vec: " + category_vec.size());
+		String version = mthd.getVersion();
+		System.out.println("version: " + version);
+
+		MainTypeHierarchy test = new MainTypeHierarchy(version, parent_child_vec, main_type_set, category_vec,
 		   stageConceptHashMap, gradeConceptHashMap);
 
 //		save_main_type_hierarchy();
 //		test.generate_main_type_label_code_file();
-
 
         Vector codes = new Vector();
         codes.add("C3058");
@@ -1058,12 +1082,7 @@ Disease or Disorder (C2991)
         codes.add("C3262");
         codes.add("C4897");
 
-
-
         test.testIsSubtype(codes);
-
-
-
 /*
         Vector ddf_codes = test.getTransitiveClosure(DISEASE_DISORDER_OR_FINDING_CODE);
         System.out.println("Number of ddf_codes: " + ddf_codes.size());
