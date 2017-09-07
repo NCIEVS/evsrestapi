@@ -27,6 +27,7 @@ public class ConceptDetails
 	private Boolean isSubtype;
 	private Boolean isDiseaseStage;
 	private Boolean isDiseaseGrade;
+	private Boolean isDisease;
 	private List mainMenuAncestors;
 	private List definitions;
 	private List synonyms;
@@ -50,6 +51,7 @@ public class ConceptDetails
 		Boolean isSubtype,
 		Boolean isDiseaseStage,
 		Boolean isDiseaseGrade,
+		Boolean isDisease,
 		List mainMenuAncestors,
 		List definitions,
 		List synonyms,
@@ -67,6 +69,7 @@ public class ConceptDetails
 		this.isSubtype = isSubtype;
 		this.isDiseaseStage = isDiseaseStage;
 		this.isDiseaseGrade = isDiseaseGrade;
+		this.isDisease = isDisease;
 		this.mainMenuAncestors = mainMenuAncestors;
 		this.definitions = definitions;
 		this.synonyms = synonyms;
@@ -113,6 +116,10 @@ public class ConceptDetails
 
 	public void setIsDiseaseGrade(Boolean isDiseaseGrade) {
 		this.isDiseaseGrade = isDiseaseGrade;
+	}
+
+	public void setIsDisease(Boolean isDisease) {
+		this.isDisease = isDisease;
 	}
 
 	public void setmainMenuAncestors(List mainMenuAncestors) {
@@ -176,11 +183,14 @@ public class ConceptDetails
 	public Boolean getIsDiseaseStage() {
 		return this.isDiseaseStage;
 	}
-
+
 	public Boolean getIsDiseaseGrade() {
 		return this.isDiseaseGrade;
 	}
-
+
+	public Boolean getIsDisease() {
+		return this.isDisease;
+	}
 	public List getmainMenuAncestors() {
 		return this.mainMenuAncestors;
 	}
@@ -224,7 +234,8 @@ public class ConceptDetails
 	    Boolean isMainType,
 	    Boolean isSubtype,
 	    Boolean isDiseaseStage,
-	    Boolean isDiseaseGrade
+	    Boolean isDiseaseGrade,
+	    Boolean isDisease
 		) {
 		ParserUtils parser = new ParserUtils();
         HashMap prop_hmap = parser.parseProperties(property_vec);
@@ -311,6 +322,7 @@ public class ConceptDetails
 	    this.isSubtype = isSubtype;
 	    this.isDiseaseStage = isDiseaseStage;
 	    this.isDiseaseGrade	= isDiseaseGrade;
+	    this.isDisease = isDisease;
 	}
 
 	public String toXML() {

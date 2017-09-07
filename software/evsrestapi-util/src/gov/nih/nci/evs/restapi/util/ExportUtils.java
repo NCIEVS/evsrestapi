@@ -112,7 +112,9 @@ public class ExportUtils {
         Boolean isMainType,
         Boolean isSubtype,
         Boolean isDiseaseStage,
-        Boolean isDiseaseGrade) {
+        Boolean isDiseaseGrade,
+        Boolean isDisease
+        ) {
 
 		Vector label_vec = owlSPARQLUtils.getLabelByCode(named_graph, code);
 		Vector property_vec = owlSPARQLUtils.getPropertiesByCode(named_graph, code);
@@ -148,7 +150,8 @@ public class ExportUtils {
 		        isMainType,
 		        isSubtype,
 		        isDiseaseStage,
-		        isDiseaseGrade
+		        isDiseaseGrade,
+		        isDisease
 		        );
 	}
 

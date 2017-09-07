@@ -103,6 +103,16 @@ public class ConceptDetailsBatchRunner {
         HashSet main_type_set = null;
         Vector category_vec = null;
 
+ 		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
+		main_type_set = mthd.get_main_type_set();
+		System.out.println("main_type_set: " + main_type_set.size());
+		category_vec = mthd.get_broad_category_vec();
+		System.out.println("category_vec: " + category_vec.size());
+		Utils.dumpVector("category_vec", category_vec);
+
+		String version = mthd.getVersion();
+		System.out.println("version: " + version);
+
 		this.mth = new MainTypeHierarchy(
             ncit_version,
             parent_child_vec,
@@ -123,12 +133,14 @@ public class ConceptDetailsBatchRunner {
         Boolean isSubtype = new Boolean(mth.isSubtype(code));
         Boolean isDiseaseStage = new Boolean(mth.isDiseaseStage(code));
         Boolean isDiseaseGrade = new Boolean(mth.isDiseaseGrade(code));
+        Boolean isDisease = new Boolean(mth.isDisease(code));
         ConceptDetails cd = exportUtils.buildConceptDetails(named_graph, code,
 			mainMenuAncestors,
 			isMainType,
 			isSubtype,
 			isDiseaseStage,
-			isDiseaseGrade);
+			isDiseaseGrade,
+			isDisease);
         return cd;
 	}
 
@@ -165,6 +177,22 @@ public class ConceptDetailsBatchRunner {
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
+		String serviceUrl = "https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";//args[0];
+		String named_graph = "http://NCIt";
+		/*
+
+		String serviceUrl = args[0];
+		String username = args[1];
+		String password = args[2];
+		String named_graph = args[3];
+		String parent_child_file = args[4];
+		*/
+		String parent_child_file = "parent_child.txt";
+        Vector parent_child_vec = Utils.readFile(parent_child_file);
+
+        System.out.println("serviceUrl: " + serviceUrl);
+        OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+        /*
 		String serviceUrl = args[0];
 		String username = args[1];
 		String password = args[2];
@@ -174,6 +202,7 @@ public class ConceptDetailsBatchRunner {
 
         System.out.println("serviceUrl: " + serviceUrl);
         OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+        */
 
         Vector disease_is_stage_vec = null;
         String stage_file = "DISEASE_IS_STAGE.txt";
@@ -212,10 +241,17 @@ public class ConceptDetailsBatchRunner {
             gradeConceptHashMap);
 
         Vector codes = new Vector();
-        codes.add("C7419");
-        codes.add("C3173");
-        codes.add("C3224");
-        codes.add("C27876");
+        codes.add("C3058");
+        codes.add("C125890");
+        codes.add("C2924");
+        codes.add("C4896");
+        codes.add("C54705");
+        codes.add("C7057");
+        codes.add("C2991");
+        codes.add("C3262");
+        codes.add("C4897");
+        codes.add("C7834");
+        codes.add("C48232");
 
         cdbr.run(named_graph, codes);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));

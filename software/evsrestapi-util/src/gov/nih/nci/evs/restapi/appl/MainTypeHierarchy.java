@@ -145,9 +145,11 @@ public class MainTypeHierarchy {
 
         this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", ncit_version);
         this.category_vec = category_vec;
-        //if (category_vec == null) {
-		//	this.category_vec = get_category_vec();
-		//}
+
+        for (int i=0; i<category_vec.size(); i++) {
+			String code = (String) category_vec.elementAt(i);
+			this.main_type_set.add(code);
+		}
         category_hset = Utils.vector2HashSet(category_vec);
         Vector mth_parent_child_vec_v2 = new Vector();
         for (int k=0; k<mth_parent_child_vec.size(); k++) {
@@ -218,6 +220,8 @@ public class MainTypeHierarchy {
     public boolean isNotDisease(String code) {
 		if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) return false;
 		if (code.compareTo(DISEASES_AND_DISORDERS_CODE) == 0) return false;
+		if (category_vec.contains(code)) return false;
+
 		Vector v = findMainMenuAncestors(code);
 		if (v == null || v.size() == 0) {
 			return true;
