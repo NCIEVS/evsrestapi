@@ -20,6 +20,7 @@ public class MainTypeHierarchyUtils {
 	static String DISEASES_AND_DISORDERS_CODE = "C2991";
 	static String DISEASE_DISORDER_OR_FINDING_CODE = "C7057";
 	static String NEOPLASM_CODE = "C3262";
+	static String RECURRENT = "recurrent";
 	
 	private HashSet <String> mainTypeSet = null;
 	private List <String> mainTypes = null;
@@ -430,6 +431,10 @@ public class MainTypeHierarchyUtils {
 	}
 
     public boolean isDiseaseStage(String code) {
+    	String label = hh.getLabel(code).toLowerCase();
+    	if (label.startsWith(RECURRENT)) {
+    		return true;
+    	}
 		return diseaseStageConcepts.containsKey(code);
 	}
     
@@ -451,13 +456,24 @@ public class MainTypeHierarchyUtils {
 
     public boolean isSubtype(String code) {
  		try {
- 			if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) return false;
- 			if (isNotDisease(code)) return false;
+ 			if (code.compareTo(DISEASE_DISORDER_OR_FINDING_CODE) == 0) {
+ 				return false;
+ 			}
+ 			if (isNotDisease(code)) {
+ 				return false;
+ 			}
+ 			
+ 		   	String label = hh.getLabel(code).toLowerCase();
+ 	    	if (label.startsWith(RECURRENT)) {
+ 	    		return false;
+ 	    	}
 
  			if (isDiseaseStage(code)) {
- 				String label = (String) diseaseStageConcepts.get(code);
- 				label = label.toLowerCase();
- 				if (label.indexOf("stage") == -1) return true;
+ 				String name = (String) diseaseStageConcepts.get(code);
+ 				name = name.toLowerCase();
+ 				if (label.indexOf("stage") == -1) {
+ 					return true;
+ 				}
  				return false;
  			}
  			/*
@@ -475,8 +491,8 @@ public class MainTypeHierarchyUtils {
  			}
 
  			if (isDiseaseGrade(code)) {
- 				String label = (String) diseaseGradeConcepts.get(code);
- 				label = label.toLowerCase();
+ 				String name = (String) diseaseGradeConcepts.get(code);
+ 				name = name.toLowerCase();
  				if (label.indexOf("grade") == -1) {
  					return true;
  				}
