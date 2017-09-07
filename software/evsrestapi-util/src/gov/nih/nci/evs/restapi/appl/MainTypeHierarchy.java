@@ -137,17 +137,18 @@ public class MainTypeHierarchy {
 			}
 		}
 		*/
-		main_types = Utils.hashSet2Vector(this.main_type_set);
+		this.main_type_set = main_type_set;
+		main_types = Utils.hashSet2Vector(main_type_set);
         main_type_hierarchy_data = generate_main_type_hierarchy();
         Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
         this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
 
         this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", ncit_version);
         this.category_vec = category_vec;
-        if (category_vec == null) {
-			this.category_vec = get_category_vec();
-		}
-        category_hset = Utils.vector2HashSet(this.category_vec);
+        //if (category_vec == null) {
+		//	this.category_vec = get_category_vec();
+		//}
+        category_hset = Utils.vector2HashSet(category_vec);
         Vector mth_parent_child_vec_v2 = new Vector();
         for (int k=0; k<mth_parent_child_vec.size(); k++) {
 			String t = (String) mth_parent_child_vec.elementAt(k);
@@ -545,30 +546,34 @@ public class MainTypeHierarchy {
 
 			if (parent_code.compareTo(rootCode) != 0) {
 				Integer n1 = (Integer) levelMap.get(parent_code);
-			    int i1 = n1.intValue();
-				if (i1 > maxLevel) {
-					maxLevel = i1;
-					w = new Vector();
-					w.add(parent_label + "|" + parent_code + "|" + maxLevel);
-				} else if (i1 == maxLevel) {
-					String t = parent_label + "|" + parent_code + "|" + maxLevel;
-					if (!w.contains(t)) {
-						w.add(t);
+				if (n1 != null) {
+					int i1 = n1.intValue();
+					if (i1 > maxLevel) {
+						maxLevel = i1;
+						w = new Vector();
+						w.add(parent_label + "|" + parent_code + "|" + maxLevel);
+					} else if (i1 == maxLevel) {
+						String t = parent_label + "|" + parent_code + "|" + maxLevel;
+						if (!w.contains(t)) {
+							w.add(t);
+						}
 					}
 				}
 			}
 
 			if (child_code.compareTo(rootCode) != 0) {
 				Integer n2 = (Integer) levelMap.get(child_code);
-				int i2 = n2.intValue();
-				if (i2 > maxLevel) {
-					maxLevel = i2;
-					w = new Vector();
-					w.add(child_label + "|" + child_code + "|" + maxLevel);
-				} else if (i2 == maxLevel) {
-					String t = child_label + "|" + child_code + "|" + maxLevel;
-					if (!w.contains(t)) {
-						w.add(t);
+				if (n2 != null) {
+					int i2 = n2.intValue();
+					if (i2 > maxLevel) {
+						maxLevel = i2;
+						w = new Vector();
+						w.add(child_label + "|" + child_code + "|" + maxLevel);
+					} else if (i2 == maxLevel) {
+						String t = child_label + "|" + child_code + "|" + maxLevel;
+						if (!w.contains(t)) {
+							w.add(t);
+						}
 					}
 				}
 		    }
