@@ -40,7 +40,7 @@ public class DefaultController {
    
    
     
-	@RequestMapping(method = RequestMethod.GET, value = "/",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/version",produces = "application/json")
     public @ResponseBody HomePageData getEvsConceptDetail(HttpServletResponse response) throws IOException{
 		HomePageData homePageData = new HomePageData();
 		homePageData.setDescription("NCI EVS API");

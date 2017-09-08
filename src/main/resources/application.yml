@@ -7,6 +7,7 @@ spring:
     #
     application:
         name: nci-evs-api
+        
     
     
     
@@ -26,6 +27,13 @@ spring:
 #
 management:
     contextPath: /admin
+    
+
+info:
+    app:
+        name: NCI EVS API
+        version: 1.0.0-SNAPSHOT
+         
 
 
 
