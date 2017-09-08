@@ -86,6 +86,8 @@ public class ConceptDetailsBatchRunner {
     MainTypeHierarchy mth = null;
     ExportUtils exportUtils = null;
     String ncit_version = "17.07c";
+	HashSet main_type_set = null;
+	Vector category_vec = null;
 
 	public ConceptDetailsBatchRunner(String serviceUrl, String username, String password,
 	    String named_graph,
@@ -100,8 +102,6 @@ public class ConceptDetailsBatchRunner {
 
 		Vector v = this.owlSPARQLUtils.getOntologyVersionInfo(named_graph);
 		this.ncit_version = new ParserUtils().getValue((String) v.elementAt(0));
-        HashSet main_type_set = null;
-        Vector category_vec = null;
 
  		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
 		main_type_set = mthd.get_main_type_set();
@@ -126,6 +126,15 @@ public class ConceptDetailsBatchRunner {
         this.treeBuilder = new TreeBuilder(owlSPARQLUtils);
         this.exportUtils = new ExportUtils(owlSPARQLUtils);
     }
+
+    public HashSet combineMainTypesAndCategories() {
+		HashSet hset = main_type_set;
+        for (int i=0; i<category_vec.size(); i++) {
+			String code = (String) category_vec.elementAt(i);
+			hset.add(code);
+		}
+		return hset;
+	}
 
 	public ConceptDetails createConceptDetails(String named_graph, String code) {
         List mainMenuAncestors = mth.getMainMenuAncestors(code);
@@ -174,6 +183,10 @@ public class ConceptDetailsBatchRunner {
 		}
 	}
 
+    public void generateMainTypeHierarchy() {
+		MainTypeHierarchy.save_main_type_hierarchy();
+		this.mth.generate_main_type_label_code_file(combineMainTypesAndCategories());
+	}
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -254,6 +267,8 @@ public class ConceptDetailsBatchRunner {
         codes.add("C48232");
 
         cdbr.run(named_graph, codes);
+
+        cdbr.generateMainTypeHierarchy();
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
     }
