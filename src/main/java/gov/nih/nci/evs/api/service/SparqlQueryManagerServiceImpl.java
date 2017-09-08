@@ -67,6 +67,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	
 	public static String DISEASES_AND_DISORDERS_CODE = "C2991";
 	public static String NEOPLASM_CODE = "C3262";
+	static String CTS_API_Disease_Broad_Category_Terminology_Code = "C138189";
+	static String CTS_API_Disease_Main_Type_Terminology_Code = "C138190";
+	
+	/*
 	public static final String[] CTRP_MAIN_CANCER_TYPES = new String[] {
 			"C4715", "C4536", "C35850", "C54293", "C9315", "C8990", "C9272", "C9466", "C3871", "C9465",
 			"C9105", "C4855", "C4815", "C8054", "C4035", "C3879", "C4906", "C7569", "C3513", "C4911",
@@ -82,6 +86,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			"C7541", "C3411", "C3234", "C61574", "C2991", "C3262", "C2916", "C9118", "C3268", "C3264",
 			"C3708", "C27134", "C3809", "C3058", "C3017","C9384", "C4767",  "C4016", "C7073", "C7515",
 			 "C4896","C54705"};
+	*/
+	private List <String> CTRP_MAIN_CANCER_TYPES = new ArrayList<String>();
 	
 	private HierarchyUtils hierarchy = null;
 	private MainTypeHierarchyUtils mainTypeHierarchyUtils = null;
@@ -117,15 +123,36 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		LocalDateTime currentTime = LocalDateTime.now();
         log.info("populating the cache at " + currentTime);
         classCount = getGetClassCounts();
-		diseaseStageConcepts = getDiseaseIsStageSourceCodes();
-		diseaseGradeConcepts = getDiseaseIsGradeSourceCodes();
-		diseaseMainConcepts = getMainConcepts();
 		List <String> parentchild = getHierarchy();
 		hierarchy = new HierarchyUtils(parentchild);
 		//hierarchy.testLoading();
 		PathFinder pathFinder = new PathFinder(hierarchy);
 		paths = pathFinder.findPaths();
 		
+		System.out.println("MainTypes");
+		HashSet <String> mainTypeSet = new HashSet <String>();
+		List <Concept> mainTypes = getConceptInSubset(CTS_API_Disease_Main_Type_Terminology_Code);
+		System.out.println("Count: " + mainTypes.size());
+		for (Concept concept: mainTypes) {
+			CTRP_MAIN_CANCER_TYPES.add(concept.getCode());
+		    mainTypeSet.add(concept.getCode());
+		}
+
+		System.out.println("categories");
+		ArrayList <String> categoryList = new ArrayList <String>();
+		List <Concept> categories = getConceptInSubset(CTS_API_Disease_Broad_Category_Terminology_Code);
+		System.out.println("Count: " + categories.size());
+		for (Concept concept: categories) {
+			CTRP_MAIN_CANCER_TYPES.add(concept.getCode());
+			categoryList.add(concept.getCode());
+			mainTypeSet.add(concept.getCode());
+		}
+
+		diseaseStageConcepts = getDiseaseIsStageSourceCodes();
+		diseaseGradeConcepts = getDiseaseIsGradeSourceCodes();
+		diseaseMainConcepts = getMainConcepts();
+
+		/*
 		HashSet <String> mainTypeSet = new HashSet <String>();
 		for (int i = 0; i < CTRP_MAIN_CANCER_TYPES.length; i++) {
 		    mainTypeSet.add(CTRP_MAIN_CANCER_TYPES[i]);
@@ -135,6 +162,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		categoryList.add("C2991");
 		categoryList.add("C3262");
 		categoryList.add("C2916");
+		*/
+
 		mainTypeHierarchyUtils = new MainTypeHierarchyUtils(parentchild,mainTypeSet,categoryList,
 				diseaseStageConcepts,diseaseGradeConcepts);
 		
@@ -526,19 +555,41 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		evsConcept.setSynonyms(EVSUtils.getFullSynonym(axioms));
 		evsConcept.setAdditionalProperties(EVSUtils.getAdditionalProperties(properties));
 		
+		/*
 		if (diseaseStageConcepts.containsKey(conceptCode)){		
 			evsConcept.setIsDiseaseStage(true);
 		} else{
 			evsConcept.setIsDiseaseStage(false);
 		}
+		*/
+		if (mainTypeHierarchyUtils.isDiseaseStage(conceptCode)){		
+			evsConcept.setIsDiseaseStage(true);
+		} else{
+			evsConcept.setIsDiseaseStage(false);
+		}
 		
+		/*
 		if (diseaseGradeConcepts.containsKey(conceptCode)){		
 			evsConcept.setIsDiseaseGrade(true);
 		} else{
 			evsConcept.setIsDiseaseGrade(false);
 		}
+		*/
 		
+		if (mainTypeHierarchyUtils.isDiseaseGrade(conceptCode)){		
+			evsConcept.setIsDiseaseGrade(true);
+		} else{
+			evsConcept.setIsDiseaseGrade(false);
+		}
+		
+		/*
 		if (diseaseMainConcepts.containsKey(conceptCode)){		
+			evsConcept.setIsMainType(true);
+		} else{
+			evsConcept.setIsMainType(false);
+		}
+		*/
+		if (mainTypeHierarchyUtils.isMainType(conceptCode)){		
 			evsConcept.setIsMainType(true);
 		} else{
 			evsConcept.setIsMainType(false);
@@ -652,6 +703,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		}
 		
 		return diseaseGradeConcepts;
+	}
+
+	public List <Concept> getConceptInSubset(String code) throws JsonMappingException,JsonParseException, IOException {
+		log.info("***** In getConceptInSubset******");
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph();
+		String query = queryBuilderService.constructConceptInSubsetQuery(code,namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query);
+		
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		List <Concept> concepts = new ArrayList<Concept>();
+		
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			Concept concept = new Concept();
+			concept.setLabel(b.getConceptLabel().getValue());
+			concept.setCode(b.getConceptCode().getValue());
+			concepts.add(concept);
+		}
+		
+		return concepts;
 	}
 	
 	public HashMap<String,String> getMainConcepts(){

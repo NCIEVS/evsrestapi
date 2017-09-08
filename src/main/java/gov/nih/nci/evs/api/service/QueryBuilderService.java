@@ -30,4 +30,6 @@ public interface QueryBuilderService {
 	public String constructDiseaseIsGradeSourceCodesQuery(String namedGraph);
 
 	public String constructHierarchyQuery(String namedGraph);
+
+	public String constructConceptInSubsetQuery(String conceptCode, String namedGraph);
 }

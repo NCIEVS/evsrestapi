@@ -17,8 +17,11 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 	
 	@Autowired
 	StardogProperties stardogProperties;
+	private String named_graph_id = ":NHC0";
 	
-	
+    public void set_named_graph_id(String named_graph_id) {
+		this.named_graph_id = named_graph_id;
+	}
 	
 	public String contructPrefix(){
 		String prefix = String.join(System.getProperty("line.separator"), 
@@ -588,6 +591,27 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		log.debug("constructRolesQuery - " + query.toString());
 
 		return query.toString();
+	}
+	
+	public String constructConceptInSubsetQuery(String subsetCode, String namedGraph) {
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT ?conceptLabel ?conceptCode").append("\n");
+		query.append("{").append("\n");
+		query.append("    GRAPH <" + namedGraph + ">").append("\n");
+		query.append("    {").append("\n");
+		query.append("	    ?x a owl:Class .").append("\n");
+		query.append("	    ?x rdfs:label ?conceptLabel .").append("\n");
+		query.append("      ?x " + named_graph_id + " ?conceptCode .").append("\n");
+		query.append("      ?y a owl:AnnotationProperty .").append("\n");
+		query.append("      ?x ?y ?z .").append("\n");
+		query.append("      ?z " + named_graph_id + " \"" + subsetCode + "\"^^xsd:string .").append("\n");
+		query.append("      ?y rdfs:label " + "\"" + "Concept_In_Subset" + "\"^^xsd:string ").append("\n");
+		query.append("    }").append("\n");
+		query.append("}").append("\n");
+
+		log.debug("constructConceptInSubsetQuery - " + query.toString());
+		return query.toString();
+		
 	}
 
 }
