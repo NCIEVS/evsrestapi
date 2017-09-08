@@ -137,6 +137,8 @@ public class MainTypeHierarchy {
 			}
 		}
 		*/
+
+/*
 		this.main_type_set = main_type_set;
 		main_types = Utils.hashSet2Vector(main_type_set);
         main_type_hierarchy_data = generate_main_type_hierarchy();
@@ -151,6 +153,23 @@ public class MainTypeHierarchy {
 			this.main_type_set.add(code);
 		}
         category_hset = Utils.vector2HashSet(category_vec);
+*/
+		this.main_type_set = main_type_set;
+        this.category_vec = category_vec;
+        category_hset = Utils.vector2HashSet(category_vec);
+
+        for (int i=0; i<category_vec.size(); i++) {
+			String code = (String) category_vec.elementAt(i);
+			this.main_type_set.add(code);
+		}
+
+		main_types = Utils.hashSet2Vector(main_type_set);
+        main_type_hierarchy_data = generate_main_type_hierarchy();
+        Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
+        this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
+
+        this.pathFinder = new PathFinder(mth_hh, "NCI_Thesaurus", ncit_version);
+
         Vector mth_parent_child_vec_v2 = new Vector();
         for (int k=0; k<mth_parent_child_vec.size(); k++) {
 			String t = (String) mth_parent_child_vec.elementAt(k);
