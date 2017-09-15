@@ -20,6 +20,8 @@ import java.util.regex.*;
 import org.apache.commons.codec.binary.Base64;
 import org.json.*;
 
+import org.apache.commons.text.similarity.*;
+
 
 /**
  * <!-- LICENSE_TEXT_START -->
@@ -202,6 +204,7 @@ public class SPARQLSearchUtils {
 				matchedConcepts.add(mc);
 			}
 		}
+		matchedConcepts = sortMatchedConcepts(matchedConcepts, searchString);
 		sr.setMatchedConcepts(matchedConcepts);
 		return sr;
 	}
@@ -270,8 +273,42 @@ public class SPARQLSearchUtils {
 				matchedConcepts.add(mc);
 			}
 		}
+		matchedConcepts = sortMatchedConcepts(matchedConcepts, searchString);
 		sr.setMatchedConcepts(matchedConcepts);
 		return sr;
+	}
+
+
+	public List assignScores(List matchedConcepts, String searchString) {
+		LevenshteinDistance ld = new LevenshteinDistance(null);
+		searchString = searchString.toLowerCase();
+		for (int i=0; i<matchedConcepts.size(); i++) {
+            MatchedConcept mc_i = (MatchedConcept) matchedConcepts.get(i);
+            Integer score = ld.apply(searchString, mc_i.getPropertyValue().toLowerCase());
+            //System.out.println(mc_i.getPropertyValue() + " score: " + Integer.valueOf(score));
+            mc_i.setScore(Integer.valueOf(score));
+		}
+		return matchedConcepts;
+	}
+
+
+	public List sortMatchedConcepts(List matchedConcepts, String searchString) {
+		matchedConcepts = assignScores(matchedConcepts, searchString);
+		if (matchedConcepts == null) return null;
+		if (matchedConcepts.size() <= 1) return matchedConcepts;
+		for (int i=1; i<matchedConcepts.size(); i++) {
+			MatchedConcept mc_i = (MatchedConcept) matchedConcepts.get(i);
+			for (int j=0; j<i; j++) {
+			    MatchedConcept mc_j = (MatchedConcept) matchedConcepts.get(j);
+			    if (mc_i.getScore() < mc_j.getScore()) {
+					MatchedConcept mc_tmp = mc_i;
+					matchedConcepts.set(i, mc_j);
+					matchedConcepts.set(j, mc_tmp);
+				}
+			}
+		}
+		return matchedConcepts;
+
 	}
 
 	public static String marshalSearchResult(SearchResult sr) throws Exception {
@@ -283,10 +320,12 @@ public class SPARQLSearchUtils {
 	public static void main(String[] args) {
 		String  serviceUrl = args[0];
 		SPARQLSearchUtils searchUtils = new SPARQLSearchUtils(serviceUrl, null, null);
-	    SearchResult sr = searchUtils.searchByNames("http://NCIt", "aging", "contains");
+	    SearchResult sr = searchUtils.searchByNames("http://NCIt", "cell aging", "contains");
 	    System.out.println(sr.toJson());
+	    /*
 	    sr = searchUtils.searchByProperties("http://NCIt", "aging", "endsWith");
 	    System.out.println(sr.toJson());
+	    */
 	}
 }
 

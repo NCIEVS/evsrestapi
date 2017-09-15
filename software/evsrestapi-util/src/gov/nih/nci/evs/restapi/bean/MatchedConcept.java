@@ -12,7 +12,7 @@ public class MatchedConcept
 	private String code;
 	private String propertyName;
 	private String propertyValue;
-	//private float score;
+	private int score;
 
 // Default constructor
 	public MatchedConcept() {
@@ -23,13 +23,28 @@ public class MatchedConcept
 		String label,
 		String code,
 		String propertyName,
-		String propertyValue) {
+		String propertyValue,
+		int score) {
 
 		this.label = label;
 		this.code = code;
 		this.propertyName = propertyName;
 		this.propertyValue = propertyValue;
-		//this.score = score;
+		this.score = score;
+	}
+
+	public MatchedConcept(
+		String label,
+		String code,
+		String propertyName,
+		String propertyValue
+		) {
+
+		this.label = label;
+		this.code = code;
+		this.propertyName = propertyName;
+		this.propertyValue = propertyValue;
+		this.score = 0;
 	}
 
 // Set methods
@@ -48,11 +63,11 @@ public class MatchedConcept
 	public void setPropertyValue(String propertyValue) {
 		this.propertyValue = propertyValue;
 	}
-/*
-	public void setScore(float score) {
+
+	public void setScore(int score) {
 		this.score = score;
 	}
-*/
+
 
 // Get methods
 	public String getLabel() {
@@ -70,9 +85,9 @@ public class MatchedConcept
 	public String getPropertyValue() {
 		return this.propertyValue;
 	}
-/*
-	public float getScore() {
+
+	public int getScore() {
 		return this.score;
 	}
-*/
+
 }
