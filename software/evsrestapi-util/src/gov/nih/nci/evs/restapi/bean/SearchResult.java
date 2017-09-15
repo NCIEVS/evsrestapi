@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.bean;
+
 import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.common.*;
 
@@ -105,13 +106,6 @@ public class SearchResult
 		xml = StringUtils.removePackageNames(Constants.EVSRESTAPI_BEAN, xml);
         return xml;
 	}
-/*
-	public String toJson() {
-		String xml = toXML();
-		return new XMLJSONConverter().xml2JSON(xml);
-	}
-
-*/
 
 	public String toJson() {
 		//return new Gson().toJson(this);
