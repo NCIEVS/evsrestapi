@@ -203,8 +203,8 @@ public class SPARQLSearchUtils {
 	}
 
 	public Vector searchAnnotationProperties(String named_graph, String searchString, String algorithm) {
-		String query = construct_search_annotation_properties(named_graph, searchString, algorithm);
-		System.out.println(query);
+		//String query = construct_search_annotation_properties(named_graph, searchString, algorithm);
+		//System.out.println(query);
 		return executeQuery(construct_search_annotation_properties(named_graph, searchString, algorithm));
 	}
 
