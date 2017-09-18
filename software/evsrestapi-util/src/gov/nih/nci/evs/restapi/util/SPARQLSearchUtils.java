@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.util.*;
 
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -89,6 +89,8 @@ public class SPARQLSearchUtils {
     static String STARTS_WITH = "startsWith";
     static String ENDS_WITH = "endsWith";
     static String CONTAINS = "contains";
+    static String NAMES = "names";
+    static String PROPERTIES = "properties";
 
 	public SPARQLSearchUtils() {
 		this.httpUtils = new HTTPUtils();
@@ -171,44 +173,6 @@ public class SPARQLSearchUtils {
 		return "";
 	}
 
-
-	public SearchResult searchByNames(String named_graph, String searchString, String algorithm) {
-		Vector v = searchAnnotationProperties(named_graph, searchString, algorithm);
-		if (v == null) return null;
-
-		Utils.saveToFile("searchByName.txt", v);
-
-		ParserUtils parser = new ParserUtils();
-		int n = v.size()/4;
-		String x_label = null;
-		String x_code = null;
-		String p_label = null;
-		String p_value = null;
-		//float  score = (float) 0.0;
-		SearchResult sr = new SearchResult();
-		List matchedConcepts = new ArrayList();
-		Vector w = new Vector();
-		for (int i=0; i<n; i++) {
-			int i0 = i*4;
-			int i1 = i*4+1;
-			int i2 = i*4+2;
-			p_label = parser.getValue((String) v.elementAt(i2));
-			if (PRESENTATION_LIST.contains(p_label)) {
-				int i3 = i*4+3;
-				x_label = parser.getValue((String) v.elementAt(i0));
-				x_code = parser.getValue((String) v.elementAt(i1));
-				p_value = parser.getValue((String) v.elementAt(i3));
-				//String score_str = parser.getValue((String) v.elementAt(i4));
-				//score = Float.parseFloat(score_str);
-				MatchedConcept mc = new MatchedConcept(x_label, x_code, p_label, p_value);
-				matchedConcepts.add(mc);
-			}
-		}
-		matchedConcepts = sortMatchedConcepts(matchedConcepts, searchString);
-		sr.setMatchedConcepts(matchedConcepts);
-		return sr;
-	}
-
 	public String construct_search_annotation_properties(String named_graph, String searchString, String algorithm) {
 		String prefixes = getPrefixes();
 		searchString = searchString.replaceAll("%20", " ");
@@ -244,48 +208,12 @@ public class SPARQLSearchUtils {
 		return executeQuery(construct_search_annotation_properties(named_graph, searchString, algorithm));
 	}
 
-	public SearchResult searchByProperties(String named_graph, String searchString, String algorithm) {
-		Vector v = searchAnnotationProperties(named_graph, searchString, algorithm);
-		if (v == null) return null;
-		ParserUtils parser = new ParserUtils();
-		int n = v.size()/4;
-		String x_label = null;
-		String x_code = null;
-		String p_label = null;
-		String p_value = null;
-		//float  score = (float) 0.0;
-		SearchResult sr = new SearchResult();
-		List matchedConcepts = new ArrayList();
-		Vector w = new Vector();
-		for (int i=0; i<n; i++) {
-			int i0 = i*4;
-			int i1 = i*4+1;
-			int i2 = i*4+2;
-			p_label = parser.getValue((String) v.elementAt(i2));
-			if (!PRESENTATION_LIST.contains(p_label)) {
-				int i3 = i*4+3;
-				x_label = parser.getValue((String) v.elementAt(i0));
-				x_code = parser.getValue((String) v.elementAt(i1));
-				p_value = parser.getValue((String) v.elementAt(i3));
-				//String score_str = parser.getValue((String) v.elementAt(i4));
-				//score = Float.parseFloat(score_str);
-				MatchedConcept mc = new MatchedConcept(x_label, x_code, p_label, p_value);
-				matchedConcepts.add(mc);
-			}
-		}
-		matchedConcepts = sortMatchedConcepts(matchedConcepts, searchString);
-		sr.setMatchedConcepts(matchedConcepts);
-		return sr;
-	}
-
-
 	public List assignScores(List matchedConcepts, String searchString) {
 		LevenshteinDistance ld = new LevenshteinDistance(null);
 		searchString = searchString.toLowerCase();
 		for (int i=0; i<matchedConcepts.size(); i++) {
             MatchedConcept mc_i = (MatchedConcept) matchedConcepts.get(i);
             Integer score = ld.apply(searchString, mc_i.getPropertyValue().toLowerCase());
-            //System.out.println(mc_i.getPropertyValue() + " score: " + Integer.valueOf(score));
             mc_i.setScore(Integer.valueOf(score));
 		}
 		return matchedConcepts;
@@ -311,21 +239,74 @@ public class SPARQLSearchUtils {
 
 	}
 
+	public SearchResult search(String named_graph, String searchString, String searchTarget, String algorithm) {
+		long ms = System.currentTimeMillis();
+		long ms0 = ms;
+		Vector v = searchAnnotationProperties(named_graph, searchString, algorithm);
+		System.out.println("Total searchAnnotationProperties run time (ms): " + (System.currentTimeMillis() - ms));
+		ms = System.currentTimeMillis();
+		if (v == null) return null;
+		ParserUtils parser = new ParserUtils();
+		int n = v.size()/4;
+		String x_label = null;
+		String x_code = null;
+		String p_label = null;
+		String p_value = null;
+		//float  score = (float) 0.0;
+		SearchResult sr = new SearchResult();
+		List matchedConcepts = new ArrayList();
+		Vector w = new Vector();
+		for (int i=0; i<n; i++) {
+			int i0 = i*4;
+			int i1 = i*4+1;
+			int i2 = i*4+2;
+			p_label = parser.getValue((String) v.elementAt(i2));
+			if (searchTarget.compareTo(NAMES) == 0) {
+				if (PRESENTATION_LIST.contains(p_label)) {
+					int i3 = i*4+3;
+					x_label = parser.getValue((String) v.elementAt(i0));
+					x_code = parser.getValue((String) v.elementAt(i1));
+					p_value = parser.getValue((String) v.elementAt(i3));
+					MatchedConcept mc = new MatchedConcept(x_label, x_code, p_label, p_value);
+					matchedConcepts.add(mc);
+				}
+			} else if (searchTarget.compareTo(PROPERTIES) == 0) {
+				if (!PRESENTATION_LIST.contains(p_label)) {
+					int i3 = i*4+3;
+					x_label = parser.getValue((String) v.elementAt(i0));
+					x_code = parser.getValue((String) v.elementAt(i1));
+					p_value = parser.getValue((String) v.elementAt(i3));
+					MatchedConcept mc = new MatchedConcept(x_label, x_code, p_label, p_value);
+					matchedConcepts.add(mc);
+				}
+			}
+		}
+		System.out.println("Total creating matchedConcepts run time (ms): " + (System.currentTimeMillis() - ms));
+		ms = System.currentTimeMillis();
+		matchedConcepts = sortMatchedConcepts(matchedConcepts, searchString);
+		System.out.println("Total sort matchedConcepts run time (ms): " + (System.currentTimeMillis() - ms));
+		sr.setMatchedConcepts(matchedConcepts);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms0));
+		return sr;
+	}
+
 	public static String marshalSearchResult(SearchResult sr) throws Exception {
 		XStream xstream_xml = new XStream(new DomDriver());
         String xml = Constants.XML_DECLARATION + "\n" + xstream_xml.toXML(sr);
         return xml;
 	}
 
+
 	public static void main(String[] args) {
-		String  serviceUrl = args[0];
+		String serviceUrl = args[0];
+		String named_graph = args[1];
 		SPARQLSearchUtils searchUtils = new SPARQLSearchUtils(serviceUrl, null, null);
-	    SearchResult sr = searchUtils.searchByNames("http://NCIt", "cell aging", "contains");
+	    //SearchResult sr = searchUtils.searchByNames("http://NCIt", "cell aging", "contains");
+	    String searchString = "cell aging";
+	    String searchTarget = "properties";
+	    String algorithm = "contains";
+	    SearchResult sr = searchUtils.search(named_graph, searchString, searchTarget, algorithm);
 	    System.out.println(sr.toJson());
-	    /*
-	    sr = searchUtils.searchByProperties("http://NCIt", "aging", "endsWith");
-	    System.out.println(sr.toJson());
-	    */
 	}
 }
 

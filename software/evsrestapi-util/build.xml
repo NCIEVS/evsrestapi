@@ -11,18 +11,12 @@
     <property name="test.reports" value="reports" />
       
     <path id="classpath">
-        <fileset dir="./extlib">
-            <include name="**/*.jar" />
-        </fileset>    
         <fileset dir="./lib">
             <include name="**/*.jar" />
         </fileset>
     </path>   
 
     <path id="classpath2">
-        <fileset dir="./extlib">
-            <include name="**/*.jar" />
-        </fileset>    
         <fileset dir="./lib">
             <include name="**/*.jar" />
         </fileset>
