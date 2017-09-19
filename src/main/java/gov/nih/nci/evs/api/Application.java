@@ -14,7 +14,6 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@EnableSwagger2
 public class Application extends SpringBootServletInitializer {
 //public class Application {
 	 @Override
@@ -27,14 +26,7 @@ public class Application extends SpringBootServletInitializer {
 	}
 
 
-	@Bean
-        public Docket api() { 
-               return new Docket(DocumentationType.SWAGGER_2)  
-                 .select()                                  
-                 .apis(RequestHandlerSelectors.any())              
-                 .paths(PathSelectors.ant("/api/v1/ctrp/concept/**"))                          
-                 .build();                                           
-        }
+	
 
 	
 }
