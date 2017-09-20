@@ -14,6 +14,8 @@ import gov.nih.nci.evs.api.maintype.util.FirstInFirstOutQueue;
 import gov.nih.nci.evs.api.maintype.util.HierarchyHelper;
 import gov.nih.nci.evs.api.maintype.util.ParserUtils;
 import gov.nih.nci.evs.api.maintype.util.StringUtils;
+import gov.nih.nci.evs.api.model.evs.Concept;
+import gov.nih.nci.evs.api.model.evs.Path;
 import gov.nih.nci.evs.api.model.evs.Paths;
 
 public class MainTypeHierarchyUtils {
@@ -296,8 +298,76 @@ public class MainTypeHierarchyUtils {
 			Paths paths = find_path_to_main_type_roots(ancestor_code);
 			list.add(paths);
 		}
+        list = selectPaths(list);
 		return list;
 	}
+	
+	public List selectPaths(List list) {
+		if (list == null) return null;
+		if (list.size() <= 1) return list;
+
+		HashMap hmap = new HashMap();
+		int path_to_category = 0;
+		int path_to_main_type = 0;
+
+		for (int i=0; i<list.size(); i++) {
+			Paths paths = (Paths) list.get(i);
+			List path_list = paths.getPaths();
+			for (int j=0; j<path_list.size(); j++) {
+				Path path = (Path) path_list.get(j);
+				List concepts = path.getConcepts();
+				int length = concepts.size();
+				Concept c0 = (Concept) concepts.get(0);
+				Concept c1 = (Concept) concepts.get(length-1);
+                String code_0 = c0.getCode();
+                String code_1 = c1.getCode();
+                hmap.put(code_0 + "|" + code_1, path);
+                if (categoryList.contains(code_1)) {
+					path_to_category++;
+				} else {
+					path_to_main_type++;
+				}
+			}
+		}
+		HashMap hmap2 = new HashMap();
+		int path_count = hmap.keySet().size();
+		if (path_to_main_type > 0) {
+			//remove all path_to_category
+			Iterator it = hmap.keySet().iterator();
+			while (it.hasNext()) {
+				String key = (String) it.next();
+				Vector u = StringUtils.parseData(key);
+				String code_1 = (String) u.elementAt(1);
+				if (!categoryList.contains(code_1)) {
+					hmap2.put(key, (Path) hmap.get(key));
+				}
+			}
+		}
+		HashMap hmap3 = new HashMap();
+		//code_0 --> List<Path>
+		Iterator it = hmap2.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector u = StringUtils.parseData(key);
+			String code_0 = (String) u.elementAt(0);
+			Path path = (Path) hmap2.get(key);
+			List path_list = new ArrayList();
+			if (hmap3.containsKey(code_0)) {
+				path_list = (List) hmap3.get(code_0);
+			}
+			path_list.add(path);
+			hmap3.put(code_0, path_list);
+		}
+        List paths_list = new ArrayList();
+		it = hmap3.keySet().iterator();
+		while (it.hasNext()) {
+			String code_0 = (String) it.next();
+			List path_list = (List) hmap3.get(code_0);
+            Paths paths = new Paths(path_list);
+            paths_list.add(paths);
+		}
+        return paths_list;
+	}	
 	
 	public Vector findCode2MainTypesTree(String rootCode) {
 		return findCode2MainTypesTree(rootCode, mainTypeSet);
