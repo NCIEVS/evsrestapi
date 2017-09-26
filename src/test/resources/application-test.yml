@@ -1,0 +1,7 @@
+#
+# Test Properties
+#
+test:
+    conceptCodeList: ${CONCEPT_CODE_LIST:C7073}
+    
+    

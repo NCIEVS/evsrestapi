@@ -5,6 +5,9 @@ public class EvsAdditionalProperty {
 	private String name;
 	private String value;
 	
+	public EvsAdditionalProperty() {
+		
+	}
 	public EvsAdditionalProperty(String name, String value) {
 		this.name = name;
 		this.value = value;

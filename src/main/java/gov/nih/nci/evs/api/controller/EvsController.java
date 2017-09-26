@@ -112,7 +112,7 @@ public class EvsController {
 	}
 	)
 	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/pathToParent/{parentConceptCode}",produces = "application/json")
-    public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode ,@PathVariable(value = "parentConceptCode") String parentConceptCode,HttpServletResponse response) throws IOException{
+    public @ResponseBody Paths getPathToParent(@PathVariable(value = "conceptCode") String conceptCode ,@PathVariable(value = "parentConceptCode") String parentConceptCode,HttpServletResponse response) throws IOException{
 		EvsConcept evsConcept = null;
 		Paths paths = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
