@@ -162,7 +162,7 @@ public class SPARQLSearchUtils {
 
     public String getMatchFilter(String var, String algorithm, String searchString) {
 		if (algorithm.compareTo(EXACT_MATCH) == 0) {
-			return "    FILTER (lcase(?" + var + ") = \"" + searchString + "\"))";
+			return "    FILTER (lcase(?" + var + ") = \"" + searchString + "\")";
 		} else if (algorithm.compareTo(STARTS_WITH) == 0) {
 			return "    FILTER (STRSTARTS(lcase(?" + var + "), \"" + searchString + "\"))";
 		} else if (algorithm.compareTo(ENDS_WITH) == 0) {
