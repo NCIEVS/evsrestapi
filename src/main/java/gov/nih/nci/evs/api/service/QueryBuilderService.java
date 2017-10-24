@@ -32,4 +32,6 @@ public interface QueryBuilderService {
 	public String constructHierarchyQuery(String namedGraph);
 
 	public String constructConceptInSubsetQuery(String conceptCode, String namedGraph);
+	
+	public String constructSearchQuery(String searchStr, String property, String namedGraph);
 }

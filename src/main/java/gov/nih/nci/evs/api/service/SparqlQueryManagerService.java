@@ -16,6 +16,8 @@ import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
 import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
 import gov.nih.nci.evs.api.model.evs.Paths;
+import gov.nih.nci.evs.api.support.FilterCriteriaFields;
+import gov.nih.nci.evs.api.support.MatchedConcept;
 
 public interface SparqlQueryManagerService {
 	
@@ -52,4 +54,8 @@ public interface SparqlQueryManagerService {
 	public Paths getPathToRoot(String conceptCode) throws JsonMappingException, JsonParseException, IOException;
 
 	public Paths getPathToParent(String conceptCode, String parentConceptCode) throws JsonMappingException, JsonParseException, IOException;
+	
+	public List<MatchedConcept> search(String searchTerm,String property) throws JsonParseException, JsonMappingException, IOException;
+	
+	public List<MatchedConcept> search(FilterCriteriaFields filterCriteriaFields) throws JsonParseException, JsonMappingException, IOException;
 }

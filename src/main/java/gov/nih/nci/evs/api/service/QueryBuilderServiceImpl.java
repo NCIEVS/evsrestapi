@@ -1,5 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +55,67 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		
 		return query.toString();
 		
+	}
+	
+	public String constructSearchQuery(String searchStr, String property,String namedGraph){
+		StringBuffer query = new StringBuffer();
+		
+		if (property == null || property.equalsIgnoreCase("")){
+			query.append("SELECT ?conceptCode ?conceptLabel ?propertyCode ?propertyLabel ?propertyValue ?score\n");
+			query.append("{ GRAPH <" + namedGraph + ">");
+			query.append("  { ?concept a owl:Class .\n");
+			query.append("    ?concept :NHC0  ?conceptCode .\n");		
+			query.append("    ?concept rdfs:label ?conceptLabel .\n");
+			query.append("    ?concept ?property ?propertyValue .\n");
+			query.append("    ?property :NHC0 ?propertyCode .\n");
+			query.append("    ?property a owl:AnnotationProperty .\n");
+			query.append("    ?property rdfs:label ?propertyLabel .\n");	
+			query.append("    (?propertyValue ?score) <tag:stardog:api:property:textMatch> '"+ searchStr +"'.\n");
+			query.append("  }\n");
+			query.append("}\n");
+			query.append("order by DESC(?score)");
+		} else {
+			
+			StringBuffer propertyQuery = new StringBuffer();
+			String[] properties = property.split(",");
+			List propertiesList =  Arrays.asList(properties);
+			int size = propertiesList.size();
+			int count = 0;
+			for (Object p : propertiesList){
+				String propertyCode = ((String)p).trim();
+				count++;
+				
+				propertyQuery = propertyQuery.append("   { ?property :NHC0 \"" +  propertyCode + "\" } \n");
+				if (count < size){
+					propertyQuery = propertyQuery.append("UNION \n");
+				}
+			}
+			
+			String proQuery = propertyQuery.toString();
+			
+			query.append("SELECT ?conceptCode ?conceptLabel ?propertyCode ?propertyLabel ?propertyValue ?score\n");
+			query.append("{ GRAPH <" + namedGraph + ">");
+			query.append("  { ?concept a owl:Class .\n");
+			query.append("    ?concept :NHC0  ?conceptCode .\n");		
+			query.append("    ?concept rdfs:label ?conceptLabel .\n");
+			query.append("    ?concept ?property ?propertyValue .\n");
+			query.append("    ?property :NHC0 ?propertyCode .\n");
+			query.append("    ?property a owl:AnnotationProperty .\n");
+			query.append("    ?property rdfs:label ?propertyLabel .\n");	
+		
+			if (proQuery != null && !proQuery.equalsIgnoreCase("")){
+				query.append(proQuery);
+			}
+			query.append("    (?propertyValue ?score) <tag:stardog:api:property:textMatch> '"+ searchStr +"'.\n");
+			query.append("  }\n");
+			query.append("}\n");
+			query.append("order by DESC(?score)");
+			
+		}
+		
+		log.info("constructSearchQuery - " + query.toString());
+		
+		return query.toString();
 	}
 	
 	public String constructGetClassCountsQuery(String namedGraph) {		

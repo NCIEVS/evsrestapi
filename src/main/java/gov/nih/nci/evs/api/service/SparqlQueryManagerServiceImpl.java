@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -40,6 +41,8 @@ import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.support.FilterCriteriaFields;
+import gov.nih.nci.evs.api.support.MatchedConcept;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchyUtils;
@@ -887,5 +890,119 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		}
 		
 		return uniquePaths;
+	}
+	
+	
+	public List<MatchedConcept> search(String searchTerm,String property) throws JsonParseException, JsonMappingException, IOException {
+		log.info("***** In search******");
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph();
+		String query = queryBuilderService.constructSearchQuery(searchTerm, property,namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query);
+		
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		List <MatchedConcept> matchedConcepts = new ArrayList<MatchedConcept>();
+		
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			MatchedConcept matchedConcept = new MatchedConcept();
+			matchedConcept.setLabel(b.getConceptLabel().getValue());
+			matchedConcept.setCode(b.getConceptCode().getValue());			
+			matchedConcept.setPropertyName(b.getPropertyLabel().getValue());
+			matchedConcept.setPropertyValue(b.getPropertyValue().getValue());
+			matchedConcept.setScore(Double.parseDouble(b.getScore().getValue()));
+			matchedConcepts.add(matchedConcept);
+		}
+		
+				
+		return matchedConcepts;
+		
+	}
+	
+	
+	public List<MatchedConcept> search(FilterCriteriaFields filterCriteriaFields) throws JsonParseException, JsonMappingException, IOException{
+		
+		
+	
+		
+		
+		String type = filterCriteriaFields.getType();		
+		String term = filterCriteriaFields.getTerm();
+		
+		String searchType = "";
+		if (type != null){
+			searchType = type;
+		}
+		
+		String searchTerm = "";
+		if (term != null){
+			searchTerm = term;
+		}
+		
+	
+		
+		List<MatchedConcept> matchConcepts = new ArrayList<MatchedConcept>();
+		
+		if (searchType.equalsIgnoreCase("contains")){
+			searchTerm = "*" + term + "*";
+
+		}
+		
+		if (searchType.equalsIgnoreCase("match")){
+			searchTerm =term;
+
+		}
+		
+		if (searchType.equalsIgnoreCase("startswith")){
+			searchTerm = term + "*";
+
+		}
+		
+		if (searchType.equalsIgnoreCase("phrase")){
+			searchTerm = "\"" + term + "\"";
+
+		}
+		
+		if (searchType.equalsIgnoreCase("fuzzy")){
+			searchTerm = term + "~";
+
+		}
+		
+		if (searchType.equalsIgnoreCase("AND")){
+			
+			
+			String[] terms = searchTerm.split(" ");
+			
+			List arrayTerms = Arrays.asList(terms);
+			String aTerm;
+			searchTerm = "";
+			for (Object a: arrayTerms){
+				aTerm = (String)a;
+				searchTerm = searchTerm + aTerm + " AND ";
+			}
+			
+			searchTerm = searchTerm.substring(0, searchTerm.length() - 5);
+			
+
+		}
+		
+		matchConcepts = search(searchTerm,filterCriteriaFields.getProperty());
+		 
+		if (searchType.equalsIgnoreCase("match") && (term != null)){
+			matchConcepts = matchConcepts.stream().parallel().
+                      filter(matchedConcept -> matchedConcept.getPropertyValue().equalsIgnoreCase(term)).collect(Collectors.toList());
+		}
+		
+		if (searchType.equalsIgnoreCase("startswith") && (term != null)){
+			String termLower = term.toLowerCase();
+			matchConcepts = matchConcepts.stream().parallel().
+                      filter(matchedConcept -> matchedConcept.getPropertyValue().toLowerCase().startsWith(termLower)).collect(Collectors.toList());
+		}
+		
+		return matchConcepts;
+		
 	}
 }

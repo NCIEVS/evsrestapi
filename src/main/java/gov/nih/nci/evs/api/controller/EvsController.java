@@ -9,7 +9,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,6 +28,9 @@ import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.support.FilterCriteriaFields;
+import gov.nih.nci.evs.api.support.FilterParameter;
+import gov.nih.nci.evs.api.support.MatchedConcept;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -112,7 +117,7 @@ public class EvsController {
 	}
 	)
 	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/pathToParent/{parentConceptCode}",produces = "application/json")
-    public @ResponseBody Paths getPathToParent(@PathVariable(value = "conceptCode") String conceptCode ,@PathVariable(value = "parentConceptCode") String parentConceptCode,HttpServletResponse response) throws IOException{
+    public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode ,@PathVariable(value = "parentConceptCode") String parentConceptCode,HttpServletResponse response) throws IOException{
 		EvsConcept evsConcept = null;
 		Paths paths = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -274,4 +279,39 @@ public class EvsController {
 		}
     	return evsAssociations;
     }
+   
+   
+   
+   @ApiOperation(value = "Search")
+   @ApiResponses(value = {
+	        @ApiResponse(code = 200, message = "Success"),
+	        @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+	        @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
+	}
+	)
+	@RequestMapping(method = RequestMethod.POST, value = "/ctrp/concept/search",produces = "application/json")
+    public @ResponseBody List <MatchedConcept> search(@RequestParam("searchTerm") String searchTerm,HttpServletResponse response) throws IOException{
+		List <MatchedConcept> matchedConcepts = new ArrayList<MatchedConcept>();
+		matchedConcepts = sparqlQueryManagerService.search(searchTerm,"");
+    	return matchedConcepts;
+    }
+   
+   
+   @ApiOperation(value = "Search")
+   @ApiResponses(value = {
+	        @ApiResponse(code = 200, message = "Success"),
+	        @ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+	        @ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
+	}
+	)
+	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/search",produces = "application/json")
+    public @ResponseBody List <MatchedConcept> search(@ModelAttribute FilterCriteriaFields filterCriteriaFields) throws IOException{
+		List <MatchedConcept> matchedConcepts = new ArrayList<MatchedConcept>();
+		matchedConcepts = sparqlQueryManagerService.search(filterCriteriaFields);
+    	return matchedConcepts;
+    }
+   
+   
 }

@@ -4,7 +4,7 @@ public class Bindings
 {
     private Property property;
     private Property propertyLabel;
-    private Property propertyCode;
+    private Property propertyCode;  
     private Property conceptCode;
     private Property conceptLabel;
     private Property propertyValue;
@@ -25,6 +25,7 @@ public class Bindings
     private Property childCode;
     private Property childLabel;
     private Property count;
+    private Property score;
 
     public Property getPropertyValue ()
     {
@@ -227,5 +228,13 @@ public class Bindings
 
 	public void setCount(Property count) {
 		this.count = count;
+	}
+
+	public Property getScore() {
+		return score;
+	}
+
+	public void setScore(Property score) {
+		this.score = score;
 	}
 }
