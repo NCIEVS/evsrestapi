@@ -67,6 +67,8 @@ server:
         
 nci:
   evs:
+    application:
+      contextPath: ${NCI_EVS_API_PATH:/api/v1/ctrp}
     stardog:
       url: ${STARDOG_URL:REPLACE_WITH_URL}
       queryUrl: ${STARDOG_QUERY_URL:REPLACE_WITH_QUERY_URL}

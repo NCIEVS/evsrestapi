@@ -69,10 +69,10 @@ public class EvsControllerTests {
     
     
     @Test
-    public void testGetEvsConceptDetail() throws Exception {
+    public void getEvsConceptDetail() throws Exception {
         // @formatter:off
 
-        log.info("Testing");
+        log.info("Started Testing getEvsConceptDetail");
     	String conceptCodeList = testProperties.getConceptCodeList();
     	
         conceptCodeList= "C7834,C3058,C125890,C2924,C4896,C54705,C7057,C2991,C3262,C4897,C7834,C48232";
@@ -85,7 +85,7 @@ public class EvsControllerTests {
         String url = "";
        for(Object concept: conceptsList) {   
            url = baseUrl + (String)concept;
-           log.info("url-" + url);
+           log.info("Testing url - " + url);
     	   MvcResult result = this.mvc.perform(get(url))
                                    .andExpect(status().isOk())
                                    .andReturn();
@@ -96,7 +96,7 @@ public class EvsControllerTests {
            EvsConcept evsConcept =  objectMapper.readValue(content, EvsConcept.class);
            assertThat(evsConcept).isNotNull(); 
           
-           log.info("preferred name " + evsConcept.getPreferredName());
+          
            
            if (evsConcept.getCode().equalsIgnoreCase("C7834")) {
         	   assertThat(evsConcept.getIsSubtype()).isFalse();
@@ -201,22 +201,20 @@ public class EvsControllerTests {
         	   assertThat(evsConcept.getAdditionalProperties().size() > 0).isTrue();
            }
            
-           
+           log.info("Successfully tested url - " + url);
         
        }
+       log.info("Done Testing getEvsConceptDetail ");
      // @formatter:on
         
    }
     
     
     @Test
-    public void testGetEvsRelationships() throws Exception {
-       
-
-      
-        
-        
+    public void getEvsRelationships() throws Exception {
+    	log.info("Started Testing getEvsRelationships");        
         String url = baseUrl + "C7834/relationships";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -230,14 +228,17 @@ public class EvsControllerTests {
         assertThat(evsRelationships.getAssociations().size() > 0 ).isTrue();
         assertThat(evsRelationships.getRoles().size() > 0 ).isTrue();
         assertThat(evsRelationships.getInverseAssociations().size() == 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getEvsRelationships ");
     }
     
     
     @Test
-    public void testGetPathToRoot() throws Exception {
+    public void getPathToRoot() throws Exception {
         
-        
+    	log.info("Started Testing getPathToRoot");        
         String url = baseUrl + "C48232/pathToRoot";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -249,14 +250,17 @@ public class EvsControllerTests {
         Paths paths =  objectMapper.readValue(content, Paths.class);
         assertThat(paths).isNotNull(); 
         assertThat(paths.getPaths().size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getPathToRoot ");
         
     }
     
     @Test
-    public void testGetPropertiesForCode() throws Exception {
+    public void getPropertiesForCode() throws Exception {
         
-        
+    	log.info("Started Testing getPropertiesForCode");   
         String url = baseUrl + "C7834/properties";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -269,14 +273,17 @@ public class EvsControllerTests {
       
         assertThat(evsPropertyList).isNotNull(); 
         assertThat(evsPropertyList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getPropertiesForCode ");
         
     }
     
     @Test
-    public void testGetAxiomsForCode() throws Exception {
+    public void getAxiomsForCode() throws Exception {
         
-        
+    	log.info("Started Testing getAxiomsForCode");   
         String url = baseUrl + "C2924/axioms";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -289,14 +296,17 @@ public class EvsControllerTests {
       
         assertThat(evsAxiomList).isNotNull(); 
         assertThat(evsAxiomList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getAxiomsForCode ");
         
     }
     
     @Test
-    public void testGetSubconceptsForCode() throws Exception {
-        
+    public void getSubconceptsForCode() throws Exception {
+    	log.info("Started Testing getSubconceptsForCode");   
         
         String url = baseUrl + "C4897/subconcepts";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -309,14 +319,17 @@ public class EvsControllerTests {
       
         assertThat(evsSubconceptList).isNotNull(); 
         assertThat(evsSubconceptList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getSubconceptsForCode ");
         
     }
     
     @Test
-    public void testGetSuperconceptsForCode() throws Exception {
+    public void getSuperconceptsForCode() throws Exception {
         
-        
+    	log.info("Started Testing getSuperconceptsForCode");   
         String url = baseUrl + "C4897/superconcepts";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -329,14 +342,17 @@ public class EvsControllerTests {
       
         assertThat(evsSuperconceptList).isNotNull(); 
         assertThat(evsSuperconceptList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getSuperconceptsForCode ");
         
     }
     
     @Test
-    public void testGetAssociationsForCode() throws Exception {
-        
+    public void getAssociationsForCode() throws Exception {
+    	log.info("Started Testing getAssociationsForCode");   
         
         String url = baseUrl + "C2991/associations";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -349,15 +365,17 @@ public class EvsControllerTests {
       
         assertThat(evsAssociationList).isNotNull(); 
         assertThat(evsAssociationList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getAssociationsForCode ");
         
     }
     
     @Test
-    public void testGetInverseAssociationsForCode() throws Exception {
+    public void getInverseAssociationsForCode() throws Exception {
         
-        
+    	log.info("Started Testing getInverseAssociationsForCode");   
         String url = baseUrl + "C2991/inverseassociations";
-        
+        log.info("Testing url - " + url);
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -369,15 +387,17 @@ public class EvsControllerTests {
       
         assertThat(evsAssociationList).isNotNull(); 
         assertThat(evsAssociationList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getInverseAssociationsForCode ");
         
     }
     
     @Test
-    public void testGetRolesForCode() throws Exception {
+    public void getRolesForCode() throws Exception {
         
-        
+    	log.info("Started Testing getRolesForCode");   
         String url = baseUrl + "C2924/roles";
-        
+        log.info("Testing url - " + url);
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -389,14 +409,17 @@ public class EvsControllerTests {
       
         assertThat(evsAssociationList).isNotNull(); 
         assertThat(evsAssociationList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getRolesForCode ");
         
     }
     
     @Test
-    public void testgetInverseRolesForCode() throws Exception {
+    public void getInverseRolesForCode() throws Exception {
         
-        
+    	log.info("Started Testing getInverseRolesForCode");   
         String url = baseUrl + "C2924/inverseroles";
+        log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
                 .andExpect(status().isOk())
@@ -409,6 +432,8 @@ public class EvsControllerTests {
       
         assertThat(evsAssociationList).isNotNull(); 
         assertThat(evsAssociationList.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getInverseRolesForCode ");
         
     }
 

@@ -37,7 +37,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @RestController
-@RequestMapping("api/v1")
+@RequestMapping("${nci.evs.application.contextPath}")
 public class EvsController {
     
 	
@@ -57,7 +57,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}",produces = "application/json")
     public @ResponseBody EvsConcept getEvsConceptDetail(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		EvsConcept evsConcept = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -76,7 +76,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/relationships",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/relationships",produces = "application/json")
     public @ResponseBody EvsRelationships getEvsRelationships(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		EvsConcept evsConcept = null;
 		EvsRelationships relationships = null;
@@ -96,7 +96,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/pathToRoot",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathToRoot",produces = "application/json")
     public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		EvsConcept evsConcept = null;
 		Paths paths = null;
@@ -116,7 +116,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/pathToParent/{parentConceptCode}",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathToParent/{parentConceptCode}",produces = "application/json")
     public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode ,@PathVariable(value = "parentConceptCode") String parentConceptCode,HttpServletResponse response) throws IOException{
 		EvsConcept evsConcept = null;
 		Paths paths = null;
@@ -136,7 +136,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/properties",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/properties",produces = "application/json")
     public @ResponseBody List <EvsProperty> getPropertiesForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException {
 		List <EvsProperty> evsProperties = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -155,7 +155,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/axioms",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/axioms",produces = "application/json")
     public @ResponseBody List <EvsAxiom> getAxiomsForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException {
 		List <EvsAxiom> evsAxioms = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -174,7 +174,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/subconcepts",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/subconcepts",produces = "application/json")
     public @ResponseBody List <EvsSubconcept> getSubconceptsForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException {
 		List <EvsSubconcept> evsSubconcepts = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -193,7 +193,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/superconcepts",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/superconcepts",produces = "application/json")
     public @ResponseBody List <EvsSuperconcept> getSuperconceptsForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		List <EvsSuperconcept> evsSuperconcepts = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -212,7 +212,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/associations",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/associations",produces = "application/json")
     public @ResponseBody List <EvsAssociation> getAssociationsForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		List <EvsAssociation> evsAssociations = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -231,7 +231,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/inverseassociations",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/inverseassociations",produces = "application/json")
     public @ResponseBody List <EvsAssociation> getInverseAssociationsForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		List <EvsAssociation> evsAssociations = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -250,7 +250,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/roles",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/roles",produces = "application/json")
     public @ResponseBody List <EvsAssociation> getRolesForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		List <EvsAssociation> evsAssociations = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -269,7 +269,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/{conceptCode}/inverseroles",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/inverseroles",produces = "application/json")
     public @ResponseBody List <EvsAssociation> getInverseRolesForCode(@PathVariable(value = "conceptCode") String conceptCode,HttpServletResponse response) throws IOException{
 		List <EvsAssociation> evsAssociations = null;
 		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)){
@@ -290,7 +290,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.POST, value = "/ctrp/concept/search",produces = "application/json")
+	@RequestMapping(method = RequestMethod.POST, value = "/concept/search",produces = "application/json")
     public @ResponseBody List <MatchedConcept> search(@RequestParam("searchTerm") String searchTerm,HttpServletResponse response) throws IOException{
 		List <MatchedConcept> matchedConcepts = new ArrayList<MatchedConcept>();
 		matchedConcepts = sparqlQueryManagerService.search(searchTerm,"");
@@ -306,7 +306,7 @@ public class EvsController {
 	        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
 	}
 	)
-	@RequestMapping(method = RequestMethod.GET, value = "/ctrp/concept/search",produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/search",produces = "application/json")
     public @ResponseBody List <MatchedConcept> search(@ModelAttribute FilterCriteriaFields filterCriteriaFields) throws IOException{
 		List <MatchedConcept> matchedConcepts = new ArrayList<MatchedConcept>();
 		matchedConcepts = sparqlQueryManagerService.search(filterCriteriaFields);

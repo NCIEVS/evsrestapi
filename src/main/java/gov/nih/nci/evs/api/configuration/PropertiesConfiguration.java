@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 
-
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 
 
@@ -46,7 +46,14 @@ public class PropertiesConfiguration {
         return new StardogProperties();
     }
     
-
+    /*
+     * Application  Properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "nci.evs.application", ignoreUnknownFields = false)
+    ApplicationProperties applicationProperties() {
+        return new ApplicationProperties();
+    }
     
 
    
