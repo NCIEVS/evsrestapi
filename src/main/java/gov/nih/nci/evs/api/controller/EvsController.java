@@ -273,6 +273,53 @@ public class EvsController {
 		return matchedConcepts;
 	}*/
 
+	@ApiOperation(value = "Searches for the term or phrase in the RDF triple's object field.<br><br>"
+			    + "<strong>Term</strong><br><br>"
+			    + "The <strong>term</strong> paramater is used to enter the term or phrase to use in the search."
+			    + "<br><br>"
+			    + "<strong>Type</strong><br><br>"
+				+ "The <strong>type</strong> parameter determines the kind of search to perform."
+			    + "If no <strong>type</strong> parameter is specified the default is to do a word search within the field. "
+				+ "All searches are case-insensitive."
+			    + " Valid entries for <strong>type</strong> specifications are: phrase, AND, startswith, match, contains"
+			    + "<br><br>"
+			    + "<strong>Property</strong><br><br>"
+			    + "The <strong>property</strong> parameter can be used to control which properties are searched. "
+			    + "For example if <i>P107,P108</i> were passed in the <strong>property</strong> parameter only the "
+			    + "P107 (Display Name) and the P108 (Preferred_Name) properties would be searched."
+			    + "<br><br>"
+			    + "<strong>Limit</strong><br><br>"
+			    + "The <strong>limit</strong> pararmeter is use to restrict the number of results returned. "
+			    + "The default is to return all results."
+			    + "<br><br>"
+			    + "<strong>Example Queries</strong><br><br>"
+				+ "api/v1/ctrp/concept/search?term=Ultrasound - "
+				+ "Search for the word Ultrasound. "
+			    + "<br>"
+				+ "api/v1/ctrp/concept/search?term=Ultrasound&limit=10 - "
+				+ "Search for the word Ultrasound and limit the results to 10. "
+			    + "<br>"
+				+ "api/v1/ctrp/concept/search?term=Ultrasound Endoscopic - "
+				+ "Search for the words Ultrasound <b>or</b> Endoscopic. "
+			    + "<br>"
+				+ "api/v1/ctrp/concept/search?term=mesangial phagocytic&type=AND - "
+				+ "Search for the words mesangial <strong>AND</strong> phagocytic. "
+				+ "</br>"
+				+ "api/v1/ctrp/concept/search?term=mesangial phagocytic&type=phrase - "
+				+ "Search for the phrase 'mesangial phagocytic'."
+			    + "<br>"
+				+ "api/v1/ctrp/concept/search?term=Endoscopic Ultrasound&type=startwith - "
+				+ "Search for the words 'Endoscopic Ultrasound' at the beginning of a string."
+			    + "<br>"
+				+ "api/v1/ctrp/concept/search?term=thrombo&type=contains - "
+				+ "Search for the letters 'thrombo' anywhere within a word in the string."
+			    + "<br>"
+				+ "api/v1/ctrp/concept/search?term=hromosom&type=contains&property=P107,108 - "
+				+ "Search for the letters 'hromosome' anywhere within a word in the string. "
+				+ "The search is also restricted to the RDF triples where the predicate is either P107 or P108."
+			    + "<br>"
+			)
+	/*
 	@ApiOperation(value = "Searches for the term passed as a parameter to this endpoint. The type parameter value passed "
 			+ " determines the kind of search that will take place. A list of comma separated property codes "
 			+ "can be passed in as a value to the property parameter to "
@@ -286,6 +333,7 @@ public class EvsController {
 			+ "* <b>api/v1//ctrp/concept/search?term=thrombo&type=contains</b> This will search for the properties that contains a substring 'thrombo' in any of its words.</br></br>"
 			+ "* <b>api/v1//ctrp/concept/search?term=hromosom&type=contains&property=P107,P108</b> This will search only in the properties P107 and P108 that conatins a substring 'thrombo' in any of its words.</br></br>"
 			)
+	*/
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -293,6 +341,7 @@ public class EvsController {
 	 @ApiImplicitParams({
 	        @ApiImplicitParam(name = "term", value = "The term to be searched", required = true, dataType = "string", paramType = "query", defaultValue=""),
 	        @ApiImplicitParam(name = "type", value = "The type can be contains,match,startswith,phrase,AND,fuzzy. If no type is specified , the search will be of the type OR", required = false, dataType = "string", paramType = "query", defaultValue=""),
+	        @ApiImplicitParam(name = "limit", value = "Restrict the number of results returned to a specified number.", required = false, dataType = "string", paramType = "query", defaultValue=""),
 	        @ApiImplicitParam(name = "property", value = "The list of comma separated properties.  Only the specified property triples will be searched. e.g P107,P108", required = false, dataType = "string", paramType = "query", defaultValue="")
 	      })
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/search", produces = "application/json")
