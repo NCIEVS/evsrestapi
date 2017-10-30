@@ -36,7 +36,7 @@ ext {
       /*
      * Other third-party software versions
      */
-      swaggerversion = "2.4.0"
+      swaggerversion = "2.6.1"
    
     
     
@@ -93,7 +93,7 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.4'
     compile "io.springfox:springfox-swagger2:$swaggerversion" 
     compile "io.springfox:springfox-swagger-ui:$swaggerversion"
-     
+    
      
    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
