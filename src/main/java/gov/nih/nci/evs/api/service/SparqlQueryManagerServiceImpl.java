@@ -893,11 +893,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	}
 	
 	
-	public List<MatchedConcept> search(String searchTerm,String property) throws JsonParseException, JsonMappingException, IOException {
+	public List<MatchedConcept> search(String searchTerm,String property, String limit) throws JsonParseException, JsonMappingException, IOException {
 		log.info("***** In search******");
 		String queryPrefix = queryBuilderService.contructPrefix();
 		String namedGraph = getNamedGraph();
-		String query = queryBuilderService.constructSearchQuery(searchTerm, property,namedGraph);
+		String query = queryBuilderService.constructSearchQuery(searchTerm, property, limit, namedGraph);
 		String res = restUtils.runSPARQL(queryPrefix + query);
 		
 
@@ -911,6 +911,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			MatchedConcept matchedConcept = new MatchedConcept();
 			matchedConcept.setLabel(b.getConceptLabel().getValue());
 			matchedConcept.setCode(b.getConceptCode().getValue());			
+			if (b.getConceptStatus() != null) {
+				matchedConcept.setConceptStatus(b.getConceptStatus().getValue());			
+			} else {
+				matchedConcept.setConceptStatus("");			
+			}
+			if (b.getPreferredName() != null) {
+				matchedConcept.setPreferredName(b.getPreferredName().getValue());			
+			} else {
+				matchedConcept.setPreferredName("");
+			}
 			matchedConcept.setPropertyName(b.getPropertyLabel().getValue());
 			matchedConcept.setPropertyValue(b.getPropertyValue().getValue());
 			matchedConcept.setScore(Double.parseDouble(b.getScore().getValue()));
@@ -925,10 +935,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	
 	public List<MatchedConcept> search(FilterCriteriaFields filterCriteriaFields) throws JsonParseException, JsonMappingException, IOException{
 		
-		
-	
-		
-		
 		String type = filterCriteriaFields.getType();		
 		String term = filterCriteriaFields.getTerm();
 		
@@ -942,38 +948,28 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			searchTerm = term;
 		}
 		
-	
-		
 		List<MatchedConcept> matchConcepts = new ArrayList<MatchedConcept>();
-		
 		if (searchType.equalsIgnoreCase("contains")){
 			searchTerm = "*" + term + "*";
-
 		}
 		
 		if (searchType.equalsIgnoreCase("match")){
 			searchTerm =term;
-
 		}
 		
 		if (searchType.equalsIgnoreCase("startswith")){
 			searchTerm = term + "*";
-
 		}
 		
 		if (searchType.equalsIgnoreCase("phrase")){
 			searchTerm = "\"" + term + "\"";
-
 		}
 		
 		if (searchType.equalsIgnoreCase("fuzzy")){
 			searchTerm = term + "~";
-
 		}
 		
 		if (searchType.equalsIgnoreCase("AND")){
-			
-			
 			String[] terms = searchTerm.split(" ");
 			
 			List arrayTerms = Arrays.asList(terms);
@@ -985,11 +981,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			}
 			
 			searchTerm = searchTerm.substring(0, searchTerm.length() - 5);
-			
-
 		}
 		
-		matchConcepts = search(searchTerm,filterCriteriaFields.getProperty());
+		matchConcepts = search(searchTerm,filterCriteriaFields.getProperty(),filterCriteriaFields.getLimit());
 		 
 		if (searchType.equalsIgnoreCase("match") && (term != null)){
 			matchConcepts = matchConcepts.stream().parallel().
@@ -1003,6 +997,5 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		}
 		
 		return matchConcepts;
-		
 	}
 }

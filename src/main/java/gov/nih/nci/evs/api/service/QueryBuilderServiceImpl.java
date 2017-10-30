@@ -57,11 +57,11 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		
 	}
 	
-	public String constructSearchQuery(String searchStr, String property,String namedGraph){
+	public String constructSearchQuery(String searchStr, String property, String limit, String namedGraph){
 		StringBuffer query = new StringBuffer();
 		
 		if (property == null || property.equalsIgnoreCase("")){
-			query.append("SELECT ?conceptCode ?conceptLabel ?propertyCode ?propertyLabel ?propertyValue ?score\n");
+			query.append("SELECT ?conceptCode ?conceptLabel ?conceptStatus ?preferredName ?propertyCode ?propertyLabel ?propertyValue ?score\n");
 			query.append("{ GRAPH <" + namedGraph + ">");
 			query.append("  { ?concept a owl:Class .\n");
 			query.append("    ?concept :NHC0  ?conceptCode .\n");		
@@ -71,6 +71,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 			query.append("    ?property a owl:AnnotationProperty .\n");
 			query.append("    ?property rdfs:label ?propertyLabel .\n");	
 			query.append("    (?propertyValue ?score) <tag:stardog:api:property:textMatch> '"+ searchStr +"'.\n");
+			query.append("    OPTIONAL { ?concept :P310 ?conceptStatus . }\n");
+			query.append("    OPTIONAL { ?concept :P108 ?preferredName . }\n");
 			query.append("  }\n");
 			query.append("}\n");
 			query.append("order by DESC(?score)");
@@ -93,7 +95,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 			
 			String proQuery = propertyQuery.toString();
 			
-			query.append("SELECT ?conceptCode ?conceptLabel ?propertyCode ?propertyLabel ?propertyValue ?score\n");
+			query.append("SELECT ?conceptCode ?conceptLabel ?conceptStatus ?preferredName ?propertyCode ?propertyLabel ?propertyValue ?score\n");
 			query.append("{ GRAPH <" + namedGraph + ">");
 			query.append("  { ?concept a owl:Class .\n");
 			query.append("    ?concept :NHC0  ?conceptCode .\n");		
@@ -107,10 +109,16 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 				query.append(proQuery);
 			}
 			query.append("    (?propertyValue ?score) <tag:stardog:api:property:textMatch> '"+ searchStr +"'.\n");
+			query.append("    OPTIONAL { ?concept :P310 ?conceptStatus . }\n");
+			query.append("    OPTIONAL { ?concept :P108 ?preferredName . }\n");
 			query.append("  }\n");
 			query.append("}\n");
 			query.append("order by DESC(?score)");
 			
+		}
+		
+		if (limit != null && !limit.equals("")) {
+			query.append("LIMIT " + limit + "\n");
 		}
 		
 		log.info("constructSearchQuery - " + query.toString());

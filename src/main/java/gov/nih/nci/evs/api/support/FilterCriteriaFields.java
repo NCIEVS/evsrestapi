@@ -2,10 +2,17 @@ package gov.nih.nci.evs.api.support;
 
 public class FilterCriteriaFields {
 	
+	private String limit;
 	private String type;
 	private String term;
 	private String property;
 	
+	public String getLimit() {
+		return limit;
+	}
+	public void setLimit(String limit) {
+		this.limit = limit;
+	}
 	public String getType() {
 		return type;
 	}

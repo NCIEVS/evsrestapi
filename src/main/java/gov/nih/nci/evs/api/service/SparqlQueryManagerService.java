@@ -55,7 +55,7 @@ public interface SparqlQueryManagerService {
 
 	public Paths getPathToParent(String conceptCode, String parentConceptCode) throws JsonMappingException, JsonParseException, IOException;
 	
-	public List<MatchedConcept> search(String searchTerm,String property) throws JsonParseException, JsonMappingException, IOException;
+	public List<MatchedConcept> search(String searchTerm,String property,String limit) throws JsonParseException, JsonMappingException, IOException;
 	
 	public List<MatchedConcept> search(FilterCriteriaFields filterCriteriaFields) throws JsonParseException, JsonMappingException, IOException;
 }

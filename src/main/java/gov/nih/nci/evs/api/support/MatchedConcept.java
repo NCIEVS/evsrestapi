@@ -9,6 +9,8 @@ public class MatchedConcept
 // Variable declaration
 	private String label;
 	private String code;
+	private String conceptStatus;
+	private String preferredName;
 	private String propertyName;
 	private String propertyValue;
 	private double score;
@@ -21,6 +23,8 @@ public class MatchedConcept
 	public MatchedConcept(
 		String label,
 		String code,
+		String conceptStatus,
+		String preferredName,
 		String propertyName,
 		String propertyValue,
 		int score) {
@@ -35,6 +39,8 @@ public class MatchedConcept
 	public MatchedConcept(
 		String label,
 		String code,
+		String conceptStatus,
+		String preferredName,
 		String propertyName,
 		String propertyValue
 		) {
@@ -75,6 +81,22 @@ public class MatchedConcept
 
 	public String getCode() {
 		return this.code;
+	}
+
+	public String getConceptStatus() {
+		return conceptStatus;
+	}
+
+	public void setConceptStatus(String conceptStatus) {
+		this.conceptStatus = conceptStatus;
+	}
+
+	public String getPreferredName() {
+		return preferredName;
+	}
+
+	public void setPreferredName(String preferredName) {
+		this.preferredName = preferredName;
 	}
 
 	public String getPropertyName() {

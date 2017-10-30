@@ -33,5 +33,5 @@ public interface QueryBuilderService {
 
 	public String constructConceptInSubsetQuery(String conceptCode, String namedGraph);
 	
-	public String constructSearchQuery(String searchStr, String property, String namedGraph);
+	public String constructSearchQuery(String searchStr, String property, String limit, String namedGraph);
 }

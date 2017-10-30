@@ -26,6 +26,8 @@ public class Bindings
     private Property childLabel;
     private Property count;
     private Property score;
+    private Property preferredName;
+    private Property conceptStatus;
 
     public Property getPropertyValue ()
     {
@@ -236,5 +238,22 @@ public class Bindings
 
 	public void setScore(Property score) {
 		this.score = score;
+	}
+
+
+	public Property getPreferredName() {
+		return preferredName;
+	}
+
+	public void setPreferredName(Property preferredName) {
+		this.preferredName = preferredName;
+	}
+
+	public Property getConceptStatus() {
+		return conceptStatus;
+	}
+
+	public void setConceptStatus(Property conceptStatus) {
+		this.conceptStatus = conceptStatus;
 	}
 }
