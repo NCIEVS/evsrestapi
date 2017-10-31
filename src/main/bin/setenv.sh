@@ -14,4 +14,5 @@ export STARDOG_CONNECT_TIMEOUT="10000"
 export STARDOG_OWL_FILENAME="NCI_Thesaurus.owl"
 export POPULATE_CACHE_CRON="0 0 1 * * *"
 export FORCE_POPULATE_CACHE="N"
+export NCI_EVS_API_PATH="/api/v1/ctrp"
 
