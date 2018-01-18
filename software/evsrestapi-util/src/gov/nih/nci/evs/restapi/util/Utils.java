@@ -235,4 +235,21 @@ public class Utils {
 		}
 		return filename;
 	}
+
+	public static HashMap getInverseHashMap(HashMap hmap) {
+		HashMap inv_hmap = new HashMap();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			String value = (String) hmap.get(key);
+			Vector v = new Vector();
+			if (inv_hmap.containsKey(value)) {
+				v = (Vector) inv_hmap.get(value);
+			}
+			v.add(key);
+			inv_hmap.put(value, v);
+		}
+		return inv_hmap;
+	}
+
 }

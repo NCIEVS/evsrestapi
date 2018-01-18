@@ -89,11 +89,17 @@ public class SPARQLSearchUtils {
     static String STARTS_WITH = "startsWith";
     static String ENDS_WITH = "endsWith";
     static String CONTAINS = "contains";
+    static String PHRASE = "Phrase";
+    static String FUZZY = "Fuzzy";
+    static String BOOLEAN_AND = "AND";
+
     static String NAMES = "names";
     static String PROPERTIES = "properties";
 
-	static String[] TARGETS = new String[] {NAMES, PROPERTIES};
-	static String[] ALGORITHMS = new String[] {EXACT_MATCH, STARTS_WITH, ENDS_WITH, CONTAINS};
+    static String[] ALGORITHMS = new String[] {EXACT_MATCH, STARTS_WITH, ENDS_WITH, CONTAINS, PHRASE, FUZZY, BOOLEAN_AND};
+    static String[] TARGETS = new String[] {NAMES, PROPERTIES};
+
+
 
 	public SPARQLSearchUtils() {
 		this.httpUtils = new HTTPUtils();
@@ -390,6 +396,38 @@ public class SPARQLSearchUtils {
         String xml = Constants.XML_DECLARATION + "\n" + xstream_xml.toXML(sr);
         return xml;
 	}
+
+	public static String createSearchString(String term, String algorithm) {
+		if (term == null) return null;
+		String searchTerm = term;
+        if (algorithm.equalsIgnoreCase(CONTAINS)){
+			searchTerm = "*" + term + "*";
+		} else if (algorithm.equalsIgnoreCase(EXACT_MATCH)){
+			searchTerm =term;
+		} else if (algorithm.equalsIgnoreCase(STARTS_WITH)){
+			searchTerm = term + "*";
+		} else if (algorithm.equalsIgnoreCase(ENDS_WITH)){
+			searchTerm = "*" + term;
+		} else if (algorithm.equalsIgnoreCase(PHRASE)){
+			searchTerm = "\"" + term + "\"";
+		} else if (algorithm.equalsIgnoreCase(FUZZY)){
+			searchTerm = term + "~";
+		} else if (algorithm.equalsIgnoreCase(BOOLEAN_AND)){
+			String[] terms = searchTerm.split(" ");
+			List list = Arrays.asList(terms);
+			StringBuffer buf = new StringBuffer();
+			for (int i=0; i<list.size(); i++) {
+				String token = (String) list.get(i);
+				buf = buf.append(token);
+				if (i < list.size()-1) {
+					buf.append(" AND ");
+			    }
+			}
+			searchTerm = buf.toString();
+		}
+		return searchTerm;
+	}
+
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];

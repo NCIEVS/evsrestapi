@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
 
-
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
 
@@ -78,22 +77,31 @@ public class OWLSPARQLUtils {
     String prefixes = null;
     String serviceUrl = null;
     String named_graph_id = ":NHC0";
+    String base_uri = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+
+    ParserUtils parser = new ParserUtils();
+    HashMap nameVersion2NamedGraphMap = null;
+    HashMap ontologyUri2LabelMap = null;
+
 
 	public OWLSPARQLUtils() {
 		this.httpUtils = new HTTPUtils();
         this.jsonUtils = new JSONUtils();
+        this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
 	}
 
 	public OWLSPARQLUtils(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
 		this.httpUtils = new HTTPUtils(serviceUrl, null, null);
         this.jsonUtils = new JSONUtils();
+        this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
     }
 
 	public OWLSPARQLUtils(ServerInfo serverInfo) {
 		this.serviceUrl = serverInfo.getServiceUrl();
 		this.httpUtils = new HTTPUtils(serviceUrl, serverInfo.getUsername(), serverInfo.getPassword());
         this.jsonUtils = new JSONUtils();
+        this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
 	}
 
 
@@ -101,7 +109,23 @@ public class OWLSPARQLUtils {
 		this.serviceUrl = serviceUrl;
 		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
         this.jsonUtils = new JSONUtils();
+        this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
     }
+
+    HashMap createOntologyUri2LabelMap() {
+		HashMap ontologyUri2LabelMap = new HashMap();
+		ontologyUri2LabelMap.put("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", "NCI_Thesaurus");
+		ontologyUri2LabelMap.put("http://purl.obolibrary.org/obo/go.owl", "GO");
+		ontologyUri2LabelMap.put("http://purl.obolibrary.org/obo/obi.owl", "obi");
+		ontologyUri2LabelMap.put("http://purl.obolibrary.org/obo/chebi.owl", "chebi");
+		ontologyUri2LabelMap.put("http://id.nlm.nih.gov/mesh/2017-11-07", "mesh");
+		ontologyUri2LabelMap.put("http://cbiit.nci.nih.gov/caDSR/20171108", "caDSR");
+		return ontologyUri2LabelMap;
+	}
+
+	public String get_named_graph() {
+		return this.named_graph;
+	}
 
     public void set_named_graph_id(String named_graph_id) {
 		this.named_graph_id = named_graph_id;
@@ -140,6 +164,7 @@ public class OWLSPARQLUtils {
     public Vector execute(String query_file) {
 		try {
 			String query = httpUtils.loadQuery(query_file, false);
+			System.out.println(query);
 			return executeQuery(query);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -607,6 +632,16 @@ public class OWLSPARQLUtils {
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    { ").append("\n");
+        buf.append("        {").append("\n");
+        buf.append("        ?x a owl:Class .").append("\n");
+        buf.append("        ?x :NHC0 ?x_code .").append("\n");
+        buf.append("        ?x rdfs:label ?x_label .").append("\n");
+        buf.append("        ?x ?p ?y .").append("\n");
+        buf.append("        ?p rdfs:label ?p_label .").append("\n");
+        buf.append("        ?y a owl:Class .").append("\n");
+        buf.append("        ?y :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+        buf.append("        }").append("\n");
+		buf.append("	   UNION").append("\n");
 		buf.append("	    {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 ?x_code .").append("\n");
@@ -621,7 +656,7 @@ public class OWLSPARQLUtils {
 		buf.append("		?z2 owl:someValuesFrom ?y .").append("\n");
 		buf.append("		?y :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
 		buf.append("		?y rdfs:label ?y_label").append("\n");
-		buf.append("	   }").append("\n");
+		buf.append("	    }").append("\n");
 		buf.append("	   UNION").append("\n");
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
@@ -676,6 +711,7 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getInboundRolesByCode(String named_graph, String code) {
+		String query = construct_get_inbound_roles_by_code(named_graph, code);
 		return executeQuery(construct_get_inbound_roles_by_code(named_graph, code));
 	}
 
@@ -687,6 +723,16 @@ public class OWLSPARQLUtils {
 		buf.append("{ ").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    {").append("\n");
+        buf.append("        {");
+        buf.append("        ?x a owl:Class .");
+        buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+        buf.append("        ?x ?p ?y .");
+        buf.append("        ?p rdfs:label ?p_label .");
+        buf.append("        ?y a owl:Class .");
+        buf.append("        ?y :NHC0 ?y_code .").append("\n");
+        buf.append("        ?y rdfs:label ?y_label .");
+        buf.append("        }");
+        buf.append("	   UNION ").append("\n");
 		buf.append("	    {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
@@ -702,6 +748,7 @@ public class OWLSPARQLUtils {
 		buf.append("		?y :NHC0 ?y_code .").append("\n");
 		buf.append("		?y rdfs:label ?y_label").append("\n");
 		buf.append("	   }").append("\n");
+
 		buf.append("	   UNION ").append("\n");
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
@@ -838,7 +885,9 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getRoleRelationships(String named_graph) {
-		return executeQuery(construct_get_role_relationships(named_graph));
+		String query = construct_get_role_relationships(named_graph);
+		System.out.println(query);
+		return executeQuery(query);
 	}
 
 
@@ -1098,7 +1147,10 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getObjectPropertiesDomainRange(String named_graph) {
-		return executeQuery(construct_get_object_properties_domain_range(named_graph));
+		Vector v = executeQuery(construct_get_object_properties_domain_range(named_graph));
+		Vector w = new ParserUtils().getResponseValues(v);
+		w = new SortUtils().quickSort(w);
+		return w;
 	}
 
 	public String construct_get_object_valued_annotation_properties(String named_graph) {
@@ -1121,7 +1173,10 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getObjectValuedAnnotationProperties(String named_graph) {
-		return executeQuery(construct_get_object_valued_annotation_properties(named_graph));
+		Vector v = executeQuery(construct_get_object_valued_annotation_properties(named_graph));
+		Vector w = new ParserUtils().getResponseValues(v);
+		w = new SortUtils().quickSort(w);
+		return w;
 	}
 
 	public String construct_get_string_valued_annotation_properties(String named_graph) {
@@ -1144,11 +1199,15 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getStringValuedAnnotationProperties(String named_graph) {
+		System.out.println(construct_get_string_valued_annotation_properties(named_graph));
 		return executeQuery(construct_get_string_valued_annotation_properties(named_graph));
 	}
 
 	public Vector getSupportedProperties(String named_graph) {
-		return getStringValuedAnnotationProperties(named_graph);
+		Vector v = getStringValuedAnnotationProperties(named_graph);
+		Vector w = new ParserUtils().getResponseValues(v);
+		w = new SortUtils().quickSort(w);
+		return w;
 	}
 
 	public Vector getSupportedAssociations(String named_graph) {
@@ -1156,7 +1215,10 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getSupportedRoles(String named_graph) {
-		return getObjectProperties(named_graph);
+		Vector v = getObjectProperties(named_graph);
+		Vector w = new ParserUtils().getResponseValues(v);
+		w = new SortUtils().quickSort(w);
+		return w;
 	}
 
 	public String construct_get_hierarchical_relationships(String named_graph) {
@@ -1225,8 +1287,8 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
-	public Vector getConceptsInSubset(String named_graph, String subset_code) {
-		return executeQuery(construct_get_concepts_in_subset(named_graph, subset_code));
+	public Vector getConceptsInSubset(String named_graph, String code) {
+		return executeQuery(construct_get_concepts_in_subset(named_graph, code));
 	}
 
 	public String[] get_concept_in_subset_codes(String named_graph, String subset_code) {
@@ -1243,6 +1305,250 @@ public class OWLSPARQLUtils {
 		return array;
 	}
 
+    public HashMap getNameVersion2NamedGraphMap() {
+		HashMap nameVersion2NamedGraphMap = new HashMap();
+		ParserUtils parserUtils = new ParserUtils();
+		Vector v = getAvailableOntologies();
+		if (v != null && v.size() > 0) {
+			for (int j=0; j<v.size(); j++) {
+				String t = (String) v.elementAt(j);
+				String named_graph = parserUtils.getValue(t);
+				String uri = getOntologyURI(named_graph);
+		        String vocabulary = getOntologyName(uri);
+				try {
+
+					if (vocabulary == null) {
+						System.out.println("WARNING: getOntologyName(" + uri + ") returns null - need to update createOntologyUri2LabelMap method.");
+					    vocabulary = named_graph;
+					}
+
+					Vector version_vec = getOntologyVersion(named_graph);
+					if (version_vec != null && version_vec.size() > 0) {
+						String first_line = (String) version_vec.elementAt(0);
+						String version = parserUtils.getValue(first_line);
+						nameVersion2NamedGraphMap.put(vocabulary + "|" + version, named_graph);
+					} else {
+						nameVersion2NamedGraphMap.put(vocabulary + "|null", named_graph);
+					}
+
+					//System.out.println("named_graph: " + named_graph);
+					//System.out.println("uri: " + uri);
+					//System.out.println("vocabulary: " + vocabulary);
+
+				} catch (Exception ex) {
+					//ex.printStackTrace();
+					System.out.println("Exceptions thrown at getNameVersion2NamedGraphMap.");
+					nameVersion2NamedGraphMap.put(vocabulary + "|null", named_graph);
+				}
+			}
+		} else {
+			System.out.println("getAvailableOntologies return null.");
+		}
+		return nameVersion2NamedGraphMap;
+	}
+
+    public String getOntologyURI(String named_graph) {
+		Vector v = getOntology(named_graph);
+		if (v == null) {
+			System.out.println("WARNING: getOntology " + named_graph + " returns null???");
+			return named_graph;
+		} else if (v.size() == 0) {
+			System.out.println("WARNING: getOntology " + named_graph + " returns an empty vector???");
+			return named_graph;
+		}
+
+		String uri = new ParserUtils().getValue((String) v.elementAt(0));
+		return uri;
+	}
+
+    public String getOntologyName(String uri) {
+		return (String) ontologyUri2LabelMap.get(uri);
+	}
+
+	public Vector getAvailableOntologies() {
+		ParserUtils parser = new ParserUtils();
+		Vector v = new Vector();
+		Vector namedgraphs = getNamedGraphs();
+		if (namedgraphs != null) {
+			for (int i=0; i<namedgraphs.size(); i++) {
+				String named_graph = parser.getValue((String) namedgraphs.elementAt(i));
+				//System.out.println("\t\t" + named_graph);
+				Vector u1 = getOntology(named_graph);
+
+				String ontology_name_line = named_graph;
+				String ontology_name = named_graph;
+				if (u1 != null && u1.size() > 0) {
+					ontology_name_line = (String) u1.elementAt(0);
+					ontology_name = parser.getValue(ontology_name_line);
+				}
+				Vector u2 = null;
+				try {
+					u2 = getOntologyVersion(named_graph);
+				} catch (Exception ex) {
+					System.out.println("WARNING: getOntologyVersion throws exceptions -- " + named_graph);
+				}
+
+				if (u2 != null && u2.size() > 0) {
+					v.add(ontology_name + "|" + parser.getValue((String) u2.elementAt(0))
+					   + "|" + named_graph);
+				} else {
+					/*
+					if (u2 == null) {
+						System.out.println("\t\t\tERROR: getOntologyVersion returns null -- " + named_graph);
+					} else {
+						System.out.println("\t\t\tERROR: getOntologyVersion returns an empty vector -- " + named_graph);
+					}
+					*/
+					//System.out.println(ontology_name + "|null" + "|" + named_graph);
+					v.add(ontology_name + "|null" + "|" + named_graph);
+				}
+			}
+		} else {
+			System.out.println("getNamedGraphs returns null.");
+		}
+        return v;
+	}
+
+	public Vector getOntologyVersion(String named_graph) {
+		for (int i=0; i<Constants.VERSION_PREDICATE.length; i++) {
+			String predicate = Constants.VERSION_PREDICATE[i];
+			String query = construct_get_ontology_version(named_graph, predicate);
+
+			try {
+				Vector v = executeQuery(query);
+				if (v != null && v.size() > 0) return v;
+			} catch (Exception ex) {
+
+			}
+		}
+		return null;
+	}
+
+	public String construct_get_ontology(String named_graph) {
+		//String prefixes = PrefixUtils.getPrefixes(null);
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		//buf.append(prefixes);
+		buf.append("SELECT distinct ?x").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Ontology ").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getOntology(String named_graph) {
+		return executeQuery(construct_get_ontology(named_graph));
+	}
+
+
+	public Vector getNamedGraphs() {
+		String query = construct_get_named_graphs();
+		return executeQuery(query);
+	}
+
+	public String construct_get_ontology_version(String named_graph, String predicate) {
+		Vector v = getOntology(named_graph);
+		String ontology_uri = parser.getValue((String) v.elementAt(0));
+		String prefixes = PrefixUtils.getPrefixes(ontology_uri);
+
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_version").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Ontology . ").append("\n");
+		buf.append("		?x " + predicate + " ?x_version ").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utilities
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public Vector getTree(String named_graph, String code) {
+		return getTree(named_graph, code, -1);
+	}
+
+	public Vector getTree(String named_graph, String code, int maxLevel) {
+		ParserUtils parser = new ParserUtils();
+		if (maxLevel == -1) maxLevel = 1000;
+		Stack stack = new Stack();
+		Vector v = getLabelByCode(named_graph, code);
+		String line = (String) v.elementAt(0);
+		String label = parser.getValue(line);
+
+		stack.push(label + "|" + code + "|0");
+		Vector w = new Vector();
+
+		while (!stack.isEmpty()) {
+			line = (String) stack.pop();
+			Vector v2 = StringUtils.parseData(line, '|');
+			String next_label = (String) v2.elementAt(0);
+			String next_code = (String) v2.elementAt(1);
+			String level_str = (String) v2.elementAt(2);
+			int level = Integer.parseInt(level_str);
+			if (level == maxLevel) break;
+			int nextLevel = level + 1;
+			Vector u = getSubclassesByCode(named_graph, next_code);
+			Vector v3 = new Vector();
+			int n = u.size()/2;
+			for (int i=0; i<n; i++) {
+				String s1 = (String) u.elementAt(i*2);
+				String s2 = (String) u.elementAt(i*2+1);
+				String t1 = parser.getValue(s1);
+				String t2 = parser.getValue(s2);
+				v3.add(next_label + "|" + next_code + "|" + t1 + "|" + t2);
+				stack.push(t1 + "|" + t2 + "|" + nextLevel);
+			}
+			w.addAll(v3);
+		}
+		return w;
+	}
+
+
     public static void main(String[] args) {
+		String serviceUrl = args[0];
+		String query_file = args[1];
+		System.out.println(query_file);
+		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+        long ms = System.currentTimeMillis();
+        String named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl_Flat";
+        if (query_file.indexOf("dev") != -1) {
+        	named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl_Flat";
+        	named_graph = "http://NCIt_Flattened";
+
+	    } else if (query_file.indexOf("prod") != -1) {
+			named_graph = "http://NCIt";
+		}
+
+        owlSPARQLUtils.set_named_graph(named_graph);
+
+        //
+        /*
+        Vector v = owlSPARQLUtils.execute(query_file);//owlSPARQLUtils.getRoleRelationships(named_graph);
+        */
+        //Vector v = owlSPARQLUtils.getSupportedProperties(named_graph);
+
+        Vector v = owlSPARQLUtils.execute(query_file);
+        //Amniotic Sac (Code C34103)
+        //Vector v = owlSPARQLUtils.getInboundRolesByCode(named_graph, "C34103");
+
+        StringUtils.dumpVector("roles", v);
+        //System.out.println("v: " + v.size());
+        //Utils.saveToFile("test.txt", v);
+        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
     }
 }

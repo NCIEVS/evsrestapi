@@ -74,14 +74,30 @@ public class Constants {
 	public static final String ENDS_MATCH = "endsWith";
 	public static final String CONTAINS = "contains";
 	public static String DISEASE_IS_STAGE  = "Disease_Is_Stage";
-
+    public static int MAXIMUM_LEVEL  = 1000;
 
 	public static final String EVSRESTAPI_BEAN = "gov.nih.nci.evs.restapi.bean";
 
     public static String[] COMMON_PROPERTIES = {"code", "label", "Preferred_Name", "Display_Name", "DEFINITION", "ALT_DEFINITION",
                                                 "FULL_SYN", "Concept_Status", "Semantic_Type"};
 
+	public static String DEFAULT_VERSION_PREDICATE = "owl:versionInfo";
+	public static String OBO_VERSION_PREDICATE = "oboInOwl:hasOBOFormatVersion";
+
+	public static String[] VERSION_PREDICATE = new String[] {DEFAULT_VERSION_PREDICATE, OBO_VERSION_PREDICATE};
+
     public static String ASSOCIATION_NAME = "inverse_is_a";
+
+    public static final String TYPE_ROLE = "type_role";
+    public static final String TYPE_ASSOCIATION = "type_association";
+    public static final String TYPE_SUPERCONCEPT = "type_superconcept";
+    public static final String TYPE_SUBCONCEPT = "type_subconcept";
+    public static final String TYPE_INVERSE_ROLE = "type_inverse_role";
+    public static final String TYPE_INVERSE_ASSOCIATION = "type_inverse_association";
+
+    public static String STARTS_WITH = "startsWith";
+    public static String ENDS_WITH = "endsWith";
+
     /**
      * Constructor
      */

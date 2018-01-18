@@ -178,7 +178,7 @@ public class StringUtils {
 			System.out.println("\t(" + i + ") " + t);
 		}
 	}
-
+/*
 	public static void dumpHashMap(String label, HashMap hmap) {
 		if (hmap == null) return;
 		System.out.println(label + ":");
@@ -192,6 +192,30 @@ public class StringUtils {
 					String s = (String) v.elementAt(j);
 					System.out.println("\t\t" + s);
 				}
+			}
+		}
+	}
+*/
+
+	public static void dumpHashMap(String label, HashMap hmap) {
+		if (hmap == null) return;
+		System.out.println(label + ":");
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String t = (String) it.next();
+			System.out.println("\tkey: " + t);
+			Object obj = hmap.get(t);
+			if (obj instanceof Vector) {
+				Vector v = (Vector) obj;
+				if (v != null && v.size() > 0) {
+					for (int j=0; j<v.size(); j++) {
+						String s = (String) v.elementAt(j);
+						System.out.println("\t\t" + s);
+					}
+				}
+			} else {
+				String s = (String) obj;
+				System.out.println("\t\t" + s);
 			}
 		}
 	}

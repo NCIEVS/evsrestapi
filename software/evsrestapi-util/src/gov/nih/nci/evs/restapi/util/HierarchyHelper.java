@@ -390,26 +390,33 @@ public class HierarchyHelper implements Serializable {
 		return v;
 	}
 
-    public Vector getTransitiveClosure(String c) {
-		if (c == null) return null;
-		return getTransitiveClosure(new Vector(), c);
-	}
-
-	public Vector getTransitiveClosure(Vector v, String c) {
-		Vector child_codes = getSubclassCodes(c);
-		if (child_codes == null || child_codes.size() == 0) return v;
-		for (int i=0; i<child_codes.size(); i++) {
-			String child_code = (String) child_codes.elementAt(i);
-			System.out.println("Parent " + c + " child: " + child_code);
-			Vector w = getTransitiveClosure(v, child_code);
-			if (w != null && w.size() > 0) {
-				v = mergeVector(v, w);
-			}
-			if (!v.contains(child_code)) {
-				v.add(child_code);
+	public Vector removeDuplicates(Vector codes) {
+		HashSet hset = new HashSet();
+		Vector w = new Vector();
+		for (int i=0; i<codes.size(); i++) {
+			String code = (String) codes.elementAt(i);
+			if (!hset.contains(code)) {
+				hset.add(code);
+				w.add(code);
 			}
 		}
-		return v;
+		return w;
+	}
+
+  	public Vector getTransitiveClosure(String code) {
+		Vector w = new Vector();
+		w.add(code);
+		Vector v = getSubclassCodes(code);
+		if (v == null) return w;
+		for (int i=0; i<v.size(); i++) {
+			String child_code = (String) v.elementAt(i);
+			Vector u = getTransitiveClosure(child_code);
+			if (u != null && u.size() > 0) {
+				w.addAll(u);
+			}
+		}
+		w = removeDuplicates(w);
+		return w;
 	}
 
 	public void printTree() {
