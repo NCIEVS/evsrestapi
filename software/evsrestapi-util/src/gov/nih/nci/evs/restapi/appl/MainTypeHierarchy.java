@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.regex.*;
 
 public class MainTypeHierarchy {
+	public int multiple_count = 0;
 	static String MAIN_TYPE_TREE = "main_type_tree";
 	static String SUBTYPE_TREE = "subtype_tree";
 	static String STAGE_TREE = "stage_tree";
@@ -61,6 +62,61 @@ public class MainTypeHierarchy {
     public MainTypeHierarchy() {
 
     }
+
+    public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
+        Vector stageConcepts, Vector gradeConcepts) {
+		this.parent_child_vec = parent_child_vec;
+		this.hh = new HierarchyHelper(parent_child_vec);
+
+        this.stageConceptHashMap = new HashMap();
+        for (int i=0; i<stageConcepts.size(); i++) {
+			String code = (String) stageConcepts.elementAt(i);
+			stageConceptHashMap.put(code, hh.getLabel(code));
+		}
+
+        this.gradeConceptHashMap = new HashMap();
+        for (int i=0; i<gradeConcepts.size(); i++) {
+			String code = (String) gradeConcepts.elementAt(i);
+			gradeConceptHashMap.put(code, hh.getLabel(code));
+		}
+
+		this.main_type_set = main_type_set;
+        this.category_vec = category_vec;
+        category_hset = Utils.vector2HashSet(category_vec);
+
+        for (int i=0; i<category_vec.size(); i++) {
+			String code = (String) category_vec.elementAt(i);
+			this.main_type_set.add(code);
+		}
+
+		main_types = Utils.hashSet2Vector(main_type_set);
+        main_type_hierarchy_data = generate_main_type_hierarchy();
+        Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
+        this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
+
+        this.pathFinder = new PathFinder(mth_hh, NCI_THESAURUS, ncit_version);
+
+        Vector mth_parent_child_vec_v2 = new Vector();
+        for (int k=0; k<mth_parent_child_vec.size(); k++) {
+			String t = (String) mth_parent_child_vec.elementAt(k);
+			Vector u = StringUtils.parseData(t, '|');
+			String parent_code = (String) u.elementAt(1);
+			if (!category_hset.contains(parent_code)) {
+				mth_parent_child_vec_v2.add(t);
+			}
+		}
+
+		try {
+			mth_hh_without_categories = new HierarchyHelper(mth_parent_child_vec_v2);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+        levelMap = create_max_level_hashmap(main_type_hierarchy_data);
+        this.stageConceptHashMap = stageConceptHashMap;
+        this.gradeConceptHashMap = gradeConceptHashMap;
+	}
+
+
 
     public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
         HashMap stageConceptHashMap, HashMap gradeConceptHashMap) {
@@ -538,6 +594,15 @@ public class MainTypeHierarchy {
 	}
 
 
+	public void getCTRPResponse(PrintWriter pw, Vector codes) {
+		if (codes == null) return;
+		for (int i=0; i<codes.size(); i++) {
+			String code = (String) codes.elementAt(i);
+			getCTRPResponse(pw, code);
+		}
+	}
+
+
 	public void getCTRPResponse(PrintWriter pw, String code) {
         boolean isMainType = isMainType(code);
         boolean isSubtype = isSubtype(code);
@@ -551,18 +616,20 @@ public class MainTypeHierarchy {
         Vector v = null;
         if (isSubtype(code) || isDiseaseStage(code) || isDiseaseGrade(code)) {
         	v = findMainMenuAncestors(code);
-			for (int i=0; i<v.size(); i++) {
-				String line = (String) v.elementAt(i);
-				Vector u = StringUtils.parseData(line, '|');
-				String ancestor_label = (String) u.elementAt(0);
-				String ancestor_code = (String) u.elementAt(1);
-				Paths paths = find_path_to_main_type_roots(ancestor_code);
-				Vector w = PathFinder.formatPaths(paths);
-				for (int k=0; k<w.size(); k++) {
-					String t = (String) w.elementAt(k);
-					pw.println("\t\t" + t);
+        	if (v != null && v.size() > 0) {
+				for (int i=0; i<v.size(); i++) {
+					String line = (String) v.elementAt(i);
+					Vector u = StringUtils.parseData(line, '|');
+					String ancestor_label = (String) u.elementAt(0);
+					String ancestor_code = (String) u.elementAt(1);
+					Paths paths = find_path_to_main_type_roots(ancestor_code);
+					Vector w = PathFinder.formatPaths(paths);
+					for (int k=0; k<w.size(); k++) {
+						String t = (String) w.elementAt(k);
+						pw.println("\t\t" + t);
+					}
 				}
-			}
+		    }
 		} else {
 			pw.println("\t\t" + "None");
 		}
@@ -1060,6 +1127,105 @@ Disease or Disorder (C2991)
 		String outputfile = "main_type_code_" + today + ".txt";
 		Utils.saveToFile(outputfile, codes);
 		return outputfile;
+	}
+
+
+	public void searchMultiplePaths(PrintWriter pw, Vector codes) {
+		if (codes == null) return;
+		multiple_count = 0;
+		for (int i=0; i<codes.size(); i++) {
+			String code = (String) codes.elementAt(i);
+			searchMultiplePaths(pw, code);
+		}
+	}
+
+
+	public void searchMultiplePaths(PrintWriter pw, String code) {
+		if (!isMultiple(code)) return;
+		multiple_count++;
+		getCTRPResponse(pw, code);
+  	}
+
+
+	public boolean isMultiple(String code) {
+		Vector v = findMainMenuAncestors(code);
+		if (v.size() < 2) return false;
+		Vector w = new Vector();
+        if (isSubtype(code) || isDiseaseStage(code) || isDiseaseGrade(code)) {
+        	if (v != null && v.size() > 0) {
+				for (int i=0; i<v.size(); i++) {
+					String line = (String) v.elementAt(i);
+					Vector u = StringUtils.parseData(line, '|');
+					String ancestor_label = (String) u.elementAt(0);
+					String ancestor_code = (String) u.elementAt(1);
+					Paths paths = find_path_to_main_type_roots(ancestor_code);
+					List list = paths.getPaths();
+					for (int k=0; k<list.size(); k++) {
+                        Path path = (Path) list.get(k);
+                        List concepts = path.getConcepts();
+                        Concept c = (Concept) concepts.get(concepts.size()-1);
+                        if (w.size() == 0) {
+							w.add(c.getCode());
+						} else {
+							if (!w.contains(c.getCode())) {
+								return true;
+							} else {
+							    w.add(c.getCode());
+							}
+						}
+					}
+				}
+		    }
+		}
+		return false;
+  	}
+
+
+
+	public static void main(String[] args) {
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
+		String ncit_version = mthd.getVersion();
+		System.out.println("version " + ncit_version);
+		Vector broad_category_vec = mthd.get_broad_category_vec();
+		StringUtils.dumpVector("broad_category_vec", broad_category_vec);
+		HashSet main_type_set = mthd.get_main_type_set();
+		Vector<String> parent_child_vec = mthd.get_parent_child_vec(named_graph);
+		Vector v1 = mthd.getDiseaseIsStageSourceCodes(named_graph);
+		Vector v2 = mthd.getDiseaseIsGradeSourceCodes(named_graph);
+        HashMap stageConceptHashMap = mthd.generateStageConceptHashMap(v1);
+        HashMap gradeConceptHashMap = mthd.generateGradeConceptHashMap(v2);
+        MainTypeHierarchy mth = new MainTypeHierarchy(ncit_version, parent_child_vec, main_type_set, broad_category_vec,
+             stageConceptHashMap, gradeConceptHashMap);
+        Vector mth_vec = mth.generate_main_type_hierarchy();
+        Utils.saveToFile("MainTypeHierarchy.txt", mth_vec);
+
+        //AIDS-Related Primary Central Nervous System Lymphoma (C8284)
+        String code = "C8284";
+        System.out.println("get_ctrp_response: " + code);
+        Vector v = mth.findMainMenuAncestors(code);
+        StringUtils.dumpVector("findMainMenuAncestors", v);
+
+		long ms = System.currentTimeMillis();
+		String outputfile = mth.DISEASES_AND_DISORDERS_CODE + "_multiple.txt";
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(outputfile, "UTF-8");
+            Vector codes = mth.getTransitiveClosure(mth.DISEASES_AND_DISORDERS_CODE);
+            mth.searchMultiplePaths(pw, codes);
+		} catch (Exception ex) {
+
+		} finally {
+			try {
+				pw.close();
+				System.out.println("Output file " + outputfile + " generated.");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		System.out.println("Multiple cases: " + mth.multiple_count);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }
 
