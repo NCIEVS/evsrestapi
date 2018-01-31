@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.util;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -8,6 +10,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -43,6 +46,7 @@ public class RESTUtils {
 											setReadTimeout(readTimeout).
 											setConnectTimeout(connectTimeout).
 											build();
+		restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
 		MultiValueMap <String,String> body = new LinkedMultiValueMap<String,String>();
 		body.add("query", query);
 		HttpHeaders headers = new HttpHeaders();

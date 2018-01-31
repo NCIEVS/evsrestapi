@@ -17,40 +17,10 @@ buildscript {
  * Extra Properties
  */
 ext {
-    /*
-     * IMPORTANT NOTE ABOUT WEBJARS: 
-     * 
-     * Webjars could not be found for the following third-party software:
-     *
-     * org.webjars.bower:github-com-adonespitogo-angular-loading-spinner-v0.0.1 - Version v0.0.3 was used instead.
-     *
-     * angular-datepicker-0.2.4 - The original files from the "external" directory tree were renamed to include
-     *                            the version number and copied to the applications's "js" and "css" directories.
-     *
-     * angular-file-saver-1.1.1 - The original files from the "external" directory tree were renamed to include 
-     *                            the version number and copied to the applications's "js" and "css" directories.
-     */
-
-   
-  
-      /*
+     /*
      * Other third-party software versions
      */
-      swaggerversion = "2.6.1"
-   
-    
-    
-    
-    
-    
-
-    /*
-     * Remote Repositories
-     */
-    repositoryBaseUrl = "http://ec2-54-208-32-8.compute-1.amazonaws.com:8081/nexus/content"
-    defaultRepositoryUrl = "$repositoryBaseUrl/groups/public"
-    snapshotRepositoryUrl = "$repositoryBaseUrl/repositories/snapshots"
-    releaseRepositoryUrl = "$repositoryBaseUrl/repositories/releases"
+     swaggerversion = "2.6.1"
 }
 
 apply plugin: 'java'
@@ -73,7 +43,6 @@ springBoot {
 
 repositories {
     mavenLocal()
-    maven { url "$defaultRepositoryUrl" }
     jcenter()
     maven { url "http://repo.spring.io/release" }
     maven { url "http://repo.spring.io/milestone" }
@@ -97,20 +66,10 @@ dependencies {
      
    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
-    /*
-     * This dependency is included to auto-configure class HttpComponentsClientHttpRequestFactory
-     * as the implementation used for the ClientHttpRequestFactory interface
-     */
-   
-
-  
-    
-    
-    
-     /*
+   /*
      * Test Dependencies
-     */
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
+   */
+   testCompile 'org.springframework.boot:spring-boot-starter-test'
    
 
 }
@@ -166,35 +125,6 @@ task bootJar
 bootJar.dependsOn = [jar, bootRepackage]
 build.dependsOn = [ bootJar, test, zipFile ]
 install.dependsOn = [ bootJar,test, zipFile ]
-
-publishing {
-
-    publications {
-        artifacts(MavenPublication) {
-            artifact ("$buildDir/libs/${project.name}-${project.version}.jar") {
-                classifier = null
-            }
-            artifact ("$buildDir/distributions/${project.name}-${project.version}.zip") {
-                classifier = null
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            name 'remote'
-            url project.version.endsWith('-SNAPSHOT') ?
-                snapshotRepositoryUrl : releaseRepositoryUrl
-            credentials {
-                username = remoteRepositoryUsername
-                password = remoteRepositoryPassword
-            }
-        }
-    }
-}
-
-
-
 
 /*
  * Wrapper task
