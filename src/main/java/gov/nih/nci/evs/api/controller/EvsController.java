@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -349,9 +351,27 @@ public class EvsController {
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/search", produces = "application/json")
 	public @ResponseBody List<MatchedConcept> search(@ModelAttribute FilterCriteriaFields filterCriteriaFields)
 			throws IOException {
+		String queryTerm = filterCriteriaFields.getTerm();
+		queryTerm = escapeLuceneSpecialCharacters(queryTerm);
+		filterCriteriaFields.setTerm(queryTerm);
 		List<MatchedConcept> matchedConcepts = new ArrayList<MatchedConcept>();
 		matchedConcepts = sparqlQueryManagerService.search(filterCriteriaFields);
 		return matchedConcepts;
+	}
+	
+	private String escapeLuceneSpecialCharacters(String before) {
+		String patternString = "([+:!~*?/\\-/{}\\[\\]\\(\\)\\^\\\"])";
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(before);
+		StringBuffer buf = new StringBuffer();
+        while(matcher.find()) {
+          matcher.appendReplacement(buf,
+                before.substring(matcher.start(),matcher.start(1)) +
+                "\\\\" + "\\\\" + matcher.group(1)
+                + before.substring(matcher.end(1),matcher.end()));
+        }
+        String after = matcher.appendTail(buf).toString();
+        return after;
 	}
 
 }
