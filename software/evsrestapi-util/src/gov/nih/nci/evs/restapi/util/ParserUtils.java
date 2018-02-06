@@ -421,6 +421,7 @@ public class ParserUtils {
 		return w;
 	}
 
+/*
 	public List getAdditionalProperties(Vector v) {
 		List additionalProperties = new ArrayList();
 		List commonProperties = Arrays.asList(Constants.COMMON_PROPERTIES);
@@ -432,6 +433,24 @@ public class ParserUtils {
 			String z = getValue(z_label);
 			if (!commonProperties.contains(y_label)) {
 				Property property = new Property(y_label, z);
+				additionalProperties.add(property);
+			}
+		}
+		return additionalProperties;
+	}
+*/
+	public List getAdditionalProperties(Vector v) {
+		List additionalProperties = new ArrayList();
+		List commonProperties = Arrays.asList(Constants.COMMON_PROPERTIES);
+		v = getResponseValues(v);
+		if (v == null) return null;
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String prop_name = (String) u.elementAt(1);
+			if (!commonProperties.contains(prop_name)) {
+				String prop_value = (String) u.elementAt(2);
+				Property property = new Property(prop_name, prop_value);
 				additionalProperties.add(property);
 			}
 		}
