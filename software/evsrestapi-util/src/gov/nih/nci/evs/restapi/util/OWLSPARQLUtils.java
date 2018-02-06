@@ -1266,6 +1266,7 @@ public class OWLSPARQLUtils {
     public HashMap getNameVersion2NamedGraphMap() {
 		HashMap nameVersion2NamedGraphMap = new HashMap();
 		ParserUtils parserUtils = new ParserUtils();
+		//vocabulary name|vocabulary version|graph named
 		Vector v = getAvailableOntologies();
 		if (v != null && v.size() > 0) {
 			for (int j=0; j<v.size(); j++) {
@@ -1273,8 +1274,9 @@ public class OWLSPARQLUtils {
 				String named_graph = parserUtils.getValue(t);
 				String uri = getOntologyURI(named_graph);
 		        String vocabulary = getOntologyName(uri);
+		        String version = "null";
+		        Vector named_graph_vec = new Vector();
 				try {
-
 					if (vocabulary == null) {
 						System.out.println("WARNING: getOntologyName(" + uri + ") returns null - need to update createOntologyUri2LabelMap method.");
 					    vocabulary = named_graph;
@@ -1283,20 +1285,25 @@ public class OWLSPARQLUtils {
 					Vector version_vec = getOntologyVersion(named_graph);
 					if (version_vec != null && version_vec.size() > 0) {
 						String first_line = (String) version_vec.elementAt(0);
-						String version = parserUtils.getValue(first_line);
-						nameVersion2NamedGraphMap.put(vocabulary + "|" + version, named_graph);
-					} else {
-						nameVersion2NamedGraphMap.put(vocabulary + "|null", named_graph);
+						version = parserUtils.getValue(first_line);
+						//nameVersion2NamedGraphMap.put(vocabulary + "|" + version, named_graph);
 					}
 
-					//System.out.println("named_graph: " + named_graph);
-					//System.out.println("uri: " + uri);
-					//System.out.println("vocabulary: " + vocabulary);
-
+					if (nameVersion2NamedGraphMap.containsKey(vocabulary + "|" + version)) {
+						named_graph_vec = (Vector) nameVersion2NamedGraphMap.get(vocabulary + "|" + version);
+					}
+					if (!named_graph_vec.contains(named_graph)) {
+						named_graph_vec.add(named_graph);
+					}
+					nameVersion2NamedGraphMap.put(vocabulary + "|" + version, named_graph_vec);
 				} catch (Exception ex) {
 					//ex.printStackTrace();
 					System.out.println("Exceptions thrown at getNameVersion2NamedGraphMap.");
-					nameVersion2NamedGraphMap.put(vocabulary + "|null", named_graph);
+					named_graph_vec = (Vector) nameVersion2NamedGraphMap.get(vocabulary + "|" + version);
+					if (!named_graph_vec.contains(named_graph)) {
+						named_graph_vec.add(named_graph);
+					}
+					nameVersion2NamedGraphMap.put(vocabulary + "|null", named_graph_vec);
 				}
 			}
 		} else {
@@ -1350,14 +1357,6 @@ public class OWLSPARQLUtils {
 					v.add(ontology_name + "|" + parser.getValue((String) u2.elementAt(0))
 					   + "|" + named_graph);
 				} else {
-					/*
-					if (u2 == null) {
-						System.out.println("\t\t\tERROR: getOntologyVersion returns null -- " + named_graph);
-					} else {
-						System.out.println("\t\t\tERROR: getOntologyVersion returns an empty vector -- " + named_graph);
-					}
-					*/
-					//System.out.println(ontology_name + "|null" + "|" + named_graph);
 					v.add(ontology_name + "|null" + "|" + named_graph);
 				}
 			}
@@ -1492,10 +1491,33 @@ public class OWLSPARQLUtils {
         buf.append("		?x a owl:Restriction").append("\n");
         buf.append("  }").append("\n");
 		buf.append("}").append("\n");
-		buf.append("LIMIT 10").append("\n");
 		return buf.toString();
 	}
 
+
+	public Vector getAllRelationships(String named_graph) {
+		Vector v = executeQuery(construct_get_all_relationships(named_graph));
+		return v;
+	}
+
+	public String construct_get_all_relationships(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes).append("\n");
+		buf.append("SELECT ?x_code ?p_code ?y_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("                ?x a owl:Class .").append("\n");
+		buf.append("                ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("                ?x ?p ?y .").append("\n");
+		buf.append("                ?p " + named_graph_id + " ?p_code .").append("\n");
+		buf.append("                ?y a owl:Class .").append("\n");
+		buf.append("                ?y " + named_graph_id + " ?y_code").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}");
+		return buf.toString();
+	}
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
@@ -1503,30 +1525,8 @@ public class OWLSPARQLUtils {
 		System.out.println(query_file);
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         long ms = System.currentTimeMillis();
-        String named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl_Flat";
-        if (query_file.indexOf("dev") != -1) {
-        	named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl_Flat";
-        	named_graph = "http://NCIt_Flattened";
-
-	    } else if (query_file.indexOf("prod") != -1) {
-			named_graph = "http://NCIt";
-		}
-
-        owlSPARQLUtils.set_named_graph(named_graph);
-
-        //
-        /*
-        Vector v = owlSPARQLUtils.execute(query_file);//owlSPARQLUtils.getRoleRelationships(named_graph);
-        */
-        //Vector v = owlSPARQLUtils.getSupportedProperties(named_graph);
-
         Vector v = owlSPARQLUtils.execute(query_file);
-        //Amniotic Sac (Code C34103)
-        //Vector v = owlSPARQLUtils.getInboundRolesByCode(named_graph, "C34103");
-
         StringUtils.dumpVector("roles", v);
-        //System.out.println("v: " + v.size());
-        //Utils.saveToFile("test.txt", v);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
     }

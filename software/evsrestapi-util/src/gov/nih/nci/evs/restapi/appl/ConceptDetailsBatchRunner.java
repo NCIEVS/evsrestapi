@@ -82,7 +82,7 @@ public class ConceptDetailsBatchRunner {
     TreeBuilder treeBuilder = null;//new TreeBuilder(this);
     ParserUtils parser = new ParserUtils();
     Vector parent_child_vec = null;
-    OWLSPARQLUtils owlSPARQLUtils = null;
+    gov.nih.nci.evs.restapi.util.OWLSPARQLUtils owlSPARQLUtils = null;
     MainTypeHierarchy mth = null;
     ExportUtils exportUtils = null;
     String ncit_version = "17.07c";
@@ -98,12 +98,13 @@ public class ConceptDetailsBatchRunner {
 		this.parent_child_vec = parent_child_vec;
 		this.serviceUrl = serviceUrl;
 		this.named_graph = named_graph;
-		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		this.owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, username, password);
 
 		Vector v = this.owlSPARQLUtils.getOntologyVersionInfo(named_graph);
 		this.ncit_version = new ParserUtils().getValue((String) v.elementAt(0));
 
  		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
+
 		main_type_set = mthd.get_main_type_set();
 		System.out.println("main_type_set: " + main_type_set.size());
 		category_vec = mthd.get_broad_category_vec();
@@ -112,6 +113,8 @@ public class ConceptDetailsBatchRunner {
 
 		String version = mthd.getVersion();
 		System.out.println("version: " + version);
+
+System.out.println("*** Instantiating MainTypeHierarchy " + parent_child_vec.size());
 
 		this.mth = new MainTypeHierarchy(
             ncit_version,
@@ -161,8 +164,17 @@ public class ConceptDetailsBatchRunner {
 			pw = new PrintWriter(outputfile, "UTF-8");
 			for (int i=0; i<codes.size(); i++) {
 				String code = (String) codes.elementAt(i);
+
+				System.out.println(code);
+
 				int j = i+1;
+
 				String label = mth.getLabel(code);
+
+				if (label == null) {
+					System.out.println("Label for " + code + " not found???");
+				}
+
 				pw.println("(" + j + ") " + label + " (" + code + ")");
 				System.out.println("(" + j + ") " + label + " (" + code + ")");
 				ConceptDetails cd = createConceptDetails(named_graph, code);
@@ -190,8 +202,8 @@ public class ConceptDetailsBatchRunner {
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
-		String serviceUrl = "https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";//args[0];
-		String named_graph = "http://NCIt";
+		String serviceUrl = args[0];//"https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";//args[0];
+		String named_graph = args[1]; //"http://NCIt_Flattened";
 		/*
 
 		String serviceUrl = args[0];
@@ -202,8 +214,11 @@ public class ConceptDetailsBatchRunner {
 		*/
 		String parent_child_file = "parent_child.txt";
         Vector parent_child_vec = Utils.readFile(parent_child_file);
+        System.out.println("parent_child_vec: " + parent_child_vec.size());
 
         System.out.println("serviceUrl: " + serviceUrl);
+        System.out.println("named_graph: " + named_graph);
+
         OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         /*
 		String serviceUrl = args[0];
@@ -248,12 +263,20 @@ public class ConceptDetailsBatchRunner {
         System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
         ms = System.currentTimeMillis();
 
+System.out.println("serviceUrl: " + serviceUrl);
+System.out.println("named_graph: " + named_graph);
+System.out.println("parent_child_vec: " + parent_child_vec.size());
+System.out.println("stageConceptHashMap: " + stageConceptHashMap.keySet().size());
+System.out.println("gradeConceptHashMap: " + gradeConceptHashMap.keySet().size());
+
+
 	    ConceptDetailsBatchRunner cdbr = new ConceptDetailsBatchRunner(serviceUrl, null, null, named_graph,
 	        parent_child_vec,
             stageConceptHashMap,
             gradeConceptHashMap);
 
         Vector codes = new Vector();
+        /*
         codes.add("C3058");
         codes.add("C125890");
         codes.add("C2924");
@@ -265,6 +288,8 @@ public class ConceptDetailsBatchRunner {
         codes.add("C4897");
         codes.add("C7834");
         codes.add("C48232");
+        */
+        codes.add("C123181");
 
         cdbr.run(named_graph, codes);
 

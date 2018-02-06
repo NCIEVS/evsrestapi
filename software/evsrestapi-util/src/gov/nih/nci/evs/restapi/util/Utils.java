@@ -117,6 +117,11 @@ public class Utils {
 		System.out.println("\n");
 	}
 
+
+	 public static String replaceFilename(String filename) {
+	    return filename.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+	 }
+
 	 public static void saveToFile(String outputfile, String t) {
 		 Vector v = new Vector();
 		 v.add(t);
@@ -124,6 +129,7 @@ public class Utils {
 	 }
 
 	 public static void saveToFile(String outputfile, Vector v) {
+		outputfile = replaceFilename(outputfile);
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(outputfile, "UTF-8");

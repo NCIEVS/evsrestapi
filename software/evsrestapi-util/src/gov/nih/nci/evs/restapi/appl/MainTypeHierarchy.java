@@ -1180,7 +1180,22 @@ Disease or Disorder (C2991)
 		return false;
   	}
 
+    public HierarchyHelper getHierarchyHelper() {
+		return this.hh;
+	}
 
+	public HierarchyHelper getMTHHierarchyHelper() {
+	    return this.mth_hh;
+	}
+
+	public HashMap getLevelMap() {
+   	    return this.levelMap;
+	}
+
+	public void printTree(Vector v) {
+		HierarchyHelper hh = new HierarchyHelper(v);
+		hh.printTree();
+	}
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];

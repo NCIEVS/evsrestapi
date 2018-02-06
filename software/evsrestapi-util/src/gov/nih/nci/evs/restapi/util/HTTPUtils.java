@@ -15,6 +15,7 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
 import org.apache.commons.codec.binary.Base64;
+import java.nio.charset.Charset;
 
 
 /**
@@ -231,6 +232,8 @@ public class HTTPUtils {
 	    return executeQuery(url, username, password, acceptFormat);
     }
 
+
+/*
 	public String executeQuery(URL url, String username, String password, String acceptFormat) throws Exception {
         if (url == null) return null;
 		URLConnection urlConnection = url.openConnection();
@@ -252,7 +255,31 @@ public class HTTPUtils {
 		}
 		return buff.toString();
 	}
+*/
 
+
+	public String executeQuery(URL url, String username, String password, String acceptFormat) throws Exception {
+        if (url == null) return null;
+		URLConnection urlConnection = url.openConnection();
+		urlConnection.setRequestProperty("Accept", acceptFormat);
+
+		if (username != null && password != null) {
+			String authenticationStr = username + ":" + password;
+			String encodedAuthenticationStr  = new String(Base64.encodeBase64(authenticationStr.getBytes()));
+			urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuthenticationStr);
+		}
+
+		Charset charset = Charset.forName("UTF8");
+		InputStreamReader stream = new InputStreamReader(urlConnection.getInputStream(), charset);
+		BufferedReader reader = new BufferedReader(stream);
+		StringBuffer responseBuffer = new StringBuffer();
+		String line = null;
+		while ((line = reader.readLine())!=null) {
+			responseBuffer.append(line);
+			responseBuffer.append("\n");
+		}
+		return responseBuffer.toString();
+	}
 
 }
 

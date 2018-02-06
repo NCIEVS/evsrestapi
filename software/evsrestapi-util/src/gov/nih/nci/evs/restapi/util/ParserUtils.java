@@ -104,6 +104,7 @@ public class ParserUtils {
 	public HashMap parse(Vector v, int m, int d1, int d2) {
 		HashMap hmap = new HashMap();
 		if (v == null) return hmap;
+		if (m == 0) return hmap;
 		int n = v.size()/m;
 		for (int i=0; i<n; i++) {
 			int i0 = i*m;

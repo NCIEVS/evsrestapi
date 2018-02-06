@@ -167,6 +167,16 @@ public class StringUtils {
 		}
 	}
 
+	public static void dumpVector(PrintWriter pw, String label, Vector v) {
+		if (v == null) return;
+		pw.println(label + ":");
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			int j=i+1;
+			pw.println("\t(" + j + ") " + t);
+		}
+	}
+
 	public static void dumpHashSet(String label, HashSet hset) {
 		if (hset == null) return;
 		System.out.println(label + ":");
@@ -493,4 +503,28 @@ public class StringUtils {
 		return buf.toString();
 	}
 
+    public static HashMap createHashMap(Vector v, int key_index, int value_index) {
+		if (v == null) return null;
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String key = (String) u.elementAt(key_index);
+			String value = (String) u.elementAt(value_index);
+			hmap.put(key, value);
+		}
+		return hmap;
+	}
+
+	public static Vector removeDuplicates(Vector v) {
+		if (v == null) return v;
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			if (!w.contains(t)) {
+				w.add(t);
+			}
+		}
+		return w;
+	}
 }
