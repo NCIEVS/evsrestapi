@@ -1,19 +1,22 @@
-package gov.nih.nci.evs.restapi.bean;
+package gov.nih.nci.evs.restapi.util;
+
+import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
 
-import gov.nih.nci.evs.restapi.util.*;
-
-import com.google.gson.*;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-import com.thoughtworks.xstream.XStream;
-
 import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.*;
-
+import java.util.regex.*;
+import org.apache.commons.codec.binary.Base64;
+import org.json.*;
 
 /**
  * <!-- LICENSE_TEXT_START -->
@@ -67,95 +70,71 @@ import java.util.*;
  */
 
 
-public class Paths
-{
-// Variable declaration
-	private List paths;
+public class MetadataUtils {
+    String serviceUrl = null;
+    String sparql_endpoint = null;
+	String namedGraph = null;
+	OWLSPARQLUtils owlSPARQLUtils = null;
+	SPARQLUtilsClient client = null;
+	HashMap nameVersion2NamedGraphMap = null;
 
-// Default constructor
-	public Paths() {
-		paths = new ArrayList();
+    public MetadataUtils() {
+
 	}
 
-// Constructor
-	public Paths(
-		List paths) {
+    public  MetadataUtils(String serviceUrl) {
+		this.serviceUrl = serviceUrl;
+		initialize();
+    }
 
-		this.paths = paths;
-	}
+    public void initialize() {
+		 long ms = System.currentTimeMillis();
+		this.sparql_endpoint = serviceUrl;
+		this.client = new SPARQLUtilsClient(sparql_endpoint);
+		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint + "?query=");
+		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
+		System.out.println("Total MetadataUtils initialization run time (ms): " + (System.currentTimeMillis() - ms));
+    }
 
-// Set methods
-	public void setPath(List paths) {
-		this.paths = paths;
-	}
-
-
-	public void add(Path path) {
-		this.paths.add(path);
-	}
-
-
-// Get methods
-	public List getPaths() {
-		return this.paths;
-	}
-
-
-	public int getPathCount() {
-		return this.paths.size();
-	}
-
-
-	public static String getIndentation(int n) {
-		StringBuffer buf = new StringBuffer();
-		for (int i=0; i<n; i++) {
-			buf.append("\t");
+    public String getLatestVersion(String codingScheme) {
+		if (nameVersion2NamedGraphMap == null) return null;
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		Vector versions = new Vector();
+		while (it.hasNext()) {
+			String nameVersion = (String) it.next();
+			Vector u = StringUtils.parseData(nameVersion);
+			String codingSchemeName = (String) u.elementAt(0);
+			if (codingSchemeName.compareTo(codingScheme) == 0) {
+				String version = (String) u.elementAt(1);
+				versions.add(version);
+			}
 		}
-		return buf.toString();
+		versions = new SortUtils().quickSort(versions);
+        return (String) versions.elementAt(versions.size()-1);
 	}
 
-	public static void printConcept(PrintWriter pw, Concept c) {
-		int idx = c.getIdx();
-		String code = c.getCode();
-		String label = c.getLabel();
-		pw.println(getIndentation(idx) + label + " (" + code + ")");
+    public String getNamedGraph(String codingScheme) {
+		return getNamedGraph(codingScheme, null);
 	}
 
-	public static void printPath(PrintWriter pw, Path path) {
-		List concepts = path.getConcepts();
-		for (int i=0; i<concepts.size(); i++) {
-			Concept c = (Concept) concepts.get(i);
-			printConcept(pw, c);
+    public String getNamedGraph(String codingScheme, String version) {
+		if (version == null) {
+			version = getLatestVersion(codingScheme);
 		}
+		String namedGraph = client.getNamedGraphByCodingSchemeAndVersion(codingScheme, version);
+		return namedGraph;
 	}
 
-	public static void printPaths(Paths paths) {
-		PrintWriter pw = new PrintWriter(System.out, true);
-		printPaths(pw, paths);
+	public static void main(String[] args) {
+		String serviceUrl = args[0];
+		System.out.println(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl);
+		String codingScheme = "NCI_Thesaurus";
+		long ms = System.currentTimeMillis();
+		String version = test.getLatestVersion(codingScheme);
+		System.out.println(codingScheme);
+		System.out.println(version);
+		String named_graph = test.getNamedGraph(codingScheme);
+		System.out.println(named_graph);
 	}
-
-	public static void printPaths(PrintWriter pw, Paths paths) {
-		List list = paths.getPaths();
-		for (int i=0; i<list.size(); i++) {
-			Path path = (Path) list.get(i);
-			printPath(pw, path);
-		}
-	}
-
-	public String toXML() {
-		XStream xstream_xml = new XStream(new DomDriver());
-		String xml = xstream_xml.toXML(this);
-		xml = StringUtils.escapeDoubleQuotes(xml);
-		xml = Constants.XML_DECLARATION + "\n" + xml;
-		xml = StringUtils.removePackageNames(Constants.EVSRESTAPI_BEAN, xml);
-        return xml;
-	}
-
-	public String toJson() {
-		//return new Gson().toJson(this);
-		JsonParser parser = new JsonParser();
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return gson.toJson(this);
-	}
-
 }

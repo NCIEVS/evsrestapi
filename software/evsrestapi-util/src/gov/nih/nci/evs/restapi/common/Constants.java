@@ -98,6 +98,10 @@ public class Constants {
     public static String STARTS_WITH = "startsWith";
     public static String ENDS_WITH = "endsWith";
 
+    public static String VALUE_SET_URI_PREFIX = "http://evs.nci.nih.gov/valueset/";
+    public static String TERMINOLOGY_SUBSET_CODE = "C54443"; //Terminology Subset (Code C54443)
+
+
     /**
      * Constructor
      */

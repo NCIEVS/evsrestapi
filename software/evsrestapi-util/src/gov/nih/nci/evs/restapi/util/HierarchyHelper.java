@@ -404,9 +404,18 @@ public class HierarchyHelper implements Serializable {
 	}
 
   	public Vector getTransitiveClosure(String code) {
+		return getTransitiveClosure(code, true);
+	}
+
+  	public Vector getTransitiveClosure(String code, boolean traverseDown) {
 		Vector w = new Vector();
 		w.add(code);
-		Vector v = getSubclassCodes(code);
+		Vector v = new Vector();
+		if (traverseDown) {
+		    v = getSubclassCodes(code);
+		} else {
+			v = getSuperclassCodes(code);
+		}
 		if (v == null) return w;
 		for (int i=0; i<v.size(); i++) {
 			String child_code = (String) v.elementAt(i);

@@ -76,12 +76,13 @@ public class ConceptDetailsBatchRunner {
     HTTPUtils httpUtils = null;
     String named_graph = null;
     String prefixes = null;
+    String sparql_endpoint = null;
     String serviceUrl = null;
     String named_graph_id = ":NHC0";
     String base_uri = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     TreeBuilder treeBuilder = null;//new TreeBuilder(this);
     ParserUtils parser = new ParserUtils();
-    Vector parent_child_vec = null;
+
     gov.nih.nci.evs.restapi.util.OWLSPARQLUtils owlSPARQLUtils = null;
     MainTypeHierarchy mth = null;
     ExportUtils exportUtils = null;
@@ -89,19 +90,65 @@ public class ConceptDetailsBatchRunner {
 	HashSet main_type_set = null;
 	Vector category_vec = null;
 
-	public ConceptDetailsBatchRunner(String serviceUrl, String username, String password,
-	    String named_graph,
-	    Vector parent_child_vec,
-        HashMap stageConceptHashMap,
-        HashMap gradeConceptHashMap) {
+	private Vector parent_child_vec = null;
+	private static String stage_file = "DISEASE_IS_STAGE.txt";
+	private static String grade_file = "DISEASE_IS_GRADE.txt";
+	private static String NCI_THESAURUS = "NCI_Thesaurus";
 
-		this.parent_child_vec = parent_child_vec;
-		this.serviceUrl = serviceUrl;
-		this.named_graph = named_graph;
-		this.owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, username, password);
+	Vector disease_is_stage_vec = null;
+	Vector disease_is_grade_vec = null;
 
-		Vector v = this.owlSPARQLUtils.getOntologyVersionInfo(named_graph);
-		this.ncit_version = new ParserUtils().getValue((String) v.elementAt(0));
+	public ConceptDetailsBatchRunner(String sparql_endpoint) {
+        this.sparql_endpoint = sparql_endpoint;//"https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";
+        this.serviceUrl = sparql_endpoint + "?query=";
+        initialize();
+	}
+
+    public void initialize() {
+		long ms = System.currentTimeMillis();
+		MetadataUtils mdu = new MetadataUtils(sparql_endpoint);
+
+		this.named_graph = mdu.getNamedGraph(NCI_THESAURUS);
+		this.ncit_version = mdu.getLatestVersion(NCI_THESAURUS);
+		this.owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, null, null);
+		this.owlSPARQLUtils.set_named_graph(named_graph);
+
+		String parent_child_file = "parent_child.txt";
+		if (parent_child_vec == null) {
+			File file = new File(parent_child_file);
+			boolean exists = file.exists();
+			if (exists) {
+				System.out.println("Loading parent_child_vec...");
+				parent_child_vec = Utils.readFile("parent_child.txt");
+			} else {
+				System.out.println("Generating parent_child_vec...");
+				parent_child_vec = owlSPARQLUtils.getHierarchicalRelationships(named_graph);
+			}
+		}
+
+		File f = new File(stage_file);
+		if(f.exists() && !f.isDirectory()) {
+			disease_is_stage_vec = Utils.readFile(stage_file);
+			System.out.println(stage_file + " exists.");
+		}  else {
+			String association_name = "Disease_Is_Stage";
+			disease_is_stage_vec = owlSPARQLUtils.getAssociationSourceCodes(named_graph, association_name);
+			Utils.saveToFile(stage_file, disease_is_stage_vec);
+		}
+		HashMap stageConceptHashMap = new ParserUtils().getCode2LabelHashMap(disease_is_stage_vec);
+		System.out.println("Number of stage terms: " + stageConceptHashMap.keySet().size());
+
+		f = new File(grade_file);
+		if(f.exists() && !f.isDirectory()) {
+			disease_is_grade_vec = Utils.readFile(grade_file);
+			System.out.println(grade_file + " exists.");
+		}  else {
+			String association_name = "Disease_Is_Grade";
+			disease_is_grade_vec = owlSPARQLUtils.getAssociationSourceCodes(named_graph, association_name);
+			Utils.saveToFile(grade_file, disease_is_grade_vec);
+		}
+		HashMap gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(disease_is_grade_vec);
+		System.out.println("Number of grade terms: " + gradeConceptHashMap.keySet().size());
 
  		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
 
@@ -114,7 +161,7 @@ public class ConceptDetailsBatchRunner {
 		String version = mthd.getVersion();
 		System.out.println("version: " + version);
 
-System.out.println("*** Instantiating MainTypeHierarchy " + parent_child_vec.size());
+		System.out.println("*** Instantiating MainTypeHierarchy " + parent_child_vec.size());
 
 		this.mth = new MainTypeHierarchy(
             ncit_version,
@@ -124,11 +171,12 @@ System.out.println("*** Instantiating MainTypeHierarchy " + parent_child_vec.siz
             stageConceptHashMap,
             gradeConceptHashMap);
 
-		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
+		this.httpUtils = new HTTPUtils(serviceUrl, null, null);
         this.jsonUtils = new JSONUtils();
         this.treeBuilder = new TreeBuilder(owlSPARQLUtils);
         this.exportUtils = new ExportUtils(owlSPARQLUtils);
-    }
+        System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
+	}
 
     public HashSet combineMainTypesAndCategories() {
 		HashSet hset = main_type_set;
@@ -156,44 +204,22 @@ System.out.println("*** Instantiating MainTypeHierarchy " + parent_child_vec.siz
         return cd;
 	}
 
-	public void run(String named_graph, Vector codes) {
-		String today = StringUtils.getToday();
-        String outputfile = "ConceptDetails_" + today + ".txt";
-		PrintWriter pw = null;
-		try {
-			pw = new PrintWriter(outputfile, "UTF-8");
-			for (int i=0; i<codes.size(); i++) {
-				String code = (String) codes.elementAt(i);
-
-				System.out.println(code);
-
-				int j = i+1;
-
-				String label = mth.getLabel(code);
-
-				if (label == null) {
-					System.out.println("Label for " + code + " not found???");
-				}
-
-				pw.println("(" + j + ") " + label + " (" + code + ")");
-				System.out.println("(" + j + ") " + label + " (" + code + ")");
-				ConceptDetails cd = createConceptDetails(named_graph, code);
-				String json = cd.toJson();
-				pw.println(json);
-				pw.println("\n");
-		    }
-
-		} catch (Exception ex) {
-
-		} finally {
-			try {
-				pw.close();
-				System.out.println("Output file " + outputfile + " generated.");
-			} catch (Exception ex) {
-				ex.printStackTrace();
+	public ConceptDetailsBatch getConceptDetailsBatch(Vector codes) {
+		ConceptDetailsBatch cdb = new ConceptDetailsBatch();
+		List list = new ArrayList();
+		for (int i=0; i<codes.size(); i++) {
+			String code = (String) codes.elementAt(i);
+			String label = mth.getLabel(code);
+			if (label == null) {
+				System.out.println("Label for " + code + " not found???");
 			}
+			ConceptDetails cd = createConceptDetails(named_graph, code);
+			list.add(cd);
 		}
+		cdb.setConceptDetailsList(list);
+		return cdb;
 	}
+
 
     public void generateMainTypeHierarchy() {
 		MainTypeHierarchy.save_main_type_hierarchy();
@@ -202,79 +228,8 @@ System.out.println("*** Instantiating MainTypeHierarchy " + parent_child_vec.siz
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
-		String serviceUrl = args[0];//"https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";//args[0];
-		String named_graph = args[1]; //"http://NCIt_Flattened";
-		/*
-
-		String serviceUrl = args[0];
-		String username = args[1];
-		String password = args[2];
-		String named_graph = args[3];
-		String parent_child_file = args[4];
-		*/
-		String parent_child_file = "parent_child.txt";
-        Vector parent_child_vec = Utils.readFile(parent_child_file);
-        System.out.println("parent_child_vec: " + parent_child_vec.size());
-
-        System.out.println("serviceUrl: " + serviceUrl);
-        System.out.println("named_graph: " + named_graph);
-
-        OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-        /*
-		String serviceUrl = args[0];
-		String username = args[1];
-		String password = args[2];
-		String named_graph = args[3];
-		String parent_child_file = args[4];
-        Vector parent_child_vec = Utils.readFile(parent_child_file);
-
-        System.out.println("serviceUrl: " + serviceUrl);
-        OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-        */
-
-        Vector disease_is_stage_vec = null;
-        String stage_file = "DISEASE_IS_STAGE.txt";
-		File f = new File(stage_file);
-		if(f.exists() && !f.isDirectory()) {
-			disease_is_stage_vec = Utils.readFile(stage_file);
-			System.out.println(stage_file + " exists.");
-		}  else {
-			String association_name = "Disease_Is_Stage";
-			disease_is_stage_vec = owlSPARQLUtils.getAssociationSourceCodes(named_graph, association_name);
-			Utils.saveToFile(stage_file, disease_is_stage_vec);
-		}
-		HashMap stageConceptHashMap = new ParserUtils().getCode2LabelHashMap(disease_is_stage_vec);
-		System.out.println("Number of stage terms: " + stageConceptHashMap.keySet().size());
-
-        String grade_file = "DISEASE_IS_GRADE.txt";
-        Vector disease_is_grade_vec = null;
-		f = new File(grade_file);
-		if(f.exists() && !f.isDirectory()) {
-			disease_is_grade_vec = Utils.readFile(grade_file);
-			System.out.println(grade_file + " exists.");
-		}  else {
-			String association_name = "Disease_Is_Grade";
-			disease_is_grade_vec = owlSPARQLUtils.getAssociationSourceCodes(named_graph, association_name);
-			Utils.saveToFile(grade_file, disease_is_grade_vec);
-		}
-		HashMap gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(disease_is_grade_vec);
-		System.out.println("Number of grade terms: " + gradeConceptHashMap.keySet().size());
-
-        System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
-        ms = System.currentTimeMillis();
-
-System.out.println("serviceUrl: " + serviceUrl);
-System.out.println("named_graph: " + named_graph);
-System.out.println("parent_child_vec: " + parent_child_vec.size());
-System.out.println("stageConceptHashMap: " + stageConceptHashMap.keySet().size());
-System.out.println("gradeConceptHashMap: " + gradeConceptHashMap.keySet().size());
-
-
-	    ConceptDetailsBatchRunner cdbr = new ConceptDetailsBatchRunner(serviceUrl, null, null, named_graph,
-	        parent_child_vec,
-            stageConceptHashMap,
-            gradeConceptHashMap);
-
+		String sparql_endpoint = args[0];//"https://sparql-evs-dev.nci.nih.gov/ctrp/";
+        ConceptDetailsBatchRunner cdbr = new ConceptDetailsBatchRunner(sparql_endpoint);
         Vector codes = new Vector();
         /*
         codes.add("C3058");
@@ -289,12 +244,17 @@ System.out.println("gradeConceptHashMap: " + gradeConceptHashMap.keySet().size()
         codes.add("C7834");
         codes.add("C48232");
         */
+        //codes.add("C146724");
         codes.add("C123181");
+        codes.add("C12354");
 
-        cdbr.run(named_graph, codes);
-
-        cdbr.generateMainTypeHierarchy();
+        //cdbr.run(named_graph, codes);
+        ConceptDetailsBatch cdb = cdbr.getConceptDetailsBatch(codes);
+        Vector u = new Vector();
+        u.add(cdb.toJson());
+        Utils.saveToFile("cdb_" + StringUtils.getToday() + ".txt", u);
+        //System.out.println(cdb.toJson());
+        //cdbr.generateMainTypeHierarchy();
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-
     }
 }

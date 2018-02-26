@@ -1,16 +1,26 @@
 package gov.nih.nci.evs.restapi.bean;
 
-
+import java.util.List;
+import gov.nih.nci.evs.restapi.common.*;
+import gov.nih.nci.evs.restapi.util.*;
+/*
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 import gov.nih.nci.evs.restapi.common.*;
-import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+*/
 
+import com.google.gson.*;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+import com.thoughtworks.xstream.XStream;
 
 /**
  * <!-- LICENSE_TEXT_START -->
@@ -66,7 +76,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 public class Links
 {
-	@XmlElement(name = "Link")
+	//@XmlElement(name = "Link")
 	private List<Link> links = null;
 
 	public List<Link> getLinks() {
@@ -77,4 +87,19 @@ public class Links
 		this.links = links;
 	}
 
+	public String toXML() {
+		XStream xstream_xml = new XStream(new DomDriver());
+		String xml = xstream_xml.toXML(this);
+		xml = StringUtils.escapeDoubleQuotes(xml);
+		xml = Constants.XML_DECLARATION + "\n" + xml;
+		xml = StringUtils.removePackageNames(Constants.EVSRESTAPI_BEAN, xml);
+        return xml;
+	}
+
+	public String toJson() {
+		//return new Gson().toJson(this);
+		JsonParser parser = new JsonParser();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(this);
+	}
 }

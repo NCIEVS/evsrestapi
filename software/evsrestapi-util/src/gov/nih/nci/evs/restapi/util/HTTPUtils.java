@@ -130,19 +130,6 @@ public class HTTPUtils {
 
 	public String loadQuery(String filename) {
 		return loadQuery(filename, true);
-		/*
-	    StringBuffer buf = new StringBuffer();
-	    Vector v = readFile(filename);
-	    for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			if (!t.startsWith("#")) {
-			    buf.append(t);
-		    }
-		}
-		String query = buf.toString();
-		query = encode(query);
-		return query;
-		*/
 	}
 
 

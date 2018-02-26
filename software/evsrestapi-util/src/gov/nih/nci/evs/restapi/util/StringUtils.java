@@ -527,4 +527,9 @@ public class StringUtils {
 		}
 		return w;
 	}
+
+	public static HashMap createHashMap(Vector w) {
+		return createHashMap(w, 0, 1);
+	}
+
 }

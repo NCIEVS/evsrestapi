@@ -63,6 +63,11 @@ public class MainTypeHierarchy {
 
     }
 
+    public MainTypeHierarchy(Vector parent_child_vec) {
+		this.parent_child_vec = parent_child_vec;
+		this.hh = new HierarchyHelper(parent_child_vec);
+    }
+
     public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
         Vector stageConcepts, Vector gradeConcepts) {
 		this.parent_child_vec = parent_child_vec;

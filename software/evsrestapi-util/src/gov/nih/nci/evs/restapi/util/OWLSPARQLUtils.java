@@ -1519,15 +1519,346 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+
+    public Vector getPropertyValues(Vector v, String propertyName) {
+		if (v == null || propertyName == null) return null;
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String propName = (String) u.elementAt(1);
+			if (propName.compareTo(propertyName) == 0) {
+				String propValue = (String) u.elementAt(2);
+				if (!w.contains(propValue)) {
+					w.add(propValue);
+				}
+			}
+		}
+		return w;
+	}
+
+	public Vector getValueSetURIsByMemberConceptCode(String named_graph, String code) {
+		Vector v = getAssociationsByCode(named_graph, code);
+		Vector uris = new Vector();
+		ParserUtils parser = new ParserUtils();
+		v = parser.getResponseValues(v);
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			String vs_code = parser.getValue(line);
+			Vector w = getPropertiesByCode(named_graph, vs_code);
+			w = new ParserUtils().getResponseValues(w);
+			w = getPropertyValues(w, "Contributing_Source");
+			for (int k=0; k<w.size(); k++) {
+				String contributing_source = (String) w.elementAt(k);
+				String uri = Constants.VALUE_SET_URI_PREFIX + contributing_source + "/" + vs_code;
+				if (!uris.contains(uri)) {
+					uris.add(uri);
+				}
+			}
+		}
+		return uris;
+	}
+
+    public String getStringValuedVariableExpression(String varName) {
+		return "\"" + varName + "\"^^<http://www.w3.org/2001/XMLSchema#string";
+	}
+
+	public String construct_get_concepts_with_annotation_property(String named_graph, String propertyName) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code ?y_label ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + propertyName + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsWithAnnotationProperty(String named_graph, String propertyName) {
+		String query = construct_get_concepts_with_annotation_property(named_graph, propertyName);
+		Vector v = executeQuery(query);
+		return v;
+	}
+
+	public Vector getValueSetHeaderConcepts(String named_graph) {
+		return getConceptsWithAnnotationProperty(named_graph, "Publish_Value_Set");
+	}
+
+	public String construct_get_association_sources_and_targets(String named_graph, String association_name) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?z a owl:Class .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+		buf.append("            ?z rdfs:label ?z_label .").append("\n");
+		buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + association_name + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getAssociationSourcesAndTargets(String named_graph, String association_name) {
+		return executeQuery(construct_get_association_sources_and_targets(named_graph, association_name));
+	}
+
+	public Vector getPermissibleValues(String inputfile) {
+		Vector w = Utils.readFile(inputfile);
+		return getPermissibleValues(w);
+	}
+
+	public Vector getPermissibleValues(Vector w) {
+		//Vector w = Utils.readFile(inputfile);
+        Vector v = new Vector();
+        ParserUtils parser = new ParserUtils();
+        for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			String value = parser.getValue(line);
+            if (!v.contains(value)) {
+				v.add(value);
+			}
+		}
+        return new SortUtils().quickSort(v);
+	}
+
+	public HashMap getValueSetMembershipHashMap(String inputfile) {
+		Vector w = Utils.readFile(inputfile);
+		return getValueSetMembershipHashMap(w);
+	}
+
+	public HashMap getValueSetMembershipHashMap(Vector w) {
+		//Vector w = Utils.readFile(inputfile);
+		HashMap hmap = new HashMap();
+		SortUtils utils = new SortUtils();
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+            Vector u = StringUtils.parseData(line, '|');
+            String label = (String) u.elementAt(0);
+            String code = (String) u.elementAt(1);
+            String vs_lable = (String) u.elementAt(3);
+            String vs_code = (String) u.elementAt(4);
+            Vector v = new Vector();
+            if (hmap.containsKey(vs_code)) {
+				v = (Vector) hmap.get(vs_code);
+			}
+			if (!v.contains(label + "|" + code)) {
+				v.add(label + "|" + code);
+			}
+			hmap.put(code, v);
+		}
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String code = (String) it.next();
+			Vector v = (Vector) hmap.get(code);
+			v = utils.quickSort(v);
+			hmap.put(code, v);
+		}
+        return hmap;
+	}
+
+	public Vector getValueSetURIsByHeaderConceptCode(String named_graph, String vs_code) {
+		Vector w = getPropertiesByCode(named_graph, vs_code);
+		Vector uris = new Vector();
+		w = new ParserUtils().getResponseValues(w);
+		w = getPropertyValues(w, "Contributing_Source");
+		for (int k=0; k<w.size(); k++) {
+			String contributing_source = (String) w.elementAt(k);
+			String uri = Constants.VALUE_SET_URI_PREFIX + contributing_source + "/" + vs_code;
+			if (!uris.contains(uri)) {
+				uris.add(uri);
+			}
+		}
+		return uris;
+	}
+
+    public Vector headerConceptCodes2ValueSetURIs(String named_graph, Vector v) {
+        Vector vs_vec = new Vector();
+        try {
+			for (int k=0; k<v.size(); k++) {
+				String vs_code = (String) v.elementAt(k);
+				Vector w = getValueSetURIsByHeaderConceptCode(named_graph, vs_code);
+				if (w != null && w.size() > 0) {
+					vs_vec.addAll(w);
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		vs_vec = new SortUtils().quickSort(vs_vec);
+		return vs_vec;
+	}
+
+    public HashMap createHeaderConceptCode2ValueSetURIHashMap(String named_graph, Vector vs_code_vec) {
+		if (vs_code_vec == null) return null;
+        HashMap hmap = new HashMap();
+        SortUtils utils = new SortUtils();
+        try {
+			for (int k=0; k<vs_code_vec.size(); k++) {
+				String vs_code = (String) vs_code_vec.elementAt(k);
+				Vector w = getValueSetURIsByHeaderConceptCode(named_graph, vs_code);
+				if (w != null && w.size() > 0) {
+					w = utils.quickSort(w);
+					hmap.put(vs_code, w);
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return hmap;
+	}
+
+	public HashMap createValueSetMembershipHashMap(Vector concept_in_subset_vec) {
+		if (concept_in_subset_vec == null) return null;
+		HashMap hmap = new HashMap();
+		for (int k=0; k<concept_in_subset_vec.size(); k++) {
+			String line = (String) concept_in_subset_vec.elementAt(k);
+			Vector u = StringUtils.parseData(line, '|');
+			//Knee Joint|C32898|Concept_In_Subset|CDISC SEND Terminology|C77526
+			String member_code = (String) u.elementAt(1);
+			String vs_code = (String) u.elementAt(4);
+			Vector w = new Vector();
+			if (hmap.containsKey(member_code)) {
+				w = (Vector) hmap.get(member_code);
+			}
+			if (!w.contains(vs_code)) {
+				w.add(vs_code);
+			}
+			hmap.put(member_code, w);
+		}
+		return hmap;
+	}
+
+	public String construct_get_valueset_metadata(String named_graph, String vs_code) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code ?y_label ?y_value").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x :NHC0 \"" + vs_code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+		buf.append("            ?x ?y ?y_value .").append("\n");
+		buf.append("            ?y rdfs:label \"Contributing_Source\"^^<http://www.w3.org/2001/XMLSchema#string> ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getValueSetMetadata(String named_graph, String vs_code) {
+		String query = construct_get_valueset_metadata(named_graph, vs_code);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		v = new ParserUtils().getResponseValues(v);
+		return v;
+	}
+
+	public gov.nih.nci.evs.restapi.bean.ValueSetDefinition createValueSetDefinition(String named_graph, String vs_code) {
+		Vector v = getValueSetMetadata(named_graph, vs_code);
+		return createValueSetDefinition(v);
+	}
+
+	public String getValueSetURIByHeaderConceptCode(String vs_code, String contributing_source) {
+		String uri = Constants.VALUE_SET_URI_PREFIX + contributing_source + "/" + vs_code;
+		return uri;
+	}
+
+	public gov.nih.nci.evs.restapi.bean.ValueSetDefinition createValueSetDefinition(Vector v) {
+		String uri = null;
+		String defaultCodingScheme = "NCI_Thesaurus";
+		String conceptDomain = "Intellectual Property";
+		String name = null;
+		String code = null;
+		//(1) SPL Color Terminology|C54453|Contributing_Source|FDA
+        List sources = new ArrayList();
+        for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			name = (String) u.elementAt(0);
+			code = (String) u.elementAt(1);
+			String source =  (String) u.elementAt(3);
+			if (!sources.contains(source)) {
+				sources.add(source);
+			}
+		}
+
+		String contributing_source = null;
+		if (sources.size() > 0) {
+			contributing_source = (String) sources.get(0);
+		}
+
+		uri = getValueSetURIByHeaderConceptCode(code, contributing_source);
+		gov.nih.nci.evs.restapi.bean.ValueSetDefinition vsd = new gov.nih.nci.evs.restapi.bean.ValueSetDefinition(
+			uri,
+			defaultCodingScheme,
+			conceptDomain,
+			name,
+			code,
+			sources);
+
+        return vsd;
+	}
+
     public static void main(String[] args) {
 		String serviceUrl = args[0];
-		String query_file = args[1];
-		System.out.println(query_file);
+
+		//String query_file = args[1];
+		//System.out.println(query_file);
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+		/*
         long ms = System.currentTimeMillis();
         Vector v = owlSPARQLUtils.execute(query_file);
         StringUtils.dumpVector("roles", v);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+        */
 
+        String varName = "code";
+        System.out.println(varName);
+        String str = owlSPARQLUtils.getStringValuedVariableExpression(varName);
+        System.out.println(str);
+
+        String named_graph = "http://NCIt";
+        //Vector w = owlSPARQLUtils.getValueSetHeaderConcepts(named_graph);//, "C100110");
+        //StringUtils.dumpVector("getValueSetHeaderConcepts", w);
+
+        //String propertyName = "Concept_In_Subset";
+        //Vector w = owlSPARQLUtils.getAssociationSourcesAndTargets(named_graph, propertyName);
+        //w = new ParserUtils().getResponseValues(w);
+        //Utils.saveToFile(propertyName + ".txt", w);
+
+
+        String propertyName = "Concept_Status";
+        //Vector w = owlSPARQLUtils.getConceptsWithAnnotationProperty(named_graph, propertyName);
+        //w = new ParserUtils().getResponseValues(w);
+        //Utils.saveToFile(propertyName + ".txt", w);
+
+        //Vector w = owlSPARQLUtils.getPermissibleValues(propertyName + ".txt");
+        //StringUtils.dumpVector(propertyName, w);
+
+        HashMap vs_hmap = owlSPARQLUtils.getValueSetMembershipHashMap("Concept_In_Subset.txt");
+        Vector v = (Vector) vs_hmap.get("C101859");
+        StringUtils.dumpVector("C101859", v);
     }
 }
