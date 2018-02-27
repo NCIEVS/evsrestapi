@@ -113,7 +113,9 @@ public class ExportUtils {
         Boolean isSubtype,
         Boolean isDiseaseStage,
         Boolean isDiseaseGrade,
-        Boolean isDisease
+        Boolean isDisease,
+        Boolean isBiomarker,
+        Boolean isReferenceGene
         ) {
 
 		Vector label_vec = owlSPARQLUtils.getLabelByCode(named_graph, code);
@@ -151,7 +153,9 @@ public class ExportUtils {
 		        isSubtype,
 		        isDiseaseStage,
 		        isDiseaseGrade,
-		        isDisease
+		        isDisease,
+		        isBiomarker,
+		        isReferenceGene
 		        );
 	}
 

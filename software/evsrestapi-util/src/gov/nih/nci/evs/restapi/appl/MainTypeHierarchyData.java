@@ -22,9 +22,19 @@ public class MainTypeHierarchyData {
 	static String CTS_API_Disease_Broad_Category_Terminology_Code = "C138189";
 	static String CTS_API_Disease_Main_Type_Terminology_Code = "C138190";
 
+    static String CTRP_BIOMARKER_TERMINOLOGY_CODE = "C142799";
+    static String CTRP_REFERENCE_GENE_TERMINOLOGY_CODE = "C142801";
+
 	String[] disease_main_types = null;
 	String[] disease_broad_categories = null;
+
+	String[] ctrp_biomarkers = null;
+	String[] ctrp_reference_genes = null;
+
 	HashSet main_type_set = null;
+	HashSet ctrp_biomarker_set = null;
+	HashSet ctrp_reference_gene_set = null;
+
 	Vector<String> broad_category_vec = null;
 	ArrayList<String> broad_category_list = null;
 	OWLSPARQLUtils owlSPARQLUtils = null;
@@ -37,6 +47,9 @@ public class MainTypeHierarchyData {
 	String version = null;
 	String named_graph = null;
 
+
+//Vector getConceptsInSubset(String named_graph, String code)
+
     public MainTypeHierarchyData(String serviceUrl, String named_graph) {
 		if (!serviceUrl.endsWith("?query=")) {
 			serviceUrl = serviceUrl + "?query=";
@@ -45,11 +58,28 @@ public class MainTypeHierarchyData {
         this.named_graph = named_graph;
 		this.disease_main_types = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTS_API_Disease_Main_Type_Terminology_Code);
 		this.disease_broad_categories = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTS_API_Disease_Broad_Category_Terminology_Code);
+
+		this.ctrp_biomarkers = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTRP_BIOMARKER_TERMINOLOGY_CODE);
+		this.ctrp_reference_genes = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTRP_REFERENCE_GENE_TERMINOLOGY_CODE);
+
         main_type_set = new HashSet();
         for (int i=0; i<disease_main_types.length; i++) {
 			String code = disease_main_types[i];
 			main_type_set.add(code);
 		}
+
+        ctrp_biomarker_set = new HashSet();
+        for (int i=0; i<ctrp_biomarkers.length; i++) {
+			String code = ctrp_biomarkers[i];
+			ctrp_biomarker_set.add(code);
+		}
+
+        ctrp_reference_gene_set = new HashSet();
+        for (int i=0; i<ctrp_reference_genes.length; i++) {
+			String code = ctrp_reference_genes[i];
+			ctrp_reference_gene_set.add(code);
+		}
+
 		broad_category_list = new ArrayList<String>();
 		broad_category_vec = new Vector();
         for (int i=0; i<disease_broad_categories.length; i++) {
@@ -92,6 +122,14 @@ public class MainTypeHierarchyData {
 		return this.main_type_set;
 	}
 
+	public HashSet get_ctrp_biomarker_set() {
+		return this.ctrp_biomarker_set;
+	}
+
+	public HashSet get_ctrp_reference_gene_set() {
+		return this.ctrp_reference_gene_set;
+	}
+
 	public ArrayList<String> get_broad_category_list() {
 		return this.broad_category_list;
 	}
@@ -130,20 +168,6 @@ public class MainTypeHierarchyData {
 		return v2;
 	}
 
-/*
-
-	Vector<String> get_parent_child_vec() {
-		return parent_child_vec;
-	}
-
-	Vector<String> get_disease_is_stage_code_vec() {
-		return disease_is_stage_code_vec;
-	}
-
-	Vector<String> get_disease_is_grade_code_vec() {
-		return disease_is_grade_code_vec;
-	}
-*/
 	public Vector<String> get_parent_child_vec(String named_graph) {
 		if (this.named_graph.compareTo(named_graph) != 0) {
 			return generate_parent_child_vec(named_graph);

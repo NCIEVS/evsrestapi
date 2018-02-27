@@ -90,6 +90,10 @@ public class ConceptDetailsBatchRunner {
 	HashSet main_type_set = null;
 	Vector category_vec = null;
 
+	HashSet ctrp_biomarker_set = null;
+	HashSet ctrp_reference_gene_set = null;
+
+
 	private Vector parent_child_vec = null;
 	private static String stage_file = "DISEASE_IS_STAGE.txt";
 	private static String grade_file = "DISEASE_IS_GRADE.txt";
@@ -153,6 +157,9 @@ public class ConceptDetailsBatchRunner {
  		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
 
 		main_type_set = mthd.get_main_type_set();
+		ctrp_biomarker_set = mthd.get_ctrp_biomarker_set();
+		ctrp_reference_gene_set = mthd.get_ctrp_reference_gene_set();
+
 		System.out.println("main_type_set: " + main_type_set.size());
 		category_vec = mthd.get_broad_category_vec();
 		System.out.println("category_vec: " + category_vec.size());
@@ -169,7 +176,10 @@ public class ConceptDetailsBatchRunner {
             main_type_set,
             category_vec,
             stageConceptHashMap,
-            gradeConceptHashMap);
+            gradeConceptHashMap,
+            ctrp_biomarker_set,
+            ctrp_reference_gene_set
+            );
 
 		this.httpUtils = new HTTPUtils(serviceUrl, null, null);
         this.jsonUtils = new JSONUtils();
@@ -194,13 +204,17 @@ public class ConceptDetailsBatchRunner {
         Boolean isDiseaseStage = new Boolean(mth.isDiseaseStage(code));
         Boolean isDiseaseGrade = new Boolean(mth.isDiseaseGrade(code));
         Boolean isDisease = new Boolean(mth.isDisease(code));
+        Boolean isBiomarker = new Boolean(mth.isBiomarker(code));
+        Boolean isReferenceGene = new Boolean(mth.isReferenceGene(code));
         ConceptDetails cd = exportUtils.buildConceptDetails(named_graph, code,
 			mainMenuAncestors,
 			isMainType,
 			isSubtype,
 			isDiseaseStage,
 			isDiseaseGrade,
-			isDisease);
+			isDisease,
+			isBiomarker,
+			isReferenceGene);
         return cd;
 	}
 
@@ -246,7 +260,12 @@ public class ConceptDetailsBatchRunner {
         */
         //codes.add("C146724");
         codes.add("C123181");
-        codes.add("C12354");
+        //BRCA1-A Complex Subunit RAP80 (Code C124100)
+        codes.add("C124100");
+        //NID2 Gene (Code C107104)
+        codes.add("C107104");
+        codes.add("C7057");
+        codes.add("C4897");
 
         //cdbr.run(named_graph, codes);
         ConceptDetailsBatch cdb = cdbr.getConceptDetailsBatch(codes);

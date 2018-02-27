@@ -101,6 +101,11 @@ public class Constants {
     public static String VALUE_SET_URI_PREFIX = "http://evs.nci.nih.gov/valueset/";
     public static String TERMINOLOGY_SUBSET_CODE = "C54443"; //Terminology Subset (Code C54443)
 
+	public static String CONCEPT_IN_SUBSET = "Concept_In_Subset";
+	public static String CONTRIBUTING_SOURCE = "Contributing_Source";
+	public static String NCI_THESAURUS = "NCI_Thesaurus";
+
+
 
     /**
      * Constructor

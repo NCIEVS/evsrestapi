@@ -23,6 +23,8 @@ public class MainTypeHierarchy {
 	static String SUBTYPE_TREE = "subtype_tree";
 	static String STAGE_TREE = "stage_tree";
 	static String DISEASE_DISORDER_OR_FINDING_CODE = "C7057";
+
+
 	static String FINDING_CODE = "C3367";
 
 	static String DISEASES_AND_DISORDERS_CODE = "C2991";
@@ -42,6 +44,10 @@ public class MainTypeHierarchy {
     Vector main_types = null;
     Vector main_type_leaves = null;
     HashSet main_type_set = null;
+	HashSet ctrp_biomarker_set = null;
+	HashSet ctrp_reference_gene_set = null;
+
+
     Vector subtype_terms = null;
     Vector stage_terms = null;
 
@@ -69,7 +75,8 @@ public class MainTypeHierarchy {
     }
 
     public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
-        Vector stageConcepts, Vector gradeConcepts) {
+        Vector stageConcepts, Vector gradeConcepts, HashSet ctrp_biomarker_set, HashSet ctrp_reference_gene_set) {
+
 		this.parent_child_vec = parent_child_vec;
 		this.hh = new HierarchyHelper(parent_child_vec);
 
@@ -86,6 +93,9 @@ public class MainTypeHierarchy {
 		}
 
 		this.main_type_set = main_type_set;
+		this.ctrp_biomarker_set = ctrp_biomarker_set;
+		this.ctrp_reference_gene_set = ctrp_reference_gene_set;
+
         this.category_vec = category_vec;
         category_hset = Utils.vector2HashSet(category_vec);
 
@@ -124,10 +134,13 @@ public class MainTypeHierarchy {
 
 
     public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
-        HashMap stageConceptHashMap, HashMap gradeConceptHashMap) {
+        HashMap stageConceptHashMap, HashMap gradeConceptHashMap, HashSet ctrp_biomarker_set, HashSet ctrp_reference_gene_set) {
 		this.parent_child_vec = parent_child_vec;
 		this.hh = new HierarchyHelper(parent_child_vec);
 		this.main_type_set = main_type_set;
+		this.ctrp_biomarker_set = ctrp_biomarker_set;
+		this.ctrp_reference_gene_set = ctrp_reference_gene_set;
+
         this.category_vec = category_vec;
         category_hset = Utils.vector2HashSet(category_vec);
 
@@ -137,6 +150,7 @@ public class MainTypeHierarchy {
 		}
 
 		main_types = Utils.hashSet2Vector(main_type_set);
+
         main_type_hierarchy_data = generate_main_type_hierarchy();
         Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
         this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
@@ -195,6 +209,16 @@ public class MainTypeHierarchy {
 
     public boolean isMainType(String code) {
 		return main_type_set.contains(code);
+	}
+
+    public boolean isBiomarker(String code) {
+		if (ctrp_biomarker_set == null) return false;
+		return ctrp_biomarker_set.contains(code);
+	}
+
+    public boolean isReferenceGene(String code) {
+		if (ctrp_reference_gene_set == null) return false;
+		return ctrp_reference_gene_set.contains(code);
 	}
 
     public boolean isDiseaseGrade(String code) {
@@ -1216,8 +1240,12 @@ Disease or Disorder (C2991)
 		Vector v2 = mthd.getDiseaseIsGradeSourceCodes(named_graph);
         HashMap stageConceptHashMap = mthd.generateStageConceptHashMap(v1);
         HashMap gradeConceptHashMap = mthd.generateGradeConceptHashMap(v2);
+
+	    HashSet ctrp_biomarker_set = mthd.get_ctrp_biomarker_set();
+	    HashSet ctrp_reference_gene_set = mthd.get_ctrp_reference_gene_set();
+
         MainTypeHierarchy mth = new MainTypeHierarchy(ncit_version, parent_child_vec, main_type_set, broad_category_vec,
-             stageConceptHashMap, gradeConceptHashMap);
+             stageConceptHashMap, gradeConceptHashMap, ctrp_biomarker_set, ctrp_reference_gene_set);
         Vector mth_vec = mth.generate_main_type_hierarchy();
         Utils.saveToFile("MainTypeHierarchy.txt", mth_vec);
 

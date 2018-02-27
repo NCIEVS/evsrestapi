@@ -28,6 +28,8 @@ public class ConceptDetails
 	private Boolean isDiseaseStage;
 	private Boolean isDiseaseGrade;
 	private Boolean isDisease;
+	private Boolean isBiomarker;
+	private Boolean isReferenceGene;
 	private List mainMenuAncestors;
 	private List definitions;
 	private List synonyms;
@@ -235,7 +237,9 @@ public class ConceptDetails
 	    Boolean isSubtype,
 	    Boolean isDiseaseStage,
 	    Boolean isDiseaseGrade,
-	    Boolean isDisease
+	    Boolean isDisease,
+	    Boolean isBiomarker,
+	    Boolean isReferenceGene
 		) {
 		ParserUtils parser = new ParserUtils();
         HashMap prop_hmap = parser.parseProperties(property_vec);
@@ -323,6 +327,8 @@ public class ConceptDetails
 	    this.isDiseaseStage = isDiseaseStage;
 	    this.isDiseaseGrade	= isDiseaseGrade;
 	    this.isDisease = isDisease;
+	    this.isBiomarker = isBiomarker;
+	    this.isReferenceGene = isReferenceGene;
 	}
 
 	public String toXML() {
