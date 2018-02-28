@@ -159,16 +159,18 @@ public class ConceptDetailsBatchRunner {
 		main_type_set = mthd.get_main_type_set();
 		ctrp_biomarker_set = mthd.get_ctrp_biomarker_set();
 		ctrp_reference_gene_set = mthd.get_ctrp_reference_gene_set();
+        category_vec = mthd.get_broad_category_vec();
 
 		System.out.println("main_type_set: " + main_type_set.size());
-		category_vec = mthd.get_broad_category_vec();
 		System.out.println("category_vec: " + category_vec.size());
-		Utils.dumpVector("category_vec", category_vec);
+		System.out.println("ctrp_biomarker_set: " + ctrp_biomarker_set.size());
+		System.out.println("ctrp_reference_gene_set: " + ctrp_reference_gene_set.size());
 
-		String version = mthd.getVersion();
-		System.out.println("version: " + version);
+		System.out.println("Instantiating MainTypeHierarchy " + parent_child_vec.size());
 
-		System.out.println("*** Instantiating MainTypeHierarchy " + parent_child_vec.size());
+//    public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
+//        HashMap stageConceptHashMap, HashMap gradeConceptHashMap, HashSet ctrp_biomarker_set, HashSet ctrp_reference_gene_set) {
+
 
 		this.mth = new MainTypeHierarchy(
             ncit_version,
@@ -258,13 +260,13 @@ public class ConceptDetailsBatchRunner {
         codes.add("C7834");
         codes.add("C48232");
         */
-        //codes.add("C146724");
+        //Henoch-Schönlein Purpura Nephritis (Code C123181)
         codes.add("C123181");
         //BRCA1-A Complex Subunit RAP80 (Code C124100)
         codes.add("C124100");
         //NID2 Gene (Code C107104)
         codes.add("C107104");
-        codes.add("C7057");
+        //Acute Leukemia in Remission (Code C4897)
         codes.add("C4897");
 
         //cdbr.run(named_graph, codes);
@@ -272,7 +274,6 @@ public class ConceptDetailsBatchRunner {
         Vector u = new Vector();
         u.add(cdb.toJson());
         Utils.saveToFile("cdb_" + StringUtils.getToday() + ".txt", u);
-        //System.out.println(cdb.toJson());
         //cdbr.generateMainTypeHierarchy();
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
