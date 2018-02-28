@@ -614,7 +614,7 @@ public class OWLSPARQLUtils {
 		buf.append("        }").append("\n");
 		buf.append("     }").append("\n");
 		buf.append("}").append("\n");
-		buf.append("").append("\n");
+		buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
 		return buf.toString();
 	}
 

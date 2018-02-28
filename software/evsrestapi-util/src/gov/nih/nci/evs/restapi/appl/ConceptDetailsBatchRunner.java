@@ -108,15 +108,15 @@ public class ConceptDetailsBatchRunner {
         initialize();
 	}
 
-    public void initialize() {
-		long ms = System.currentTimeMillis();
+	public MainTypeHierarchy createMainTypeHierarchy(String serviceUrl) {
+        long ms = System.currentTimeMillis();
+        long ms0 = System.currentTimeMillis();
+		System.out.println("Instantiating MainTypeHierarchy. Please wait...");
 		MetadataUtils mdu = new MetadataUtils(sparql_endpoint);
-
-		this.named_graph = mdu.getNamedGraph(NCI_THESAURUS);
-		this.ncit_version = mdu.getLatestVersion(NCI_THESAURUS);
-		this.owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, null, null);
-		this.owlSPARQLUtils.set_named_graph(named_graph);
-
+		String named_graph = mdu.getNamedGraph(NCI_THESAURUS);
+		String ncit_version = mdu.getLatestVersion(NCI_THESAURUS);
+		gov.nih.nci.evs.restapi.util.OWLSPARQLUtils owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, null, null);
+		owlSPARQLUtils.set_named_graph(named_graph);
 		String parent_child_file = "parent_child.txt";
 		if (parent_child_vec == null) {
 			File file = new File(parent_child_file);
@@ -129,7 +129,6 @@ public class ConceptDetailsBatchRunner {
 				parent_child_vec = owlSPARQLUtils.getHierarchicalRelationships(named_graph);
 			}
 		}
-
 		File f = new File(stage_file);
 		if(f.exists() && !f.isDirectory()) {
 			disease_is_stage_vec = Utils.readFile(stage_file);
@@ -165,14 +164,9 @@ public class ConceptDetailsBatchRunner {
 		System.out.println("category_vec: " + category_vec.size());
 		System.out.println("ctrp_biomarker_set: " + ctrp_biomarker_set.size());
 		System.out.println("ctrp_reference_gene_set: " + ctrp_reference_gene_set.size());
-
 		System.out.println("Instantiating MainTypeHierarchy " + parent_child_vec.size());
 
-//    public MainTypeHierarchy(String ncit_version, Vector parent_child_vec, HashSet main_type_set, Vector category_vec,
-//        HashMap stageConceptHashMap, HashMap gradeConceptHashMap, HashSet ctrp_biomarker_set, HashSet ctrp_reference_gene_set) {
-
-
-		this.mth = new MainTypeHierarchy(
+		MainTypeHierarchy mth = new MainTypeHierarchy(
             ncit_version,
             parent_child_vec,
             main_type_set,
@@ -183,10 +177,22 @@ public class ConceptDetailsBatchRunner {
             ctrp_reference_gene_set
             );
 
+        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms0));
+        return mth;
+	}
+
+    public void initialize() {
+		long ms = System.currentTimeMillis();
+        this.mth = createMainTypeHierarchy(serviceUrl);
 		this.httpUtils = new HTTPUtils(serviceUrl, null, null);
         this.jsonUtils = new JSONUtils();
-        this.treeBuilder = new TreeBuilder(owlSPARQLUtils);
-        this.exportUtils = new ExportUtils(owlSPARQLUtils);
+		MetadataUtils mdu = new MetadataUtils(sparql_endpoint);
+		this.named_graph = mdu.getNamedGraph(NCI_THESAURUS);
+		this.ncit_version = mdu.getLatestVersion(NCI_THESAURUS);
+		this.owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, null, null);
+		this.owlSPARQLUtils.set_named_graph(named_graph);
+        this.treeBuilder = new TreeBuilder(this.owlSPARQLUtils);
+        this.exportUtils = new ExportUtils(this.owlSPARQLUtils);
         System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
@@ -208,6 +214,12 @@ public class ConceptDetailsBatchRunner {
         Boolean isDisease = new Boolean(mth.isDisease(code));
         Boolean isBiomarker = new Boolean(mth.isBiomarker(code));
         Boolean isReferenceGene = new Boolean(mth.isReferenceGene(code));
+
+        if (exportUtils == null) {
+			System.out.println("exportUtils == null ???");
+			return null;
+		}
+
         ConceptDetails cd = exportUtils.buildConceptDetails(named_graph, code,
 			mainMenuAncestors,
 			isMainType,
@@ -221,6 +233,7 @@ public class ConceptDetailsBatchRunner {
 	}
 
 	public ConceptDetailsBatch getConceptDetailsBatch(Vector codes) {
+		System.out.println("getConceptDetailsBatch...");
 		ConceptDetailsBatch cdb = new ConceptDetailsBatch();
 		List list = new ArrayList();
 		for (int i=0; i<codes.size(); i++) {
@@ -229,7 +242,10 @@ public class ConceptDetailsBatchRunner {
 			if (label == null) {
 				System.out.println("Label for " + code + " not found???");
 			}
+			System.out.println("\tcreateConceptDetails " + label + " (" + code + ")");
+			long ms = System.currentTimeMillis();
 			ConceptDetails cd = createConceptDetails(named_graph, code);
+			System.out.println("Total createConceptDetails run time (ms): " + (System.currentTimeMillis() - ms));
 			list.add(cd);
 		}
 		cdb.setConceptDetailsList(list);
@@ -264,6 +280,7 @@ public class ConceptDetailsBatchRunner {
         codes.add("C123181");
         //BRCA1-A Complex Subunit RAP80 (Code C124100)
         codes.add("C124100");
+
         //NID2 Gene (Code C107104)
         codes.add("C107104");
         //Acute Leukemia in Remission (Code C4897)

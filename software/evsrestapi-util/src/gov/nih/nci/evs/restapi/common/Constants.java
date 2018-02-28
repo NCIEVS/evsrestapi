@@ -105,6 +105,8 @@ public class Constants {
 	public static String CONTRIBUTING_SOURCE = "Contributing_Source";
 	public static String NCI_THESAURUS = "NCI_Thesaurus";
 
+	public static int DEFAULT_LIMIT = 15000;
+
 
 
     /**
