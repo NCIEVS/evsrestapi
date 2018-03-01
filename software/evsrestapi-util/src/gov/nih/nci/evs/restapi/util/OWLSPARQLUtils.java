@@ -77,7 +77,7 @@ public class OWLSPARQLUtils {
     String prefixes = null;
     String serviceUrl = null;
     String named_graph_id = ":NHC0";
-    String base_uri = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String BASE_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
 
     ParserUtils parser = new ParserUtils();
     HashMap nameVersion2NamedGraphMap = null;
@@ -114,7 +114,7 @@ public class OWLSPARQLUtils {
 
     HashMap createOntologyUri2LabelMap() {
 		HashMap ontologyUri2LabelMap = new HashMap();
-		ontologyUri2LabelMap.put("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", "NCI_Thesaurus");
+		ontologyUri2LabelMap.put(BASE_URI, "NCI_Thesaurus");
 		ontologyUri2LabelMap.put("http://purl.obolibrary.org/obo/go.owl", "GO");
 		ontologyUri2LabelMap.put("http://purl.obolibrary.org/obo/obi.owl", "obi");
 		ontologyUri2LabelMap.put("http://purl.obolibrary.org/obo/chebi.owl", "chebi");
@@ -164,7 +164,7 @@ public class OWLSPARQLUtils {
     public Vector execute(String query_file) {
 		try {
 			String query = httpUtils.loadQuery(query_file, false);
-			System.out.println(query);
+			//System.out.println(query);
 			return executeQuery(query);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -484,9 +484,12 @@ public class OWLSPARQLUtils {
 
 	public String get_ontology_version(String named_graph) {
 		Vector v = getOntologyVersionInfo(named_graph);
-		String version = (String) v.elementAt(0);
-		version = new ParserUtils().getValue(version);
-		return version;
+		if (v != null && v.size() > 0) {
+			String version = (String) v.elementAt(0);
+			version = new ParserUtils().getValue(version);
+			return version;
+	    }
+	    return null;
 	}
 
 /*
@@ -898,7 +901,7 @@ public class OWLSPARQLUtils {
 
 	public Vector getRoleRelationships(String named_graph) {
 		String query = construct_get_role_relationships(named_graph);
-		System.out.println(query);
+		//System.out.println(query);
 		return executeQuery(query);
 	}
 
@@ -1157,7 +1160,7 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getStringValuedAnnotationProperties(String named_graph) {
-		System.out.println(construct_get_string_valued_annotation_properties(named_graph));
+		//System.out.println(construct_get_string_valued_annotation_properties(named_graph));
 		return executeQuery(construct_get_string_valued_annotation_properties(named_graph));
 	}
 
@@ -1271,39 +1274,36 @@ public class OWLSPARQLUtils {
 		if (v != null && v.size() > 0) {
 			for (int j=0; j<v.size(); j++) {
 				String t = (String) v.elementAt(j);
+				//System.out.println("getNameVersion2NamedGraphMap: " + t);
 				String named_graph = parserUtils.getValue(t);
+				//System.out.println("getNameVersion2NamedGraphMap named_graph: " + named_graph);
 				String uri = getOntologyURI(named_graph);
+				//System.out.println("getNameVersion2NamedGraphMap uri: " + uri);
 		        String vocabulary = getOntologyName(uri);
+		        //System.out.println("getNameVersion2NamedGraphMap vocabulary: " + vocabulary);
 		        String version = "null";
 		        Vector named_graph_vec = new Vector();
 				try {
 					if (vocabulary == null) {
 						System.out.println("WARNING: getOntologyName(" + uri + ") returns null - need to update createOntologyUri2LabelMap method.");
-					    vocabulary = named_graph;
+					} else {
+                        //System.out.println("vocabulary: " + vocabulary);
+						Vector version_vec = getOntologyVersion(named_graph);
+						if (version_vec != null && version_vec.size() > 0) {
+							String first_line = (String) version_vec.elementAt(0);
+							version = parserUtils.getValue(first_line);
+						}
+                        named_graph_vec = new Vector();
+						if (nameVersion2NamedGraphMap.containsKey(vocabulary + "|" + version)) {
+							named_graph_vec = (Vector) nameVersion2NamedGraphMap.get(vocabulary + "|" + version);
+						}
+						if (!named_graph_vec.contains(named_graph)) {
+							named_graph_vec.add(named_graph);
+						}
+						nameVersion2NamedGraphMap.put(vocabulary + "|" + version, named_graph_vec);
 					}
-
-					Vector version_vec = getOntologyVersion(named_graph);
-					if (version_vec != null && version_vec.size() > 0) {
-						String first_line = (String) version_vec.elementAt(0);
-						version = parserUtils.getValue(first_line);
-						//nameVersion2NamedGraphMap.put(vocabulary + "|" + version, named_graph);
-					}
-
-					if (nameVersion2NamedGraphMap.containsKey(vocabulary + "|" + version)) {
-						named_graph_vec = (Vector) nameVersion2NamedGraphMap.get(vocabulary + "|" + version);
-					}
-					if (!named_graph_vec.contains(named_graph)) {
-						named_graph_vec.add(named_graph);
-					}
-					nameVersion2NamedGraphMap.put(vocabulary + "|" + version, named_graph_vec);
 				} catch (Exception ex) {
-					//ex.printStackTrace();
 					System.out.println("Exceptions thrown at getNameVersion2NamedGraphMap.");
-					named_graph_vec = (Vector) nameVersion2NamedGraphMap.get(vocabulary + "|" + version);
-					if (!named_graph_vec.contains(named_graph)) {
-						named_graph_vec.add(named_graph);
-					}
-					nameVersion2NamedGraphMap.put(vocabulary + "|null", named_graph_vec);
 				}
 			}
 		} else {
@@ -1311,6 +1311,7 @@ public class OWLSPARQLUtils {
 		}
 		return nameVersion2NamedGraphMap;
 	}
+
 
     public String getOntologyURI(String named_graph) {
 		Vector v = getOntology(named_graph);
@@ -1370,7 +1371,6 @@ public class OWLSPARQLUtils {
 		for (int i=0; i<Constants.VERSION_PREDICATE.length; i++) {
 			String predicate = Constants.VERSION_PREDICATE[i];
 			String query = construct_get_ontology_version(named_graph, predicate);
-
 			try {
 				Vector v = executeQuery(query);
 				if (v != null && v.size() > 0) return v;
@@ -1769,7 +1769,7 @@ public class OWLSPARQLUtils {
 
 	public Vector getValueSetMetadata(String named_graph, String vs_code) {
 		String query = construct_get_valueset_metadata(named_graph, vs_code);
-		System.out.println(query);
+		//System.out.println(query);
 		Vector v = executeQuery(query);
 		v = new ParserUtils().getResponseValues(v);
 		return v;
