@@ -209,12 +209,26 @@ public class MainTypeHierarchyData {
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
+		System.out.println(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl);
+		String codingScheme = "NCI_Thesaurus";
+		long ms = System.currentTimeMillis();
+		String version = test.getLatestVersion(codingScheme);
+		System.out.println(codingScheme);
+		System.out.println(version);
+		String named_graph = test.getNamedGraph(codingScheme);
+		System.out.println(named_graph);
+
+		/*
+		String serviceUrl = args[0];
 		String named_graph = args[1];
+		*/
+
 		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
-		String version = mthd.getVersion();
+		version = mthd.getVersion();
 		System.out.println("version " + version);
 		Vector broad_category_vec = mthd.get_broad_category_vec();
-		StringUtils.dumpVector("broad_category_vec", broad_category_vec);
+		//StringUtils.dumpVector("broad_category_vec", broad_category_vec);
 		HashSet main_type_set = mthd.get_main_type_set();
 		Iterator it = main_type_set.iterator();
 		int k = 0;

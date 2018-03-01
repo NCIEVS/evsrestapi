@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.restapi.util;
-
 import gov.nih.nci.evs.restapi.appl.*;
+
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
 
@@ -72,16 +72,14 @@ import org.json.*;
 
 
 public class ValueSetUtils {
-	/*
-	public static String TERMINOLOGY_SUBSET_CODE = "C54443";
-	public static String CONCEPT_IN_SUBSET = "Concept_In_Subset";
-	public static String CONTRIBUTING_SOURCE = "Contributing_Source";
-	public static String NCI_THESAURUS = "NCI_Thesaurus";
-	*/
+	static final String UNUSED_SUBSET_CONCEPT_CODE = "C103175";
+
+    static String CTS_API_Disease_Main_Type_Terminology_Code = "C138190";
 
 	private OWLSPARQLUtils owlSPARQLUtils = null;
 	private Vector parent_child_vec = null;
 	private Vector concept_in_subset_vec = null;
+	private Vector vs_header_concept_vec = null;
 	private MetadataUtils mdu = null;
 	private String named_graph = null;
 
@@ -90,12 +88,18 @@ public class ValueSetUtils {
 	private String serviceUrl = null;
 	private String sparql_endpoint = null;
 
-	private static String parent_child_file = "parent_child.txt";
-	private static String concept_in_subset_file = "concept_in_subset.txt";
+	public static String parent_child_file = "parent_child.txt";
+	public static String concept_in_subset_file = "concept_in_subset.txt";
+	public static String vs_header_concept_file = "vs_header_concepts.txt";
+
 	private ValueSetSearchUtils searchUtils = null;//new ValueSetSearchUtils(serviceUrl, named_graph, cis_vec);
 
 	private RelationSearchUtils relSearchUtils = null;
 	private HashMap valueSet2ContributingSourcesHashMap = null;
+
+    public ValueSetUtils() {
+
+	}
 
 
     public ValueSetUtils(String serviceUrl) {
@@ -106,12 +110,15 @@ public class ValueSetUtils {
 		initialize();
     }
 
-    public ValueSetUtils(String serviceUrl, Vector parent_child_vec, Vector concept_in_subset_vec) {
+    public ValueSetUtils(String serviceUrl, Vector parent_child_vec, Vector concept_in_subset_vec, Vector vs_header_concept_vec) {
+		System.out.println(serviceUrl);
+		this.serviceUrl = serviceUrl;
 		this.sparql_endpoint = serviceUrl;
 		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint + "?query=");
 		this.relSearchUtils = new RelationSearchUtils(sparql_endpoint + "?query=");
 		this.parent_child_vec = parent_child_vec;
     	this.concept_in_subset_vec = concept_in_subset_vec;
+    	this.vs_header_concept_vec = vs_header_concept_vec;
     	System.out.println("initialize...");
     	initialize();
     }
@@ -131,6 +138,8 @@ public class ValueSetUtils {
 		System.out.println("version: " + version);
 		this.owlSPARQLUtils.set_named_graph(named_graph);
 		this.relSearchUtils.set_named_graph(named_graph);
+
+		System.out.println("========== initialize Step 1");
 		if (parent_child_vec == null) {
 			File file = new File(parent_child_file);
 			boolean exists = file.exists();
@@ -141,9 +150,11 @@ public class ValueSetUtils {
 				System.out.println("Generating parent_child_vec...");
 				owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
 				parent_child_vec = owlSPARQLUtils.getHierarchicalRelationships(named_graph);
+				parent_child_vec = new ParserUtils().getResponseValues(parent_child_vec);
+				Utils.saveToFile(parent_child_file, parent_child_vec);
 			}
 		}
-
+        System.out.println("========== initialize Step 2");
         if (concept_in_subset_vec == null) {
 			File file = new File(concept_in_subset_file);
 			//String association_name = "Concept_In_Subset";
@@ -155,8 +166,25 @@ public class ValueSetUtils {
 				System.out.println("Generating concept_in_subset_vec...");
 				OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
 				concept_in_subset_vec = owlSPARQLUtils.getAssociationSourcesAndTargets(named_graph, Constants.CONCEPT_IN_SUBSET);
+				Utils.saveToFile(concept_in_subset_file, concept_in_subset_vec);
 			}
 		}
+        System.out.println("========== initialize Step 3");
+        if (vs_header_concept_vec == null) {
+			File file = new File(vs_header_concept_file);
+			boolean exists = file.exists();
+			if (exists) {
+				System.out.println("Loading concept_in_subset_vec...");
+				vs_header_concept_vec = Utils.readFile(vs_header_concept_file);
+			} else {
+				System.out.println("Generating concept_in_subset_vec...");
+				vs_header_concept_vec = getConceptsWithAnnotationProperty("Published_Value_Set");
+				Utils.saveToFile(vs_header_concept_file, vs_header_concept_vec);
+			}
+		}
+        System.out.println("========== initialize Step 4");
+        System.out.println(serviceUrl + "?query=");
+
 		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
 		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
 	}
@@ -165,18 +193,113 @@ public class ValueSetUtils {
 		return this.relSearchUtils;
 	}
 
-    public void contructSourceAssertedTree() {
+	//DICOM Terminology|C69186|Publish_Value_Set|Yes
+	public Vector identifyOrphanNodes(Vector w) {
+		Vector parent_nodes = new Vector();
+		Vector child_nodes = new Vector();
+		Vector orphan_nodes = new Vector();
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String parent_label = (String) u.elementAt(0);
+			String parent_code = (String) u.elementAt(1);
+			String child_label = (String) u.elementAt(2);
+			String child_code = (String) u.elementAt(3);
+			String parent = parent_label + "|" + parent_code;
+			if (!parent_nodes.contains(parent)) {
+				parent_nodes.add(parent);
+			}
+			String child = child_label + "|" + child_code;
+			if (!child_nodes.contains(child)) {
+				child_nodes.add(child);
+			}
+		}
+		for (int i=0; i<parent_nodes.size(); i++) {
+			String parent = (String) parent_nodes.elementAt(i);
+			if (!child_nodes.contains(parent)) {
+				if (!orphan_nodes.contains(parent)) {
+					orphan_nodes.add(parent);
+				}
+			}
+		}
+		return orphan_nodes;
+	}
+
+    //"test_vh_ascii_tree.txt"
+    public void contructSourceAssertedTree(String outputfile) {
 		long ms = System.currentTimeMillis();
-		String rootCode = Constants.TERMINOLOGY_SUBSET_CODE;
-        MainTypeHierarchy mth = new MainTypeHierarchy(parent_child_vec);
-        // To be modified -- restricted to concepts with a Published_Value_Set property
-        Vector v = this.owlSPARQLUtils.getPermissibleValues(concept_in_subset_vec);
-        HashSet nodeSet = Utils.vector2HashSet(v);
-        Vector parent_child_vs = mth.generate_embedded_hierarchy(rootCode, nodeSet);
-        Utils.saveToFile("ascii_vs_tree.txt", parent_child_vs);
-        Vector vs_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(parent_child_vs);
-        Utils.saveToFile("vs_parent_child_vec.txt", vs_parent_child_vec);
-        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+		Vector parent_child_vec = Utils.readFile(parent_child_file);
+        EmbeddedHierarchy eh = new EmbeddedHierarchy(parent_child_vec);
+        String rootCode = Constants.TERMINOLOGY_SUBSET_CODE;
+        String label = eh.getLabel(rootCode);
+        System.out.println("Root: " + label + " (" + rootCode + ")");
+        Vector vs_header_concept_vec = Utils.readFile(vs_header_concept_file);
+        HashSet nodeSet = eh.getPublishedValueSetHeaderConceptCodes(vs_header_concept_vec);
+        Vector v = eh.getEmbeddedHierarchy(rootCode, nodeSet);
+
+        Vector embedded_hierarchy_parent_child_vec = v;
+        Utils.saveToFile("embedded_hierarchy" + "_" + rootCode + ".txt", v);
+        HashMap code2LableMap = eh.createEmbeddedHierarchyCode2LabelHashMap(v);
+        Iterator it = code2LableMap.keySet().iterator();
+        Vector w = new Vector();
+        while (it.hasNext()) {
+			String node = (String) it.next();
+			String node_label = eh.getLabel(node);
+			w.add(node_label + " (" + node + ")");
+		}
+		Utils.saveToFile("code2LableMap" + "_" + rootCode + ".txt", w);
+        it = nodeSet.iterator();
+        int lcv = 0;
+        Vector orphans = new Vector();
+        Vector orphan_codes = new Vector();
+        while (it.hasNext()) {
+			lcv++;
+			String node = (String) it.next();
+			System.out.println("(" + lcv + ") " + node);
+			if (!code2LableMap.containsKey(node)) {
+				String node_label = eh.getLabel(node);
+				orphans.add(node_label + " (" + node + ")");
+				orphan_codes.add(node);
+			}
+		}
+		StringUtils.dumpVector("orphans", orphans);
+		Utils.saveToFile("orphans" + "_" + rootCode + ".txt", orphans);
+
+        for (int k=0; k<orphan_codes.size(); k++) {
+			String orphan_code = (String) orphan_codes.elementAt(k);
+			String superclass_label = eh.getLabel(orphan_code);
+			Vector superclasses = eh.getSuperclassCodes(orphan_code);
+			if (superclasses.contains(UNUSED_SUBSET_CONCEPT_CODE)) {
+				System.out.println(superclass_label + " (" + orphan_code + ")" + " is unused.");
+			} else {
+				Vector superclass_label_and_code_vec = new Vector();
+				for (int j=0; j<superclasses.size(); j++) {
+					String t = (String) superclasses.elementAt(j);
+					String t_label = eh.getLabel(t);
+					superclass_label_and_code_vec.add(t_label + " (" + t + ")");
+				}
+				StringUtils.dumpVector("superclasses of " + superclass_label + " (" + orphan_code + ")", superclass_label_and_code_vec);
+			}
+		}
+
+		Vector orphanTerminologySubsets = eh.identifyOrphanTerminologySubsets(orphan_codes);
+		StringUtils.dumpVector("orphanTerminologySubsets", orphanTerminologySubsets);
+        Vector roots = eh.identifyRootTerminologySubsets(embedded_hierarchy_parent_child_vec);
+        StringUtils.dumpVector("roots", roots);
+        Vector eh_vec = eh.generateEmbeddedHierarchyParentChildData(embedded_hierarchy_parent_child_vec, nodeSet);
+        StringUtils.dumpVector("eh_vec", eh_vec);
+        eh.generateEmbeddedHierarchyFile(outputfile, eh_vec);
+        /*
+        HierarchyHelper hierarchyHelper = new HierarchyHelper(eh_vec);
+        eh.set_embedded_hierarchy(hierarchyHelper);
+
+        eh.traverseEmbeddedHierarchy("C74456");
+        System.out.println("\n");
+        eh.traverseEmbeddedHierarchy("C99074");
+        System.out.println("\n");
+        eh.traverseEmbeddedHierarchy("C99073");
+        */
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
 	public gov.nih.nci.evs.restapi.bean.ValueSetDefinition getValueSetDefinition(String vs_code) {
@@ -242,6 +365,10 @@ public class ValueSetUtils {
 
     // find header concepts with a Published_Value_Set property.
     public Vector getConceptsWithAnnotationProperty(String propertyName) {
+
+		String query = this.owlSPARQLUtils.construct_get_concepts_with_annotation_property(named_graph, propertyName);
+System.out.println(query);
+
 		Vector concepts = this.owlSPARQLUtils.getConceptsWithAnnotationProperty(named_graph, propertyName);
 		concepts = new ParserUtils().getResponseValues(concepts);
 		concepts = new SortUtils().quickSort(concepts);
@@ -313,7 +440,7 @@ public class ValueSetUtils {
 	}
 
 
-
+/*
 	public void runVSAnalyzer() {
 		Vector properties = getAnnotationProperties();
 		StringUtils.dumpVector("properties", properties);
@@ -334,7 +461,7 @@ public class ValueSetUtils {
 		u = Utils.readFile("vs_parent_child_vec.txt");
 		reviewVSParentChildRelationships(u);
 
-        contructSourceAssertedTree();
+        //contructSourceAssertedTree();
 
         //SPL Color Terminology (Code C54453)
         String vs_code = "C54453";
@@ -407,19 +534,108 @@ public class ValueSetUtils {
 			}
 		}
 	}
+*/
+    public HashSet getPublishedValueSetHeaderConceptCodes(Vector v) {
+		HashSet hset = new HashSet();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			//SPL Shape Terminology|C54454|Publish_Value_Set|Yes
+			Vector u = StringUtils.parseData(line, '|');
+			String label = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
+			String property = (String) u.elementAt(2);
+			String yes_no = (String) u.elementAt(3);
+			if (yes_no.compareTo("Yes") == 0) {
+				if (!hset.contains(code)) {
+					hset.add(code);
+				}
+			}
+		}
+		return hset;
+	}
 
+	public Vector hashSet2Vector(HashSet hset) {
+		Vector keys = new Vector();
+		Iterator it = hset.iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			keys.add(key);
+		}
+		return keys;
+
+	}
+
+	//public Vector getInverseAssociationsByCode(String named_graph, String code) {
+	public Vector getConceptInSubset(String code) {
+		Vector concepts = this.owlSPARQLUtils.getInverseAssociationsByCode(named_graph, code);
+		concepts = new ParserUtils().getResponseValues(concepts);
+		concepts = new SortUtils().quickSort(concepts);
+		return concepts;
+	}
 
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
-		ValueSetUtils vsu = new ValueSetUtils(serviceUrl);
+		System.out.println(serviceUrl);
+/*
+		ValueSetUtils vsu = new ValueSetUtils();
+		Vector v = Utils.readFile("vs_parent_child_vec.txt");
+		Vector orphans = vsu.identifyOrphanNodes(v);
+		StringUtils.dumpVector("orphans", orphans);
+*/
+
+/*
+		ValueSetUtils vsu = new ValueSetUtils();
+		Vector v = Utils.readFile(parent_child_file);
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		Utils.saveToFile(parent_child_file, v);
+*/
+
+
+
+		//ValueSetUtils vsu = new ValueSetUtils(serviceUrl);
 		//vsu.runVSAnalyzer();
 
-		Vector properties = vsu.getAnnotationProperties();
-		StringUtils.dumpVector("properties", properties);
+		//Vector properties = vsu.getAnnotationProperties();
+		//StringUtils.dumpVector("properties", properties);
 
 		//Vector properties = vsu.execute("get_annotation_properties.txt");
         //StringUtils.dumpVector("properties", properties);
+/*
+        String propertyName = "Publish_Value_Set";
+        Vector header_concepts = vsu.getConceptsWithAnnotationProperty(propertyName);
+        Utils.saveToFile("vs_header_concepts.txt", header_concepts);
+
+	public static String parent_child_file = "parent_child.txt";
+	public static String concept_in_subset_file = "concept_in_subset.txt";
+	public static String vs_header_concept_file = "vs_header_concepts.txt";
+
+
+*/
+/*
+        Vector parent_child_vec = Utils.readFile(parent_child_file);
+        Vector concept_in_subset_vec = Utils.readFile(concept_in_subset_file);
+        Vector vs_header_concept_vec = Utils.readFile(vs_header_concept_file);
+*/
+
+
+        Vector parent_child_vec = Utils.readFile(parent_child_file);
+        Vector concept_in_subset_vec = Utils.readFile(concept_in_subset_file);
+        Vector vs_header_concept_vec = Utils.readFile(vs_header_concept_file);
+        ValueSetUtils vsu = new ValueSetUtils(serviceUrl, parent_child_vec, concept_in_subset_vec, vs_header_concept_vec);
+        //vsu.contructSourceAssertedTree();
+
+        Vector w = vsu.getConceptInSubset(CTS_API_Disease_Main_Type_Terminology_Code);
+        StringUtils.dumpVector("CTS_API_Disease_Main_Type_Terminology_Code", w);
+
+
+        /*
+        HashSet codes = vsu.getPublishedValueSetHeaderConceptCodes(header_concepts);
+        Vector w = vsu.hashSet2Vector(codes);
+        w = new SortUtils().quickSort(w);
+        StringUtils.dumpVector("codes", w);
+        */
 
 
 	}

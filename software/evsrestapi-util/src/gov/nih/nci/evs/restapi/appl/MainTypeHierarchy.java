@@ -1227,13 +1227,27 @@ Disease or Disorder (C2991)
 	}
 
 	public static void main(String[] args) {
+		/*
 		String serviceUrl = args[0];
 		String named_graph = args[1];
+		*/
+
+		String serviceUrl = args[0];
+		System.out.println(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl);
+		String codingScheme = "NCI_Thesaurus";
+		long ms = System.currentTimeMillis();
+		String version = test.getLatestVersion(codingScheme);
+		System.out.println(codingScheme);
+		System.out.println(version);
+		String named_graph = test.getNamedGraph(codingScheme);
+		System.out.println(named_graph);
+
 		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
 		String ncit_version = mthd.getVersion();
 		System.out.println("version " + ncit_version);
 		Vector broad_category_vec = mthd.get_broad_category_vec();
-		StringUtils.dumpVector("broad_category_vec", broad_category_vec);
+		//StringUtils.dumpVector("broad_category_vec", broad_category_vec);
 		HashSet main_type_set = mthd.get_main_type_set();
 		Vector<String> parent_child_vec = mthd.get_parent_child_vec(named_graph);
 		Vector v1 = mthd.getDiseaseIsStageSourceCodes(named_graph);
@@ -1247,7 +1261,7 @@ Disease or Disorder (C2991)
         MainTypeHierarchy mth = new MainTypeHierarchy(ncit_version, parent_child_vec, main_type_set, broad_category_vec,
              stageConceptHashMap, gradeConceptHashMap, ctrp_biomarker_set, ctrp_reference_gene_set);
         Vector mth_vec = mth.generate_main_type_hierarchy();
-        Utils.saveToFile("MainTypeHierarchy.txt", mth_vec);
+        Utils.saveToFile("MainTypeHierarchy_" + StringUtils.getToday() + ".txt", mth_vec);
 
         //AIDS-Related Primary Central Nervous System Lymphoma (C8284)
         String code = "C8284";
@@ -1255,7 +1269,6 @@ Disease or Disorder (C2991)
         Vector v = mth.findMainMenuAncestors(code);
         StringUtils.dumpVector("findMainMenuAncestors", v);
 
-		long ms = System.currentTimeMillis();
 		String outputfile = mth.DISEASES_AND_DISORDERS_CODE + "_multiple.txt";
 		PrintWriter pw = null;
 		try {
