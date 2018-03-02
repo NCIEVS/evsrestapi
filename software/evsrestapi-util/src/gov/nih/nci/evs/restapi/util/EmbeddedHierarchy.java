@@ -503,6 +503,24 @@ public class EmbeddedHierarchy {
 		return w;
 	}
 
+    public Vector identifyRootTerminologySubsets(Vector parent_child_vec) {
+		HashSet set_parent = new HashSet();
+		HashSet set_child = new HashSet();
+		for (int i=0; i<parent_child_vec.size(); i++) {
+			String line = (String) parent_child_vec.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String parent_code = (String) u.elementAt(1);
+			String child_code = (String) u.elementAt(3);
+			set_parent.add(parent_code);
+			set_child.add(child_code);
+		}
+		HashSet set1 = (HashSet) set_parent.clone();
+		HashSet set2 = (HashSet) set_child.clone();
+		set1.removeAll(set2);
+		return Utils.hashSet2Vector(set1);
+	}
+
+	/*
     // embedded_hierarchy_parent_child_vec" w
     public Vector identifyRootTerminologySubsets(Vector w) {
 		Vector parent_nodes = new Vector();
@@ -534,6 +552,7 @@ public class EmbeddedHierarchy {
 		}
 		return root_nodes;
 	}
+	*/
 
 	public Vector generateEmbeddedHierarchyParentChildData(Vector embedded_hierarchy_parent_child_vec, HashSet nodeSet) {
 		Vector v = (Vector) embedded_hierarchy_parent_child_vec.clone();

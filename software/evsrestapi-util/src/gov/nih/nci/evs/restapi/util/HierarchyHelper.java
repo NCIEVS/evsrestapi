@@ -76,6 +76,9 @@ public class HierarchyHelper implements Serializable {
 	private Vector roots = null;
 	private Vector leaves = null;
 
+	private HashSet root_set = null;
+	private HashSet leaf_set = null;
+
 	private HashMap _parent2childcodesMap = null;
 	private HashMap _child2parentcodesMap = null;
 
@@ -153,6 +156,27 @@ public class HierarchyHelper implements Serializable {
         this.code2LabelMap = createCode2LabelMap(v, format);
 		//System.out.println("createCode2LabelMap run time (ms): " + (System.currentTimeMillis() - ms));
 		//System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms0));
+
+        HashSet set_parent = new HashSet();
+        HashSet set_child = new HashSet();
+        for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String parent_code = (String) u.elementAt(1);
+			String child_code = (String) u.elementAt(3);
+			set_parent.add(parent_code);
+			set_child.add(child_code);
+		}
+		HashSet set1 = (HashSet) set_parent.clone();
+		HashSet set2 = (HashSet) set_child.clone();
+		set1.removeAll(set2);
+		this.root_set = set1;
+		set1 = (HashSet) set_parent.clone();
+		set2 = (HashSet) set_child.clone();
+		set2.removeAll(set1);
+		this.leaf_set = set2;
+        this.roots = Utils.hashSet2Vector(this.root_set);
+        this.leaves = Utils.hashSet2Vector(this.leaf_set);
 	}
 
 	public Vector getRoots() {
@@ -183,8 +207,8 @@ public class HierarchyHelper implements Serializable {
 	}
 
 	public void findRootAndLeafNodes() {
-        roots = findRoots(_parent2childcodesMap);
-        leaves = findLeaves(_parent2childcodesMap);
+        //roots = findRoots(_parent2childcodesMap);
+        //leaves = findLeaves(_parent2childcodesMap);
         roots = sortCodesByNames(roots);
         leaves = sortCodesByNames(leaves);
 	}
