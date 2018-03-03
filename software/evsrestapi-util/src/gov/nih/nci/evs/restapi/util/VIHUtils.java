@@ -238,6 +238,10 @@ public class VIHUtils {
         return tree_position;
 	}
 
+	public TreeItem buildViewHierarchyTree() {
+		return getRootTreeItem();
+	}
+
 	public TreeItem buildViewInHierarchyTree(String code) {
 		TreeItem root_node = getRootTreeItem();
 		Vector paths = findPathsToRoots(code);

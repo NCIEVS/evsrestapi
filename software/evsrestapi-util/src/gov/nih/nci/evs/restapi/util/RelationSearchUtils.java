@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.restapi.util;
 import gov.nih.nci.evs.restapi.appl.*;
+import gov.nih.nci.evs.restapi.bean.*;
 
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -80,8 +81,6 @@ public class RelationSearchUtils extends SPARQLSearchUtils {
 	private OWLSPARQLUtils owlSPARQLUtils = null;
 	private String named_graph = null;
 
-	private static int MATCH_SOURCE = 1;
-	private static int MATCH_TARGET = 2;
 
 	public RelationSearchUtils(String serviceUrl) {
 		super(serviceUrl);
@@ -282,6 +281,39 @@ public class RelationSearchUtils extends SPARQLSearchUtils {
 		}
 		return v;
 	}
+
+	public SearchResult search(String associationName, String searchString, String algorithm, int match_option) {
+        Vector v = searchByRelationship(associationName, searchString, algorithm, match_option);
+		SearchResult sr = new SearchResult();
+		List matchedConcepts = new ArrayList();
+		Vector w = new Vector();
+		HashSet hset = new HashSet();
+		//buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			line = line.trim();
+			if (!hset.contains(line)) {
+				Vector u = StringUtils.parseData(line, '|');
+				String x_label = (String) u.elementAt(0);
+				String x_code = (String) u.elementAt(1);
+				String y_label = (String) u.elementAt(2);
+				String z_label = (String) u.elementAt(3);
+				String z_code = (String) u.elementAt(4);
+
+				MatchedConcept mc = null;
+				if (match_option == MATCH_SOURCE) {
+					mc = new MatchedConcept(z_label, z_code, associationName, x_label);
+				} else {
+					mc = new MatchedConcept(x_label, x_code, associationName, z_label);
+				}
+				matchedConcepts.add(mc);
+			}
+		}
+		matchedConcepts = sortMatchedConcepts(matchedConcepts, searchString);
+		sr.setMatchedConcepts(matchedConcepts);
+		return sr;
+	}
+
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();

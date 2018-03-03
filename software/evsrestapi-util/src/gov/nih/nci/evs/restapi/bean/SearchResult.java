@@ -114,5 +114,18 @@ public class SearchResult
         return gson.toJson(this);
 	}
 
-
+    public static Vector searchResult2DelimitedStrings(SearchResult sr) {
+		if (sr == null) return null;
+		Vector v = new Vector();
+		List matchedConcepts = sr.getMatchedConcepts();
+		for (int i=0; i<matchedConcepts.size(); i++) {
+			MatchedConcept mc = (MatchedConcept) matchedConcepts.get(i);
+			String t = mc.getLabel() + "|" + mc.getCode();
+			if (!v.contains(t)) {
+				v.add(t);
+			}
+		}
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
 }

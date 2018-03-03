@@ -77,23 +77,26 @@ import java.util.regex.Matcher;
  */
 
 public class SPARQLSearchUtils extends OWLSPARQLUtils {
-	static String[] PRESENTATIONS = new String[] {"Preferred_Name", "Display_Name", "FULL_SYN", "Legacy_Concept_Name", "label"};
-	static List PRESENTATION_LIST = Arrays.asList(PRESENTATIONS);
+	public static String[] PRESENTATIONS = new String[] {"Preferred_Name", "Display_Name", "FULL_SYN", "Legacy_Concept_Name", "label"};
+	public static List PRESENTATION_LIST = Arrays.asList(PRESENTATIONS);
 
-    static String EXACT_MATCH = "exactMatch";
-    static String STARTS_WITH = "startsWith";
-    static String ENDS_WITH = "endsWith";
-    static String CONTAINS = "contains";
-    static String PHRASE = "Phrase";
-    static String FUZZY = "Fuzzy";
-    static String BOOLEAN_AND = "AND";
+    public static String EXACT_MATCH = "exactMatch";
+    public static String STARTS_WITH = "startsWith";
+    public static String ENDS_WITH = "endsWith";
+    public static String CONTAINS = "contains";
+    public static String PHRASE = "Phrase";
+    public static String FUZZY = "Fuzzy";
+    public static String BOOLEAN_AND = "AND";
 
-    static String NAMES = "names";
-    static String PROPERTIES = "properties";
-    static String ASSOCIATIONS = "associations";
+    public static String NAMES = "names";
+    public static String PROPERTIES = "properties";
+    public static String ASSOCIATIONS = "associations";
 
-    static String[] ALGORITHMS = new String[] {EXACT_MATCH, STARTS_WITH, ENDS_WITH, CONTAINS, PHRASE, FUZZY, BOOLEAN_AND};
-    static String[] TARGETS = new String[] {NAMES, PROPERTIES, ASSOCIATIONS};
+    public static String[] ALGORITHMS = new String[] {EXACT_MATCH, STARTS_WITH, ENDS_WITH, CONTAINS, PHRASE, FUZZY, BOOLEAN_AND};
+    public static String[] TARGETS = new String[] {NAMES, PROPERTIES, ASSOCIATIONS};
+
+	public static int MATCH_SOURCE = 1;
+	public static int MATCH_TARGET = 2;
 
 	public SPARQLSearchUtils() {
 		super();

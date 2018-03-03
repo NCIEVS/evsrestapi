@@ -1,9 +1,16 @@
 package gov.nih.nci.evs.restapi.bean;
 
 import gov.nih.nci.evs.restapi.util.*;
+import gov.nih.nci.evs.restapi.common.*;
 import java.io.*;
 import java.util.*;
 
+import com.google.gson.*;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+import com.thoughtworks.xstream.XStream;
 
 /**
  * <!-- LICENSE_TEXT_START -->
@@ -247,4 +254,21 @@ public class TreeItem implements Serializable, Comparable<TreeItem> {
 			}
         }
     }
+
+	public String toXML() {
+		XStream xstream_xml = new XStream(new DomDriver());
+		String xml = xstream_xml.toXML(this);
+		xml = StringUtils.escapeDoubleQuotes(xml);
+		xml = Constants.XML_DECLARATION + "\n" + xml;
+		xml = StringUtils.removePackageNames(Constants.EVSRESTAPI_BEAN, xml);
+        return xml;
+	}
+
+	public String toJson() {
+		//return new Gson().toJson(this);
+		JsonParser parser = new JsonParser();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(this);
+	}
+
 }
