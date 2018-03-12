@@ -65,6 +65,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	private HashMap<String,String> diseaseStageConcepts;
 	private HashMap<String,String> diseaseGradeConcepts;
 	private HashMap<String,String> diseaseMainConcepts;
+	
+	private HashMap<String,String> ctrpBiomarkerConcepts;
+	private HashMap<String,String> ctrpReferenceGeneConcepts;
 	private Paths paths;
 	private Long classCount;
 	
@@ -72,6 +75,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	public static String NEOPLASM_CODE = "C3262";
 	static String CTS_API_Disease_Broad_Category_Terminology_Code = "C138189";
 	static String CTS_API_Disease_Main_Type_Terminology_Code = "C138190";
+	static String CTRP_BIOMARKER_TERMINOLOGY_CODE = "C142799";
+	static String CTRP_REFERENCE_GENE_TERMINOLOGY_CODE = "C142801";
 	
 	/*
 	public static final String[] CTRP_MAIN_CANCER_TYPES = new String[] {
@@ -154,6 +159,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		diseaseStageConcepts = getDiseaseIsStageSourceCodes();
 		diseaseGradeConcepts = getDiseaseIsGradeSourceCodes();
 		diseaseMainConcepts = getMainConcepts();
+		
+		ctrpBiomarkerConcepts = getCtrpBiomarkerConcepts();
+		ctrpReferenceGeneConcepts = getCtrpReferenceGeneConcepts();
 
 		/*
 		HashSet <String> mainTypeSet = new HashSet <String>();
@@ -610,6 +618,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			evsConcept.setIsDisease(false);
 		}		
 		
+		if (isBiomarker(conceptCode)) {
+			evsConcept.setIsBiomarker(true);
+		} else {
+			evsConcept.setIsBiomarker(false);
+		}		
+		
+		if (isReferenceGene(conceptCode)) {
+			evsConcept.setIsReferenceGene(true);
+		} else {
+			evsConcept.setIsReferenceGene(false);
+		}		
+		
 		
 		List <Paths> paths = mainTypeHierarchyUtils.getMainMenuAncestors(conceptCode);
 		if (paths != null) {
@@ -622,6 +642,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		return evsConcept;
 		
 	}
+	
+	public boolean isBiomarker(String code) {
+		if (ctrpBiomarkerConcepts.containsKey(code)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isReferenceGene(String code) {
+		if (ctrpReferenceGeneConcepts.containsKey(code)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	
 	/*
 	 * This "isSubtype is temporary, will use new one developed by
@@ -665,7 +702,49 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	}
 	
 	
-	
+	public HashMap<String,String> getCtrpBiomarkerConcepts() throws JsonMappingException,JsonParseException, IOException {
+		log.info("***** In getCtrpBiomarkerConcepts******");
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph();
+		String query = queryBuilderService.constructConceptInSubsetQuery(CTRP_BIOMARKER_TERMINOLOGY_CODE, namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query);
+		
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		HashMap<String,String> biomarkerConcepts = new HashMap<String,String>();
+		
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			biomarkerConcepts.put(b.getConceptCode().getValue(), b.getConceptLabel().getValue());
+		}
+		
+		return biomarkerConcepts;
+	}
+
+	public HashMap<String,String> getCtrpReferenceGeneConcepts() throws JsonMappingException,JsonParseException, IOException {
+		log.info("***** In getCtrpReferenceGeneConcepts******");
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph();
+		String query = queryBuilderService.constructConceptInSubsetQuery(CTRP_REFERENCE_GENE_TERMINOLOGY_CODE, namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query);
+		
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		HashMap<String,String> geneConcepts = new HashMap<String,String>();
+		
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			geneConcepts.put(b.getConceptCode().getValue(), b.getConceptLabel().getValue());
+		}
+		
+		return geneConcepts;
+	}
+
+
 	public HashMap<String,String> getDiseaseIsStageSourceCodes() throws JsonMappingException,JsonParseException, IOException {
 		log.info("***** In getDiseaseIsStageSourceCodes******");
 		String queryPrefix = queryBuilderService.contructPrefix();

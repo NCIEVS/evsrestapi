@@ -16,6 +16,8 @@ public class EvsConcept {
 	private boolean isMainType;
 	private boolean isSubtype;
 	private boolean isDisease;
+	private boolean isBiomarker;
+	private boolean isReferenceGene;
 
 	private List <Paths> mainMenuAncestors;
 	
@@ -134,6 +136,18 @@ public class EvsConcept {
 	}
 	public void setIsDisease(boolean isDisease) {
 		this.isDisease = isDisease;
+	}
+	public boolean getIsBiomarker() {
+		return isBiomarker;
+	}
+	public void setIsBiomarker(boolean isBiomarker) {
+		this.isBiomarker = isBiomarker;
+	}
+	public boolean getIsReferenceGene() {
+		return isReferenceGene;
+	}
+	public void setIsReferenceGene(boolean isReferenceGene) {
+		this.isReferenceGene = isReferenceGene;
 	}
 	public List<Paths> getMainMenuAncestors() {
 		return mainMenuAncestors;
