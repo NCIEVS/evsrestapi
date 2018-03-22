@@ -483,6 +483,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("    }\n");
 		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
 		query.append("}\n");
+        query.append("ORDER BY ?relationship\n");
 		
 		log.debug("constructAssociationsQuery - " + query.toString());
 		
@@ -509,6 +510,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("    }").append("\n");
 		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")").append("\n");
 		query.append("}").append("\n");
+        query.append("ORDER BY ?relationship\n");
 		
 		log.debug("constructInverseAssociationsQuery - " + query.toString());
 		
@@ -585,6 +587,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("	   }").append("\n");
 		query.append("   }").append("\n");
 		query.append("} ").append("\n");
+        query.append("ORDER BY ?relationship\n");
 		
 		log.debug("constructInverseRolesQuery - " + query.toString());
 
@@ -659,6 +662,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("	   }").append("\n");
 		query.append("   }").append("\n");
 		query.append("} ").append("\n");
+        query.append("ORDER BY ?relationship\n");
 		
 		log.debug("constructRolesQuery - " + query.toString());
 
