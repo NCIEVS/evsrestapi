@@ -266,6 +266,8 @@ public class ConceptDetails
 		}
 
         List synonyms = parser.getSynonyms(synonym_vec);
+		List list = new ParserUtils().getSynonyms(synonym_vec);
+
         Vector conceptStatus_vec = (Vector) prop_hmap.get("Concept_Status");
         Vector semanticType_vec = (Vector) prop_hmap.get("Semantic_Type");
 

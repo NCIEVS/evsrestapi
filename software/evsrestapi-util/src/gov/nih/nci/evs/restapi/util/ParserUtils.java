@@ -84,24 +84,28 @@ public class ParserUtils {
 	}
 
 	public String parseLabel(Vector v) {
+		if (v == null) return null;
 		String t = (String) v.elementAt(0);
 		return getValue(t);
 	}
 
 	public HashMap parseSuperclasses(Vector v) {
+		if (v == null) return null;
 		return parse(v, 2, 1, 0);
 	}
 
 	public HashMap parseSubclasses(Vector v) {
+		if (v == null) return null;
 		return parse(v, 2, 1, 0);
 	}
 
 	public HashMap parseProperties(Vector v) {
-		//return parse(v, 3, 1, 2);
+		if (v == null) return null;
 		return parse(v, 2, 0, 1);
 	}
 
 	public HashMap parse(Vector v, int m, int d1, int d2) {
+		if (v == null) return null;
 		HashMap hmap = new HashMap();
 		if (v == null) return hmap;
 		if (m == 0) return hmap;
@@ -128,6 +132,7 @@ public class ParserUtils {
 	}
 
 	public int findNumberOfVariables(Vector v) {
+		if (v == null) return 0;
 		HashSet hset = new HashSet();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
@@ -142,12 +147,14 @@ public class ParserUtils {
 
 
 	public Vector parse(Vector v) {
+		if (v == null) return null;
 		int m = findNumberOfVariables(v);
 		return parse(v, m);
 	}
 
 
 	public Vector parse(Vector v, int m) {
+		if (v == null) return null;
 		Vector w = new Vector();
 		if (w == null) return w;
 		int n = v.size()/m;
@@ -169,6 +176,7 @@ public class ParserUtils {
 	}
 
     public Vector sortAxiomData(Vector v) {
+	    if (v == null) return null;
 		Vector w = new Vector();
 		int n = v.size()/6;
 		Vector key_vec = new Vector();
@@ -199,6 +207,7 @@ public class ParserUtils {
 
 
 	public List getSynonyms(Vector v) {
+		if (v == null) return null;
 	    v = sortAxiomData(v);
 		List syn_list = new ArrayList();
         String z_axiom = null;
@@ -302,6 +311,7 @@ public class ParserUtils {
         (12) z|literal|CDISC
 */
 	public List getDefinitions(Vector v) {
+		if (v == null) return null;
 	    v = sortAxiomData(v);
 		List def_list = new ArrayList();
         String z_axiom = null;
@@ -366,6 +376,7 @@ public class ParserUtils {
 	}
 
 	public Vector generateRelationships(Vector v, String type, String name) {
+		if (v == null) return null;
         ParserUtils parser = new ParserUtils();
         Vector w = new Vector();
         int n = v.size()/4;
@@ -393,6 +404,7 @@ public class ParserUtils {
 	}
 
 	public HashMap getCode2LabelHashMap(Vector v) {
+		if (v == null) return null;
 		HashMap hmap = new HashMap();
 		int n = v.size()/2;
 		for (int i=0; i<n; i++) {
@@ -404,6 +416,7 @@ public class ParserUtils {
 	}
 
 	public Vector toDelimited(Vector v, int m, char delim) {
+		if (v == null) return null;
         Vector w = new Vector();
         int n = v.size()/m;
         for (int i=0; i<n; i++) {
@@ -440,9 +453,10 @@ public class ParserUtils {
 	}
 */
 	public List getAdditionalProperties(Vector v) {
+		if (v == null) return null;
 		List additionalProperties = new ArrayList();
 		List commonProperties = Arrays.asList(Constants.COMMON_PROPERTIES);
-		v = getResponseValues(v);
+		//v = getResponseValues(v);
 		if (v == null) return null;
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
@@ -497,6 +511,7 @@ public class ParserUtils {
 	}
 
 	public Vector getResponseVariables(Vector v) {
+		if (v == null) return null;
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
@@ -516,6 +531,7 @@ public class ParserUtils {
 
 
 	public Vector getResponseValues(Vector v) {
+		if (v == null) return null;
 		ParserUtils parser = new ParserUtils();
 		Vector w = new Vector();
 		Vector vars = getResponseVariables(v);
@@ -573,6 +589,7 @@ public class ParserUtils {
 
 
 	public Vector filterPropertyQualifiers(Vector v, String type) { //FULL_SYN, DEFINITION, ALT_DEFINITION
+	    if (v == null) return null;
 		Vector w = new Vector();
 		int n = v.size()/9;
 		Vector key_vec = new Vector();
@@ -606,6 +623,7 @@ public class ParserUtils {
 	}
 
     public String extractLabel(String line) {
+		if (line == null) return null;
 		int n = line.lastIndexOf("#");
 		if (n == -1) return line;
 		return line.substring(n+1, line.length());
@@ -618,5 +636,41 @@ public class ParserUtils {
         Vector v = new ParserUtils().filterPropertyQualifiers(w, "FULL_SYN");
 	}
 
+	public static Vector formatOutput(Vector v) {
+		if (v == null) return null;
+		if (v.size() == 0) return new Vector();
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
+
+//       (10) Wireless Communication Problem|http://www.w3.org/2000/01/rdf-schema#label|label|Wireless Communication Problem
+
+	public static Vector excludePropertyType(Vector v, String exclusion) {
+		if (v == null) return null;
+		Vector target_vec = StringUtils.parseData(exclusion, '|');
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String x = (String) u.elementAt(1);
+			boolean retval = true;
+			for (int k=0; k<target_vec.size(); k++) {
+				String target = (String) target_vec.elementAt(k);
+				if (x.contains(target)) {
+					retval = false;
+					break;
+				}
+			}
+			if (retval) {
+				String s0 =  (String) u.elementAt(0);
+				String s2 =  (String) u.elementAt(2);
+				String s3 =  (String) u.elementAt(3);
+				String s = s0 + "|" + s2 + "|" + s3;
+				w.add(s);
+			}
+		}
+		return w;
+	}
 
 }

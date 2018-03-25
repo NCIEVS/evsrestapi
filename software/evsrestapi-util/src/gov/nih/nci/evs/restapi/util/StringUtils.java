@@ -157,6 +157,15 @@ public class StringUtils {
 		return (String) u.elementAt(index);
 	}
 
+
+	public static void dumpVector(Vector v) {
+		if (v == null) return;
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			System.out.println(t);
+		}
+	}
+
 	public static void dumpVector(String label, Vector v) {
 		if (v == null) return;
 		System.out.println(label + ":");
@@ -532,4 +541,15 @@ public class StringUtils {
 		return createHashMap(w, 0, 1);
 	}
 
+    public static String trimLeadingBlanksOrTabs(String line) {
+		if (line == null) return null;
+		if (line.length() == 0) return line;
+		char c = line.charAt(0);
+		while (c == ' ' || c == '\t') {
+			line = line.substring(1, line.length());
+			if (line.length() == 0) return line;
+		    c = line.charAt(0);
+		}
+		return line;
+	}
 }

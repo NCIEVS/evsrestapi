@@ -118,20 +118,14 @@ public class ExportUtils {
         Boolean isBiomarker,
         Boolean isReferenceGene
         ) {
-//System.out.println("\t\tgetLabelByCode");
 		Vector label_vec = owlSPARQLUtils.getLabelByCode(named_graph, code);
-//System.out.println("\t\tgetPropertiesByCode");
-		Vector property_vec = owlSPARQLUtils.getPropertiesByCode(named_graph, code);
-//System.out.println("\t\tgetPropertyQualifiersByCode");
+		Vector property_vec = owlSPARQLUtils.getPropertiesByCode(named_graph, code, false);
+		property_vec = ParserUtils.formatOutput(property_vec);
+		property_vec = ParserUtils.excludePropertyType(property_vec, "#A|#R");
 		Vector property_qualifier_vec = owlSPARQLUtils.getPropertyQualifiersByCode(named_graph, code);
-//System.out.println("\t\tgetSynonyms");
 		Vector synonym_vec = new ParserUtils().filterPropertyQualifiers(property_qualifier_vec, Constants.FULL_SYN);
-//System.out.println("\t\tgetSuperclassesByCode");
 		Vector superconcept_vec = owlSPARQLUtils.getSuperclassesByCode(named_graph, code);
-//System.out.println("\t\tgetSubclassesByCode");
 		Vector subconcept_vec = owlSPARQLUtils.getSubclassesByCode(named_graph, code);
-//System.out.println("\t\tConceptDetails created for " + code);
-
 		return new ConceptDetails(
 				label_vec,
 				property_vec,

@@ -70,6 +70,8 @@ import org.json.*;
  */
 
 
+
+
 public class MetadataUtils {
     String serviceUrl = null;
     String sparql_endpoint = null;
@@ -78,23 +80,52 @@ public class MetadataUtils {
 	SPARQLUtilsClient client = null;
 	HashMap nameVersion2NamedGraphMap = null;
 
+
+	public String verify_service_url(String serviceUrl) {
+		int n = serviceUrl.indexOf("?");
+        if (n != -1) {
+			serviceUrl = serviceUrl.substring(0, n);
+		}
+		return serviceUrl;
+	}
+
+
     public MetadataUtils() {
 
 	}
 
     public  MetadataUtils(String serviceUrl) {
-		this.serviceUrl = serviceUrl;
+		this.serviceUrl = verify_service_url(serviceUrl);
 		initialize();
     }
 
     public void initialize() {
-		 long ms = System.currentTimeMillis();
+		long ms = System.currentTimeMillis();
 		this.sparql_endpoint = serviceUrl;
 		this.client = new SPARQLUtilsClient(sparql_endpoint);
 		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint + "?query=");
 		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
 		System.out.println("Total MetadataUtils initialization run time (ms): " + (System.currentTimeMillis() - ms));
     }
+
+    public void dumpNameVersion2NamedGraphMap() {
+		if (nameVersion2NamedGraphMap == null) return;
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		Vector versions = new Vector();
+		while (it.hasNext()) {
+			String nameVersion = (String) it.next();
+			Vector u = StringUtils.parseData(nameVersion);
+			String codingSchemeName = (String) u.elementAt(0);
+			String version = (String) u.elementAt(1);
+			//System.out.println(nameVersion + " --> " + version);
+			Vector named_graphs = (Vector) nameVersion2NamedGraphMap.get(nameVersion);
+			for (int i=0; i<named_graphs.size(); i++) {
+				String named_graph = (String) named_graphs.elementAt(i);
+				System.out.println(nameVersion + " --> " + named_graph);
+			}
+		}
+
+	}
 
     public String getLatestVersion(String codingScheme) {
 		if (nameVersion2NamedGraphMap == null) return null;
@@ -125,6 +156,44 @@ public class MetadataUtils {
 		return namedGraph;
 	}
 
+	public static String getLatestVersionOfCodingScheme(String serviceUrl, String codingScheme) {
+		String sparql_endpoint = serviceUrl + "?query=";
+		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
+		HashMap nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
+		if (nameVersion2NamedGraphMap == null) return null;
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		Vector versions = new Vector();
+		while (it.hasNext()) {
+			String nameVersion = (String) it.next();
+			Vector u = StringUtils.parseData(nameVersion);
+			String codingSchemeName = (String) u.elementAt(0);
+			if (codingSchemeName.compareTo(codingScheme) == 0) {
+				String version = (String) u.elementAt(1);
+				versions.add(version);
+			}
+		}
+		versions = new SortUtils().quickSort(versions);
+        return (String) versions.elementAt(versions.size()-1);
+	}
+
+	public static String getNamedGraphOfCodingScheme(String serviceUrl, String codingScheme, String version) {
+		SPARQLUtilsClient client = new SPARQLUtilsClient(serviceUrl);
+		String namedGraph = client.getNamedGraphByCodingSchemeAndVersion(codingScheme, version);
+		return namedGraph;
+	}
+
+	public static String sparqlEndpoint2ServiceUrl(String sparql_endpoint) {
+		int n = sparql_endpoint.lastIndexOf("?");
+		if (n == -1) return sparql_endpoint;
+		return sparql_endpoint.substring(0, n);
+	}
+
+	public static String serviceUrl2SparqlEndpoint(String serviceUrl) {
+		int n = serviceUrl.lastIndexOf("?");
+		if (n != -1) return serviceUrl;
+		return serviceUrl + "?query=";
+	}
+
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		System.out.println(serviceUrl);
@@ -136,5 +205,14 @@ public class MetadataUtils {
 		System.out.println(version);
 		String named_graph = test.getNamedGraph(codingScheme);
 		System.out.println(named_graph);
+
+		test.dumpNameVersion2NamedGraphMap();
+
+		String version_test = MetadataUtils.getLatestVersionOfCodingScheme(serviceUrl, codingScheme);
+		System.out.println("getLatestVersionOfCodingScheme: " + version_test);
+
+		String named_graph_test = MetadataUtils.getNamedGraphOfCodingScheme(serviceUrl, codingScheme, version_test);
+		System.out.println("getNamedGraphOfCodingScheme: " + named_graph_test);
+
 	}
 }

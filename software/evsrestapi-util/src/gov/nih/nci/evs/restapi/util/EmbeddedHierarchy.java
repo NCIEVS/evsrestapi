@@ -53,32 +53,6 @@ public class EmbeddedHierarchy {
     public EmbeddedHierarchy(Vector parent_child_vec) {
 		this.parent_child_vec = parent_child_vec;
 		this.hh = new HierarchyHelper(parent_child_vec);
-/*
-		main_types = Utils.hashSet2Vector(main_type_set);
-        main_type_hierarchy_data = generate_main_type_hierarchy();
-        Vector mth_parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(main_type_hierarchy_data);
-        this.mth_hh = new HierarchyHelper(mth_parent_child_vec);
-
-        this.pathFinder = new PathFinder(mth_hh, NCI_THESAURUS, ncit_version);
-
-        Vector mth_parent_child_vec_v2 = new Vector();
-        for (int k=0; k<mth_parent_child_vec.size(); k++) {
-			String t = (String) mth_parent_child_vec.elementAt(k);
-			Vector u = StringUtils.parseData(t, '|');
-			String parent_code = (String) u.elementAt(1);
-			if (!category_hset.contains(parent_code)) {
-				mth_parent_child_vec_v2.add(t);
-			}
-		}
-
-		try {
-			mth_hh_without_categories = new HierarchyHelper(mth_parent_child_vec_v2);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-        levelMap = create_max_level_hashmap(main_type_hierarchy_data);
-*/
 	}
 
 	public void set_embedded_hierarchy(HierarchyHelper hh) {
@@ -89,9 +63,6 @@ public class EmbeddedHierarchy {
 		//GAIA Terminology|C125481|GAIA Preeclampsia Level of Diagnostic Certainty Terminology|C126860
 		//CDISC Questionnaire Terminology|C100110|CDISC Questionnaire ADAS-Cog CDISC Version Test Code Terminology|C100132
 		HashMap hmap = new HashMap();
-
-		System.out.println("(*) createEmbeddedHierarchyCode2LabelHashMap input records: " + v.size());
-
         for (int k=0; k<v.size(); k++) {
 			String t = (String) v.elementAt(k);
 			Vector u = StringUtils.parseData(t, '|');
@@ -101,9 +72,6 @@ public class EmbeddedHierarchy {
 			String child_code = (String) u.elementAt(3);
 			hmap.put(parent_code, parent_label);
 			hmap.put(child_code, child_label);
-
-			System.out.println(parent_code + " --> " + parent_label);
-			System.out.println(child_code + " --> " + child_label);
 		}
 		return hmap;
 	}
@@ -410,30 +378,17 @@ public class EmbeddedHierarchy {
 		HashSet visitedNodes = new HashSet();
 		FirstInFirstOutQueue queue = new FirstInFirstOutQueue();
 		queue.add("@|" + rootCode);
-
-
-		System.out.println("DEBUG getEmbeddedHierarchy " + rootCode);
 		while (!queue.isEmpty()) {
 			String line = (String) queue.remove();
-
-			System.out.println("\tLINE: " + line);
-
 			Vector u = StringUtils.parseData(line, '|');
 			String parentCode = parser.getValue((String) u.elementAt(0));
 			String code = parser.getValue((String) u.elementAt(1));
-
-			if (parentCode.compareTo("C100110") == 0) {
-				System.out.println("parent code: " + parentCode);
-				System.out.println("child code: " + code);
-			}
-
 			if (!visitedNodes.contains(parentCode)) {
 				visitedNodes.add(parentCode);
 			}
 			if (!visitedNodes.contains(code)) {
 				visitedNodes.add(code);
 			}
-
 			if (nodeSet.contains(parentCode) && nodeSet.contains(code)) {
 				String parentLabel = hh.getLabel(parentCode);
 				String childLabel = hh.getLabel(code);
@@ -442,12 +397,6 @@ public class EmbeddedHierarchy {
 				if (!w.contains(record)) {
 					w.add(record);
 				}
-/*
-				if (visitedNodes.size() == nodeSet.size()) {
-					System.out.println("(**) NUmber of visited nodes reaches max: " + nodeSet.size() + " program stops.");
-					break;
-				}
-*/
 				Vector v = hh.getSubclassCodes(code);
 				if (v != null) {
 					for (int j=0; j<v.size(); j++) {
@@ -494,7 +443,6 @@ public class EmbeddedHierarchy {
 					String t_label = getLabel(t);
 					superclass_label_and_code_vec.add(t_label + " (" + t + ")");
 				}
-				StringUtils.dumpVector("superclasses of " + orphan_label + " (" + orphan_code + ")", superclass_label_and_code_vec);
 				if (superclasses.contains(TERMINOLOGY_SUBSET_CODE)) {
 					w.add(orphan_label + "|" + orphan_code);
 				}
@@ -520,40 +468,6 @@ public class EmbeddedHierarchy {
 		return Utils.hashSet2Vector(set1);
 	}
 
-	/*
-    // embedded_hierarchy_parent_child_vec" w
-    public Vector identifyRootTerminologySubsets(Vector w) {
-		Vector parent_nodes = new Vector();
-		Vector child_nodes = new Vector();
-		Vector root_nodes = new Vector();
-		for (int i=0; i<w.size(); i++) {
-			String line = (String) w.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			String parent_label = (String) u.elementAt(0);
-			String parent_code = (String) u.elementAt(1);
-			String child_label = (String) u.elementAt(2);
-			String child_code = (String) u.elementAt(3);
-			String parent = parent_label + "|" + parent_code;
-			if (!parent_nodes.contains(parent)) {
-				parent_nodes.add(parent);
-			}
-			String child = child_label + "|" + child_code;
-			if (!child_nodes.contains(child)) {
-				child_nodes.add(child);
-			}
-		}
-		for (int i=0; i<parent_nodes.size(); i++) {
-			String parent = (String) parent_nodes.elementAt(i);
-			if (!child_nodes.contains(parent)) {
-				if (!root_nodes.contains(parent)) {
-					root_nodes.add(parent);
-				}
-			}
-		}
-		return root_nodes;
-	}
-	*/
-
 	public Vector generateEmbeddedHierarchyParentChildData(Vector embedded_hierarchy_parent_child_vec, HashSet nodeSet) {
 		Vector v = (Vector) embedded_hierarchy_parent_child_vec.clone();
 
@@ -572,25 +486,36 @@ public class EmbeddedHierarchy {
         while (it.hasNext()) {
 			lcv++;
 			String node = (String) it.next();
-			System.out.println("(" + lcv + ") " + node);
 			if (!code2LableMap.containsKey(node)) {
 				String node_label = getLabel(node);
 				orphans.add(node_label + " (" + node + ")");
 				orphan_codes.add(node);
 			}
 		}
-		StringUtils.dumpVector("orphans", orphans);
+		//StringUtils.dumpVector("orphans", orphans);
 		Vector orphan_vs = identifyOrphanTerminologySubsets(orphan_codes);
 		Vector root_vs = identifyRootTerminologySubsets(v);
-
+/*
 		for (int k=0; k<orphan_vs.size(); k++) {
 			String t = (String) orphan_vs.elementAt(k);
-			v.add(ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + t);
+			v.add(ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + hh.getLabel(t) + "|" + t);
 		}
 		for (int k=0; k<root_vs.size(); k++) {
 			String t = (String) root_vs.elementAt(k);
-			v.add(ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + t);
+			v.add(ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + hh.getLabel(t) + "|" + t);
 		}
+*/
+		for (int k=0; k<orphan_vs.size(); k++) {
+			String t = (String) orphan_vs.elementAt(k);
+			v.add(ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + t);
+			System.out.println("(orphan_vs) " + ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + t);
+		}
+		for (int k=0; k<root_vs.size(); k++) {
+			String t = (String) root_vs.elementAt(k);
+			v.add(ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + hh.getLabel(t) + "|" + t);
+			System.out.println("(root_vs) " + ROOT_NODE + "|" + ROOT_NODE_CODE + "|" + hh.getLabel(t) + "|" + t);
+		}
+
         v = new SortUtils().quickSort(v);
 		return v;
 	}
@@ -637,7 +562,7 @@ public class EmbeddedHierarchy {
 	public void traverseEmbeddedHierarchy(String code, int direction, int level) {
 		if (eh_hh == null) return;
 		String label = eh_hh.getLabel(code);
-		System.out.println(getIndentation(level) + label + " (" + code + ")");
+		//System.out.println(getIndentation(level) + label + " (" + code + ")");
         Vector codes = null;
         if (direction == TRAVERSE_UP) {
 			codes = eh_hh.getSuperclassCodes(code);
@@ -692,7 +617,7 @@ public class EmbeddedHierarchy {
 				//System.out.println("Orphan node: " + node_label + " (" + node + ")");
 			}
 		}
-		StringUtils.dumpVector("orphans", orphans);
+		//StringUtils.dumpVector("orphans", orphans);
 		Utils.saveToFile("orphans" + "_" + rootCode + ".txt", orphans);
 
         for (int k=0; k<orphan_codes.size(); k++) {
@@ -708,16 +633,16 @@ public class EmbeddedHierarchy {
 					String t_label = eh.getLabel(t);
 					superclass_label_and_code_vec.add(t_label + " (" + t + ")");
 				}
-				StringUtils.dumpVector("superclasses of " + superclass_label + " (" + orphan_code + ")", superclass_label_and_code_vec);
+				//StringUtils.dumpVector("superclasses of " + superclass_label + " (" + orphan_code + ")", superclass_label_and_code_vec);
 			}
 		}
 
 		Vector orphanTerminologySubsets = eh.identifyOrphanTerminologySubsets(orphan_codes);
-		StringUtils.dumpVector("orphanTerminologySubsets", orphanTerminologySubsets);
+		//StringUtils.dumpVector("orphanTerminologySubsets", orphanTerminologySubsets);
         Vector roots = eh.identifyRootTerminologySubsets(embedded_hierarchy_parent_child_vec);
-        StringUtils.dumpVector("roots", roots);
+        //StringUtils.dumpVector("roots", roots);
         Vector eh_vec = eh.generateEmbeddedHierarchyParentChildData(embedded_hierarchy_parent_child_vec, nodeSet);
-        StringUtils.dumpVector("eh_vec", eh_vec);
+        //StringUtils.dumpVector("eh_vec", eh_vec);
         eh.generateEmbeddedHierarchyFile("test_vh_ascii_tree.txt", eh_vec);
 
         HierarchyHelper hierarchyHelper = new HierarchyHelper(eh_vec);

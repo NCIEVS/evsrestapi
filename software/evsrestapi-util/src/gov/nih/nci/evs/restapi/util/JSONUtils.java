@@ -109,6 +109,9 @@ public class JSONUtils {
 	}
 
 	public Vector parseJSON(String json) {
+		if (json == null) {
+			return null;
+		}
 		Vector u = new Vector();
         Vector vars = findVars(json);
 		try {

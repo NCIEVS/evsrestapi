@@ -213,7 +213,9 @@ public class SPARQLUtilsClient {
 	public Vector getPropertiesByCode(String named_graph, String code) {
 		String key = (String) namedGraph2codingSchemeNameAndVersionMap.get(named_graph);
 		OWLSPARQLUtils owlSPARQLUtils = (OWLSPARQLUtils) OWLSPARQLUtilsMap.get(key);
-		return owlSPARQLUtils.getPropertiesByCode(named_graph, code);
+		Vector v = owlSPARQLUtils.getPropertiesByCode(named_graph, code, false);
+		v = ParserUtils.formatOutput(v);
+		return ParserUtils.excludePropertyType(v, "#A|#R");
 	}
 
 

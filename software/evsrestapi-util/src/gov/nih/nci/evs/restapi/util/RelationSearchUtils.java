@@ -110,6 +110,7 @@ public class RelationSearchUtils extends SPARQLSearchUtils {
 	}
 
 	public Vector postProcess(Vector w, String searchTarget, String algorithm, String searchString) {
+		if (w == null) return null;
 		searchString = searchString.toLowerCase();
         searchString = searchString.trim();
 		Vector v = new Vector();

@@ -74,6 +74,8 @@ public class TreeItem implements Serializable, Comparable<TreeItem> {
     public String _auis = null;
     public boolean _expandable = false;
 
+    public static String ROOT = "Root";
+    public static String ROOT_CODE = "<Root>";
 
     public Map<String, List<TreeItem>> _assocToChildMap =
         new TreeMap<String, List<TreeItem>>();
@@ -254,6 +256,17 @@ public class TreeItem implements Serializable, Comparable<TreeItem> {
 			}
         }
     }
+
+    public String getAssociation(TreeItem ti) {
+		Iterator it = ti._assocToChildMap.keySet().iterator();
+		return (String) it.next();
+	}
+
+    public TreeItem removeSuperRootNode(TreeItem ti) {
+		if (ti._code.compareTo("<Root>") != 0) return ti;
+		List<TreeItem> children = ti._assocToChildMap.get(getAssociation(ti));
+		return (TreeItem) children.get(0);
+	}
 
 	public String toXML() {
 		XStream xstream_xml = new XStream(new DomDriver());
