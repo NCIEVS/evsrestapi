@@ -237,6 +237,16 @@ public class OWLSPARQLUtils {
 		return v;
 	}
 
+    public String getJSONResponseString(String query) {
+        try {
+			query = httpUtils.encode(query);
+            String json = httpUtils.executeQuery(query);
+			return json;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
 
 	public String construct_get_ontology_info(String named_graph) {
 		String prefixes = getPrefixes();
@@ -2047,6 +2057,36 @@ public class OWLSPARQLUtils {
 	    String query = construct_get_properties_by_code(named_graph, code, use_filter);
 	    return executeQuery(query);
 	}
+
+	public String construct_get_owl_class_data(String named_graph, String identifier, String code, String ns, boolean by_code) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code ?y_label ?z ").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x ?y ?z .").append("\n");
+		buf.append("?x rdfs:label ?x_label .").append("\n");
+		buf.append("?y rdfs:label ?y_label .").append("\n");
+		buf.append("?x " + identifier + " ?x_code .").append("\n");
+		if (by_code) {
+			buf.append("?x " + identifier + " \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		}
+		buf.append("}").append("\n");
+		if (!by_code) {
+			buf.append("FILTER (str(?x) = \"" + ns + code + "\"^^xsd:string)").append("\n");
+		}
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getOWLClassData(String named_graph, String identifier, String code, String ns, boolean by_code) {
+	    String query = construct_get_owl_class_data(named_graph, identifier, code, ns, by_code);
+	    return executeQuery(query);
+	}
+
 ////////////////////////////////////////////////////////////////////
 
     public static void main(String[] args) {
