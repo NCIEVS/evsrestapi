@@ -15,6 +15,7 @@ import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
 import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.support.FilterCriteriaFields;
 import gov.nih.nci.evs.api.support.MatchedConcept;
@@ -58,4 +59,13 @@ public interface SparqlQueryManagerService {
 	public List<MatchedConcept> search(String searchTerm,String property,String limit) throws JsonParseException, JsonMappingException, IOException;
 	
 	public List<MatchedConcept> search(FilterCriteriaFields filterCriteriaFields) throws JsonParseException, JsonMappingException, IOException;
+	
+	public List<HierarchyNode> getRootNodes();
+	
+	public List<HierarchyNode> getChildNodes(String parent);
+	
+	public List<HierarchyNode> getChildNodes(String parent, int maxLevel);
+	
+	public List<HierarchyNode> getPathInHierarchy(String code);
+
 }

@@ -138,7 +138,7 @@ public class EvsControllerTests {
         	   assertThat(evsConcept.getIsSubtype()).isFalse();
         	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
         	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
+        	   assertThat(evsConcept.getIsDisease()).isFalse();
            }
            
            if (evsConcept.getCode().equalsIgnoreCase("C54705")) {

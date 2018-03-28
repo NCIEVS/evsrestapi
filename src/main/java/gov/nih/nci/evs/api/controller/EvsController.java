@@ -27,6 +27,7 @@ import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
 import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
@@ -261,6 +262,53 @@ public class EvsController {
 		}
 		return evsAssociations;
 	}
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/rootNodes", produces = "application/json")
+	public @ResponseBody List<HierarchyNode> getRootNodes() throws IOException {
+		List <HierarchyNode> nodes = sparqlQueryManagerService.getRootNodes();
+		return nodes;
+	}
+
+
+	@ApiOperation(value = "Get the children of the specified concept", response = EvsConcept.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/childNodes", produces = "application/json")
+	public @ResponseBody List<HierarchyNode> getChildNodes(
+			@PathVariable(value = "conceptCode") String conceptCode) throws IOException {
+		List <HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(conceptCode);
+		return nodes;
+	}
+	
+	@ApiOperation(value = "Get the children of the specified concept, for multiple levels", response = EvsConcept.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/childNodes/{maxLevel}", produces = "application/json")
+	public @ResponseBody List<HierarchyNode> getChildNodesLevel(
+			@PathVariable(value = "conceptCode") String conceptCode,
+			@PathVariable(value = "maxLevel") int maxLevel) throws IOException {
+		List <HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(conceptCode, maxLevel);
+		return nodes;
+	}
+
+	@ApiOperation(value = "Get the path(s) to specified concept from the root nodes", response = EvsConcept.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathInHierarchy", produces = "application/json")
+	public @ResponseBody List<HierarchyNode> getPathInHierarchy(
+			@PathVariable(value = "conceptCode") String conceptCode) throws IOException {
+		List <HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(conceptCode);
+		return nodes;
+	}	
 
 	/*@ApiOperation(value = "Search")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),

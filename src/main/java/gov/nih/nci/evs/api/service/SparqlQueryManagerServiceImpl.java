@@ -36,6 +36,7 @@ import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
 import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Path;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
@@ -1077,4 +1078,58 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		
 		return matchConcepts;
 	}
+	
+	/*
+	 * This section supports the Hierarchy Browser
+	 */
+	public List <HierarchyNode> getRootNodes(){
+		return hierarchy.getRootNodes();
+	}
+	
+	public List <HierarchyNode> getChildNodes(String parent){
+		return hierarchy.getChildNodes(parent, 0);
+	}
+
+	public List <HierarchyNode> getChildNodes(String parent, int maxLevel){
+		return hierarchy.getChildNodes(parent, maxLevel);
+	}
+	
+	public void checkPathInHierarchy(String code, HierarchyNode node, Path path) {
+		if (path.getConcepts().size() == 0) {
+			return;
+		}
+		int end = path.getConcepts().size() -1;
+		Concept concept = path.getConcepts().get(end);
+		List <HierarchyNode> children = hierarchy.getChildNodes(node.getCode(), 1);
+		if (node.getChildren().size() == 0) {
+			node.setChildren(children);
+		}
+		if (concept.getCode().equals(node.getCode())) {
+			if (node.getCode().equals(code)) {
+				node.setHighlight(true);
+				return;
+			}
+			node.setExpanded(true);
+			if (path.getConcepts() != null && !path.getConcepts().isEmpty()) {
+				path.getConcepts().remove(path.getConcepts().size()-1);
+			}
+			for (HierarchyNode childNode: node.getChildren()) {
+				checkPathInHierarchy(code, childNode, path);
+			}
+		}
+	}
+
+	public List <HierarchyNode> getPathInHierarchy(String code) {
+		List <HierarchyNode> rootNodes = hierarchy.getRootNodes();
+		Paths paths = getPathToRoot(code);
+		
+		for (HierarchyNode rootNode: rootNodes) {
+			for (Path path: paths.getPaths()) {
+				checkPathInHierarchy(code, rootNode, path);
+			}
+		}
+
+		return rootNodes;
+	}
+	
 }
