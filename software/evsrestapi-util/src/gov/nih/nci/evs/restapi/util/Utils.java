@@ -261,12 +261,11 @@ public class Utils {
     public static void generate_construct_statement(String method_name, String params, String filename) {
 		Vector u = Utils.readFile(filename);
 		Vector w = new Vector();
-		//params = "String named_graph";
 		StringBuffer buf = new StringBuffer();
-		w.add("\tpublic String " + method_name + "(" + params + ") {");
-		w.add("\t\tString prefixes = getPrefixes();");
-		w.add("\t\tStringBuffer buf = new StringBuffer();");
-		w.add("\t\tbuf.append(prefixes);");
+		w.add("public String " + method_name + "(" + params + ") {");
+		w.add("\tString prefixes = getPrefixes();");
+		w.add("\tStringBuffer buf = new StringBuffer();");
+		w.add("\tbuf.append(prefixes);");
 		for (int i=0; i<u.size(); i++) {
 			String t = (String) u.elementAt(i);
 			t = StringUtils.trimLeadingBlanksOrTabs(t);
@@ -274,7 +273,7 @@ public class Utils {
 				t = StringUtils.escapeDoubleQuotes(t);
 				t = "\"" + t + "\"";
 				t = "buf.append(" + t + ").append(\"\\n\");";
-				w.add("\t\t" + t);
+				w.add("\t" + t);
 			}
 		}
 		w.add("\t\treturn buf.toString();");
