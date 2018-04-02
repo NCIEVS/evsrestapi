@@ -673,4 +673,51 @@ public class ParserUtils {
 		return w;
 	}
 
+	public static Vector axioms2ComplexProperties(Vector v) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String name = (String) u.elementAt(2);
+			String value = (String) u.elementAt(3);
+			String n_v = name + "|" + value;
+			Vector qualifiers = new Vector();
+			if (hmap.containsKey(n_v)) {
+				qualifiers = (Vector) hmap.get(n_v);
+			}
+			String qualifier_name = (String) u.elementAt(4);
+			String qualifier_value = (String) u.elementAt(5);
+			String q_n_v = qualifier_name + "|" + qualifier_value;
+			if (!qualifiers.contains(q_n_v)) {
+				qualifiers.add(q_n_v);
+			}
+			hmap.put(n_v, qualifiers);
+		}
+		Iterator it = hmap.keySet().iterator();
+		Vector keys = new Vector();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			keys.add(key);
+		}
+		keys = new SortUtils().quickSort(keys);
+		Vector complex_properties = new Vector();
+		for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			Vector u = StringUtils.parseData(key, '|');
+			String name = (String) u.elementAt(0);
+			String value = (String) u.elementAt(1);
+			List list = new ArrayList();
+			Vector q_n_v_vec = (Vector) hmap.get(key);
+			for (int j=0; j<q_n_v_vec.size(); j++) {
+				String q_n_v = (String) q_n_v_vec.elementAt(j);
+				Vector u2 = StringUtils.parseData(q_n_v, '|');
+				String q_name = (String) u2.elementAt(0);
+				String q_value = (String) u2.elementAt(1);
+				list.add(new PropertyQualifier(q_name, q_value));
+			}
+			ComplexProperty cp = new ComplexProperty(name, value, list);
+			complex_properties.add(cp);
+		}
+		return complex_properties;
+	}
 }
