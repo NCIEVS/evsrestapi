@@ -276,12 +276,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
 		Bindings[] bindings = sparqlResult.getResults().getBindings();
 		for (Bindings b : bindings) {
-			if (!b.getPropertyCode().getValue().startsWith("A")) {
+			if (b.getPropertyCode() == null) {
 				EvsProperty evsProperty = new EvsProperty();
-				evsProperty.setCode(b.getPropertyCode().getValue());
+				evsProperty.setCode("");
 				evsProperty.setLabel(b.getPropertyLabel().getValue());
 				evsProperty.setValue(b.getPropertyValue().getValue());
 				evsProperties.add(evsProperty);
+			} else {
+				if (!b.getPropertyCode().getValue().startsWith("A")) {
+					EvsProperty evsProperty = new EvsProperty();
+					evsProperty.setCode(b.getPropertyCode().getValue());
+					evsProperty.setLabel(b.getPropertyLabel().getValue());
+					evsProperty.setValue(b.getPropertyValue().getValue());
+					evsProperties.add(evsProperty);
+				}
 			}
 		}
 		

@@ -147,9 +147,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("  { ?concept a owl:Class .\n");
 		query.append("    ?concept :NHC0 "+ "\"" + conceptCode + "\" .\n");
 		query.append("    ?concept ?property ?propertyValue .\n");
-		query.append("    ?property :NHC0 ?propertyCode .\n");
 		query.append("    ?property a owl:AnnotationProperty .\n");
 		query.append("    ?property rdfs:label ?propertyLabel .\n");
+		query.append("    OPTIONAL { ?property :NHC0 ?propertyCode }\n");
 		query.append("  }\n");
 		query.append("}\n");
 
