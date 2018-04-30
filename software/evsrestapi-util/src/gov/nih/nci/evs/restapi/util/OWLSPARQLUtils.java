@@ -735,24 +735,12 @@ public class OWLSPARQLUtils {
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    { ").append("\n");
-		buf.append("	   {").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x rdfs:subClassOf ?r .").append("\n");
-		buf.append("		?r a owl:Restriction .").append("\n");
-		buf.append("		?r owl:onProperty ?p .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?r owl:someValuesFrom ?y .").append("\n");
-		buf.append("		?y a owl:Class .").append("\n");
-		buf.append("		?y :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> ").append("\n");
-		buf.append("	   }").append("\n");
-		buf.append("	   UNION").append("\n");
+
 		buf.append("	    {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?x :NHC0 ?code .").append("\n");
+		buf.append("		?x rdfs:label ?x_code .").append("\n");
+		buf.append("		?x rdfs:subClassOf ?z0 .").append("\n");
 		buf.append("		?z0 a owl:Class .").append("\n");
 		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
 		buf.append("		?list rdf:rest*/rdf:first ?z2 .").append("\n");
@@ -763,6 +751,23 @@ public class OWLSPARQLUtils {
 		buf.append("		?y :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
 		buf.append("		?y rdfs:label ?y_label").append("\n");
 		buf.append("	    }").append("\n");
+		buf.append("	   UNION").append("\n");
+
+		buf.append("	   {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+
+		buf.append("		?x rdfs:subClassOf ?r .").append("\n");
+
+		buf.append("		?r a owl:Restriction .").append("\n");
+		buf.append("		?r owl:onProperty ?p .").append("\n");
+		buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		?r owl:someValuesFrom ?y .").append("\n");
+		buf.append("		?y a owl:Class .").append("\n");
+		buf.append("		?y :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> ").append("\n");
+		buf.append("	   }").append("\n");
+
 		buf.append("	   UNION").append("\n");
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
@@ -822,10 +827,30 @@ public class OWLSPARQLUtils {
 		buf.append("{ ").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    {").append("\n");
+
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		buf.append("		?x rdfs:label ?x_code .").append("\n");
+		buf.append("		?x rdfs:subClassOf ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+		buf.append("		?list rdf:rest*/rdf:first ?z2 .").append("\n");
+		buf.append("		?z2 a owl:Restriction .").append("\n");
+		buf.append("		?z2 owl:onProperty ?p .").append("\n");
+		buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		?z2 owl:someValuesFrom ?y .").append("\n");
+		buf.append("		?y :NHC0 ?y_code .").append("\n");
+		buf.append("		?y rdfs:label ?y_label").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("	   UNION").append("\n");
+
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+
 		buf.append("		?x rdfs:subClassOf ?r .").append("\n");
+
 		buf.append("		?r a owl:Restriction .").append("\n");
 		buf.append("		?r owl:onProperty ?p .").append("\n");
 		buf.append("		?p rdfs:label ?p_label .").append("\n");
@@ -839,9 +864,11 @@ public class OWLSPARQLUtils {
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
 		buf.append("		?x rdfs:label ?x_label .").append("\n");
+
 		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
 		buf.append("		?z0 a owl:Class .").append("\n");
 		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+
 		buf.append("		?list rdf:rest*/rdf:first ?z2 .").append("\n");
 		buf.append("		?z2 a owl:Restriction .").append("\n");
 		buf.append("		?z2 owl:onProperty ?p .").append("\n");
@@ -854,22 +881,11 @@ public class OWLSPARQLUtils {
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z .").append("\n");
-		buf.append("			?z owl:intersectionOf ?list .").append("\n");
-		buf.append("			?list rdf:rest*/rdf:first ?z2 .").append("\n");
-		buf.append("				?z2 a owl:Restriction .").append("\n");
-		buf.append("				?z2 owl:onProperty ?p .").append("\n");
-		buf.append("				?p rdfs:label ?p_label .").append("\n");
-		buf.append("				?z2 owl:someValuesFrom ?y .").append("\n");
-		buf.append("				?y :NHC0 ?y_code .").append("\n");
-		buf.append("				?y rdfs:label ?y_label").append("\n");
-		buf.append("	   }").append("\n");
-		buf.append("	   UNION").append("\n");
-		buf.append("	   {").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("			?z1 owl:intersectionOf ?list1 .").append("\n");
+
+		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list1 .").append("\n");
+
 		buf.append("			?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
 		buf.append("			     ?z2 owl:unionOf ?list2 .").append("\n");
 		buf.append("			     ?list2 rdf:rest*/rdf:first ?z3 .").append("\n");
@@ -889,7 +905,9 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getOutboundRolesByCode(String named_graph, String code) {
-		return executeQuery(construct_get_outbound_roles_by_code(named_graph, code));
+		String query = construct_get_outbound_roles_by_code(named_graph, code);
+		//System.out.println(query);
+		return executeQuery(query);
 	}
 
 	public String construct_get_role_relationships(String named_graph) {
@@ -1787,12 +1805,12 @@ public class OWLSPARQLUtils {
 	}
 
 
-	public Vector getAllRelationships(String named_graph) {
-		Vector v = executeQuery(construct_get_all_relationships(named_graph));
+	public Vector getAssociations(String named_graph) {
+		Vector v = executeQuery(construct_get_all_associations(named_graph));
 		return v;
 	}
 
-	public String construct_get_all_relationships(String named_graph) {
+	public String construct_get_all_associations(String named_graph) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes).append("\n");
@@ -2639,6 +2657,41 @@ public class OWLSPARQLUtils {
 
 	public Vector getSampleOWLClass(String named_graph, String code) {
 		String query = construct_get_sample_owlclass(named_graph, code);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return new Vector();
+		return new ParserUtils().getResponseValues(v);
+	}
+
+	public String construct_get_simple_restrictions(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		//buf.append("SELECT ?x ?p ?y ").append("\n");
+		buf.append("SELECT ?x_code ?p_code ?y_code ").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		//buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x ?p ?y .").append("\n");
+		buf.append("		?p :NHC0 ?p_code .").append("\n");
+		//buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		?y a owl:Class .").append("\n");
+		buf.append("		?y :NHC0 ?y_code .").append("\n");
+		//buf.append("		?y rdfs:label ?y_label .").append("\n");
+		buf.append("		FILTER regex(?p_code, '^r', 'i')").append("\n");
+        buf.append("    }").append("\n");
+		buf.append("} ").append("\n");
+		//buf.append("LIMIT 1000").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getSimpleRestrictions(String named_graph) {
+		String query = construct_get_simple_restrictions(named_graph);
 		System.out.println(query);
 		Vector v = executeQuery(query);
 		if (v == null) return null;
