@@ -519,7 +519,12 @@ public class StringUtils {
 			String t = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
 			String key = (String) u.elementAt(key_index);
-			String value = (String) u.elementAt(value_index);
+			String value = null;
+			if (value_index == -1) {
+				value = t;
+			} else {
+			    value = (String) u.elementAt(value_index);
+			}
 			hmap.put(key, value);
 		}
 		return hmap;

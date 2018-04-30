@@ -79,7 +79,9 @@ public class MetadataUtils {
 	OWLSPARQLUtils owlSPARQLUtils = null;
 	SPARQLUtilsClient client = null;
 	HashMap nameVersion2NamedGraphMap = null;
-
+	HashMap uriBaseHashMap = null;
+	HashMap namedGraph2IdentfierHashMap = null;
+	HashMap nameGraph2PredicateHashMap = null;
 
 	public String verify_service_url(String serviceUrl) {
 		int n = serviceUrl.indexOf("?");
@@ -88,7 +90,6 @@ public class MetadataUtils {
 		}
 		return serviceUrl;
 	}
-
 
     public MetadataUtils() {
 
@@ -100,13 +101,16 @@ public class MetadataUtils {
     }
 
     public void initialize() {
-		long ms = System.currentTimeMillis();
 		this.sparql_endpoint = serviceUrl;
 		this.client = new SPARQLUtilsClient(sparql_endpoint);
 		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint + "?query=");
 		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
-		System.out.println("Total MetadataUtils initialization run time (ms): " + (System.currentTimeMillis() - ms));
+		this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
     }
+
+    public HashMap getNameVersion2NamedGraphMap() {
+		return nameVersion2NamedGraphMap;
+	}
 
     public void dumpNameVersion2NamedGraphMap() {
 		if (nameVersion2NamedGraphMap == null) return;
@@ -182,16 +186,276 @@ public class MetadataUtils {
 		return namedGraph;
 	}
 
-	public static String sparqlEndpoint2ServiceUrl(String sparql_endpoint) {
+	public String sparqlEndpoint2ServiceUrl(String sparql_endpoint) {
 		int n = sparql_endpoint.lastIndexOf("?");
 		if (n == -1) return sparql_endpoint;
 		return sparql_endpoint.substring(0, n);
 	}
 
-	public static String serviceUrl2SparqlEndpoint(String serviceUrl) {
+	public String serviceUrl2SparqlEndpoint(String serviceUrl) {
 		int n = serviceUrl.lastIndexOf("?");
 		if (n != -1) return serviceUrl;
 		return serviceUrl + "?query=";
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public String searchIdentifier(Vector w) {
+		if (w == null) return null;
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			if (u.size() == 3) {
+				String t0 = (String) u.elementAt(0);
+				String t1 = (String) u.elementAt(1);
+				String t2 = (String) u.elementAt(2);
+				String t2a = t2.replaceAll(":", "_");
+				if (t0.endsWith(t2) || t0.endsWith(t2a) || t0.compareTo(t2) == 0 || t0.compareTo(t2a) == 0) {
+					int n = t1.lastIndexOf("#");
+					if (n != -1) {
+						return t1.substring(n+1, t1.length());
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public String searchPreferredTermPredicate(Vector w) {
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String t0 = (String) u.elementAt(0);
+			String t1 = (String) u.elementAt(1);
+			t1 = t1.toLowerCase();
+			if (t1.endsWith("preferred term") || t1.endsWith("preferred_term")) {
+				return t1;
+			}
+		}
+		return null;
+	}
+
+
+	public Vector removeDuplicates(Vector v) {
+		if (v == null ) return null;
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			if (!w.contains(line)) {
+				w.add(line);
+			}
+		}
+		return w;
+	}
+
+	public String construct_generate_sample_owlclasses(String named_graph, int limit) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("SELECT ?x ?y ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		//buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x ?y ?z").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		buf.append("LIMIT " + limit).append("\n");
+		return buf.toString();
+	}
+
+	public Vector generateSampleOWLClasses(String named_graph, int limit) {
+		String query = construct_generate_sample_owlclasses(named_graph, limit);
+		Vector v = owlSPARQLUtils.executeQuery(query);
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		v = removeDuplicates(v);
+		return v;
+	}
+
+	public String construct_get_distinct_predicates(String named_graph) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("SELECT distinct ?y ?y_label").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x ?y ?z .").append("\n");
+		buf.append("?y rdfs:label ?y_label").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+    }
+
+	public Vector getDistinctPredicates(String named_graph) {
+		String query = construct_get_distinct_predicates(named_graph);
+		Vector v = owlSPARQLUtils.executeQuery(query);
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		v = removeDuplicates(v);
+		return v;
+	}
+
+    public String searchURIBase(Vector v) {
+		if (v == null) return null;
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String uri = (String) u.elementAt(0);
+			String id = (String) u.elementAt(1);
+			id = id.toLowerCase();
+			if (id.endsWith("preferred term") || id.endsWith("preferred_term")) {
+				int n = uri.lastIndexOf("#");
+				if (n == -1) {
+					n = uri.lastIndexOf("/");
+				}
+				if (n != -1) {
+					return uri.substring(0, n+1);
+				}
+				return uri;
+			}
+		}
+		return null;
+	}
+
+//(119) http://purl.obolibrary.org/obo/GO_0000015|http://www.geneontology.org/formats/oboInOwl#id|GO:0000015
+
+    public String searchURIBase2(Vector v) {
+		if (v == null) return null;
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String uri = (String) u.elementAt(0);
+			String predicate = (String) u.elementAt(1);
+			String label = (String) u.elementAt(2);
+			String t2 = label.replaceAll(":", "_");
+			if (uri.endsWith(t2) || uri.endsWith(label)) {
+				int n = uri.lastIndexOf("#");
+				if (n == -1) {
+					n = uri.lastIndexOf("/");
+				}
+				if (n != -1) {
+					return uri.substring(0, n+1);
+				}
+				return uri;
+			}
+		}
+		return null;
+	}
+
+    public HashMap getNamegraph2IdentifierHashMap() {
+		if (namedGraph2IdentfierHashMap != null) {
+			return namedGraph2IdentfierHashMap;
+		}
+		namedGraph2IdentfierHashMap = new HashMap();
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		String identifier = null;
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector graph_names = (Vector) nameVersion2NamedGraphMap.get(key);
+			int limit = 1000;
+			for (int k=0; k<graph_names.size(); k++) {
+				String graph_name = (String) graph_names.elementAt(k);
+				Vector w = generateSampleOWLClasses(graph_name, 1000);
+				identifier = searchIdentifier(w);
+				if (identifier != null) {
+					namedGraph2IdentfierHashMap.put(key + "|" + graph_name, identifier);
+				} else {
+					w = getDistinctPredicates(graph_name);
+					identifier = searchPreferredTermPredicate(w);
+					if (identifier != null) {
+						namedGraph2IdentfierHashMap.put(key + "|" + graph_name, identifier);
+				    }
+				}
+			}
+		}
+		return namedGraph2IdentfierHashMap;
+	}
+
+
+    public HashMap getURIBaseHashMap() {
+		if (uriBaseHashMap != null) {
+			return uriBaseHashMap;
+		}
+		uriBaseHashMap = new HashMap();
+        HashMap namedGraph2IdentfierHashMap = getNamegraph2IdentifierHashMap();
+		Iterator it2 = namedGraph2IdentfierHashMap.keySet().iterator();
+		while (it2.hasNext()) {
+			String key = (String) it2.next();
+			String identifier = (String) namedGraph2IdentfierHashMap.get(key);
+			Vector u = StringUtils.parseData(key, '|');
+			String graph_name = (String) u.elementAt(2);
+			String id = identifier.toLowerCase();
+			if (id.endsWith("preferred term") || id.endsWith("preferred_term")) {
+				Vector w = getDistinctPredicates(graph_name);
+				id = searchURIBase(w);
+				uriBaseHashMap.put(key, id);
+			} else {
+				Vector w = generateSampleOWLClasses(graph_name, 1000);
+				id = searchURIBase2(w);
+				uriBaseHashMap.put(key, id);
+			}
+		}
+        return uriBaseHashMap;
+	}
+
+    public String getURIBase(String named_graph) {
+        Iterator it = uriBaseHashMap.keySet().iterator();
+        while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector u = StringUtils.parseData(key, '|');
+			String graph_name = (String) u.elementAt(2);
+			if (graph_name.compareTo(named_graph) == 0) {
+				return (String) uriBaseHashMap.get(key);
+			}
+		}
+		return null;
+	}
+
+    public String getURI(String named_graph, String code) {
+		String uriBase = getURIBase(named_graph);
+		return uriBase + code;
+	}
+
+    public Vector getSupportedNamedGraphs() {
+		Vector w = new Vector();
+        HashMap uriBaseHashMap = getURIBaseHashMap();
+		Iterator it = uriBaseHashMap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector u = StringUtils.parseData(key, '|');
+			w.add((String) u.elementAt(2));
+		}
+		w = new SortUtils().quickSort(w);
+		return w;
+	}
+
+	public HashMap createNameGraph2PredicateHashMap() {
+		HashMap hmap = new HashMap();
+		Vector named_graphs = getSupportedNamedGraphs();
+		StringUtils.dumpVector("SupportedNamedGraphs", named_graphs);
+		for (int i=0; i<named_graphs.size(); i++) {
+			String named_graph = (String) named_graphs.elementAt(i);
+			HashMap predicate_hmap = createPredicateHashMap(named_graph);
+			hmap.put(named_graph, predicate_hmap);
+		}
+		return hmap;
+	}
+
+	public HashMap createPredicateHashMap(String named_graph) {
+		HashMap hmap = new HashMap();
+		Vector w = getDistinctPredicates(named_graph);
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String key = (String) u.elementAt(0);
+			String value = (String) u.elementAt(1);
+			hmap.put(key, value);
+		}
+		return hmap;
+	}
+
+	public HashMap getPredicateHashMap(String named_graph) {
+		return (HashMap) nameGraph2PredicateHashMap.get(named_graph);
 	}
 
 	public static void main(String[] args) {

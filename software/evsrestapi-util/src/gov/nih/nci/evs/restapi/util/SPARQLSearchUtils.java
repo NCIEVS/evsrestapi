@@ -284,6 +284,21 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
         return xml;
 	}
 
+    public void apply_text_match(StringBuffer buf, String param, String searchString, String algorithm) {
+		searchString = searchString.toLowerCase();
+		if (algorithm.compareTo(EXACT_MATCH) == 0) {
+			buf.append("		FILTER (lcase(str(?" + param + ")) = \"" + searchString + "\")").append("\n");
+		} else if (algorithm.compareTo(STARTS_WITH) == 0) {
+			buf.append("		FILTER (regex(str(?"+ param +"),'^" + searchString + "','i'))").append("\n");
+		} else if (algorithm.compareTo(ENDS_WITH) == 0) {
+			buf.append("		FILTER (regex(str(?"+ param +"),'" + searchString + "^','i'))").append("\n");
+		} else {
+			searchString = searchString.replaceAll("%20", " ");
+			searchString = SPARQLSearchUtils.createSearchString(searchString, algorithm);
+			buf.append("(?"+ param +") <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+		}
+	}
+
 	public static String createSearchString(String term, String algorithm) {
 		if (term == null) return null;
 		String searchTerm = term;
@@ -385,30 +400,43 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  named_graph, propertyName, searchString, EXACT_MATCH);
 	public String construct_search_annotation_properties(String named_graph, String propertyName, String searchString, String algorithm) {
-		searchString = searchString.replaceAll("%20", " ");
-		searchString = searchString.toLowerCase();
-		searchString = createSearchString(searchString, algorithm);
-		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+
+		if (named_graph == null) {
+			buf.append("SELECT distinct ?g ?x_label ?x_code ?y_label ?z").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph ?g").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + ">").append("\n");
+		}
+
 		buf.append("    {").append("\n");
 		buf.append("	    ?x a owl:Class .").append("\n");
 		buf.append("	    ?x rdfs:label ?x_label .").append("\n");
-		buf.append("	    ?x :NHC0 ?x_code .").append("\n");
 		buf.append("	    ?y a owl:AnnotationProperty .").append("\n");
 		buf.append("	    ?x ?y ?z .").append("\n");
 		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
 		if (propertyName != null) {
 			buf.append("	    ?y rdfs:label " + "\"" + propertyName + "\"^^xsd:string .").append("\n");
 		}
-		buf.append("	    (?x_label) <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+
+		apply_text_match(buf, "x_label", searchString, algorithm);
+		//buf.append("	    (?x_label) <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
 
 	public Vector searchAnnotationProperties(String named_graph, String propertyName, String searchString, String algorithm) {
 		String query = construct_search_annotation_properties(named_graph, propertyName, searchString, algorithm);
@@ -434,34 +462,40 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public String construct_search_association_targets(String named_graph, String associationName, String searchString, String algorithm) {
-		searchString = searchString.replaceAll("%20", " ");
-		searchString = searchString.toLowerCase();
-		searchString = createSearchString(searchString, algorithm);
-		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+
+		if (named_graph == null) {
+			buf.append("SELECT distinct ?g ?x_label ?x ?y_label ?z_label ?z").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph ?g").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_label ?x ?y_label ?z_label ?z").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + ">").append("\n");
+		}
+
 		buf.append("    {").append("\n");
-		buf.append("	    ?x a owl:Class .").append("\n");
 		buf.append("	    ?x rdfs:label ?x_label .").append("\n");
-		buf.append("	    ?x :NHC0 ?x_code .").append("\n");
-		buf.append("	    ?y a owl:AnnotationProperty .").append("\n");
 		buf.append("	    ?x ?y ?z .").append("\n");
-		buf.append("	    ?z a owl:Class .").append("\n");
 		buf.append("	    ?z rdfs:label ?z_label .").append("\n");
-		buf.append("	    ?z :NHC0 ?z_code .").append("\n");
 		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
 		buf.append("	    ?y rdfs:label " + "\"" + associationName + "\"^^xsd:string .").append("\n");
-		buf.append("	    ?y :NHC0 ?y_code .").append("\n");
-		buf.append("	    ?y rdfs:range ?y_range .").append("\n");
-		buf.append("	    (?x_label) <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+
+		apply_text_match(buf, "x_label", searchString, algorithm);
+		//buf.append("	    (?x_label) <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+
 		buf.append("    }").append("\n");
-		buf.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
 
 	public Vector searchAssociationTargets(String named_graph, String associationName, String searchString, String algorithm) {
 		String query = construct_search_association_targets(named_graph, associationName, searchString, algorithm);
@@ -473,6 +507,108 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			v = postProcess(v, searchTarget, algorithm, searchString);
 	    }
 		return v;
+	}
+
+	public String construct_search_by_uri(String named_graph, String uri) {
+		StringBuffer buf = new StringBuffer();
+
+		if (named_graph == null) {
+			buf.append("SELECT distinct ?g ?x ?x_label").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph ?g").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x ?x_label").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + ">").append("\n");
+		}
+
+		buf.append("    {").append("\n");
+		buf.append("	    ?x a owl:Class .").append("\n");
+		buf.append("	    ?x rdfs:label ?x_label .").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("    FILTER (str(?x) = \"" + uri + "\"^^xsd:string)").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector searchByURI(String named_graph, String uri) {
+		Vector w = executeQuery(construct_search_by_uri(named_graph, uri));
+		w = new ParserUtils().getResponseValues(w);
+		return w;
+	}
+
+	public String construct_search_by_name(String named_graph, String searchString, String algorithm) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+
+		if (named_graph == null) {
+			buf.append("SELECT distinct ?g ?x ?x_label").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph ?g").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x ?x_label").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + ">").append("\n");
+		}
+		buf.append("    {").append("\n");
+		buf.append("	    ?x a owl:Class .").append("\n");
+		buf.append("	    ?x rdfs:label ?x_label .").append("\n");
+
+		apply_text_match(buf, "x_label", searchString, algorithm);
+		//buf.append("	    (?x_label) <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector searchByName(String named_graph, String searchString, String algorithm) {
+		Vector w = executeQuery(construct_search_by_name(named_graph, searchString, algorithm));
+		if (w != null && w.size() > 0) {
+			w = new ParserUtils().getResponseValues(w);
+		}
+		return w;
+	}
+
+
+	public String construct_search_by_property(String named_graph, String property_name, String property_value, String algorithm) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+        buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("	graph <" + named_graph + "> {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .          ").append("\n");
+		buf.append("		?x ?y ?z .").append("\n");
+		buf.append("		?y rdfs:label \"" + property_name + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		apply_text_match(buf, "z", property_value, algorithm);
+		buf.append("	}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector searchByProperty(String named_graph, String property_name, String property_value, String algorithm) {
+		Vector w = executeQuery(construct_search_by_property(named_graph, property_name, property_value, algorithm));
+		if (w != null && w.size() > 0) {
+			w = new ParserUtils().getResponseValues(w);
+		}
+		return w;
 	}
 
 	public static void main(String[] args) {

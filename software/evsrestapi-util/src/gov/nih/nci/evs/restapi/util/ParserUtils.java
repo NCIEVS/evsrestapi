@@ -76,6 +76,18 @@ public class ParserUtils {
 
 	}
 
+    public Vector getValues(Vector v, int k) {
+		if (v == null) return null;
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String value = (String) u.elementAt(k);
+			w.add(value);
+		}
+		return w;
+	}
+
     public String getValue(String t) {
 		if (t == null) return null;
 		Vector v = StringUtils.parseData(t, '|');
@@ -629,12 +641,7 @@ public class ParserUtils {
 		return line.substring(n+1, line.length());
 	}
 
-	public static void main(String[] args) {
-		String filename = args[0];
-        filename = "filterPropertyQualifiers.txt";
-		Vector w = Utils.readFile(filename);
-        Vector v = new ParserUtils().filterPropertyQualifiers(w, "FULL_SYN");
-	}
+
 
 	public static Vector formatOutput(Vector v) {
 		if (v == null) return null;
@@ -720,4 +727,12 @@ public class ParserUtils {
 		}
 		return complex_properties;
 	}
+
+	public static void main(String[] args) {
+		String filename = args[0];
+        filename = "filterPropertyQualifiers.txt";
+		Vector w = Utils.readFile(filename);
+        Vector v = new ParserUtils().filterPropertyQualifiers(w, "FULL_SYN");
+	}
+
 }

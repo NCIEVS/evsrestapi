@@ -258,6 +258,43 @@ public class Utils {
 		return inv_hmap;
 	}
 
+    public static Vector listFiles(String directory) {
+		Vector w = new Vector();
+		Collection<File> c = listFileTree(new File(directory));
+		int k = 0;
+		Iterator it = c.iterator();
+		while (it.hasNext()) {
+			File t = (File) it.next();
+			k++;
+			w.add(t.getName());
+		}
+		w = new SortUtils().quickSort(w);
+		return w;
+	}
+
+
+	public static Collection<File> listFileTree(File dir) {
+		Set<File> fileTree = new HashSet<File>();
+		if(dir==null||dir.listFiles()==null){
+			return fileTree;
+		}
+		for (File entry : dir.listFiles()) {
+			if (entry.isFile()) fileTree.add(entry);
+			else fileTree.addAll(listFileTree(entry));
+		}
+		return fileTree;
+	}
+
+    public static boolean checkIfFileExists(String filename) {
+		String currentDir = System.getProperty("user.dir");
+		File f = new File(currentDir + "\\" + filename);
+		if(f.exists() && !f.isDirectory()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
     public static void generate_construct_statement(String method_name, String params, String filename) {
 		Vector u = Utils.readFile(filename);
 		Vector w = new Vector();
@@ -276,8 +313,8 @@ public class Utils {
 				w.add("\t" + t);
 			}
 		}
-		w.add("\t\treturn buf.toString();");
-		w.add("\t}");
+		w.add("\treturn buf.toString();");
+		w.add("}");
 		StringUtils.dumpVector(w);
 	}
 }

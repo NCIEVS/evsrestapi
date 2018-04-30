@@ -11,7 +11,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class ComplexProperty
+public class ComplexProperty extends Property
 {
 
 // Variable declaration
@@ -28,8 +28,7 @@ public class ComplexProperty
 		String name,
 		String value,
 		List<PropertyQualifier> qualifiers) {
-
-		this.name = name;
+		this.name = name;
 		this.value = value;
 		this.qualifiers = qualifiers;
 	}

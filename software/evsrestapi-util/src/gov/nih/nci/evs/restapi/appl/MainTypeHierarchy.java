@@ -1226,6 +1226,33 @@ Disease or Disorder (C2991)
 		hh.printTree();
 	}
 
+	public void traverseUp(String rootCode) {
+		traverseUp(rootCode, 0);
+	}
+
+	public String getIndentation(int level) {
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<level; i++) {
+			buf.append("\t");
+		}
+		return buf.toString();
+	}
+
+	public void traverseUp(String code, int level) {
+		String label = hh.getLabel(code);
+		if (main_type_set.contains(code)) {
+			System.out.println(getIndentation(level) + label + " (" + code + ") (*)");
+		} else {
+			System.out.println(getIndentation(level) + label + " (" + code + ")");
+		}
+		Vector superconcepts = hh.getSuperclassCodes(code);
+		if (superconcepts == null) return;
+		for (int i=0; i<superconcepts.size(); i++) {
+			String superconceptcode = (String) superconcepts.elementAt(i);
+			traverseUp(superconceptcode, level+1);
+		}
+    }
+
 	public static void main(String[] args) {
 		/*
 		String serviceUrl = args[0];

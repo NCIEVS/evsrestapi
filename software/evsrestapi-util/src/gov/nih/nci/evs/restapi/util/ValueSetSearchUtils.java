@@ -250,6 +250,88 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		return uris;
 	}
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void apply_text_match(StringBuffer buf, String param, String searchString, String algorithm) {
+		if (algorithm.compareTo("exactMatch") == 0) {
+			buf.append("FILTER (lcase(str(?" + param + ")) = \"" + searchString + "\")").append("\n");
+		} else if (algorithm.compareTo("startsWith") == 0) {
+			buf.append("FILTER (regex(str(?"+ param +"),'^" + searchString + "','i'))").append("\n");
+		} else if (algorithm.compareTo("endsWith") == 0) {
+			buf.append("FILTER (regex(str(?"+ param +"),'" + searchString + "^','i'))").append("\n");
+		} else {
+			searchString = searchString.replaceAll("%20", " ");
+			searchString = searchString.toLowerCase();
+			searchString = SPARQLSearchUtils.createSearchString(searchString, algorithm);
+			buf.append("(?"+ param +") <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+		}
+	}
+
+	public String construct_search_value_sets(String named_graph, String searchString, String algorithm) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x rdfs:label ?x_label .").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+		buf.append("?x ?y ?z .").append("\n");
+		buf.append("?y rdfs:label \"Concept_In_Subset\"^^xsd:string .").append("\n");
+		buf.append("?z rdfs:label ?z_label .").append("\n");
+		buf.append("?z :NHC0 ?z_code .").append("\n");
+
+		apply_text_match(buf, "x_label", searchString, algorithm);
+
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector searchValueSets(String named_graph, String matchText, String algorithm) {
+	    String query = construct_search_value_sets(named_graph, matchText, algorithm);
+	    Vector v = owlSPARQLUtils.executeQuery(query);
+	    if (v == null) return null;
+	    if (v.size() == 0) return v;
+	    return new ParserUtils().getResponseValues(v);
+	}
+
+	public String construct_get_value_set_metadata(String named_graph, String header_concept_code) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?y1_label ?z1 ?y2_label ?z2 ").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x rdfs:label ?x_label .").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+		buf.append("?x ?y1 ?z1 .").append("\n");
+		buf.append("?y1 rdfs:label ?y1_label .").append("\n");
+		buf.append("?y1 rdfs:label \"DEFINITION\"^^xsd:string .").append("\n");
+		buf.append("?x ?y2 ?z2 .").append("\n");
+		buf.append("?y2 rdfs:label \"Contributing_Source\"^^xsd:string .").append("\n");
+		buf.append("?y2 rdfs:label ?y2_label .").append("\n");
+		buf.append("FILTER (str(?x_code) = \"" + header_concept_code + "\"^^xsd:string)").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getValueSetMetadata(String named_graph, String header_concept_code) {
+	    String query = construct_get_value_set_metadata(named_graph, header_concept_code);
+	    Vector v = owlSPARQLUtils.executeQuery(query);
+	    if (v == null) return null;
+	    if (v.size() == 0) return v;
+	    return new ParserUtils().getResponseValues(v);
+	}
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 
