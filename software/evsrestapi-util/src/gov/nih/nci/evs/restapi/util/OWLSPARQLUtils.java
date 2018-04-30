@@ -466,8 +466,9 @@ public class OWLSPARQLUtils {
 		buf.append("	  {").append("\n");
 		buf.append("	    ?x a owl:Class .").append("\n");
 		buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		buf.append("	    ?x owl:equivalentClass ?y .").append("\n");
-		buf.append("	    ?y owl:intersectionOf ?list .").append("\n");
+		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
 		buf.append("	    ?list rdf:rest*/rdf:first ?z .").append("\n");
 		buf.append("	    ?z a owl:Class .").append("\n");
 		buf.append("	    ?z rdfs:label ?z_label .").append("\n");
@@ -510,8 +511,11 @@ public class OWLSPARQLUtils {
 		buf.append("	    ?y a owl:Class .").append("\n");
 		buf.append("	    ?y :NHC0 ?y_code .").append("\n");
 		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
-		buf.append("	    ?y owl:equivalentClass ?z .").append("\n");
-		buf.append("	    ?z owl:intersectionOf ?list .").append("\n");
+
+		buf.append("		?y owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+
 		buf.append("	    ?list rdf:rest*/rdf:first ?x .").append("\n");
 		buf.append("	    ?x a owl:Class .").append("\n");
 		buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
@@ -764,8 +768,11 @@ public class OWLSPARQLUtils {
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 ?x_code .").append("\n");
 		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z .").append("\n");
-		buf.append("			?z owl:intersectionOf ?list .").append("\n");
+
+		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+
 		buf.append("			?list rdf:rest*/rdf:first ?z2 .").append("\n");
 		buf.append("				?z2 a owl:Restriction .").append("\n");
 		buf.append("				?z2 owl:onProperty ?p .").append("\n");
@@ -779,8 +786,11 @@ public class OWLSPARQLUtils {
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 ?x_code .").append("\n");
 		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("			?z1 owl:intersectionOf ?list1 .").append("\n");
+
+		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list1 .").append("\n");
+
 		buf.append("			?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
 		buf.append("			     ?z2 owl:unionOf ?list2 .").append("\n");
 		buf.append("			     ?list2 rdf:rest*/rdf:first ?z3 .").append("\n");
@@ -1083,7 +1093,7 @@ public class OWLSPARQLUtils {
 		buf.append("		?x rdfs:label ?x_label .").append("\n");
 		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
 		buf.append("		?z0 a owl:Class .").append("\n");
-		buf.append("			?z0 owl:intersectionOf ?list .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
 		buf.append("				?list rdf:rest*/rdf:first ?z2 .").append("\n");
 		buf.append("				?z2 a owl:Restriction .").append("\n");
 		buf.append("				?z2 owl:onProperty ?p .").append("\n");
