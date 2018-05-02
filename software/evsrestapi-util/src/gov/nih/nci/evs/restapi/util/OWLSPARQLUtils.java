@@ -738,8 +738,8 @@ public class OWLSPARQLUtils {
 
 		buf.append("	    {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?code .").append("\n");
-		buf.append("		?x rdfs:label ?x_code .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
 		buf.append("		?x rdfs:subClassOf ?z0 .").append("\n");
 		buf.append("		?z0 a owl:Class .").append("\n");
 		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
@@ -756,7 +756,7 @@ public class OWLSPARQLUtils {
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x f ?x_label .").append("\n");
 
 		buf.append("		?x rdfs:subClassOf ?r .").append("\n");
 
@@ -831,7 +831,7 @@ public class OWLSPARQLUtils {
 		buf.append("	    {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		buf.append("		?x rdfs:label ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
 		buf.append("		?x rdfs:subClassOf ?z0 .").append("\n");
 		buf.append("		?z0 a owl:Class .").append("\n");
 		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
@@ -2698,6 +2698,186 @@ public class OWLSPARQLUtils {
 		if (v.size() == 0) return new Vector();
 		return new ParserUtils().getResponseValues(v);
 	}
+
+
+	public String construct_get_roles_1(String named_graph, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT distinct ?x_code ?p_code ?y_code ").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code ").append("\n");
+		}
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x rdfs:subClassOf ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+		buf.append("		?list rdf:rest*/rdf:first ?z2 .").append("\n");
+		buf.append("		?z2 a owl:Restriction .").append("\n");
+		buf.append("		?z2 owl:onProperty ?p .").append("\n");
+		buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		?p :NHC0 ?p_code .").append("\n");
+		buf.append("		?z2 owl:someValuesFrom ?y .").append("\n");
+		buf.append("		?y :NHC0 ?y_code .").append("\n");
+		buf.append("		?y rdfs:label ?y_label").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("} ").append("\n");
+		return buf.toString();
+	}
+
+
+	public String construct_get_roles_2(String named_graph, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT distinct ?x_code ?p_code ?y_code ").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code ").append("\n");
+		}		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+
+		buf.append("	   {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x rdfs:subClassOf ?r .").append("\n");
+		buf.append("		?r a owl:Restriction .").append("\n");
+		buf.append("		?r owl:onProperty ?p .").append("\n");
+		buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		?p :NHC0 ?p_code .").append("\n");
+		buf.append("		?r owl:someValuesFrom ?y .").append("\n");
+		buf.append("		?y a owl:Class .").append("\n");
+		buf.append("		?y rdfs:label ?y_label .").append("\n");
+		buf.append("		?y :NHC0 ?y_code").append("\n");
+		buf.append("	   }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("} ").append("\n");
+		return buf.toString();
+	}
+
+	public String construct_get_roles_3(String named_graph, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT distinct ?x_code ?p_code ?y_code ").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code ").append("\n");
+		}		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+
+		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+
+		buf.append("		?list rdf:rest*/rdf:first ?z2 .").append("\n");
+		buf.append("		?z2 a owl:Restriction .").append("\n");
+		buf.append("		?z2 owl:onProperty ?p .").append("\n");
+		buf.append("		?p rdfs:label ?p_label .").append("\n");
+		buf.append("		?p :NHC0 ?p_code .").append("\n");
+		buf.append("		?z2 owl:someValuesFrom ?y .").append("\n");
+		buf.append("		?y :NHC0 ?y_code .").append("\n");
+		buf.append("		?y rdfs:label ?y_label").append("\n");
+		buf.append("	   }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("} ").append("\n");
+		return buf.toString();
+	}
+
+	public String construct_get_roles_4(String named_graph, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT distinct ?x_code ?p_code ?y_code ").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code ").append("\n");
+		}		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	   {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+
+		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list1 .").append("\n");
+
+		buf.append("			?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
+		buf.append("			     ?z2 owl:unionOf ?list2 .").append("\n");
+		buf.append("			     ?list2 rdf:rest*/rdf:first ?z3 .").append("\n");
+		buf.append("				 ?z3 owl:intersectionOf ?list3 .").append("\n");
+		buf.append("				 ?list3 rdf:rest*/rdf:first ?z4 .").append("\n");
+		buf.append("					?z4 a owl:Restriction .").append("\n");
+		buf.append("					?z4 owl:onProperty ?p .").append("\n");
+		buf.append("					?p rdfs:label ?p_label .").append("\n");
+		buf.append("					?p :NHC0 ?p_code .").append("\n");
+		buf.append("					?z4 owl:someValuesFrom ?y .").append("\n");
+		buf.append("					?y :NHC0 ?y_code .").append("\n");
+		buf.append("					?y rdfs:label ?y_label").append("\n");
+		buf.append("	   }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("} ").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getRestrictions(String named_graph) {
+		return getRestrictions(named_graph, false);
+	}
+
+	public Vector getRestrictions(String named_graph, boolean codeOnly) {
+		Vector w = new Vector();
+		String query = construct_get_roles_1(named_graph, codeOnly);
+		System.out.println(query);
+		Vector w1 = executeQuery(query);
+		if (w1 != null && w1.size() > 0) {
+			w1 = new ParserUtils().getResponseValues(w1);
+			w.addAll(w1);
+		}
+		query = construct_get_roles_2(named_graph, codeOnly);
+		System.out.println(query);
+		w1 = executeQuery(query);
+		if (w1 != null && w1.size() > 0) {
+			w1 = new ParserUtils().getResponseValues(w1);
+			w.addAll(w1);
+		}
+		query = construct_get_roles_3(named_graph, codeOnly);
+		System.out.println(query);
+		w1 = executeQuery(query);
+		if (w1 != null && w1.size() > 0) {
+			w1 = new ParserUtils().getResponseValues(w1);
+			w.addAll(w1);
+		}
+		query = construct_get_roles_4(named_graph, codeOnly);
+		System.out.println(query);
+		w1 = executeQuery(query);
+		if (w1 != null && w1.size() > 0) {
+			w1 = new ParserUtils().getResponseValues(w1);
+			w.addAll(w1);
+		}
+		if (w.size() == 0) {
+			w = getSimpleRestrictions(named_graph);
+		}
+		w = new SortUtils().quickSort(w);
+		return w;
+	}
+
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];

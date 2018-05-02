@@ -295,6 +295,58 @@ public class Utils {
 		}
 	}
 
+    public static HashMap createRelationshipHashMap(Vector v) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String src = (String) u.elementAt(0);
+			String rel = (String) u.elementAt(1);
+			String target = (String) u.elementAt(2);
+			HashMap sub_map = new HashMap();
+			if (hmap.containsKey(src)) {
+				sub_map = (HashMap) hmap.get(src);
+			}
+			Vector w = new Vector();
+			if (sub_map.containsKey(rel)) {
+				w = (Vector) sub_map.get(rel);
+			}
+			if (!w.contains(target)) {
+				w.add(target);
+			}
+			sub_map.put(rel, w);
+			hmap.put(src, sub_map);
+
+		}
+		return hmap;
+	}
+
+    public static HashMap createInverseRelationshipHashMap(Vector v) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String src = (String) u.elementAt(0);
+			String rel = (String) u.elementAt(1);
+			String target = (String) u.elementAt(2);
+			HashMap sub_map = new HashMap();
+			if (hmap.containsKey(target)) {
+				sub_map = (HashMap) hmap.get(target);
+			}
+			Vector w = new Vector();
+			if (sub_map.containsKey(rel)) {
+				w = (Vector) sub_map.get(rel);
+			}
+			if (!w.contains(src)) {
+				w.add(src);
+			}
+			sub_map.put(rel, w);
+			hmap.put(target, sub_map);
+		}
+		return hmap;
+	}
+
+
     public static void generate_construct_statement(String method_name, String params, String filename) {
 		Vector u = Utils.readFile(filename);
 		Vector w = new Vector();
@@ -317,4 +369,7 @@ public class Utils {
 		w.add("}");
 		StringUtils.dumpVector(w);
 	}
+
+
+
 }
