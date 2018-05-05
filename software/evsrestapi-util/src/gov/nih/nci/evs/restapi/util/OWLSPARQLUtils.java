@@ -756,7 +756,7 @@ public class OWLSPARQLUtils {
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
 		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x f ?x_label .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
 
 		buf.append("		?x rdfs:subClassOf ?r .").append("\n");
 
@@ -2877,7 +2877,38 @@ public class OWLSPARQLUtils {
 		w = new SortUtils().quickSort(w);
 		return w;
 	}
+    public String construct_get_domain_and_range_data(String name_graph) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("SELECT distinct ?x_label ?x_code ?x_domain_label ?x_domain_code ?x_range_label ?x_range_code ").append("\n");
+        buf.append("{ ").append("\n");
+        buf.append("graph <http://NCIt>").append("\n");
+        buf.append("{").append("\n");
+        buf.append("{").append("\n");
+        buf.append("?x rdfs:label ?x_label .").append("\n");
+        buf.append("?x :NHC0 ?x_code .").append("\n");
+        buf.append("?x rdfs:domain ?x_domain .").append("\n");
+        buf.append("?x rdfs:range ?x_range .").append("\n");
+        buf.append("?x_domain rdfs:label ?x_domain_label .").append("\n");
+        buf.append("?x_domain :NHC0 ?x_domain_code .            ").append("\n");
+        buf.append("?x_range rdfs:label ?x_range_label .").append("\n");
+        buf.append("?x_range :NHC0 ?x_range_code                ").append("\n");
+        buf.append("}").append("\n");
+        buf.append("}").append("\n");
+        buf.append("} ").append("\n");
+        buf.append("").append("\n");
+        return buf.toString();
+    }
 
+	public Vector getDomainAndRangeData(String named_graph) {
+	    String query = construct_get_domain_and_range_data(named_graph);
+	    Vector v = executeQuery(query);
+	    if (v == null) return null;
+	    if (v.size() == 0) return v;
+	    v = new ParserUtils().getResponseValues(v);
+	    return new SortUtils().quickSort(v);
+	}
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
