@@ -198,6 +198,7 @@ public class EvsControllerTests {
         	   assertThat(evsConcept.getSuperconcepts().size() > 0).isTrue();
         	   assertThat(evsConcept.getSynonyms().size() > 0).isTrue();
         	   assertThat(evsConcept.getAdditionalProperties().size() > 0).isTrue();
+        	   assertThat(evsConcept.getLabel().equalsIgnoreCase("Cancer TNM Finding")).isTrue();
            }
            
            log.info("Successfully tested url - " + url);

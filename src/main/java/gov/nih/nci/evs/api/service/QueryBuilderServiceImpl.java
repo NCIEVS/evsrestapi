@@ -45,6 +45,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
         query.append("SELECT ?conceptLabel\n");
         query.append("{ GRAPH <" + namedGraph + ">");
         query.append("  { ?concept a owl:Class .\n");
+        query.append("    ?concept :NHC0 "+ "\"" + conceptCode + "\" .\n");	
         query.append("    ?concept rdfs:label ?conceptLabel \n");
         query.append("  }\n");
         query.append("}\n");
