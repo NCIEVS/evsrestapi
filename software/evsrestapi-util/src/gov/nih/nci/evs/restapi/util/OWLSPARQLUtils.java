@@ -593,33 +593,6 @@ public class OWLSPARQLUtils {
 	    return null;
 	}
 
-/*
-	public String construct_get_synonyms(String named_graph, String code) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("").append("\n");
-		buf.append("SELECT distinct ?z_axiom ?x_label ?x_code ?term_name ?y ?z").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + "> {").append("\n");
-		buf.append("            ?x a owl:Class .").append("\n");
-		buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("            ?x :NHC0 ?x_code .").append("\n");
-		buf.append("            ?x rdfs:label ?x_label .").append("\n");
-		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
-		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
-		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
-		buf.append("            ?p :NHC0 \"P90\"^^xsd:string .").append("\n");
-		buf.append("	    ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
-		buf.append("	    ?z_axiom ?y ?z ").append("\n");
-		buf.append("    }").append("\n");
-		buf.append("    FILTER (str(?y) = \"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#term-group\"").append("\n");
-		buf.append("         || str(?y) = \"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#term-source\"").append("\n");
-		buf.append("         || str(?y) = \"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P385\")").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
-*/
 	public String construct_get_synonyms(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -643,11 +616,15 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+	public Vector getComplexProperties(String named_graph, String code, String propertyName) {
+		Vector v = getPropertyQualifiersByCode(named_graph, code);
+		if (v == null) return null;
+		v = new ParserUtils().filterPropertyQualifiers(v, propertyName);
+		return v;
+	}
 
 	public Vector getSynonyms(String named_graph, String code) {
-		Vector v = getPropertyQualifiersByCode(named_graph, code);
-		v = new ParserUtils().filterPropertyQualifiers(v, Constants.FULL_SYN);
-		return v;
+		return getComplexProperties(named_graph, code, Constants.FULL_SYN);
 	}
 
 	public String construct_get_annotation_properties(String named_graph) {
@@ -692,6 +669,10 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_object_properties(named_graph));
 	}
 
+	public String construct_get_axioms_by_code(String named_graph, String code) {
+		return construct_get_property_qualifiers_by_code(named_graph, code);
+	}
+
 	public String construct_get_property_qualifiers_by_code(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -720,6 +701,10 @@ public class OWLSPARQLUtils {
 		buf.append("}").append("\n");
 		buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
 		return buf.toString();
+	}
+
+	public Vector getAxiomsByCode(String named_graph, String code) {
+		return getPropertyQualifiersByCode(named_graph, code);
 	}
 
 	public Vector getPropertyQualifiersByCode(String named_graph, String code) {
@@ -906,7 +891,6 @@ public class OWLSPARQLUtils {
 
 	public Vector getOutboundRolesByCode(String named_graph, String code) {
 		String query = construct_get_outbound_roles_by_code(named_graph, code);
-		//System.out.println(query);
 		return executeQuery(query);
 	}
 
@@ -2385,6 +2369,7 @@ public class OWLSPARQLUtils {
 	    return executeQuery(query);
 	}
 
+/*
 	public String construct_get_axioms_by_code(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -2416,6 +2401,7 @@ public class OWLSPARQLUtils {
 	    String query = construct_get_axioms_by_code(named_graph, code);
 	    return executeQuery(query);
 	}
+*/
 
 	public String construct_get_owl_class_data(String named_graph, String uri) {
 		StringBuffer buf = new StringBuffer();
@@ -2557,7 +2543,7 @@ public class OWLSPARQLUtils {
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
-
+/*
 	public String construct_get_axioms_by_uri(String named_graph, String uri) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -2590,6 +2576,7 @@ public class OWLSPARQLUtils {
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
+*/
 
 	public String getMultipleValues(Vector w) {
 		if (w == null) return null;
@@ -2909,6 +2896,54 @@ public class OWLSPARQLUtils {
 	    v = new ParserUtils().getResponseValues(v);
 	    return new SortUtils().quickSort(v);
 	}
+
+	public Vector<ComplexProperty> getComplexProperties(String named_graph, String code) {
+		Vector w = new Vector();
+		Vector v = getPropertyQualifiersByCode(named_graph, code);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+		List list = new ArrayList();
+		String prev_axiom_id = "";
+		String axiom_id = null;
+		int i = 0;
+		ComplexProperty prop = null;
+		while (i<v.size()) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String z_axiom = (String) u.elementAt(0);
+			String x_label = (String) u.elementAt(1);
+			String x_code = (String) u.elementAt(2);
+			String p_label = (String) u.elementAt(3);
+			String p_code = (String) u.elementAt(4);
+			String z_target = (String) u.elementAt(5);
+			String y_label = (String) u.elementAt(6);
+			String y_code = (String) u.elementAt(7);
+			String z = (String) u.elementAt(8);
+
+			axiom_id = z_axiom;
+			if (axiom_id.compareTo(prev_axiom_id) != 0) {
+				if (prop != null) {
+					prop.setQualifiers(list);
+					w.add(prop);
+				}
+				list = new ArrayList();
+				prop = new ComplexProperty(p_label, z_target, null);
+				prev_axiom_id = axiom_id;
+				PropertyQualifier qual = new PropertyQualifier(y_label, z);
+				list.add(qual);
+			} else {
+				PropertyQualifier qual = new PropertyQualifier(y_label, z);
+				list.add(qual);
+			}
+			i++;
+		}
+		if (prop != null) {
+			prop.setQualifiers(list);
+			w.add(prop);
+		}
+		return w;
+	}
+
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
