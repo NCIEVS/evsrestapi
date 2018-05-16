@@ -2796,6 +2796,7 @@ public class OWLSPARQLUtils {
 			buf.append("SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code ").append("\n");
 		}		buf.append("{ ").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
+
 		buf.append("    {").append("\n");
 		buf.append("	   {").append("\n");
 		buf.append("		?x a owl:Class .").append("\n");
@@ -2831,28 +2832,28 @@ public class OWLSPARQLUtils {
 	public Vector getRestrictions(String named_graph, boolean codeOnly) {
 		Vector w = new Vector();
 		String query = construct_get_roles_1(named_graph, codeOnly);
-		System.out.println(query);
+		//System.out.println(query);
 		Vector w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
 			w.addAll(w1);
 		}
 		query = construct_get_roles_2(named_graph, codeOnly);
-		System.out.println(query);
+		//System.out.println(query);
 		w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
 			w.addAll(w1);
 		}
 		query = construct_get_roles_3(named_graph, codeOnly);
-		System.out.println(query);
+		//System.out.println(query);
 		w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
 			w.addAll(w1);
 		}
 		query = construct_get_roles_4(named_graph, codeOnly);
-		System.out.println(query);
+		//System.out.println(query);
 		w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
@@ -2944,6 +2945,105 @@ public class OWLSPARQLUtils {
 		return w;
 	}
 
+
+	public String construct_simple_query(String named_graph, String code) {
+			String prefixes = getPrefixes();
+			StringBuffer buf = new StringBuffer();
+			buf.append(prefixes);
+			buf.append("SELECT distinct ?x_label ?x_code ?p_label ?p_code ?y").append("\n");
+			buf.append("{ ").append("\n");
+			buf.append("graph <" + named_graph + ">").append("\n");
+			buf.append("{").append("\n");
+			buf.append("{").append("\n");
+			buf.append("?x a owl:Class .").append("\n");
+			buf.append("?x :NHC0 ?x_code .").append("\n");
+			buf.append("?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			buf.append("?x rdfs:label ?x_label .").append("\n");
+			buf.append("?x ?p ?y .").append("\n");
+			buf.append("?p :NHC0 ?p_code .").append("\n");
+			buf.append("?p rdfs:label ?p_label ").append("\n");
+			buf.append("}").append("\n");
+			buf.append("}").append("\n");
+			buf.append("} ").append("\n");
+			return buf.toString();
+	}
+
+	public Vector executeSimpleQuery(String named_graph, String code) {
+	    String query = construct_simple_query(named_graph, code);
+	    Vector v = executeQuery(query);
+	    if (v == null) return null;
+	    if (v.size() == 0) return v;
+	    v = new ParserUtils().getResponseValues(v);
+	    return new SortUtils().quickSort(v);
+	}
+
+
+	public String construct_inverse_simple_query(String named_graph, String code) {
+			String prefixes = getPrefixes();
+			StringBuffer buf = new StringBuffer();
+			buf.append(prefixes);
+			buf.append("SELECT distinct ?y_label ?y_code ?p_label ?p_code ?x_label ?x_code").append("\n");
+			buf.append("{ ").append("\n");
+			buf.append("graph <" + named_graph + ">").append("\n");
+			buf.append("{").append("\n");
+			buf.append("{").append("\n");
+			buf.append("?x a owl:Class .").append("\n");
+			buf.append("?x :NHC0 ?x_code .").append("\n");
+			buf.append("?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			buf.append("?x rdfs:label ?x_label .").append("\n");
+			buf.append("?y ?p ?x .").append("\n");
+			buf.append("?y :NHC0 ?y_code .").append("\n");
+			buf.append("?y rdfs:label ?y_label .").append("\n");
+			buf.append("?p :NHC0 ?p_code .").append("\n");
+			buf.append("?p rdfs:label ?p_label ").append("\n");
+			buf.append("}").append("\n");
+			buf.append("}").append("\n");
+			buf.append("} ").append("\n");
+			return buf.toString();
+	}
+
+	public Vector executeInverseSimpleQuery(String named_graph, String code) {
+	    String query = construct_inverse_simple_query(named_graph, code);
+	    Vector v = executeQuery(query);
+	    if (v == null) return null;
+	    if (v.size() == 0) return v;
+	    v = new ParserUtils().getResponseValues(v);
+	    return new SortUtils().quickSort(v);
+	}
+
+	public String construct_role_query(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_label ?x_code ?p_label ?p_code ?y_label ?y_code").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+		buf.append("?x rdfs:label ?x_label .").append("\n");
+		buf.append("?x ?p ?y .").append("\n");
+		buf.append("?p :NHC0 ?p_code .").append("\n");
+		buf.append("?p rdfs:label ?p_label .").append("\n");
+		buf.append("?y a owl:Class .").append("\n");
+		buf.append("?y :NHC0 ?y_code .").append("\n");
+		buf.append("?y rdfs:label ?y_label .").append("\n");
+		buf.append("}").append("\n");
+		buf.append("FILTER regex(?p_code, '^r', 'i')").append("\n");
+		buf.append("}").append("\n");
+		buf.append("} ").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getRoles(String named_graph) {
+	    String query = construct_role_query(named_graph);
+	    Vector v = executeQuery(query);
+	    if (v == null) return null;
+	    if (v.size() == 0) return v;
+	    v = new ParserUtils().getResponseValues(v);
+	    return new SortUtils().quickSort(v);
+	}
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
