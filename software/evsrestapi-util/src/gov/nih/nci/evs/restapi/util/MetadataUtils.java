@@ -82,6 +82,8 @@ public class MetadataUtils {
 	HashMap uriBaseHashMap = null;
 	HashMap namedGraph2IdentfierHashMap = null;
 	HashMap nameGraph2PredicateHashMap = null;
+	HashMap basePrefixUIDHashMap = null;
+
 
 	public String verify_service_url(String serviceUrl) {
 		int n = serviceUrl.indexOf("?");
@@ -100,13 +102,65 @@ public class MetadataUtils {
 		initialize();
     }
 
+    public HashMap getBasePrefixUIDHashMap() {
+		return basePrefixUIDHashMap;
+	}
+
     public void initialize() {
 		this.sparql_endpoint = serviceUrl;
-		this.client = new SPARQLUtilsClient(sparql_endpoint);
 		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint + "?query=");
 		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
 		this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
+		this.basePrefixUIDHashMap = createBasePrefixUIDHashMap();
     }
+
+
+    public HashMap createBasePrefixUIDHashMap(){
+        HashMap hmap = getNameVersion2NamedGraphMap();
+        Iterator it = hmap.keySet().iterator();
+        HashMap basePrefixUIDHashMap = new HashMap();
+        while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector ng_vec = (Vector) hmap.get(key);
+			for (int j=0; j<ng_vec.size(); j++) {
+				String ng = (String) ng_vec.elementAt(j);
+				Vector w = simple_tuple_query(ng, 1000);
+				String id_line = findNamedGraphIdentifierLine(w);
+				String s = getNamedGraphBasePrefixAndUniqueIdentifier(ng, id_line);
+				Vector u = StringUtils.parseData(s);
+				String basePrefix = (String) u.elementAt(0);
+				String uid = (String) u.elementAt(1);
+				if (basePrefix.endsWith("oboInOwl#>")) {
+					uid = "id";
+				}
+				basePrefixUIDHashMap.put(ng, basePrefix + "|" + uid);
+			}
+		}
+		return basePrefixUIDHashMap;
+	}
+
+/*
+    public HashMap createBasePrefixUIDHashMap(){
+        HashMap hmap = this.nameVersion2NamedGraphMap;// getNameVersion2NamedGraphMap();
+        Iterator it = hmap.keySet().iterator();
+        HashMap basePrefixUIDHashMap = new HashMap();
+        while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector ng_vec = (Vector) hmap.get(key);
+			for (int j=0; j<ng_vec.size(); j++) {
+				String ng = (String) ng_vec.elementAt(j);
+				Vector w = simple_tuple_query(ng, 1000);
+				String id_line = findNamedGraphIdentifierLine(w);
+				String s = getNamedGraphBasePrefixAndUniqueIdentifier(ng, id_line);
+				Vector u = StringUtils.parseData(s);
+				String basePrefix = (String) u.elementAt(0);
+				String uid = (String) u.elementAt(1);
+				basePrefixUIDHashMap.put(ng, basePrefix + "|" + uid);
+			}
+		}
+		return basePrefixUIDHashMap;
+	}
+*/
 
     public HashMap getNameVersion2NamedGraphMap() {
 		return nameVersion2NamedGraphMap;
@@ -128,7 +182,6 @@ public class MetadataUtils {
 				System.out.println(nameVersion + " --> " + named_graph);
 			}
 		}
-
 	}
 
     public String getLatestVersion(String codingScheme) {
@@ -156,8 +209,8 @@ public class MetadataUtils {
 		if (version == null) {
 			version = getLatestVersion(codingScheme);
 		}
-		String namedGraph = client.getNamedGraphByCodingSchemeAndVersion(codingScheme, version);
-		return namedGraph;
+		Vector namedGraphs = (Vector) nameVersion2NamedGraphMap.get(codingScheme+"|"+version);
+		return (String) namedGraphs.elementAt(0);
 	}
 
 	public static String getLatestVersionOfCodingScheme(String serviceUrl, String codingScheme) {
@@ -274,13 +327,16 @@ public class MetadataUtils {
 	public String construct_get_distinct_predicates(String named_graph) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
-		buf.append("SELECT distinct ?y ?y_label").append("\n");
+		//buf.append("SELECT distinct ?y ?y_label").append("\n");
+
+		buf.append("SELECT distinct ?y ").append("\n");
+
 		buf.append("{").append("\n");
 		buf.append("graph <" + named_graph + ">").append("\n");
 		buf.append("{").append("\n");
-		buf.append("?x a owl:Class .").append("\n");
+		//buf.append("?x a owl:Class .").append("\n");
 		buf.append("?x ?y ?z .").append("\n");
-		buf.append("?y rdfs:label ?y_label").append("\n");
+		//buf.append("?y rdfs:label ?y_label").append("\n");
 		buf.append("}").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
@@ -289,10 +345,13 @@ public class MetadataUtils {
 	public Vector getDistinctPredicates(String named_graph) {
 		String query = construct_get_distinct_predicates(named_graph);
 		Vector v = owlSPARQLUtils.executeQuery(query);
-		v = new ParserUtils().getResponseValues(v);
-		v = new SortUtils().quickSort(v);
-		v = removeDuplicates(v);
-		return v;
+
+		if (v != null && v.size() > 0) {
+			v = new ParserUtils().getResponseValues(v);
+			v = new SortUtils().quickSort(v);
+			return v;
+		}
+		return null;
 	}
 
     public String searchURIBase(Vector v) {
@@ -316,8 +375,6 @@ public class MetadataUtils {
 		}
 		return null;
 	}
-
-//(119) http://purl.obolibrary.org/obo/GO_0000015|http://www.geneontology.org/formats/oboInOwl#id|GO:0000015
 
     public String searchURIBase2(Vector v) {
 		if (v == null) return null;
@@ -355,8 +412,12 @@ public class MetadataUtils {
 			int limit = 1000;
 			for (int k=0; k<graph_names.size(); k++) {
 				String graph_name = (String) graph_names.elementAt(k);
-				Vector w = generateSampleOWLClasses(graph_name, 1000);
-				identifier = searchIdentifier(w);
+				Vector w = simple_tuple_query(graph_name, 1000);
+				String id_line = findNamedGraphIdentifierLine(w);
+				String s = getNamedGraphBasePrefixAndUniqueIdentifier(graph_name, id_line);
+				Vector u = StringUtils.parseData(s);
+				String basePrefix = (String) u.elementAt(0);
+				identifier = (String) u.elementAt(1);
 				if (identifier != null) {
 					namedGraph2IdentfierHashMap.put(key + "|" + graph_name, identifier);
 				} else {
@@ -432,7 +493,6 @@ public class MetadataUtils {
 	public HashMap createNameGraph2PredicateHashMap() {
 		HashMap hmap = new HashMap();
 		Vector named_graphs = getSupportedNamedGraphs();
-		StringUtils.dumpVector("SupportedNamedGraphs", named_graphs);
 		for (int i=0; i<named_graphs.size(); i++) {
 			String named_graph = (String) named_graphs.elementAt(i);
 			HashMap predicate_hmap = createPredicateHashMap(named_graph);
@@ -448,14 +508,148 @@ public class MetadataUtils {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String key = (String) u.elementAt(0);
-			String value = (String) u.elementAt(1);
-			hmap.put(key, value);
+			//String value = (String) u.elementAt(1);
+			hmap.put(key, key);
 		}
 		return hmap;
 	}
 
 	public HashMap getPredicateHashMap(String named_graph) {
 		return (HashMap) nameGraph2PredicateHashMap.get(named_graph);
+	}
+
+
+
+	public String construct_simple_tuple_query(String named_graph, int limit) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX protege:<http://protege.stanford.edu/plugins/owl/protege#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("SELECT distinct ?x ?p ?y").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("{").append("\n");
+		//buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x ?p ?y ").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		buf.append("} ").append("\n");
+		buf.append("").append("\n");
+		buf.append("LIMIT " + limit).append("\n");
+		return buf.toString();
+	}
+
+	public Vector simple_tuple_query(String named_graph, int limit) {
+		String query = construct_simple_tuple_query(named_graph, limit);
+		Vector v = owlSPARQLUtils.executeQuery(query);
+		if (v != null && v.size() > 0) {
+			v = new ParserUtils().getResponseValues(v);
+			v = new SortUtils().quickSort(v);
+			return v;
+		}
+		return null;
+	}
+
+	public String findNamedGraphIdentifierLine(Vector v) {
+		if (v == null) {
+			return null;
+		}
+		String id_line = null;
+		int n0 = 0;
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector w = StringUtils.parseData(line, '|');
+			String subject = (String) w.elementAt(0);
+			String predict = (String) w.elementAt(1);
+			if (!predict.endsWith("label") && !predict.endsWith("type") && !predict.endsWith("P108")) {
+				String object = (String) w.elementAt(2);
+				int n = 0;
+				int len_1 = subject.length();
+				int len_2 = object.length();
+				int min = len_1;
+				if (len_2 < len_1) min = len_2;
+				for (int j=0; j<min; j++) {
+					char c1 = subject.charAt(len_1-j-1);
+					char c2 = object.charAt(len_2-j-1);
+					if (c1 == c2) {
+						n++;
+					} else {
+						break;
+					}
+				}
+				if (n > n0) {
+					id_line = line;
+					n0 = n;
+				}
+			}
+		}
+		return id_line;
+	}
+
+	public String getNamedGraphBasePrefixAndUniqueIdentifier(String ng) {
+		Vector w = simple_tuple_query(ng, 1000);
+		String id_line = findNamedGraphIdentifierLine(w);
+		return getNamedGraphBasePrefixAndUniqueIdentifier(ng, id_line);
+	}
+
+	public String getNamedGraphBasePrefixAndUniqueIdentifier(String named_graph, String line) {
+		if (named_graph.compareTo("http://purl.obolibrary.org/obo/obi/2017-09-03/obi.owl") == 0) {
+			return "<http://purl.obolibrary.org/obo/>|IAO_0000111";
+		}
+		String basePrefix = getNamedGraphBasePrefix(line);
+		String uid = getNamedGraphUniqueIdentifier(line);
+		return basePrefix + "|" + uid;
+	}
+
+    public String getNamedGraphBasePrefix(String line) {
+		Vector u = StringUtils.parseData(line, '|');
+		String t = (String) u.elementAt(1);
+		int n = t.lastIndexOf("#");
+		if (n == -1) {
+			n = t.lastIndexOf("/");
+		}
+		return "<" + t.substring(0, n+1) + ">";
+	}
+
+    public String getNamedGraphUniqueIdentifier(String line) {
+		Vector u = StringUtils.parseData(line, '|');
+		String t = (String) u.elementAt(1);
+		int n = t.lastIndexOf("#");
+		if (n == -1) {
+			n = t.lastIndexOf("/");
+		}
+		return t.substring(n+1, t.length());
+	}
+
+    public String getVocabularyName(String named_graph) {
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector v = (Vector) nameVersion2NamedGraphMap.get(key);
+			if (v.contains(named_graph)) {
+				Vector u = StringUtils.parseData(key, '|');
+				return (String) u.elementAt(0);
+			}
+		}
+		return null;
+	}
+
+    public String getVocabularyVersion(String named_graph) {
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector v = (Vector) nameVersion2NamedGraphMap.get(key);
+			if (v.contains(named_graph)) {
+				Vector u = StringUtils.parseData(key, '|');
+				return (String) u.elementAt(1);
+			}
+		}
+		return null;
 	}
 
 	public static void main(String[] args) {

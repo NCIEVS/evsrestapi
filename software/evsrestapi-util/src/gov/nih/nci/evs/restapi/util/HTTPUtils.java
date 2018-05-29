@@ -265,6 +265,7 @@ public class HTTPUtils {
 			responseBuffer.append(line);
 			responseBuffer.append("\n");
 		}
+		reader.close();
 		return responseBuffer.toString();
 	}
 

@@ -303,6 +303,11 @@ public class Utils {
 			String src = (String) u.elementAt(0);
 			String rel = (String) u.elementAt(1);
 			String target = (String) u.elementAt(2);
+			if (u.size() == 6) {
+				src = (String) u.elementAt(1);
+				rel = (String) u.elementAt(3);
+				target = (String) u.elementAt(5);
+			}
 			HashMap sub_map = new HashMap();
 			if (hmap.containsKey(src)) {
 				sub_map = (HashMap) hmap.get(src);
@@ -329,6 +334,11 @@ public class Utils {
 			String src = (String) u.elementAt(0);
 			String rel = (String) u.elementAt(1);
 			String target = (String) u.elementAt(2);
+			if (u.size() == 6) {
+				src = (String) u.elementAt(1);
+				rel = (String) u.elementAt(3);
+				target = (String) u.elementAt(5);
+			}
 			HashMap sub_map = new HashMap();
 			if (hmap.containsKey(target)) {
 				sub_map = (HashMap) hmap.get(target);
