@@ -28,6 +28,7 @@ public class Bindings
     private Property score;
     private Property preferredName;
     private Property conceptStatus;
+    private Property graphName;
 
     public Property getPropertyValue ()
     {
@@ -255,5 +256,13 @@ public class Bindings
 
 	public void setConceptStatus(Property conceptStatus) {
 		this.conceptStatus = conceptStatus;
+	}
+
+	public Property getGraphName() {
+		return graphName;
+	}
+
+	public void setGraphName(Property graphName) {
+		this.graphName = graphName;
 	}
 }

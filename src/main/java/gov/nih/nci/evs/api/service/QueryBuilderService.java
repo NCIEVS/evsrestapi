@@ -3,6 +3,8 @@ package gov.nih.nci.evs.api.service;
 public interface QueryBuilderService {
 	
 	public String contructPrefix();
+	public String contructAllGraphPrefix();
+	public String constructAllGraphQuery();
 	
 	
 	public String constructPropertyQuery(String conceptCode,String namedGraph);

@@ -68,7 +68,7 @@ public class EvsController {
 		return evsConcept;
 	}
 
-	@ApiOperation(value = "Get relationships on the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get relationships on the specified concept", response = EvsRelationships.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Relationships"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -86,7 +86,7 @@ public class EvsController {
 		return relationships;
 	}
 
-	@ApiOperation(value = "Get different paths of the specified concept to the root path", response = EvsConcept.class)
+	@ApiOperation(value = "Get different paths of the specified concept to the root path", response = Paths.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Paths"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -104,7 +104,7 @@ public class EvsController {
 		return paths;
 	}
 
-	@ApiOperation(value = "Get different paths of the specified concept to the specified parent path", response = EvsConcept.class)
+	@ApiOperation(value = "Get different paths of the specified concept to the specified parent path", response = Paths.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Paths"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -123,7 +123,7 @@ public class EvsController {
 		return paths;
 	}
 
-	@ApiOperation(value = "Get properties of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get properties of the specified concept", response = List.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the properties of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -140,7 +140,7 @@ public class EvsController {
 		return evsProperties;
 	}
 
-	@ApiOperation(value = "Get axioms of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get axioms of the specified concept", response = List.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the axioms of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -157,7 +157,7 @@ public class EvsController {
 		return evsAxioms;
 	}
 
-	@ApiOperation(value = "Get subconcepts of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get subconcepts of the specified concept", response = List.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the subconcepts of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -174,7 +174,7 @@ public class EvsController {
 		return evsSubconcepts;
 	}
 
-	@ApiOperation(value = "Get superconcepts of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get superconcepts of the specified concept", response = List.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the superconcepts of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -192,7 +192,7 @@ public class EvsController {
 		return evsSuperconcepts;
 	}
 
-	@ApiOperation(value = "Get associations of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get associations of the specified concept", response = List.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the associations of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -210,7 +210,7 @@ public class EvsController {
 		return evsAssociations;
 	}
 
-	@ApiOperation(value = "Get inverse associations of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get inverse associations of the specified concept", response = List.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the inverse associations of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -228,7 +228,7 @@ public class EvsController {
 		return evsAssociations;
 	}
 
-	@ApiOperation(value = "Get roles of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get roles of the specified concept", response = List.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the roles of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
@@ -245,7 +245,7 @@ public class EvsController {
 		return evsAssociations;
 	}
 
-	@ApiOperation(value = "Get inverse roles of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get inverse roles of the specified concept", response = List.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -270,7 +270,7 @@ public class EvsController {
 	}
 
 
-	@ApiOperation(value = "Get the children of the specified concept", response = EvsConcept.class)
+	@ApiOperation(value = "Get the children of the specified concept", response = List.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -283,7 +283,7 @@ public class EvsController {
 		return nodes;
 	}
 	
-	@ApiOperation(value = "Get the children of the specified concept, for multiple levels", response = EvsConcept.class)
+	@ApiOperation(value = "Get the children of the specified concept, for multiple levels", response = List.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -297,7 +297,7 @@ public class EvsController {
 		return nodes;
 	}
 
-	@ApiOperation(value = "Get the path(s) to specified concept from the root nodes", response = EvsConcept.class)
+	@ApiOperation(value = "Get the path(s) to specified concept from the root nodes", response = List.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -406,6 +406,21 @@ public class EvsController {
 		matchedConcepts = sparqlQueryManagerService.search(filterCriteriaFields);
 		return matchedConcepts;
 	}
+	
+	@ApiOperation(value = "Gets all the named graphs", response = EvsConcept.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved the graph names"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/graphnames", produces = "application/json")
+	public @ResponseBody List<String> getGraphNames()
+			throws IOException {
+	
+		List<String> graphNames= sparqlQueryManagerService.getAllGraphNames();
+		return graphNames;
+	}
+	
 	
 	private String escapeLuceneSpecialCharacters(String before) {
 		String patternString = "([+:!~*?/\\-/{}\\[\\]\\(\\)\\^\\\"])";

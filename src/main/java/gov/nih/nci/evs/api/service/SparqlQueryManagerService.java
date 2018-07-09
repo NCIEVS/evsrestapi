@@ -68,4 +68,5 @@ public interface SparqlQueryManagerService {
 	
 	public List<HierarchyNode> getPathInHierarchy(String code);
 
+	public List<String> getAllGraphNames()throws JsonParseException, JsonMappingException, IOException;
 }

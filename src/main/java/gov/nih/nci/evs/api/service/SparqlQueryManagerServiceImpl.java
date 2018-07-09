@@ -186,6 +186,32 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 	}
 	
 	
+	public List<String> getAllGraphNames() throws JsonParseException, JsonMappingException, IOException{
+		List<String> graphNames = new ArrayList<String>();
+		String queryAllGraphPrefix = queryBuilderService.contructAllGraphPrefix();
+		String query = queryBuilderService.constructAllGraphQuery();
+		String res = restUtils.runSPARQL(queryAllGraphPrefix + query);
+		
+		log.debug("getAllGraphNames response - " + res);
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		boolean conceptExists = false;
+		
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+			
+		for (Bindings b : bindings) {
+			String graphName = b.getGraphName().getValue();
+			log.debug("getAllGraphNames graphName - " + graphName);
+			if (graphName != null && !graphName.equalsIgnoreCase("")){
+				graphNames.add(graphName);
+			}
+		}
+		
+		
+		return graphNames;
+	}
+	
 	public boolean checkConceptExists(String conceptCode) throws JsonMappingException,JsonParseException ,IOException{
 		
 		String queryPrefix = queryBuilderService.contructPrefix();
