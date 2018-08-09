@@ -107,8 +107,12 @@ public class MetadataUtils {
 	}
 
     public void initialize() {
-		this.sparql_endpoint = serviceUrl;
-		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint + "?query=");
+		this.sparql_endpoint = this.serviceUrl;
+		if (serviceUrl.indexOf("?") == -1) {
+			sparql_endpoint = serviceUrl + "?query=";
+		}
+		//this.sparql_endpoint = serviceUrl;
+		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
 		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
 		this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
 		this.basePrefixUIDHashMap = createBasePrefixUIDHashMap();
@@ -600,6 +604,8 @@ public class MetadataUtils {
 	public String getNamedGraphBasePrefixAndUniqueIdentifier(String named_graph, String line) {
 		if (named_graph.compareTo("http://purl.obolibrary.org/obo/obi/2017-09-03/obi.owl") == 0) {
 			return "<http://purl.obolibrary.org/obo/>|IAO_0000111";
+		} else if (named_graph.compareTo("http://cbiit.nci.nih.gov/caDSR") == 0) {
+			return "<http://cbiit.nci.nih.gov/caDSR#>|publicId";
 		}
 		String basePrefix = getNamedGraphBasePrefix(line);
 		String uid = getNamedGraphUniqueIdentifier(line);
@@ -640,6 +646,32 @@ public class MetadataUtils {
 	}
 
     public String getVocabularyVersion(String named_graph) {
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector v = (Vector) nameVersion2NamedGraphMap.get(key);
+			if (v.contains(named_graph)) {
+				Vector u = StringUtils.parseData(key, '|');
+				return (String) u.elementAt(1);
+			}
+		}
+		return null;
+	}
+
+    public String getVocabularyName(HashMap nameVersion2NamedGraphMap, String named_graph) {
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector v = (Vector) nameVersion2NamedGraphMap.get(key);
+			if (v.contains(named_graph)) {
+				Vector u = StringUtils.parseData(key, '|');
+				return (String) u.elementAt(0);
+			}
+		}
+		return null;
+	}
+
+    public String getVocabularyVersion(HashMap nameVersion2NamedGraphMap, String named_graph) {
 		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();

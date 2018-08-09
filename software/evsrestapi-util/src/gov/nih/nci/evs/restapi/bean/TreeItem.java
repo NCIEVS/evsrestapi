@@ -268,6 +268,24 @@ public class TreeItem implements Serializable, Comparable<TreeItem> {
 		return (TreeItem) children.get(0);
 	}
 
+	public static TreeItem searchTree(TreeItem ti, String text) {
+		if (ti._text.compareTo(text) == 0) return ti;
+		TreeItem node = null;
+        for (String association : ti._assocToChildMap.keySet()) {
+            List<TreeItem> children = ti._assocToChildMap.get(association);
+            if (children != null) {
+				for (int i=0; i<children.size(); i++) {
+					TreeItem childItem = (TreeItem) children.get(i);
+					node = searchTree(childItem, text);
+					if (node != null) {
+						return node;
+					}
+				}
+			}
+        }
+        return null;
+	}
+
 	public String toXML() {
 		XStream xstream_xml = new XStream(new DomDriver());
 		String xml = xstream_xml.toXML(this);

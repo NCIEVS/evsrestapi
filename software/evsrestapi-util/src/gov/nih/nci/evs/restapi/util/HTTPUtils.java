@@ -83,10 +83,22 @@ public class HTTPUtils {
 	}
 
     public HTTPUtils(String serviceUrl) {
+		serviceUrl = verifyServiceUrl(serviceUrl);
 		this.serviceUrl = serviceUrl;
 	}
 
+	public String verifyServiceUrl(String serviceUrl) {
+		if (serviceUrl.indexOf("?query=?query=") != -1) {
+			int n = serviceUrl.lastIndexOf("?");
+			serviceUrl = serviceUrl.substring(0, n);
+		} else if (serviceUrl.indexOf("?") == -1) {
+			serviceUrl = serviceUrl + "?query=";
+		}
+		return serviceUrl;
+	}
+
     public HTTPUtils(String serviceUrl, String username, String password) {
+		serviceUrl = verifyServiceUrl(serviceUrl);
 		this.serviceUrl = serviceUrl;
 		this.username = username;
 		this.password = password;

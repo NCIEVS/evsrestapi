@@ -59,7 +59,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 
 public class Link {
-
 	int id;
 	String sourceCode;
 	String sourceName;

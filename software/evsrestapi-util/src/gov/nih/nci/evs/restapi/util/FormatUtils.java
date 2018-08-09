@@ -201,6 +201,14 @@ public class FormatUtils {
 		return buf.toString();
      }
 
+     public static String getHyperlink(String named_graph, String name, String code) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("<a href=\"/sparql/ConceptReport.jsp?ng=" + named_graph + "&code=" + code + "\">").append("\n");
+		buf.append(name).append("\n");
+		buf.append("</a>").append("\n");
+		return buf.toString();
+     }
+
 	 public String getRelationshipTableLabel(String defaultLabel, String type, boolean isEmpty) {
 		String NONE = "<i>(none)</i>";
 		StringBuffer buf = new StringBuffer();

@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.bean.*;
 
 import java.io.*;
 import java.text.*;
@@ -380,6 +381,8 @@ public class Utils {
 		StringUtils.dumpVector(w);
 	}
 
-
+	public static Table constructTable(String label, Vector heading_vec, Vector data_vec) {
+        return Table.construct_table(label, heading_vec, data_vec);
+	}
 
 }

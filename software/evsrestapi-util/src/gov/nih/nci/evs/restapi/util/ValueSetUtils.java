@@ -187,57 +187,8 @@ public class ValueSetUtils {
 	}
 
     public void setValueSet2ContributingSourcesHashMap(Vector u) {
-		//Vector u = Utils.readFile(contributingSrcFile);
 		valueSet2ContributingSourcesHashMap = createValueSet2ContributingSourcesHashMap(u);
 	}
-
-/*
-    public void initialize() {
-		long ms = System.currentTimeMillis();
-
-		if (parent_child_vec == null) {
-			File file = new File(PARENT_CHILD_FILE);
-			boolean exists = file.exists();
-			if (exists) {
-				System.out.println("Loading parent_child_vec...");
-				parent_child_vec = Utils.readFile(PARENT_CHILD_FILE);
-			} else {
-				System.out.println("Generating parent_child_vec...");
-				owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
-				parent_child_vec = owlSPARQLUtils.getHierarchicalRelationships(named_graph);
-				parent_child_vec = new ParserUtils().getResponseValues(parent_child_vec);
-				Utils.saveToFile(PARENT_CHILD_FILE, parent_child_vec);
-			}
-		}
-        if (concept_in_subset_vec == null) {
-			File file = new File(CONCEPT_IN_SUBSET_FILE);
-			boolean exists = file.exists();
-			if (exists) {
-				System.out.println("Loading concept_in_subset_vec...");
-				concept_in_subset_vec = Utils.readFile(CONCEPT_IN_SUBSET_FILE);
-			} else {
-				System.out.println("Generating concept_in_subset_vec...");
-				OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
-				concept_in_subset_vec = owlSPARQLUtils.getAssociationSourcesAndTargets(named_graph, Constants.CONCEPT_IN_SUBSET);
-				Utils.saveToFile(CONCEPT_IN_SUBSET_FILE, concept_in_subset_vec);
-			}
-		}
-        if (vs_header_concept_vec == null) {
-			File file = new File(VS_HEADER_CONCEPT_FILE);
-			boolean exists = file.exists();
-			if (exists) {
-				System.out.println("Loading concept_in_subset_vec...");
-				vs_header_concept_vec = Utils.readFile(VS_HEADER_CONCEPT_FILE);
-			} else {
-				System.out.println("Generating concept_in_subset_vec...");
-				vs_header_concept_vec = getConceptsWithAnnotationProperty(PUBLISH_VALUE_SET);
-				Utils.saveToFile(VS_HEADER_CONCEPT_FILE, vs_header_concept_vec);
-			}
-		}
-		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
-		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
-	}
-*/
 
 	public RelationSearchUtils getRelationSearchUtils() {
 		return this.relSearchUtils;
@@ -397,8 +348,6 @@ public class ValueSetUtils {
 		properties = new ParserUtils().getResponseValues(properties);
 		properties = new SortUtils().quickSort(properties);
 		return properties;
-
-		//return new Vector();
 	}
 
     // find header concepts with a Published_Value_Set property.
@@ -598,22 +547,22 @@ public class ValueSetUtils {
 		return eh_vec;
 	}
 
-    public TreeItem createTreeItem(Vector parent_child_vec) {
+    public static TreeItem createTreeItem(Vector parent_child_vec) {
 		return new ASCIITreeUtils().createTreeItem(parent_child_vec);
 	}
 
-    public String getAssociation(TreeItem ti) {
+    public static String getAssociation(TreeItem ti) {
 		Iterator it = ti._assocToChildMap.keySet().iterator();
 		return (String) it.next();
 	}
 
-    public TreeItem removeSuperRootNode(TreeItem ti) {
+    public static TreeItem removeSuperRootNode(TreeItem ti) {
 		if (ti._code.compareTo("<Root>") != 0) return ti;
 		List<TreeItem> children = ti._assocToChildMap.get(getAssociation(ti));
 		return (TreeItem) children.get(0);
 	}
 
-	public TreeItem generateAssertedValueSetTree(Vector embedded_value_set_hierarchy_vec) {
+	public static TreeItem generateAssertedValueSetTree(Vector embedded_value_set_hierarchy_vec) {
 		TreeItem ti = createTreeItem(embedded_value_set_hierarchy_vec);
 		ti = removeSuperRootNode(ti);
 		return ti;
@@ -646,13 +595,128 @@ public class ValueSetUtils {
         */
 	}
 
+    public static TreeItem loadTree(String filename) {
+		Vector embedded_value_set_hierarchy_vec = Utils.readFile(filename);
+		TreeItem ti = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
+		return ti;
+	}
+
+
+	public TreeItem searchTree(TreeItem ti, String text) {
+		if (ti._text.compareTo(text) == 0) return ti;
+		TreeItem node = null;
+        for (String association : ti._assocToChildMap.keySet()) {
+            List<TreeItem> children = ti._assocToChildMap.get(association);
+            if (children != null) {
+				for (int i=0; i<children.size(); i++) {
+					TreeItem childItem = (TreeItem) children.get(i);
+					node = searchTree(childItem, text);
+					if (node != null) {
+						return node;
+					}
+				}
+			}
+        }
+        return null;
+	}
+
+
+
+ 	public void testSearchTree() {
+		String text = "FDA Structured Product Labeling Terminology";
+		String filename = "embedded_value_set_hierarchy_vec_05-11-2018.txt";
+        TreeItem ti = loadTree(filename);
+        TreeItem tree_branch = searchTree(ti, text);
+        if (tree_branch != null) {
+       		TreeItem.printTree(tree_branch, 0, false);
+	    }
+	}
+
+ 	public void testSerialization() {
+		String filename = "embedded_value_set_hierarchy_vec_05-11-2018.txt";
+        TreeItem ti = loadTree(filename);
+        String outputfile = "valuesettree.ser";
+        SerializationUtils.serialize(ti, outputfile);
+        ti = SerializationUtils.deserialize(outputfile);
+        TreeItem.printTree(ti, 0, false);
+	}
+
+    public boolean checkFileExists(String filename) {
+		File f = new File(filename);
+		if(f.exists() && !f.isDirectory()) {
+			return true;
+		}
+		return false;
+	}
+
+    // Step 1:
+ 	public TreeItem deserializeValueSetTree(String filename) {
+        boolean fileexists = checkFileExists(filename);
+        if (!fileexists) return null;
+        // Convert serialized valueset tree to TreeItem
+        TreeItem ti = SerializationUtils.deserialize(filename);
+        return ti;
+	}
+
+    // Step 2:
+	public StringBuffer treeItem2StringBuffer(TreeItem ti) {
+        HashSet _vocabularyNameSet = null;
+        SimpleTreeUtils stu = new SimpleTreeUtils(_vocabularyNameSet);
+		HashMap sourceValueSetTree = new HashMap();
+		sourceValueSetTree.put("<Root>", ti);
+		return stu.getValueSetTreeStringBuffer(sourceValueSetTree);
+	}
+
+	// Step 3 - search tree branch.
+	// Insert StringBuffer to value_set_home.jsp
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		System.out.println(serviceUrl);
 		String named_graph = "http://NCIt";
-		ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph);
-		vsu.run();
+		//ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph);
+		//String filename = "embedded_value_set_hierarchy_vec_05-11-2018.txt";
+
+		/*
+        TreeItem ti = vsu.loadTree(filename);
+        //TreeItem.printTree(ti, 0, false);
+
+        HashSet _vocabularyNameSet = null;
+        SimpleTreeUtils stu = new SimpleTreeUtils(_vocabularyNameSet);
+        //stu.setUrl(request.getContextPath() + "ajax?action=create_src_vs_tree&mode=" + mode);
+
+		HashMap sourceValueSetTree = new HashMap();
+		sourceValueSetTree.put("<Root>", ti);
+
+		TreeItem root = (TreeItem) sourceValueSetTree.get("<Root>");
+		StringBuffer sourceValueSetTreeStringBuffer = new StringBuffer();
+
+		sourceValueSetTreeStringBuffer = stu.getValueSetTreeStringBuffer(sourceValueSetTree);
+
+		Vector w = new Vector();
+		w.add(sourceValueSetTreeStringBuffer.toString());
+		Utils.saveToFile("vs_tree.html", w);
+
+        //System.out.println(sourceValueSetTreeStringBuffer);
+		//vsu.run();
+		*/
+		//vsu.testSearchTree();
+		ValueSetUtils vsu = new ValueSetUtils();
+		//vsu.testSerialization();
+
+
+		String datasettree = "c:/apps/evs/sparql-webapp/conf/valuesettree.ser";
+		TreeItem ti = vsu.deserializeValueSetTree(datasettree);
+		if (ti == null) {
+			System.out.println("deserializeValueSetTree returns null???");
+		} else {
+			TreeItem.printTree(ti, 0, false);
+		}
+
+
+
+
 	}
 }

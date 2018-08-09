@@ -294,12 +294,16 @@ public class RelationSearchUtils extends SPARQLSearchUtils {
 				String z_code = (String) u.elementAt(4);
 
 				MatchedConcept mc = null;
+				/*
+				to be implemented
 				if (match_option == MATCH_SOURCE) {
 					mc = new MatchedConcept(z_label, z_code, associationName, x_label);
 				} else {
 					mc = new MatchedConcept(x_label, x_code, associationName, z_label);
 				}
 				matchedConcepts.add(mc);
+				*/
+
 			}
 		}
 		matchedConcepts = sortMatchedConcepts(matchedConcepts, searchString);

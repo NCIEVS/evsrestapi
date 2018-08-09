@@ -91,6 +91,11 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
     }
 
+	public ValueSetSearchUtils(String serviceUrl, OWLSPARQLUtils owlSPARQLUtils) {
+		this.serviceUrl = serviceUrl;
+		this.owlSPARQLUtils = owlSPARQLUtils;
+    }
+
 	public ValueSetSearchUtils(String serviceUrl, String named_graph, Vector concept_in_subset_vec) {
 		super(serviceUrl);
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
@@ -282,6 +287,7 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		buf.append("?x :NHC0 ?x_code .").append("\n");
 		buf.append("?x ?y ?z .").append("\n");
 		buf.append("?y rdfs:label \"Concept_In_Subset\"^^xsd:string .").append("\n");
+		buf.append("?y rdfs:label ?y_label .").append("\n");
 		buf.append("?z rdfs:label ?z_label .").append("\n");
 		buf.append("?z :NHC0 ?z_code .").append("\n");
 

@@ -557,4 +557,137 @@ public class StringUtils {
 		}
 		return line;
 	}
+/*
+	public String vector2HTMLTable(Vector v) {
+		if (v == null || v.size() == 0) return null;
+		StringBuffer buf = new StringBuffer();
+		String line = (String) v.elementAt(0);
+		Vector u = StringUtils.parseData(line, '|');
+		int n = u.size();
+		buf.append("<table border=\"1\">").append("\n");
+		for (int i=0; i<v.size(); i++) {
+			line = (String) v.elementAt(i);
+			buf.append("<tr>").append("\n");
+			u = StringUtils.parseData(line, '|');
+			n = u.size();
+			for (int j=0; j<n; j++) {
+				String field = (String) u.elementAt(j);
+				buf.append("<td>").append(field).append("</td>").append("\n");
+			}
+			buf.append("</tr>").append("\n");
+		}
+		buf.append("</table>").append("\n");
+		return buf.toString();
+
+	}
+
+	public String vector2XML(Vector v) {
+		if (v == null || v.size() == 0) return null;
+		List<String> headings = null;
+		List<Row> rows = new ArrayList();
+		Vector u = null;
+		String line = null;
+		for (int i=0; i<v.size(); i++) {
+			List<String> list = new ArrayList();
+			line = (String) v.elementAt(i);
+			u = StringUtils.parseData(line, '|');
+			int n = u.size();
+			for (int j=0; j<n; j++) {
+				String field = (String) u.elementAt(j);
+				list.add(field);
+			}
+			Row row = new Row(list);
+			rows.add(row);
+		}
+        Table table = new Table("Query Response", headings, rows);
+		return table.toXML();
+	}
+*/
+
+	public String toCSV(String str) {
+		if (str == null) return null;
+		StringBuffer buf = new StringBuffer();
+		buf.append("\"");
+		for (int i=0; i<str.length(); i++) {
+			char c = str.charAt(i);
+			buf.append(c);
+			if (c == '\"') {
+				buf.append(c);
+			}
+		}
+		buf.append("\"");
+		return buf.toString();
+	}
+
+	public String vector2CSV(Vector v) {
+		if (v == null || v.size() == 0) return null;
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			int n = u.size();
+			for (int j=0; j<n; j++) {
+				String field = (String) u.elementAt(j);
+				String str = toCSV(field);
+				buf.append(str);
+				if (j < n-1) {
+					buf.append(",");
+				}
+			}
+			buf.append("\n");
+		}
+		return buf.toString();
+	}
+
+	public String vector2XMLString(Vector v) {
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			line = line.replaceAll("<", "&lt;");
+			line = line.replaceAll(">", "&gt;");
+			buf.append(line).append("\n");
+
+		}
+        return buf.toString();
+	}
+
+	public String vector2Text(Vector v) {
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			buf.append(line).append("\n");
+		}
+        return buf.toString();
+	}
+
+
+	public String encodeXML(String xml) {
+		xml = xml.replaceAll("<", "&lt;");
+		xml = xml.replaceAll(">", "&gt;");
+		return xml;
+	}
+
+    public Vector trim_namespaces(Vector v) {
+		if (v == null) return null;
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			StringBuffer  buf = new StringBuffer();
+			Vector u = StringUtils.parseData(line, '|');
+			for (int j=0; j<u.size(); j++) {
+				String field = (String) u.elementAt(j);
+				int n = field.lastIndexOf("#");
+				if (n != -1) {
+					field = field.substring(n+1, field.length());
+				}
+				buf.append(field);
+				if (j<u.size()-1) {
+					buf.append("|");
+				}
+			}
+			w.add(buf.toString());
+
+		}
+		return w;
+	}
 }

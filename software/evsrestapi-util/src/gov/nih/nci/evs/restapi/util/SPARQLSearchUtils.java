@@ -386,9 +386,11 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 					vs_code = (String) u.elementAt(4);
 					p_value = p_value + " (" + vs_code + ")";
 				}
-
+/*
+to be implemented:
 				MatchedConcept mc = new MatchedConcept(x_label, x_code, p_label, p_value);
 				matchedConcepts.add(mc);
+*/
 			}
 		}
 		ms = System.currentTimeMillis();
