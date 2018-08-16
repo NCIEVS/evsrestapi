@@ -359,13 +359,18 @@ public class Utils {
 
 
     public static void generate_construct_statement(String method_name, String params, String filename) {
+		Vector w = create_construct_statement(method_name, params, filename);
+		StringUtils.dumpVector(w);
+	}
+
+    public static Vector create_construct_statement(String method_name, String params, String filename) {
 		Vector u = Utils.readFile(filename);
 		Vector w = new Vector();
 		StringBuffer buf = new StringBuffer();
 		w.add("public String " + method_name + "(" + params + ") {");
-		w.add("\tString prefixes = getPrefixes();");
+		//w.add("\tString prefixes = getPrefixes();");
 		w.add("\tStringBuffer buf = new StringBuffer();");
-		w.add("\tbuf.append(prefixes);");
+		//w.add("\tbuf.append(prefixes);");
 		for (int i=0; i<u.size(); i++) {
 			String t = (String) u.elementAt(i);
 			t = StringUtils.trimLeadingBlanksOrTabs(t);
@@ -378,8 +383,9 @@ public class Utils {
 		}
 		w.add("\treturn buf.toString();");
 		w.add("}");
-		StringUtils.dumpVector(w);
+		return w;
 	}
+
 
 	public static Table constructTable(String label, Vector heading_vec, Vector data_vec) {
         return Table.construct_table(label, heading_vec, data_vec);
