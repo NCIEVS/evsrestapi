@@ -143,29 +143,6 @@ public class MetadataUtils {
 		return basePrefixUIDHashMap;
 	}
 
-/*
-    public HashMap createBasePrefixUIDHashMap(){
-        HashMap hmap = this.nameVersion2NamedGraphMap;// getNameVersion2NamedGraphMap();
-        Iterator it = hmap.keySet().iterator();
-        HashMap basePrefixUIDHashMap = new HashMap();
-        while (it.hasNext()) {
-			String key = (String) it.next();
-			Vector ng_vec = (Vector) hmap.get(key);
-			for (int j=0; j<ng_vec.size(); j++) {
-				String ng = (String) ng_vec.elementAt(j);
-				Vector w = simple_tuple_query(ng, 1000);
-				String id_line = findNamedGraphIdentifierLine(w);
-				String s = getNamedGraphBasePrefixAndUniqueIdentifier(ng, id_line);
-				Vector u = StringUtils.parseData(s);
-				String basePrefix = (String) u.elementAt(0);
-				String uid = (String) u.elementAt(1);
-				basePrefixUIDHashMap.put(ng, basePrefix + "|" + uid);
-			}
-		}
-		return basePrefixUIDHashMap;
-	}
-*/
-
     public HashMap getNameVersion2NamedGraphMap() {
 		return nameVersion2NamedGraphMap;
 	}
@@ -697,12 +674,12 @@ public class MetadataUtils {
 		System.out.println(named_graph);
 
 		test.dumpNameVersion2NamedGraphMap();
-
+/*
 		String version_test = MetadataUtils.getLatestVersionOfCodingScheme(serviceUrl, codingScheme);
 		System.out.println("getLatestVersionOfCodingScheme: " + version_test);
 
 		String named_graph_test = MetadataUtils.getNamedGraphOfCodingScheme(serviceUrl, codingScheme, version_test);
 		System.out.println("getNamedGraphOfCodingScheme: " + named_graph_test);
-
+*/
 	}
 }

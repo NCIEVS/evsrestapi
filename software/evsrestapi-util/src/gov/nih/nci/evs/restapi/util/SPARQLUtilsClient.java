@@ -132,7 +132,7 @@ public class SPARQLUtilsClient {
 	public Vector getOntologyInfo(String named_graph) {
 		String key = (String) namedGraph2codingSchemeNameAndVersionMap.get(named_graph);
 		OWLSPARQLUtils owlSPARQLUtils = (OWLSPARQLUtils) OWLSPARQLUtilsMap.get(key);
-		return owlSPARQLUtils.getOntologyInfo(named_graph);
+		return owlSPARQLUtils.get_ontology_info(named_graph);
 	}
 
 
@@ -144,7 +144,7 @@ public class SPARQLUtilsClient {
 
 	public Vector getOntologyInfo() {
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint, null, null);
-		return owlSPARQLUtils.getOntologyInfo();
+		return owlSPARQLUtils.get_ontology_info();
 	}
 
 

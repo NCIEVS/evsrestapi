@@ -249,25 +249,47 @@ public class OWLSPARQLUtils {
 		return null;
 	}
 
-/*
-	public String construct_get_ontology_info(String named_graph) {
-		String prefixes = getPrefixes();
+	public String construct_get_ontology_info() {
 		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT ?x_version_info ?x_dc_date ?x_comment").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("SELECT ?g ?x_version_info ?x_dc_date ?x_comment").append("\n");
 		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    graph ?g").append("\n");
+		buf.append("    {").append("\n");
+
 		buf.append("    {").append("\n");
 		buf.append("	    ?x a owl:Ontology .").append("\n");
 		buf.append("	    ?x owl:versionInfo ?x_version_info .").append("\n");
-		buf.append("	    ?x dc:date ?x_dc_date .").append("\n");
+		buf.append("        OPTIONAL {").append("\n");
+		buf.append("	        ?x dc:date ?x_dc_date .").append("\n");
+		buf.append("	        ?x rdfs:comment ?x_comment").append("\n");
+		buf.append("        }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("    UNION").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    ?x a owl:Ontology .").append("\n");
+		buf.append("	    ?x owl:versionIRI ?x_version_info .").append("\n");
+		buf.append("	    OPTIONAL {?x dc:date ?x_dc_date .}").append("\n");
 		buf.append("	    ?x rdfs:comment ?x_comment").append("\n");
 		buf.append("    }").append("\n");
+
+        buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
 		return buf.toString();
 	}
-*/
+
+	public Vector get_ontology_info() {
+		Vector v = executeQuery(construct_get_ontology_info());
+		v = new ParserUtils().getResponseValues(v);
+		return v;
+	}
 
 
 	public String construct_get_ontology_info(String named_graph) {
@@ -283,11 +305,14 @@ public class OWLSPARQLUtils {
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    {").append("\n");
+
 		buf.append("    {").append("\n");
 		buf.append("	    ?x a owl:Ontology .").append("\n");
 		buf.append("	    ?x owl:versionInfo ?x_version_info .").append("\n");
-		buf.append("	    ?x dc:date ?x_dc_date .").append("\n");
-		buf.append("	    ?x rdfs:comment ?x_comment").append("\n");
+		buf.append("        OPTIONAL {").append("\n");
+		buf.append("	        ?x dc:date ?x_dc_date .").append("\n");
+		buf.append("	        ?x rdfs:comment ?x_comment").append("\n");
+		buf.append("        }").append("\n");
 		buf.append("    }").append("\n");
 		buf.append("    UNION").append("\n");
 		buf.append("    {").append("\n");
@@ -296,17 +321,34 @@ public class OWLSPARQLUtils {
 		buf.append("	    OPTIONAL {?x dc:date ?x_dc_date .}").append("\n");
 		buf.append("	    ?x rdfs:comment ?x_comment").append("\n");
 		buf.append("    }").append("\n");
-        buf.append("    }").append("\n");
 
+        buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
 		return buf.toString();
 	}
 
-	public Vector getOntologyInfo(String named_graph) {
-		return executeQuery(construct_get_ontology_info(named_graph));
+	public Vector get_ontology_info(String named_graph) {
+		Vector v = executeQuery(construct_get_ontology_info(named_graph));
+		v = new ParserUtils().getResponseValues(v);
+		return v;
 	}
 
+
+
+	public HashMap getGraphName2VersionHashMap() {
+
+		HashMap hmap = new HashMap();
+		Vector v = get_ontology_info();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String graph = (String) u.elementAt(0);
+			String version = (String) u.elementAt(1);
+			hmap.put(graph, version);
+		}
+        return hmap;
+	}
 
 	public String construct_get_named_graphs() {
 		//String prefixes = getPrefixes();
@@ -323,24 +365,6 @@ public class OWLSPARQLUtils {
 	public Vector getNamedGraph() {
 		return executeQuery(construct_get_named_graphs());
 	}
-
-	public Vector getOntologyInfo() {
-		Vector name_graph_vec = getNamedGraph();
-		Vector v = new Vector();
-		ParserUtils parser = new ParserUtils();
-		if (name_graph_vec == null || name_graph_vec.size() == 0) return v;
-		for (int i=0; i<name_graph_vec.size(); i++) {
-			String line = (String) name_graph_vec.elementAt(i);
-            String named_graph = parser.getValue(line);
-			Vector u = getOntologyInfo(named_graph);
-			String version = parser.getValue((String) u.elementAt(0));
-			String dc_date = parser.getValue((String) u.elementAt(1));
-			String comment = parser.getValue((String) u.elementAt(2));
-			v.add(named_graph + "|" + version + "|" + dc_date + "|" + comment);
-		}
-		return v;
-	}
-
 
 	public String construct_get_label_by_code(String named_graph, String code) {
 		String prefixes = getPrefixes();
@@ -1639,6 +1663,8 @@ public class OWLSPARQLUtils {
 
 
     public HashMap getNameVersion2NamedGraphMap() {
+		HashMap graphName2VersionHashMap = getGraphName2VersionHashMap();
+
 		HashMap nameVersion2NamedGraphMap = new HashMap();
 		ParserUtils parserUtils = new ParserUtils();
 		//vocabulary name|vocabulary version|graph named
@@ -1666,6 +1692,9 @@ public class OWLSPARQLUtils {
 
 						//vocabulary = named_graph;
 						version = "1.0";
+						if (graphName2VersionHashMap.containsKey(named_graph)) {
+							version= (String) graphName2VersionHashMap.get(named_graph);
+						}
 						//System.out.println("WARNING: getOntologyName(" + uri + ") returns null - need to update createOntologyUri2LabelMap method.");
 					} else {
                         //System.out.println("vocabulary: " + vocabulary);
@@ -1732,7 +1761,7 @@ public class OWLSPARQLUtils {
 				try {
 					u2 = getOntologyVersion(named_graph);
 				} catch (Exception ex) {
-					System.out.println("WARNING: Version not found -- " + named_graph);
+					//System.out.println("WARNING: Version not found -- " + named_graph);
 				}
 
 				if (u2 != null && u2.size() > 0) {
@@ -2651,40 +2680,6 @@ public class OWLSPARQLUtils {
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
-/*
-	public String construct_get_axioms_by_uri(String named_graph, String uri) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT distinct ?x_label ?x_code ?p_label ?z ?w_label ?w_value").append("\n");
-		buf.append("{").append("\n");
-		buf.append("graph <" + named_graph + ">").append("\n");
-		buf.append("{").append("\n");
-		buf.append("?x a owl:Class .").append("\n");
-		buf.append("?x rdfs:label ?x_label .").append("\n");
-		buf.append("?y a owl:AnnotationProperty .").append("\n");
-		buf.append("?x ?y ?z .").append("\n");
-		buf.append("?y rdfs:label ?y_label .").append("\n");
-		buf.append("?z_axiom a owl:Axiom .").append("\n");
-		buf.append("?z_axiom owl:annotatedSource ?x .").append("\n");
-		buf.append("?z_axiom owl:annotatedProperty ?p .").append("\n");
-		buf.append("?p rdfs:label ?p_label .").append("\n");
-		buf.append("?z_axiom owl:annotatedTarget ?z .").append("\n");
-		buf.append("?w rdfs:label ?w_label .").append("\n");
-		buf.append("?z_axiom ?w ?w_value   ").append("\n");
-		buf.append("}").append("\n");
-		buf.append("FILTER (str(?x) = \"" + uri + "\"^^xsd:string)").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
-
-	public Vector getAxiomsByURI(String named_graph, String uri) {
-	    String query = construct_get_axioms_by_uri(named_graph, uri);
-	    Vector v = executeQuery(query);
-	    v = new ParserUtils().getResponseValues(v);
-	    return v;
-	}
-*/
 
 	public String getMultipleValues(Vector w) {
 		if (w == null) return null;
