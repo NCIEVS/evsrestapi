@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsAxiom;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
+import gov.nih.nci.evs.api.model.evs.EvsConceptFull;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
@@ -67,6 +68,25 @@ public class EvsController {
 		}
 		return evsConcept;
 	}
+
+	@ApiOperation(value = "Get full details on the specified concept", response = EvsConceptFull.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Full Details"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/full", produces = "application/json")
+	public @ResponseBody EvsConceptFull getEvsConceptDetailFull(@PathVariable(value = "conceptCode") String conceptCode,
+			HttpServletResponse response) throws IOException {
+		EvsConceptFull evsConceptFull = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else {
+			evsConceptFull = sparqlQueryManagerService.getEvsConceptDetailFull(conceptCode);
+		}
+		return evsConceptFull;
+	}
+
+
 
 	@ApiOperation(value = "Get relationships on the specified concept", response = EvsRelationships.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Relationships"),

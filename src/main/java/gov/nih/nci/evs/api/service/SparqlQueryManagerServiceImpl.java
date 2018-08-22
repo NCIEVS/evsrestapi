@@ -31,6 +31,7 @@ import gov.nih.nci.evs.api.model.evs.Concept;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsAxiom;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
+import gov.nih.nci.evs.api.model.evs.EvsConceptFull;
 import gov.nih.nci.evs.api.model.evs.EvsConceptWithMainType;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
@@ -635,6 +636,113 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 			evsConcept.setIsMainType(false);
 		}
 		*/
+		if (mainTypeHierarchyUtils.isMainType(conceptCode)){		
+			evsConcept.setIsMainType(true);
+		} else{
+			evsConcept.setIsMainType(false);
+		}
+		
+		if (mainTypeHierarchyUtils.isSubtype(conceptCode)) {
+			evsConcept.setIsSubtype(true);
+		} else {
+			evsConcept.setIsSubtype(false);
+		}		
+		
+		if (mainTypeHierarchyUtils.isDisease(conceptCode)) {
+			evsConcept.setIsDisease(true);
+		} else {
+			evsConcept.setIsDisease(false);
+		}		
+		
+		if (isBiomarker(conceptCode)) {
+			evsConcept.setIsBiomarker(true);
+		} else {
+			evsConcept.setIsBiomarker(false);
+		}		
+		
+		if (isReferenceGene(conceptCode)) {
+			evsConcept.setIsReferenceGene(true);
+		} else {
+			evsConcept.setIsReferenceGene(false);
+		}		
+		
+		
+		List <Paths> paths = mainTypeHierarchyUtils.getMainMenuAncestors(conceptCode);
+		if (paths != null) {
+			paths = removeDuplicatePathsList(paths);
+			evsConcept.setMainMenuAncestors(paths);
+		} else {
+			evsConcept.setMainMenuAncestors(null);
+		}
+		
+		return evsConcept;
+		
+	}
+
+	public EvsConceptFull getEvsConceptDetailFull(String conceptCode) throws JsonMappingException,JsonParseException ,IOException{
+		EvsConceptFull evsConceptFull = new EvsConceptFull();
+		return getConceptFull(evsConceptFull,conceptCode);
+	}
+	
+	public EvsConceptFull getConceptFull(EvsConceptFull evsConcept,String conceptCode) throws IOException{
+		
+		evsConcept.setLabel(getEvsConceptLabel(conceptCode));		
+		List <EvsProperty> properties = getEvsProperties(conceptCode);
+		evsConcept.setCode(EVSUtils.getConceptCode(properties));
+		evsConcept.setPreferredName(EVSUtils.getPreferredName(properties));
+		evsConcept.setDisplayName(EVSUtils.getDisplayName(properties));
+		evsConcept.setNeoplasticStatus(EVSUtils.getNeoplasticStatus(properties));
+		evsConcept.setSemanticTypes(EVSUtils.getSemanticType(properties));
+		evsConcept.setConceptStatus(EVSUtils.getConceptStatus(properties));
+
+		List <EvsAxiom> axioms = getEvsAxioms(conceptCode);
+		evsConcept.setDefinitions(EVSUtils.getFullDefinitions(axioms));
+
+		/*
+		List <EvsSubconcept> subconcepts = getEvsSubconcepts(conceptCode);
+		List <EvsSuperconcept> superconcepts = getEvsSuperconcepts(conceptCode);
+		List <EvsAssociation> associations = getEvsAssociations(conceptCode);
+		List <EvsAssociation> inverseAssociations = getEvsInverseAssociations(conceptCode);
+		List <EvsAssociation> roles = getEvsRoles(conceptCode);
+		List <EvsAssociation> inverseRoles = getEvsInverseRoles(conceptCode);
+		evsConcept.setSubconcepts(subconcepts);
+		evsConcept.setSuperconcepts(superconcepts);
+		evsConcept.setAssociations(associations);
+		evsConcept.setInverseAssociations(inverseAssociations);
+		evsConcept.setRoles(roles);
+		evsConcept.setInverseRoles(inverseRoles);
+		evsConcept.setSynonyms(EVSUtils.getFullSynonym(axioms));
+		evsConcept.setAdditionalProperties(EVSUtils.getAdditionalProperties(properties));
+		*/
+
+		//List <EvsSubconcept> subconcepts = getEvsSubconcepts(conceptCode);
+		//List <EvsSuperconcept> superconcepts = getEvsSuperconcepts(conceptCode);
+		//List <EvsAssociation> associations = getEvsAssociations(conceptCode);
+		//List <EvsAssociation> inverseAssociations = getEvsInverseAssociations(conceptCode);
+		//List <EvsAssociation> roles = getEvsRoles(conceptCode);
+		//List <EvsAssociation> inverseRoles = getEvsInverseRoles(conceptCode);
+
+		evsConcept.setSubconcepts(getEvsSubconcepts(conceptCode));
+		evsConcept.setSuperconcepts(getEvsSuperconcepts(conceptCode));
+		evsConcept.setAssociations(getEvsAssociations(conceptCode));
+		evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode));
+		evsConcept.setRoles(getEvsRoles(conceptCode));
+		evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode));
+		evsConcept.setSynonyms(EVSUtils.getFullSynonym(axioms));
+		evsConcept.setAdditionalProperties(EVSUtils.getAdditionalProperties(properties));
+		
+		if (mainTypeHierarchyUtils.isDiseaseStage(conceptCode)){		
+			evsConcept.setIsDiseaseStage(true);
+		} else{
+			evsConcept.setIsDiseaseStage(false);
+		}
+		
+		if (mainTypeHierarchyUtils.isDiseaseGrade(conceptCode)){		
+			evsConcept.setIsDiseaseGrade(true);
+		} else{
+			evsConcept.setIsDiseaseGrade(false);
+		}
+		
 		if (mainTypeHierarchyUtils.isMainType(conceptCode)){		
 			evsConcept.setIsMainType(true);
 		} else{

@@ -611,6 +611,33 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("{\n");
 		query.append("    GRAPH <" + namedGraph + ">\n");
 		query.append("    {\n");
+		query.append("        ?z a owl:Class .\n");
+		query.append("        ?z rdfs:label ?z_label .\n");
+		query.append("        ?z :NHC0 \"" + conceptCode + "\"^^<http://www.w3.org/2001/XMLSchema#string> .\n");
+		query.append("        ?x a owl:Class .\n");
+		query.append("        ?x rdfs:label ?relatedConceptLabel .\n");
+		query.append("        ?x :NHC0 ?relatedConceptCode .\n");
+		query.append("        ?y a owl:AnnotationProperty .\n");
+		query.append("        ?x ?y ?z .\n");
+		query.append("        ?y rdfs:label ?relationship .\n");
+		query.append("        ?y :NHC0 ?y_code .\n");
+		query.append("        ?y rdfs:range ?y_range\n");
+		query.append("    }\n");
+		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
+		query.append("}\n");
+		query.append("ORDER BY ?relationship ?relatedConceptLabel\n");
+
+		log.debug("constructInverseAssociationsQuery - " + query.toString());
+		return query.toString();
+	}
+
+	/*
+	public String constructInverseAssociationsQuery(String conceptCode, String namedGraph) {
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT ?relatedConceptLabel ?relatedConceptCode ?relationship\n");
+		query.append("{\n");
+		query.append("    GRAPH <" + namedGraph + ">\n");
+		query.append("    {\n");
 		query.append("        ?x a owl:Class .\n");
 		query.append("        ?x rdfs:label ?relatedConceptLabel .\n");
 		query.append("        ?x :NHC0 ?relatedConceptCode .\n");
@@ -630,6 +657,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		log.debug("constructInverseAssociationsQuery - " + query.toString());
 		return query.toString();
 	}
+	*/
+
 
 	public String constructInverseRolesQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();
@@ -703,7 +732,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("      }\n");
 		query.append("   }\n");
 		query.append("} \n");
-		query.append("ORDER BY ?relationship\n");
+		query.append("ORDER BY ?relationship ?relatedConceptLabel\n");
 
 		log.debug("constructInverseRolesQuery - " + query.toString());
 
