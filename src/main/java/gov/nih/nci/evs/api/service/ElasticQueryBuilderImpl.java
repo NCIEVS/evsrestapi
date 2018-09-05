@@ -106,7 +106,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		// setting defaults
 
 		if (filterCriteriaElasticFields.getType() == null) {
-			filterCriteriaElasticFields.setType("OR");
+			filterCriteriaElasticFields.setType("contains");
 		}
 		String display = "";
 		if (filterCriteriaElasticFields.getReturnProperties() == null
