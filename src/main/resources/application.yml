@@ -79,5 +79,224 @@ nci:
       graphName: ${STARDOG_GRAPH_NAME:REPLACE_WITH_GRAPH_NAME} 
       owlfileName: ${STARDOG_OWL_FILENAME:REPLACE_WITH_OWL_FILENAME}
       populateCacheCron: ${POPULATE_CACHE_CRON:0 0 1 * * *}
-      forcePopulateCache: ${FORCE_POPULATE_CACHE:N}     
-
+      forcePopulateCache: ${FORCE_POPULATE_CACHE:N}  
+    elasticsearch:
+      server:
+        url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://localhost:9200/concept_flat_full/concept/_search}
+      query: 
+        shortsourcefields: |
+            [
+            "code",
+            "label",
+            "displayName",
+            "preferredName"
+            ]    
+        defaultsourcefields: |
+            "code",
+            "label",   
+        exactstartswithfields: |
+            [ 
+            "code.exact^100",          
+            "label.exact^100",           
+            "displayName.exact^100",          
+            "preferredName.exact^100",  
+            "synonyms.termName.exact^95", 
+            "definitions.description.exact^70", 
+            "semanticTypes.exact^65",  
+            "additionalProperties.name.exact^50", 
+            "additionalProperties.value.exact^50", 
+            "superconcepts.label.exact^45", 
+            "subconcepts.label.exact^45"  
+            ]          
+        containsfields: |
+             [
+              "code^100",
+              "label^100",
+              "label.exact^100",
+              "label.ngram^50",
+              "displayName^100",
+              "displayName.exact^100",
+              "displayName.ngram^50",
+              "preferredName^100",
+              "preferredName.exact^100",
+              "preferredName.ngram^50",
+              "definitions.description^70",
+              "definitions.description.ngram^30",
+              "semanticTypes^10",       
+              "synonyms.termName^95",
+              "synonyms.termName.exact^95",
+              "synonyms.termName.ngram^50",
+              "additionalProperties.name^20",
+              "additionalProperties.name.ngram^10",
+              "additionalProperties.value^20",
+              "additionalProperties.value.ngram^10",
+              "superconcepts.label^20",
+              "superconcepts.label.ngram^10",
+              "subconcepts.label^20",
+              "subconcepts.label.ngram^10"]    
+        andorfields: |
+              [
+               "code^100",
+               "label^100",
+               "label.exact^100",
+               "displayName^100",
+               "displayName.exact^100",
+               "preferredName^100",
+               "preferredName.exact^100",
+               "synonyms.termName^95",
+               "synonyms.termName.exact^95",
+               "definitions.description^70",
+               "semanticTypes^65",
+               "additionalProperties.name^50",
+               "additionalProperties.value^50",
+               "superconcepts.label^45",
+               "subconcepts.label^45"
+              ]          
+        P108Default: |
+              "preferredName^100",
+              "preferredName.exact^100",
+        P108Exact: |
+              "preferredName.exact^100",
+        P108Contains: |       
+              "preferredName^100",
+              "preferredName.exact^100",
+              "preferredName.ngram^50",
+        P107Default: |
+              "displayName^100",
+              "displayName.exact^100",
+        P107Exact: |
+              "displayName.exact^100",
+        P107Contains: |
+              "displayName^100",
+              "displayName.exact^100",
+              "displayName.ngram^50",
+        P90Default: |
+              "synonyms.termName^95",
+              "synonyms.termName.exact^95",
+        P90Exact: |
+              "synonyms.termName.exact^95",
+        P90Contains: |
+              "synonyms.termName^95",
+              "synonyms.termName.exact^95",
+              "synonyms.termName.ngram^50",
+        NHC0Default: |
+              "code^100",
+        NHC0Exact: |
+              "code.exact^100",
+        NHC0Contains: |
+              "code^100",
+        P97Default: |
+              "definitions.description^70",
+        P97Exact: |
+              "definitions.description.exact^70",
+        P97Contains: |      
+              "definitions.description^70",
+              "definitions.description.ngram^30",
+        highlightexact: |              
+              "code.exact": {},
+              "label.exact": {},
+              "displayName.exact": {},
+              "preferredName.exact": {},
+              "definitions.description.exact": {},
+              "semanticTypes.exact": {},
+              "synonyms.termName.exact": {},
+              "additionalProperties.name.exact": {},
+              "additionalProperties.value.exact": {},
+              "superconcepts.label.exact": {},
+              "subconcepts.label.exact": {}
+        highlightcontains: |
+              "code": {},
+              "label.ngram": {},
+              "displayName.ngram": {},     
+              "preferredName.ngram": {},
+              "definitions.description.ngram": {},
+              "semanticTypes": {},
+              "synonyms.termName.ngram": {},
+              "additionalProperties.name.ngram": {},
+              "additionalProperties.value.ngram": {},
+              "superconcepts.label.ngram": {},
+              "subconcepts.label.ngram": {}        
+        highlightandor: | 
+               "code": {},
+               "label": {},
+               "displayName": {},
+               "preferredName": {},
+               "definitions.description": {},
+               "semanticTypes": {},
+               "synonyms.termName": {},
+               "additionalProperties.name": {},
+               "additionalProperties.value": {},
+               "superconcepts.label": {},
+               "subconcepts.label": {}       
+        mainQuery: |
+              {
+                  "_source": ${sourcefields},                  
+                  "from": ${fromRecord},
+                  "size": ${pageSize},
+                  "query": {
+                    "bool": {
+                      "must": {
+                        "query_string": {
+                          "query": "${term}",
+                          ${operator}
+                          "fields": ${fields}
+                        }
+                      }
+                      ${filter}
+                    }
+                  },
+                  "highlight": {
+                    "pre_tags": [
+                      "<font color='#428bca'><strong>"
+                    ],
+                    "post_tags": [
+                      "</strong></font>"
+                    ],
+                    "fields": {
+                      ${highlightFields}         
+                    }
+                  },
+                  "aggs": {
+                    "isDisease": {
+                      "terms": {
+                        "field": "isDisease"
+                      }
+                    },
+                    "isBiomarker": {
+                      "terms": {
+                        "field": "isBiomarker"
+                      }
+                    }
+                  }
+                }          
+        mainQueryWithoutHighlights: | 
+                {
+                  "_source": ${sourcefields},                  
+                  "from": ${fromRecord},
+                  "size": ${pageSize},
+                  "query": {
+                    "bool": {
+                      "must": {
+                        "query_string": {
+                          "query": "${term}",
+                          ${operator}
+                          "fields": ${fields}
+                        }
+                      }
+                      ${filter}
+                    }
+                  },
+                  "aggs": {
+                    "isDisease": {
+                      "terms": {
+                        "field": "isDisease"
+                      }
+                    },
+                    "isBiomarker": {
+                      "terms": {
+                        "field": "isBiomarker"
+                      }
+                    }
+                  }
+                }          
+                 

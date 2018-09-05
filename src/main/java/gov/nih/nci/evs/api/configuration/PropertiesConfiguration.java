@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
+import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 
 
@@ -55,7 +57,25 @@ public class PropertiesConfiguration {
         return new ApplicationProperties();
     }
     
+    
+    /*
+     * Elastic  Query Properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "nci.evs.elasticsearch.query", ignoreUnknownFields = false)
+    ElasticQueryProperties elasticQueryProperties() {
+        return new ElasticQueryProperties();
+    }
 
+    
+    /*
+     * Elastic  Query Properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "nci.evs.elasticsearch.server", ignoreUnknownFields = false)
+    ElasticServerProperties elasticServerProperties() {
+        return new ElasticServerProperties();
+    }
    
 
 }
