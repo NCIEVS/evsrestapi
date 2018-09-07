@@ -71,7 +71,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		propertyToQuery.put("displayname", elasticQueryProperties.getP107Default());
 		propertyToQuery.put("synonym", elasticQueryProperties.getP90Default());
 		propertyToQuery.put("code", elasticQueryProperties.getNHC0Default());
-		propertyToQuery.put("defintion", elasticQueryProperties.getP97Default());
+		propertyToQuery.put("definition", elasticQueryProperties.getP97Default());
 
 		// user input for property to property value for query for exact and startswith
 		propertyToQueryExact = new HashMap<String, String>();
