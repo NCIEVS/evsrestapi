@@ -119,6 +119,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		JsonNode jsonNode = mapper.readTree(responseStr);
 
 		if (filterCriteriaElasticFields.getFormat().equalsIgnoreCase("cleanWithHighlights")) {
+			
+			//get the total hits
+			JsonNode totalHits = jsonNode.path("hits").path("total");
+			
 			//adding the highlights to the concepts
 			List<JsonNode> sources = jsonNode.findValues("_source");
 			List<JsonNode> highlights = jsonNode.findValues("highlight");
@@ -133,7 +137,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 			// add pagesize and from
 			ObjectNode newRootNode = ((ObjectNode) rootNode).put("from", filterCriteriaElasticFields.getFromRecord());
-			newRootNode = ((ObjectNode) newRootNode).put("size", filterCriteriaElasticFields.getPageSize());
+			newRootNode = newRootNode.put("size", filterCriteriaElasticFields.getPageSize());
+			newRootNode = (ObjectNode) newRootNode.set("total", totalHits);
 
 			// adding the array for concept hits
 			ArrayNode newArrayNode = ((ObjectNode) newRootNode).putArray("hits");
@@ -145,7 +150,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			Object json = mapper.readValue(newRootNode.toString(), Object.class);
 			returnStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
 		} else if (filterCriteriaElasticFields.getFormat().equalsIgnoreCase("clean")) {
-
+			
+			//get the total hits
+			JsonNode totalHits = jsonNode.path("hits").path("total");
+			
 			// get the concepts hits
 			List<JsonNode> sources = jsonNode.findValues("_source");
 
@@ -154,7 +162,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 			// add pagesize and from
 			ObjectNode newRootNode = ((ObjectNode) rootNode).put("from", filterCriteriaElasticFields.getFromRecord());
-			newRootNode = ((ObjectNode) newRootNode).put("size", filterCriteriaElasticFields.getPageSize());
+			newRootNode = newRootNode.put("size", filterCriteriaElasticFields.getPageSize());
+			newRootNode = (ObjectNode) newRootNode.set("total", totalHits);
 
 			// adding the array for hits
 			ArrayNode newArrayNode = ((ObjectNode) newRootNode).putArray("hits");

@@ -270,6 +270,15 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			}
 			valuesMap.put("highlightFields", highlightFields);
 		}
+		
+		//***********replace highlight Tags**********************************
+		if (filterCriteriaElasticFields.getFormat().equalsIgnoreCase("raw")) {
+			String highlightTags = elasticQueryProperties.getHighlightTags();
+			valuesMap.put("highlightTags", highlightTags);
+		}else {
+			valuesMap.put("highlightTags", "");
+		}
+		
 
 		// **********************filter replace********************
 		String filter = this.constructFilterQuery(filterCriteriaElasticFields);

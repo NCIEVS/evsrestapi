@@ -33,6 +33,15 @@ public class ElasticQueryProperties {
     private String mainQueryWithoutHighlights;
     private String shortsourcefields;
     private String defaultsourcefields;
+    private String highlightTags;
+
+	public String getHighlightTags() {
+		return highlightTags;
+	}
+
+	public void setHighlightTags(String highlightTags) {
+		this.highlightTags = highlightTags;
+	}
 
 	public String getHighlightexact() {
 		return highlightexact;

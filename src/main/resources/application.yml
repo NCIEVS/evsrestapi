@@ -246,12 +246,7 @@ nci:
                     }
                   },
                   "highlight": {
-                    "pre_tags": [
-                      "<font color='#428bca'><strong>"
-                    ],
-                    "post_tags": [
-                      "</strong></font>"
-                    ],
+                    ${highlightTags}
                     "fields": {
                       ${highlightFields}         
                     }
@@ -298,5 +293,12 @@ nci:
                       }
                     }
                   }
-                }          
+                }    
+        highlightTags: |
+            "pre_tags": [
+                      "<font color='#428bca'><strong>"
+                    ],
+                    "post_tags": [
+                      "</strong></font>"
+                    ],                
                  
