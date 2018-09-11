@@ -661,6 +661,21 @@ public class MetadataUtils {
 		return null;
 	}
 
+	public HashMap createName2NamedGraphMap(HashMap nameVersion2NamedGraphMap) {
+		if (nameVersion2NamedGraphMap == null) return null;
+		HashMap hmap = new HashMap();
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector namedGraphs = (Vector) nameVersion2NamedGraphMap.get(key);
+			String namedGraph = (String) namedGraphs.elementAt(0);
+			Vector u = StringUtils.parseData(key, '|');
+			String codingScheme = (String) u.elementAt(0);
+			hmap.put(codingScheme, namedGraph);
+		}
+		return hmap;
+	}
+
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		System.out.println(serviceUrl);
