@@ -123,6 +123,25 @@ public class Utils {
 	    return filename.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
 	 }
 
+
+	public static List<String> findFilesInDirectory(String directory) {
+		return findFilesInDirectory(new File(directory));
+	}
+
+	public static List<String> findFilesInDirectory(File dir) {
+		List<String> list = new ArrayList<String>();
+		for (File file : dir.listFiles()) {
+			if (file.isDirectory()) {
+				List<String> list2 = findFilesInDirectory(file);
+				list.addAll(list2);
+			} else {
+				list.add(file.getAbsolutePath());
+			}
+		}
+		return list;
+	}
+
+
 	 public static void saveToFile(String outputfile, String t) {
 		 Vector v = new Vector();
 		 v.add(t);
