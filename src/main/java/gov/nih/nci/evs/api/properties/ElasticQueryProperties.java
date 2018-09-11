@@ -34,6 +34,62 @@ public class ElasticQueryProperties {
     private String shortsourcefields;
     private String defaultsourcefields;
     private String highlightTags;
+    private String exactstartswithsynonymfields;
+    private String containssynonymfields;
+    private String andorsynonymfields;
+    private String highlightsynonymexact;
+    private String highlightsynonymcontains;
+    private String highlightsynonymandor;
+    private String  mainSynonymQuery;
+    private String mainSynonymQueryWithoutHighlights;
+    
+	public String getHighlightsynonymexact() {
+		return highlightsynonymexact;
+	}
+
+	public void setHighlightsynonymexact(String highlightsynonymexact) {
+		this.highlightsynonymexact = highlightsynonymexact;
+	}
+
+	public String getHighlightsynonymcontains() {
+		return highlightsynonymcontains;
+	}
+
+	public void setHighlightsynonymcontains(String highlightsynonymcontains) {
+		this.highlightsynonymcontains = highlightsynonymcontains;
+	}
+
+	public String getHighlightsynonymandor() {
+		return highlightsynonymandor;
+	}
+
+	public void setHighlightsynonymandor(String highlightsynonymandor) {
+		this.highlightsynonymandor = highlightsynonymandor;
+	}
+
+	public String getExactstartswithsynonymfields() {
+		return exactstartswithsynonymfields;
+	}
+
+	public void setExactstartswithsynonymfields(String exactstartswithsynonymfields) {
+		this.exactstartswithsynonymfields = exactstartswithsynonymfields;
+	}
+
+	public String getContainssynonymfields() {
+		return containssynonymfields;
+	}
+
+	public void setContainssynonymfields(String containssynonymfields) {
+		this.containssynonymfields = containssynonymfields;
+	}
+
+	public String getAndorsynonymfields() {
+		return andorsynonymfields;
+	}
+
+	public void setAndorsynonymfields(String andorsynonymfields) {
+		this.andorsynonymfields = andorsynonymfields;
+	}
 
 	public String getHighlightTags() {
 		return highlightTags;
@@ -251,6 +307,22 @@ public class ElasticQueryProperties {
 
 	public void setMainQueryWithoutHighlights(String mainQueryWithoutHighlights) {
 		this.mainQueryWithoutHighlights = mainQueryWithoutHighlights;
+	}
+
+	public String getMainSynonymQuery() {
+		return mainSynonymQuery;
+	}
+
+	public void setMainSynonymQuery(String mainSynonymQuery) {
+		this.mainSynonymQuery = mainSynonymQuery;
+	}
+
+	public String getMainSynonymQueryWithoutHighlights() {
+		return mainSynonymQueryWithoutHighlights;
+	}
+
+	public void setMainSynonymQueryWithoutHighlights(String mainSynonymQueryWithoutHighlights) {
+		this.mainSynonymQueryWithoutHighlights = mainSynonymQueryWithoutHighlights;
 	}
 
 }

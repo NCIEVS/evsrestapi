@@ -12,6 +12,7 @@ public class FilterCriteriaElasticFields {
 	private ArrayList<String> returnProperties;
 	private String biomarker;
 	private String disease;
+	private String synonymSource;
 	
 	private String format;
 
@@ -87,6 +88,14 @@ public class FilterCriteriaElasticFields {
 
 	public void setReturnProperties(ArrayList<String> returnProperties) {
 		this.returnProperties = returnProperties;
+	}
+
+	public String getSynonymSource() {
+		return synonymSource;
+	}
+
+	public void setSynonymSource(String synonymSource) {
+		this.synonymSource = synonymSource;
 	}
 
 }

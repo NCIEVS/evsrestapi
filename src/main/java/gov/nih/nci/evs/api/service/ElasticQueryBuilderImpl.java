@@ -104,14 +104,14 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 	public String constructQuery(FilterCriteriaElasticFields filterCriteriaElasticFields) throws IOException {
 		Map valuesMap = new HashMap();
 		// setting defaults
-
+		boolean synonymSource = false;
 		if (filterCriteriaElasticFields.getType() == null) {
 			filterCriteriaElasticFields.setType("contains");
 		}
 		String display = "";
 		if (filterCriteriaElasticFields.getReturnProperties() == null
 				|| (filterCriteriaElasticFields.getReturnProperties().size() <= 0)) {
-			display = "short";
+			display = "all";
 		} else {
 			if (filterCriteriaElasticFields.getReturnProperties().get(0).equalsIgnoreCase("all")) {
 				display = "all";
@@ -133,6 +133,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			filterCriteriaElasticFields.setFormat("raw");
 		}
 
+		if (!(filterCriteriaElasticFields.getSynonymSource() == null)
+				&& !(filterCriteriaElasticFields.getSynonymSource().equalsIgnoreCase(""))) {
+			synonymSource = true;
+		}
 		// *******source fields replace******************
 		String returnFields = "";
 		String sourcefields = "";
@@ -190,7 +194,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				operator = "";
 			}
 			if (filterCriteriaElasticFields.getType().equalsIgnoreCase("AND")) {
-				operator = "\"default_operator\":\"AND\",\n";
+				if (synonymSource)
+					operator = "\"operator\":\"and\",\n";
+				else
+				    operator = "\"default_operator\":\"AND\",\n";
 			}
 			if (filterCriteriaElasticFields.getType().equalsIgnoreCase("phrase")) {
 
@@ -218,74 +225,114 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 		// **********fields to search in replace***************
 		String fields = "";
-		if (filterCriteriaElasticFields.getProperty() != null && filterCriteriaElasticFields.getProperty().size() > 0) {
-			List<String> properties = filterCriteriaElasticFields.getProperty();
-			if (properties != null && properties.size() > 0) {
-				fields = "[\n";
-				for (String property : properties) {
-					String value = "";
-					if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
-							|| (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
-						value = this.propertyToQueryExact.get(property.toLowerCase());
+		if (synonymSource) {
+			// any getProperty field will be ignored
+			if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
+					|| (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
+				fields = elasticQueryProperties.getExactstartswithsynonymfields();
+			} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+				fields = elasticQueryProperties.getContainssynonymfields();
 
-					} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
-						value = this.propertyToQueryContains.get(property.toLowerCase());
-					} else {
-						value = this.propertyToQuery.get(property.toLowerCase());
-					}
-					if (value == null) {
-						throw new InvalidParameterValueException(
-								"Invalid Parameter value for property field. Rejected value - " + property);
-
-					} else
-						fields = fields + value;
-				}
-				fields = fields.substring(0, fields.length() - 2);
-				fields = fields + "]\n";
-
+			} else {
+				fields = elasticQueryProperties.getAndorsynonymfields();
 			}
-		} else if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
-				|| (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
-			fields = elasticQueryProperties.getExactstartswithfields();
-		} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
-			fields = elasticQueryProperties.getContainsfields();
 
 		} else {
-			fields = elasticQueryProperties.getAndorfields();
+			if (filterCriteriaElasticFields.getProperty() != null
+					&& filterCriteriaElasticFields.getProperty().size() > 0) {
+				List<String> properties = filterCriteriaElasticFields.getProperty();
+				if (properties != null && properties.size() > 0) {
+					fields = "[\n";
+					for (String property : properties) {
+						String value = "";
+						if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
+								|| (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
+							value = this.propertyToQueryExact.get(property.toLowerCase());
+
+						} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+							value = this.propertyToQueryContains.get(property.toLowerCase());
+						} else {
+							value = this.propertyToQuery.get(property.toLowerCase());
+						}
+						if (value == null) {
+							throw new InvalidParameterValueException(
+									"Invalid Parameter value for property field. Rejected value - " + property);
+
+						} else
+							fields = fields + value;
+					}
+					fields = fields.substring(0, fields.length() - 2);
+					fields = fields + "]\n";
+
+				}
+			} else if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
+					|| (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
+				fields = elasticQueryProperties.getExactstartswithfields();
+			} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+				fields = elasticQueryProperties.getContainsfields();
+
+			} else {
+				fields = elasticQueryProperties.getAndorfields();
+			}
 		}
 		valuesMap.put("fields", fields);
 
 		// ***********replace highlight fields************************
 		String highlightFields = "";
 		if (!filterCriteriaElasticFields.getFormat().equalsIgnoreCase("clean")) {
-			if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
-					|| filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
-				highlightFields = elasticQueryProperties.getHighlightexact();
+			if (synonymSource) {
+				if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
+						|| filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
+					highlightFields = elasticQueryProperties.getHighlightsynonymexact();
 
-			} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
-				highlightFields = elasticQueryProperties.getHighlightcontains();
+				} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+					highlightFields = elasticQueryProperties.getHighlightsynonymcontains();
 
+				} else {
+					highlightFields = elasticQueryProperties.getHighlightsynonymandor();
+				}
 			} else {
-				highlightFields = elasticQueryProperties.getHighlightandor();
+				if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
+						|| filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
+					highlightFields = elasticQueryProperties.getHighlightexact();
+
+				} else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+					highlightFields = elasticQueryProperties.getHighlightcontains();
+
+				} else {
+					highlightFields = elasticQueryProperties.getHighlightandor();
+				}
 			}
 			valuesMap.put("highlightFields", highlightFields);
 		}
-		
-		//***********replace highlight Tags**********************************
+
+		// ***********replace highlight Tags**********************************
 		if (filterCriteriaElasticFields.getFormat().equalsIgnoreCase("raw")) {
 			String highlightTags = elasticQueryProperties.getHighlightTags();
 			valuesMap.put("highlightTags", highlightTags);
-		}else {
+		} else {
 			valuesMap.put("highlightTags", "");
 		}
-		
 
+		//***************synonym source***********
+		if (synonymSource) {
+			valuesMap.put("synonymSource", filterCriteriaElasticFields.getSynonymSource());
+		}
+		
+		
 		// **********************filter replace********************
+		if (!synonymSource) {
 		String filter = this.constructFilterQuery(filterCriteriaElasticFields);
 		valuesMap.put("filter", filter);
+		}
 
 		// *********get main query
-		String templateString = getMainQuery(filterCriteriaElasticFields);
+		String templateString = "";
+		if (synonymSource) {
+			templateString = getMainSynonymQuery(filterCriteriaElasticFields);
+		} else {
+		  templateString = getMainQuery(filterCriteriaElasticFields);
+		}
 
 		// replace values
 		StrSubstitutor sub = new StrSubstitutor(valuesMap);
@@ -340,6 +387,17 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			query = elasticQueryProperties.getMainQueryWithoutHighlights();
 		} else
 			query = elasticQueryProperties.getMainQuery();
+
+		return query;
+
+	}
+	
+	private String getMainSynonymQuery(FilterCriteriaElasticFields filterCriteriaElasticFields) {
+		String query = "";
+		if (filterCriteriaElasticFields.getFormat().equalsIgnoreCase("clean")) {
+			query = elasticQueryProperties.getMainSynonymQueryWithoutHighlights();
+		} else
+			query = elasticQueryProperties.getMainSynonymQuery();
 
 		return query;
 
