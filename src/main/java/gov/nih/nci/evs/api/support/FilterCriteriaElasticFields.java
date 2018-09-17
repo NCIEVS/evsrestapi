@@ -13,7 +13,19 @@ public class FilterCriteriaElasticFields {
 	private String biomarker;
 	private String disease;
 	private String synonymSource;
+	private String associationSearch;
+	private ArrayList<String> relationship;
 	
+	public String getAssociationSearch() {
+		return associationSearch;
+	}
+
+	public void setAssociationSearch(String associationSearch) {
+		this.associationSearch = associationSearch;
+	}
+
+	
+
 	private String format;
 
 	
@@ -96,6 +108,14 @@ public class FilterCriteriaElasticFields {
 
 	public void setSynonymSource(String synonymSource) {
 		this.synonymSource = synonymSource;
+	}
+
+	public ArrayList<String> getRelationship() {
+		return relationship;
+	}
+
+	public void setRelationship(ArrayList<String> relationship) {
+		this.relationship = relationship;
 	}
 
 }

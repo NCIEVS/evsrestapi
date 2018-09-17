@@ -31,18 +31,94 @@ public class ElasticQueryProperties {
     private String highlightandor;
     private String mainQuery;
     private String mainQueryWithoutHighlights;
-    private String shortsourcefields;
+    private String mainSynonymQuery;
+    private String mainSynonymQueryWithoutHighlights;
+    private String mainAssociationQuery;
+    private String mainAssociationQueryWithoutHighlights;    
+    
+    public String getMainAssociationQuery() {
+		return mainAssociationQuery;
+	}
+
+	public void setMainAssociationQuery(String mainAssociationQuery) {
+		this.mainAssociationQuery = mainAssociationQuery;
+	}
+
+	public String getMainAssociationQueryWithoutHighlights() {
+		return mainAssociationQueryWithoutHighlights;
+	}
+
+	public void setMainAssociationQueryWithoutHighlights(String mainAssociationQueryWithoutHighlights) {
+		this.mainAssociationQueryWithoutHighlights = mainAssociationQueryWithoutHighlights;
+	}
+
+	private String shortsourcefields;
     private String defaultsourcefields;
+    private String  associationsourcefields;
     private String highlightTags;
     private String exactstartswithsynonymfields;
     private String containssynonymfields;
     private String andorsynonymfields;
+    private String exactstartswithassociationfields;
+    private String containsassociationfields;
+    private String andorassociationfields;
     private String highlightsynonymexact;
     private String highlightsynonymcontains;
     private String highlightsynonymandor;
-    private String  mainSynonymQuery;
-    private String mainSynonymQueryWithoutHighlights;
+    private String highlightassociationexact;
+    private String highlightassociationcontains;
+    private String highlightassociationandor;
     
+    
+    public String getExactstartswithassociationfields() {
+		return exactstartswithassociationfields;
+	}
+
+	public void setExactstartswithassociationfields(String exactstartswithassociationfields) {
+		this.exactstartswithassociationfields = exactstartswithassociationfields;
+	}
+
+	public String getContainsassociationfields() {
+		return containsassociationfields;
+	}
+
+	public void setContainsassociationfields(String containsassociationfields) {
+		this.containsassociationfields = containsassociationfields;
+	}
+
+	public String getAndorassociationfields() {
+		return andorassociationfields;
+	}
+
+	public void setAndorassociationfields(String andorassociationfields) {
+		this.andorassociationfields = andorassociationfields;
+	}
+
+	public String getHighlightassociationexact() {
+		return highlightassociationexact;
+	}
+
+	public void setHighlightassociationexact(String highlightassociationexact) {
+		this.highlightassociationexact = highlightassociationexact;
+	}
+
+	public String getHighlightassociationcontains() {
+		return highlightassociationcontains;
+	}
+
+	public void setHighlightassociationcontains(String highlightassociationcontains) {
+		this.highlightassociationcontains = highlightassociationcontains;
+	}
+
+	public String getHighlightassociationandor() {
+		return highlightassociationandor;
+	}
+
+	public void setHighlightassociationandor(String highlightassociationandor) {
+		this.highlightassociationandor = highlightassociationandor;
+	}
+
+	
 	public String getHighlightsynonymexact() {
 		return highlightsynonymexact;
 	}
@@ -323,6 +399,14 @@ public class ElasticQueryProperties {
 
 	public void setMainSynonymQueryWithoutHighlights(String mainSynonymQueryWithoutHighlights) {
 		this.mainSynonymQueryWithoutHighlights = mainSynonymQueryWithoutHighlights;
+	}
+
+	public String getAssociationsourcefields() {
+		return associationsourcefields;
+	}
+
+	public void setAssociationsourcefields(String associationsourcefields) {
+		this.associationsourcefields = associationsourcefields;
 	}
 
 }

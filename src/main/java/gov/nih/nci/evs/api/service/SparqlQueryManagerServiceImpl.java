@@ -107,7 +107,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 		restUtils = new RESTUtils(stardogProperties.getQueryUrl(), stardogProperties.getUsername(),
 				stardogProperties.getPassword(),stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
 		
-		populateCache();
+		//populateCache();
 		
 		
 	}

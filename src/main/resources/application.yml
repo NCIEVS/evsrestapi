@@ -93,7 +93,13 @@ nci:
             ]    
         defaultsourcefields: |
             "code",
-            "label",   
+            "label",  
+        associationsourcefields: |
+            [
+             "code",
+             "label",
+             "associations"
+            ]     
         exactstartswithfields: |
             [ 
             "code.exact^100",          
@@ -111,7 +117,11 @@ nci:
         exactstartswithsynonymfields: |
              [
                "synonyms.termName.exact^100"
-             ]          
+             ]
+        exactstartswithassociationfields: |
+             [
+               "associations.relatedConceptLabel.exact^100"
+             ]         
         containsfields: |
              [
               "code^100",
@@ -143,7 +153,13 @@ nci:
                    "synonyms.termName^100",
                    "synonyms.termName.exact^100",
                    "synonyms.termName.ngram^50"
-               ]          
+               ] 
+        containsassociationfields: |   
+               [
+                   "associations.relatedConceptLabel^100",
+                   "associations.relatedConceptLabel.exact^100",
+                   "associations.relatedConceptLabel.ngram^50"
+               ]              
         andorfields: |
               [
                "code^100",
@@ -166,7 +182,12 @@ nci:
               [
                  "synonyms.termName^100",
                  "synonyms.termName.exact^100"
-              ]              
+              ]
+        andorassociationfields: |
+              [
+                 "associations.relatedConceptLabel^100",
+                 "associations.relatedConceptLabel.exact^100"
+              ]                    
         P108Default: |
               "preferredName^100",
               "preferredName.exact^100",
@@ -220,7 +241,9 @@ nci:
               "superconcepts.label.exact": {},
               "subconcepts.label.exact": {}
         highlightsynonymexact: |
-               "synonyms.termName.exact": {}      
+               "synonyms.termName.exact": {}  
+        highlightassociationexact: |
+               "associations.relatedConceptLabel.exact": {}    
         highlightcontains: |
               "code": {},
               "label.ngram": {},
@@ -234,7 +257,9 @@ nci:
               "superconcepts.label.ngram": {},
               "subconcepts.label.ngram": {}  
         highlightsynonymcontains: |
-               "synonyms.termName.ngram": {}           
+               "synonyms.termName.ngram": {} 
+        highlightassociationcontains: |
+               "associations.relatedConceptLabel.ngram": {}                 
         highlightandor: | 
                "code": {},
                "label": {},
@@ -248,7 +273,9 @@ nci:
                "superconcepts.label": {},
                "subconcepts.label": {}
         highlightsynonymandor: |
-                "synonyms.termName": {}             
+                "synonyms.termName": {}   
+        highlightassociationandor: |
+                "associations.relatedConceptLabel": {}                  
         mainQuery: |
               {
                   "_source": ${sourcefields},                  
@@ -327,7 +354,50 @@ nci:
                       }
                     }
                   }
-                }                
+                }
+        mainAssociationQuery: |
+                {
+                  "_source": ${sourcefields},                  
+                  "from": ${fromRecord},
+                  "size": ${pageSize},
+                  "query": {
+                     "nested": {
+                        "path": "associations",
+                           "query": {
+                              "bool": {
+                                 "must": [
+                                    { "multi_match" : {
+                                     "query": "${term}",
+                                      ${operator}
+                                     "fields":     ${fields}
+     
+                                     }}
+                                     ${associationRelationship}
+                                    ]
+                    
+                    }
+                    }                      
+                    }
+                  },
+                  "highlight": {
+                    ${highlightTags}
+                    "fields": {
+                         ${highlightFields}  
+                    }
+                  },
+                  "aggs": {
+                    "isDisease": {
+                      "terms": {
+                        "field": "isDisease"
+                      }
+                    },
+                    "isBiomarker": {
+                      "terms": {
+                        "field": "isBiomarker"
+                      }
+                    }
+                  }
+                }                                    
         mainQueryWithoutHighlights: | 
                 {
                   "_source": ${sourcefields},                  
@@ -394,7 +464,44 @@ nci:
                       }
                     }
                   }
-                }                  
+                } 
+        mainAssociationQueryWithoutHighlights: |
+                {
+                  "_source": ${sourcefields},                  
+                  "from": ${fromRecord},
+                  "size": ${pageSize},
+                  "query": {
+                     "nested": {
+                        "path": "associations",
+                           "query": {
+                              "bool": {
+                                 "must": [
+                                    { "multi_match" : {
+                                     "query": "${term}",
+                                      ${operator}
+                                     "fields":     ${fields}
+     
+                                     }}
+                                     ${associationRelationship}
+                                    ]
+                    
+                    }
+                    }                      
+                    }
+                  },                  
+                  "aggs": {
+                    "isDisease": {
+                      "terms": {
+                        "field": "isDisease"
+                      }
+                    },
+                    "isBiomarker": {
+                      "terms": {
+                        "field": "isBiomarker"
+                      }
+                    }
+                  }
+                }                             
         highlightTags: |
             "pre_tags": [
                       "<font color='#428bca'><strong>"
