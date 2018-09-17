@@ -328,8 +328,8 @@ nci:
                                       ${operator}
                                      "fields":     ${fields}
      
-                                     }},
-                                    { "match" : {"synonyms.termSource" : "${synonymSource}"} }
+                                     }}
+                                     ${synonymSource}
                                     ]
                     
                     }
@@ -444,8 +444,8 @@ nci:
                                       ${operator}
                                      "fields":     ${fields}
      
-                                     }},
-                                    { "match" : {"synonyms.termSource" : "${synonymSource}"} }
+                                     }} 
+                                     ${synonymSource}
                                     ]
                     
                     }

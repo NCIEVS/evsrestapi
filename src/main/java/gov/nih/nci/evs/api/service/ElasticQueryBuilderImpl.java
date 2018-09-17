@@ -182,8 +182,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			associationSearch = true;
 		}
 
-		if (!(filterCriteriaElasticFields.getSynonymSource() == null)
-				&& !(filterCriteriaElasticFields.getSynonymSource().equalsIgnoreCase(""))) {
+		if ((!(filterCriteriaElasticFields.getSynonymSource() == null)
+				&& !(filterCriteriaElasticFields.getSynonymSource().equalsIgnoreCase(""))) || 
+				(!(filterCriteriaElasticFields.getSynonymGroup() == null)
+						&& !(filterCriteriaElasticFields.getSynonymGroup().equalsIgnoreCase("")))) {
 			synonymSource = true;
 		}
 		// *******source fields replace******************
@@ -395,7 +397,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 		// ***************synonym source***********
 		if (synonymSource) {
-			valuesMap.put("synonymSource", filterCriteriaElasticFields.getSynonymSource());
+			String synonymSourceStr = constructSynonymSource(filterCriteriaElasticFields);
+			valuesMap.put("synonymSource", synonymSourceStr);
 		}
 
 		// **********************filter replace********************
@@ -420,6 +423,24 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 		log.debug("query string - " + resolvedString);
 		return resolvedString;
+	}
+	
+	private String constructSynonymSource(FilterCriteriaElasticFields filterCriteriaElasticFields){
+		String synonymSourceStr = "";
+		String synonymSource = filterCriteriaElasticFields.getSynonymSource();
+		String synonymGroup = filterCriteriaElasticFields.getSynonymGroup();
+		
+		if (synonymSource != null && !synonymSource.equalsIgnoreCase("")){
+			synonymSourceStr = synonymSourceStr + 
+					",{ \"match\" : {\"synonyms.termSource\" : \"" + synonymSource + "\"} }";
+		}
+		if (synonymGroup != null && !synonymGroup.equalsIgnoreCase("")){
+			synonymSourceStr = synonymSourceStr + 
+					",{ \"match\" : {\"synonyms.termGroup\" : \"" + synonymGroup + "\"} }";
+		}
+		
+		return synonymSourceStr;
+		
 	}
 
 	private String constructAssociationRelationship(FilterCriteriaElasticFields filterCriteriaElasticFields)
