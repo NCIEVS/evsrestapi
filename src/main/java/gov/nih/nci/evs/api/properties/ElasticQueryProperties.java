@@ -8,66 +8,80 @@ public class ElasticQueryProperties {
 	/** The logger. */
     private static final Logger log = LoggerFactory.getLogger(ElasticQueryProperties.class);
 
+    //source fields
+    private String shortsourcefields;
+    private String defaultsourcefields;
+    private String associationsourcefields;
+    private String definitionsourcefields;
+    
+    //exact and starts with fields
     private String exactstartswithfields;
+    private String exactstartswithsynonymfields;
+    private String exactstartswithdefinitionfields;
+    private String exactstartswithassociationfields;
+    
+    //contains fields
     private String containsfields;
+    private String containssynonymfields;
+    private String containsdefinitionfields;
+    private String containsassociationfields;
+    
+    //andor fields
     private String andorfields;
+    private String andorsynonymfields;
+    private String andordefinitionfields;
+    private String andorassociationfields;
+    
+    //Property fields
     private String P108Default;
     private String P108Exact;
     private String P108Contains;
+    
     private String P107Default; 
     private String P107Exact;
     private String P107Contains;
+    
     private String P90Default;
     private String P90Exact;
     private String P90Contains;
+    
     private String NHC0Default;
     private String NHC0Exact;
     private String NHC0Contains;
+    
     private String P97Default;
     private String P97Exact;
     private String P97Contains;
-    private String highlightexact;
-    private String highlightcontains;
-    private String highlightandor;
-    private String mainQuery;
-    private String mainQueryWithoutHighlights;
-    private String mainSynonymQuery;
-    private String mainSynonymQueryWithoutHighlights;
-    private String mainAssociationQuery;
-    private String mainAssociationQueryWithoutHighlights;    
     
-    public String getMainAssociationQuery() {
-		return mainAssociationQuery;
-	}
-
-	public void setMainAssociationQuery(String mainAssociationQuery) {
-		this.mainAssociationQuery = mainAssociationQuery;
-	}
-
-	public String getMainAssociationQueryWithoutHighlights() {
-		return mainAssociationQueryWithoutHighlights;
-	}
-
-	public void setMainAssociationQueryWithoutHighlights(String mainAssociationQueryWithoutHighlights) {
-		this.mainAssociationQueryWithoutHighlights = mainAssociationQueryWithoutHighlights;
-	}
-
-	private String shortsourcefields;
-    private String defaultsourcefields;
-    private String  associationsourcefields;
-    private String highlightTags;
-    private String exactstartswithsynonymfields;
-    private String containssynonymfields;
-    private String andorsynonymfields;
-    private String exactstartswithassociationfields;
-    private String containsassociationfields;
-    private String andorassociationfields;
+    //highlight fields for exact
+    private String highlightexact;
     private String highlightsynonymexact;
-    private String highlightsynonymcontains;
-    private String highlightsynonymandor;
+    private String highlightdefinitionexact;
     private String highlightassociationexact;
+    
+    //highlight fields for contains
+    private String highlightcontains;
+    private String highlightsynonymcontains;
+    private String highlightdefinitioncontains;
     private String highlightassociationcontains;
+    
+    //highlight fields for and or
+    private String highlightandor;
+    private String highlightsynonymandor;
+    private String highlightdefinitionandor;
     private String highlightassociationandor;
+    
+    //main query and main nested query
+    private String mainQuery;
+    private String mainNestedQuery;
+    private String mainQueryWithoutHighlights;
+    private String mainNestedQueryWithoutHighlights;
+   
+    
+    //highlight tags	
+    private String highlightTags;
+      
+    
     
     
     public String getExactstartswithassociationfields() {
@@ -385,20 +399,70 @@ public class ElasticQueryProperties {
 		this.mainQueryWithoutHighlights = mainQueryWithoutHighlights;
 	}
 
-	public String getMainSynonymQuery() {
-		return mainSynonymQuery;
+	
+
+	public String getExactstartswithdefinitionfields() {
+		return exactstartswithdefinitionfields;
 	}
 
-	public void setMainSynonymQuery(String mainSynonymQuery) {
-		this.mainSynonymQuery = mainSynonymQuery;
+	public void setExactstartswithdefinitionfields(String exactstartswithdefinitionfields) {
+		this.exactstartswithdefinitionfields = exactstartswithdefinitionfields;
 	}
 
-	public String getMainSynonymQueryWithoutHighlights() {
-		return mainSynonymQueryWithoutHighlights;
+	public String getContainsdefinitionfields() {
+		return containsdefinitionfields;
 	}
 
-	public void setMainSynonymQueryWithoutHighlights(String mainSynonymQueryWithoutHighlights) {
-		this.mainSynonymQueryWithoutHighlights = mainSynonymQueryWithoutHighlights;
+	public void setContainsdefinitionfields(String containsdefinitionfields) {
+		this.containsdefinitionfields = containsdefinitionfields;
+	}
+
+	public String getAndordefinitionfields() {
+		return andordefinitionfields;
+	}
+
+	public void setAndordefinitionfields(String andordefinitionfields) {
+		this.andordefinitionfields = andordefinitionfields;
+	}
+
+	public String getHighlightdefinitionexact() {
+		return highlightdefinitionexact;
+	}
+
+	public void setHighlightdefinitionexact(String highlightdefinitionexact) {
+		this.highlightdefinitionexact = highlightdefinitionexact;
+	}
+
+	public String getHighlightdefinitioncontains() {
+		return highlightdefinitioncontains;
+	}
+
+	public void setHighlightdefinitioncontains(String highlightdefinitioncontains) {
+		this.highlightdefinitioncontains = highlightdefinitioncontains;
+	}
+
+	public String getHighlightdefinitionandor() {
+		return highlightdefinitionandor;
+	}
+
+	public void setHighlightdefinitionandor(String highlightdefinitionandor) {
+		this.highlightdefinitionandor = highlightdefinitionandor;
+	}
+
+	public String getMainNestedQuery() {
+		return mainNestedQuery;
+	}
+
+	public void setMainNestedQuery(String mainNestedQuery) {
+		this.mainNestedQuery = mainNestedQuery;
+	}
+
+	public String getMainNestedQueryWithoutHighlights() {
+		return mainNestedQueryWithoutHighlights;
+	}
+
+	public void setMainNestedQueryWithoutHighlights(String mainNestedQueryWithoutHighlights) {
+		this.mainNestedQueryWithoutHighlights = mainNestedQueryWithoutHighlights;
 	}
 
 	public String getAssociationsourcefields() {
@@ -407,6 +471,14 @@ public class ElasticQueryProperties {
 
 	public void setAssociationsourcefields(String associationsourcefields) {
 		this.associationsourcefields = associationsourcefields;
+	}
+
+	public String getDefinitionsourcefields() {
+		return definitionsourcefields;
+	}
+
+	public void setDefinitionsourcefields(String definitionsourcefields) {
+		this.definitionsourcefields = definitionsourcefields;
 	}
 
 }

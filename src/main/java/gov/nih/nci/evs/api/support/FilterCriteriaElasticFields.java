@@ -15,6 +15,7 @@ public class FilterCriteriaElasticFields {
 	private String synonymSource;
 	private String synonymGroup;
 	private String associationSearch;
+	private String definitionSource;
 	private ArrayList<String> relationship;
 	
 	public String getAssociationSearch() {
@@ -126,5 +127,15 @@ public class FilterCriteriaElasticFields {
 	public void setSynonymGroup(String synonymGroup) {
 		this.synonymGroup = synonymGroup;
 	}
+
+	public String getDefinitionSource() {
+		return definitionSource;
+	}
+
+	public void setDefinitionSource(String definitionSource) {
+		this.definitionSource = definitionSource;
+	}
+
+	
 
 }
