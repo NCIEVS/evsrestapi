@@ -118,7 +118,8 @@ nci:
             "additionalProperties.name.exact^50", 
             "additionalProperties.value.exact^50", 
             "superconcepts.label.exact^45", 
-            "subconcepts.label.exact^45"  
+            "subconcepts.label.exact^45",
+            "conceptStatus^10"  
             ]
         exactstartswithsynonymfields: |
              [
@@ -157,7 +158,8 @@ nci:
               "superconcepts.label^20",
               "superconcepts.label.ngram^10",
               "subconcepts.label^20",
-              "subconcepts.label.ngram^10"] 
+              "subconcepts.label.ngram^10",
+              "conceptStatus^10"] 
         containssynonymfields: |
                [
                    "synonyms.termName^100",
@@ -192,7 +194,8 @@ nci:
                "additionalProperties.name^30",
                "additionalProperties.value^30",
                "superconcepts.label^25",
-               "subconcepts.label^25"
+               "subconcepts.label^25",
+               "conceptStatus^10"
               ]  
         andorsynonymfields: |
               [
@@ -208,7 +211,9 @@ nci:
               [
                  "associations.relatedConceptLabel^100",
                  "associations.relatedConceptLabel.exact^100"
-              ]                    
+              ]  
+        statusDefault: |
+               "conceptStatus^10",
         P108Default: |
               "preferredName^100",
               "preferredName.exact^100",
@@ -260,7 +265,8 @@ nci:
               "additionalProperties.name.exact": {},
               "additionalProperties.value.exact": {},
               "superconcepts.label.exact": {},
-              "subconcepts.label.exact": {}
+              "subconcepts.label.exact": {},
+              "conceptStatus": {}
         highlightsynonymexact: |
                "synonyms.termName.exact": {}  
         highlightdefinitionexact: |
@@ -278,7 +284,8 @@ nci:
               "additionalProperties.name.ngram": {},
               "additionalProperties.value.ngram": {},
               "superconcepts.label.ngram": {},
-              "subconcepts.label.ngram": {}  
+              "subconcepts.label.ngram": {},
+              "conceptStatus": {}  
         highlightsynonymcontains: |
                "synonyms.termName.ngram": {} 
         highlightdefinitioncontains: |
@@ -296,7 +303,8 @@ nci:
                "additionalProperties.name": {},
                "additionalProperties.value": {},
                "superconcepts.label": {},
-               "subconcepts.label": {}
+               "subconcepts.label": {},
+               "conceptStatus": {}
         highlightsynonymandor: |
                 "synonyms.termName": {}   
         highlightdefinitionandor: |
@@ -456,3 +464,4 @@ nci:
                     "post_tags": [
                       "</strong></font>"
                     ],      
+                    

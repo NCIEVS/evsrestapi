@@ -53,6 +53,8 @@ public class ElasticQueryProperties {
     private String P97Exact;
     private String P97Contains;
     
+    private String statusDefault;
+    
     //highlight fields for exact
     private String highlightexact;
     private String highlightsynonymexact;
@@ -479,6 +481,14 @@ public class ElasticQueryProperties {
 
 	public void setDefinitionsourcefields(String definitionsourcefields) {
 		this.definitionsourcefields = definitionsourcefields;
+	}
+
+	public String getStatusDefault() {
+		return statusDefault;
+	}
+
+	public void setStatusDefault(String statusDefault) {
+		this.statusDefault = statusDefault;
 	}
 
 }

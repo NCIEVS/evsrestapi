@@ -60,6 +60,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		returnFieldMap.put("association", "associations");
 		returnFieldMap.put("inverseassociations", "inverseAssociations");
 		returnFieldMap.put("inverseassociation", "inverseAssociations");
+		returnFieldMap.put("conceptStatus", "conceptStatus");
+		returnFieldMap.put("conceptstatus", "conceptStatus");
 
 		/// associations
 		associationToQuery = new HashMap<String, String>();
@@ -107,6 +109,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		propertyToQuery.put("synonym", elasticQueryProperties.getP90Default());
 		propertyToQuery.put("code", elasticQueryProperties.getNHC0Default());
 		propertyToQuery.put("definition", elasticQueryProperties.getP97Default());
+		propertyToQuery.put("conceptstatus", elasticQueryProperties.getStatusDefault());
 
 		// user input for property to property value for query for exact and startswith
 		propertyToQueryExact = new HashMap<String, String>();
@@ -120,6 +123,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		propertyToQueryExact.put("synonym", elasticQueryProperties.getP90Exact());
 		propertyToQueryExact.put("code", elasticQueryProperties.getNHC0Exact());
 		propertyToQueryExact.put("defintion", elasticQueryProperties.getP97Exact());
+		propertyToQueryExact.put("conceptstatus", elasticQueryProperties.getStatusDefault());
 
 		// user input for property to property value for query for contains
 		propertyToQueryContains = new HashMap<String, String>();
@@ -133,6 +137,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		propertyToQueryContains.put("synonym", elasticQueryProperties.getP90Contains());
 		propertyToQueryContains.put("code", elasticQueryProperties.getNHC0Contains());
 		propertyToQueryContains.put("defintion", elasticQueryProperties.getP97Contains());
+		propertyToQueryContains.put("conceptstatus", elasticQueryProperties.getStatusDefault());
 
 	}
 
