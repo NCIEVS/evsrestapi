@@ -12,6 +12,7 @@ public class FilterCriteriaElasticFields {
 	private ArrayList<String> returnProperties;
 	private String biomarker;
 	private String disease;
+	private String conceptStatus;
 	private String synonymSource;
 	private String synonymGroup;
 	private String associationSearch;
@@ -134,6 +135,14 @@ public class FilterCriteriaElasticFields {
 
 	public void setDefinitionSource(String definitionSource) {
 		this.definitionSource = definitionSource;
+	}
+
+	public String getConceptStatus() {
+		return conceptStatus;
+	}
+
+	public void setConceptStatus(String conceptStatus) {
+		this.conceptStatus = conceptStatus;
 	}
 
 	

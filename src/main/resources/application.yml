@@ -63,7 +63,7 @@ server:
     contextPath: /            
     session:
         persistent: false    
-        
+
         
 nci:
   evs:
@@ -98,7 +98,7 @@ nci:
             [
              "code",
              "label",
-             "associations"
+             "${relation}"
             ] 
         definitionsourcefields: |
             [
@@ -131,7 +131,7 @@ nci:
              ]     
         exactstartswithassociationfields: |
              [
-               "associations.relatedConceptLabel.exact^100"
+               "${relation}.relatedConceptLabel.exact^100"
              ]         
         containsfields: |
              [
@@ -174,9 +174,9 @@ nci:
                ]         
         containsassociationfields: |   
                [
-                   "associations.relatedConceptLabel^100",
-                   "associations.relatedConceptLabel.exact^100",
-                   "associations.relatedConceptLabel.ngram^50"
+                   "${relation}.relatedConceptLabel^100",
+                   "${relation}.relatedConceptLabel.exact^100",
+                   "${relation}.relatedConceptLabel.ngram^50"
                ]              
         andorfields: |
               [
@@ -209,8 +209,8 @@ nci:
               ]      
         andorassociationfields: |
               [
-                 "associations.relatedConceptLabel^100",
-                 "associations.relatedConceptLabel.exact^100"
+                 "${relation}.relatedConceptLabel^100",
+                 "${relation}.relatedConceptLabel.exact^100"
               ]  
         statusDefault: |
                "conceptStatus^10",
@@ -272,7 +272,7 @@ nci:
         highlightdefinitionexact: |
                "definitions.description.exact": {}       
         highlightassociationexact: |
-               "associations.relatedConceptLabel.exact": {}    
+               "${relation}.relatedConceptLabel.exact": {}    
         highlightcontains: |
               "code": {},
               "label.ngram": {},
@@ -291,7 +291,7 @@ nci:
         highlightdefinitioncontains: |
                "definitions.description.ngram": {}        
         highlightassociationcontains: |
-               "associations.relatedConceptLabel.ngram": {}                 
+               "${relation}.relatedConceptLabel.ngram": {}                 
         highlightandor: | 
                "code": {},
                "label": {},
@@ -310,7 +310,7 @@ nci:
         highlightdefinitionandor: |
                 "definitions.description": {}           
         highlightassociationandor: |
-                "associations.relatedConceptLabel": {}                  
+                "${relation}.relatedConceptLabel": {}                  
         mainQuery: |
               {
                   "_source": ${sourcefields},                  
@@ -343,6 +343,11 @@ nci:
                     "isBiomarker": {
                       "terms": {
                         "field": "isBiomarker"
+                      }
+                    },
+                    "conceptStatus": {
+                      "terms": {
+                        "field": "conceptStatus"
                       }
                     }
                   }
@@ -387,6 +392,11 @@ nci:
                       "terms": {
                         "field": "isBiomarker"
                       }
+                    },
+                    "conceptStatus": {
+                      "terms": {
+                        "field": "conceptStatus"
+                      }
                     }
                   }
                 }                        
@@ -416,6 +426,11 @@ nci:
                     "isBiomarker": {
                       "terms": {
                         "field": "isBiomarker"
+                      }
+                    },
+                    "conceptStatus": {
+                      "terms": {
+                        "field": "conceptStatus"
                       }
                     }
                   }
@@ -453,6 +468,11 @@ nci:
                     "isBiomarker": {
                       "terms": {
                         "field": "isBiomarker"
+                      }
+                    },
+                    "conceptStatus": {
+                      "terms": {
+                        "field": "conceptStatus"
                       }
                     }
                   }
