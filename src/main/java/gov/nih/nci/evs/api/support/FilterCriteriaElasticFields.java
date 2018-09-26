@@ -16,6 +16,17 @@ public class FilterCriteriaElasticFields {
 	private String synonymSource;
 	private String synonymGroup;
 	private String associationSearch;
+	private String roleSearch;
+	public String getRoleSearch() {
+		return roleSearch;
+	}
+
+	public void setRoleSearch(String roleSearch) {
+		this.roleSearch = roleSearch;
+	}
+
+
+
 	private String definitionSource;
 	private ArrayList<String> relationship;
 	

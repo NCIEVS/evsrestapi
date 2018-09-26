@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.properties;
 
+import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,29 +34,6 @@ public class ElasticQueryProperties {
     private String andordefinitionfields;
     private String andorassociationfields;
     
-    //Property fields
-    private String P108Default;
-    private String P108Exact;
-    private String P108Contains;
-    
-    private String P107Default; 
-    private String P107Exact;
-    private String P107Contains;
-    
-    private String P90Default;
-    private String P90Exact;
-    private String P90Contains;
-    
-    private String NHC0Default;
-    private String NHC0Exact;
-    private String NHC0Contains;
-    
-    private String P97Default;
-    private String P97Exact;
-    private String P97Contains;
-    
-    private String statusDefault;
-    
     //highlight fields for exact
     private String highlightexact;
     private String highlightsynonymexact;
@@ -83,8 +62,10 @@ public class ElasticQueryProperties {
     //highlight tags	
     private String highlightTags;
       
-    
-    
+    //Property fields    
+    private HashMap<String, String> propertyToQuery;
+    private HashMap<String, String> propertyToQueryExact;
+    private HashMap<String, String> propertyToQueryContains;
     
     public String getExactstartswithassociationfields() {
 		return exactstartswithassociationfields;
@@ -215,126 +196,10 @@ public class ElasticQueryProperties {
 		this.highlightandor = highlightandor;
 	}
 
-	public String getP108Default() {
-		return P108Default;
-	}
+	
 
-	public void setP108Default(String p108Default) {
-		P108Default = p108Default;
-	}
-
-	public String getP108Exact() {
-		return P108Exact;
-	}
-
-	public void setP108Exact(String p108Exact) {
-		P108Exact = p108Exact;
-	}
-
-	public String getP108Contains() {
-		return P108Contains;
-	}
-
-	public void setP108Contains(String p108Contains) {
-		P108Contains = p108Contains;
-	}
-
-	public String getP107Default() {
-		return P107Default;
-	}
-
-	public void setP107Default(String p107Default) {
-		P107Default = p107Default;
-	}
-
-	public String getP107Exact() {
-		return P107Exact;
-	}
-
-	public void setP107Exact(String p107Exact) {
-		P107Exact = p107Exact;
-	}
-
-	public String getP107Contains() {
-		return P107Contains;
-	}
-
-	public void setP107Contains(String p107Contains) {
-		P107Contains = p107Contains;
-	}
-
-	public String getP90Default() {
-		return P90Default;
-	}
-
-	public void setP90Default(String p90Default) {
-		P90Default = p90Default;
-	}
-
-	public String getP90Exact() {
-		return P90Exact;
-	}
-
-	public void setP90Exact(String p90Exact) {
-		P90Exact = p90Exact;
-	}
-
-	public String getP90Contains() {
-		return P90Contains;
-	}
-
-	public void setP90Contains(String p90Contains) {
-		P90Contains = p90Contains;
-	}
-
-	public String getNHC0Default() {
-		return NHC0Default;
-	}
-
-	public void setNHC0Default(String nHC0Default) {
-		NHC0Default = nHC0Default;
-	}
-
-	public String getNHC0Exact() {
-		return NHC0Exact;
-	}
-
-	public void setNHC0Exact(String nHC0Exact) {
-		NHC0Exact = nHC0Exact;
-	}
-
-	public String getNHC0Contains() {
-		return NHC0Contains;
-	}
-
-	public void setNHC0Contains(String nHC0Contains) {
-		NHC0Contains = nHC0Contains;
-	}
-
-	public String getP97Default() {
-		return P97Default;
-	}
-
-	public void setP97Default(String p97Default) {
-		P97Default = p97Default;
-	}
-
-	public String getP97Exact() {
-		return P97Exact;
-	}
-
-	public void setP97Exact(String p97Exact) {
-		P97Exact = p97Exact;
-	}
-
-	public String getP97Contains() {
-		return P97Contains;
-	}
-
-	public void setP97Contains(String p97Contains) {
-		P97Contains = p97Contains;
-	}
-
+	
+	
 	public static Logger getLog() {
 		return log;
 	}
@@ -483,12 +348,34 @@ public class ElasticQueryProperties {
 		this.definitionsourcefields = definitionsourcefields;
 	}
 
-	public String getStatusDefault() {
-		return statusDefault;
+	
+
+	public HashMap<String, String> getPropertyToQuery() {
+		return propertyToQuery;
 	}
 
-	public void setStatusDefault(String statusDefault) {
-		this.statusDefault = statusDefault;
+	public void setPropertyToQuery(HashMap<String, String> propertyToQuery) {
+		this.propertyToQuery = propertyToQuery;
 	}
+
+	public HashMap<String, String> getPropertyToQueryExact() {
+		return propertyToQueryExact;
+	}
+
+	public void setPropertyToQueryExact(HashMap<String, String> propertyToQueryExact) {
+		this.propertyToQueryExact = propertyToQueryExact;
+	}
+
+	public HashMap<String, String> getPropertyToQueryContains() {
+		return propertyToQueryContains;
+	}
+
+	public void setPropertyToQueryContains(HashMap<String, String> propertyToQueryContains) {
+		this.propertyToQueryContains = propertyToQueryContains;
+	}
+
+	
+
+	
 
 }

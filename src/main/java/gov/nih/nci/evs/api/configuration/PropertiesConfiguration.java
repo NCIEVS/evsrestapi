@@ -16,6 +16,7 @@ import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 
 
 
@@ -75,6 +76,16 @@ public class PropertiesConfiguration {
     @ConfigurationProperties(prefix = "nci.evs.elasticsearch.server", ignoreUnknownFields = false)
     ElasticServerProperties elasticServerProperties() {
         return new ElasticServerProperties();
+    }
+   
+    
+    /*
+     * Stardog Properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "thesaurus.owl", ignoreUnknownFields = false)
+    ThesaurusProperties thesaurusProperties() {
+        return new ThesaurusProperties();
     }
    
 

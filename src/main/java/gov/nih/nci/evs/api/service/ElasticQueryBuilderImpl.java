@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
+import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.service.exception.InvalidParameterValueException;
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 
@@ -24,131 +26,29 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 	private HashMap<String, String> returnFieldMap;
 	private HashMap<String, String> propertyToQuery;
+
 	private HashMap<String, String> propertyToQueryExact;
 	private HashMap<String, String> propertyToQueryContains;
 	private HashMap<String, String> associationToQuery;
 	private HashMap<String, String> conceptStatus;
+	private HashMap<String, String> roleToQuery;
 
 	@Autowired
 	private ElasticQueryProperties elasticQueryProperties;
+	
+	@Autowired
+	private ThesaurusProperties thesaurusProperties;
 
 	@PostConstruct
 	public void postInit() throws IOException {
-		// User Input to Return field
-		returnFieldMap = new HashMap<String, String>();
-		returnFieldMap.put("code", "code");
-		returnFieldMap.put("label", "label");
-		returnFieldMap.put("displayname", "displayName");
-		returnFieldMap.put("preferredname", "preferredName");
-		returnFieldMap.put("definitions", "definitions");
-		returnFieldMap.put("definition", "definitions");
-		returnFieldMap.put("semantictypes", "semanticTypes");
-		returnFieldMap.put("semantictype", "semanticTypes");
-		returnFieldMap.put("synonyms", "synonyms");
-		returnFieldMap.put("synonym", "synonyms");
-		returnFieldMap.put("additionalproperties", "additionalProperties");
-		returnFieldMap.put("additionalproperty", "additionalProperties");
-		returnFieldMap.put("property", "additionalProperties");
-		returnFieldMap.put("superconcepts", "superconcepts");
-		returnFieldMap.put("superconcept", "superconcepts");
-		returnFieldMap.put("subconcepts", "subconcepts");
-		returnFieldMap.put("subconcept", "subconcepts");
-		returnFieldMap.put("roles", "roles");
-		returnFieldMap.put("role", "roles");
-		returnFieldMap.put("inverseroles", "inverseRoles");
-		returnFieldMap.put("inverserole", "inverseRoles");
-		returnFieldMap.put("associations", "associations");
-		returnFieldMap.put("association", "associations");
-		returnFieldMap.put("inverseassociations", "inverseAssociations");
-		returnFieldMap.put("inverseassociation", "inverseAssociations");
-		returnFieldMap.put("conceptStatus", "conceptStatus");
-		returnFieldMap.put("conceptstatus", "conceptStatus");
-
-		/// associations
-		associationToQuery = new HashMap<String, String>();
-		associationToQuery.put("role_has_domain", "Role_Has_Domain");
-		associationToQuery.put("has_cdrh_parent", "Has_CDRH_Parent");
-		associationToQuery.put("has_nichd_parent", "Has_NICHD_Parent");
-		associationToQuery.put("has_data_element", "Has_Data_Element");
-		associationToQuery.put("related_to_genetic_biomarker", "Related_To_Genetic_Biomarker");
-		associationToQuery.put("neoplasm_has_special_category", "Neoplasm_Has_Special_Category");
-		associationToQuery.put("has_ctcae_5_parent", "Has_CTCAE_5_Parent");
-		associationToQuery.put("role_has_range", "Role_Has_Range");
-		associationToQuery.put("role_has_parent", "Role_Has_Parent");
-		associationToQuery.put("qualifier_applies_To", "Qualifier_Applies_To");
-		associationToQuery.put("has_salt_form", "Has_Salt_Form");
-		associationToQuery.put("has_free_acid_or_base_form", "Has_Free_Acid_Or_Base_Form");
-		associationToQuery.put("has_target", "Has_Target");
-		associationToQuery.put("concept_in_subset", "Concept_In_Subset");
-		associationToQuery.put("is_related_to_endogenous_product", "Is_Related_To_Endogenous_Product");
-
-		associationToQuery.put("a1", "Role_Has_Domain");
-		associationToQuery.put("a10", "Has_CDRH_Parent");
-		associationToQuery.put("a11", "Has_NICHD_Parent");
-		associationToQuery.put("a12", "Has_Data_Element");
-		associationToQuery.put("a13", "Related_To_Genetic_Biomarker");
-		associationToQuery.put("a14", "Neoplasm_Has_Special_Category");
-		associationToQuery.put("a15", "Has_CTCAE_5_Parent");
-		associationToQuery.put("a2", "Role_Has_Range");
-		associationToQuery.put("a3", "Role_Has_Parent");
-		associationToQuery.put("a4", "Qualifier_Applies_To");
-		associationToQuery.put("a5", "Has_Salt_Form");
-		associationToQuery.put("a6", "Has_Free_Acid_Or_Base_Form");
-		associationToQuery.put("a7", "Has_Target");
-		associationToQuery.put("a8", "Concept_In_Subset");
-		associationToQuery.put("a9", "Is_Related_To_Endogenous_Product");
-
-		// user input for property to property value for query for and, or
-		propertyToQuery = new HashMap<String, String>();
-		propertyToQuery.put("p108", elasticQueryProperties.getP108Default());
-		propertyToQuery.put("p107", elasticQueryProperties.getP107Default());
-		propertyToQuery.put("p90", elasticQueryProperties.getP90Default());
-		propertyToQuery.put("nhc0", elasticQueryProperties.getNHC0Default());
-		propertyToQuery.put("p97", elasticQueryProperties.getP97Default());
-		propertyToQuery.put("preferredname", elasticQueryProperties.getP108Default());
-		propertyToQuery.put("displayname", elasticQueryProperties.getP107Default());
-		propertyToQuery.put("synonym", elasticQueryProperties.getP90Default());
-		propertyToQuery.put("code", elasticQueryProperties.getNHC0Default());
-		propertyToQuery.put("definition", elasticQueryProperties.getP97Default());
-		propertyToQuery.put("conceptstatus", elasticQueryProperties.getStatusDefault());
-
-		// user input for property to property value for query for exact and startswith
-		propertyToQueryExact = new HashMap<String, String>();
-		propertyToQueryExact.put("p108", elasticQueryProperties.getP108Exact());
-		propertyToQueryExact.put("p107", elasticQueryProperties.getP107Exact());
-		propertyToQueryExact.put("p90", elasticQueryProperties.getP90Exact());
-		propertyToQueryExact.put("nhc0", elasticQueryProperties.getNHC0Exact());
-		propertyToQueryExact.put("p97", elasticQueryProperties.getP97Exact());
-		propertyToQueryExact.put("preferredname", elasticQueryProperties.getP108Exact());
-		propertyToQueryExact.put("displayname", elasticQueryProperties.getP107Exact());
-		propertyToQueryExact.put("synonym", elasticQueryProperties.getP90Exact());
-		propertyToQueryExact.put("code", elasticQueryProperties.getNHC0Exact());
-		propertyToQueryExact.put("defintion", elasticQueryProperties.getP97Exact());
-		propertyToQueryExact.put("conceptstatus", elasticQueryProperties.getStatusDefault());
-
-		// user input for property to property value for query for contains
-		propertyToQueryContains = new HashMap<String, String>();
-		propertyToQueryContains.put("p108", elasticQueryProperties.getP108Contains());
-		propertyToQueryContains.put("p107", elasticQueryProperties.getP107Contains());
-		propertyToQueryContains.put("p90", elasticQueryProperties.getP90Contains());
-		propertyToQueryContains.put("nhc0", elasticQueryProperties.getNHC0Contains());
-		propertyToQueryContains.put("p97", elasticQueryProperties.getP97Contains());
-		propertyToQueryContains.put("preferredname", elasticQueryProperties.getP108Contains());
-		propertyToQueryContains.put("displayname", elasticQueryProperties.getP107Contains());
-		propertyToQueryContains.put("synonym", elasticQueryProperties.getP90Contains());
-		propertyToQueryContains.put("code", elasticQueryProperties.getNHC0Contains());
-		propertyToQueryContains.put("defintion", elasticQueryProperties.getP97Contains());
-		propertyToQueryContains.put("conceptstatus", elasticQueryProperties.getStatusDefault());
 		
-		//concept Status
-		conceptStatus = new HashMap<String, String>();
-		conceptStatus.put("concept_pending_approval", "Concept_Pending_Approval");
-		conceptStatus.put("deprecated_concept", "Deprecated_Concept");
-		conceptStatus.put("header_concept", "Header_Concept");
-		conceptStatus.put("obsolete_concept", "Obsolete_Concept");
-		conceptStatus.put("provisional_concept", "Provisional_Concept");
-		conceptStatus.put("retired_concept", "Retired_Concept");
-
+    	conceptStatus = (HashMap<String, String>) thesaurusProperties.getConceptStatuses();
+		roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();
+		associationToQuery = (HashMap<String, String>) thesaurusProperties.getAssociations();
+		returnFieldMap = (HashMap<String, String>) thesaurusProperties.getReturnFields();		
+		propertyToQuery = (HashMap<String, String>) elasticQueryProperties.getPropertyToQuery();
+		propertyToQueryExact = (HashMap<String, String>) elasticQueryProperties.getPropertyToQueryExact();
+		propertyToQueryContains = (HashMap<String, String>) elasticQueryProperties.getPropertyToQueryContains();
 	}
 
 	public String constructQuery(FilterCriteriaElasticFields filterCriteriaElasticFields) throws IOException {
@@ -157,6 +57,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		boolean synonymSource = false;
 		boolean definitionSource = false;
 		boolean associationSearch = false;
+		boolean roleSearch = false;
 		String relation = null;
 
 		if (filterCriteriaElasticFields.getType() == null) {
@@ -170,6 +71,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				display = "association";
 			} else if (filterCriteriaElasticFields.getDefinitionSource() != null) {
 				display = "definition";
+			} else if (filterCriteriaElasticFields.getRoleSearch() != null) {
+				display = "role";
 			}
 		} else {
 			if (filterCriteriaElasticFields.getReturnProperties().get(0).equalsIgnoreCase("all")) {
@@ -192,6 +95,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			filterCriteriaElasticFields.setFormat("raw");
 		}
 
+		//association
 		if (filterCriteriaElasticFields.getAssociationSearch() != null) {
 			if (!(filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("source")
 					|| filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("target"))) {
@@ -206,7 +110,23 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			}
 			associationSearch = true;
 		}
+		//role
+		if (filterCriteriaElasticFields.getRoleSearch() != null) {
+			if (!(filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("source")
+					|| filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("target"))) {
+				throw new InvalidParameterValueException("Invalid Parameter value for roleSearch -"
+						+ filterCriteriaElasticFields.getRoleSearch() + ". The valid values are source,target.");
 
+			}
+			if (filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("source")){
+				relation = "roles";
+			}else {
+				relation = "inverseRoles";
+			}
+			roleSearch = true;
+		}
+
+		//synonym
 		if ((!(filterCriteriaElasticFields.getSynonymSource() == null)
 				&& !(filterCriteriaElasticFields.getSynonymSource().equalsIgnoreCase("")))
 				|| (!(filterCriteriaElasticFields.getSynonymGroup() == null)
@@ -214,6 +134,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			synonymSource = true;
 		}
 
+		//definition
 		if ((!(filterCriteriaElasticFields.getDefinitionSource() == null)
 				&& !(filterCriteriaElasticFields.getDefinitionSource().equalsIgnoreCase("")))) {
 			definitionSource = true;
@@ -230,7 +151,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				returnFields = "true";
 			} else if (display.equalsIgnoreCase("definition")) {
 				returnFields = elasticQueryProperties.getDefinitionsourcefields();
-			} else if (display.equalsIgnoreCase("association")) {
+			} else if (display.equalsIgnoreCase("association") || display.equalsIgnoreCase("role")) {
 				returnFields = elasticQueryProperties.getAssociationsourcefields();			
 				returnFields = returnFields.replace("${relation}", relation);
 				
@@ -282,7 +203,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				operator = "";
 			}
 			if (filterCriteriaElasticFields.getType().equalsIgnoreCase("AND")) {
-				if (synonymSource || associationSearch || definitionSource)
+				if (synonymSource || associationSearch || roleSearch|| definitionSource)
 					operator = "\"operator\":\"and\",\n";
 				else
 					operator = "\"default_operator\":\"AND\",\n";
@@ -325,7 +246,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				fields = elasticQueryProperties.getAndorsynonymfields();
 			}
 
-		} else if (associationSearch) {
+		} else if (associationSearch || roleSearch) {
 			// any getProperty field will be ignored
 			if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
 					|| (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
@@ -375,7 +296,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 						} else
 							fields = fields + value;
 					}
-					fields = fields.substring(0, fields.length() - 2);
+					fields = fields.substring(0, fields.length() - 1);
 					fields = fields + "]\n";
 
 				}
@@ -405,7 +326,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				} else {
 					highlightFields = elasticQueryProperties.getHighlightsynonymandor();
 				}
-			} else if (associationSearch) {
+			} else if (associationSearch || roleSearch) {
 				if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
 						|| filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
 					highlightFields = elasticQueryProperties.getHighlightassociationexact();
@@ -456,7 +377,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			valuesMap.put("highlightTags", "");
 		}
 		// get association relationship
-		if (associationSearch) {
+		if (associationSearch || roleSearch) {
 			String associationRelationship = constructAssociationRelationship(filterCriteriaElasticFields,relation);
 			valuesMap.put("searchFilter", associationRelationship);
 			
@@ -480,14 +401,14 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		}
 
 		// **********************filter replace********************
-		if (!(synonymSource || associationSearch)) {
+		if (!(synonymSource || associationSearch || roleSearch)) {
 			String filter = this.constructFilterQuery(filterCriteriaElasticFields);
 			valuesMap.put("filter", filter);
 		}
 
 		// *********get main query
 		String templateString = "";
-		if (synonymSource || associationSearch || definitionSource) {
+		if (synonymSource || associationSearch || roleSearch || definitionSource) {
 			templateString = getMainNestedQuery(filterCriteriaElasticFields);
 		} else {
 			templateString = getMainQuery(filterCriteriaElasticFields);
@@ -540,43 +461,60 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		if (filterCriteriaElasticFields.getRelationship() == null
 				|| filterCriteriaElasticFields.getRelationship().size() <= 0) {
 			associationRelationship = "";
-			if (filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("target")) {
+			if (((filterCriteriaElasticFields.getAssociationSearch() != null) && (filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("target"))) ||
+					((filterCriteriaElasticFields.getRoleSearch() != null) && (filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("target")))){
 				throw new InvalidParameterValueException(
-						"If association search is specified as target then a relationship should be specified."
+						"If association/role search is specified as target then a relationship should be specified."
 								);
 			}
 		} else {
-
+			
+			HashMap<String, String> mapToSearch = null;
+            if (relation.equalsIgnoreCase("associations") || relation.equalsIgnoreCase("inverseAssociations")) {
+            	mapToSearch = this.associationToQuery;
+            }else {
+            	mapToSearch = this.roleToQuery;
+            }
+			
 			if (filterCriteriaElasticFields.getRelationship().get(0).toLowerCase().equalsIgnoreCase("all")) {
 				associationRelationship = "";
 			} else if (filterCriteriaElasticFields.getRelationship().size() == 1) {
-				String value = this.associationToQuery
-						.get(filterCriteriaElasticFields.getRelationship().get(0).toLowerCase());
+				String value = null;
+				value = searhValue(filterCriteriaElasticFields.getRelationship().get(0),mapToSearch);
+				
+				
+				
+				
 				if (value != null) {
 					associationRelationship = associationRelationship + ",\n";
 					associationRelationship = associationRelationship
 							+ "{\"match\" : {\"" + relation + ".relationship\" : \"" + value + "\"} }";
 				} else {
-					throw new InvalidParameterValueException(
-							"Invalid Parameter value for relationship field for association search. Rejected value - "
+					
+						throw new InvalidParameterValueException(
+							"Invalid Parameter value for relationship field for " + relation + " search. Rejected value - "
 									+ filterCriteriaElasticFields.getRelationship().get(0));
-
+					
 				}
 			} else {
 				associationRelationship = associationRelationship + ",\n";
 				associationRelationship = associationRelationship + " {\"bool\":{\n";
 				associationRelationship = associationRelationship + "   \"should\":[\n";
 				for (String relationship : filterCriteriaElasticFields.getRelationship()) {
-
-					String value = this.associationToQuery.get(relationship.toLowerCase());
+					String value = null;
+					value = searhValue(relationship,mapToSearch);
+						
+					
 					if (value != null) {
 
 						associationRelationship = associationRelationship
 								+ "{\"match\" : {\"" + relation + ".relationship\" : \"" + value + "\"} },";
 					} else {
-						throw new InvalidParameterValueException(
-								"Invalid Parameter value for relationship field for association search. Rejected value - "
-										+ relationship);
+						
+							throw new InvalidParameterValueException(
+								"Invalid Parameter value for relationship field for " + relation + " search. Rejected value - "
+										+ filterCriteriaElasticFields.getRelationship().get(0));
+						
 					}
 
 				}
@@ -589,6 +527,16 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 		}
 		return associationRelationship;
+	}
+	
+	private String searhValue(String term,Map searchMap) {
+		String value = null;
+		
+		value = (String)searchMap
+				.get(term.toLowerCase());
+		
+		
+		return value;
 	}
 
 	private String constructFilterQuery(FilterCriteriaElasticFields filterCriteriaElasticFields) throws InvalidParameterValueException {
