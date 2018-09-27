@@ -836,4 +836,25 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		return query.toString();
 
 	}
+	
+	public String constructDisjointWithQuery(String conceptCode, String namedGraph) {
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT ?relatedConceptLabel ?relatedConceptCode ?relationship\n");
+		query.append("{\n");
+		query.append("    GRAPH <" + namedGraph + ">\n");
+		query.append("    {\n");
+		query.append("        ?x a owl:Class .\n");
+		query.append("        ?x :NHC0 \"" + conceptCode + "\" .\n");
+		query.append("        ?x owl:disjointWith ?concept .\n");
+		query.append("        ?concept :NHC0 ?relatedConceptCode .\n");
+		query.append("        ?concept rdfs:label ?relatedConceptLabel\n");
+		query.append("        BIND (\"disjointWith\" as ?relationship)\n");
+		query.append("    }\n");
+		query.append("}\n");
+		query.append("ORDER BY ?relatedConceptLabel\n");
+
+		log.debug("constructInverseAssociationsQuery - " + query.toString());
+		return query.toString();
+	}
+
 }

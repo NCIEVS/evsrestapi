@@ -1,10 +1,15 @@
 package gov.nih.nci.evs.api.model.evs;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 
 public class EvsSuperconcept {
 	private String superclass;
+
+	@JsonView(ConceptViews.FullClass.class)
 	private String code;
+	@JsonView(ConceptViews.FullClass.class)
+
 	private String label;
 
 	@JsonIgnore

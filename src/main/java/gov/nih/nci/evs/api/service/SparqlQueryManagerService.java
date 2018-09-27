@@ -34,6 +34,8 @@ public interface SparqlQueryManagerService {
 	public List<EvsAssociation> getEvsAssociations(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 
 	public List<EvsAssociation> getEvsInverseAssociations(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
+	
+	public List<EvsAssociation> getEvsDisjointWith(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 
 	public List<EvsAssociation> getEvsRoles(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 

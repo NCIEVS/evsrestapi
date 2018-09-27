@@ -1,10 +1,18 @@
 package gov.nih.nci.evs.api.model.evs;
 
+import com.fasterxml.jackson.annotation.JsonView;
+
 public class EvsAssociation {
 
+	@JsonView(ConceptViews.FullClass.class)
 	private String relationship;
+
+	@JsonView(ConceptViews.FullClass.class)
 	private String relatedConceptCode;
+	
+	@JsonView(ConceptViews.FullClass.class)
 	private String relatedConceptLabel;
+
 	public String getRelationship() {
 		return relationship;
 	}

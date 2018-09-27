@@ -1,163 +1,160 @@
 package gov.nih.nci.evs.api.model.evs;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonView;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({ "code", "label", "preferredName", "properties", "synonyms",
+	"definitions", "altDefinitions", "subconcepts", "superconcepts", 
+	"associations", "inverseAssociations", 
+	"roles", "inverseRoles",
+	"mapsTo", "goAnnotations", "disjointWith"
+	})
 public class EvsConceptFull {
-
-	private String code;
-	private String label;
-	private List <EvsDefinition> definitions;
-	private String displayName;
-	private String preferredName;
-	private boolean isDiseaseStage;
-	private boolean isDiseaseGrade;
-	private boolean isMainType;
-	private boolean isSubtype;
-	private boolean isDisease;
-	private boolean isBiomarker;
-	private boolean isReferenceGene;
-
-	private List <Paths> mainMenuAncestors;
 	
-	private String neoplasticStatus;
-	private List <EvsSubconcept> subconcepts;
-	private List <EvsSuperconcept> superconcepts;
-	private List <String> semanticTypes;
-	private List <String> conceptStatus;
-	private List <EvsSynonym> synonyms;
-	private List <EvsAdditionalProperty> additionalProperties;
-	private List <EvsAssociation> associations;
-	private List <EvsAssociation> inverseAssociations;
-	private List <EvsAssociation> roles;
-	private List <EvsAssociation> inverseRoles;	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Code")
+	private String code;
 
+
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Label")
+	private String label;
+
+	@JsonProperty("Preferred_name")
+	private String preferredName;
+
+	private Map <String,List<String>> properties = new HashMap <String,List<String>>();
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@JsonProperty("FULL_SYN")
+	private List <EvsSynonymFull> synonyms;
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("DEFINITION")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsDefinitionFull> definitions;
+
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("ALT_DEFINITION")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsDefinitionFull> altDefinitions;
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Subconcept")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsSubconcept> subconcepts;
+
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Superconcept")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsSuperconcept> superconcepts;
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Association")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsAssociation> associations;
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("InverseAssocation")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsAssociation> inverseAssociations;
+
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Role")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsAssociation> roles;
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("InverseRole")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsAssociation> inverseRoles;	
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Maps_To")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsMapsTo> mapsTo;
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("GO_Annotation")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsGoAnnotation> goAnnotations;	
+	
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("DisjointWith")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsAssociation> disjointWith;	
+	
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	private List <EvsAdditionalProperty> additionalProperties;
+	
 	public String getCode() {
 		return code;
 	}
 	public void setCode(String code) {
 		this.code = code;
 	}
+
 	public String getLabel() {
 		return label;
 	}
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	public List <EvsDefinition> getDefinitions() {
-		return definitions;
-	}
-	public void setDefinitions(List<EvsDefinition> definitions) {
-		this.definitions = definitions;
-	}
-	public String getDisplayName() {
-		return displayName;
-	}
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
+
 	public String getPreferredName() {
 		return preferredName;
 	}
 	public void setPreferredName(String preferredName) {
 		this.preferredName = preferredName;
 	}
+
+	@JsonAnyGetter
+	public Map <String,List<String>> getProperties() {
+		return properties;
+	};
+
+	public List<EvsSynonymFull> getSynonyms() {
+		return synonyms;
+	}
+	public void setSynonyms(List<EvsSynonymFull> synonyms) {
+		this.synonyms = synonyms;
+	}
 	
-	@JsonIgnore
-	public String getNeoplasticStatus() {
-		return neoplasticStatus;
+	public List <EvsDefinitionFull> getDefinitions() {
+		return definitions;
 	}
-	public void setNeoplasticStatus(String neoplasticStatus) {
-		this.neoplasticStatus = neoplasticStatus;
+	public void setDefinitions(List<EvsDefinitionFull> definitions) {
+		this.definitions = definitions;
 	}
+
+	public List <EvsDefinitionFull> getAltDefinitions() {
+		return altDefinitions;
+	}
+	public void setAltDefinitions(List<EvsDefinitionFull> altDefinitions) {
+		this.altDefinitions = altDefinitions;
+	}
+	
 	public List<EvsSubconcept> getSubconcepts() {
 		return subconcepts;
 	}
 	public void setSubconcepts(List<EvsSubconcept> subconcepts) {
 		this.subconcepts = subconcepts;
 	}
+
 	public List<EvsSuperconcept> getSuperconcepts() {
 		return superconcepts;
 	}
 	public void setSuperconcepts(List<EvsSuperconcept> superconcepts) {
 		this.superconcepts = superconcepts;
-	}
-	public List<String> getSemanticTypes() {
-		return semanticTypes;
-	}
-	public void setSemanticTypes(List<String> semanticTypes) {
-		this.semanticTypes = semanticTypes;
-	}
-	public List<String> getConceptStatus() {
-		return conceptStatus;
-	}
-	public void setConceptStatus(List<String> conceptStatus) {
-		this.conceptStatus = conceptStatus;
-	}
-	public List<EvsSynonym> getSynonyms() {
-		return synonyms;
-	}
-	public void setSynonyms(List<EvsSynonym> synonyms) {
-		this.synonyms = synonyms;
-	}
-	public List <EvsAdditionalProperty> getAdditionalProperties() {
-		return additionalProperties;
-	}
-	public void setAdditionalProperties(List <EvsAdditionalProperty> additionalProperties) {
-		this.additionalProperties = additionalProperties;
-	}
-	public boolean getIsDiseaseStage() {
-		return isDiseaseStage;
-	}
-	public void setIsDiseaseStage(boolean isDiseaseStage) {
-		this.isDiseaseStage = isDiseaseStage;
-	}
-	
-	public boolean getIsDiseaseGrade() {
-		return isDiseaseGrade;
-	}
-	
-	public void setIsDiseaseGrade(boolean isDiseaseGrade) {
-		this.isDiseaseGrade = isDiseaseGrade;
-	}
-	
-	public boolean getIsMainType() {
-		return isMainType;
-	}
-	public void setIsMainType(boolean isMainType) {
-		this.isMainType = isMainType;
-	}
-
-	public boolean getIsSubtype() {
-		return isSubtype;
-	}
-	public void setIsSubtype(boolean isSubtype) {
-		this.isSubtype = isSubtype;
-	}
-	public boolean getIsDisease() {
-		return isDisease;
-	}
-	public void setIsDisease(boolean isDisease) {
-		this.isDisease = isDisease;
-	}
-	public boolean getIsBiomarker() {
-		return isBiomarker;
-	}
-	public void setIsBiomarker(boolean isBiomarker) {
-		this.isBiomarker = isBiomarker;
-	}
-	public boolean getIsReferenceGene() {
-		return isReferenceGene;
-	}
-	public void setIsReferenceGene(boolean isReferenceGene) {
-		this.isReferenceGene = isReferenceGene;
-	}
-	public List<Paths> getMainMenuAncestors() {
-		return mainMenuAncestors;
-	}
-	public void setMainMenuAncestors(List<Paths> mainMenuAncestors) {
-		this.mainMenuAncestors = mainMenuAncestors;
 	}
 	
 	public List<EvsAssociation> getAssociations() {
@@ -166,22 +163,53 @@ public class EvsConceptFull {
 	public void setAssociations(List<EvsAssociation> associations) {
 		this.associations = associations;
 	}
+
 	public List<EvsAssociation> getInverseAssociations() {
 		return inverseAssociations;
 	}
 	public void setInverseAssociations(List<EvsAssociation> inverseAssociations) {
 		this.inverseAssociations = inverseAssociations;
 	}
+	
 	public List<EvsAssociation> getRoles() {
 		return roles;
 	}
 	public void setRoles(List<EvsAssociation> roles) {
 		this.roles = roles;
 	}
+
 	public List<EvsAssociation> getInverseRoles() {
 		return inverseRoles;
 	}
 	public void setInverseRoles(List<EvsAssociation> inverseRoles) {
 		this.inverseRoles = inverseRoles;
+	}
+	
+	public List<EvsMapsTo> getMapsTo() {
+		return mapsTo;
+	}
+	public void setMapsTo(List<EvsMapsTo> mapsTo) {
+		this.mapsTo = mapsTo;
+	}
+
+	public List<EvsGoAnnotation> getGoAnnotations() {
+		return goAnnotations;
+	}
+	public void setGoAnnotations(List<EvsGoAnnotation> goAnnotations) {
+		this.goAnnotations = goAnnotations;
+	}
+	
+	public List<EvsAssociation> getDisjointWith() {
+		return disjointWith;
+	}
+	public void setDisjointWith(List<EvsAssociation> disjointWith) {
+		this.disjointWith = disjointWith;
+	}
+	
+	public List <EvsAdditionalProperty> getAdditionalProperties() {
+		return additionalProperties;
+	}
+	public void setAdditionalProperties(List <EvsAdditionalProperty> additionalProperties) {
+		this.additionalProperties = additionalProperties;
 	}
 }
