@@ -28,7 +28,8 @@ public class EvsConceptFull {
 	@JsonProperty("Label")
 	private String label;
 
-	@JsonProperty("Preferred_name")
+	@JsonView(ConceptViews.FullClass.class)
+	@JsonProperty("Preferred_Name")
 	private String preferredName;
 
 	private Map <String,List<String>> properties = new HashMap <String,List<String>>();
