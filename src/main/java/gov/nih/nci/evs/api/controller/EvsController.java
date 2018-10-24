@@ -26,6 +26,8 @@ import gov.nih.nci.evs.api.model.evs.ConceptViews;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsAxiom;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
+import gov.nih.nci.evs.api.model.evs.EvsConceptByCode;
+import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
 import gov.nih.nci.evs.api.model.evs.EvsConceptFull;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
@@ -90,6 +92,7 @@ public class EvsController {
 		return evsConceptFull;
 	}
 
+	/*
 	@ApiOperation(value = "Get full details on the specified concept", response = EvsConceptFull.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Full Details"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -105,6 +108,59 @@ public class EvsController {
 			evsConceptFull = sparqlQueryManagerService.getEvsConceptDetailFull(conceptCode);
 		}
 		return evsConceptFull;
+	}
+
+	@ApiOperation(value = "Get relationships on the specified concept", response = EvsRelationships.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Relationships"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/relationships", produces = "application/json")
+	public @ResponseBody EvsRelationships getEvsRelationships(@PathVariable(value = "conceptCode") String conceptCode,
+			HttpServletResponse response) throws IOException {
+		EvsConcept evsConcept = null;
+		EvsRelationships relationships = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else {
+			relationships = sparqlQueryManagerService.getEvsRelationships(conceptCode);
+		}
+		return relationships;
+	}
+	*/
+
+	@ApiOperation(value = "Get full details by label on the specified concept", response = EvsConceptByLabel.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concept by Label Details"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/byLabel", produces = "application/json")
+	public @ResponseBody EvsConceptByLabel getEvsConceptByLabel(@PathVariable(value = "conceptCode") String conceptCode,
+			HttpServletResponse response) throws IOException {
+		EvsConceptByLabel evsConceptByLabel = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else {
+			evsConceptByLabel = sparqlQueryManagerService.getEvsConceptByLabel(conceptCode);
+		}
+		return evsConceptByLabel;
+	}
+
+	@ApiOperation(value = "Get full details by code on the specified concept", response = EvsConceptByCode.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concept by Code Details"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/byCode", produces = "application/json")
+	public @ResponseBody EvsConceptByCode getEvsConceptByCode(@PathVariable(value = "conceptCode") String conceptCode,
+			HttpServletResponse response) throws IOException {
+		EvsConceptByCode evsConceptByCode = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode)) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else {
+			evsConceptByCode = sparqlQueryManagerService.getEvsConceptByCode(conceptCode);
+		}
+		return evsConceptByCode;
 	}
 
 	@ApiOperation(value = "Get relationships on the specified concept", response = EvsRelationships.class)

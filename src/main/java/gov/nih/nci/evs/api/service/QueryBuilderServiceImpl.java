@@ -582,7 +582,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
 	public String constructAssociationsQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();
-		query.append("SELECT ?relationship ?relatedConceptCode ?relatedConceptLabel\n");
+		query.append("SELECT ?relationshipCode ?relationship ?relatedConceptCode ?relatedConceptLabel\n");
 		query.append("{\n");
 		query.append("    GRAPH <" + namedGraph + ">\n");
 		query.append("    {\n");
@@ -594,7 +594,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?z rdfs:label ?relatedConceptLabel .\n");
 		query.append("        ?z :NHC0 ?relatedConceptCode .\n");
 		query.append("        ?y rdfs:label ?relationship .\n");
-		query.append("        ?y :NHC0 ?y_code .\n");
+		query.append("        ?y :NHC0 ?relationshipCode .\n");
 		query.append("        ?y rdfs:range ?y_range\n");
 		query.append("    }\n");
 		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
@@ -607,7 +607,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
 	public String constructInverseAssociationsQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();
-		query.append("SELECT ?relatedConceptLabel ?relatedConceptCode ?relationship\n");
+		query.append("SELECT ?relationshipCode ?relatedConceptLabel ?relatedConceptCode ?relationship\n");
 		query.append("{\n");
 		query.append("    GRAPH <" + namedGraph + ">\n");
 		query.append("    {\n");
@@ -620,7 +620,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?y a owl:AnnotationProperty .\n");
 		query.append("        ?x ?y ?z .\n");
 		query.append("        ?y rdfs:label ?relationship .\n");
-		query.append("        ?y :NHC0 ?y_code .\n");
+		query.append("        ?y :NHC0 ?relationshipCode .\n");
 		query.append("        ?y rdfs:range ?y_range\n");
 		query.append("    }\n");
 		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
@@ -662,7 +662,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
 	public String constructInverseRolesQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();
-		query.append("SELECT distinct ?relatedConceptLabel ?relatedConceptCode ?relationship \n");
+		query.append("SELECT distinct ?relatedConceptLabel ?relatedConceptCode ?relationship ?relationshipCode\n");
 		query.append("{\n");
 		query.append("    GRAPH <" + namedGraph + ">\n");
 		query.append("    {\n");
@@ -677,6 +677,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?z2 a owl:Restriction .\n");
 		query.append("        ?z2 owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?z2 owl:someValuesFrom ?y .\n");
 		query.append("        ?y :NHC0 \"" + conceptCode + "\"^^<http://www.w3.org/2001/XMLSchema#string> .\n");
 		query.append("        ?y rdfs:label ?y_label\n");
@@ -690,6 +691,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?r a owl:Restriction .\n");
 		query.append("        ?r owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?r owl:someValuesFrom ?y .\n");
 		query.append("        ?y a owl:Class .\n");
 		query.append("        ?y :NHC0 \"" + conceptCode + "\"^^<http://www.w3.org/2001/XMLSchema#string> \n");
@@ -706,6 +708,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?z2 a owl:Restriction .\n");
 		query.append("        ?z2 owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?z2 owl:someValuesFrom ?y .\n");
 		query.append("        ?y a owl:Class .\n");
 		query.append("        ?y :NHC0 \"" + conceptCode + "\"^^<http://www.w3.org/2001/XMLSchema#string> \n");
@@ -726,6 +729,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?z4 a owl:Restriction .\n");
 		query.append("        ?z4 owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?z4 owl:someValuesFrom ?y .\n");
 		query.append("        ?y a owl:Class .\n");
 		query.append("        ?y :NHC0 \"" + conceptCode + "\"^^<http://www.w3.org/2001/XMLSchema#string> \n");
@@ -741,7 +745,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
 	public String constructRolesQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();
-		query.append("SELECT distinct ?relationship ?relatedConceptLabel ?relatedConceptCode \n");
+		query.append("SELECT distinct ?relationship ?relationshipCode ?relatedConceptLabel ?relatedConceptCode \n");
 		query.append("{\n");
 		query.append("    graph <" + namedGraph + ">\n");
 		query.append("    {\n");
@@ -756,6 +760,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?z2 a owl:Restriction .\n");
 		query.append("        ?z2 owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?z2 owl:someValuesFrom ?y .\n");
 		query.append("        ?y :NHC0 ?relatedConceptCode .\n");
 		query.append("        ?y rdfs:label ?relatedConceptLabel\n");
@@ -768,6 +773,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?r a owl:Restriction .\n");
 		query.append("        ?r owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?r owl:someValuesFrom ?y .\n");
 		query.append("        ?y a owl:Class .\n");
 		query.append("        ?y rdfs:label ?relatedConceptLabel .\n");
@@ -784,6 +790,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?z2 a owl:Restriction .\n");
 		query.append("        ?z2 owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?z2 owl:someValuesFrom ?y .\n");
 		query.append("        ?y :NHC0 ?relatedConceptCode .\n");
 		query.append("        ?y rdfs:label ?relatedConceptLabel\n");
@@ -803,6 +810,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("        ?z4 a owl:Restriction .\n");
 		query.append("        ?z4 owl:onProperty ?p .\n");
 		query.append("        ?p rdfs:label ?relationship .\n");
+		query.append("        ?p :NHC0 ?relationshipCode .\n");
 		query.append("        ?z4 owl:someValuesFrom ?y .\n");
 		query.append("        ?y :NHC0 ?relatedConceptCode .\n");
 		query.append("        ?y rdfs:label ?relatedConceptLabel\n");
@@ -853,7 +861,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 		query.append("}\n");
 		query.append("ORDER BY ?relatedConceptLabel\n");
 
-		log.debug("constructInverseAssociationsQuery - " + query.toString());
+		log.debug("constructDisjointWithQuery - " + query.toString());
 		return query.toString();
 	}
 

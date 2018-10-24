@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsAxiom;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
+import gov.nih.nci.evs.api.model.evs.EvsConceptByCode;
+import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
 import gov.nih.nci.evs.api.model.evs.EvsConceptFull;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelationships;
@@ -44,6 +46,10 @@ public interface SparqlQueryManagerService {
 	public EvsConcept getEvsConceptDetail(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 
 	public EvsConceptFull getEvsConceptDetailFull(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
+
+	public EvsConceptByLabel getEvsConceptByLabel(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
+
+	public EvsConceptByCode getEvsConceptByCode(String conceptCode) throws JsonMappingException,JsonParseException,IOException;
 	
 	public Long getGetClassCounts() throws JsonMappingException,JsonParseException,IOException;
 

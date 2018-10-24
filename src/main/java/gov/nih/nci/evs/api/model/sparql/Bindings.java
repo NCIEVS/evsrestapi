@@ -18,6 +18,7 @@ public class Bindings
     private Property superclassCode;
     private Property superclassLabel;
     private Property relationship;
+    private Property relationshipCode;
     private Property relatedConceptCode;
     private Property relatedConceptLabel;
     private Property parentCode;
@@ -176,6 +177,15 @@ public class Bindings
 	public void setRelationship(Property relationship) {
 		this.relationship = relationship;
 	}
+
+	public Property getRelationshipCode() {
+		return relationshipCode;
+	}
+
+	public void setRelationshipCode(Property relationshipCode) {
+		this.relationshipCode = relationshipCode;
+	}
+
 
 	public Property getRelatedConceptCode() {
 		return relatedConceptCode;
