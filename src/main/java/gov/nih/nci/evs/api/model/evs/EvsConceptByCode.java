@@ -54,7 +54,7 @@ public class EvsConceptByCode {
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsAssociation> associations;
 	
-	@JsonProperty("InverseAssocation")
+	@JsonProperty("InverseAssociation")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsAssociation> inverseAssociations;
 
