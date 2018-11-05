@@ -39,6 +39,7 @@ import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.QueryBuilderServiceImpl;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 import gov.nih.nci.evs.api.support.FilterCriteriaFields;
 import gov.nih.nci.evs.api.support.FilterParameter;
@@ -91,9 +92,7 @@ public class SearchController {
 		}
 		queryTerm = escapeLuceneSpecialCharacters(queryTerm);
 		filterCriteriaElasticFields.setTerm(queryTerm);
-		log.debug("Term/Partial Term - " + filterCriteriaElasticFields.getTerm());		
-		log.debug("Biomarker - " + filterCriteriaElasticFields.getBiomarker());
-		log.debug("Disease -" + filterCriteriaElasticFields.getDisease());
+		log.debug("Term/Partial Term - " + filterCriteriaElasticFields.getTerm());	
 		log.debug("Type - " + filterCriteriaElasticFields.getType());
 		log.debug("From Record - " + filterCriteriaElasticFields.getFromRecord());
 		log.debug("Page size - " + filterCriteriaElasticFields.getPageSize());
@@ -109,11 +108,7 @@ public class SearchController {
 				log.debug("property - " + returnField);
 			}
 		}
-		//Set default values NA for disease and biomarker
-		if (filterCriteriaElasticFields.getBiomarker() == null)
-			filterCriteriaElasticFields.setBiomarker("NotSet");
-		if (filterCriteriaElasticFields.getDisease() == null)
-			filterCriteriaElasticFields.setDisease("NotSet");
+		
 		try {
 		  result = elasticSearchService.elasticsearch(filterCriteriaElasticFields);
 		}catch(IOException exception) {
@@ -136,6 +131,12 @@ public class SearchController {
 		return result;
 	}
 
+	
+	
+	
+	
+	
+	
 	private String escapeLuceneSpecialCharacters(String before) {
 		String patternString = "([+:!~*?/\\-/{}\\[\\]\\(\\)\\^\\\"])";
 		Pattern pattern = Pattern.compile(patternString);

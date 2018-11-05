@@ -82,141 +82,361 @@ nci:
       forcePopulateCache: ${FORCE_POPULATE_CACHE:N}  
     elasticsearch:
       server:
-        url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://localhost:9200/concept_flat_full_nested/concept/_search}
+        url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://localhost:9200/concept_flat_full_nested_bylabel/concept/_search}        
       query: 
         propertyToQuery: {   p108: 
-                      '"preferredName^100",
-                       "preferredName.exact^100",',
+                      '"Preferred_Name^100",
+                       "Preferred_Name.exact^100",',
                    p107: 
-                     '"displayName^100",
-                      "displayName.exact^100",',
+                     '"Display_Name^100",
+                      "Display_Name.exact^100",',
                    p90:
                      '"synonyms_plain^95",
                       "synonyms_plain.exact^95",',
                    nhc0:
-                      '"code^100",',
+                      '"Code^100",',
                    p97:
-                      '"definitions_plain^70",',
+                      '"definitions_plain^70",
+                      "definitions_plain.exact^70",
+                      "alt_definitions_plain^70",
+                      "alt_definitions_plain.exact^70",',
                    preferredname:
-                       '"preferredName^100",
-                        "preferredName.exact^100",',
+                       '"Preferred_Name^100",
+                        "Preferred_Name.exact^100",',
+                   preferred_name:
+                       '"Preferred_Name^100",
+                        "Preferred_Name.exact^100",',     
                    displayname:
-                       '"displayName^100",
-                        "displayName.exact^100",',
+                       '"Display_Name^100",
+                        "Display_Name.exact^100",',
+                   display_name:
+                       '"Display_Name^100",
+                        "Display_Name.exact^100",',     
                    synonym:  
-                       '"synonyms_plain^95",
-                        "synonyms_plain.exact^95",',
+                       '"synonyms_plain^70",
+                        "synonyms_plain.exact^70",',
+                   full_syn:    
+                       '"synonyms_plain^70",
+                        "synonyms_plain.exact^70",', 
                    code:
-                       '"code^100",',
+                       '"Code^100",',
                    definition:
-                       '"definitions_plain^70",',
+                      '"definitions_plain^70",
+                       "definitions_plain.exact^70",
+                       "alt_definitions_plain^70",
+                       "alt_definitions_plain.exact^70",',
                    conceptstatus:    
-                       '"conceptStatus^10",'
-                         }
+                       '"Concept_Status^10",',                         
+                   concept_status:    
+                       '"Concept_Status^10",',
+                    neoplastic_status: '"Neoplastic_Status^10","Neoplastic_Status.exact^10",', 
+                    umls_cui: '"UMLS_CUI^10","UMLS_CUI.exact^10",',
+                    nci_meta_cui: '"NCI_META_CUI^10","NCI_META_CUI.exact^10",',
+                    cas_registry: '"CAS_Registry^10","CAS_Registry.exact^10",',
+                    kegg_id: '"KEGG_ID^10","KEGG_ID.exact^10",',
+                    biocarta_id: '"BioCarta_ID^10","BioCarta_ID.exact^10",',
+                    accepted_therapeutic_use_for: '"Accepted_Therapeutic_Use_For^10","Accepted_Therapeutic_Use_For.exact^10",',
+                    snp_id:  '"SNP_ID^10","SNP_ID.exact^10",',
+                    relative_enzyme_activity: '"Relative_Enzyme_Activity^10","Relative_Enzyme_Activity.exact^10",',
+                    fda_table: '"FDA_Table^10","FDA_Table.exact^10",',
+                    fda_unii_code: '"FDA_UNII_Code^10","FDA_UNII_Code.exact^10",',
+                    oid: '"OID^10","OID.exact^10",',
+                    legacy_concept_name: '"Legacy_Concept_Name^10","Legacy_Concept_Name.exact^10",',
+                    nichd_hierarchy_term: '"NICHD_Hierarchy_Term^10","NICHD_Hierarchy_Term.exact^10",',
+                    term_browser_value_set_description: '"Term_Browser_Value_Set_Description^10","Term_Browser_Value_Set_Description.exact^10",',
+                    gene_encodes_product:  '"Gene_Encodes_Product^10","Gene_Encodes_Product.exact^10",',
+                    swiss_prot: '"Swiss_Prot^10","Swiss_Prot.exact^10",',
+                    icd-o-3_code:  '"ICD-O-3_Code^10","ICD-O-3_Code.exact^10",',
+                    chemical_formula:  '"Chemical_Formula^10","Chemical_Formula.exact^10",',
+                    infoods: '"INFOODS^10","INFOODS.exact^10",',
+                    usda_id: '"USDA_ID^10","USDA_ID.exact^10",',
+                    essential_amino_acid: '"Essential_Amino_Acid^10","Essential_Amino_Acid.exact^10",',
+                    essential_fatty_acid: '"Essential_Fatty_Acid^10","Essential_Fatty_Acid.exact^10",',
+                    nutrient:  '"Nutrient^10","Nutrient.exact^10",',
+                    micronutrient: '"Micronutrient^10","Micronutrient.exact^10",',
+                    macronutrient: '"Macronutrient^10","Macronutrient.exact^10",',
+                    extensible_list: '"Extensible_List^10","Extensible_List.exact^10",',
+                    mirbase_id:  '"miRBase_ID^10","miRBase_ID.exact^10",',
+                    hgnc_id: '"HGNC_ID^10","HGNC_ID.exact^10",',
+                    pid_id:  '"PID_ID^10","PID_ID.exact^10",',
+                    chebi_id: '"CHEBI_ID^10","CHEBI_ID.exact^10",',
+                    pdq_open_trial_search_id: '"PDQ_Open_Trial_Search_ID^10","PDQ_Open_Trial_Search_ID.exact^10",',
+                    pdq_closed_trial_search_id: '"PDQ_Closed_Trial_Search_ID^10","PDQ_Closed_Trial_Search_ID.exact^10",',
+                    ncbi_taxon_id: '"NCBI_Taxon_ID^10","NCBI_Taxon_ID.exact^10",',
+                    mgi_accession_id:   '"MGI_Accession_ID^10","MGI_Accession_ID.exact^10",',
+                    contributing_source: '"Contributing_Source^10","Contributing_Source.exact^10",',
+                    pubmedid_primary_reference: '"PubMedID_Primary_Reference^10","PubMedID_Primary_Reference.exact^10",',
+                    nsc_code: '"NSC_Code^10","NSC_Code.exact^10",',
+                    entrezgene_id: '"EntrezGene_ID^10","EntrezGene_ID.exact^10",',
+                    omim_number: '"OMIM_Number^10","OMIM_Number.exact^10",',
+                    homologous_gene: '"Homologous_Gene^10","Homologous_Gene.exact^10",',
+                    genbank_accession_number: '"GenBank_Accession_Number^10","GenBank_Accession_Number.exact^10",',
+                    maps_to: '"maps_to_plain^10","maps_to_plain.exact^10",',
+                    go_annotation: '"go_annotation_plain^10","go_annotation_plain.exact^10",'    
+                         }      
         propertyToQueryExact: {   p108: 
-                      '"preferredName.exact^100",',
+                      '"Preferred_Name.exact^100",',
                    p107: 
-                     '"displayName.exact^100",',
+                     '"Display_Name.exact^100",',
                    p90:
                      '"synonyms_plain.exact^95",',
                    nhc0:
-                      '"code.exact^100",',
+                      '"Code.exact^100",',
                    p97:
                       '"definitions_plain.exact^70",',
                    preferredname:
-                       '"preferredName.exact^100",',
+                       '"Preferred_Name.exact^100",',
+                   preferred_name:
+                       '"Preferred_Name.exact^100",',    
                    displayname:
-                       '"displayName.exact^100",',
+                       '"Display_Name.exact^100",',
+                   display_name:
+                       '"Display_Name.exact^100",',    
                    synonym:  
-                       '"synonyms_plain.exact^95",',
+                       '"synonyms_plain.exact^70",',
+                   full_syn:  
+                       '"synonyms_plain.exact^70",',    
                    code:
-                       '"code.exact^100",',
+                       '"Code.exact^100",',
                    definition:
                        '"definitions_plain.exact^70",',
                    conceptstatus:    
-                       '"conceptStatus^10",'
+                       '"Concept_Status^10",',
+                   concept_status:    
+                       '"Concept_Status^10",', 
+                    neoplastic_status: '"Neoplastic_Status.exact^10",', 
+                    umls_cui: '"UMLS_CUI.exact^10",',
+                    nci_meta_cui: '"NCI_META_CUI.exact^10",',
+                    cas_registry: '"CAS_Registry.exact^10",',
+                    kegg_id: '"KEGG_ID.exact^10",',
+                    biocarta_id: '"BioCarta_ID.exact^10",',
+                    accepted_therapeutic_use_for: '"Accepted_Therapeutic_Use_For.exact^10",',
+                    snp_id:  '"SNP_ID.exact^10",',
+                    relative_enzyme_activity: '"Relative_Enzyme_Activity.exact^10",',
+                    fda_table: '"FDA_Table.exact^10",',
+                    fda_unii_code: '"FDA_UNII_Code.exact^10",',
+                    oid: '"OID.exact^10",',
+                    legacy_concept_name: '"Legacy_Concept_Name.exact^10",',
+                    nichd_hierarchy_term: '"NICHD_Hierarchy_Term.exact^10",',
+                    term_browser_value_set_description: '"Term_Browser_Value_Set_Description.exact^10",',
+                    gene_encodes_product:  '"Gene_Encodes_Product.exact^10",',
+                    swiss_prot: '"Swiss_Prot.exact^10",',
+                    icd-o-3_code:  '"ICD-O-3_Code.exact^10",',
+                    chemical_formula:  '"Chemical_Formula.exact^10",',
+                    infoods: '"INFOODS.exact^10",',
+                    usda_id: '"USDA_ID.exact^10",',
+                    essential_amino_acid: '"Essential_Amino_Acid.exact^10",',
+                    essential_fatty_acid: '"Essential_Fatty_Acid.exact^10",',
+                    nutrient:  '"Nutrient.exact^10",',
+                    micronutrient: '"Micronutrient.exact^10",',
+                    macronutrient: '"Macronutrient.exact^10",',
+                    extensible_list: '"Extensible_List.exact^10",',
+                    mirbase_id:  '"miRBase_ID.exact^10",',
+                    hgnc_id: '"HGNC_ID.exact^10",',
+                    pid_id:  '"PID_ID.exact^10",',
+                    chebi_id: '"CHEBI_ID.exact^10",',
+                    pdq_open_trial_search_id: '"PDQ_Open_Trial_Search_ID.exact^10",',
+                    pdq_closed_trial_search_id: '"PDQ_Closed_Trial_Search_ID.exact^10",',
+                    ncbi_taxon_id: '"NCBI_Taxon_ID.exact^10",',
+                    mgi_accession_id:   '"MGI_Accession_ID.exact^10",',
+                    contributing_source: '"Contributing_Source.exact^10",',
+                    pubmedid_primary_reference: '"PubMedID_Primary_Reference.exact^10",',
+                    nsc_code: '"NSC_Code.exact^10",',
+                    entrezgene_id: '"EntrezGene_ID.exact^10",',
+                    omim_number: '"OMIM_Number.exact^10",',
+                    homologous_gene: '"Homologous_Gene.exact^10",',
+                    genbank_accession_number: '"GenBank_Accession_Number.exact^10",',
+                    maps_to: '"maps_to_plain.exact^10",',
+                    go_annotation: '"go_annotation_plain.exact^10",'
                          }  
         propertyToQueryContains:  {   p108: 
-                      '"preferredName^100",
-                       "preferredName.exact^100",
-                       "preferredName.ngram^50",',
+                      '"Preferred_Name^100",
+                       "Preferred_Name.exact^100",
+                       "Preferred_Name.ngram^50",',
                    p107: 
-                     '"displayName^100",
-                      "displayName.exact^100",
-                      "displayName.ngram^50",',
+                     '"Display_Name^100",
+                      "Display_Name.exact^100",
+                      "Display_Name.ngram^50",',
                    p90:
                      '"synonyms_plain^95",
                       "synonyms_plain.exact^95",
                       "synonyms_plain.ngram^50",',
                    nhc0:
-                      '"code^100",',
+                      '"Code^100",',
                    p97:
                       '"definitions_plain^70",
                        "definitions_plain.ngram^30",',
                    preferredname:
-                       '"preferredName^100",
-                        "preferredName.exact^100",
-                        "preferredName.ngram^50",',
+                       '"Preferred_Name^100",
+                        "Preferred_Name.exact^100",
+                        "Preferred_Name.ngram^50",',
+                   preferred_name:
+                       '"Preferred_Name^100",
+                        "Preferred_Name.exact^100",
+                        "Preferred_Name.ngram^50",',     
                    displayname:
-                       '"displayName^100",
-                        "displayName.exact^100",
-                        "displayName.ngram^50",',
+                       '"Display_Name^100",
+                        "Display_Name.exact^100",
+                        "Display_Name.ngram^50",',
+                   display_name:
+                       '"Display_Name^100",
+                        "Display_Name.exact^100",
+                        "Display_Name.ngram^50",',     
                    synonym:  
-                       '"synonyms_plain^95",
-                        "synonyms_plain.exact^95",
+                       '"synonyms_plain^70",
+                        "synonyms_plain.exact^70",
                         "synonyms_plain.ngram^50",',
+                   full_syn:  
+                       '"synonyms_plain^70",
+                        "synonyms_plain.exact^70",
+                        "synonyms_plain.ngram^30",',     
                    code:
-                       '"code^100",',
+                       '"Code^100",',
                    definition:
                        '"definitions_plain^70",
-                        "definitions_plain.ngram^30",',
+                        "definitions_plain.exact^70", 
+                        "definitions_plain.ngram^30",
+                        "alt_definitions_plain^70",
+                        "alt_definitions_plain.exact^70",
+                        "alt_definitions_plain.ngram^30",',
                    conceptstatus:    
-                       '"conceptStatus^10",'
+                       '"Concept_Status^10",',
+                   concept_status:    
+                       '"Concept_Status^10",',
+                   neoplastic_status: '"Neoplastic_Status^10","Neoplastic_Status.exact^10","Neoplastic_Status.ngram^10",', 
+                    umls_cui: '"UMLS_CUI^10","UMLS_CUI.exact^10","UMLS_CUI.ngram^10",',
+                    nci_meta_cui: '"NCI_META_CUI^10","NCI_META_CUI.exact^10",,"NCI_META_CUI.ngram^10",',
+                    cas_registry: '"CAS_Registry^10","CAS_Registry.exact^10","CAS_Registry.ngram^10",',
+                    kegg_id: '"KEGG_ID^10","KEGG_ID.exact^10","KEGG_ID.ngram^10",',
+                    biocarta_id: '"BioCarta_ID^10","BioCarta_ID.exact^10","BioCarta_ID.ngram^10",',
+                    accepted_therapeutic_use_for: '"Accepted_Therapeutic_Use_For^10","Accepted_Therapeutic_Use_For.exact^10","Accepted_Therapeutic_Use_For.ngram^10",',
+                    snp_id:  '"SNP_ID^10","SNP_ID.exact^10","SNP_ID.ngram^10",',
+                    relative_enzyme_activity: '"Relative_Enzyme_Activity^10","Relative_Enzyme_Activity.exact^10","Relative_Enzyme_Activity.ngram^10",',
+                    fda_table: '"FDA_Table^10","FDA_Table.exact^10","FDA_Table.ngram^10",',
+                    fda_unii_code: '"FDA_UNII_Code^10","FDA_UNII_Code.exact^10","FDA_UNII_Code.ngram^10",',
+                    oid: '"OID^10","OID.exact^10","OID.ngram^10",',
+                    legacy_concept_name: '"Legacy_Concept_Name^10","Legacy_Concept_Name.exact^10","Legacy_Concept_Name.ngram^10",',
+                    nichd_hierarchy_term: '"NICHD_Hierarchy_Term^10","NICHD_Hierarchy_Term.exact^10","NICHD_Hierarchy_Term.ngram^10",',
+                    term_browser_value_set_description: '"Term_Browser_Value_Set_Description^10","Term_Browser_Value_Set_Description.exact^10","Term_Browser_Value_Set_Description.ngram^10",',
+                    gene_encodes_product:  '"Gene_Encodes_Product^10","Gene_Encodes_Product.exact^10","Gene_Encodes_Product.ngram^10",',
+                    swiss_prot: '"Swiss_Prot^10","Swiss_Prot.exact^10","Swiss_Prot.ngram^10",',
+                    icd-o-3_code:  '"ICD-O-3_Code^10","ICD-O-3_Code.exact^10","ICD-O-3_Code.ngram^10",',
+                    chemical_formula:  '"Chemical_Formula^10","Chemical_Formula.exact^10","Chemical_Formula.ngram^10",',
+                    infoods: '"INFOODS^10","INFOODS.exact^10","INFOODS.ngram^10",',
+                    usda_id: '"USDA_ID^10","USDA_ID.exact^10","USDA_ID.ngram^10",',
+                    essential_amino_acid: '"Essential_Amino_Acid^10","Essential_Amino_Acid.exact^10","Essential_Amino_Acid.ngram^10",',
+                    essential_fatty_acid: '"Essential_Fatty_Acid^10","Essential_Fatty_Acid.exact^10","Essential_Fatty_Acid.ngram^10",',
+                    nutrient:  '"Nutrient^10","Nutrient.exact^10","Nutrient.ngram^10",',
+                    micronutrient: '"Micronutrient^10","Micronutrient.exact^10","Micronutrient.ngram^10",',
+                    macronutrient: '"Macronutrient^10","Macronutrient.exact^10","Macronutrient.ngram^10",',
+                    extensible_list: '"Extensible_List^10","Extensible_List.exact^10","Extensible_List.ngram^10",',
+                    mirbase_id:  '"miRBase_ID^10","miRBase_ID.exact^10","miRBase_ID.ngram^10",',
+                    hgnc_id: '"HGNC_ID^10","HGNC_ID.exact^10","HGNC_ID.ngram^10",',
+                    pid_id:  '"PID_ID^10","PID_ID.exact^10","PID_ID.ngram^10",',
+                    chebi_id: '"CHEBI_ID^10","CHEBI_ID.exact^10","CHEBI_ID.ngram^10",',
+                    pdq_open_trial_search_id: '"PDQ_Open_Trial_Search_ID^10","PDQ_Open_Trial_Search_ID.exact^10","PDQ_Open_Trial_Search_ID.ngram^10",',
+                    pdq_closed_trial_search_id: '"PDQ_Closed_Trial_Search_ID^10","PDQ_Closed_Trial_Search_ID.exact^10","PDQ_Closed_Trial_Search_ID.ngram^10",',
+                    ncbi_taxon_id: '"NCBI_Taxon_ID^10","NCBI_Taxon_ID.exact^10","NCBI_Taxon_ID.ngram^10",',
+                    mgi_accession_id:   '"MGI_Accession_ID^10","MGI_Accession_ID.exact^10","MGI_Accession_ID.ngram^10",',
+                    contributing_source: '"Contributing_Source^10","Contributing_Source.exact^10","Contributing_Source.ngram^10",',
+                    pubmedid_primary_reference: '"PubMedID_Primary_Reference^10","PubMedID_Primary_Reference.exact^10","PubMedID_Primary_Reference.ngram^10",',
+                    nsc_code: '"NSC_Code^10","NSC_Code.exact^10","NSC_Code.ngram^10",',
+                    entrezgene_id: '"EntrezGene_ID^10","EntrezGene_ID.exact^10","EntrezGene_ID.ngram^10",',
+                    omim_number: '"OMIM_Number^10","OMIM_Number.exact^10","OMIM_Number.ngram^10",',
+                    homologous_gene: '"Homologous_Gene^10","Homologous_Gene.exact^10","Homologous_Gene.ngram^10",',
+                    genbank_accession_number: '"GenBank_Accession_Number^10","GenBank_Accession_Number.exact^10","GenBank_Accession_Number.ngram^10",',
+                    maps_to: '"maps_to_plain^10","maps_to_plain.exact^10","maps_to_plain.ngram^10",',
+                    go_annotation: '"go_annotation_plain^10","go_annotation_plain.exact^10","go_annotation_plain.ngram^10",'            
                          }                                          
         shortsourcefields: |
             [
-            "code",
-            "label",
-            "displayName",
-            "preferredName"
-            ]    
+            "Code",
+            "Label",
+            "Display_Name",
+            "Preferred_Name"
+            ]
         defaultsourcefields: |
-            "code",
-            "label",  
+             "Code",
+             "Label",
         associationsourcefields: |
             [
-             "code",
-             "label",
+             "Code",
+             "Label",
              "${relation}"
-            ] 
+            ]
         definitionsourcefields: |
             [
-             "code",
-             "label",
-             "definitions"
-            ]         
+             "Code",
+             "Label",
+             "DEFINITION",
+             "ALT_DEFINITION"
+            ]
         exactstartswithfields: |
             [ 
-            "code.exact^100",          
-            "label.exact^100",           
-            "displayName.exact^100",          
-            "preferredName.exact^100",  
-            "synonyms_plain.exact^95", 
+            "Code.exact^100",          
+            "Label.exact^100",           
+            "Display_Name.exact^100",          
+            "Preferred_Name.exact^100",  
+            "synonyms_plain.exact^70", 
             "definitions_plain.exact^70", 
-            "semanticTypes.exact^65",  
-            "additionalProperties.name.exact^50", 
-            "additionalProperties.value.exact^50", 
-            "superconcepts.label.exact^45", 
-            "subconcepts.label.exact^45",
-            "conceptStatus^10"  
+            "alt_definitions_plain.exact^45",
+            "Semantic_Type.exact^45",           
+            "Superconcept.label.exact^45", 
+            "Subconcept.label.exact^45",
+            "Concept_Status^10",
+            "Neoplastic_Status.exact^10",
+            "UMLS_CUI.exact^10",
+            "NCI_META_CUI.exact^10",
+            "CAS_Registry.exact^10",
+            "KEGG_ID.exact^10",
+            "BioCarta_ID.exact^10",  
+            "Accepted_Therapeutic_Use_For.exact^10",   
+            "SNP_ID.exact^10",   
+            "Relative_Enzyme_Activity.exact^10",
+            "FDA_Table.exact^10",   
+            "FDA_UNII_Code.exact^10",
+            "OID.exact^10",     
+            "Legacy_Concept_Name.exact^10", 
+            "NICHD_Hierarchy_Term.exact^10",
+            "Term_Browser_Value_Set_Description.exact^10", 
+            "Gene_Encodes_Product.exact^10", 
+            "Swiss_Prot.exact^10", 
+            "ICD-O-3_Code.exact^10",  
+            "Chemical_Formula.exact^10",  
+            "INFOODS.exact^10",  
+            "USDA_ID.exact^10",  
+            "Essential_Amino_Acid.exact^10",  
+            "Essential_Fatty_Acid.exact^10",  
+            "Nutrient.exact^10",  
+            "Micronutrient.exact^10",  
+            "Macronutrient.exact^10",  
+            "Extensible_List.exact^10",  
+            "miRBase_ID.exact^10",   
+            "HGNC_ID.exact^10",
+            "PID_ID.exact^10",
+            "CHEBI_ID.exact^10",
+            "PDQ_Open_Trial_Search_ID.exact^10",
+            "PDQ_Closed_Trial_Search_ID.exact^10",
+            "NCBI_Taxon_ID.exact^10",
+            "MGI_Accession_ID.exact^10",            
+            "Contributing_Source.exact^10",
+            "PubMedID_Primary_Reference.exact^10",
+            "NSC_Code.exact^10",
+            "EntrezGene_ID.exact^10",
+            "OMIM_Number.exact^10",
+            "Homologous_Gene.exact^10",
+            "GenBank_Accession_Number.exact^10",
+            "maps_to_plain.exact^10",
+            "go_annotation_plain.exact^10"
             ]
         exactstartswithsynonymfields: |
              [
-               "synonyms.termName.exact^100"
+               "FULL_SYN.term-name.exact^100"
              ]
         exactstartswithdefinitionfields: |
              [
-               "definitions.description.exact^100"
+               "DEFINITION.definition.exact^100",
+               "ALT_DEFINITION.definition.exact^100"              
              ]     
         exactstartswithassociationfields: |
              [
@@ -224,42 +444,180 @@ nci:
              ]         
         containsfields: |
              [
-              "code^100",
-              "label^100",
-              "label.exact^100",
-              "label.ngram^50",
-              "displayName^100",
-              "displayName.exact^100",
-              "displayName.ngram^50",
-              "preferredName^100",
-              "preferredName.exact^100",
-              "preferredName.ngram^50",
+              "Code^100",
+              "Label^100",
+              "Label.exact^100",
+              "Label.ngram^50",
+              "Display_Name^100",
+              "Display_Name.exact^100",
+              "Display_Name.ngram^50",
+              "Preferred_Name^100",
+              "Preferred_Name.exact^100",
+              "Preferred_Name.ngram^50",
               "definitions_plain^70",
+              "definitions_plain.exact^70",
               "definitions_plain.ngram^30",
-              "semanticTypes^10",       
-              "synonyms_plain^95",
-              "synonyms_plain.exact^95",
-              "synonyms_plain.ngram^50",
-              "additionalProperties.name^20",
-              "additionalProperties.name.ngram^10",
-              "additionalProperties.value^20",
-              "additionalProperties.value.ngram^10",
-              "superconcepts.label^20",
-              "superconcepts.label.ngram^10",
-              "subconcepts.label^20",
-              "subconcepts.label.ngram^10",
-              "conceptStatus^10"] 
+              "alt_definitions_plain^20",
+              "alt_definitions_plain.exact^20",
+              "alt_definitions_plain.ngram^10",
+              "Semantic_Type^10",       
+              "synonyms_plain^70",
+              "synonyms_plain.exact^70",
+              "synonyms_plain.ngram^30",              
+              "Superconcept.label^20",
+              "Superconcept.label.exact^20",
+              "Superconcept.label.ngram^10",
+              "Subconcept.label^20",
+              "Subconcept.label.exact^20",
+              "Subconcept.label.ngram^10",
+              "Concept_Status^10",
+                "Neoplastic_Status^10",                
+                "Neoplastic_Status.exact^10",
+                "Neoplastic_Status.ngram^5",
+                "UMLS_CUI^10",
+                "UMLS_CUI.exact^10",
+                "UMLS_CUI.ngram^5",
+                "NCI_META_CUI^10",
+                "NCI_META_CUI.exact^10",
+                "NCI_META_CUI.ngram^5",
+                "CAS_Registry^10",
+                "CAS_Registry.exact^10",
+                "CAS_Registry.ngram^5",
+                "KEGG_ID^10",
+                "KEGG_ID.exact^10",
+                "KEGG_ID.ngram^10",
+                "BioCarta_ID^10",
+                "BioCarta_ID.exact^10",
+                "BioCarta_ID.ngram^5",
+                "Accepted_Therapeutic_Use_For^10",  
+                "Accepted_Therapeutic_Use_For.exact^10",
+                "Accepted_Therapeutic_Use_For.ngram^5",
+                "SNP_ID^10",   
+                "SNP_ID.exact^10",   
+                "SNP_ID.ngram^5",
+                "Relative_Enzyme_Activity^10",
+                "Relative_Enzyme_Activity.exact^10",
+                "Relative_Enzyme_Activity.ngram^5",
+                "FDA_Table^10",
+                "FDA_Table.exact^10",
+                "FDA_Table.ngram^5",   
+                "FDA_UNII_Code^10",
+                "FDA_UNII_Code.exact^10",                
+                "FDA_UNII_Code.ngram^5",
+                "OID^10",
+                "OID.exact^10",  
+                "OID.ngram^5",     
+                "Legacy_Concept_Name^10",
+                "Legacy_Concept_Name.exact^10", 
+                "Legacy_Concept_Name.ngram^5", 
+                "NICHD_Hierarchy_Term^10",
+                "NICHD_Hierarchy_Term.exact^10",
+                "NICHD_Hierarchy_Term.ngram^5",
+                "Term_Browser_Value_Set_Description^10",
+                "Term_Browser_Value_Set_Description.exact^10",
+                "Term_Browser_Value_Set_Description.ngram^5",
+                "Gene_Encodes_Product^10", 
+                "Gene_Encodes_Product.exact^10", 
+                "Gene_Encodes_Product.ngram^5", 
+                "Swiss_Prot^10", 
+                "Swiss_Prot.exact^10",
+                "Swiss_Prot.ngram^5",
+                "ICD-O-3_Code^10",  
+                "ICD-O-3_Code.exact^10",  
+                "ICD-O-3_Code.ngram^5",
+                "Chemical_Formula^10",
+                "Chemical_Formula.exact^10",
+                "Chemical_Formula.ngram^5",
+                "INFOODS^10",  
+                "INFOODS.exact^10",
+                "INFOODS.ngram^5",
+                "USDA_ID^10",  
+                "USDA_ID.exact^10",  
+                "USDA_ID.ngram^5",  
+                "Essential_Amino_Acid^10",
+                "Essential_Amino_Acid.exact^10",
+                "Essential_Amino_Acid.ngram^5",
+                "Essential_Fatty_Acid^10",  
+                "Essential_Fatty_Acid.exact^10",
+                "Essential_Fatty_Acid.ngram^5",
+                "Nutrient^10",  
+                "Nutrient.exact^10",  
+                "Nutrient.ngram^5",  
+                "Micronutrient^10",
+                "Micronutrient.exact^10",
+                "Micronutrient.ngram^5",
+                "Macronutrient^10",  
+                "Macronutrient.exact^10",
+                "Macronutrient.ngram^5",  
+                "Extensible_List^10",
+                "Extensible_List.exact^10",
+                "Extensible_List.ngram^5",
+                "miRBase_ID^10",  
+                "miRBase_ID.exact^10",
+                "miRBase_ID.ngram^5",
+                "HGNC_ID^10",   
+                "HGNC_ID.exact^10",
+                "HGNC_ID.ngram^5",
+                "PID_ID^10",
+                "PID_ID.exact^10",
+                "PID_ID.ngram^5",
+                "CHEBI_ID^10",
+                "CHEBI_ID.exact^10",
+                "CHEBI_ID.ngram^5",
+                "PDQ_Open_Trial_Search_ID^10",
+                "PDQ_Open_Trial_Search_ID.exact^10",
+                "PDQ_Open_Trial_Search_ID.ngram^5",
+                "PDQ_Closed_Trial_Search_ID^10",
+                "PDQ_Closed_Trial_Search_ID.exact^10",
+                "PDQ_Closed_Trial_Search_ID.ngram^5",
+                "NCBI_Taxon_ID^10",
+                "NCBI_Taxon_ID.exact^10",
+                "NCBI_Taxon_ID.ngram^5",
+                "MGI_Accession_ID^10",
+                "MGI_Accession_ID.exact^10",   
+                "MGI_Accession_ID.ngram^5",   
+                "Contributing_Source^10",         
+                "Contributing_Source.exact^10",
+                "Contributing_Source.ngram^5",
+                "PubMedID_Primary_Reference^10",
+                "PubMedID_Primary_Reference.exact^10",
+                "PubMedID_Primary_Reference.ngram^5",
+                "NSC_Code^10",
+                "NSC_Code.exact^10",
+                "NSC_Code.ngram^5",
+                "EntrezGene_ID^10",
+                "EntrezGene_ID.exact^10",
+                "EntrezGene_ID.ngram^5",
+                "OMIM_Number^10",
+                "OMIM_Number.exact^10",
+                "OMIM_Number.ngram^5",
+                "Homologous_Gene^10",
+                "Homologous_Gene.exact^10",
+                "Homologous_Gene.ngram^5",
+                "GenBank_Accession_Number^10",
+                "GenBank_Accession_Number.exact^10",
+                "GenBank_Accession_Number.ngram^5",
+                "maps_to_plain^10",
+                "maps_to_plain.exact^10",
+                "maps_to_plain.ngram^5",
+                "go_annotation_plain^10",
+                "go_annotation_plain.exact^10", 
+                "go_annotation_plain.ngram^5"                                         
+              ] 
         containssynonymfields: |
                [
-                   "synonyms.termName^100",
-                   "synonyms.termName.exact^100",
-                   "synonyms.termName.ngram^50"
+                   "FULL_SYN.term-name^100",
+                   "FULL_SYN.term-name.exact^100",
+                   "FULL_SYN.term-name.ngram^50"
                ]
         containsdefinitionfields: |
                [
-                   "definitions.description^100",
-                   "definitions.description.exact^100",
-                   "definitions.description.ngram^50"
+                   "DEFINITION.definition^100",
+                   "DEFINITION.definition.exact^100",
+                   "DEFINITION.definition.ngram^50",
+                   "ALT_DEFINITION.definition^100",
+                   "ALT_DEFINITION.definition.exact^100",
+                   "ALT_DEFINITION.definition.ngram^50"                    
                ]         
         containsassociationfields: |   
                [
@@ -269,32 +627,125 @@ nci:
                ]              
         andorfields: |
               [
-               "code^100",
-               "label^100",
-               "label.exact^100",
-               "displayName^100",
-               "displayName.exact^100",
-               "preferredName^100",
-               "preferredName.exact^100",
-               "synonyms_plain^95",
-               "synonyms_plain.exact^95",
-               "definitions_plain^30",
-               "semanticTypes^30",
-               "additionalProperties.name^30",
-               "additionalProperties.value^30",
-               "superconcepts.label^25",
-               "subconcepts.label^25",
-               "conceptStatus^10"
+                "Code^100",
+                "Label^100",
+                "Label.exact^100",
+                "Display_Name^100",
+                "Display_Name.exact^100",
+                "Preferred_Name^100",
+                "Preferred_Name.exact^100",
+                "synonyms_plain^70",
+                "synonyms_plain.exact^70",
+                "definitions_plain^30",
+                "definitions_plain.exact^30",
+                "alt_definitions_plain^25",
+                "alt_definitions_plain.exact^25",
+                "Semantic_Type^25",               
+                "Superconcept.label^25",
+                "Superconcept.label.exact^25",
+                "Subconcept.label^25",
+                "Subconcept.label.exact^25",
+                "Concept_Status^10",
+                "Neoplastic_Status^10",
+                "Neoplastic_Status.exact^10",
+                "UMLS_CUI^10",
+                "UMLS_CUI.exact^10",
+                "NCI_META_CUI^10",
+                "NCI_META_CUI.exact^10",
+                "CAS_Registry^10",
+                "CAS_Registry.exact^10",
+                "KEGG_ID^10",
+                "KEGG_ID.exact^10",
+                "BioCarta_ID^10",
+                "BioCarta_ID.exact^10",
+                "Accepted_Therapeutic_Use_For^10",  
+                "Accepted_Therapeutic_Use_For.exact^10",
+                "SNP_ID^10",   
+                "SNP_ID.exact^10",   
+                "Relative_Enzyme_Activity^10",
+                "Relative_Enzyme_Activity.exact^10",
+                "FDA_Table^10",
+                "FDA_Table.exact^10",   
+                "FDA_UNII_Code^10",
+                "FDA_UNII_Code.exact^10",
+                "OID^10",
+                "OID.exact^10",     
+                "Legacy_Concept_Name^10",
+                "Legacy_Concept_Name.exact^10", 
+                "NICHD_Hierarchy_Term^10",
+                "NICHD_Hierarchy_Term.exact^10",
+                "Term_Browser_Value_Set_Description^10",
+                "Term_Browser_Value_Set_Description.exact^10",
+                "Gene_Encodes_Product^10", 
+                "Gene_Encodes_Product.exact^10", 
+                "Swiss_Prot^10", 
+                "Swiss_Prot.exact^10",
+                "ICD-O-3_Code^10",  
+                "ICD-O-3_Code.exact^10",  
+                "Chemical_Formula^10",
+                "Chemical_Formula.exact^10",
+                "INFOODS^10",  
+                "INFOODS.exact^10",
+                "USDA_ID^10",  
+                "USDA_ID.exact^10",  
+                "Essential_Amino_Acid^10",
+                "Essential_Amino_Acid.exact^10",
+                "Essential_Fatty_Acid^10",  
+                "Essential_Fatty_Acid.exact^10",
+                "Nutrient^10",  
+                "Nutrient.exact^10",  
+                "Micronutrient^10",
+                "Micronutrient.exact^10",
+                "Macronutrient^10",  
+                "Macronutrient.exact^10",  
+                "Extensible_List^10",
+                "Extensible_List.exact^10",
+                "miRBase_ID^10",  
+                "miRBase_ID.exact^10",
+                "HGNC_ID^10",   
+                "HGNC_ID.exact^10",
+                "PID_ID^10",
+                "PID_ID.exact^10",
+                "CHEBI_ID^10",
+                "CHEBI_ID.exact^10",
+                "PDQ_Open_Trial_Search_ID^10",
+                "PDQ_Open_Trial_Search_ID.exact^10",
+                "PDQ_Closed_Trial_Search_ID^10",
+                "PDQ_Closed_Trial_Search_ID.exact^10",
+                "NCBI_Taxon_ID^10",
+                "NCBI_Taxon_ID.exact^10",
+                "MGI_Accession_ID^10",
+                "MGI_Accession_ID.exact^10",   
+                "Contributing_Source^10",         
+                "Contributing_Source.exact^10",
+                "PubMedID_Primary_Reference^10",
+                "PubMedID_Primary_Reference.exact^10",
+                "NSC_Code^10",
+                "NSC_Code.exact^10",
+                "EntrezGene_ID^10",
+                "EntrezGene_ID.exact^10",
+                "OMIM_Number^10",
+                "OMIM_Number.exact^10",
+                "Homologous_Gene^10",
+                "Homologous_Gene.exact^10",
+                "GenBank_Accession_Number^10",
+                "GenBank_Accession_Number.exact^10",
+                "maps_to_plain^10",
+                "maps_to_plain.exact^10",
+                "go_annotation_plain^10",
+                "go_annotation_plain.exact^10"               
               ]  
         andorsynonymfields: |
               [
-                 "synonyms.termName^100",
-                 "synonyms.termName.exact^100"
+                 "FULL_SYN.term-name^100",
+                 "FULL_SYN.term-name.exact^100"
               ]
         andordefinitionfields: |
               [
-                 "definitions.description^100",
-                 "definitions.description.exact^100"
+                 "DEFINITION.definition^100",
+                 "DEFINITION.definition.exact^100",
+                 "ALT_DEFINITION.definition^100",
+                 "ALT_DEFINITION.definition.exact^100"
               ]      
         andorassociationfields: |
               [
@@ -302,60 +753,192 @@ nci:
                  "${relation}.relatedConceptLabel.exact^100"
               ]         
         highlightexact: |              
-              "code.exact": {},
-              "label.exact": {},
-              "displayName.exact": {},
-              "preferredName.exact": {},
+              "Code.exact": {},
+              "Label.exact": {},
+              "Display_Name.exact": {},
+              "Preferred_Name.exact": {},
               "definitions_plain.exact": {},
-              "semanticTypes.exact": {},
-              "synonyms_plain.exact": {},
-              "additionalProperties.name.exact": {},
-              "additionalProperties.value.exact": {},
-              "superconcepts.label.exact": {},
-              "subconcepts.label.exact": {},
-              "conceptStatus": {}
+              "alt_definitions_plain.exact": {},
+              "Semantic_Type.exact": {},
+              "synonyms_plain.exact": {},             
+              "Superconcept.label.exact": {},
+              "Subconcept.label.exact": {},
+              "Concept_Status": {},
+              "Neoplastic_Status.exact": {},
+              "UMLS_CUI.exact": {},
+              "NCI_META_CUI.exact": {},
+              "CAS_Registry.exact": {},
+              "KEGG_ID.exact": {},
+              "BioCarta_ID.exact": {},  
+              "Accepted_Therapeutic_Use_For.exact": {},   
+              "SNP_ID.exact": {},   
+              "Relative_Enzyme_Activity.exact": {},
+              "FDA_Table.exact": {},   
+              "FDA_UNII_Code.exact": {},
+              "OID.exact": {},     
+              "Legacy_Concept_Name.exact": {}, 
+              "NICHD_Hierarchy_Term.exact": {},
+              "Term_Browser_Value_Set_Description.exact": {}, 
+              "Gene_Encodes_Product.exact": {}, 
+              "Swiss_Prot.exact": {}, 
+              "ICD-O-3_Code.exact": {},  
+              "Chemical_Formula.exact": {},  
+              "INFOODS.exact": {},  
+              "USDA_ID.exact": {},  
+              "Essential_Amino_Acid.exact": {},  
+              "Essential_Fatty_Acid.exact": {},  
+              "Nutrient.exact": {},  
+              "Micronutrient.exact": {},  
+              "Macronutrient.exact": {},  
+              "Extensible_List.exact": {},  
+              "miRBase_ID.exact": {},   
+              "HGNC_ID.exact": {},
+              "PID_ID.exact": {},
+              "CHEBI_ID.exact": {},
+              "PDQ_Open_Trial_Search_ID.exact": {},
+              "PDQ_Closed_Trial_Search_ID.exact": {},
+              "NCBI_Taxon_ID.exact": {},
+              "MGI_Accession_ID.exact": {},            
+              "Contributing_Source.exact": {},
+              "PubMedID_Primary_Reference.exact": {},
+              "NSC_Code.exact": {},
+              "EntrezGene_ID.exact": {},
+              "OMIM_Number.exact": {},
+              "Homologous_Gene.exact": {},
+              "GenBank_Accession_Number.exact": {},
+              "maps_to_plain.exact": {},
+              "go_annotation_plain.exact": {}
         highlightsynonymexact: |
-               "synonyms.termName.exact": {}  
+               "FULL_SYN.term-name.exact": {}  
         highlightdefinitionexact: |
-               "definitions.description.exact": {}       
+               "DEFINITION.definition.exact": {},  
+               "ALT_DEFINITION.definition.exact": {}      
         highlightassociationexact: |
                "${relation}.relatedConceptLabel.exact": {}    
         highlightcontains: |
-              "code": {},
-              "label.ngram": {},
-              "displayName.ngram": {},     
-              "preferredName.ngram": {},
+              "Code": {},
+              "Label.ngram": {},
+              "Display_Name.ngram": {},     
+              "Preferred_Name.ngram": {},
               "definitions_plain.ngram": {},
-              "semanticTypes": {},
-              "synonyms_plain.ngram": {},
-              "additionalProperties.name.ngram": {},
-              "additionalProperties.value.ngram": {},
-              "superconcepts.label.ngram": {},
-              "subconcepts.label.ngram": {},
-              "conceptStatus": {}  
+              "alt_definitions_plain.ngram": {},
+              "Semantic_Type": {},
+              "synonyms_plain.ngram": {},             
+              "Superconcept.label.ngram": {},
+              "Subconcept.label.ngram": {},
+              "Concept_Status": {},
+              "Neoplastic_Status.ngram": {},
+              "UMLS_CUI.ngram": {},
+              "NCI_META_CUI.ngram": {},
+              "CAS_Registry.ngram": {},
+              "KEGG_ID.ngram": {},
+              "BioCarta_ID.ngram": {},  
+              "Accepted_Therapeutic_Use_For.ngram": {},   
+              "SNP_ID.ngram": {},   
+              "Relative_Enzyme_Activity.ngram": {},
+              "FDA_Table.ngram": {},   
+              "FDA_UNII_Code.ngram": {},
+              "OID.ngram": {},     
+              "Legacy_Concept_Name.ngram": {}, 
+              "NICHD_Hierarchy_Term.ngram": {},
+              "Term_Browser_Value_Set_Description.ngram": {}, 
+              "Gene_Encodes_Product.ngram": {}, 
+              "Swiss_Prot.ngram": {}, 
+              "ICD-O-3_Code.ngram": {},  
+              "Chemical_Formula.ngram": {},  
+              "INFOODS.ngram": {},  
+              "USDA_ID.ngram": {},  
+              "Essential_Amino_Acid.ngram": {},  
+              "Essential_Fatty_Acid.ngram": {},  
+              "Nutrient.ngram": {},  
+              "Micronutrient.ngram": {},  
+              "Macronutrient.ngram": {},  
+              "Extensible_List.ngram": {},  
+              "miRBase_ID.ngram": {},   
+              "HGNC_ID.ngram": {},
+              "PID_ID.ngram": {},
+              "CHEBI_ID.ngram": {},
+              "PDQ_Open_Trial_Search_ID.ngram": {},
+              "PDQ_Closed_Trial_Search_ID.ngram": {},
+              "NCBI_Taxon_ID.ngram": {},
+              "MGI_Accession_ID.ngram": {},            
+              "Contributing_Source.ngram": {},
+              "PubMedID_Primary_Reference.ngram": {},
+              "NSC_Code.ngram": {},
+              "EntrezGene_ID.ngram": {},
+              "OMIM_Number.ngram": {},
+              "Homologous_Gene.ngram": {},
+              "GenBank_Accession_Number.ngram": {},
+              "maps_to_plain.ngram": {},
+              "go_annotation_plain.ngram": {}  
         highlightsynonymcontains: |
-               "synonyms.termName.ngram": {} 
+               "FULL_SYN.term-name.ngram": {} 
         highlightdefinitioncontains: |
-               "definitions.description.ngram": {}        
+               "DEFINITION.definition.ngram": {},
+               "ALT_DEFINITION.definition.ngram": {}           
         highlightassociationcontains: |
                "${relation}.relatedConceptLabel.ngram": {}                 
         highlightandor: | 
-               "code": {},
-               "label": {},
-               "displayName": {},
-               "preferredName": {},
+               "Code": {},
+               "Label": {},
+               "Display_Name": {},
+               "Preferred_Name": {},
                "definitions_plain": {},
-               "semanticTypes": {},
-               "synonyms_plain": {},
-               "additionalProperties.name": {},
-               "additionalProperties.value": {},
-               "superconcepts.label": {},
-               "subconcepts.label": {},
-               "conceptStatus": {}
+               "alt_definitions_plain": {},
+               "Semantic_Type": {},
+               "synonyms_plain": {},             
+               "Superconcept.label": {},
+               "Subconcept.label": {},
+               "Concept_Status": {},
+               "Neoplastic_Status": {},
+                "UMLS_CUI": {},
+                "NCI_META_CUI": {},
+                "CAS_Registry": {},
+                "KEGG_ID": {},
+                "BioCarta_ID": {},  
+                "Accepted_Therapeutic_Use_For": {},   
+                "SNP_ID": {},   
+                "Relative_Enzyme_Activity": {},
+                "FDA_Table": {},   
+                "FDA_UNII_Code": {},
+                "OID": {},     
+                "Legacy_Concept_Name": {}, 
+                "NICHD_Hierarchy_Term": {},
+                "Term_Browser_Value_Set_Description": {}, 
+                "Gene_Encodes_Product": {}, 
+                "Swiss_Prot": {}, 
+                "ICD-O-3_Code": {},  
+                "Chemical_Formula": {},  
+                "INFOODS": {},  
+                "USDA_ID": {},  
+                "Essential_Amino_Acid": {},  
+                "Essential_Fatty_Acid": {},  
+                "Nutrient": {},  
+                "Micronutrient": {},  
+                "Macronutrient": {},  
+                "Extensible_List": {},  
+                "miRBase_ID": {},   
+                "HGNC_ID": {},
+                "PID_ID": {},
+                "CHEBI_ID": {},
+                "PDQ_Open_Trial_Search_ID": {},
+                "PDQ_Closed_Trial_Search_ID": {},
+                "NCBI_Taxon_ID": {},
+                "MGI_Accession_ID": {},            
+                "Contributing_Source": {},
+                "PubMedID_Primary_Reference": {},
+                "NSC_Code": {},
+                "EntrezGene_ID": {},
+                "OMIM_Number": {},
+                "Homologous_Gene": {},
+                "GenBank_Accession_Number": {},
+                "maps_to_plain": {},
+                "go_annotation_plain": {}
         highlightsynonymandor: |
-                "synonyms.termName": {}   
+                "FULL_SYN.term-name": {}   
         highlightdefinitionandor: |
-                "definitions.description": {}           
+                "DEFINITION.definition": {},
+                "ALT_DEFINITION.definition": {}             
         highlightassociationandor: |
                 "${relation}.relatedConceptLabel": {}                  
         mainQuery: |
@@ -381,20 +964,10 @@ nci:
                       ${highlightFields}         
                     }
                   },
-                  "aggs": {
-                    "isDisease": {
-                      "terms": {
-                        "field": "isDisease"
-                      }
-                    },
-                    "isBiomarker": {
-                      "terms": {
-                        "field": "isBiomarker"
-                      }
-                    },
+                  "aggs": {                   
                     "conceptStatus": {
                       "terms": {
-                        "field": "conceptStatus"
+                        "field": "Concept_Status"
                       }
                     }
                   }
@@ -429,24 +1002,77 @@ nci:
                       ${highlightFields}         
                     }
                   },
-                  "aggs": {
-                    "isDisease": {
-                      "terms": {
-                        "field": "isDisease"
-                      }
-                    },
-                    "isBiomarker": {
-                      "terms": {
-                        "field": "isBiomarker"
-                      }
-                    },
+                  "aggs": {                  
                     "conceptStatus": {
                       "terms": {
-                        "field": "conceptStatus"
+                        "field": "Concept_Status"
                       }
                     }
                   }
-                }                        
+                } 
+        mainMultipleNestedQuery: |
+                {
+                 "_source": ${sourcefields},
+                 "from": ${fromRecord},
+                 "size": ${pageSize},
+                 "query": {
+                    "bool": {
+                      "should": [
+                                {
+                                 "nested": {
+                                   "path": "${nestedPath1}",
+                                   "query": {
+                                     "bool": {
+                                       "must": [
+                                          {
+                                           "multi_match": {
+                                           "query": "${term}",
+                                           ${operator}
+                                           "fields":  ${fields}
+                                           }
+                                           } 
+                                           ${searchFilter1}
+                                               ]
+                                        }
+                                       }
+                                    }
+                                },
+                                {
+                                 "nested": {
+                                   "path":  "${nestedPath2}",
+                                      "query": {
+                                         "bool": {
+                                            "must": [
+                                              {
+                                               "multi_match": {
+                                               "query": "${term}",
+                                               ${operator}
+                                               "fields":  ${fields}
+                                               }
+                                               }
+                                              ${searchFilter2}
+                                                    ]
+                                                  }
+                                                }
+                                               }
+                                              }
+                                ]
+                             }
+                           },
+                          "highlight": {
+                                 ${highlightTags}
+                                 "fields": {
+                                    ${highlightFields}  
+                                           }
+                                        },
+                         "aggs": {
+                           "conceptStatus": {
+                                   "terms": {
+                                     "field": "Concept_Status"
+                                            }
+                                            }
+                                  }
+                             }                  
         mainQueryWithoutHighlights: | 
                 {
                   "_source": ${sourcefields},                  
@@ -464,20 +1090,10 @@ nci:
                       ${filter}
                     }
                   },
-                  "aggs": {
-                    "isDisease": {
-                      "terms": {
-                        "field": "isDisease"
-                      }
-                    },
-                    "isBiomarker": {
-                      "terms": {
-                        "field": "isBiomarker"
-                      }
-                    },
+                  "aggs": {                   
                     "conceptStatus": {
                       "terms": {
-                        "field": "conceptStatus"
+                        "field": "Concept_Status"
                       }
                     }
                   }
@@ -506,24 +1122,71 @@ nci:
                     }                      
                     }
                   },
-                  "aggs": {
-                    "isDisease": {
-                      "terms": {
-                        "field": "isDisease"
-                      }
-                    },
-                    "isBiomarker": {
-                      "terms": {
-                        "field": "isBiomarker"
-                      }
-                    },
+                  "aggs": {                  
                     "conceptStatus": {
                       "terms": {
-                        "field": "conceptStatus"
+                        "field": "Concept_Status"
                       }
                     }
                   }
-                } 
+                }                 
+        mainMultipleNestedQueryWithoutHighlights: |
+                {
+                 "_source": ${sourcefields},
+                 "from": ${fromRecord},
+                 "size": ${pageSize},
+                 "query": {
+                    "bool": {
+                      "should": [
+                                {
+                                 "nested": {
+                                   "path": "${nestedPath1}",
+                                   "query": {
+                                     "bool": {
+                                       "must": [
+                                          {
+                                           "multi_match": {
+                                           "query": "${term}",
+                                           ${operator}
+                                           "fields":  ${fields}
+                                           }
+                                           } 
+                                           ${searchFilter1}
+                                               ]
+                                        }
+                                       }
+                                    }
+                                },
+                                {
+                                 "nested": {
+                                   "path":  "${nestedPath2}",
+                                      "query": {
+                                         "bool": {
+                                            "must": [
+                                              {
+                                               "multi_match": {
+                                               "query": "${term}",
+                                               ${operator}
+                                               "fields":  ${fields}
+                                               }
+                                               }
+                                              ${searchFilter2}
+                                                    ]
+                                                  }
+                                                }
+                                               }
+                                              }
+                                ]
+                             }
+                           },                          
+                         "aggs": {
+                           "conceptStatus": {
+                                   "terms": {
+                                     "field": "Concept_Status"
+                                            }
+                                            }
+                                  }
+                             }                     
         highlightTags: |
             "pre_tags": [
                       "<font color='#428bca'><strong>"
@@ -534,34 +1197,82 @@ nci:
     
                     
 thesaurus:
-       owl:
-        returnFields: { code: 'code',
-                        label: 'label',
-                        displayname: 'displayName',
-                        preferredname: 'preferredName',
-                        definitions: 'definitions',
-                        definition: 'definitions',
-                        semantictypes: 'semanticTypes',
-                        semantictype: 'semanticTypes',
-                        synonyms: 'synonyms',
-                        synonym: 'synonyms',
-                        additionalproperties: 'additionalProperties',
-                        additionalproperty: 'additionalProperties',
-                        property: 'additionalProperties',
-                        superconcepts: 'superconcepts',
-                        superconcept: 'superconcepts',
-                        subconcepts: 'subconcepts',
-                        subconcept: 'subconcepts',
-                        roles: 'roles',
-                        role: 'roles',
-                        inverseroles: 'inverseRoles',
-                        inverserole: 'inverseRoles',
-                        associations: 'associations',
-                        association: 'associations',
-                        inverseassociations: 'inverseAssociations',
-                        inverseassociation: 'inverseAssociations',
-                        conceptStatus: 'conceptStatus',
-                        conceptstatus: 'conceptStatus'}
+       owl:       
+        returnFields: { code: 'Code',                        
+                        label: 'Label',
+                        displayname: 'Display_Name',
+                        display_name: 'Display_Name',
+                        preferredname: 'Preferred_Name',
+                        preferred_name: 'Preferred_Name',
+                        definitions: 'DEFINITION',
+                        definition: 'DEFINITION',
+                        alt_definition: 'ALT_DEFINITION',
+                        alt_definitions: 'ALT_DEFINITION',
+                        semantictypes: 'Semantic_Type',
+                        semantictype: 'Semantic_Type',
+                        semantic_type: 'Semantic_Type',
+                        synonyms: 'FULL_SYN',
+                        synonym: 'FULL_SYN',
+                        full_syn: 'FULL_SYN',
+                        superconcepts: 'Superconcept',
+                        superconcept: 'Superconcept',
+                        subconcepts: 'Subconcept',
+                        subconcept: 'Subconcept',
+                        roles: 'Role',
+                        role: 'Role',
+                        inverseroles: 'InverseRole',
+                        inverserole: 'InverseRole',
+                        associations: 'Association',
+                        association: 'Association',
+                        inverseassociations: 'InverseAssociation',
+                        inverseassociation: 'InverseAssociation',
+                        conceptstatus: 'Concept_Status',
+                        concept_status: 'Concept_Status',
+                        neoplastic_status: 'Neoplastic_Status',
+                        umls_cui: 'UMLS_CUI',
+                        nci_meta_cui: 'NCI_META_CUI',
+                        cas_registry: 'CAS_Registry',
+                        kegg_id:  'KEGG_ID',
+                        biocarta_id:  'BioCarta_ID',
+                        accepted_therapeutic_use_for: 'Accepted_Therapeutic_Use_For',
+                        snp_id: 'SNP_ID',
+                        relative_enzyme_activity: 'Relative_Enzyme_Activity',
+                        fda_table:  'FDA_Table',
+                        fda_unii_code:  'FDA_UNII_Code',
+                        oid:  'OID',
+                        legacy_concept_name:  'Legacy_Concept_Name',
+                        nichd_hierarchy_term: 'NICHD_Hierarchy_Term',
+                        term_browser_value_set_description: 'Term_Browser_Value_Set_Description',
+                        gene_encodes_product: 'Gene_Encodes_Product',
+                        swiss_prot: 'Swiss_Prot',
+                        icd-o-3_code: 'ICD-O-3_Code',
+                        chemical_formula: 'Chemical_Formula',
+                        infoods:  'INFOODS',
+                        usda_id:  'USDA_ID',
+                        essential_amino_acid: 'Essential_Amino_Acid',
+                        essential_fatty_acid: 'Essential_Fatty_Acid',
+                        nutrient: 'Nutrient',
+                        micronutrient:  'Micronutrient',
+                        macronutrient:  'Macronutrient',
+                        extensible_list:  'Extensible_List',
+                        mirbase_id: 'miRBase_ID',
+                        hgnc_id:  'HGNC_ID',
+                        pid_id: 'PID_ID',
+                        chebi_id: 'CHEBI_ID',
+                        pdq_open_trial_search_id: 'PDQ_Open_Trial_Search_ID',
+                        pdq_closed_trial_search_id: 'PDQ_Closed_Trial_Search_ID',
+                        ncbi_taxon_id:  'NCBI_Taxon_ID',
+                        mgi_accession_id: 'MGI_Accession_ID',
+                        contributing_source:  'Contributing_Source',
+                        pubmedid_primary_reference: 'PubMedID_Primary_Reference',
+                        nsc_code: 'NSC_Code',
+                        entrezgene_id:  'EntrezGene_ID',
+                        omim_number:  'OMIM_Number',
+                        homologous_gene:  'Homologous_Gene',
+                        genbank_accession_number: 'GenBank_Accession_Number',
+                        maps_to:  'Maps_To',
+                        go_annotation:  'GO_Annotation'
+                       }                
         conceptStatuses: {concept_pending_approval: 'Concept_Pending_Approval',
                           deprecated_concept: 'Deprecated_Concept',
                           header_concept: 'Header_Concept',

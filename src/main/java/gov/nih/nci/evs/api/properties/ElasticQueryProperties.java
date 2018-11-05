@@ -55,8 +55,10 @@ public class ElasticQueryProperties {
     //main query and main nested query
     private String mainQuery;
     private String mainNestedQuery;
+    private String mainMultipleNestedQuery;
     private String mainQueryWithoutHighlights;
     private String mainNestedQueryWithoutHighlights;
+    private String mainMultipleNestedQueryWithoutHighlights;
    
     
     //highlight tags	
@@ -66,6 +68,9 @@ public class ElasticQueryProperties {
     private HashMap<String, String> propertyToQuery;
     private HashMap<String, String> propertyToQueryExact;
     private HashMap<String, String> propertyToQueryContains;
+    
+    
+   
     
     public String getExactstartswithassociationfields() {
 		return exactstartswithassociationfields;
@@ -195,18 +200,6 @@ public class ElasticQueryProperties {
 	public void setHighlightandor(String highlightandor) {
 		this.highlightandor = highlightandor;
 	}
-
-	
-
-	
-	
-	public static Logger getLog() {
-		return log;
-	}
-
-	
-
-	
 
 	
 
@@ -374,6 +367,23 @@ public class ElasticQueryProperties {
 		this.propertyToQueryContains = propertyToQueryContains;
 	}
 
+	public String getMainMultipleNestedQuery() {
+		return mainMultipleNestedQuery;
+	}
+
+	public void setMainMultipleNestedQuery(String mainMultipleNestedQuery) {
+		this.mainMultipleNestedQuery = mainMultipleNestedQuery;
+	}
+
+	public String getMainMultipleNestedQueryWithoutHighlights() {
+		return mainMultipleNestedQueryWithoutHighlights;
+	}
+
+	public void setMainMultipleNestedQueryWithoutHighlights(String mainMultipleNestedQueryWithoutHighlights) {
+		this.mainMultipleNestedQueryWithoutHighlights = mainMultipleNestedQueryWithoutHighlights;
+	}
+
+	
 	
 
 	

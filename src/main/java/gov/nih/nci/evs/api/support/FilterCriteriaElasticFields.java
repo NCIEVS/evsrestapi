@@ -10,13 +10,15 @@ public class FilterCriteriaElasticFields {
 	private Integer fromRecord;
 	private Integer pageSize;
 	private ArrayList<String> returnProperties;
-	private String biomarker;
-	private String disease;
 	private String conceptStatus;
 	private String synonymSource;
 	private String synonymGroup;
 	private String associationSearch;
 	private String roleSearch;
+	private String format;
+	private String definitionSource;
+	private ArrayList<String> relationship;
+
 	public String getRoleSearch() {
 		return roleSearch;
 	}
@@ -25,11 +27,6 @@ public class FilterCriteriaElasticFields {
 		this.roleSearch = roleSearch;
 	}
 
-
-
-	private String definitionSource;
-	private ArrayList<String> relationship;
-	
 	public String getAssociationSearch() {
 		return associationSearch;
 	}
@@ -37,12 +34,6 @@ public class FilterCriteriaElasticFields {
 	public void setAssociationSearch(String associationSearch) {
 		this.associationSearch = associationSearch;
 	}
-
-	
-
-	private String format;
-
-	
 
 	public String getFormat() {
 		return format;
@@ -67,22 +58,7 @@ public class FilterCriteriaElasticFields {
 	public void setPageSize(Integer pageSize) {
 		this.pageSize = pageSize;
 	}
-
-	public String getBiomarker() {
-		return biomarker;
-	}
-
-	public void setBiomarker(String biomarker) {
-		this.biomarker = biomarker;
-	}
-
-	public String getDisease() {
-		return disease;
-	}
-
-	public void setDisease(String disease) {
-		this.disease = disease;
-	}
+	
 
 	public String getType() {
 		return type;
@@ -155,7 +131,5 @@ public class FilterCriteriaElasticFields {
 	public void setConceptStatus(String conceptStatus) {
 		this.conceptStatus = conceptStatus;
 	}
-
-	
 
 }

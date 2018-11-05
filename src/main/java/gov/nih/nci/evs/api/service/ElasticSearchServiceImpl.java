@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.service.exception.InvalidParameterValueException;
+
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 
 @Service
@@ -38,6 +39,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 	@Autowired
 	ElasticQueryBuilder elasticQueryBuilder;
+	
+
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -46,6 +49,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 	ElasticServerProperties elasticServerProperties;
 
 	private static ObjectMapper objectMapper = new ObjectMapper();
+	
+	
+	
 
 	public String elasticsearch(FilterCriteriaElasticFields filterCriteriaElasticFields)
 			throws IOException, HttpClientErrorException {
@@ -63,11 +69,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		HttpEntity<String> requestbody = new HttpEntity(query, httpHeaders);
 
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestbody, String.class);
-		log.debug("response = " + response);
+		//log.debug("response = " + response);
 		HttpStatus statusCode = response.getStatusCode();
 		log.debug("statusCode = " + statusCode);
 		String responseBody = response.getBody();
-		log.debug("responseBody = " + responseBody);
+		//log.debug("responseBody = " + responseBody);
 
 		if (responseBody != null) {
 			Map<String, Object> responseMap = (Map<String, Object>) objectMapper.readValue(responseBody, Map.class);

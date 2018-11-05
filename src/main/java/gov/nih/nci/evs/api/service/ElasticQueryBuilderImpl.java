@@ -104,9 +104,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 			}
 			if (filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("source")){
-				relation = "associations";
+				relation = "Association";
 			}else {
-				relation = "inverseAssociations";
+				relation = "InverseAssociation";
 			}
 			associationSearch = true;
 		}
@@ -119,9 +119,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 			}
 			if (filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("source")){
-				relation = "roles";
+				relation = "Role";
 			}else {
-				relation = "inverseRoles";
+				relation = "InverseRole";
 			}
 			roleSearch = true;
 		}
@@ -167,7 +167,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 					throw new InvalidParameterValueException("Invalid Parameter value for returnProperties -" + field);
 
 				} else {
-					if (!(fieldValue.equalsIgnoreCase("label") || fieldValue.equalsIgnoreCase("code")))
+					if (!(fieldValue.equalsIgnoreCase("Label") || fieldValue.equalsIgnoreCase("Code")))
 						returnFields = returnFields + "\"" + fieldValue + "\",";
 				}
 
@@ -389,15 +389,17 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			String synonymSourceStr = constructSynonymSource(filterCriteriaElasticFields);
 			valuesMap.put("searchFilter", synonymSourceStr);
 			
-			valuesMap.put("nestedPath", "synonyms");
+			valuesMap.put("nestedPath", "FULL_SYN");
 		}
 
 		// ***************definition source***********
 		if (definitionSource) {
 			String definitionSourceStr = constructDefintionSource(filterCriteriaElasticFields);
-			valuesMap.put("searchFilter", definitionSourceStr);
-			
-			valuesMap.put("nestedPath", "definitions");
+			valuesMap.put("searchFilter1", definitionSourceStr);
+			definitionSourceStr = constructAltDefintionSource(filterCriteriaElasticFields);
+			valuesMap.put("searchFilter2", definitionSourceStr);
+			valuesMap.put("nestedPath1", "DEFINITION");
+			valuesMap.put("nestedPath2", "ALT_DEFINITION");
 		}
 
 		// **********************filter replace********************
@@ -408,7 +410,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 		// *********get main query
 		String templateString = "";
-		if (synonymSource || associationSearch || roleSearch || definitionSource) {
+		if (definitionSource) {
+			templateString = getMainMultipleNestedQuery(filterCriteriaElasticFields);
+		}else if (synonymSource || associationSearch || roleSearch) {
 			templateString = getMainNestedQuery(filterCriteriaElasticFields);
 		} else {
 			templateString = getMainQuery(filterCriteriaElasticFields);
@@ -428,11 +432,11 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		String synonymGroup = filterCriteriaElasticFields.getSynonymGroup();
 
 		if (synonymSource != null && !synonymSource.equalsIgnoreCase("")) {
-			synonymSourceStr = synonymSourceStr + ",{ \"match\" : {\"synonyms.termSource\" : \"" + synonymSource
+			synonymSourceStr = synonymSourceStr + ",{ \"match\" : {\"FULL_SYN.term-source\" : \"" + synonymSource
 					+ "\"} }";
 		}
 		if (synonymGroup != null && !synonymGroup.equalsIgnoreCase("")) {
-			synonymSourceStr = synonymSourceStr + ",{ \"match\" : {\"synonyms.termGroup\" : \"" + synonymGroup
+			synonymSourceStr = synonymSourceStr + ",{ \"match\" : {\"FULL_SYN.term-group\" : \"" + synonymGroup
 					+ "\"} }";
 		}
 
@@ -446,7 +450,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		
 
 		if (definitionSource != null && !definitionSource.equalsIgnoreCase("")) {
-			definitionSourceStr = definitionSourceStr + ",{ \"match\" : {\"definitions.defSource\" : \"" + definitionSource
+			definitionSourceStr = definitionSourceStr + ",{ \"match\" : {\"DEFINITION.def-source\" : \"" + definitionSource
 					+ "\"} }";
 		}
 		
@@ -454,6 +458,22 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		return definitionSourceStr;
 
 	}
+	
+	private String constructAltDefintionSource(FilterCriteriaElasticFields filterCriteriaElasticFields) {
+		String definitionSourceStr = "";
+		String definitionSource = filterCriteriaElasticFields.getDefinitionSource();
+		
+
+		if (definitionSource != null && !definitionSource.equalsIgnoreCase("")) {
+			definitionSourceStr = definitionSourceStr + ",{ \"match\" : {\"ALT_DEFINITION.def-source\" : \"" + definitionSource
+					+ "\"} }";
+		}
+		
+
+		return definitionSourceStr;
+
+	}
+
 
 	private String constructAssociationRelationship(FilterCriteriaElasticFields filterCriteriaElasticFields,String relation)
 			throws InvalidParameterValueException {
@@ -470,7 +490,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		} else {
 			
 			HashMap<String, String> mapToSearch = null;
-            if (relation.equalsIgnoreCase("associations") || relation.equalsIgnoreCase("inverseAssociations")) {
+            if (relation.equalsIgnoreCase("Association") || relation.equalsIgnoreCase("InverseAssociation")) {
             	mapToSearch = this.associationToQuery;
             }else {
             	mapToSearch = this.roleToQuery;
@@ -546,14 +566,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		boolean conceptStatusFilter = false;
 
 
-		if (filterCriteriaElasticFields.getDisease().equalsIgnoreCase("true")
-				|| filterCriteriaElasticFields.getDisease().equalsIgnoreCase("false")) {
-			diseaseFilter = true;
-		}
-		if (filterCriteriaElasticFields.getBiomarker().equalsIgnoreCase("true")
-				|| filterCriteriaElasticFields.getBiomarker().equalsIgnoreCase("false")) {
-			biomarkerFilter = true;
-		}
+		
 		String conceptStatus = ""; 
 		if (filterCriteriaElasticFields.getConceptStatus() != null) {
 			conceptStatus = this.conceptStatus.get(filterCriteriaElasticFields.getConceptStatus().toLowerCase());
@@ -572,20 +585,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			filter = filter + "\"bool\":{\n";
 			filter = filter + "\"must\":[\n";
 
-			if (filterCriteriaElasticFields.getDisease().equalsIgnoreCase("true")) {
-				filter = filter + "{\"term\":{\"isDisease\":true}},\n";
-			} else if (filterCriteriaElasticFields.getDisease().equalsIgnoreCase("false")) {
-				filter = filter + "{\"term\":{\"isDisease\":false}},\n";
-			}
-
-			if (filterCriteriaElasticFields.getBiomarker().equalsIgnoreCase("true")) {
-				filter = filter + "{\"term\":{\"isBiomarker\":true}},\n";
-			} else if (filterCriteriaElasticFields.getBiomarker().equalsIgnoreCase("false")) {
-				filter = filter + "{\"term\":{\"isBiomarker\":false}},\n";
-			}
+			
 			
 			if (filterCriteriaElasticFields.getConceptStatus() != null) {
-				filter = filter + "{\"term\":{\"conceptStatus\":\"" + filterCriteriaElasticFields.getConceptStatus() + "\"}},\n";
+				filter = filter + "{\"term\":{\"Concept_Status\":\"" + filterCriteriaElasticFields.getConceptStatus() + "\"}},\n";
 			}
 
 			filter = filter.substring(0, filter.length() - 2);
@@ -613,6 +616,17 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			query = elasticQueryProperties.getMainNestedQueryWithoutHighlights();
 		} else
 			query = elasticQueryProperties.getMainNestedQuery();
+
+		return query;
+
+	}
+	
+	private String getMainMultipleNestedQuery(FilterCriteriaElasticFields filterCriteriaElasticFields) {
+		String query = "";
+		if (filterCriteriaElasticFields.getFormat().equalsIgnoreCase("clean")) {
+			query = elasticQueryProperties.getMainMultipleNestedQueryWithoutHighlights();
+		} else
+			query = elasticQueryProperties.getMainMultipleNestedQuery();
 
 		return query;
 

@@ -4,6 +4,7 @@ public class ElasticServerProperties {
 	
 	private String url;
 
+
 	public String getUrl() {
 		return url;
 	}
@@ -11,5 +12,6 @@ public class ElasticServerProperties {
 	public void setUrl(String url) {
 		this.url = url;
 	}
+
 
 }
