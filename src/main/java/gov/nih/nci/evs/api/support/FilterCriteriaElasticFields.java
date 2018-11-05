@@ -11,6 +11,7 @@ public class FilterCriteriaElasticFields {
 	private Integer pageSize;
 	private ArrayList<String> returnProperties;
 	private String conceptStatus;
+	private String contributingSource;
 	private String synonymSource;
 	private String synonymGroup;
 	private String associationSearch;
@@ -130,6 +131,14 @@ public class FilterCriteriaElasticFields {
 
 	public void setConceptStatus(String conceptStatus) {
 		this.conceptStatus = conceptStatus;
+	}
+
+	public String getContributingSource() {
+		return contributingSource;
+	}
+
+	public void setContributingSource(String contributingSource) {
+		this.contributingSource = contributingSource;
 	}
 
 }

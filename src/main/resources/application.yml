@@ -164,7 +164,7 @@ nci:
                     pdq_closed_trial_search_id: '"PDQ_Closed_Trial_Search_ID^10","PDQ_Closed_Trial_Search_ID.exact^10",',
                     ncbi_taxon_id: '"NCBI_Taxon_ID^10","NCBI_Taxon_ID.exact^10",',
                     mgi_accession_id:   '"MGI_Accession_ID^10","MGI_Accession_ID.exact^10",',
-                    contributing_source: '"Contributing_Source^10","Contributing_Source.exact^10",',
+                    contributing_source: '"Contributing_Source^10",',
                     pubmedid_primary_reference: '"PubMedID_Primary_Reference^10","PubMedID_Primary_Reference.exact^10",',
                     nsc_code: '"NSC_Code^10","NSC_Code.exact^10",',
                     entrezgene_id: '"EntrezGene_ID^10","EntrezGene_ID.exact^10",',
@@ -239,7 +239,7 @@ nci:
                     pdq_closed_trial_search_id: '"PDQ_Closed_Trial_Search_ID.exact^10",',
                     ncbi_taxon_id: '"NCBI_Taxon_ID.exact^10",',
                     mgi_accession_id:   '"MGI_Accession_ID.exact^10",',
-                    contributing_source: '"Contributing_Source.exact^10",',
+                    contributing_source: '"Contributing_Source^10",',
                     pubmedid_primary_reference: '"PubMedID_Primary_Reference.exact^10",',
                     nsc_code: '"NSC_Code.exact^10",',
                     entrezgene_id: '"EntrezGene_ID.exact^10",',
@@ -338,7 +338,7 @@ nci:
                     pdq_closed_trial_search_id: '"PDQ_Closed_Trial_Search_ID^10","PDQ_Closed_Trial_Search_ID.exact^10","PDQ_Closed_Trial_Search_ID.ngram^10",',
                     ncbi_taxon_id: '"NCBI_Taxon_ID^10","NCBI_Taxon_ID.exact^10","NCBI_Taxon_ID.ngram^10",',
                     mgi_accession_id:   '"MGI_Accession_ID^10","MGI_Accession_ID.exact^10","MGI_Accession_ID.ngram^10",',
-                    contributing_source: '"Contributing_Source^10","Contributing_Source.exact^10","Contributing_Source.ngram^10",',
+                    contributing_source: '"Contributing_Source^10",',
                     pubmedid_primary_reference: '"PubMedID_Primary_Reference^10","PubMedID_Primary_Reference.exact^10","PubMedID_Primary_Reference.ngram^10",',
                     nsc_code: '"NSC_Code^10","NSC_Code.exact^10","NSC_Code.ngram^10",',
                     entrezgene_id: '"EntrezGene_ID^10","EntrezGene_ID.exact^10","EntrezGene_ID.ngram^10",',
@@ -419,7 +419,7 @@ nci:
             "PDQ_Closed_Trial_Search_ID.exact^10",
             "NCBI_Taxon_ID.exact^10",
             "MGI_Accession_ID.exact^10",            
-            "Contributing_Source.exact^10",
+            "Contributing_Source^10",
             "PubMedID_Primary_Reference.exact^10",
             "NSC_Code.exact^10",
             "EntrezGene_ID.exact^10",
@@ -576,9 +576,7 @@ nci:
                 "MGI_Accession_ID^10",
                 "MGI_Accession_ID.exact^10",   
                 "MGI_Accession_ID.ngram^5",   
-                "Contributing_Source^10",         
-                "Contributing_Source.exact^10",
-                "Contributing_Source.ngram^5",
+                "Contributing_Source^10",
                 "PubMedID_Primary_Reference^10",
                 "PubMedID_Primary_Reference.exact^10",
                 "PubMedID_Primary_Reference.ngram^5",
@@ -716,8 +714,7 @@ nci:
                 "NCBI_Taxon_ID.exact^10",
                 "MGI_Accession_ID^10",
                 "MGI_Accession_ID.exact^10",   
-                "Contributing_Source^10",         
-                "Contributing_Source.exact^10",
+                "Contributing_Source^10",
                 "PubMedID_Primary_Reference^10",
                 "PubMedID_Primary_Reference.exact^10",
                 "NSC_Code^10",
@@ -799,7 +796,7 @@ nci:
               "PDQ_Closed_Trial_Search_ID.exact": {},
               "NCBI_Taxon_ID.exact": {},
               "MGI_Accession_ID.exact": {},            
-              "Contributing_Source.exact": {},
+              "Contributing_Source": {},
               "PubMedID_Primary_Reference.exact": {},
               "NSC_Code.exact": {},
               "EntrezGene_ID.exact": {},
@@ -862,7 +859,7 @@ nci:
               "PDQ_Closed_Trial_Search_ID.ngram": {},
               "NCBI_Taxon_ID.ngram": {},
               "MGI_Accession_ID.ngram": {},            
-              "Contributing_Source.ngram": {},
+              "Contributing_Source": {},
               "PubMedID_Primary_Reference.ngram": {},
               "NSC_Code.ngram": {},
               "EntrezGene_ID.ngram": {},
@@ -969,6 +966,11 @@ nci:
                       "terms": {
                         "field": "Concept_Status"
                       }
+                    },
+                    "contributingSource": {
+                      "terms": {
+                        "field": "Contributing_Source"
+                      }
                     }
                   }
                 } 
@@ -1006,6 +1008,11 @@ nci:
                     "conceptStatus": {
                       "terms": {
                         "field": "Concept_Status"
+                      }
+                    },
+                    "contributingSource": {
+                      "terms": {
+                        "field": "Contributing_Source"
                       }
                     }
                   }
@@ -1070,7 +1077,12 @@ nci:
                                    "terms": {
                                      "field": "Concept_Status"
                                             }
+                                            },
+                                          "contributingSource": {
+                                            "terms": {
+                                              "field": "Contributing_Source"
                                             }
+                                          }
                                   }
                              }                  
         mainQueryWithoutHighlights: | 
@@ -1094,6 +1106,11 @@ nci:
                     "conceptStatus": {
                       "terms": {
                         "field": "Concept_Status"
+                      }
+                    },
+                    "contributingSource": {
+                      "terms": {
+                        "field": "Contributing_Source"
                       }
                     }
                   }
@@ -1126,6 +1143,11 @@ nci:
                     "conceptStatus": {
                       "terms": {
                         "field": "Concept_Status"
+                      }
+                    },
+                    "contributingSource": {
+                      "terms": {
+                        "field": "Contributing_Source"
                       }
                     }
                   }
@@ -1184,7 +1206,12 @@ nci:
                                    "terms": {
                                      "field": "Concept_Status"
                                             }
-                                            }
+                                            },
+                                      "contributingSource": {
+                                        "terms": {
+                                          "field": "Contributing_Source"
+                                        }
+                                      }
                                   }
                              }                     
         highlightTags: |
@@ -1279,6 +1306,40 @@ thesaurus:
                           obsolete_concept: 'Obsolete_Concept',
                           provisional_concept: 'Provisional_Concept',
                           retired_concept: 'Retired_Concept'
+                          }
+        contributingSources: {
+                            acc: 'ACC',
+                            bridg: 'BRIDG',
+                            carelex: 'CareLex',
+                            cdisc: 'CDISC',
+                            cdisc-gloss: 'CDISC-GLOSS',
+                            crch: 'CRCH',
+                            ctcae: 'CTCAE',
+                            ctep: 'CTEP',
+                            ctrp: 'CTRP',
+                            edqm-hc: 'EDQM-HC',
+                            fda: 'FDA',
+                            gaia: 'GAIA',
+                            hl7: 'HL7',
+                            ich: 'ICH',
+                            inc: 'INC',
+                            meddra: 'MedDRA',
+                            nccn: 'NCCN',
+                            ncpdp: 'NCPDP',
+                            ndc: 'NDC',
+                            nichd: 'NICHD',
+                            p32239: 'P32239',
+                            p32241: 'P32241',
+                            p32243: 'P32243',
+                            p32245: 'P32245',
+                            p32246: 'P32246',
+                            p32247: 'P32247',
+                            p32248: 'P32248',
+                            p32249: 'P32249',
+                            p32297: 'P32297',
+                            p32298: 'P32298',
+                            pi-rads: 'PI-RADS',
+                            ucum: 'UCUM'        
                          }
         associations:  {a1: 'Role_Has_Domain',
                         a10: 'Has_CDRH_Parent',

@@ -10,6 +10,8 @@ public class ThesaurusProperties {
 	
 	private Map<String,String> conceptStatuses;
 	
+	private Map<String,String> contributingSources;
+	
 	private Map<String,String> returnFields;
 	
 	//code to be removed 
@@ -53,6 +55,14 @@ public class ThesaurusProperties {
 
 	public void setReturnFieldsByLabel(Map<String,String> returnFieldsByLabel) {
 		this.returnFieldsByLabel = returnFieldsByLabel;
+	}
+
+	public Map<String,String> getContributingSources() {
+		return contributingSources;
+	}
+
+	public void setContributingSources(Map<String,String> contributingSources) {
+		this.contributingSources = contributingSources;
 	}
 
 }

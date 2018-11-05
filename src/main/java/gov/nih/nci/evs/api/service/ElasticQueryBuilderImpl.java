@@ -31,6 +31,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 	private HashMap<String, String> propertyToQueryContains;
 	private HashMap<String, String> associationToQuery;
 	private HashMap<String, String> conceptStatus;
+	private HashMap<String, String> contributingSource;
 	private HashMap<String, String> roleToQuery;
 
 	@Autowired
@@ -43,6 +44,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 	public void postInit() throws IOException {
 		
     	conceptStatus = (HashMap<String, String>) thesaurusProperties.getConceptStatuses();
+    	contributingSource = (HashMap<String, String>) thesaurusProperties.getContributingSources();
 		roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();
 		associationToQuery = (HashMap<String, String>) thesaurusProperties.getAssociations();
 		returnFieldMap = (HashMap<String, String>) thesaurusProperties.getReturnFields();		
@@ -561,8 +563,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
 	private String constructFilterQuery(FilterCriteriaElasticFields filterCriteriaElasticFields) throws InvalidParameterValueException {
 		String filter = "";
-		boolean diseaseFilter = false;
-		boolean biomarkerFilter = false;
+		boolean contributingSourceFilter = false;		
 		boolean conceptStatusFilter = false;
 
 
@@ -579,7 +580,19 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			conceptStatusFilter = true;
 		}
 		
-		if (diseaseFilter || biomarkerFilter || conceptStatusFilter) {
+		String contributingSource = ""; 
+		if (filterCriteriaElasticFields.getContributingSource() != null) {
+			contributingSource = this.contributingSource.get(filterCriteriaElasticFields.getContributingSource().toLowerCase());
+			if (contributingSource == null) {
+				throw new InvalidParameterValueException(
+						"Invalid Parameter value for contributingSource field. Rejected value - "
+								+ filterCriteriaElasticFields.getContributingSource());
+			}
+			
+			contributingSourceFilter = true;
+		}
+		
+		if (contributingSourceFilter  || conceptStatusFilter) {
 			filter = filter + ",\n";
 			filter = filter + "\"filter\":{\n";
 			filter = filter + "\"bool\":{\n";
@@ -589,6 +602,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			
 			if (filterCriteriaElasticFields.getConceptStatus() != null) {
 				filter = filter + "{\"term\":{\"Concept_Status\":\"" + filterCriteriaElasticFields.getConceptStatus() + "\"}},\n";
+			}
+			
+			if (filterCriteriaElasticFields.getContributingSource() != null) {
+				filter = filter + "{\"term\":{\"Contributing_Source\":\"" + contributingSource + "\"}},\n";
 			}
 
 			filter = filter.substring(0, filter.length() - 2);
