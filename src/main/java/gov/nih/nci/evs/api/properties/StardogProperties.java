@@ -16,8 +16,8 @@ public class StardogProperties {
     private String username;
     private String password;
     private String queryUrl;
-    private int readTimeout;
-    private int connectTimeout;
+    private long readTimeout;
+    private long connectTimeout;
     private String graphName;
     private String owlfileName;
     private String populateCacheCron;
@@ -55,19 +55,19 @@ public class StardogProperties {
 		this.queryUrl = queryUrl;
 	}
 
-	public int getReadTimeout() {
+	public long getReadTimeout() {
 		return readTimeout;
 	}
 
-	public void setReadTimeout(int readTimeout) {
+	public void setReadTimeout(long readTimeout) {
 		this.readTimeout = readTimeout;
 	}
 
-	public int getConnectTimeout() {
+	public long getConnectTimeout() {
 		return connectTimeout;
 	}
 
-	public void setConnectTimeout(int connectTimeout) {
+	public void setConnectTimeout(long connectTimeout) {
 		this.connectTimeout = connectTimeout;
 	}
 

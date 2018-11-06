@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.util;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -24,25 +25,28 @@ public class RESTUtils {
 	private String restURL;
 	private String username;
 	private String password;
-	private int readTimeout;
-	private int connectTimeout;
+	//private int readTimeout;
+	//private int connectTimeout;
+	
+	private Duration readTimeout;
+	private Duration connectTimeout;
 
 	public RESTUtils () {}
 	
-	public RESTUtils(String restURL,String username, String password,int readTimeout, int connectTimeout) {
+	public RESTUtils(String restURL,String username, String password,long readTimeout, long connectTimeout) {
 		this.restURL = restURL;
 		this.username = username;
 		this.password = password;
-		this.readTimeout= readTimeout;
+		this.readTimeout= Duration.ofSeconds(readTimeout);
 		log.info("stardog readTimeout -" + readTimeout);
-		this.connectTimeout = connectTimeout;
+		this.connectTimeout =  Duration.ofSeconds(connectTimeout);
 		log.info("stardog connectTimeout -" + connectTimeout);
 	}
 	
 	public String runSPARQL(String query) {
 		RestTemplate restTemplate = new RestTemplateBuilder().
 											rootUri(restURL).
-											basicAuthorization(username,password).
+											basicAuthentication(username,password).
 											setReadTimeout(readTimeout).
 											setConnectTimeout(connectTimeout).
 											build();
