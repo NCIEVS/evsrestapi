@@ -232,7 +232,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			operator = "";
 		}
 		valuesMap.put("operator", operator);
-		valuesMap.put("term", term);
+		valuesMap.put("searchterm", term);
 
 		// **********fields to search in replace***************
 		String fields = "";

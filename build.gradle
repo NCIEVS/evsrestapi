@@ -1,5 +1,7 @@
 buildscript {
-
+    ext {
+		springBootVersion = '2.0.6.RELEASE'
+	}
     repositories {
         jcenter()
         maven { url "http://repo.spring.io/release" }
@@ -9,7 +11,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     }
 }
 
@@ -25,11 +27,17 @@ ext {
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply plugin: 'idea'
+apply plugin: 'war'
 apply plugin: 'org.springframework.boot'
+/*
+ * The dependency management plugin remains a transitive dependency of spring-boot-gradle-plugin
+ * so there’s no need for it to be listed as a classpath dependency in the buildscript configuration.
+ */
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply plugin: 'war'
+
+
 
 group = "gov.nih.nci.evs.api"
 version = "1.0.0-SNAPSHOT"
@@ -38,7 +46,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 springBoot {
-    backupSource = false // do not backup original jar to *.original
+    buildInfo()          // generate file META-INF/build-info.properties during the build
 }
 
 repositories {
@@ -57,12 +65,11 @@ dependencies {
    
     compile 'org.springframework.boot:spring-boot-starter-web'       
     compile 'org.springframework.boot:spring-boot-devtools'
-    compile 'org.springframework.boot:spring-boot-actuator'
-    compile 'org.projectlombok:lombok'
+    compile 'org.springframework.boot:spring-boot-actuator'  
     compile 'org.apache.commons:commons-lang3:3.4'
     compile "io.springfox:springfox-swagger2:$swaggerversion" 
     compile "io.springfox:springfox-swagger-ui:$swaggerversion"
-    
+    compile 'org.springframework.boot:spring-boot-properties-migrator'
      
    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
@@ -74,13 +81,6 @@ dependencies {
 
 }
 
-jar {
-    baseName = project.name
-    version =  project.version
-    manifest {
-        attributes 'Main-Class': 'main.java.gov.nih.nci.evs.api.Application'
-    }
-}
 
 test {
     /*
@@ -121,14 +121,10 @@ task zipFile(type: Zip) {
     }
 }
 
-task bootJar
-bootJar.dependsOn = [jar, bootRepackage]
-build.dependsOn = [ bootJar, test, zipFile ]
-install.dependsOn = [ bootJar,test, zipFile ]
 
-/*
- * Wrapper task
- */
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.14.1'
-}
+
+zipFile.dependsOn = [ bootWar ]
+build.dependsOn = [ test, bootWar, zipFile ]
+install.dependsOn = [ bootWar, zipFile ]
+
+
