@@ -4,15 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonView;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "termName", "termGroup", "termSource", "sourceCode", "subsourceName" })
-public class EvsSynonymByLabel {
+public class EvsSynonymByLabel implements EvsSynonym {
 	private String code;
 	private String label;
 	
-    @JsonView(ConceptViews.FullClass.class)
 	@JsonProperty("term-name")
 	private String termName;
 

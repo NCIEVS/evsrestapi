@@ -4,11 +4,11 @@ import java.util.List;
 
 public class Path {
 	private int direction;
-	private List <Concept> concepts;
+	private List <ConceptNode> concepts;
 
 	public Path() {}
 
-	public Path( int direction, List <Concept>concepts) {
+	public Path( int direction, List <ConceptNode>concepts) {
 		this.direction = direction;
 		this.concepts = concepts;
 	}
@@ -18,7 +18,7 @@ public class Path {
 	}
 
 
-	public void setConcepts(List <Concept> concepts) {
+	public void setConcepts(List <ConceptNode> concepts) {
 		this.concepts = concepts;
 	}
 	
@@ -26,7 +26,7 @@ public class Path {
 		return this.direction;
 	}
 
-	public List <Concept> getConcepts() {
+	public List <ConceptNode> getConcepts() {
 		return this.concepts;
 	}
 }

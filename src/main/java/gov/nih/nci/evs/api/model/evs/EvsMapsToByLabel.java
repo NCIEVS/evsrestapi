@@ -6,20 +6,20 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "annotatedTarget", "relationshipToTarget", "targetTermType", "targetCode", "targetTerminology"})
-public class EvsMapsToByCode implements EvsMapsTo{
+public class EvsMapsToByLabel implements EvsMapsTo{
 	@JsonProperty("annotatedTarget")
 	private String annotatedTarget;
 
-	@JsonProperty("P393")
+	@JsonProperty("Relationship_to_Target")
 	private String relationshipToTarget;
 
-	@JsonProperty("P394")
+	@JsonProperty("Target_Term_Type")
 	private String targetTermType;
 
-	@JsonProperty("P395")
+	@JsonProperty("Target_Code")
 	private String targetCode;
 
-	@JsonProperty("P396")
+	@JsonProperty("Target_Terminology")
 	private String targetTerminology;
 
 	public String getAnnotatedTarget() {

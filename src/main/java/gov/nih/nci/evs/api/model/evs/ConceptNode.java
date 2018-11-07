@@ -1,14 +1,14 @@
 package gov.nih.nci.evs.api.model.evs;
 
-public class Concept {
+public class ConceptNode {
 	private int idx;
 	private String label;
 	private String code;
 
-	public Concept() {
+	public ConceptNode() {
 	}
 
-	public Concept(int idx, String label, String code) {
+	public ConceptNode(int idx, String label, String code) {
 
 		this.idx = idx;
 		this.label = label;
@@ -38,5 +38,4 @@ public class Concept {
 	public String getCode() {
 		return this.code;
 	}
-
 }

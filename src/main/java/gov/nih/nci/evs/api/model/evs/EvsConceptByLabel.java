@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonView;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "code", "label", "preferredName", "properties", "synonyms",
@@ -17,39 +16,37 @@ import com.fasterxml.jackson.annotation.JsonView;
 	"roles", "inverseRoles",
 	"mapsTo", "goAnnotations", "disjointWith"
 	})
-public class EvsConceptByLabel {
-	
+public class EvsConceptByLabel implements EvsConcept{
 	@JsonProperty("Code")
 	private String code;
-
 
 	@JsonProperty("Label")
 	private String label;
 	
 	@JsonProperty("Preferred_Name")
 	private String preferredName;
-
+	
 	private Map <String,List<String>> properties = new HashMap <String,List<String>>();
 	
 	@JsonProperty("FULL_SYN")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)	
-	private List <EvsSynonymByLabel> synonyms;
+	private List <EvsSynonym> synonyms;
 	
 	@JsonProperty("DEFINITION")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
-	private List <EvsDefinitionByLabel> definitions;
-	
+	private List <EvsDefinition> definitions;
+
 	@JsonProperty("ALT_DEFINITION")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
-	private List <EvsDefinitionByLabel> altDefinitions;
+	private List <EvsDefinition> altDefinitions;
 	
 	@JsonProperty("Subconcept")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
-	private List <EvsSubconceptByLabel> subconcepts;
+	private List <EvsRelatedConcept> subconcepts;
 
 	@JsonProperty("Superconcept")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
-	private List <EvsSuperconceptByLabel> superconcepts;
+	private List <EvsRelatedConcept> superconcepts;
 	
 	@JsonProperty("Association")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -73,7 +70,7 @@ public class EvsConceptByLabel {
 	
 	@JsonProperty("GO_Annotation")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
-	private List <EvsGoAnnotation> goAnnotations;	
+	private List <EvsGoAnnotation> goAnnotations;
 	
 	@JsonProperty("DisjointWith")
 	@JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -85,7 +82,7 @@ public class EvsConceptByLabel {
 	public void setCode(String code) {
 		this.code = code;
 	}
-
+	
 	public String getLabel() {
 		return label;
 	}
@@ -99,43 +96,44 @@ public class EvsConceptByLabel {
 	public void setPreferredName(String preferredName) {
 		this.preferredName = preferredName;
 	}
-
+	
 	@JsonAnyGetter
 	public Map <String,List<String>> getProperties() {
 		return properties;
 	};
 	
-	public List<EvsSynonymByLabel> getSynonyms() {
+	public List<EvsSynonym> getSynonyms() {
 		return synonyms;
 	}
-	public void setSynonyms(List<EvsSynonymByLabel> synonyms) {
+	public void setSynonyms(List<EvsSynonym> synonyms) {
 		this.synonyms = synonyms;
 	}
 	
-	public List <EvsDefinitionByLabel> getDefinitions() {
+	public List <EvsDefinition> getDefinitions() {
 		return definitions;
 	}
-	public void setDefinitions(List<EvsDefinitionByLabel> definitions) {
+	public void setDefinitions(List<EvsDefinition> definitions) {
 		this.definitions = definitions;
 	}
-	
-	public List <EvsDefinitionByLabel> getAltDefinitions() {
+
+	public List <EvsDefinition> getAltDefinitions() {
 		return altDefinitions;
 	}
-	public void setAltDefinitions(List<EvsDefinitionByLabel> altDefinitions) {
+	public void setAltDefinitions(List<EvsDefinition> altDefinitions) {
 		this.altDefinitions = altDefinitions;
-	}	
-	public List<EvsSubconceptByLabel> getSubconcepts() {
+	}
+	
+	public List<EvsRelatedConcept> getSubconcepts() {
 		return subconcepts;
 	}
-	public void setSubconcepts(List<EvsSubconceptByLabel> subconcepts) {
+	public void setSubconcepts(List<EvsRelatedConcept> subconcepts) {
 		this.subconcepts = subconcepts;
 	}
 
-	public List<EvsSuperconceptByLabel> getSuperconcepts() {
+	public List<EvsRelatedConcept> getSuperconcepts() {
 		return superconcepts;
 	}
-	public void setSuperconcepts(List<EvsSuperconceptByLabel> superconcepts) {
+	public void setSuperconcepts(List<EvsRelatedConcept> superconcepts) {
 		this.superconcepts = superconcepts;
 	}
 	
@@ -180,12 +178,11 @@ public class EvsConceptByLabel {
 	public void setGoAnnotations(List<EvsGoAnnotation> goAnnotations) {
 		this.goAnnotations = goAnnotations;
 	}
-	
+
 	public List<EvsAssociation> getDisjointWith() {
 		return disjointWith;
 	}
 	public void setDisjointWith(List<EvsAssociation> disjointWith) {
 		this.disjointWith = disjointWith;
-	}
-	
+	}	
 }

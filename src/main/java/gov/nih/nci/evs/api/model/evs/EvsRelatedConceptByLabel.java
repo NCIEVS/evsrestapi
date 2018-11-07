@@ -3,8 +3,8 @@ package gov.nih.nci.evs.api.model.evs;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class EvsSuperconceptByLabel {
-	private String superclass;
+public class EvsRelatedConceptByLabel implements EvsRelatedConcept {
+	private String relatedConcept;
 
 	@JsonProperty("code")
 	private String code;
@@ -13,11 +13,11 @@ public class EvsSuperconceptByLabel {
 	private String label;
 
 	@JsonIgnore
-	public String getSuperclass() {
-		return superclass;
+	public String getRelatedConcept() {
+		return relatedConcept;
 	}
-	public void setSuperclass(String superclass) {
-		this.superclass = superclass;
+	public void setRelatedConcept(String relatedConcept) {
+		this.relatedConcept = relatedConcept;
 	}
 	public String getCode() {
 		return code;
@@ -31,4 +31,5 @@ public class EvsSuperconceptByLabel {
 	public void setLabel(String label) {
 		this.label = label;
 	}
+
 }

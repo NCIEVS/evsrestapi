@@ -59,5 +59,4 @@ public class HierarchyNode {
 	public void setChildren(List<HierarchyNode> children) {
 		this.children = children;
 	}
-
 }

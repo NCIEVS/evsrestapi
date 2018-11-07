@@ -6,20 +6,20 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "goId", "goTerm", "goEvi", "goSource", "sourceDate"})
-public class EvsGoAnnotationByCode implements EvsGoAnnotation{
-	@JsonProperty("P387")
+public class EvsGoAnnotationByLabel implements EvsGoAnnotation{
+	@JsonProperty("go-id")
 	private String goId;
 
-	@JsonProperty("P388")
+	@JsonProperty("go-term")
 	private String goTerm;
 
-	@JsonProperty("P389")
+	@JsonProperty("go-evi")
 	private String goEvi;
 
-	@JsonProperty("P390")
+	@JsonProperty("go-source")
 	private String goSource;
 
-	@JsonProperty("P391")
+	@JsonProperty("source-date")
 	private String sourceDate;
 	
 	public String getGoId() {

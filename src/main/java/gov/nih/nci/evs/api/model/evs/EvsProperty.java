@@ -1,10 +1,16 @@
 package gov.nih.nci.evs.api.model.evs;
 
 public class EvsProperty {
-
 	String code;
 	String label;
 	String value;
+	
+	public EvsProperty() { }
+	public EvsProperty(String code, String label, String value) {
+		this.code = code;
+		this.label = label;
+		this.value = value;
+	}
 	
 	public String getCode() {
 		return code;
@@ -24,5 +30,4 @@ public class EvsProperty {
 	public void setValue(String value) {
 		this.value = value;
 	}
-	
 }

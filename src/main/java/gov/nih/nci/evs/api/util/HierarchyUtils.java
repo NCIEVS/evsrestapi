@@ -1,25 +1,12 @@
 package gov.nih.nci.evs.api.util;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
 
-import org.springframework.util.StringUtils;
-
-import gov.nih.nci.evs.api.model.evs.Concept;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
-import gov.nih.nci.evs.api.model.evs.Path;
-import gov.nih.nci.evs.api.model.evs.Paths;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerServiceImpl;
 
 public class HierarchyUtils {
 	
@@ -191,74 +178,5 @@ public class HierarchyUtils {
 		}
 		nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
 		node.setChildren(nodes);
-	}
-	
-	/*
-	 * Will Remove once testing is completed
-	 */
-	public void testLoading ()  {
-		System.out.println("HierarchyUtils Loading");
-		System.out.println("======================");
-		System.out.println("Total: " + concepts.size());
-		System.out.println("Parents: " + parents.size());
-		System.out.println("Childrens: " + children.size());
-		roots = new HashSet<String>(parents);
-		roots.removeAll(children);
-
-		leaves = new HashSet<String>(children);
-		leaves.removeAll(parents);
-		
-		System.out.println("Roots");
-		for (String root: roots) {
-			System.out.println(root + ": " + code2label.get(root));
-		}
-		
-		/*
-		System.out.println("Leaves");
-		System.out.println("Size: " + leaves.size());
-		*/
-		
-		PathFinder pathFinder = new PathFinder(this);
-		Paths paths = pathFinder.findPaths();
-		System.out.println("Paths Count: " + paths.getPathCount());
-		PrintWriter pw = null;
-		try {
-			pw = new PrintWriter(new File("/tmp/allpaths.txt"));
-			for (Path path: paths.getPaths()) {
-				List <Concept> concepts = path.getConcepts();
-			    StringBuffer strPath = new StringBuffer();
-			    for (Concept concept: concepts) {
-				    strPath.append(concept.getCode());
-    				strPath.append("|");
-	    		}
-		    	//System.out.println(strPath.toString());
-		    	pw.write(strPath.toString() + "\n");
-			}
-	    } catch (FileNotFoundException e) {
-	    	e.printStackTrace();
-	    } finally {
-	    	if (pw != null) {
-	    		pw.close();
-	    	}
-	    }
-		
-		/*
-		for (Path path: paths.getPaths()) {
-			Boolean sw = false;
-			for (Concept concept: path.getConcepts()) {
-				if (concept.getCode().equals("C7917")) {
-					sw = true;
-				}
-			}
-			if (sw) {
-				StringBuffer strPath = new StringBuffer();
-			    for (Concept concept: path.getConcepts()) {
-				    strPath.append(concept.getCode());
-	    			strPath.append("|");
-		    	}
-		    	System.out.println(strPath.toString());
-			}
-		}
-		*/
 	}
 }

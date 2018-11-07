@@ -3,11 +3,10 @@ package gov.nih.nci.evs.api.model.evs;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonView;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "definition", "defSource", "attr"})
-public class EvsDefinitionByCode {
+public class EvsDefinitionByCode implements EvsDefinition {
 	
 	@JsonProperty("definition")
 	private String definition;
@@ -38,3 +37,4 @@ public class EvsDefinitionByCode {
 		this.defSource = defSource;
 	}
 }
+

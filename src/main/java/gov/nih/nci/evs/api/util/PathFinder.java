@@ -9,8 +9,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
-import gov.nih.nci.evs.api.maintype.util.StringUtils;
-import gov.nih.nci.evs.api.model.evs.Concept;
+import gov.nih.nci.evs.api.model.evs.ConceptNode;
 import gov.nih.nci.evs.api.model.evs.Path;
 import gov.nih.nci.evs.api.model.evs.Paths;
 
@@ -24,6 +23,23 @@ public class PathFinder {
 	public PathFinder(HierarchyUtils hierarchy) {
 		this.hierarchy = hierarchy;
 	}
+	
+	public static Vector <String> parseData(String line, char delimiter) {
+			if(line == null) return null;
+			Vector <String> w = new Vector <String>();
+			StringBuffer buf = new StringBuffer();
+			for (int i=0; i<line.length(); i++) {
+				char c = line.charAt(i);
+				if (c == delimiter) {
+					w.add(buf.toString());
+					buf = new StringBuffer();
+				} else {
+					buf.append(c);
+				}
+			}
+			w.add(buf.toString());
+			return w;
+		}
 
 	public ArrayList<String> getRoots() {
 		ArrayList<String> roots = this.hierarchy.getRoots();
@@ -35,11 +51,11 @@ public class PathFinder {
 
 	public Path createPath(String path) {
 		Path p = new Path();
-		List<Concept> concepts = new ArrayList<Concept>();
+		List<ConceptNode> concepts = new ArrayList<ConceptNode>();
 		String[] codes = path.split("\\|");
 		for (int i = 0; i < codes.length; i++) {
 			String name = hierarchy.getLabel(codes[i]);
-			Concept concept = new Concept(i, name, codes[i]);
+			ConceptNode concept = new ConceptNode(i, name, codes[i]);
 			concepts.add(concept);
 		}
 
@@ -80,7 +96,7 @@ public class PathFinder {
 		stack.push(code);
 		while (!stack.isEmpty()) {
 			String path = (String) stack.pop();
-			Vector u = StringUtils.parseData(path, '|');
+			Vector u = parseData(path, '|');
 			String last_code = (String) u.elementAt(u.size()-1);
 			List sups = hierarchy.getSuperclassCodes(last_code);
 			if (sups == null) {

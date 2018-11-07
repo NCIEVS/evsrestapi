@@ -3,21 +3,21 @@ package gov.nih.nci.evs.api.model.evs;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class EvsSubconceptByLabel {
-	private String subclass;
+public class EvsRelatedConceptByCode implements EvsRelatedConcept {
+	private String relatedConcept;
 
-	@JsonProperty("code")
+	@JsonProperty("NHC0")
 	private String code;
 
-	@JsonProperty("label")
+	@JsonProperty("rdfs:label")
 	private String label;
 
 	@JsonIgnore
-	public String getSubclass() {
-		return subclass;
+	public String getRelatedConcept() {
+		return relatedConcept;
 	}
-	public void setSubclass(String subclass) {
-		this.subclass = subclass;
+	public void setRelatedConcept(String relatedConcept) {
+		this.relatedConcept = relatedConcept;
 	}
 	public String getCode() {
 		return code;

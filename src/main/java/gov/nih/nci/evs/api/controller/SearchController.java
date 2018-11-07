@@ -1,10 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,40 +13,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 
-import gov.nih.nci.evs.api.model.evs.EvsAssociation;
-import gov.nih.nci.evs.api.model.evs.EvsAxiom;
-import gov.nih.nci.evs.api.model.evs.EvsConcept;
-import gov.nih.nci.evs.api.model.evs.EvsConceptFull;
-import gov.nih.nci.evs.api.model.evs.EvsProperty;
-import gov.nih.nci.evs.api.model.evs.EvsRelationships;
-import gov.nih.nci.evs.api.model.evs.EvsSubconcept;
-import gov.nih.nci.evs.api.model.evs.EvsSuperconcept;
-import gov.nih.nci.evs.api.model.evs.HierarchyNode;
-import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
-import gov.nih.nci.evs.api.service.QueryBuilderServiceImpl;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
-import gov.nih.nci.evs.api.support.FilterCriteriaFields;
-import gov.nih.nci.evs.api.support.FilterParameter;
-import gov.nih.nci.evs.api.support.MatchedConcept;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")

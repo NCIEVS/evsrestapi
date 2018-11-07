@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.util;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 
@@ -16,34 +15,25 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import gov.nih.nci.evs.api.service.SparqlQueryManagerServiceImpl;
-
 public class RESTUtils {
 	
 	private static final Logger log = LoggerFactory.getLogger(RESTUtils.class);
 	
-	private String restURL;
 	private String username;
 	private String password;
-	//private int readTimeout;
-	//private int connectTimeout;
-	
 	private Duration readTimeout;
 	private Duration connectTimeout;
 
 	public RESTUtils () {}
 	
-	public RESTUtils(String restURL,String username, String password,long readTimeout, long connectTimeout) {
-		this.restURL = restURL;
+	public RESTUtils(String username, String password,long readTimeout, long connectTimeout) {
 		this.username = username;
 		this.password = password;
 		this.readTimeout= Duration.ofSeconds(readTimeout);
-		log.info("stardog readTimeout -" + readTimeout);
 		this.connectTimeout =  Duration.ofSeconds(connectTimeout);
-		log.info("stardog connectTimeout -" + connectTimeout);
 	}
 	
-	public String runSPARQL(String query) {
+	public String runSPARQL(String query, String restURL) {
 		RestTemplate restTemplate = new RestTemplateBuilder().
 											rootUri(restURL).
 											basicAuthentication(username,password).

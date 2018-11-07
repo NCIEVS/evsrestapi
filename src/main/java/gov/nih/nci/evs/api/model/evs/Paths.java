@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class Paths {// Variable declaration
+public class Paths {
 	private List <Path> paths = null;
 
 	public Paths() {

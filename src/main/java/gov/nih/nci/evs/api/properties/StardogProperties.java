@@ -12,24 +12,18 @@ public class StardogProperties {
 	/** The logger. */
     private static final Logger log = LoggerFactory.getLogger(StardogProperties.class);
 
-    private String url;
     private String username;
     private String password;
-    private String queryUrl;
     private long readTimeout;
     private long connectTimeout;
-    private String graphName;
     private String owlfileName;
     private String populateCacheCron;
     private String forcePopulateCache;
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
+    
+    private String monthlyQueryUrl;
+    private String weeklyQueryUrl;
+    private String monthlyGraphName;
+    private String weeklyGraphName;
 
 	public String getUsername() {
 		return username;
@@ -47,14 +41,6 @@ public class StardogProperties {
 		this.password = password;
 	}
 
-	public String getQueryUrl() {
-		return queryUrl;
-	}
-
-	public void setQueryUrl(String queryUrl) {
-		this.queryUrl = queryUrl;
-	}
-
 	public long getReadTimeout() {
 		return readTimeout;
 	}
@@ -69,14 +55,6 @@ public class StardogProperties {
 
 	public void setConnectTimeout(long connectTimeout) {
 		this.connectTimeout = connectTimeout;
-	}
-
-	public String getGraphName() {
-		return graphName;
-	}
-
-	public void setGraphName(String graphName) {
-		this.graphName = graphName;
 	}
 
 	public String getOwlfileName() {
@@ -101,6 +79,38 @@ public class StardogProperties {
 
 	public void setForcePopulateCache(String forcePopulateCache) {
 		this.forcePopulateCache = forcePopulateCache;
+	}
+
+	public String getMonthlyQueryUrl() {
+		return monthlyQueryUrl;
+	}
+
+	public void setMonthlyQueryUrl(String monthlyQueryUrl) {
+		this.monthlyQueryUrl = monthlyQueryUrl;
+	}
+
+	public String getWeeklyQueryUrl() {
+		return weeklyQueryUrl;
+	}
+
+	public void setWeeklyQueryUrl(String weeklyQueryUrl) {
+		this.weeklyQueryUrl = weeklyQueryUrl;
+	}
+
+	public String getMonthlyGraphName() {
+		return monthlyGraphName;
+	}
+
+	public void setMonthlyGraphName(String monthlyGraphName) {
+		this.monthlyGraphName = monthlyGraphName;
+	}
+
+	public String getWeeklyGraphName() {
+		return weeklyGraphName;
+	}
+
+	public void setWeeklyGraphName(String weeklyGraphName) {
+		this.weeklyGraphName = weeklyGraphName;
 	}
 
 	

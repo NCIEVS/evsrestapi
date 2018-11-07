@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.model.evs;
 
 public class EvsAxiom {
-	
 	String annotatedProperty;
 	String annotatedSource;
 	String annotatedTarget;
@@ -144,5 +143,4 @@ public class EvsAxiom {
 	public void setTermSource(String termSource) {
 		this.termSource = termSource;
 	}
-
 }
