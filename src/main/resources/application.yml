@@ -1329,17 +1329,7 @@ thesaurus:
                             nccn: 'NCCN',
                             ncpdp: 'NCPDP',
                             ndc: 'NDC',
-                            nichd: 'NICHD',
-                            p32239: 'P32239',
-                            p32241: 'P32241',
-                            p32243: 'P32243',
-                            p32245: 'P32245',
-                            p32246: 'P32246',
-                            p32247: 'P32247',
-                            p32248: 'P32248',
-                            p32249: 'P32249',
-                            p32297: 'P32297',
-                            p32298: 'P32298',
+                            nichd: 'NICHD',                          
                             pi-rads: 'PI-RADS',
                             ucum: 'UCUM'        
                          }
