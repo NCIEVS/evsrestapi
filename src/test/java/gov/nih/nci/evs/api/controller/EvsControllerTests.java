@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Before;
@@ -60,6 +61,16 @@ public class EvsControllerTests {
         baseUrl = "/api/v1/concept/";
     }
     
+    public int getCount(JsonNode ns) {
+    	int count = 0;
+        Iterator<JsonNode> it = ns.elements();
+        it = ns.iterator();
+        while (it.hasNext()) {
+            it.next();
+            count++;
+        }
+    	return count;
+    }
     
     @Test
     public void getEvsConceptDetail() throws Exception {
@@ -68,10 +79,10 @@ public class EvsControllerTests {
         log.info("Started Testing getEvsConceptDetail");
     	String conceptCodeList = testProperties.getConceptCodeList();
     	
-        conceptCodeList= "C7834,C3058,C125890,C2924,C4896,C54705,C7057,C2991,C3262,C4897,C7834,C48232";
+        //conceptCodeList= "C7834,C3058,C125890,C2924,C4896,C54705,C7057,C2991,C3262,C4897,C7834,C48232";
+        conceptCodeList= "C7834,C3058,C125890,C2924,C4896";
     	
     	String[] concepts = conceptCodeList.split(",");
-    	
     	List conceptsList = Arrays.asList(concepts); 
         
         
@@ -83,6 +94,7 @@ public class EvsControllerTests {
                                    .andExpect(status().isOk())
                                    .andReturn();
     	   String content = result.getResponse().getContentAsString();
+    	   int count = 0;
     	   
     	   //log.info("content *******" + content);
            assertThat(content).isNotNull();
@@ -99,95 +111,50 @@ public class EvsControllerTests {
    			   assertThat(label.equalsIgnoreCase("Recurrent Childhood Brain Neoplasm")).isTrue();
    		   }
            
-           /*
-           if (evsConcept.getCode().equalsIgnoreCase("C7834")) {
-        	   assertThat(evsConcept.getSubconcepts().size() > 0).isTrue();
-        	   assertThat(evsConcept.getSuperconcepts().size() > 0).isTrue();
-        	   //assertThat(evsConcept.getSynonyms().size() > 0).isTrue();
+           if (code.equalsIgnoreCase("C3058")) {
+   			   String label = jsonNode.findValue("Label").asText();
+        	   assertThat(label.equalsIgnoreCase("Glioblastoma")).isTrue();
+        	   List <JsonNode> synonyms = jsonNode.findValues("FULL_SYN");
+        	   assertThat(synonyms.size() > 0).isTrue();
            }
            
-           if (evsConcept.getCode().equalsIgnoreCase("C3058")) {
-        	   assertThat(evsConcept.getLabel().equalsIgnoreCase("Gallbladder Neoplasm")).isTrue();
+           if (code.equalsIgnoreCase("C125890")) {
+   			   String label = jsonNode.findValue("Label").asText();
+        	   assertThat(label.equalsIgnoreCase("Small Cell Glioblastoma")).isTrue();
+        	   JsonNode ns = jsonNode.get("Neoplastic_Status");
+        	   Iterator<JsonNode> it = ns.elements();
+        	   while (it.hasNext()) {
+        		   JsonNode s = it.next();
+        		   assertThat(s.asText().equals("Malignant"));
+        		   
+        	   }
+   			   ns = jsonNode.get("Role");
+   			   count = getCount(ns);
+   			   assertThat(count > 0).isTrue();
+           }
+
+           if (code.equalsIgnoreCase("C2924")) {
+   			   String p = jsonNode.findValue("Preferred_Name").asText();
+        	   assertThat(p.equalsIgnoreCase("Ductal Breast Carcinoma In Situ")).isTrue();
+        	   JsonNode ns = jsonNode.get("Semantic_Type");
+        	   Iterator<JsonNode> it = ns.elements();
+        	   while (it.hasNext()) {
+        		   JsonNode s = it.next();
+        		   assertThat(s.asText().equals("Neoplastic Process"));
+        		   
+        	   }
+   			   ns = jsonNode.get("Association");
+   			   count = getCount(ns);
+   			   assertThat(count > 0).isTrue();
            }
            
-           if (evsConcept.getCode().equalsIgnoreCase("C125890")) {
-        	   assertThat(evsConcept.getIsMainType()).isFalse();
-        	   assertThat(evsConcept.getIsSubtype()).isTrue();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isTrue();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
+           if (code.equalsIgnoreCase("C4896")) {
+   			   String p = jsonNode.findValue("Preferred_Name").asText();
+        	   assertThat(p.equalsIgnoreCase("Leukemia in Remission")).isTrue();
+   			   JsonNode ns = jsonNode.get("FULL_SYN");
+   			   count = getCount(ns);
+   			   assertThat(count > 0).isTrue();
            }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C2924")) {
-        	   assertThat(evsConcept.getIsMainType()).isFalse();
-        	   assertThat(evsConcept.getIsSubtype()).isTrue();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isTrue();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isTrue();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C4896")) {
-        	   assertThat(evsConcept.getIsMainType()).isTrue();
-        	   assertThat(evsConcept.getIsSubtype()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-        	   assertThat(evsConcept.getIsDisease()).isFalse();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C54705")) {
-        	   assertThat(evsConcept.getIsMainType()).isTrue();
-        	   assertThat(evsConcept.getIsSubtype()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C7057")) {
-        	   assertThat(evsConcept.getIsMainType()).isFalse();
-        	   assertThat(evsConcept.getIsSubtype()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C2991")) {
-        	   assertThat(evsConcept.getIsMainType()).isTrue();
-        	   assertThat(evsConcept.getIsSubtype()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C3262")) {
-        	   assertThat(evsConcept.getIsMainType()).isTrue();
-        	   assertThat(evsConcept.getIsSubtype()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C4897")) {
-        	   assertThat(evsConcept.getIsMainType()).isFalse();
-        	   assertThat(evsConcept.getIsSubtype()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C7834")) {
-        	   assertThat(evsConcept.getIsMainType()).isFalse();
-        	   assertThat(evsConcept.getIsSubtype()).isFalse();
-        	   assertThat(evsConcept.getIsDiseaseStage()).isTrue();
-        	   assertThat(evsConcept.getIsDiseaseGrade()).isFalse();
-        	   assertThat(evsConcept.getIsDisease()).isTrue();
-           }
-           
-           if (evsConcept.getCode().equalsIgnoreCase("C48232")) {
-        	   assertThat(evsConcept.getSubconcepts().size() > 0).isTrue();
-        	   assertThat(evsConcept.getSuperconcepts().size() > 0).isTrue();
-        	   assertThat(evsConcept.getSynonyms().size() > 0).isTrue();
-        	   assertThat(evsConcept.getLabel().equalsIgnoreCase("Cancer TNM Finding")).isTrue();
-           }
-           */
            
            log.info("Successfully tested url - " + url);
         
