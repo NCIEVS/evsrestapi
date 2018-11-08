@@ -36,7 +36,7 @@ public class EvsController {
 	@Autowired
 	SparqlQueryManagerService sparqlQueryManagerService;
 
-	@ApiOperation(value = "Gets all the named graphs", response = EvsConcept.class)
+	@ApiOperation(value = "Gets all the named graphs", response = String.class, responseContainer = "List")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the graph names"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -187,7 +187,7 @@ public class EvsController {
 
 
 	
-	@ApiOperation(value = "Get the all the properties", response = List.class)
+	@ApiOperation(value = "Get the all the properties", response = EvsConcept.class, responseContainer = "List")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved all the properties"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -209,7 +209,7 @@ public class EvsController {
 		return properties;
 	}	
 
-	@ApiOperation(value = "Get the all the associations", response = List.class)
+	@ApiOperation(value = "Get the all the associations", response = EvsConcept.class, responseContainer = "List")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved all the associations"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -231,7 +231,7 @@ public class EvsController {
 		return associations;
 	}	
 
-	@ApiOperation(value = "Get the all the roles", response = List.class)
+	@ApiOperation(value = "Get the all the roles", response = EvsConcept.class, responseContainer = "List")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved all the roles"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -265,7 +265,7 @@ public class EvsController {
 	}
 
 
-	@ApiOperation(value = "Get the children of the specified concept", response = List.class)
+	@ApiOperation(value = "Get the children of the specified concept", response = HierarchyNode.class, responseContainer = "List")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the children of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -284,7 +284,7 @@ public class EvsController {
 		return nodes;
 	}
 	
-	@ApiOperation(value = "Get the children of the specified concept, for multiple levels", response = List.class)
+	@ApiOperation(value = "Get the children of the specified concept, for multiple levels", response = HierarchyNode.class, responseContainer = "List")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the children of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
@@ -352,7 +352,7 @@ public class EvsController {
 		return paths;
 	}
 	
-	@ApiOperation(value = "Get the path(s) to specified concept from the root nodes", response = List.class)
+	@ApiOperation(value = "Get the path(s) to specified concept from the root nodes", response = HierarchyNode.class, responseContainer = "List")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully retrieved the inverse roles of the concept"),
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
