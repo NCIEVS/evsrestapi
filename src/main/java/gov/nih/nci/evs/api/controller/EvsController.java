@@ -20,6 +20,8 @@ import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -107,6 +109,12 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
 	@RequestMapping(method = RequestMethod.GET, value = "/property/{conceptCode}", produces = "application/json")
 	public @ResponseBody EvsConcept getEvsProperty(@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db,
@@ -128,6 +136,12 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
 	@RequestMapping(method = RequestMethod.GET, value = "/association/{conceptCode}", produces = "application/json")
 	public @ResponseBody EvsConcept getEvsAssociation(@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db,
@@ -149,6 +163,12 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
 	@RequestMapping(method = RequestMethod.GET, value = "/role/{conceptCode}", produces = "application/json")
 	public @ResponseBody EvsConcept getEvsRole(@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db,
@@ -174,6 +194,12 @@ public class EvsController {
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@RequestMapping(method = RequestMethod.GET, value = "/properties", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
 	public @ResponseBody List<EvsConcept> getAllProperties(@RequestParam("db") Optional<String> db,
 	        @RequestParam("fmt") Optional<String> fmt )
 			throws IOException {
@@ -190,6 +216,12 @@ public class EvsController {
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@RequestMapping(method = RequestMethod.GET, value = "/associations", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
 	public @ResponseBody List<EvsConcept> getAllAssociations(@RequestParam("db") Optional<String> db,
 			@RequestParam("fmt") Optional<String> fmt)
 			throws IOException {
@@ -205,6 +237,12 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
 	@RequestMapping(method = RequestMethod.GET, value = "/roles", produces = "application/json")
 	public @ResponseBody List<EvsConcept> getAllRoles(@RequestParam("db") Optional<String> db,
 			@RequestParam("fmt") Optional<String> fmt)
@@ -234,6 +272,10 @@ public class EvsController {
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/childNodes", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
 	public @ResponseBody List<HierarchyNode> getChildNodes(
 			@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db) throws IOException {
@@ -249,6 +291,10 @@ public class EvsController {
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/childNodes/{maxLevel}", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
 	public @ResponseBody List<HierarchyNode> getChildNodesLevel(
 			@PathVariable(value = "conceptCode") String conceptCode,
 			@PathVariable(value = "maxLevel") int maxLevel,
@@ -263,6 +309,10 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathToRoot", produces = "application/json")
 	public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db,
@@ -282,6 +332,10 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathToParent/{parentConceptCode}", produces = "application/json")
 	public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode,
 			@PathVariable(value = "parentConceptCode") String parentConceptCode,
@@ -304,6 +358,10 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathInHierarchy", produces = "application/json")
 	public @ResponseBody List<HierarchyNode> getPathInHierarchy(
 			@PathVariable(value = "conceptCode") String conceptCode,
