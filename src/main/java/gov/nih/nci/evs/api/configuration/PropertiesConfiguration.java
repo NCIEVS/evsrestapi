@@ -16,6 +16,7 @@ import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.SwaggerProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 
 
@@ -80,7 +81,7 @@ public class PropertiesConfiguration {
    
     
     /*
-     * Stardog Properties
+     * Thesaurus Properties
      */
     @Bean
     @ConfigurationProperties(prefix = "thesaurus.owl", ignoreUnknownFields = false)
@@ -88,5 +89,14 @@ public class PropertiesConfiguration {
         return new ThesaurusProperties();
     }
    
+    
+    /*
+     * Swagger Properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "swagger.documentation", ignoreUnknownFields = false)
+    SwaggerProperties swaggerProperties() {
+        return new SwaggerProperties();
+    }
 
 }

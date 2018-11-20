@@ -22,7 +22,7 @@ ext {
      /*
      * Other third-party software versions
      */
-     swaggerversion = "2.6.1"
+     swaggerversion = "2.9.2"
 }
 
 apply plugin: 'java'

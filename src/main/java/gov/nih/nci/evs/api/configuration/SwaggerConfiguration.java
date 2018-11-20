@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -21,22 +22,24 @@ public class SwaggerConfiguration {
              .select()                                  
              .apis(RequestHandlerSelectors.any())              
              .paths(PathSelectors.ant("/api/v1/**"))                          
-             .build();
-             //.apiInfo(metaData());          
+             .build()
+             .apiInfo(apiInfo());          
            
     }
 	
-	 private ApiInfo metaData() {
-	        ApiInfo apiInfo = new ApiInfo(
-	                "EVS REST API",
-	                "EVS REST API",
-	                "1.0",
-	                "Terms of service",
-	                new Contact("", "", ""),
-	               "",
-	                "");
-	        
-	        return apiInfo;
+	
+	 ApiInfo apiInfo() {
+	        return new ApiInfoBuilder()
+	            .title("EVS Rest API")
+	            .description("EVS Rest API")
+	            .license("")
+	            .licenseUrl("")
+	            .termsOfServiceUrl("")
+	            .version("")
+	            .contact(new Contact("", "", ""))
+	            .build();
 	    }
+	
+	
 
 }

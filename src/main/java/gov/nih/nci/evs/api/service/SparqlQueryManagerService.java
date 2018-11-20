@@ -18,11 +18,18 @@ public interface SparqlQueryManagerService {
 	public EvsConcept getEvsConceptByCode(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
 
 	public List<EvsConcept> getAllProperties(String dbType, String format) throws JsonParseException, JsonMappingException, IOException;
+	public List<String> getAllPropertiesForDocumentation(String dbType) throws JsonParseException, JsonMappingException, IOException;
 	public List<EvsConcept> getAllAssociations(String dbType, String format) throws JsonParseException, JsonMappingException, IOException;
+	public List<String> getAllAssociationsForDocumentation(String dbType) throws JsonParseException, JsonMappingException, IOException;
 	public List<EvsConcept> getAllRoles(String dbType, String format) throws JsonParseException, JsonMappingException, IOException;
+	public List<String> getAllRolesForDocumentation(String dbType) throws JsonParseException, JsonMappingException, IOException;
 	public EvsConcept getEvsPropertyByLabel(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
 	public EvsConcept getEvsPropertyByCode(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
+	
 
+	public List<String> getContributingSourcesForDocumentation() throws JsonMappingException,JsonParseException,IOException;
+	public List<String> getConceptStatusForDocumentation() throws JsonMappingException,JsonParseException,IOException;
+	
 	public List<HierarchyNode> getRootNodes(String dbType);
 	public List<HierarchyNode> getChildNodes(String parent, String dbType);
 	public List<HierarchyNode> getChildNodes(String parent, int maxLevel, String dbType);

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
+import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
@@ -208,6 +209,28 @@ public class EvsController {
 		List <EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, format);
 		return properties;
 	}	
+	
+	@ApiOperation(value = "Get the all the properties", response = EvsConcept.class, responseContainer = "List")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved all the properties"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/propertiesList", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
+	public @ResponseBody List<String> getAllPropertiesForDocumentation(@RequestParam("db") Optional<String> db,
+	        @RequestParam("fmt") Optional<String> fmt )
+			throws IOException {
+		String dbType = db.orElse("monthly");
+        String format = fmt.orElse("byLabel");
+		List <String> properties = sparqlQueryManagerService.getAllPropertiesForDocumentation(dbType);
+		return properties;
+	}	
 
 	@ApiOperation(value = "Get the all the associations", response = EvsConcept.class, responseContainer = "List")
 	@ApiResponses(value = {
@@ -228,6 +251,28 @@ public class EvsController {
 		String dbType = db.orElse("monthly");
         String format = fmt.orElse("byLabel");
 		List <EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(dbType, format);
+		return associations;
+	}	
+	
+	@ApiOperation(value = "Get the all the associations", response = EvsConcept.class, responseContainer = "List")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved all the associations"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/associationsList", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
+	public @ResponseBody List<String> getAllAssociationsForDocumentation(@RequestParam("db") Optional<String> db,
+			@RequestParam("fmt") Optional<String> fmt)
+			throws IOException {
+		String dbType = db.orElse("monthly");
+        String format = fmt.orElse("byLabel");
+		List <String> associations = sparqlQueryManagerService.getAllAssociationsForDocumentation(dbType);
 		return associations;
 	}	
 
@@ -252,6 +297,49 @@ public class EvsController {
 		List <EvsConcept> roles = sparqlQueryManagerService.getAllRoles(dbType, format);
 		return roles;
 	}	
+	
+	@ApiOperation(value = "Get the all the roles", response = EvsConcept.class, responseContainer = "List")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved all the roles"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
+	@RequestMapping(method = RequestMethod.GET, value = "/rolesList", produces = "application/json")
+	public @ResponseBody List<String> getAllRolesForDocumentation(@RequestParam("db") Optional<String> db,
+			@RequestParam("fmt") Optional<String> fmt)
+			throws IOException {
+		String dbType = db.orElse("monthly");
+        String format = fmt.orElse("byLabel");
+		List <String> roles = sparqlQueryManagerService.getAllRolesForDocumentation(dbType);
+		return roles;
+	}	
+	
+	
+	
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/contributingSourcesList", produces = "application/json")
+	public @ResponseBody List<String> getContributingSourcesForDocumentation()
+		throws IOException {
+		
+		List<String> contributingSources = sparqlQueryManagerService.getContributingSourcesForDocumentation();
+		return contributingSources;
+	}
+	
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/conceptStatuesList", produces = "application/json")
+	public @ResponseBody List<String> getConceptStatusForDocumentation()
+		throws IOException {
+		
+		List<String> contributingSources = sparqlQueryManagerService.getConceptStatusForDocumentation();
+		return contributingSources;
+	}
+	
 	
 	/*
 	 * Controllers for Hierarchy Information 

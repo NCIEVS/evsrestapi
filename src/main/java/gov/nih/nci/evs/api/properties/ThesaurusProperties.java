@@ -14,6 +14,9 @@ public class ThesaurusProperties {
 	
 	private Map<String,String> returnFields;
 	
+	
+	private Map<String,String>  propertyNotConsidered;
+	
 	//code to be removed 
 	private Map<String,String> returnFieldsByLabel;
 
@@ -63,6 +66,14 @@ public class ThesaurusProperties {
 
 	public void setContributingSources(Map<String,String> contributingSources) {
 		this.contributingSources = contributingSources;
+	}
+
+	public Map<String,String> getPropertyNotConsidered() {
+		return propertyNotConsidered;
+	}
+
+	public void setPropertyNotConsidered(Map<String,String> propertyNotConsidered) {
+		this.propertyNotConsidered = propertyNotConsidered;
 	}
 
 }

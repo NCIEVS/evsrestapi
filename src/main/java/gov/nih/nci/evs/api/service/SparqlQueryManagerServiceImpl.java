@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathFinder;
@@ -52,9 +54,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 	StardogProperties stardogProperties;
 
 	@Autowired
-	QueryBuilderService queryBuilderService;
+	QueryBuilderService queryBuilderService;	
+	
+	@Autowired
+	private ThesaurusProperties thesaurusProperties;
 
 	private RESTUtils restUtils = null;
+	
+	
+	private HashMap<String, String> propertyNotConsidered;
 	
 	private Long classCountMonthly;
 	private Long classCountWeekly;
@@ -66,9 +74,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 	
 	@PostConstruct
 	public void postInit() throws IOException{
+		propertyNotConsidered = (HashMap<String, String>) thesaurusProperties.getPropertyNotConsidered();
 		restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
 				stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
-		populateCache();
+		//populateCache();
 	}
 	
 	@Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
@@ -748,8 +757,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 	/*
 	 * Documentation Section
 	 */
-	/*
-	public List<EvsProperty> getAllProperties(String dbType) throws JsonMappingException,JsonParseException ,IOException {
+	
+	public List<String> getAllPropertiesForDocumentation(String dbType) throws JsonMappingException,JsonParseException ,IOException {
 		String queryPrefix = queryBuilderService.contructPrefix();
 		String namedGraph = getNamedGraph(dbType);
 		String queryURL = getQueryURL(dbType);
@@ -758,21 +767,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		ArrayList<EvsProperty> evsProperties = new ArrayList<EvsProperty>();
+		ArrayList<String> evsProperties = new ArrayList<String>();
 	
 		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
 		Bindings[] bindings = sparqlResult.getResults().getBindings();
 		for (Bindings b : bindings) {
-			EvsProperty evsProperty = new EvsProperty();
-			evsProperty.setCode(b.getPropertyCode().getValue());
-			evsProperty.setLabel(b.getPropertyLabel().getValue());
-			evsProperty.setValue(b.getPropertyValue().getValue());
-			evsProperties.add(evsProperty);
+			if (!propertyNotConsidered.containsKey(b.getPropertyCode().getValue())){
+			String property = b.getPropertyCode().getValue() + " : " + b.getPropertyLabel().getValue();			
+			evsProperties.add(property);
+			}
 		}
+		
+		evsProperties.add("Superconcept : Superconcept");
+		evsProperties.add("Subconcept : Subconcept");
+		evsProperties.add("Association : Association");
+		evsProperties.add("InverseAssociation : InverseAssociation");
+		evsProperties.add("Role : Role");
+		evsProperties.add("InverseRole : InverseRole");
 		
 		return evsProperties;
 	}
-	*/
+	
 
 	public List<EvsConcept> getAllProperties(String dbType, String fmt) throws JsonMappingException,JsonParseException ,IOException {
 		String queryPrefix = queryBuilderService.contructPrefix();
@@ -805,6 +820,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		
 		return evsConcepts;
 	}
+	
+	public List<String> getAllAssociationsForDocumentation(String dbType) throws JsonMappingException,JsonParseException ,IOException {
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph(dbType);
+		String queryURL = getQueryURL(dbType);
+		String query = queryBuilderService.constructAllAssociationsQuery(namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		ArrayList<String> evsProperties = new ArrayList<String>();
+	
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			String property = b.getPropertyCode().getValue() + " : " + b.getPropertyLabel().getValue();			
+			evsProperties.add(property);
+		}
+		
+		return evsProperties;
+	}
 
 	public List<EvsConcept> getAllAssociations(String dbType, String fmt) throws JsonMappingException,JsonParseException ,IOException {
 		String queryPrefix = queryBuilderService.contructPrefix();
@@ -836,6 +872,28 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		}
 		
 		return evsConcepts;
+	}
+	
+	
+	public List<String> getAllRolesForDocumentation(String dbType) throws JsonMappingException,JsonParseException ,IOException {
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph(dbType);
+		String queryURL = getQueryURL(dbType);
+		String query = queryBuilderService.constructAllRolesQuery(namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		ArrayList<String> evsProperties = new ArrayList<String>();
+	
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			String property = b.getPropertyCode().getValue() + " : " + b.getPropertyLabel().getValue();			
+			evsProperties.add(property);
+		}
+		
+		return evsProperties;
 	}
 
 	public List<EvsConcept> getAllRoles(String dbType, String fmt) throws JsonMappingException,JsonParseException ,IOException {
@@ -1074,6 +1132,41 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		}
 		
 		return uniquePaths;
+	}
+	
+	
+	public List<String> getContributingSourcesForDocumentation() throws JsonMappingException,JsonParseException,IOException{
+		Map<String,String> contributingSources = thesaurusProperties.getContributingSources();
+		ArrayList<String> sources = new ArrayList<String>();
+		
+		 for (String name : contributingSources.keySet())  
+	     { 
+	            // search  for value 
+	            String value = contributingSources.get(name); 
+	            String conSource = name + " : " + value;
+	            sources.add(conSource);
+	     } 
+
+		 
+		return sources;
+		
+	}
+	
+	public List<String> getConceptStatusForDocumentation() throws JsonMappingException,JsonParseException,IOException{
+		Map<String,String> conceptStatuses = thesaurusProperties.getConceptStatuses();
+		ArrayList<String> statues = new ArrayList<String>();
+		
+		 for (String name : conceptStatuses.keySet())  
+	     { 
+	            // search  for value 
+	            String value = conceptStatuses.get(name); 
+	            String conSource = name + " : " + value;
+	            statues.add(conSource);
+	     } 
+
+		 
+		return statues;
+		
 	}
 	
 }
