@@ -163,6 +163,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		} else {
 			returnFields = "[\n";
 			returnFields = returnFields + elasticQueryProperties.getDefaultsourcefields();
+			returnFields = returnFields.substring(0, returnFields.length() - 1);
 			for (String field : filterCriteriaElasticFields.getReturnProperties()) {
 				String fieldValue = this.returnFieldMap.get(field.toLowerCase());
 				if (fieldValue == null) {
