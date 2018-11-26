@@ -21,6 +21,7 @@ import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -29,6 +30,7 @@ import io.swagger.annotations.ApiResponses;
 
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
+@Api(tags= "Concept endpoints")
 public class EvsController {
 
 	@Autowired
@@ -37,20 +39,7 @@ public class EvsController {
 	@Autowired
 	SparqlQueryManagerService sparqlQueryManagerService;
 
-	@ApiOperation(value = "Gets all the named graphs", response = String.class, responseContainer = "List")
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully retrieved the graph names"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@RequestMapping(method = RequestMethod.GET, value = "/graphnames", produces = "application/json")
-	public @ResponseBody List<String> getGraphNames(@RequestParam("db") Optional<String>db)
-			throws IOException {
-		
-        String dbType = db.orElse("monthly");
-		List<String> graphNames= sparqlQueryManagerService.getAllGraphNames(dbType);
-		return graphNames;
-	}
+	
 
 	/*
 	 * Controllers for Concept Information 
@@ -79,273 +68,22 @@ public class EvsController {
 		}
 		return evsConcept;
 	}
-
-
-	/*
-	@ApiOperation(value = "Get full details by code on the specified concept", response = EvsConceptByCode.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concept by Label Details"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/byCode", produces = "application/json")
-	public @ResponseBody EvsConcept getEvsConceptByCode(@PathVariable(value = "conceptCode") String conceptCode,
-			@RequestParam("db") Optional<String> db,
-			HttpServletResponse response) throws IOException {
-		String dbType = db.orElse("monthly");
-		EvsConcept evsConcept = null;
-		if (!sparqlQueryManagerService.checkConceptExists(conceptCode, dbType)) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
-		} else {
-			evsConcept = sparqlQueryManagerService.getEvsConceptByCode(conceptCode, dbType);
-		}
-		return evsConcept;
-	}
-	*/
-
-	/*
-	 * Controllers for Documentation Information 
-	 */
-	@ApiOperation(value = "Get full details for the specified property", response = EvsConceptByLabel.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concept by Label Details"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	@RequestMapping(method = RequestMethod.GET, value = "/property/{conceptCode}", produces = "application/json")
-	public @ResponseBody EvsConcept getEvsProperty(@PathVariable(value = "conceptCode") String conceptCode,
-			@RequestParam("db") Optional<String> db,
-			@RequestParam("fmt") Optional<String> fmt,
-			HttpServletResponse response) throws IOException {
-        String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		EvsConcept evsConcept = null;
-		if (format.equals("byLabel")) {
-			evsConcept = sparqlQueryManagerService.getEvsPropertyByLabel(conceptCode, dbType);
-		} else {
-			evsConcept = sparqlQueryManagerService.getEvsPropertyByCode(conceptCode, dbType);
-		}
-		return evsConcept;
-	}
-
-	@ApiOperation(value = "Get full details for the specified association", response = EvsConceptByLabel.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concept by Label Details"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	@RequestMapping(method = RequestMethod.GET, value = "/association/{conceptCode}", produces = "application/json")
-	public @ResponseBody EvsConcept getEvsAssociation(@PathVariable(value = "conceptCode") String conceptCode,
-			@RequestParam("db") Optional<String> db,
-			@RequestParam("fmt") Optional<String> fmt,
-			HttpServletResponse response) throws IOException {
-        String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		EvsConcept evsConcept = null;
-		if (format.equals("byLabel")) {
-			evsConcept = sparqlQueryManagerService.getEvsPropertyByLabel(conceptCode, dbType);
-		} else {
-			evsConcept = sparqlQueryManagerService.getEvsPropertyByCode(conceptCode, dbType);
-		}
-		return evsConcept;
-	}
-
-	@ApiOperation(value = "Get full details for the specified role", response = EvsConceptByLabel.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concept by Label Details"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	@RequestMapping(method = RequestMethod.GET, value = "/role/{conceptCode}", produces = "application/json")
-	public @ResponseBody EvsConcept getEvsRole(@PathVariable(value = "conceptCode") String conceptCode,
-			@RequestParam("db") Optional<String> db,
-			@RequestParam("fmt") Optional<String> fmt,
-			HttpServletResponse response) throws IOException {
-        String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		EvsConcept evsConcept = null;
-		if (format.equals("byLabel")) {
-			evsConcept = sparqlQueryManagerService.getEvsPropertyByLabel(conceptCode, dbType);
-		} else {
-			evsConcept = sparqlQueryManagerService.getEvsPropertyByCode(conceptCode, dbType);
-		}
-		return evsConcept;
-	}
-
-
-	
-	@ApiOperation(value = "Get the all the properties", response = EvsConcept.class, responseContainer = "List")
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully retrieved all the properties"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@RequestMapping(method = RequestMethod.GET, value = "/properties", produces = "application/json")
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	public @ResponseBody List<EvsConcept> getAllProperties(@RequestParam("db") Optional<String> db,
-	        @RequestParam("fmt") Optional<String> fmt )
-			throws IOException {
-		String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		List <EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, format);
-		return properties;
-	}	
-	
-	@ApiOperation(value = "Get the all the properties", response = EvsConcept.class, responseContainer = "List")
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully retrieved all the properties"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@RequestMapping(method = RequestMethod.GET, value = "/propertiesList", produces = "application/json")
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	public @ResponseBody List<String> getAllPropertiesForDocumentation(@RequestParam("db") Optional<String> db,
-	        @RequestParam("fmt") Optional<String> fmt )
-			throws IOException {
-		String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		List <String> properties = sparqlQueryManagerService.getAllPropertiesForDocumentation(dbType);
-		return properties;
-	}	
-
-	@ApiOperation(value = "Get the all the associations", response = EvsConcept.class, responseContainer = "List")
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully retrieved all the associations"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@RequestMapping(method = RequestMethod.GET, value = "/associations", produces = "application/json")
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	public @ResponseBody List<EvsConcept> getAllAssociations(@RequestParam("db") Optional<String> db,
-			@RequestParam("fmt") Optional<String> fmt)
-			throws IOException {
-		String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		List <EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(dbType, format);
-		return associations;
-	}	
-	
-	@ApiOperation(value = "Get the all the associations", response = EvsConcept.class, responseContainer = "List")
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully retrieved all the associations"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@RequestMapping(method = RequestMethod.GET, value = "/associationsList", produces = "application/json")
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	public @ResponseBody List<String> getAllAssociationsForDocumentation(@RequestParam("db") Optional<String> db,
-			@RequestParam("fmt") Optional<String> fmt)
-			throws IOException {
-		String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		List <String> associations = sparqlQueryManagerService.getAllAssociationsForDocumentation(dbType);
-		return associations;
-	}	
-
-	@ApiOperation(value = "Get the all the roles", response = EvsConcept.class, responseContainer = "List")
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully retrieved all the roles"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	@RequestMapping(method = RequestMethod.GET, value = "/roles", produces = "application/json")
-	public @ResponseBody List<EvsConcept> getAllRoles(@RequestParam("db") Optional<String> db,
-			@RequestParam("fmt") Optional<String> fmt)
-			throws IOException {
-		String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		List <EvsConcept> roles = sparqlQueryManagerService.getAllRoles(dbType, format);
-		return roles;
-	}	
-	
-	@ApiOperation(value = "Get the all the roles", response = EvsConcept.class, responseContainer = "List")
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully retrieved all the roles"),
-			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
-			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
-			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
-	@ApiImplicitParams({
-		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
-				required = false, dataType = "string", paramType = "query"),
-		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
-		        required = false, dataType = "string", paramType = "query")
-	})
-	@RequestMapping(method = RequestMethod.GET, value = "/rolesList", produces = "application/json")
-	public @ResponseBody List<String> getAllRolesForDocumentation(@RequestParam("db") Optional<String> db,
-			@RequestParam("fmt") Optional<String> fmt)
-			throws IOException {
-		String dbType = db.orElse("monthly");
-        String format = fmt.orElse("byLabel");
-		List <String> roles = sparqlQueryManagerService.getAllRolesForDocumentation(dbType);
-		return roles;
-	}	
-	
-	
-	
-	
-	@RequestMapping(method = RequestMethod.GET, value = "/contributingSourcesList", produces = "application/json")
-	public @ResponseBody List<String> getContributingSourcesForDocumentation()
-		throws IOException {
-		
-		List<String> contributingSources = sparqlQueryManagerService.getContributingSourcesForDocumentation();
-		return contributingSources;
-	}
-	
-	
-	@RequestMapping(method = RequestMethod.GET, value = "/conceptStatuesList", produces = "application/json")
-	public @ResponseBody List<String> getConceptStatusForDocumentation()
-		throws IOException {
-		
-		List<String> contributingSources = sparqlQueryManagerService.getConceptStatusForDocumentation();
-		return contributingSources;
-	}
 	
 	
 	/*
 	 * Controllers for Hierarchy Information 
 	 */
-	
+	@ApiOperation(value = "Get all the root nodes", response = HierarchyNode.class, responseContainer = "List")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved the children of the concept"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@RequestMapping(method = RequestMethod.GET, value = "/rootNodes", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
 	public @ResponseBody List<HierarchyNode> getRootNodes(@RequestParam("db") Optional<String> db) throws IOException {
 		String dbType = db.orElse("monthly");
 		List <HierarchyNode> nodes = sparqlQueryManagerService.getRootNodes(dbType);
