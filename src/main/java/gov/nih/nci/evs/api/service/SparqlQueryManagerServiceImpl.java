@@ -77,7 +77,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		propertyNotConsidered = (HashMap<String, String>) thesaurusProperties.getPropertyNotConsidered();
 		restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
 				stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
-		//populateCache();
+		populateCache();
 	}
 	
 	@Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
