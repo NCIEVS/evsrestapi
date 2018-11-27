@@ -21,30 +21,22 @@ spring:
             INDENT_OUTPUT: true
               
    
-
-
-#
-# Management Properties
-#
 management:
-    contextPath: /admin
+  endpoints:
+    web:
+      exposure:
+        include: heapdump,liquibase,loggers,prometheus,threaddump,info,metrics,health
+
+
     
 
 info:
     app:
         name: NCI EVS API
-        version: 1.0.0-SNAPSHOT
+        version: 1.0.0.RELEASE
          
 
 
-
-
-#
-# Endpoint Properties
-#
-endpoints:
-    mappings:
-        enabled: true
 
 #
 # Logging Properties

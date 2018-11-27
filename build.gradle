@@ -65,7 +65,7 @@ dependencies {
    
     compile 'org.springframework.boot:spring-boot-starter-web'       
     compile 'org.springframework.boot:spring-boot-devtools'
-    compile 'org.springframework.boot:spring-boot-actuator'  
+    compile 'org.springframework.boot:spring-boot-starter-actuator'  
     compile 'org.apache.commons:commons-lang3:3.4'
     compile "io.springfox:springfox-swagger2:$swaggerversion" 
     compile "io.springfox:springfox-swagger-ui:$swaggerversion"
