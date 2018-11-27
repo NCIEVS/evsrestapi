@@ -2,7 +2,7 @@
 
 
 
-
+<!-- 
 <configuration>
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
      <encoder>
@@ -26,8 +26,8 @@
     <appender-ref ref="FILE" />
   </root>
 </configuration>
- 
-<!-- 
+ -->
+
 <configuration>
 
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
@@ -45,4 +45,3 @@
     </root>
 
 </configuration>
- -->
