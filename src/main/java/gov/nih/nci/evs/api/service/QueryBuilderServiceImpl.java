@@ -49,6 +49,28 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		return query.toString();
 	}
 	
+	/**
+	 * Return the SPARQL VersionInfo Query
+	 * 
+	 * @param namedGraph Named graph.
+	 * @return SPARQL Version Info query
+	 */
+	public String constructVersionInfoQuery(String namedGraph) {
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT ?version ?date ?comment\n");
+		query.append("{ GRAPH <" + namedGraph + ">");
+		query.append("	{\n");
+        query.append("    ?o a owl:Ontology .\n");
+		query.append("    ?o owl:versionInfo ?version .\n");
+        query.append("    ?o dc:date ?date .\n");
+        query.append("    ?o rdfs:comment ?comment\n");
+		query.append("  }\n");
+		query.append("}\n");
+		log.debug("constructVersionInfoQuery - " + query.toString());
+		return query.toString();
+	}
+	
+	
 	public String constructPropertyQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();
 		query.append("SELECT ?property ?propertyCode  ?propertyLabel ?propertyValue\n");

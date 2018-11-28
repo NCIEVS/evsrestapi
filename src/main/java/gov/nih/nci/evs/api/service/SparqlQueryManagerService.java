@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
+import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 
@@ -39,4 +40,6 @@ public interface SparqlQueryManagerService {
 	public Paths getPathToParent(String conceptCode, String parentConceptCode, String dbType) throws JsonMappingException, JsonParseException, IOException;
 	
 	public List<String> getAllGraphNames(String dbType)throws JsonParseException, JsonMappingException, IOException;
+	
+	public EvsVersionInfo getEvsVersionInfo(String dbType) throws JsonParseException, JsonMappingException, IOException;
 }

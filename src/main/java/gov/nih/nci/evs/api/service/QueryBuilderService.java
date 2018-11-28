@@ -20,4 +20,5 @@ public interface QueryBuilderService {
 	public String constructAllPropertiesQuery(String namedGraph);
 	public String constructAllAssociationsQuery(String namedGraph);
 	public String constructAllRolesQuery(String namedGraph);
+	public String constructVersionInfoQuery(String namedGraph);
 }
