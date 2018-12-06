@@ -428,7 +428,7 @@ public class SearchController {
       @ApiImplicitParam(name = "type", value = "The type can be contains,match,startswith,phrase,AND,OR,fuzzy. If no type is specified , the search will be of the type contains.", required = false, dataType = "string", paramType = "query", defaultValue="contains"),      
      
     })
-	@RequestMapping(method = RequestMethod.GET, value = "/elasticsearch", produces = "application/json")
+	@RequestMapping(method = RequestMethod.GET, value = "/search", produces = "application/json")
 	public @ResponseBody String elasticsearch(
 			@ModelAttribute FilterCriteriaElasticFields filterCriteriaElasticFields,BindingResult bindingResult,HttpServletResponse response ) throws IOException {
 		if (bindingResult.hasErrors()) {
