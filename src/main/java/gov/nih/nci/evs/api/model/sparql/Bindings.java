@@ -30,6 +30,11 @@ public class Bindings
     private Property preferredName;
     private Property conceptStatus;
     private Property graphName;
+    
+	// Support for Version Info
+	private Property version;
+	private Property date;
+	private Property comment;
 
     public Property getPropertyValue ()
     {
@@ -274,5 +279,29 @@ public class Bindings
 
 	public void setGraphName(Property graphName) {
 		this.graphName = graphName;
+	}
+	
+	public Property getVersion() {
+		return version;
+	}
+
+	public void setVersion(Property version) {
+		this.version = version;
+	}
+
+	public Property getDate() {
+		return date;
+	}
+
+	public void setDate(Property date) {
+		this.date = date;
+	}
+
+	public Property getComment() {
+		return comment;
+	}
+
+	public void setComment(Property comment) {
+		this.comment = comment;
 	}
 }

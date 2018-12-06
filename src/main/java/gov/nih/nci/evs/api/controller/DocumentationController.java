@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
+import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import io.swagger.annotations.Api;
@@ -51,6 +52,25 @@ public class DocumentationController {
         String dbType = db.orElse("monthly");
 		List<String> graphNames= sparqlQueryManagerService.getAllGraphNames(dbType);
 		return graphNames;
+	}
+
+	@ApiOperation(value = "Gets version information", response = EvsVersionInfo.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved the version information"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
+	@RequestMapping(method = RequestMethod.GET, value = "/documentation/versionInfo", produces = "application/json")
+	public @ResponseBody EvsVersionInfo getVersionInfo(@RequestParam("db") Optional<String>db)
+			throws IOException {
+		
+        String dbType = db.orElse("monthly");
+		EvsVersionInfo versionInfo = sparqlQueryManagerService.getEvsVersionInfo(dbType);
+		return versionInfo;
 	}
 	
 	@ApiOperation(value = "Get a list of all the properties with its details", response = EvsConcept.class, responseContainer = "List")

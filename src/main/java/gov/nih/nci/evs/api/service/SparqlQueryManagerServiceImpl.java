@@ -34,6 +34,7 @@ import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConceptByCode;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConceptByLabel;
+import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Path;
 import gov.nih.nci.evs.api.model.evs.Paths;
@@ -159,6 +160,33 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		}
 		
 		return graphNames;
+	}
+	
+	/**
+	 * Return the EvsVersion Information
+	 * 
+	 * @return EvsVersionInfo instance.
+	 */
+	public EvsVersionInfo getEvsVersionInfo(String dbType)
+			throws JsonParseException, JsonMappingException, IOException{
+
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph(dbType);
+		String queryURL = getQueryURL(dbType);
+		String query = queryBuilderService.constructVersionInfoQuery(namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		EvsVersionInfo evsVersionInfo = new EvsVersionInfo();
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			evsVersionInfo.setVersion(b.getVersion().getValue());
+			evsVersionInfo.setDate(b.getDate().getValue());
+			evsVersionInfo.setComment(b.getComment().getValue());
+		}
+		return evsVersionInfo;
 	}
 	
 	public Long getGetClassCounts(String dbType) throws JsonMappingException,JsonParseException ,IOException{
