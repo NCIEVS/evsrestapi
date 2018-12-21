@@ -222,7 +222,7 @@ public class SearchController {
 		    + "  <td>"
 		    + "<a href='api/v1/search?term=XAV05295I5&returnProperties=fda_unii_code' target='_blank'>"
 		    + " api/v1/search?term=XAV05295I5&returnProperties=fda_unii_code</a> <br>"
-		    + "<a href='api/v1/search?term=XAV05295I5&returnProperties=fda_unii_code' target='_blank'>"
+		    + "<a href='api/v1/search?term=XAV05295I5&returnProperties=P319' target='_blank'>"
 		    + " api/v1/search?term=XAV05295I5&returnProperties=P319</a>"
 		    + "</td> "
 		    + " </tr>"
