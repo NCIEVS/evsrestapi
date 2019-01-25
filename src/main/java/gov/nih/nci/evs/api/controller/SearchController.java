@@ -45,7 +45,7 @@ public class SearchController {
 
 	@ApiOperation(value = "${swagger.documentation.searchAPIOperation}",
 		      notes= ""
-		    + "# Term*\n"
+		    + "# Term\n"
 		    + "\n"
 		    + "The **term** paramater is used to enter the term or phrase to use in the search."
 		    + "\n"
