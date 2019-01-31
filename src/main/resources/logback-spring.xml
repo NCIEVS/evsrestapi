@@ -35,7 +35,7 @@
     <property name="log.dir" value="/local/content/tomcat/evsrestapi/logs"/>
     
    <appender name="METRIC" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${LOG_METRIC_DIRECTORY}/metric.log</file>
+    <file>${log.dir}/metric.log</file>
     <append>true</append>
     <!--cleanHistoryOnStart>true</cleanHistoryOnStart-->
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
