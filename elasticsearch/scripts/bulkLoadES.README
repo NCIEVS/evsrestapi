@@ -90,7 +90,7 @@ STARDOG_PASSWORD=admin
 --no_download     - boolean flag to NOT download the concepts first, because
                     you may have already run the program using the 
                     --download-only flag, so the concept files already 
-                   exist.
+                    exist.
 
 --load_real_time  - boolean flag is used if you want to interweave the
                     download from EVS RestAPI with the upload into 
