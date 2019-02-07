@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 
+import gov.nih.nci.evs.api.aop.RecordMetricSearch;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
@@ -428,6 +429,7 @@ public class SearchController {
       @ApiImplicitParam(name = "type", value = "The type can be contains,match,startswith,phrase,AND,OR,fuzzy. If no type is specified , the search will be of the type contains.", required = false, dataType = "string", paramType = "query", defaultValue="contains"),      
      
     })
+	@RecordMetricSearch
 	@RequestMapping(method = RequestMethod.GET, value = "/search", produces = "application/json")
 	public @ResponseBody String elasticsearch(
 			@ModelAttribute FilterCriteriaElasticFields filterCriteriaElasticFields,BindingResult bindingResult,HttpServletResponse response ) throws IOException {

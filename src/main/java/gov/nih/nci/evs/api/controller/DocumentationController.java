@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,11 +17,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import gov.nih.nci.evs.api.aop.RecordMetricDB;
+import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -31,7 +37,8 @@ import io.swagger.annotations.ApiResponses;
 @Api(tags= "Documentation endpoints")
 public class DocumentationController {
 
-
+	private static final Logger log = LoggerFactory.getLogger(DocumentationController.class);
+	
 	@Autowired
 	SparqlQueryManagerService sparqlQueryManagerService;
 
@@ -45,8 +52,9 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	@RequestMapping(method = RequestMethod.GET, value = "/documentation/graphnames", produces = "application/json")
-	public @ResponseBody List<String> getGraphNames(@RequestParam("db") Optional<String>db)
+	public @ResponseBody List<String> getGraphNames(@RequestParam("db") Optional<String>db , HttpServletRequest request)
 			throws IOException {
 		
         String dbType = db.orElse("monthly");
@@ -64,6 +72,7 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	@RequestMapping(method = RequestMethod.GET, value = "/documentation/versionInfo", produces = "application/json")
 	public @ResponseBody EvsVersionInfo getVersionInfo(@RequestParam("db") Optional<String>db)
 			throws IOException {
@@ -86,6 +95,7 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
 		        required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDBFormat
 	public @ResponseBody List<EvsConcept> getAllProperties(@RequestParam("db") Optional<String> db,
 	        @RequestParam("fmt") Optional<String> fmt )
 			throws IOException {
@@ -108,6 +118,7 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
 		        required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDBFormat
 	@RequestMapping(method = RequestMethod.GET, value = "/documentation/property/{code}", produces = "application/json")
 	public @ResponseBody EvsConcept getEvsProperty(@PathVariable(value = "code") String code,
 			@RequestParam("db") Optional<String> db,
@@ -137,6 +148,7 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
 		        required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDBFormat
 	public @ResponseBody List<EvsConcept> getAllAssociations(@RequestParam("db") Optional<String> db,
 			@RequestParam("fmt") Optional<String> fmt)
 			throws IOException {
@@ -157,6 +169,7 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
 		        required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDBFormat
 	@RequestMapping(method = RequestMethod.GET, value = "/documentation/association/{code}", produces = "application/json")
 	public @ResponseBody EvsConcept getEvsAssociation(@PathVariable(value = "code") String code,
 			@RequestParam("db") Optional<String> db,
@@ -185,6 +198,7 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
 		        required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDBFormat
 	@RequestMapping(method = RequestMethod.GET, value = "/documentation/roles", produces = "application/json")
 	public @ResponseBody List<EvsConcept> getAllRoles(@RequestParam("db") Optional<String> db,
 			@RequestParam("fmt") Optional<String> fmt)
@@ -206,6 +220,7 @@ public class DocumentationController {
 		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
 		        required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDBFormat
 	@RequestMapping(method = RequestMethod.GET, value = "/documentation/role/{code}", produces = "application/json")
 	public @ResponseBody EvsConcept getEvsRole(@PathVariable(value = "code") String code,
 			@RequestParam("db") Optional<String> db,

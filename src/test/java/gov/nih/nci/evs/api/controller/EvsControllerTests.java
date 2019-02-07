@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -58,7 +59,7 @@ public class EvsControllerTests {
         this.objectMapper = new ObjectMapper();
         JacksonTester.initFields(this, objectMapper);
         
-        baseUrl = "/api/v1/concept/";
+        baseUrl = "/api/v1";
     }
     
     public int getCount(JsonNode ns) {
@@ -88,7 +89,7 @@ public class EvsControllerTests {
         
         String url = "";
        for(Object concept: conceptsList) {   
-           url = baseUrl + (String)concept;
+           url = baseUrl + "/concept/" + (String)concept;
            log.info("Testing url - " + url);
     	   MvcResult result = this.mvc.perform(get(url))
                                    .andExpect(status().isOk())
@@ -169,7 +170,7 @@ public class EvsControllerTests {
     public void getPathToRoot() throws Exception {
         
     	log.info("Started Testing getPathToRoot");        
-        String url = baseUrl + "C48232/pathToRoot";
+        String url = baseUrl + "/concept/C48232/pathToRoot";
         log.info("Testing url - " + url);
         
         MvcResult result = this.mvc.perform(get(url))
@@ -186,5 +187,81 @@ public class EvsControllerTests {
         log.info("Done Testing getPathToRoot ");
         
     }
+    
+    
+    @Test
+    public void getRootNodes() throws Exception {
+        
+    	log.info("Started Testing getPathToRoot");        
+        String url = baseUrl + "/rootNodes";
+        log.info("Testing url - " + url);
+        
+        MvcResult result = this.mvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+
+
+        assertThat(content).isNotNull();
+        List<HierarchyNode> myObjects = objectMapper.readValue(content, objectMapper.getTypeFactory().constructCollectionType(List.class, HierarchyNode.class));
+        assertThat(myObjects).isNotNull(); 
+        assertThat(myObjects.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getRootNodes ");
+        
+    }
+    
+    
+    @Test
+    public void getChildNodes() throws Exception {
+        
+    	log.info("Started Testing getPathToRoot");        
+        String url = baseUrl + "/concept/C7057/childNodes";
+        log.info("Testing url - " + url);
+        
+        MvcResult result = this.mvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+
+
+        assertThat(content).isNotNull();
+        List<HierarchyNode> myObjects = objectMapper.readValue(content, objectMapper.getTypeFactory().constructCollectionType(List.class, HierarchyNode.class));
+        assertThat(myObjects).isNotNull(); 
+        assertThat(myObjects.size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getChildNodes ");
+        
+    }
+   
+    
+    
+    
+    @Test
+    public void getPathToParent() throws Exception {
+        
+    	log.info("Started Testing getPathToRoot");        
+        String url = baseUrl + "/concept/C7073/pathToParent/C2991";
+        log.info("Testing url - " + url);
+        
+        MvcResult result = this.mvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+
+
+        assertThat(content).isNotNull();
+        Paths paths =  objectMapper.readValue(content, Paths.class);
+        assertThat(paths).isNotNull(); 
+        assertThat(paths.getPaths().size() > 0 ).isTrue();
+        log.info("Successfully tested url - " + url);
+        log.info("Done Testing getPathToParent ");
+        
+    }
+    
+    
+    
+    
+    
 
 }

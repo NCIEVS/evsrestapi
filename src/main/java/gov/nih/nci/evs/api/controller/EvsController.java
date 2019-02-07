@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import gov.nih.nci.evs.api.aop.RecordMetricDB;
+import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
@@ -49,6 +51,7 @@ public class EvsController {
 			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
 			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RecordMetricDBFormat
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}", produces = "application/json")
 	public @ResponseBody EvsConcept getEvsConcept(@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db,
@@ -84,6 +87,7 @@ public class EvsController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	public @ResponseBody List<HierarchyNode> getRootNodes(@RequestParam("db") Optional<String> db) throws IOException {
 		String dbType = db.orElse("monthly");
 		List <HierarchyNode> nodes = sparqlQueryManagerService.getRootNodes(dbType);
@@ -102,6 +106,7 @@ public class EvsController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	public @ResponseBody List<HierarchyNode> getChildNodes(
 			@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db) throws IOException {
@@ -121,6 +126,7 @@ public class EvsController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	public @ResponseBody List<HierarchyNode> getChildNodesLevel(
 			@PathVariable(value = "conceptCode") String conceptCode,
 			@PathVariable(value = "maxLevel") int maxLevel,
@@ -139,6 +145,7 @@ public class EvsController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathToRoot", produces = "application/json")
 	public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db,
@@ -162,6 +169,7 @@ public class EvsController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathToParent/{parentConceptCode}", produces = "application/json")
 	public @ResponseBody Paths getPathToRoot(@PathVariable(value = "conceptCode") String conceptCode,
 			@PathVariable(value = "parentConceptCode") String parentConceptCode,
@@ -188,6 +196,7 @@ public class EvsController {
 		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
 				required = false, dataType = "string", paramType = "query")
 	})
+	@RecordMetricDB
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/pathInHierarchy", produces = "application/json")
 	public @ResponseBody List<HierarchyNode> getPathInHierarchy(
 			@PathVariable(value = "conceptCode") String conceptCode,
