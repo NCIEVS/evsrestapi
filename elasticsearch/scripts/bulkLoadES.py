@@ -12,6 +12,7 @@ import datetime
 from requests.auth import HTTPBasicAuth
 from argparse import ArgumentParser
 from pathlib import Path
+import glob
 from dotenv import load_dotenv
 
 from elasticsearch import Elasticsearch
@@ -85,6 +86,7 @@ def run_sparql_query(endpoint, named_graph, query):
 
     return r.json()
 
+
 def connect_elasticsearch(host="localhost", port=9200):
     es = None
     try: 
@@ -98,6 +100,7 @@ def connect_elasticsearch(host="localhost", port=9200):
     except:
         log.debug("Connection to ElasticSearch Failed")
         return None
+
     
 def create_index(es, index_name, mapping_file, drop_index):
     # Reading in the index_mapping file
@@ -115,6 +118,7 @@ def create_index(es, index_name, mapping_file, drop_index):
         print_log("Creating new index")
         es.indices.create(index=index_name, body=body)
 
+
 def download_concept(conceptCode):
     url = API_ENDPOINT + conceptCode
     r = requests.get(url)
@@ -123,19 +127,26 @@ def download_concept(conceptCode):
         print_log(msg)
         sys.stderr.write(msg + "\n")
         sys.exit(1)
-    
+
     output_file = open(CONCEPT_OUTPUT_DIR + conceptCode + ".json", "w")
     print(r.text, file=output_file)
     output_file.close()
-    
+
     return r.json()
+
 
 def download_concept_files(concepts, processors):
     print_log("Starting Download Process")
     shutil.rmtree(CONCEPT_OUTPUT_DIR)
     os.makedirs(CONCEPT_OUTPUT_DIR)
     download_using_parallel_processing(concepts, processors)
+    #
+    # Create a semaphore/lock file to indicate download was successfull
+    # We will check for this files existence before attemping to upload
+    # into ElasticSearch
+    os.system('touch {}'.format(CONCEPT_OUTPUT_DIR + "/DownloadSuccessfull.lck"))
     print_log("Finished Download Process")
+
 
 def download_using_parallel_processing(concepts, processors):
     pool = Pool(processors)
@@ -145,17 +156,19 @@ def download_using_parallel_processing(concepts, processors):
         if counter % 100 == 0:
           print_log("  Count: " + str(counter))
 
+
 def get_concepts_from_es(es, index_name):
     concept_codes = []
     res = scan(
         client=es,
         scroll='1m',
-        index = index_name,
-        query = {"_source": ['Code'], "query": {"match_all": {}}}
+        index=index_name,
+        query={"_source": ['Code'], "query": {"match_all": {}}}
     )
     for doc in res:
         concept_codes.append(doc['_source']['Code'])
     return sorted(concept_codes)
+
 
 def get_concepts_from_stardog(endpoint, named_graph, query):
     results = run_sparql_query(endpoint, named_graph, query)
@@ -168,12 +181,14 @@ def get_concepts_from_stardog(endpoint, named_graph, query):
             concept_codes.append(code)
     return sorted(concept_codes)
 
+
 def get_concepts_from_directory():
     concepts = []
-    concepts_in_dir = os.listdir(CONCEPT_INPUT_DIR)
+    concepts_in_dir = [ os.path.basename(p) for p in glob.glob(CONCEPT_INPUT_DIR + "*.json")]
     for concept in concepts_in_dir:
-        concepts.append(concept.replace(".json",""))
+        concepts.append(concept.replace(".json", ""))
     return concepts
+
 
 def prepare_concepts_from_file(concepts, index_name):
     for concept_code in concepts:
@@ -187,6 +202,7 @@ def prepare_concepts_from_file(concepts, index_name):
             '_source': json_concept
         }
 
+
 def prepare_concepts_from_download(concepts, index_name):
     for concept_code in concepts:
         json_concept = download_concept(concept_code)
@@ -197,6 +213,7 @@ def prepare_concepts_from_download(concepts, index_name):
             '_id': concept_code,
             '_source': json_concept
         }
+
 
 def load_concept_bulk_file(es, index_name, concepts):
     count = 0
@@ -214,6 +231,7 @@ def load_concept_bulk_file(es, index_name, concepts):
         count += 1
         if count % 100 == 0:
             print_log("  Bulk Load: " + str(count))
+
 
 def load_concept_real_time(es, index_name, concepts):
     count = 0
@@ -241,7 +259,7 @@ def load_concept_real_time(es, index_name, concepts):
                 doc_id = '/%s/doc/%s' % (index_name, result['_id'])
                 if not ok:
                     print_log('Failed to %s document %s: %r' % (action, doc_id, result)) 
-            
+
             bulk_chunks = []
             print_log("  Real Time Load: " + str(count))
 
@@ -259,6 +277,7 @@ def load_concept_real_time(es, index_name, concepts):
                 print_log('Failed to %s document %s: %r' % (action, doc_id, result)) 
 
         print_log("  Real Time Load: " +str(count))
+
 
 def print_log(msg):
     global log_file
@@ -358,12 +377,12 @@ if __name__ == '__main__':
 
     print_log("Testing connection to ElasticSearch")
     es = connect_elasticsearch(host=ES_HOST, port=ES_PORT)
-    if es == None:
+    if es is None:
         print("Failed to connect to ElasticSearch, Exiting Program") 
         sys.exit(1)
 
-    # Retrieve the Concept codes from Stardog endpoint. This 
-    # should be the list of concepts that should exist in 
+    # Retrieve the Concept codes from Stardog endpoint. This
+    # should be the list of concepts that should exist in
     # ElasticSearch after the loading process.
     concepts_in_stardog = get_concepts_from_stardog(
         SPARQL_ENDPOINT, NAMED_GRAPH, ALL_CONCEPTS_QUERY)
@@ -400,6 +419,13 @@ if __name__ == '__main__':
         concepts_in_file_system = get_concepts_from_directory()
         print_log("Number of concepts in File System: " + str(len(concepts_in_file_system)))
         print_log("Starting the Upload Process using Bulk Load")
+        #
+        # Check that the download of files was successful before continuing.
+        #
+        if not os.path.exists(CONCEPT_OUTPUT_DIR + "/DownloadSuccessfull.lck"):
+            print_log("Bulk Load Process Failed, the DownloadSuccessfull.lck file does not exist")
+            sys.exit(1)
+
         load_concept_bulk_file(es, args.index_name, concepts_in_file_system)
         print_log("Finished the Upload Process using Bulk Load")
 
@@ -418,11 +444,11 @@ if __name__ == '__main__':
 
     with open(LOG_DIRECTORY + "concepts_only_in_stardog.log", "w") as f: 
         for concept in concepts_only_in_stardog:
-            print(concept, file = f)
+            print(concept, file=f)
 
     with open(LOG_DIRECTORY + "concepts_only_in_es.log", "w") as f: 
         for concept in concepts_only_in_es:
-            print(concept, file = f)
+            print(concept, file=f)
 
     if args.delete_documents:
         for concept in concepts_only_in_es:
