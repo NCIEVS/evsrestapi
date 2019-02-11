@@ -123,7 +123,7 @@ def download_concept(conceptCode):
     url = API_ENDPOINT + conceptCode
     r = requests.get(url)
     if r.status_code != 200:
-        msg = "Problem Status Code: " + str(r.status_code)
+        msg = "Problem Status Code: " + str(r.status_code) + " Concept: " + conceptCode
         print_log(msg)
         sys.stderr.write(msg + "\n")
         sys.exit(1)
@@ -135,10 +135,11 @@ def download_concept(conceptCode):
     return r.json()
 
 
-def download_concept_files(concepts, processors):
+def download_concept_files(concepts, processors, clean):
     print_log("Starting Download Process")
-    shutil.rmtree(CONCEPT_OUTPUT_DIR)
-    os.makedirs(CONCEPT_OUTPUT_DIR)
+    if clean:
+        shutil.rmtree(CONCEPT_OUTPUT_DIR)
+        os.makedirs(CONCEPT_OUTPUT_DIR)
     download_using_parallel_processing(concepts, processors)
     #
     # Create a semaphore/lock file to indicate download was successfull
@@ -317,6 +318,15 @@ if __name__ == '__main__':
     parser.set_defaults(download_only=False)
 
     parser.add_argument(
+            '--download_continue',
+            dest="download_continue",
+            required=False,
+            default=False,
+            action="store_true",
+            help="If present, restarts the download process, adding the missing files and exits.")
+    parser.set_defaults(download_continue=False)
+
+    parser.add_argument(
             '--no_download',
             dest="no_download",
             required=False,
@@ -399,7 +409,15 @@ if __name__ == '__main__':
     # Warning this code removes the contents of the CONCEPT_OUTPUT_DIR
     if args.download_only:
         #download_concept_files(concepts_in_stardog[:1000])
-        download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL)
+        download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL, True)
+        sys.exit(1)
+
+    if args.download_continue:
+        concepts_in_stardog_set = set(concepts_in_stardog)
+        concepts_in_file_system_set = set(get_concepts_from_directory())
+        concepts_not_in_file_system = list(concepts_in_stardog_set - concepts_in_file_system_set)
+        print_log("Number of missing files: " + str(len(concepts_not_in_file_system)))
+        download_concept_files(concepts_not_in_file_system, MULTI_PROCESSING_POOL, False)
         sys.exit(1)
 
     create_index(es, args.index_name, INDEX_MAPPING_FILE, args.drop_index)
@@ -414,7 +432,7 @@ if __name__ == '__main__':
             print_log("No download of concepts to the file system")
         else:
             #download_concept_files(concepts_in_stardog[:200], MULTI_PROCESSING_POOL)
-            download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL)
+            download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL, True)
 
         concepts_in_file_system = get_concepts_from_directory()
         print_log("Number of concepts in File System: " + str(len(concepts_in_file_system)))
