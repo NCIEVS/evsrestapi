@@ -1,4 +1,6 @@
-package gov.nih.nci.evs.restapi.util; import gov.nih.nci.evs.restapi.appl.*; import gov.nih.nci.evs.restapi.bean.*;
+package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.appl.*;
+import gov.nih.nci.evs.restapi.bean.*;
 
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -85,10 +87,12 @@ public class RelationSearchUtils extends SPARQLSearchUtils {
 	private static String ENDS_WITH = "startsWith";
     private static Vector supportedAssociations = null;
 
+    HTTPUtils httpUtils = null;
+
 	public RelationSearchUtils(String serviceUrl) {
 		super(serviceUrl);
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-
+		httpUtils = new HTTPUtils(serviceUrl);
     }
 
 	public RelationSearchUtils(String serviceUrl, String named_graph, Vector concept_in_subset_vec) {
@@ -836,10 +840,145 @@ public class RelationSearchUtils extends SPARQLSearchUtils {
 	}
 
 
+    public String getJSONResponseString(String query) {
+        try {
+			query = httpUtils.encode(query);
+            String json = httpUtils.executeQuery(query);
+			return json;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
+
+    public void runQuery(String query_file) {
+		long ms = System.currentTimeMillis();
+		String query = getQuery(query_file);
+
+
+		System.out.println(query);
+
+		Vector w = new Vector();
+		w.add(query);
+		int n = query_file.lastIndexOf(".");
+		String method_name = "construct_" + query_file.substring(0, n);
+		String params = "String matchText";
+		Vector w0 = Utils.create_construct_statement(method_name, params, query_file);
+		w.addAll(w0);
+		String json = getJSONResponseString(query);
+		w.add(json);
+        Vector v = execute(query_file);
+        v = formatOutput(v);
+
+        Utils.saveToFile("output_" + query_file, v);
+        //v = trim_namespaces(v);
+        w.addAll(v);
+        Utils.saveToFile("results_" + query_file, w);
+        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
+
+
+    public void apply_text_match(StringBuffer buf, String param, String searchString, String algorithm) {
+		searchString = searchString.toLowerCase();
+		if (algorithm.compareTo("exactMatch") == 0) {
+			buf.append("FILTER (lcase(str(?" + param + ")) = \"" + searchString + "\")").append("\n");
+		} else if (algorithm.compareTo("startsWith") == 0) {
+			buf.append("FILTER (regex(str(?"+ param +"),'^" + searchString + "','i'))").append("\n");
+		} else if (algorithm.compareTo("endsWith") == 0) {
+			buf.append("FILTER (regex(str(?"+ param +"),'" + searchString + "^','i'))").append("\n");
+		} else if (algorithm.compareTo("contains") == 0) {
+			buf.append("FILTER (contains(lcase(str(?"+ param +")), \"" + searchString + "\"))").append("\n");
+
+		} else {
+			searchString = searchString.replaceAll("%20", " ");
+			searchString = searchString.toLowerCase();
+			searchString = SPARQLSearchUtils.createSearchString(searchString, algorithm);
+			buf.append("(?"+ param +") <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+		}
+	}
+
+	public String construct_simple_relationship_query(String named_graph, String matchText, String algorithm, boolean matchSource, int maxReturn) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX protege:<http://protege.stanford.edu/plugins/owl/protege#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX ncicp:<http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?p_label ?z_label ?z_code ").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + "> {").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?z a owl:Class .").append("\n");
+		buf.append("?x ?p ?z .").append("\n");
+		buf.append("?x rdfs:label ?x_label .").append("\n");
+		buf.append("?p rdfs:label ?p_label .").append("\n");
+		buf.append("?z rdfs:label ?z_label .").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+		buf.append("?z :NHC0 ?z_code .").append("\n");
+		buf.append("").append("\n");
+		if (matchSource) {
+			apply_text_match(buf, "x_label", matchText, algorithm);
+		} else {
+			apply_text_match(buf, "z_label", matchText, algorithm);
+		}
+		buf.append("").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		if (maxReturn > 0) {
+			buf.append("LIMIT " + maxReturn).append("\n");
+		}
+		buf.append("").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector simple_relationship_query(String named_graph, String matchText, String algorithm, boolean matchSource, int maxReturn) {
+		String query = construct_simple_relationship_query(named_graph, matchText, algorithm, matchSource, maxReturn);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		if (v != null && v.size() > 0) {
+			v = new ParserUtils().getResponseValues(v);
+		} else {
+			v = new Vector();
+		}
+		return new SortUtils().quickSort(v);
+	}
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
 		System.out.println(serviceUrl);
+		RelationSearchUtils searchUtils = new RelationSearchUtils(serviceUrl);
+		String query_file = args[1];
+
+ 		//searchUtils.runQuery(query_file);
+
+ 		String named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.rdf";
+ 		String matchText = "top3b gene";
+ 		String algorithm = "contains";
+ 		boolean matchSource = false;
+ 		int maxReturn = 100;
+
+ 		matchText = "cell aging";
+
+ 		//Vector w = searchUtils.simple_relationship_query(named_graph, matchText, algorithm, matchSource, maxReturn);
+
+ 		Vector w = searchUtils.simple_relationship_query(named_graph, matchText, algorithm, matchSource, maxReturn);
+
+ 		StringUtils.dumpVector("matches", w);
+
+
+		/*
 		String codingScheme = "NCI_Thesaurus";
 		MetadataUtils test = new MetadataUtils(serviceUrl);
 		String version = test.getLatestVersion(codingScheme);
@@ -860,6 +999,7 @@ public class RelationSearchUtils extends SPARQLSearchUtils {
 
 	    ms = System.currentTimeMillis();
 	    Vector v = null;
+	    */
 
 	    System.out.println("Total search run time (ms): " + (System.currentTimeMillis() - ms));
 	}

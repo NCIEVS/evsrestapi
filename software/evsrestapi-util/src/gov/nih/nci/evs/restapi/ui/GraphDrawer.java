@@ -100,6 +100,7 @@ public class GraphDrawer {
 		System.out.println("named_graph: " + named_graph);
 		System.out.println("code: " + code);
 		Vector v = owlSPARQLUtils.getLabelByCode(named_graph, code);
+		if (v == null || v.size() == 0) return null;
 		v = new ParserUtils().getResponseValues(v);
 		return (String) v.elementAt(0);
 	}

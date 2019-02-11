@@ -293,8 +293,8 @@ public class FormatUtils {
 
         if (firstColumnHeading != null && secondColumnHeading != null) {
 			buf.append("<tr>").append("\n");
-			buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">" + firstColumnHeading  + "</th>").append("\n");
-			buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">" + secondColumnHeading + "</th>").append("\n");
+			buf.append("   <th class=\"datacelltext\" scope=\"col\" align=\"left\">" + firstColumnHeading  + "</th>").append("\n");
+			buf.append("   <th class=\"datacelltext\" scope=\"col\" align=\"left\">" + secondColumnHeading + "</th>").append("\n");
 			buf.append("</tr>").append("\n");
 	    }
 
@@ -319,14 +319,14 @@ public class FormatUtils {
 				} else {
 					  buf.append("	<tr class=\"dataRowLight\">").append("\n");
 				}
-			    buf.append("<td class=\"dataCellText\">").append("\n");
+			    buf.append("<td class=\"datacelltext\">").append("\n");
 			    buf.append(name).append("\n");
 			    buf.append("</td>").append("\n");
                 if (encode) {
 					value = formatComplexProperties(name, value);
 			    	value = StringUtils.encode_term(value);
 				}
-			    buf.append("<td class=\"dataCellText\" scope=\"row\">" + value + "</td>").append("\n");
+			    buf.append("<td class=\"datacelltext\" scope=\"row\">" + value + "</td>").append("\n");
 			}
 			buf.append("	</tr>").append("\n");
 		}
@@ -342,8 +342,8 @@ public class FormatUtils {
 
         if (firstColumnHeading != null && secondColumnHeading != null) {
 			buf.append("<tr>").append("\n");
-			buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">" + firstColumnHeading  + "</th>").append("\n");
-			buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">" + secondColumnHeading + "</th>").append("\n");
+			buf.append("   <th class=\"datacelltext\" scope=\"col\" align=\"left\">" + firstColumnHeading  + "</th>").append("\n");
+			buf.append("   <th class=\"datacelltext\" scope=\"col\" align=\"left\">" + secondColumnHeading + "</th>").append("\n");
 			buf.append("</tr>").append("\n");
 	    }
 
@@ -368,11 +368,11 @@ public class FormatUtils {
 			} else {
 				  buf.append("	<tr class=\"dataRowLight\">").append("\n");
 			}
-			buf.append("<td class=\"dataCellText\">").append("\n");
+			buf.append("<td class=\"datacelltext\">").append("\n");
 			buf.append(name).append("\n");
 			buf.append("</td>").append("\n");
 
-			buf.append("<td class=\"dataCellText\" scope=\"row\">" + value + "</td>").append("\n");
+			buf.append("<td class=\"datacelltext\" scope=\"row\">" + value + "</td>").append("\n");
 			buf.append("	</tr>").append("\n");
 		}
 		buf.append("</table>").append("\n");

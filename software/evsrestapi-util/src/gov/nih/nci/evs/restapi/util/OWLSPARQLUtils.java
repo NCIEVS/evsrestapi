@@ -3641,6 +3641,14 @@ public class OWLSPARQLUtils {
 		return null;
 	}
 
+    public Vector getResponseValues(Vector v) {
+		if (v == null) return null;
+		if (v.size() == 0) return new Vector();
+		v = new gov.nih.nci.evs.restapi.util.ParserUtils().getResponseValues(v);
+		v = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
+		return v;
+	}
+
     public static void main(String[] args) {
 		String serviceUrl = args[0];
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
