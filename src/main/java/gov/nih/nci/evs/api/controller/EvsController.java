@@ -53,6 +53,12 @@ public class EvsController {
 			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
 	@RecordMetricDBFormat
 	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+        required = false, dataType = "string", paramType = "query")
+	})
 	public @ResponseBody EvsConcept getEvsConcept(@PathVariable(value = "conceptCode") String conceptCode,
 			@RequestParam("db") Optional<String> db,
 			@RequestParam("fmt") Optional<String> fmt,

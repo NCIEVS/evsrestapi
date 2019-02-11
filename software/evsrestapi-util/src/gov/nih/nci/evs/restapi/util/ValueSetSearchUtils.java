@@ -92,7 +92,8 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
     }
 
 	public ValueSetSearchUtils(String serviceUrl, OWLSPARQLUtils owlSPARQLUtils) {
-		this.serviceUrl = serviceUrl;
+		//this.serviceUrl = serviceUrl;
+		super(serviceUrl);
 		this.owlSPARQLUtils = owlSPARQLUtils;
     }
 
@@ -273,6 +274,39 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		}
 	}
 
+
+	public String construct_search_value_sets(String named_graph, String searchString, String algorithm) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?z ?z_label ?z_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?z a owl:Class .").append("\n");
+		buf.append("?x ?p ?z .").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+		buf.append("?x rdfs:label ?x_label .").append("\n");
+		buf.append("?z rdfs:label ?z_label .").append("\n");
+		buf.append("?z :NHC0 ?z_code .").append("\n");
+		buf.append("?p rdfs:label \"Concept_In_Subset\"^^xsd:string .").append("\n");
+		//buf.append("FILTER (lcase(str(?x_label)) = \"red\")").append("\n");
+		apply_text_match(buf, "x_label", searchString, algorithm);
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+/*
+
 	public String construct_search_value_sets(String named_graph, String searchString, String algorithm) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
@@ -297,6 +331,7 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+*/
 
 	public Vector searchValueSets(String named_graph, String matchText, String algorithm) {
 	    String query = construct_search_value_sets(named_graph, matchText, algorithm);
@@ -338,6 +373,46 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 	    return new ParserUtils().getResponseValues(v);
 	}
 
+    public void runQuery(String query_file) {
+		long ms = System.currentTimeMillis();
+		String query = getQuery(query_file);
+		Vector w = new Vector();
+		w.add(query);
+		int n = query_file.lastIndexOf(".");
+		String method_name = "construct_" + query_file.substring(0, n);
+		String params = "String matchText";
+		Vector w0 = Utils.create_construct_statement(method_name, params, query_file);
+		w.addAll(w0);
+		String json = getJSONResponseString(query);
+		w.add(json);
+        Vector v = execute(query_file);
+        v = formatOutput(v);
+
+        Utils.saveToFile("output_" + query_file, v);
+        //v = trim_namespaces(v);
+        w.addAll(v);
+        Utils.saveToFile("results_" + query_file, w);
+        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
+
+	public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
+
+		String serviceUrl = args[0];
+		System.out.println(serviceUrl);
+		String query_file = args[1];
+		System.out.println(query_file);
+		ValueSetSearchUtils searchUtils = new ValueSetSearchUtils(serviceUrl);
+		//searchUtils.runQuery(query_file);
+
+		String named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+
+		Vector w = searchUtils.searchValueSets(named_graph, "red", SPARQLSearchUtils.EXACT_MATCH);
+		StringUtils.dumpVector("search_results", w);
+	}
+
+
+/*
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 
@@ -366,4 +441,6 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 	    searchUtils.runSearch(searchString, outputfile);
 	    System.out.println("Total search run time (ms): " + (System.currentTimeMillis() - ms));
 	}
+*/
+
 }

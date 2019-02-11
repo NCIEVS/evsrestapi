@@ -75,6 +75,24 @@ public class UIUtils {
 
 	}
 
+    public static String getHyperlink(String named_graph, String name, String code) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("<a href=\"/sparql/ConceptReport.jsp?ng=" + named_graph + "&code=" + code + "\">").append("\n");
+		buf.append(name).append("\n");
+		buf.append("</a>").append("\n");
+		return buf.toString();
+    }
+
+//sparql/ConceptReport.jsp
+    public static String getHyperlink(String jsp, String named_graph, String name, String code) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("<a href=\"/"+ jsp + "?ng=" + named_graph + "&code=" + code + "\">").append("\n");
+		buf.append(name).append("\n");
+		buf.append("</a>").append("\n");
+		return buf.toString();
+    }
+
+
     public static void generateTestPage(String outputfile, String serviceUrl) {
 		PrintWriter pw = null;
 		try {

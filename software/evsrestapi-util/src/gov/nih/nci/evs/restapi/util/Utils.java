@@ -149,7 +149,9 @@ public class Utils {
 	 }
 
 	 public static void saveToFile(String outputfile, Vector v) {
-		outputfile = replaceFilename(outputfile);
+		if (outputfile.indexOf(" ") != -1) {
+			outputfile = replaceFilename(outputfile);
+		}
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(outputfile, "UTF-8");
