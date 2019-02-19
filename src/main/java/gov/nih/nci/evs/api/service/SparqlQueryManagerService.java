@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
+import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
@@ -17,6 +18,10 @@ public interface SparqlQueryManagerService {
 	public boolean checkConceptExists(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
 	public EvsConcept getEvsConceptByLabel(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
 	public EvsConcept getEvsConceptByCode(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
+	public EvsConcept getEvsConceptByLabelShort(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
+	public EvsConcept getEvsConceptByCodeShort(String conceptCode, String dbType) throws JsonMappingException,JsonParseException,IOException;
+	
+	public EvsRelationships getEvsRelationships(String conceptCode, String dbType, String format) throws JsonMappingException,JsonParseException,IOException;
 
 	public List<EvsConcept> getAllProperties(String dbType, String format) throws JsonParseException, JsonMappingException, IOException;
 	public List<String> getAllPropertiesForDocumentation(String dbType) throws JsonParseException, JsonMappingException, IOException;
@@ -42,4 +47,7 @@ public interface SparqlQueryManagerService {
 	public List<String> getAllGraphNames(String dbType)throws JsonParseException, JsonMappingException, IOException;
 	
 	public EvsVersionInfo getEvsVersionInfo(String dbType) throws JsonParseException, JsonMappingException, IOException;
+
+	public EvsConcept getEvsConceptByLabelProperties(String conceptCode, String dbType, List <String> properties) throws JsonMappingException,JsonParseException,IOException;
+	public EvsConcept getEvsConceptByCodeProperties(String conceptCode, String dbType, List <String> properties) throws JsonMappingException,JsonParseException,IOException;
 }

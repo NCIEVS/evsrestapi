@@ -1,12 +1,16 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,10 +23,13 @@ import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
+import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.support.ConceptCriteriaFields;
+import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -76,6 +83,126 @@ public class EvsController {
 			}
 		}
 		return evsConcept;
+	}
+
+	@ApiOperation(value = "Get summary details for the specified concept", response = EvsConceptByLabel.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concept by Label summary information"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RecordMetricDBFormat
+	@RequestMapping(method = RequestMethod.GET, value = "/conceptShort/{conceptCode}", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+        required = false, dataType = "string", paramType = "query")
+	})
+	public @ResponseBody EvsConcept getEvsConceptShort(@PathVariable(value = "conceptCode") String conceptCode,
+			@RequestParam("db") Optional<String> db,
+			@RequestParam("fmt") Optional<String> fmt,
+			HttpServletResponse response) throws IOException {
+        String dbType = db.orElse("monthly");
+        String format = fmt.orElse("byLabel");
+		EvsConcept evsConcept = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode, dbType)) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else {
+			if (format.equals("byLabel")) {
+				evsConcept = sparqlQueryManagerService.getEvsConceptByLabelShort(conceptCode, dbType);
+			} else {
+				evsConcept = sparqlQueryManagerService.getEvsConceptByCodeShort(conceptCode, dbType);
+			}
+		}
+		return evsConcept;
+	}
+	
+	
+	@ApiOperation(value = "Get full details or specific properties for list of concepts", response = EvsConceptByLabel.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Concepts by Label Details"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RecordMetricDBFormat
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "concepts", value = "List of concepts that are comma separated",
+				required = true, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "properties", value = "List of properties that are comma separated",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+                required = false, dataType = "string", paramType = "query")
+	})
+	@RequestMapping(method = RequestMethod.GET, value = "/conceptList", produces = "application/json")
+	public @ResponseBody List <EvsConcept> listEvsConcepts(
+			@ModelAttribute ConceptCriteriaFields conceptCriteriaFields, BindingResult bindingResult, HttpServletResponse response ) throws IOException {
+		List <EvsConcept> concepts = new ArrayList <EvsConcept> ();
+		if (bindingResult.hasErrors()) {
+		    List<FieldError> errors= bindingResult.getFieldErrors();
+		    String errorMessage = "";
+		    for (FieldError error:errors) {
+		    	String newlinetest = System.getProperty("line.separator");
+		    	if (error.getCode().equalsIgnoreCase("typeMismatch")) {
+		    		errorMessage = errorMessage + "Could not convert the value of the field " + error.getField() + " to the expected type. Details: " + error.getDefaultMessage() + ". " ;
+		    	}
+		    	
+		    }
+		    int statusCode = HttpServletResponse.SC_BAD_REQUEST;	       
+	        response.sendError(statusCode, errorMessage);
+	        return concepts;
+		}
+		
+		EvsConcept evsConcept = null;
+		for(String conceptCode: conceptCriteriaFields.getConcepts()) {
+			if (conceptCriteriaFields.getProperties() == null) {
+				if (conceptCriteriaFields.getFmt().equals("byLabel")) {
+            		evsConcept = sparqlQueryManagerService.getEvsConceptByLabel(conceptCode, conceptCriteriaFields.getDb());
+				} else {
+            		evsConcept = sparqlQueryManagerService.getEvsConceptByCode(conceptCode, conceptCriteriaFields.getDb());
+				}
+			} else {
+				if (conceptCriteriaFields.getFmt().equals("byLabel")) {
+            		evsConcept = sparqlQueryManagerService.getEvsConceptByLabelProperties(conceptCode, conceptCriteriaFields.getDb(), conceptCriteriaFields.getProperties());
+    			} else {
+            		evsConcept = sparqlQueryManagerService.getEvsConceptByCodeProperties(conceptCode, conceptCriteriaFields.getDb(), conceptCriteriaFields.getProperties());
+    			}
+				
+			}
+     		concepts.add(evsConcept);
+		}
+		
+		return concepts;
+	}
+	
+	@ApiOperation(value = "Get relationships on the specified concept", response = EvsRelationships.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Relationships"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RecordMetricDBFormat
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+        required = false, dataType = "string", paramType = "query")
+	})
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/relationships", produces = "application/json")
+	public @ResponseBody EvsRelationships getEvsRelationships(@PathVariable(value = "conceptCode") String conceptCode,
+			@RequestParam("db") Optional<String> db,
+			@RequestParam("fmt") Optional<String> fmt,
+			HttpServletResponse response) throws IOException {
+	    String dbType = db.orElse("monthly");
+        String format = fmt.orElse("byLabel");
+
+		EvsConcept evsConcept = null;
+		EvsRelationships relationships = null;
+		if (!sparqlQueryManagerService.checkConceptExists(conceptCode, dbType)) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The concept code " + conceptCode + " is invalid.");
+		} else {
+			relationships = sparqlQueryManagerService.getEvsRelationships(conceptCode, dbType, format);
+		}
+		return relationships;
 	}
 	
 	

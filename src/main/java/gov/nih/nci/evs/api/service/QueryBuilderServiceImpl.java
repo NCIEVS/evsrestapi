@@ -244,7 +244,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		query.append("    }\n");
 		query.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")\n");
 		query.append("}\n");
-		query.append("ORDER BY ?relationship\n");
+		query.append("ORDER BY ?relationship ?relatedConceptLabel\n");
 
 		log.debug("constructAssociationsQuery - " + query.toString());
 		return query.toString();
@@ -433,7 +433,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		query.append("      }\n");
 		query.append("   }\n");
 		query.append("}\n");
-		query.append("ORDER BY ?relationship\n");
+		query.append("ORDER BY ?relationship ?relatedConceptLabel\n");
 
 		log.debug("constructRolesQuery - " + query.toString());
 
@@ -513,6 +513,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		query.append("    filter not exists { ?property rdfs:range xml:anyURI }\n");
 		query.append("  }\n");
 		query.append("}\n");
+		query.append("ORDER BY ?propertyLabel\n");
 
 		log.debug("constructAllPropertiesQuery - " + query.toString());
 		return query.toString();
@@ -529,6 +530,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		query.append("    ?property rdfs:range xml:anyURI \n");
 		query.append("  }\n");
 		query.append("}\n");
+		query.append("ORDER BY ?propertyLabel\n");
 
 		log.debug("constructAllAssociationsQuery - " + query.toString());
 		return query.toString();
@@ -545,6 +547,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		query.append("    ?property :P108 ?propertyValue \n");
 		query.append("  }\n");
 		query.append("}\n");
+		query.append("ORDER BY ?propertyLabel\n");
 
 		log.debug("constructAllRolesQuery - " + query.toString());
 		return query.toString();
