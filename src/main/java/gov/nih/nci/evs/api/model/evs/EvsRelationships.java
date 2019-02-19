@@ -2,13 +2,36 @@ package gov.nih.nci.evs.api.model.evs;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class EvsRelationships {
+	@JsonProperty("Superconcept")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsRelatedConcept> superconcepts;
+	
+	@JsonProperty("Subconcept")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsRelatedConcept> subconcepts;
+	
+	@JsonProperty("Association")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsAssociation> associations;
+	
+	@JsonProperty("InverseAssociation")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsAssociation> inverseAssociations;
+	
+	@JsonProperty("Role")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsAssociation> roles;
+	
+	@JsonProperty("InverseRole")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsAssociation> inverseRoles;
+	
+	@JsonProperty("DisjointWith")
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <EvsAssociation> disjointWith;
 
 	public List<EvsRelatedConcept> getSuperconcepts() {
