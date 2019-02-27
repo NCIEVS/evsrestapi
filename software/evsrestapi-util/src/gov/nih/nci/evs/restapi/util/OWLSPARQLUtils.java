@@ -2974,7 +2974,7 @@ public class OWLSPARQLUtils {
         buf.append(prefixes);
         buf.append("SELECT distinct ?x_label ?x_code ?x_domain_label ?x_domain_code ?x_range_label ?x_range_code ").append("\n");
         buf.append("{ ").append("\n");
-        buf.append("graph <http://NCIt>").append("\n");
+        buf.append("graph <" + name_graph + ">").append("\n");
         buf.append("{").append("\n");
         buf.append("{").append("\n");
         buf.append("?x rdfs:label ?x_label .").append("\n");
