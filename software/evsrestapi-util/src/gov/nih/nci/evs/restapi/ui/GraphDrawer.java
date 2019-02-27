@@ -507,7 +507,17 @@ public class GraphDrawer {
         view_graph(out, request, response, named_graph, scheme, version, namespace, code, type);
 	}
 
+
     public void view_graph(PrintWriter out, HttpServletRequest request, HttpServletResponse response, String named_graph, String scheme, String version,
+                           String namespace, String code, String type) {
+        view_graph(out, request, response, "sparql", named_graph, scheme, version,
+                           namespace, code, type);
+
+	}
+
+
+
+    public void view_graph(PrintWriter out, HttpServletRequest request, HttpServletResponse response, String sparql, String named_graph, String scheme, String version,
                            String namespace, String code, String type) {
        	HashMap hmap = null;
        	if (out == null && response != null && request != null) {
@@ -537,14 +547,11 @@ public class GraphDrawer {
 		}
 
 		int edge_count = countEdges(hmap, types);
-		relationshipHelper.dumpRelationshipHashmap(hmap);
+		//relationshipHelper.dumpRelationshipHashmap(hmap);
 
-		System.out.println("edge_count: " + edge_count);
-		//String nodes_and_edges =  visUtils.generateGraphScript(scheme, version, namespace, code, types, VisUtils.NODES_AND_EDGES, hmap);
-		//boolean graph_reduced = false;
+		//System.out.println("edge_count: " + edge_count);
 		Vector v = null;
 		try {
-			//v = visUtils.generateGraphScriptVector(scheme, version, namespace, code, types, VisUtils.NODES_AND_EDGES, hmap);
 			v = generateGraphScriptVector(scheme, version, namespace, code, types, VisUtils.NODES_AND_EDGES, hmap);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -606,7 +613,6 @@ public class GraphDrawer {
 		}
 
 		if (group_node_id2dataMap.keySet().size() == 0) {
-		    //nodes_and_edges =  visUtils.generateGraphScript(scheme, version, namespace, code, types, VisUtils.NODES_AND_EDGES, hmap);
 		    nodes_and_edges = generateGraphScript(scheme, version, namespace, code, types, NODES_AND_EDGES, hmap);
 		}
 
@@ -649,9 +655,9 @@ public class GraphDrawer {
 		out.println("    }");
 		out.println("  </style>");
 		out.println("");
-		out.println("  <script type=\"text/javascript\" src=\"/sparql/css/vis/vis.js\"></script>");
-		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/sparql/css/vis/vis.css\" />");
-		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/sparql/css/styleSheet.css\" />");
+		out.println("  <script type=\"text/javascript\" src=\"/" + sparql + "/css/vis/vis.js\"></script>");
+		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/" + sparql + "/css/vis/vis.css\" />");
+		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/" + sparql + "/css/styleSheet.css\" />");
 
 		out.println("");
 		out.println("  <script type=\"text/javascript\">");
@@ -775,22 +781,22 @@ public class GraphDrawer {
 
 		out.println("<div class=\"ncibanner\">");
 		out.println("  <a href=\"http://www.cancer.gov\" target=\"_blank\">     ");
-		out.println("    <img src=\"/sparql/images/logotype.gif\"");
+		out.println("    <img src=\"/" + sparql + "/images/logotype.gif\"");
 		out.println("      width=\"556\" height=\"39\" border=\"0\"");
 		out.println("      alt=\"National Cancer Institute\"/>");
 		out.println("  </a>");
 		out.println("  <a href=\"http://www.cancer.gov\" target=\"_blank\">     ");
-		out.println("    <img src=\"/sparql/images/spacer.gif\"");
+		out.println("    <img src=\"/" + sparql + "/images/spacer.gif\"");
 		out.println("      width=\"60\" height=\"39\" border=\"0\" ");
 		out.println("      alt=\"National Cancer Institute\" class=\"print-header\"/>");
 		out.println("  </a>");
 		out.println("  <a href=\"http://www.nih.gov\" target=\"_blank\" >      ");
-		out.println("    <img src=\"/sparql/images/tagline_nologo.gif\"");
+		out.println("    <img src=\"/" + sparql + "/images/tagline_nologo.gif\"");
 		out.println("      width=\"219\" height=\"39\" border=\"0\"");
 		out.println("      alt=\"U.S. National Institutes of Health\"/>");
 		out.println("  </a>");
 		out.println("  <a href=\"http://www.cancer.gov\" target=\"_blank\">      ");
-		out.println("    <img src=\"/sparql/images/cancer-gov.gif\"");
+		out.println("    <img src=\"/" + sparql + "/images/cancer-gov.gif\"");
 		out.println("      width=\"125\" height=\"39\" border=\"0\"");
 		out.println("      alt=\"www.cancer.gov\"/>");
 		out.println("  </a>");
@@ -801,7 +807,7 @@ public class GraphDrawer {
 		  out.println("<p class=\"textbodyred\">&nbsp;No graph data is available.</p>");
 		}
 
-		out.println("<form id=\"data\" method=\"post\" action=\"/sparql/ajax?action=view_graph\">");
+		out.println("<form id=\"data\" method=\"post\" action=\"/" + sparql + "/ajax?action=view_graph\">");
 
 		out.println("Relationships");
 		out.println("<select name=\"type\" >");
