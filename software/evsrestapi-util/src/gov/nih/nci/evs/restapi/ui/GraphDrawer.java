@@ -547,9 +547,9 @@ public class GraphDrawer {
 		}
 
 		int edge_count = countEdges(hmap, types);
-		relationshipHelper.dumpRelationshipHashmap(hmap);
+		//relationshipHelper.dumpRelationshipHashmap(hmap);
 
-		System.out.println("edge_count: " + edge_count);
+		//System.out.println("edge_count: " + edge_count);
 		Vector v = null;
 		try {
 			v = generateGraphScriptVector(scheme, version, namespace, code, types, VisUtils.NODES_AND_EDGES, hmap);
