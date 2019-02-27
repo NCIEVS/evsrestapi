@@ -21,6 +21,7 @@ import gov.nih.nci.evs.api.aop.RecordMetricDB;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
+import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
@@ -104,6 +105,30 @@ public class DocumentationController {
 		List <EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, format);
 		return properties;
 	}	
+
+	@ApiOperation(value = "Get a list of all the properties with basic information", response = EvsConcept.class, responseContainer = "List")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved all the properties"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/documentation/propertiesList", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "fmt", value = "Specify either 'byLabel' or 'byCode', if not specified defaults to 'byLabel'",
+		        required = false, dataType = "string", paramType = "query")
+	})
+	@RecordMetricDBFormat
+	public @ResponseBody List<EvsProperty> getAllPropertiesList(@RequestParam("db") Optional<String> db,
+	        @RequestParam("fmt") Optional<String> fmt )
+			throws IOException {
+		String dbType = db.orElse("monthly");
+        String format = fmt.orElse("byLabel");
+		List <EvsProperty> properties = sparqlQueryManagerService.getAllPropertiesList(dbType, format);
+		return properties;
+	}	
+	
 	
 	
 	

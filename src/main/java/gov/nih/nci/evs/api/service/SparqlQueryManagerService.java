@@ -24,6 +24,7 @@ public interface SparqlQueryManagerService {
 	public EvsRelationships getEvsRelationships(String conceptCode, String dbType, String format) throws JsonMappingException,JsonParseException,IOException;
 
 	public List<EvsConcept> getAllProperties(String dbType, String format) throws JsonParseException, JsonMappingException, IOException;
+	public List<EvsProperty> getAllPropertiesList(String dbType, String format) throws JsonParseException, JsonMappingException, IOException;
 	public List<String> getAllPropertiesForDocumentation(String dbType) throws JsonParseException, JsonMappingException, IOException;
 	public List<EvsConcept> getAllAssociations(String dbType, String format) throws JsonParseException, JsonMappingException, IOException;
 	public List<String> getAllAssociationsForDocumentation(String dbType) throws JsonParseException, JsonMappingException, IOException;
