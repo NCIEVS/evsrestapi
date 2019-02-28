@@ -91,6 +91,7 @@ public class ValueSetUtils {
 	public static String CONCEPT_IN_SUBSET_FILE = "concept_in_subset.txt";
 	public static String VS_HEADER_CONCEPT_FILE = "vs_header_concepts.txt";
 	public static String ANNOTATION_PROPERTY_FILE = "annotation_properties.txt";
+	public static String EMBEDDED_VALUE_SET_HIERARCHY_FILE = "embedded_value_set_hierarchy.txt";
 
 	private ValueSetSearchUtils searchUtils = null;
 
@@ -308,7 +309,9 @@ System.out.println("Step 5");
 		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
 		embedded_value_set_hierarchy_vec = generate_embedded_value_set_hierarchy_vec(parent_child_vec,
 		    vs_header_concept_vec);
-        saveToFile("embedded_value_set_hierarchy_vec_" + ".txt", embedded_value_set_hierarchy_vec);
+        saveToFile(EMBEDDED_VALUE_SET_HIERARCHY_FILE, embedded_value_set_hierarchy_vec);
+
+System.out.println("Step 6");
         assertedValueSetTree = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
 		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms_0));
 	}
