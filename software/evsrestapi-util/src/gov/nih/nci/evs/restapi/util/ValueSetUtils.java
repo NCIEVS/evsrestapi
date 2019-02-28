@@ -97,6 +97,10 @@ public class ValueSetUtils {
 	private RelationSearchUtils relSearchUtils = null;
 	private HashMap valueSet2ContributingSourcesHashMap = null;
 
+	private static String data_directory = null;
+	Vector embedded_value_set_hierarchy_vec = null;
+	TreeItem assertedValueSetTree = null;
+
     public ValueSetUtils() {
 
 	}
@@ -106,15 +110,13 @@ public class ValueSetUtils {
 		this.sparql_endpoint = serviceUrl + "?query=";
 		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
 		this.relSearchUtils = new RelationSearchUtils(sparql_endpoint);
-
 		System.out.println(serviceUrl);
 		mdu = new MetadataUtils(serviceUrl);
-		this.named_graph = mdu.getNamedGraph(Constants.NCI_THESAURUS);
-
 		if (named_graph != null) {
 			this.named_graph = named_graph;
+		} else {
+			this.named_graph = mdu.getNamedGraph(Constants.NCI_THESAURUS);
 		}
-
 		version = mdu.getLatestVersion(Constants.NCI_THESAURUS);
 		System.out.println("named_graph: " + this.named_graph);
 		System.out.println("version: " + version);
@@ -122,9 +124,60 @@ public class ValueSetUtils {
 		this.relSearchUtils.set_named_graph(this.named_graph);
 
 		mdu.dumpNameVersion2NamedGraphMap();
-		initialize();
+		//initialize();
     }
 
+    public void set_data_directory(String data_directory) {
+		this.data_directory = data_directory;
+	}
+
+    public static String get_data_directory() {
+		return data_directory;
+	}
+
+	 public void saveToFile(String outputfile, Vector v) {
+		if (this.data_directory != null) {
+			outputfile = this.data_directory + File.separator + outputfile;
+		}
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(outputfile, "UTF-8");
+			if (v != null && v.size() > 0) {
+				for (int i=0; i<v.size(); i++) {
+					String t = (String) v.elementAt(i);
+					pw.println(t);
+				}
+		    }
+		} catch (Exception ex) {
+
+		} finally {
+			try {
+				pw.close();
+				System.out.println("Output file " + outputfile + " generated.");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+
+	public Vector readFile(String filename) {
+		if (this.data_directory != null) {
+			filename = this.data_directory + File.separator + filename;
+		}
+		return Utils.readFile(filename);
+	}
+
+	public boolean checkIfFileExists(String filename) {
+		File file = null;
+		if (data_directory != null) {
+			file = new File(data_directory + File.separator + filename);
+		} else {
+			file = new File(filename);
+		}
+		return file.exists();
+	}
+
+	/*
     public void initialize() {
 		long ms_0 = System.currentTimeMillis();
         long ms = System.currentTimeMillis();
@@ -185,6 +238,84 @@ public class ValueSetUtils {
 		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
 		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms_0));
 	}
+	*/
+
+    public void initialize() {
+		long ms_0 = System.currentTimeMillis();
+        long ms = System.currentTimeMillis();
+
+
+System.out.println("Step 1");
+        boolean annotation_property_file_exists = checkIfFileExists(ANNOTATION_PROPERTY_FILE);
+        annotation_property_vec = null;
+        if (!annotation_property_file_exists) {
+			System.out.println("Generating " + ANNOTATION_PROPERTY_FILE + "...");
+			annotation_property_vec = getAnnotationProperties();
+			saveToFile(ANNOTATION_PROPERTY_FILE, annotation_property_vec);
+			System.out.println(ANNOTATION_PROPERTY_FILE + " size: " + annotation_property_vec.size());
+	    } else {
+			System.out.println("Loading " + ANNOTATION_PROPERTY_FILE + "...");
+			annotation_property_vec = readFile(ANNOTATION_PROPERTY_FILE);
+		}
+		System.out.println("Total processing " + ANNOTATION_PROPERTY_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
+
+System.out.println("Step 2");
+        ms = System.currentTimeMillis();
+        boolean parent_child_file_exists = checkIfFileExists(PARENT_CHILD_FILE);
+        parent_child_vec = null;
+        if (!parent_child_file_exists) {
+			System.out.println("Generating " + PARENT_CHILD_FILE + "...");
+			parent_child_vec = generate_parent_child_vec();
+			saveToFile(PARENT_CHILD_FILE, parent_child_vec);
+			System.out.println(PARENT_CHILD_FILE + " size: " + parent_child_vec.size());
+	    } else {
+			System.out.println("Loading " + PARENT_CHILD_FILE + "...");
+			parent_child_vec = readFile(PARENT_CHILD_FILE);
+		}
+		System.out.println("Total processing " + PARENT_CHILD_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
+
+System.out.println("Step 3");
+        ms = System.currentTimeMillis();
+        boolean concept_in_subset_file_exists = checkIfFileExists(CONCEPT_IN_SUBSET_FILE);
+        concept_in_subset_vec = null;
+        if (!concept_in_subset_file_exists) {
+			System.out.println("Generating " + CONCEPT_IN_SUBSET_FILE + "...");
+			concept_in_subset_vec = generate_concept_in_subset_vec();
+			saveToFile(CONCEPT_IN_SUBSET_FILE, concept_in_subset_vec);
+			System.out.println(CONCEPT_IN_SUBSET_FILE + " size: " + concept_in_subset_vec.size());
+	    } else {
+			System.out.println("Loading " + CONCEPT_IN_SUBSET_FILE + "...");
+			concept_in_subset_vec = readFile(CONCEPT_IN_SUBSET_FILE);
+		}
+		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
+
+System.out.println("Step 4");
+        ms = System.currentTimeMillis();
+        boolean vs_header_concept_file_exists = checkIfFileExists(VS_HEADER_CONCEPT_FILE);
+        vs_header_concept_vec = null;
+        if (!vs_header_concept_file_exists) {
+			System.out.println("Generating " + VS_HEADER_CONCEPT_FILE + "...");
+			vs_header_concept_vec = generate_value_set_header_concept_vec();
+			saveToFile(VS_HEADER_CONCEPT_FILE, vs_header_concept_vec);
+			System.out.println(VS_HEADER_CONCEPT_FILE + " size: " + vs_header_concept_vec.size());
+	    } else {
+			System.out.println("Loading " + VS_HEADER_CONCEPT_FILE + "...");
+			vs_header_concept_vec = readFile(VS_HEADER_CONCEPT_FILE);
+		}
+		System.out.println("Total processing " + VS_HEADER_CONCEPT_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
+
+System.out.println("Step 5");
+		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
+		embedded_value_set_hierarchy_vec = generate_embedded_value_set_hierarchy_vec(parent_child_vec,
+		    vs_header_concept_vec);
+        saveToFile("embedded_value_set_hierarchy_vec_" + ".txt", embedded_value_set_hierarchy_vec);
+        assertedValueSetTree = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
+		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms_0));
+	}
+
+	public TreeItem getAssertedValueSetTree() {
+		return this.assertedValueSetTree;
+	}
 
     public void setValueSet2ContributingSourcesHashMap(Vector u) {
 		valueSet2ContributingSourcesHashMap = createValueSet2ContributingSourcesHashMap(u);
@@ -227,7 +358,8 @@ public class ValueSetUtils {
 	}
 
 
-    //"test_vh_ascii_tree.txt"
+    //public static String TERMINOLOGY_SUBSET_CODE = "C54443"; //Terminology Subset (Code C54443)
+
     public void contructSourceAssertedTree(String outputfile) {
 		long ms = System.currentTimeMillis();
 		Vector parent_child_vec = Utils.readFile(PARENT_CHILD_FILE);
@@ -575,8 +707,8 @@ public class ValueSetUtils {
 	public void run() {
 		Vector embedded_value_set_hierarchy_vec = generate_embedded_value_set_hierarchy_vec(get_parent_child_vec(),
 		    get_vs_header_concept_vec());
-		Utils.saveToFile("embedded_value_set_hierarchy_vec_" + StringUtils.getToday() + ".txt", embedded_value_set_hierarchy_vec);
-
+		//Utils.saveToFile("embedded_value_set_hierarchy_vec_" + StringUtils.getToday() + ".txt", embedded_value_set_hierarchy_vec);
+		saveToFile("embedded_value_set_hierarchy_vec_" + ".txt", embedded_value_set_hierarchy_vec);
 		TreeItem ti = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
 		TreeItem.printTree(ti, 0, false); // print code first = false
 
@@ -595,12 +727,14 @@ public class ValueSetUtils {
         */
 	}
 
-    public static TreeItem loadTree(String filename) {
+    public TreeItem loadTree(String filename) {
+		if (data_directory != null) {
+			filename = this.data_directory + File.separator + filename;
+		}
 		Vector embedded_value_set_hierarchy_vec = Utils.readFile(filename);
 		TreeItem ti = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
 		return ti;
 	}
-
 
 	public TreeItem searchTree(TreeItem ti, String text) {
 		if (ti._text.compareTo(text) == 0) return ti;
@@ -641,17 +775,11 @@ public class ValueSetUtils {
         TreeItem.printTree(ti, 0, false);
 	}
 
-    public boolean checkFileExists(String filename) {
-		File f = new File(filename);
-		if(f.exists() && !f.isDirectory()) {
-			return true;
-		}
-		return false;
-	}
+
 
     // Step 1:
  	public TreeItem deserializeValueSetTree(String filename) {
-        boolean fileexists = checkFileExists(filename);
+        boolean fileexists = checkIfFileExists(filename);
         if (!fileexists) return null;
         // Convert serialized valueset tree to TreeItem
         TreeItem ti = SerializationUtils.deserialize(filename);
@@ -667,6 +795,8 @@ public class ValueSetUtils {
 		return stu.getValueSetTreeStringBuffer(sourceValueSetTree);
 	}
 
+
+
 	// Step 3 - search tree branch.
 	// Insert StringBuffer to value_set_home.jsp
 
@@ -674,9 +804,32 @@ public class ValueSetUtils {
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
-		System.out.println(serviceUrl);
-		String named_graph = "http://NCIt";
-		//ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph);
+		String named_graph = args[1];
+
+		ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph);
+		boolean file_exists = false;
+		//vsu.run();
+	    vsu.set_data_directory("E:/SPARQL/DEV/VALUESET/data");
+	    System.out.println(vsu.get_data_directory());
+
+	    file_exists = vsu.checkIfFileExists(ValueSetUtils.PARENT_CHILD_FILE);
+	    System.out.println(ValueSetUtils.PARENT_CHILD_FILE + " exits? " + file_exists);
+
+	    file_exists = vsu.checkIfFileExists(ValueSetUtils.CONCEPT_IN_SUBSET_FILE);
+	    System.out.println(ValueSetUtils.CONCEPT_IN_SUBSET_FILE + " exits? " + file_exists);
+
+	    file_exists = vsu.checkIfFileExists(ValueSetUtils.VS_HEADER_CONCEPT_FILE);
+	    System.out.println(ValueSetUtils.VS_HEADER_CONCEPT_FILE + " exits? " + file_exists);
+
+	    file_exists = vsu.checkIfFileExists(ValueSetUtils.ANNOTATION_PROPERTY_FILE);
+	    System.out.println(ValueSetUtils.ANNOTATION_PROPERTY_FILE + " exits? " + file_exists);
+
+	    vsu.initialize();
+
+	    TreeItem assertedValueSetTree = vsu.getAssertedValueSetTree();
+	    TreeItem.printTree(assertedValueSetTree, 0, false); // print code first = false
+
+
 		//String filename = "embedded_value_set_hierarchy_vec_05-11-2018.txt";
 
 		/*
@@ -701,7 +854,7 @@ public class ValueSetUtils {
 
         //System.out.println(sourceValueSetTreeStringBuffer);
 		//vsu.run();
-		*/
+
 		//vsu.testSearchTree();
 		ValueSetUtils vsu = new ValueSetUtils();
 		//vsu.testSerialization();
@@ -714,9 +867,6 @@ public class ValueSetUtils {
 		} else {
 			TreeItem.printTree(ti, 0, false);
 		}
-
-
-
-
+        */
 	}
 }
