@@ -558,6 +558,11 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+    public boolean isLeaf(String named_graph, String code) {
+		Vector v = getSubclassesByCode(named_graph, code);
+		if (v != null && v.size() > 0) return false;
+	    return true;
+	}
 
 	public Vector getSubclassesByCode(String named_graph, String code) {
 		return executeQuery(construct_get_subclasses_by_code(named_graph, code));
@@ -3641,6 +3646,39 @@ public class OWLSPARQLUtils {
 		return null;
 	}
 
+
+    public String construct_root_query(String named_graph) {
+        StringBuffer buf = new StringBuffer();
+        buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+        buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+        buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+        buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+        buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+        buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+        buf.append("PREFIX protege:<http://protege.stanford.edu/plugins/owl/protege#>").append("\n");
+        buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+        buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+        buf.append("PREFIX ncicp:<http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#>").append("\n");
+        buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+        buf.append("select ?s_label ?s_code").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where  { ").append("\n");
+        buf.append("?s a owl:Class .").append("\n");
+        buf.append("?s rdfs:label ?s_label .").append("\n");
+        buf.append("?s :NHC0 ?s_code . ").append("\n");
+        buf.append("filter not exists { ?s rdfs:subClassOf|owl:equivalentClass ?o } ").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+    }
+
+	public Vector get_roots(String named_graph) {
+		Vector v = executeQuery(construct_root_query(named_graph));
+		if (v == null) return null;
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
+
     public Vector getResponseValues(Vector v) {
 		if (v == null) return null;
 		if (v.size() == 0) return new Vector();
@@ -3655,6 +3693,13 @@ public class OWLSPARQLUtils {
         String named_graph = args[1];
         String queryfile = args[2];
         owlSPARQLUtils.set_named_graph(named_graph);
-        owlSPARQLUtils.runQuery(queryfile);
+        //owlSPARQLUtils.runQuery(queryfile);
+
+        Vector v = owlSPARQLUtils.get_roots(named_graph);
+        for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			System.out.println(t);
+		}
+
     }
 }
