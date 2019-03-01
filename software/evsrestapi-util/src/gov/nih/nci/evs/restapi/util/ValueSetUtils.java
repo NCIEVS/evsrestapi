@@ -288,6 +288,7 @@ System.out.println("Step 3");
 			System.out.println("Loading " + CONCEPT_IN_SUBSET_FILE + "...");
 			concept_in_subset_vec = readFile(CONCEPT_IN_SUBSET_FILE);
 		}
+		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
 		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
 System.out.println("Step 4");
@@ -306,10 +307,18 @@ System.out.println("Step 4");
 		System.out.println("Total processing " + VS_HEADER_CONCEPT_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
 System.out.println("Step 5");
-		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
-		embedded_value_set_hierarchy_vec = generate_embedded_value_set_hierarchy_vec(parent_child_vec,
-		    vs_header_concept_vec);
-        saveToFile(EMBEDDED_VALUE_SET_HIERARCHY_FILE, embedded_value_set_hierarchy_vec);
+        ms = System.currentTimeMillis();
+        embedded_value_set_hierarchy_vec = null;
+        boolean embedded_value_set_hierarchy_file_exists = checkIfFileExists(EMBEDDED_VALUE_SET_HIERARCHY_FILE);
+		if (!embedded_value_set_hierarchy_file_exists) {
+			embedded_value_set_hierarchy_vec = generate_embedded_value_set_hierarchy_vec(parent_child_vec,
+				vs_header_concept_vec);
+			saveToFile(EMBEDDED_VALUE_SET_HIERARCHY_FILE, embedded_value_set_hierarchy_vec);
+		} else {
+			System.out.println("Loading " + EMBEDDED_VALUE_SET_HIERARCHY_FILE + "...");
+			embedded_value_set_hierarchy_vec = readFile(EMBEDDED_VALUE_SET_HIERARCHY_FILE);
+		}
+		System.out.println("Total processing " + EMBEDDED_VALUE_SET_HIERARCHY_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
 System.out.println("Step 6");
         assertedValueSetTree = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
@@ -392,14 +401,12 @@ System.out.println("Step 6");
         while (it.hasNext()) {
 			lcv++;
 			String node = (String) it.next();
-			//System.out.println("(" + lcv + ") " + node);
 			if (!code2LableMap.containsKey(node)) {
 				String node_label = eh.getLabel(node);
 				orphans.add(node_label + " (" + node + ")");
 				orphan_codes.add(node);
 			}
 		}
-		//StringUtils.dumpVector("orphans", orphans);
 		Utils.saveToFile("orphans" + "_" + rootCode + ".txt", orphans);
 
         for (int k=0; k<orphan_codes.size(); k++) {
@@ -714,7 +721,6 @@ System.out.println("Step 6");
 		saveToFile("embedded_value_set_hierarchy_vec_" + ".txt", embedded_value_set_hierarchy_vec);
 		TreeItem ti = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
 		TreeItem.printTree(ti, 0, false); // print code first = false
-
 		/*
 		String json = treeItem2Json(ti);
 		System.out.println(json);
@@ -813,7 +819,7 @@ System.out.println("Step 6");
 		boolean file_exists = false;
 		//vsu.run();
 	    vsu.set_data_directory("E:/SPARQL/DEV/VALUESET/data");
-	    System.out.println(vsu.get_data_directory());
+	    //System.out.println(vsu.get_data_directory());
 
 	    file_exists = vsu.checkIfFileExists(ValueSetUtils.PARENT_CHILD_FILE);
 	    System.out.println(ValueSetUtils.PARENT_CHILD_FILE + " exits? " + file_exists);
@@ -827,14 +833,16 @@ System.out.println("Step 6");
 	    file_exists = vsu.checkIfFileExists(ValueSetUtils.ANNOTATION_PROPERTY_FILE);
 	    System.out.println(ValueSetUtils.ANNOTATION_PROPERTY_FILE + " exits? " + file_exists);
 
+	    file_exists = vsu.checkIfFileExists(ValueSetUtils.EMBEDDED_VALUE_SET_HIERARCHY_FILE);
+	    System.out.println(ValueSetUtils.EMBEDDED_VALUE_SET_HIERARCHY_FILE + " exits? " + file_exists);
+
 	    vsu.initialize();
 
 	    TreeItem assertedValueSetTree = vsu.getAssertedValueSetTree();
 	    TreeItem.printTree(assertedValueSetTree, 0, false); // print code first = false
 
 
-		//String filename = "embedded_value_set_hierarchy_vec_05-11-2018.txt";
-
+		//String filename = "embedded_value_set_hierarchy.txt";
 		/*
         TreeItem ti = vsu.loadTree(filename);
         //TreeItem.printTree(ti, 0, false);
@@ -855,13 +863,9 @@ System.out.println("Step 6");
 		w.add(sourceValueSetTreeStringBuffer.toString());
 		Utils.saveToFile("vs_tree.html", w);
 
-        //System.out.println(sourceValueSetTreeStringBuffer);
-		//vsu.run();
-
 		//vsu.testSearchTree();
 		ValueSetUtils vsu = new ValueSetUtils();
 		//vsu.testSerialization();
-
 
 		String datasettree = "c:/apps/evs/sparql-webapp/conf/valuesettree.ser";
 		TreeItem ti = vsu.deserializeValueSetTree(datasettree);
