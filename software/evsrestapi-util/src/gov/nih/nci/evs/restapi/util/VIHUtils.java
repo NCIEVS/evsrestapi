@@ -68,8 +68,10 @@ public class VIHUtils {
 			String cs_name = coding_scheme;
 			String cs_version = null;
 			String cs_ns = cs_name;
+
 			String code = (String) u.elementAt(1);
 			String name = (String) u.elementAt(0);
+
 			boolean is_expandable = true;
 			TreeItem child = new TreeItem(code, name, cs_ns, null);
 			child._expandable = !isLeaf(code);
@@ -282,7 +284,7 @@ public class VIHUtils {
 			for (int i=0; i<codes.size(); i++) {
 				String code = (String) codes.elementAt(i);
 				String label = hh.getLabel(code);
-				u.add(label + "|" + label);
+				u.add(label + "|" + code);
 			}
 		}
 		return u;
@@ -295,7 +297,7 @@ public class VIHUtils {
 			for (int i=0; i<codes.size(); i++) {
 				String code = (String) codes.elementAt(i);
 				String label = hh.getLabel(code);
-				u.add(label + "|" + label);
+				u.add(label + "|" + code);
 			}
 		}
 		return u;
