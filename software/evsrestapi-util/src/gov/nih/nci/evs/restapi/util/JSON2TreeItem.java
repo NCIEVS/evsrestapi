@@ -61,9 +61,9 @@ public class JSON2TreeItem {
 
 	}
 
-	public static TreeItem JSONObject2TreeItem(JSONObject jsonObj) {
+	public static gov.nih.nci.evs.restapi.bean.TreeItem JSONObject2TreeItem(JSONObject jsonObj) {
 		JSONParser parser = new JSONParser();
-		TreeItem ti = new TreeItem("", "");
+		gov.nih.nci.evs.restapi.bean.TreeItem ti = new TreeItem("", "");
 		Iterator it = jsonObj.keySet().iterator();
         while (it.hasNext()) {
 			String key = (String) it.next();
@@ -126,8 +126,8 @@ public class JSON2TreeItem {
 	}
 
 
-    public static TreeItem json2TreeItem(String json_string) {
-		TreeItem ti = new TreeItem("<Root>", "Root node");
+    public static gov.nih.nci.evs.restapi.bean.TreeItem json2TreeItem(String json_string) {
+		gov.nih.nci.evs.restapi.bean.TreeItem ti = new gov.nih.nci.evs.restapi.bean.TreeItem("<Root>", "Root node");
 		ti._expandable = false;
 		try {
 			JSONParser parser=new JSONParser();
@@ -159,13 +159,13 @@ public class JSON2TreeItem {
 		return t;
 	}
 
-    public static String treeItem2Json(TreeItem ti) {
+    public static String treeItem2Json(gov.nih.nci.evs.restapi.bean.TreeItem ti) {
 		StringBuffer buf = new StringBuffer();
 		for (String association : ti._assocToChildMap.keySet()) {
-			List<TreeItem> children = ti._assocToChildMap.get(association);
+			List<gov.nih.nci.evs.restapi.bean.TreeItem> children = ti._assocToChildMap.get(association);
 			new SortUtils().quickSort(children);
 			for (int i=0; i<children.size(); i++) {
-				TreeItem childItem = (TreeItem) children.get(i);
+				gov.nih.nci.evs.restapi.bean.TreeItem childItem = (gov.nih.nci.evs.restapi.bean.TreeItem) children.get(i);
 				String s = getTreeItemInJson(childItem);
 				buf.append(s);
 			}
@@ -176,7 +176,7 @@ public class JSON2TreeItem {
 		return t;
 	}
 
-    public static boolean hasChildren(TreeItem ti) {
+    public static boolean hasChildren(gov.nih.nci.evs.restapi.bean.TreeItem ti) {
 		int knt = 0;
 		for (String association : ti._assocToChildMap.keySet()) {
 			List<TreeItem> children = ti._assocToChildMap.get(association);
@@ -186,7 +186,7 @@ public class JSON2TreeItem {
 		return false;
 	}
 
-    public static String getTreeItemInJson(TreeItem ti) {
+    public static String getTreeItemInJson(gov.nih.nci.evs.restapi.bean.TreeItem ti) {
         StringBuffer buf = new StringBuffer();
 	    String _code = ti._code;
 	    String _text = ti._text;
