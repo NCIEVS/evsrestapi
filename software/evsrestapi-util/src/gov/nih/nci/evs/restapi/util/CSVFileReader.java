@@ -149,7 +149,7 @@ public class CSVFileReader {
 		if (s.endsWith(delim)) {
 			s = s.substring(0, s.length()-1);
 		}
-		System.out.println(s);
+		//System.out.println(s);
 		return s;
 	}
 
