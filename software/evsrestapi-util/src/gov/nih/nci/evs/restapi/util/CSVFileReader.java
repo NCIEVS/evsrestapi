@@ -145,11 +145,6 @@ public class CSVFileReader {
 			}
 		}
 		s = buf.toString();
-		s = s.trim();
-		if (s.endsWith(delim)) {
-			s = s.substring(0, s.length()-1);
-		}
-		//System.out.println(s);
 		return s;
 	}
 
@@ -162,7 +157,6 @@ public class CSVFileReader {
 			String t = (String) u.elementAt(i);
 			t = t.substring(1, t.length()-1);
 			headings[i] = t;
-			System.out.println(t);
 		}
 		return headings;
 	}
