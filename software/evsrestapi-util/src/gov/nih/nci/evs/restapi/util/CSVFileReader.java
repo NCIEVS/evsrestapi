@@ -125,6 +125,12 @@ public class CSVFileReader {
 		int istart = 0;
 		for (int i=0; i<list_a.size(); i++) {
 			String[] a = (String[]) list_a.get(i);
+            System.out.println("(1) ");
+			for (int k=0; k<a.length; k++) {
+				String t = (String) a[k];
+				System.out.println("\t" + t);
+			}
+
 			String s = convertToDelimitedValue(a, delim);
 			s = s.trim();
 			if (s.length() > 0) {
@@ -139,6 +145,9 @@ public class CSVFileReader {
 		String s = null;
 		for (int j=0; j<a.length; j++) {
 			s = (String) a[j];
+
+			System.out.println("(2) " + s);
+
 			buf.append(s);
 			if (j<a.length-1) {
 				buf.append(delim);
@@ -210,14 +219,44 @@ public class CSVFileReader {
 		return v;
 	}
 
+    public static String csv2Delimited(String line, String delim) {
+		//line = line.substring(1, line.length());
+		System.out.println(line);
+		line = line.replaceAll("\",\"", delim);
+		line = line.replaceAll(",,", ",");
+		line = line.substring(1, line.length()-1);
+		System.out.println(line);
+		return line;
+	}
+
+    public static Vector csv2Delimited(Vector v, boolean skip_heading, String delim) {
+		Vector w = new Vector();
+		int istart = 0;
+		if (skip_heading) {
+			istart = 1;
+		}
+		for (int i=istart; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+
+			line = csv2Delimited(line, delim);
+			w.add(line);
+		}
+        return w;
+	}
+
+
 	public static void main(String[] args) {
 		String csvfile = args[0];
+		/*
 		boolean skip_heading = true;
 		String delim = "|";
         Vector v = readCSV(csvfile, skip_heading, delim);
         int n = csvfile.lastIndexOf(".");
         String outputfile = csvfile.substring(0, n) + ".txt";
         saveToFile(outputfile, v);
+        */
+        Vector v = Utils.readFile(csvfile);
+        csv2Delimited(v, true, "|");
 	}
 }
 
