@@ -153,7 +153,6 @@ public class ConceptDetailsGenerator {
 
 		}
 		buf.append("</table>").append("\n");
-		System.out.println(buf.toString());
 		return buf.toString();
 	}
 
@@ -196,11 +195,8 @@ public class ConceptDetailsGenerator {
 	}
 
     public void generate(PrintWriter out, String title) {
-		System.out.println("writeHeader");
         writeHeader(out, title);
-        System.out.println("writeBody");
         writeBody(out, title);
-        System.out.println("writeFooter");
         writeFooter(out);
 	}
 
@@ -248,7 +244,6 @@ public class ConceptDetailsGenerator {
 				line1 = CSVFileReader.csv2Delimited(line, "|");
 			}
 
-			System.out.println(line1);
 			Vector u = StringUtils.parseData(line1, '|');
 			String source_code = (String) u.elementAt(0);
 			String source_term = (String) u.elementAt(1);
@@ -257,7 +252,7 @@ public class ConceptDetailsGenerator {
 				String query = owlSPARQLUtils.construct_get_properties_by_code(namedGraph, target_code);
 				Vector w = owlSPARQLUtils.getPropertiesByCode(namedGraph, target_code);
 				if (w == null || w.size() == 0) {
-					System.out.println("\tgetPropertiesByCode returns null???");
+					//System.out.println("\tgetPropertiesByCode returns null???");
 				} else {
 					w = parserUtils.getResponseValues(w);
 					HashMap hmap = createPropertyHashMap(w);
@@ -333,7 +328,7 @@ public class ConceptDetailsGenerator {
 		String hyperlinkUrl = "https://ncimappingtool-dev.nci.nih.gov/ncimappingtool/pages/concept_details.jsf?ng=http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl&code=";
         generator.setHYPERLINK(hyperlinkUrl);
 	    String outputfile = "mapping.html";
-	    String title = "Mapping Entry Concept Details";
+	    String title = "Concept Details";
 		generator.generate(outputfile, title);
 	}
 
