@@ -220,12 +220,9 @@ public class CSVFileReader {
 	}
 
     public static String csv2Delimited(String line, String delim) {
-		//line = line.substring(1, line.length());
-		System.out.println(line);
 		line = line.replaceAll("\",\"", delim);
 		line = line.replaceAll(",,", ",");
 		line = line.substring(1, line.length()-1);
-		System.out.println(line);
 		return line;
 	}
 
