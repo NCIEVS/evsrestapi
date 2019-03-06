@@ -159,7 +159,7 @@ public class ConceptDetailsGenerator {
 
 	public void writeBody(PrintWriter out, String title) {
 		out.println("<body>");
-		out.println("	<h3>" + title + "</h3>");
+		out.println("	<center><h3>" + title + "</h3></center>");
 		out.println("	<hr>");
 		String content = null;
 		try {
@@ -244,9 +244,11 @@ public class ConceptDetailsGenerator {
         for (int i=1; i<mapping_entries.size(); i++) {
 			String line = (String) mapping_entries.elementAt(i);
 			String line1 = line;
-			if (line.indexOf("|") == 0) {
+			if (line.indexOf("|") == -1) {
 				line1 = CSVFileReader.csv2Delimited(line, "|");
 			}
+
+			System.out.println(line1);
 			Vector u = StringUtils.parseData(line1, '|');
 			String source_code = (String) u.elementAt(0);
 			String source_term = (String) u.elementAt(1);
