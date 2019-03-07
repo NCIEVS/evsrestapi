@@ -92,10 +92,16 @@ public class ConceptDetailsGenerator {
 		return buf.toString();
 	}
 
+    public static Boolean isEven(int i) {
+        return (i % 2) == 0;
+    }
+
 
 	public String propertyHashMap2HTML(HashMap propertyHashMap) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("<table>").append("\n");
+		//buf.append("<table>").append("\n");
+		buf.append("<table class=\"global-nav\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" role='presentation'>").append("\n");
+		int lcv = 0;
 		Iterator it = propertyHashMap.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();
@@ -105,7 +111,13 @@ public class ConceptDetailsGenerator {
 			String source_term = (String) u.elementAt(1);
 			String target_code = (String) u.elementAt(2);
 			String target_term = (String) u.elementAt(3);
-			buf.append("<tr>").append("\n");
+
+			if (isEven(lcv)) {
+				buf.append("<tr class=\"dataRowDark>\">").append("\n");
+			} else {
+				buf.append("<tr class=\"dataRowLight>\">").append("\n");
+			}
+			//buf.append("<tr>").append("\n");
 			StringBuffer property_buf = new StringBuffer();
 			HashMap hmap = (HashMap) propertyHashMap.get(key);
 			Vector properties = new Vector();
@@ -123,16 +135,16 @@ public class ConceptDetailsGenerator {
 				values = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(values);
 			    for (int k2=0; k2<values.size(); k2++) {
 					if (line_num == 0) {
-						line_buf.append("<td>").append(source_code).append("</td>").append("\n");
-						line_buf.append("<td>").append(source_term).append("</td>").append("\n");
-						line_buf.append("<td>").append("<a href='").append(getHyperLink(target_code)).append("'>").append(target_code).append("</a>").append("</td>").append("\n");
-						line_buf.append("<td>").append(target_term).append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append(source_code).append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append(source_term).append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append("<a href='").append(getHyperLink(target_code)).append("'>").append(target_code).append("</a>").append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append(target_term).append("</td>").append("\n");
 
 					} else {
-						line_buf.append("<td>").append("").append("</td>").append("\n");
-						line_buf.append("<td>").append("").append("</td>").append("\n");
-						line_buf.append("<td>").append("").append("</td>").append("\n");
-						line_buf.append("<td>").append("").append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append("").append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append("").append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append("").append("</td>").append("\n");
+						line_buf.append("<td class=\"textbody\">").append("").append("</td>").append("\n");
 					}
 					String value = (String) values.elementAt(k2);
 					String col1 = property;
@@ -140,8 +152,8 @@ public class ConceptDetailsGenerator {
 					if (k2 != 0) {
 						col1 = "";
 					}
-					line_buf.append("<td>").append(col1).append("</td>").append("\n");
-					line_buf.append("<td>").append(col2).append("</td>").append("\n");
+					line_buf.append("<td class=\"textbody\">").append(col1).append("</td>").append("\n");
+					line_buf.append("<td class=\"textbody\">").append(col2).append("</td>").append("\n");
 
 					buf.append(line_buf.toString()).append("\n");
 					buf.append("</tr>").append("\n");

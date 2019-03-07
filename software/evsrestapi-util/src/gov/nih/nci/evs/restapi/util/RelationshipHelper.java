@@ -27,8 +27,8 @@ public class RelationshipHelper {
 		this.version = MetadataUtils.getLatestVersionOfCodingScheme(serviceUrl, Constants.NCI_THESAURUS);
 		this.named_graph = MetadataUtils.getNamedGraphOfCodingScheme(serviceUrl, Constants.NCI_THESAURUS, this.version);
 		this.owlSPARQLUtils.set_named_graph(this.named_graph);
-		System.out.println(this.version);
-		System.out.println(this.named_graph);
+		//System.out.println(this.version);
+		//System.out.println(this.named_graph);
 	}
 
 	public OWLSPARQLUtils getOwlSPARQLUtils() {
@@ -133,18 +133,7 @@ public class RelationshipHelper {
 		return a;
 	}
 
-/*
-    public String getEntityDescriptionByCode(String named_graph, String code) {
-		Vector v = owlSPARQLUtils.getLabelByCode(named_graph, code);
-		if (v == null) {
-			return null;
-		}
-		StringUtils.dumpVector("v", v);
-		v = new ParserUtils().getResponseValues(v);
-		return (String) v.elementAt(0);
-	}
 
-*/
     public HashMap getRelationshipHashMap(String scheme, String version, String code, String ns, boolean useNamespace, List options) {
 		if (options == null) {
 			options = getDefaultOptionList();
