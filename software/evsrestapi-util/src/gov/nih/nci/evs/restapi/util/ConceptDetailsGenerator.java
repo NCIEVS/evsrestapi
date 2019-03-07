@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
 
-import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
 
@@ -75,7 +74,7 @@ public class ConceptDetailsGenerator {
     public void writeFunction(PrintWriter out) {
 		out.println("	<script type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\"></script>");
 		out.println("	<script type=\"text/javascript\" src=\"js/jquery.sapling.min.js\"></script>");
-		out.println("    <link rel=\"stylesheet\" type=\"text/css\" href=\"css/tree.css\">");
+		out.println("    <link rel=\"stylesheet\" type=\"text/css\" href=\"css/styleSheet.css\">");
 		out.println("	<script type=\"text/javascript\">");
 		out.println("		$(document).ready(function() {");
 		out.println("			$('#demoList').sapling();");
@@ -92,16 +91,16 @@ public class ConceptDetailsGenerator {
 		return buf.toString();
 	}
 
-    public static Boolean isEven(int i) {
-        return (i % 2) == 0;
-    }
+	public static Boolean isEven (Integer i) {
+		return (i % 2) == 0;
+	}
 
 
 	public String propertyHashMap2HTML(HashMap propertyHashMap) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("<table>").append("\n");
-		buf.append("<table class=\"global-nav\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" role='presentation'>").append("\n");
-		int lcv = 0;
+		buf.append("<table class=\"global-nav\" border=\"0\" width=\"100%\" height=\"37px\" cellpadding=\"0\" cellspacing=\"0\" role='presentation'>").append("\n");
+        //int lcv = 0;
 		Iterator it = propertyHashMap.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();
@@ -111,13 +110,14 @@ public class ConceptDetailsGenerator {
 			String source_term = (String) u.elementAt(1);
 			String target_code = (String) u.elementAt(2);
 			String target_term = (String) u.elementAt(3);
-
-			if (isEven(lcv)) {
-				buf.append("<tr class=\"dataRowDark>\">").append("\n");
+			/*
+			if (isEven(new Integer(lcv))) {
+				buf.append("<tr class=\"datarowdark\">").append("\n");
 			} else {
-				buf.append("<tr class=\"dataRowLight>\">").append("\n");
+				buf.append("<tr class=\"datarowlight\">").append("\n");
 			}
-			//buf.append("<tr>").append("\n");
+			lcv++;
+			*/
 			StringBuffer property_buf = new StringBuffer();
 			HashMap hmap = (HashMap) propertyHashMap.get(key);
 			Vector properties = new Vector();
@@ -324,6 +324,14 @@ public class ConceptDetailsGenerator {
 		return hmap;
 	}
 
+    public String toString() {
+ 		StringWriter out = new StringWriter();
+		PrintWriter writer = new PrintWriter(out);
+		String content = propertyHashMap2HTML(this.propertyHashMap);
+        writer.print(content);
+		return writer.toString();
+	}
+
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		String namedGraph = args[1];
@@ -339,9 +347,13 @@ public class ConceptDetailsGenerator {
 		ConceptDetailsGenerator generator = new ConceptDetailsGenerator(propertyHashMap);
 		String hyperlinkUrl = "https://ncimappingtool-dev.nci.nih.gov/ncimappingtool/pages/concept_details.jsf?ng=http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl&code=";
         generator.setHYPERLINK(hyperlinkUrl);
+        String content = generator.propertyHashMap2HTML(propertyHashMap);
+        /*
 	    String outputfile = "mapping.html";
 	    String title = "Concept Details";
 		generator.generate(outputfile, title);
+		*/
+		System.out.println(content);
 	}
 
 }

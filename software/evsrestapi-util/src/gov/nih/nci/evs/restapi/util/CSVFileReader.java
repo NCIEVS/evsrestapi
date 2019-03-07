@@ -222,7 +222,11 @@ public class CSVFileReader {
     public static String csv2Delimited(String line, String delim) {
 		line = line.replaceAll("\",\"", delim);
 		line = line.replaceAll(",,", ",");
-		line = line.substring(1, line.length()-1);
+		if (line.startsWith("\"")) {
+			line = line.substring(1, line.length()-1);
+		} else {
+			line = line.substring(0, line.length()-1);
+		}
 		return line;
 	}
 
