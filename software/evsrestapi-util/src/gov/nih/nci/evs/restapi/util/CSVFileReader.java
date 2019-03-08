@@ -223,8 +223,9 @@ public class CSVFileReader {
 		line = line.replaceAll("\",\"", delim);
 		line = line.replaceAll(",,", ",");
 		if (line.startsWith("\"")) {
-			line = line.substring(1, line.length()-1);
-		} else {
+			line = line.substring(1, line.length());
+		}
+		if (line.endsWith("\"")) {
 			line = line.substring(0, line.length()-1);
 		}
 		return line;

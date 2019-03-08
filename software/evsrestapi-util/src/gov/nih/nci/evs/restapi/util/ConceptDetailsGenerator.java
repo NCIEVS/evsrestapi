@@ -98,9 +98,7 @@ public class ConceptDetailsGenerator {
 
 	public String propertyHashMap2HTML(HashMap propertyHashMap) {
 		StringBuffer buf = new StringBuffer();
-		//buf.append("<table>").append("\n");
-		buf.append("<table class=\"global-nav\" border=\"0\" width=\"100%\" height=\"37px\" cellpadding=\"0\" cellspacing=\"0\" role='presentation'>").append("\n");
-        //int lcv = 0;
+        buf.append("<table class=\"datatable_960\" border=\"0\" width=\"100%\" >").append("\n");
 		Iterator it = propertyHashMap.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();
@@ -110,14 +108,6 @@ public class ConceptDetailsGenerator {
 			String source_term = (String) u.elementAt(1);
 			String target_code = (String) u.elementAt(2);
 			String target_term = (String) u.elementAt(3);
-			/*
-			if (isEven(new Integer(lcv))) {
-				buf.append("<tr class=\"datarowdark\">").append("\n");
-			} else {
-				buf.append("<tr class=\"datarowlight\">").append("\n");
-			}
-			lcv++;
-			*/
 			StringBuffer property_buf = new StringBuffer();
 			HashMap hmap = (HashMap) propertyHashMap.get(key);
 			Vector properties = new Vector();
@@ -134,6 +124,7 @@ public class ConceptDetailsGenerator {
 				Vector values = (Vector) hmap.get(property);
 				values = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(values);
 			    for (int k2=0; k2<values.size(); k2++) {
+					buf.append("<tr>").append("\n");
 					if (line_num == 0) {
 						line_buf.append("<td class=\"textbody\">").append(source_code).append("</td>").append("\n");
 						line_buf.append("<td class=\"textbody\">").append(source_term).append("</td>").append("\n");
