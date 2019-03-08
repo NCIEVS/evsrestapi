@@ -99,6 +99,21 @@ public class ConceptDetailsGenerator {
 	public String propertyHashMap2HTML(HashMap propertyHashMap) {
 		StringBuffer buf = new StringBuffer();
         buf.append("<table class=\"datatable_960\" border=\"0\" width=\"100%\" >").append("\n");
+		buf.append("<tr>").append("\n");
+		buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">Source Code</th>").append("\n");
+		buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">Source Term</th>").append("\n");
+		buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">Target Code</th>").append("\n");
+		buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">Target Term</th>").append("\n");
+		buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">Property</th>").append("\n");
+		buf.append("   <th class=\"dataCellText\" scope=\"col\" align=\"left\">Property Value</th>").append("\n");
+		buf.append("</tr>").append("\n");
+		buf.append("   <col width=\"10%\">").append("\n");
+		buf.append("   <col width=\"20%\">").append("\n");
+		buf.append("   <col width=\"10%\">").append("\n");
+		buf.append("   <col width=\"20%\">").append("\n");
+		buf.append("   <col width=\"10%\">").append("\n");
+		buf.append("   <col width=\"30%\">").append("\n");
+
 		Iterator it = propertyHashMap.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();
