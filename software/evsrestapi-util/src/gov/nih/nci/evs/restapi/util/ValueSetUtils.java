@@ -116,6 +116,8 @@ public class ValueSetUtils {
 		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
 		this.relSearchUtils = new RelationSearchUtils(sparql_endpoint);
 		System.out.println(serviceUrl);
+
+		System.out.println("Instantiating MetadataUtils ...");
 		mdu = new MetadataUtils(serviceUrl);
 		if (named_graph != null) {
 			this.named_graph = named_graph;
@@ -127,9 +129,8 @@ public class ValueSetUtils {
 		System.out.println("version: " + version);
 		this.owlSPARQLUtils.set_named_graph(this.named_graph);
 		this.relSearchUtils.set_named_graph(this.named_graph);
-
+        System.out.println("NameVersion2NamedGraphMap ... ");
 		mdu.dumpNameVersion2NamedGraphMap();
-		//initialize();
     }
 
     public void set_data_directory(String data_directory) {
@@ -262,7 +263,7 @@ System.out.println("Step 5: " + EMBEDDED_VALUE_SET_HIERARCHY_FILE);
 
 System.out.println("Step 6: generating AssertedValueSetTree ...");
         assertedValueSetTree = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
-		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms_0));
+		System.out.println("Total processing run time (ms): " + (System.currentTimeMillis() - ms_0));
 	}
 
 	public TreeItem getAssertedValueSetTree() {
@@ -277,7 +278,6 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		return this.relSearchUtils;
 	}
 
-	//DICOM Terminology|C69186|Publish_Value_Set|Yes
 	public Vector identifyOrphanNodes(Vector w) {
 		Vector parent_nodes = new Vector();
 		Vector child_nodes = new Vector();
@@ -422,7 +422,6 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 
     public Vector getAnnotationProperties() {
 		String query = this.owlSPARQLUtils.construct_get_annotation_properties(named_graph);
-		System.out.println(query);
 		Vector properties = this.owlSPARQLUtils.getAnnotationProperties(named_graph);
 		properties = new ParserUtils().getResponseValues(properties);
 		properties = new SortUtils().quickSort(properties);
@@ -752,12 +751,17 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		String serviceUrl = args[0];
 		String named_graph = args[1];
 
-		ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph);
-		boolean file_exists = false;
-		//vsu.run();
-	    vsu.set_data_directory("E:/SPARQL/DEV/VALUESET/data");
-	    //System.out.println(vsu.get_data_directory());
+		System.out.println("serviceUrl: " + serviceUrl);
+		System.out.println("named_graph: " + named_graph);
 
+        System.out.println("Instantiating ValueSetUtils ... ");
+		ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph);
+
+		boolean file_exists = false;
+
+	    vsu.set_data_directory("E:/SPARQL/VALUESET/data");
+	    System.out.println("data_directory: " + vsu.get_data_directory());
+/*
 	    file_exists = vsu.checkIfFileExists(ValueSetUtils.PARENT_CHILD_FILE);
 	    System.out.println(ValueSetUtils.PARENT_CHILD_FILE + " exits? " + file_exists);
 
@@ -772,45 +776,11 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 
 	    file_exists = vsu.checkIfFileExists(ValueSetUtils.EMBEDDED_VALUE_SET_HIERARCHY_FILE);
 	    System.out.println(ValueSetUtils.EMBEDDED_VALUE_SET_HIERARCHY_FILE + " exits? " + file_exists);
-
+*/
 	    vsu.initialize();
 
 	    TreeItem assertedValueSetTree = vsu.getAssertedValueSetTree();
 	    TreeItem.printTree(assertedValueSetTree, 0, false); // print code first = false
 
-
-		//String filename = "embedded_value_set_hierarchy.txt";
-		/*
-        TreeItem ti = vsu.loadTree(filename);
-        //TreeItem.printTree(ti, 0, false);
-
-        HashSet _vocabularyNameSet = null;
-        SimpleTreeUtils stu = new SimpleTreeUtils(_vocabularyNameSet);
-        //stu.setUrl(request.getContextPath() + "ajax?action=create_src_vs_tree&mode=" + mode);
-
-		HashMap sourceValueSetTree = new HashMap();
-		sourceValueSetTree.put("<Root>", ti);
-
-		TreeItem root = (TreeItem) sourceValueSetTree.get("<Root>");
-		StringBuffer sourceValueSetTreeStringBuffer = new StringBuffer();
-
-		sourceValueSetTreeStringBuffer = stu.getValueSetTreeStringBuffer(sourceValueSetTree);
-
-		Vector w = new Vector();
-		w.add(sourceValueSetTreeStringBuffer.toString());
-		Utils.saveToFile("vs_tree.html", w);
-
-		//vsu.testSearchTree();
-		ValueSetUtils vsu = new ValueSetUtils();
-		//vsu.testSerialization();
-
-		String datasettree = "c:/apps/evs/sparql-webapp/conf/valuesettree.ser";
-		TreeItem ti = vsu.deserializeValueSetTree(datasettree);
-		if (ti == null) {
-			System.out.println("deserializeValueSetTree returns null???");
-		} else {
-			TreeItem.printTree(ti, 0, false);
-		}
-        */
 	}
 }
