@@ -741,9 +741,61 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 	}
 
 
+	public HashSet vector2HashSet(Vector v) {
+		HashSet hset = new HashSet();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			if (!hset.contains(t)) {
+				hset.add(t);
+			}
+		}
+		return hset;
+	}
 
-	// Step 3 - search tree branch.
-	// Insert StringBuffer to value_set_home.jsp
+    public Vector generate_embedded_value_set_hierarchy_vec(Vector parent_child_vec, String rootCode, Vector vs_header_concept_vec) {
+		long ms = System.currentTimeMillis();
+        EmbeddedHierarchy eh = new EmbeddedHierarchy(parent_child_vec);
+        //String label = eh.getLabel(rootCode);
+        HashSet nodeSet = vector2HashSet(vs_header_concept_vec);
+        Vector v = eh.getEmbeddedHierarchy(rootCode, nodeSet);
+        Vector embedded_hierarchy_parent_child_vec = v;
+        HashMap code2LableMap = eh.createEmbeddedHierarchyCode2LabelHashMap(v);
+
+        Iterator it = nodeSet.iterator();
+        int lcv = 0;
+        Vector orphans = new Vector();
+        Vector orphan_codes = new Vector();
+        while (it.hasNext()) {
+			lcv++;
+			String node = (String) it.next();
+			if (!code2LableMap.containsKey(node)) {
+				String node_label = eh.getLabel(node);
+				orphans.add(node_label + " (" + node + ")");
+				orphan_codes.add(node);
+			}
+		}
+        for (int k=0; k<orphan_codes.size(); k++) {
+			String orphan_code = (String) orphan_codes.elementAt(k);
+			String superclass_label = eh.getLabel(orphan_code);
+			Vector superclasses = eh.getSuperclassCodes(orphan_code);
+			if (superclasses.contains(UNUSED_SUBSET_CONCEPT_CODE)) {
+				//System.out.println(superclass_label + " (" + orphan_code + ")" + " is unused.");
+			} else {
+				Vector superclass_label_and_code_vec = new Vector();
+				for (int j=0; j<superclasses.size(); j++) {
+					String t = (String) superclasses.elementAt(j);
+					String t_label = eh.getLabel(t);
+					superclass_label_and_code_vec.add(t_label + " (" + t + ")");
+				}
+			}
+		}
+		Vector orphanTerminologySubsets = eh.identifyOrphanTerminologySubsets(orphan_codes);
+        Vector roots = eh.identifyRootTerminologySubsets(embedded_hierarchy_parent_child_vec);
+        Vector eh_vec = eh.generateEmbeddedHierarchyParentChildData(embedded_hierarchy_parent_child_vec, nodeSet);
+        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+		return eh_vec;
+	}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
