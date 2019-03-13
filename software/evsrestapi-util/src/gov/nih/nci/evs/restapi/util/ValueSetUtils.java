@@ -92,6 +92,10 @@ public class ValueSetUtils {
 	public static String VS_HEADER_CONCEPT_FILE = "vs_header_concepts.txt";
 	public static String ANNOTATION_PROPERTY_FILE = "annotation_properties.txt";
 	public static String EMBEDDED_VALUE_SET_HIERARCHY_FILE = "embedded_value_set_hierarchy.txt";
+    public static String TERMINOLOGY_SUBSET_CODE = "C54443"; //Terminology Subset (Code C54443)
+    public static String NCI_THESAURUS = "NCI_Thesaurus";
+	public static String CONCEPT_IN_SUBSET = "Concept_In_Subset";
+	public static String CONTRIBUTING_SOURCE = "Contributing_Source";
 
 	private ValueSetSearchUtils searchUtils = null;
 
@@ -116,9 +120,9 @@ public class ValueSetUtils {
 		if (named_graph != null) {
 			this.named_graph = named_graph;
 		} else {
-			this.named_graph = mdu.getNamedGraph(Constants.NCI_THESAURUS);
+			this.named_graph = mdu.getNamedGraph(NCI_THESAURUS);
 		}
-		version = mdu.getLatestVersion(Constants.NCI_THESAURUS);
+		version = mdu.getLatestVersion(NCI_THESAURUS);
 		System.out.println("named_graph: " + this.named_graph);
 		System.out.println("version: " + version);
 		this.owlSPARQLUtils.set_named_graph(this.named_graph);
@@ -178,75 +182,11 @@ public class ValueSetUtils {
 		return file.exists();
 	}
 
-	/*
-    public void initialize() {
-		long ms_0 = System.currentTimeMillis();
-        long ms = System.currentTimeMillis();
-        boolean annotation_property_file_exists = Utils.checkIfFileExists(ANNOTATION_PROPERTY_FILE);
-        annotation_property_vec = null;
-        if (!annotation_property_file_exists) {
-			System.out.println("Generating " + ANNOTATION_PROPERTY_FILE + "...");
-			annotation_property_vec = getAnnotationProperties();
-			Utils.saveToFile(ANNOTATION_PROPERTY_FILE, annotation_property_vec);
-			System.out.println(ANNOTATION_PROPERTY_FILE + " size: " + annotation_property_vec.size());
-	    } else {
-			System.out.println("Loading " + ANNOTATION_PROPERTY_FILE + "...");
-			annotation_property_vec = Utils.readFile(ANNOTATION_PROPERTY_FILE);
-		}
-		System.out.println("Total processing " + ANNOTATION_PROPERTY_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
-
-        ms = System.currentTimeMillis();
-        boolean parent_child_file_exists = Utils.checkIfFileExists(PARENT_CHILD_FILE);
-        parent_child_vec = null;
-        if (!parent_child_file_exists) {
-			System.out.println("Generating " + PARENT_CHILD_FILE + "...");
-			parent_child_vec = generate_parent_child_vec();
-			Utils.saveToFile(PARENT_CHILD_FILE, parent_child_vec);
-			System.out.println(PARENT_CHILD_FILE + " size: " + parent_child_vec.size());
-	    } else {
-			System.out.println("Loading " + PARENT_CHILD_FILE + "...");
-			parent_child_vec = Utils.readFile(PARENT_CHILD_FILE);
-		}
-		System.out.println("Total processing " + PARENT_CHILD_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
-
-        ms = System.currentTimeMillis();
-        boolean concept_in_subset_file_exists = Utils.checkIfFileExists(CONCEPT_IN_SUBSET_FILE);
-        concept_in_subset_vec = null;
-        if (!concept_in_subset_file_exists) {
-			System.out.println("Generating " + CONCEPT_IN_SUBSET_FILE + "...");
-			concept_in_subset_vec = generate_concept_in_subset_vec();
-			Utils.saveToFile(CONCEPT_IN_SUBSET_FILE, concept_in_subset_vec);
-			System.out.println(CONCEPT_IN_SUBSET_FILE + " size: " + concept_in_subset_vec.size());
-	    } else {
-			System.out.println("Loading " + CONCEPT_IN_SUBSET_FILE + "...");
-			concept_in_subset_vec = Utils.readFile(CONCEPT_IN_SUBSET_FILE);
-		}
-		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
-
-        ms = System.currentTimeMillis();
-        boolean vs_header_concept_file_exists = Utils.checkIfFileExists(VS_HEADER_CONCEPT_FILE);
-        vs_header_concept_vec = null;
-        if (!vs_header_concept_file_exists) {
-			System.out.println("Generating " + VS_HEADER_CONCEPT_FILE + "...");
-			vs_header_concept_vec = generate_value_set_header_concept_vec();
-			Utils.saveToFile(VS_HEADER_CONCEPT_FILE, vs_header_concept_vec);
-			System.out.println(VS_HEADER_CONCEPT_FILE + " size: " + vs_header_concept_vec.size());
-	    } else {
-			System.out.println("Loading " + VS_HEADER_CONCEPT_FILE + "...");
-			vs_header_concept_vec = Utils.readFile(VS_HEADER_CONCEPT_FILE);
-		}
-		System.out.println("Total processing " + VS_HEADER_CONCEPT_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
-		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
-		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms_0));
-	}
-	*/
-
     public void initialize() {
 		long ms_0 = System.currentTimeMillis();
         long ms = System.currentTimeMillis();
 
-
-System.out.println("Step 1");
+System.out.println("Step 1: " + ANNOTATION_PROPERTY_FILE);
         boolean annotation_property_file_exists = checkIfFileExists(ANNOTATION_PROPERTY_FILE);
         annotation_property_vec = null;
         if (!annotation_property_file_exists) {
@@ -260,7 +200,7 @@ System.out.println("Step 1");
 		}
 		System.out.println("Total processing " + ANNOTATION_PROPERTY_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 2");
+System.out.println("Step 2: " + PARENT_CHILD_FILE);
         ms = System.currentTimeMillis();
         boolean parent_child_file_exists = checkIfFileExists(PARENT_CHILD_FILE);
         parent_child_vec = null;
@@ -275,7 +215,7 @@ System.out.println("Step 2");
 		}
 		System.out.println("Total processing " + PARENT_CHILD_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 3");
+System.out.println("Step 3: " + CONCEPT_IN_SUBSET_FILE);
         ms = System.currentTimeMillis();
         boolean concept_in_subset_file_exists = checkIfFileExists(CONCEPT_IN_SUBSET_FILE);
         concept_in_subset_vec = null;
@@ -291,7 +231,7 @@ System.out.println("Step 3");
 		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
 		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 4");
+System.out.println("Step 4: " + VS_HEADER_CONCEPT_FILE);
         ms = System.currentTimeMillis();
         boolean vs_header_concept_file_exists = checkIfFileExists(VS_HEADER_CONCEPT_FILE);
         vs_header_concept_vec = null;
@@ -306,7 +246,7 @@ System.out.println("Step 4");
 		}
 		System.out.println("Total processing " + VS_HEADER_CONCEPT_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 5");
+System.out.println("Step 5: " + EMBEDDED_VALUE_SET_HIERARCHY_FILE);
         ms = System.currentTimeMillis();
         embedded_value_set_hierarchy_vec = null;
         boolean embedded_value_set_hierarchy_file_exists = checkIfFileExists(EMBEDDED_VALUE_SET_HIERARCHY_FILE);
@@ -320,7 +260,7 @@ System.out.println("Step 5");
 		}
 		System.out.println("Total processing " + EMBEDDED_VALUE_SET_HIERARCHY_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 6");
+System.out.println("Step 6: generating AssertedValueSetTree ...");
         assertedValueSetTree = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
 		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms_0));
 	}
@@ -369,14 +309,11 @@ System.out.println("Step 6");
 		return orphan_nodes;
 	}
 
-
-    //public static String TERMINOLOGY_SUBSET_CODE = "C54443"; //Terminology Subset (Code C54443)
-
     public void contructSourceAssertedTree(String outputfile) {
 		long ms = System.currentTimeMillis();
 		Vector parent_child_vec = Utils.readFile(PARENT_CHILD_FILE);
         EmbeddedHierarchy eh = new EmbeddedHierarchy(parent_child_vec);
-        String rootCode = Constants.TERMINOLOGY_SUBSET_CODE;
+        String rootCode = TERMINOLOGY_SUBSET_CODE;
         String label = eh.getLabel(rootCode);
         System.out.println("Root: " + label + " (" + rootCode + ")");
         Vector vs_header_concept_vec = Utils.readFile(VS_HEADER_CONCEPT_FILE);
@@ -470,7 +407,7 @@ System.out.println("Step 6");
 				String label = (String) u.elementAt(0);
 				String code = (String) u.elementAt(1);
 				idx++;
-				Concept c = new Concept(idx, Constants.NCI_THESAURUS, version, label, code);
+				Concept c = new Concept(idx, NCI_THESAURUS, version, label, code);
                 list.add(c);
 			}
 		}
@@ -614,7 +551,7 @@ System.out.println("Step 6");
 
 	public Vector generate_concept_in_subset_vec() {
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
-		concept_in_subset_vec = owlSPARQLUtils.getAssociationSourcesAndTargets(named_graph, Constants.CONCEPT_IN_SUBSET);
+		concept_in_subset_vec = owlSPARQLUtils.getAssociationSourcesAndTargets(named_graph, CONCEPT_IN_SUBSET);
 		concept_in_subset_vec = new ParserUtils().getResponseValues(concept_in_subset_vec);
 		concept_in_subset_vec = new SortUtils().quickSort(concept_in_subset_vec);
 		return concept_in_subset_vec;
@@ -646,7 +583,7 @@ System.out.println("Step 6");
 			vs_header_concept_vec = generate_value_set_header_concept_vec();
 		}
         EmbeddedHierarchy eh = new EmbeddedHierarchy(parent_child_vec);
-        String rootCode = Constants.TERMINOLOGY_SUBSET_CODE;
+        String rootCode = TERMINOLOGY_SUBSET_CODE;
         String label = eh.getLabel(rootCode);
         HashSet nodeSet = eh.getPublishedValueSetHeaderConceptCodes(vs_header_concept_vec);
 
