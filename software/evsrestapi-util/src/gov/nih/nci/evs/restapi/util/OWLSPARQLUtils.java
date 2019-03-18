@@ -473,6 +473,16 @@ public class OWLSPARQLUtils {
 		return Integer.parseInt(count_str);
 	}
 
+	public Vector get_triple_counts(Vector named_graphs) {
+		Vector v = new Vector();
+        for (int i=0; i<named_graphs.size(); i++) {
+			String named_graph = (String) named_graphs.elementAt(i);
+			int count = get_triple_count(named_graph);
+			v.add(named_graph + "|" + count);
+		}
+		return v;
+	}
+
 	public String construct_get_superclasses_by_code(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();

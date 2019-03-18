@@ -667,7 +667,7 @@ public class GraphDrawer {
 		out.println("");
 
 		out.println("    function reset_graph(id) {");
-		out.println("        window.location.href=\"/sparql/ajax?action=reset_graph&id=\" + id;");
+		out.println("        window.location.href=\"/" + sparql + "/ajax?action=reset_graph&id=\" + id;");
 		out.println("    }");
 
 
