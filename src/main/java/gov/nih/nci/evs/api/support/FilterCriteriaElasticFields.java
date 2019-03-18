@@ -10,8 +10,8 @@ public class FilterCriteriaElasticFields {
 	private Integer fromRecord;
 	private Integer pageSize;
 	private ArrayList<String> returnProperties;
-	private String conceptStatus;
-	private String contributingSource;
+	private ArrayList<String> conceptStatus;
+	private ArrayList<String> contributingSource;
 	private String synonymSource;
 	private String synonymGroup;
 	private String associationSearch;
@@ -125,19 +125,19 @@ public class FilterCriteriaElasticFields {
 		this.definitionSource = definitionSource;
 	}
 
-	public String getConceptStatus() {
+	public ArrayList<String> getConceptStatus() {
 		return conceptStatus;
 	}
 
-	public void setConceptStatus(String conceptStatus) {
+	public void setConceptStatus(ArrayList<String> conceptStatus) {
 		this.conceptStatus = conceptStatus;
 	}
 
-	public String getContributingSource() {
+	public ArrayList<String> getContributingSource() {
 		return contributingSource;
 	}
 
-	public void setContributingSource(String contributingSource) {
+	public void setContributingSource(ArrayList<String> contributingSource) {
 		this.contributingSource = contributingSource;
 	}
 

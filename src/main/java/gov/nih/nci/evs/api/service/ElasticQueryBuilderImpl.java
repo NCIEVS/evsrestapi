@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -568,28 +569,32 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		boolean conceptStatusFilter = false;
 
 
+		ArrayList<String> conceptStatuses = filterCriteriaElasticFields.getConceptStatus();
 		
-		String conceptStatus = ""; 
-		if (filterCriteriaElasticFields.getConceptStatus() != null) {
-			conceptStatus = this.conceptStatus.get(filterCriteriaElasticFields.getConceptStatus().toLowerCase());
+		if (conceptStatuses != null && conceptStatuses.size() > 0) {
+			
+			for (String conceptStatus: conceptStatuses ) {
+			conceptStatus = conceptStatus.toLowerCase();
 			if (conceptStatus == null) {
 				throw new InvalidParameterValueException(
 						"Invalid Parameter value for conceptStatus field. Rejected value - "
-								+ filterCriteriaElasticFields.getConceptStatus());
+								+ conceptStatus);
+			    }
 			}
-			
 			conceptStatusFilter = true;
 		}
 		
-		String contributingSource = ""; 
-		if (filterCriteriaElasticFields.getContributingSource() != null) {
-			contributingSource = this.contributingSource.get(filterCriteriaElasticFields.getContributingSource().toLowerCase());
+		ArrayList<String> contributingSources = filterCriteriaElasticFields.getContributingSource();
+		if (contributingSources != null && contributingSources.size() > 0) {
+			
+			for (String contributingSource: contributingSources ) {
+			contributingSource = contributingSource.toLowerCase();
 			if (contributingSource == null) {
 				throw new InvalidParameterValueException(
 						"Invalid Parameter value for contributingSource field. Rejected value - "
 								+ filterCriteriaElasticFields.getContributingSource());
+			 }
 			}
-			
 			contributingSourceFilter = true;
 		}
 		
@@ -597,16 +602,21 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			filter = filter + ",\n";
 			filter = filter + "\"filter\":{\n";
 			filter = filter + "\"bool\":{\n";
-			filter = filter + "\"must\":[\n";
+			filter = filter + "\"should\":[\n";
 
 			
 			
-			if (filterCriteriaElasticFields.getConceptStatus() != null) {
-				filter = filter + "{\"term\":{\"Concept_Status\":\"" + filterCriteriaElasticFields.getConceptStatus() + "\"}},\n";
+			if (conceptStatusFilter) {
+				
+				for (String conceptStatus: conceptStatuses ) {
+				   filter = filter + "{\"term\":{\"Concept_Status\":\"" + conceptStatus + "\"}},\n";
+				}
 			}
 			
-			if (filterCriteriaElasticFields.getContributingSource() != null) {
-				filter = filter + "{\"term\":{\"Contributing_Source\":\"" + contributingSource + "\"}},\n";
+			if (contributingSourceFilter) {
+				for (String contributingSource: contributingSources ) {
+				  filter = filter + "{\"term\":{\"Contributing_Source\":\"" + contributingSource + "\"}},\n";
+				}
 			}
 
 			filter = filter.substring(0, filter.length() - 2);

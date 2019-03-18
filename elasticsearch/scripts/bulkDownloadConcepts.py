@@ -92,5 +92,5 @@ if __name__ == '__main__':
 
     for code, concept in concepts.items():
         with open(CONCEPT_OUTPUT_DIR + concept['Code'] + ".json", "w") as output_file:
-            print(json.dumps(concept, indent=4, sort_keys=True), file=output_file)
+            print(json.dumps(concept, indent=2, sort_keys=True), file=output_file)
             output_file.close()

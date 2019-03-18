@@ -52,6 +52,8 @@ def getAllProperties(sparql_endpoint, named_graph):
             property['concept_code'] = result['concept_code']['value']
             if "property_code" in result:
                 property['property_code'] = result['property_code']['value']
+            else:
+                property['property_code'] = ""
             property['property_label'] = result['property_label']['value']
             property['property_value'] = result['property_value']['value']
             properties.append(property)
@@ -309,7 +311,7 @@ def mergeConceptsAndDisjointWith(concepts, disjoints):
 def addAdditionalProperties(concept):
     for property in concept['properties']:
         if property['property_label'] not in IGNORE_PROPERTIES:
-            if 'property_code' in property and not property['property_code'].startswith('A'):
+            if not property['property_code'].startswith('A'):
                 if property['property_label'] not in concept:
                     concept[property['property_label']] = []
                     concept[property['property_label']].append(property['property_value'])
@@ -486,7 +488,7 @@ def addGO_Annotation(concept):
     for axiom in concept['axioms']:
         if axiom['annotatedProperty'] == 'P211':
             go = {}
-            go['annotatedTarget'] = axiom['annotatedTarget']
+            go['go-term'] = axiom['annotatedTarget']
             if 'P387' in axiom:
                 go['go-id'] = axiom['P387']
             if 'P389' in axiom:
