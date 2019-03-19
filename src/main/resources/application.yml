@@ -108,9 +108,11 @@ nci:
                        '"synonyms_plain^70",
                         "synonyms_plain.exact^70",',   
                    nhc0:
-                      '"Code^100",',
+                      '"Code^100",
+                       "Code.exact^100"',
                    code:
-                       '"Code^100",',   
+                       '"Code^100",
+                       "Code.exact^100"', 
                    p97:
                       '"definitions_plain^70",
                       "definitions_plain.exact^70",
@@ -392,9 +394,11 @@ nci:
                         "synonyms_plain.exact^70",
                         "synonyms_plain.ngram^30",',      
                    nhc0:
-                      '"Code^100",',
+                       '"Code^100",
+                       "Code.exact^100"',
                    code:
-                       '"Code^100",',   
+                       '"Code^100",
+                       "Code.exact^100"',   
                    p97:
                       '"definitions_plain^70",
                        "definitions_plain.ngram^30",',
@@ -607,6 +611,7 @@ nci:
         containsfields: |
              [
               "Code^100",
+              "Code.exact^100",
               "Label^100",
               "Label.exact^100",
               "Label.ngram^50",
@@ -788,6 +793,7 @@ nci:
         andorfields: |
               [
                 "Code^100",
+                "Code.exact^100",
                 "Label^100",
                 "Label.exact^100",
                 "Display_Name^100",
@@ -976,6 +982,7 @@ nci:
                "${relation}.relatedConceptLabel.exact": {}    
         highlightcontains: |
               "Code": {},
+              "Code.exact": {},
               "Label.ngram": {},
               "Display_Name.ngram": {},     
               "Preferred_Name.ngram": {},
@@ -1039,6 +1046,7 @@ nci:
                "${relation}.relatedConceptLabel.ngram": {}                 
         highlightandor: | 
                "Code": {},
+               "Code.exact": {},
                "Label": {},
                "Display_Name": {},
                "Preferred_Name": {},
