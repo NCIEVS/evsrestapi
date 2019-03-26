@@ -63,6 +63,7 @@ nci:
   evs:
     application:
       contextPath: ${NCI_EVS_API_PATH:/api/v1}
+      generatedFilePath: ${NCI_EVS_API_GENERATED_FILE_PATH:${user.home}/apps/evsrestapi/data/}
     stardog:
       monthlyQueryUrl: ${STARDOG_MONTHLY_QUERY_URL:http://localhost:5820/NCIT2/query}
       monthlyGraphName: ${STARDOG_MONTHLY_GRAPH_NAME:http://NCI_T}

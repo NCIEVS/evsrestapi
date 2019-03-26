@@ -13,6 +13,7 @@ public class ApplicationProperties {
     private static final Logger log = LoggerFactory.getLogger(ApplicationProperties.class);
 
     private String contextPath;
+    private String generatedFilePath;
 
 	public String getContextPath() {
 		return contextPath;
@@ -22,6 +23,12 @@ public class ApplicationProperties {
 		this.contextPath = contextPath;
 	}
     
-	
+	public String getGeneratedFilePath() {
+		return generatedFilePath;
+	}
+
+	public void setGeneratedFilePath(String generatedFilePath) {
+		this.generatedFilePath = generatedFilePath;
+	}
 		
 }

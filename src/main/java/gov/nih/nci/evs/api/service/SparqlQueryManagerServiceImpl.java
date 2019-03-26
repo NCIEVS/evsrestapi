@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ import gov.nih.nci.evs.api.model.evs.Path;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
@@ -60,6 +62,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 	
 	@Autowired
 	private ThesaurusProperties thesaurusProperties;
+	
+	@Autowired
+	ApplicationProperties applicationProperties;
 
 	private RESTUtils restUtils = null;
 	
@@ -80,6 +85,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
 				stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
 		populateCache();
+		genDocumentationFiles();
 	}
 	
 	@Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
@@ -120,6 +126,29 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		pathsMonthly = pathFinder.findPaths();
 		pathFinder = new PathFinder(hierarchyMonthly);
 		pathsWeekly = pathFinder.findPaths();
+	}
+	
+	public void genDocumentationFiles() throws IOException {
+		String baseDirectory = applicationProperties.getGeneratedFilePath();
+		ObjectMapper mapper = new ObjectMapper();
+		List <EvsConcept> properties = getAllProperties("weekly","byLabel");
+		try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(baseDirectory + "properties.json"), properties);	
+		} catch  (IOException e) {
+			e.printStackTrace();
+		}
+		List <EvsConcept> roles = getAllRoles("weekly","byLabel");
+		try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(baseDirectory + "roles.json"), roles);	
+		} catch  (IOException e) {
+			e.printStackTrace();
+		}
+		List <EvsConcept> associations = getAllAssociations("weekly","byLabel");
+		try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(baseDirectory + "associations.json"), associations);	
+		} catch  (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public String getNamedGraph(String dbType) {
