@@ -96,6 +96,21 @@ public class Synonym
 		this.subSourceCode = subSourceCode;
 	}
 
+	public Synonym(
+		String termName,
+		String termGroup,
+		String termSource,
+		String sourceCode) {
+		this.code = null;
+		this.label = null;
+		this.termName = termName;
+		this.termGroup = termGroup;
+		this.termSource = termSource;
+		this.sourceCode = sourceCode;
+		this.subSourceName = null;
+		this.subSourceCode = null;
+	}
+
 // Set methods
 	public void setCode(String code) {
 		this.code = code;
