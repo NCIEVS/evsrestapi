@@ -14,6 +14,7 @@ public class ApplicationProperties {
 
     private String contextPath;
     private String generatedFilePath;
+    private Boolean forceFileGeneration;
 
 	public String getContextPath() {
 		return contextPath;
@@ -30,5 +31,14 @@ public class ApplicationProperties {
 	public void setGeneratedFilePath(String generatedFilePath) {
 		this.generatedFilePath = generatedFilePath;
 	}
+
+	public Boolean getForceFileGeneration() {
+		return forceFileGeneration;
+	}
+
+	public void setForceFileGeneration(Boolean forceFileGeneration) {
+		this.forceFileGeneration = forceFileGeneration;
+	}
+		
 		
 }

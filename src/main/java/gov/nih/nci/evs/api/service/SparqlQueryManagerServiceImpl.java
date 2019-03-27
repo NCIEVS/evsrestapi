@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -85,7 +86,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
 				stardogProperties.getReadTimeout(),stardogProperties.getConnectTimeout());
 		populateCache();
-		genDocumentationFiles();
+		if (applicationProperties.getForceFileGeneration()) {
+    		genDocumentationFiles();
+		}
 	}
 	
 	@Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
@@ -106,6 +109,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 				|| stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y")){
 			log.info("****Repopulating cache***");
 			populateCache();
+    		genDocumentationFiles();
 			log.info("****Repopulating cache done***");
 		}
 	}
@@ -149,7 +153,46 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		} catch  (IOException e) {
 			e.printStackTrace();
 		}
+		
+		List<String> conceptProperties = Arrays.asList("Code", "Label", "Subconcept", "Publish_Value_Set");
+		EvsConcept parent = getEvsConceptByLabelProperties("C54443", "monthly", conceptProperties);
+
+		List <HierarchyNode> nodes = getValueSetHierarchy(parent, conceptProperties);
+		try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(baseDirectory + "ValueSetHierarchy.json"), nodes);	
+		} catch  (IOException e) {
+			e.printStackTrace();
+		}
 	}
+	
+	private List <HierarchyNode> getValueSetHierarchy(EvsConcept parent, List <String> conceptProperties) 
+	    throws IOException {
+		List <HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+		for (EvsRelatedConcept child: parent.getSubconcepts()) {
+    		EvsConcept childConcept = getEvsConceptByLabelProperties(child.getCode(), "monthly", conceptProperties);
+    		HierarchyNode node = new HierarchyNode();
+    		node.setCode(childConcept.getCode());
+    		node.setLabel(childConcept.getLabel());
+    		if (childConcept.getProperties().containsKey("Publish_Value_Set")) {
+    			if (childConcept.getProperties().get("Publish_Value_Set").get(0).equals("Yes")) {
+            		if (childConcept.getSubconcepts() != null) {
+            			List <HierarchyNode> children = getValueSetHierarchy(childConcept, conceptProperties);
+            			if (children.size() > 0) {
+                			node.setLeaf(false);
+                			node.setChildren(children);
+            			} else {
+                			node.setLeaf(true);
+            			}
+            		} else {
+            			node.setLeaf(true);
+            		}
+            		nodes.add(node);
+    			}
+    		}
+		}
+		return nodes;
+	}
+	
 	
 	public String getNamedGraph(String dbType) {
 		if (dbType.equals("monthly")) {
