@@ -600,29 +600,49 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		
 		if (contributingSourceFilter  || conceptStatusFilter) {
 			filter = filter + ",\n";
-			filter = filter + "\"filter\":{\n";
-			filter = filter + "\"bool\":{\n";
-			filter = filter + "\"should\":[\n";
+			filter = filter + "\"filter\":\n";
+			filter = filter + "[\n";
+		//	filter = filter + "\"bool\":{\n";
+		//	filter = filter + "\"should\":[\n";
 
 			
 			
 			if (conceptStatusFilter) {
-				
+				if (conceptStatuses.size() == 1) {
+					 filter = filter + "{\"term\":{\"Concept_Status\":\"" + conceptStatuses.get(0) + "\"}},\n";
+				} else {
+					filter = filter + "{\"terms\":{\"Concept_Status\": [" ;
 				for (String conceptStatus: conceptStatuses ) {
-				   filter = filter + "{\"term\":{\"Concept_Status\":\"" + conceptStatus + "\"}},\n";
+				   filter = filter + "\"" + conceptStatus + "\",";
+				 }
+				filter = filter.substring(0, filter.length() - 1);
+				filter = filter + "]}},\n";
 				}
 			}
 			
+			//if (contributingSourceFilter) {
+			//	for (String contributingSource: contributingSources ) {
+			//	  filter = filter + "{\"term\":{\"Contributing_Source\":\"" + contributingSource + "\"}},\n";
+			//	}
+			//}
+			
 			if (contributingSourceFilter) {
+				if (contributingSources.size() == 1) {
+					 filter = filter + "{\"term\":{\"Contributing_Source\":\"" + contributingSources.get(0) + "\"}},\n";
+				} else {
+					filter = filter + "{\"terms\":{\"Contributing_Source\": [" ;
 				for (String contributingSource: contributingSources ) {
-				  filter = filter + "{\"term\":{\"Contributing_Source\":\"" + contributingSource + "\"}},\n";
+				   filter = filter + "\"" + contributingSource + "\",";
+				 }
+				filter = filter.substring(0, filter.length() - 1);
+				filter = filter + "]}},\n";
 				}
 			}
 
 			filter = filter.substring(0, filter.length() - 2);
 			filter = filter + "]\n";
-			filter = filter + "}\n";
-			filter = filter + "}\n";
+			//filter = filter + "}\n";
+			//filter = filter + "}\n";
 		}
 		return filter;
 	}

@@ -1136,12 +1136,14 @@ nci:
                   "aggs": {                   
                     "conceptStatus": {
                       "terms": {
-                        "field": "Concept_Status"
+                        "field": "Concept_Status" ,
+                        "min_doc_count": 0
                       }
                     },
                     "contributingSource": {
                       "terms": {
-                        "field": "Contributing_Source"
+                        "field": "Contributing_Source",
+                        "min_doc_count": 0
                       }
                     }
                   }
@@ -1179,12 +1181,14 @@ nci:
                   "aggs": {                  
                     "conceptStatus": {
                       "terms": {
-                        "field": "Concept_Status"
+                        "field": "Concept_Status",
+                        "min_doc_count": 0
                       }
                     },
                     "contributingSource": {
                       "terms": {
-                        "field": "Contributing_Source"
+                        "field": "Contributing_Source",
+                        "min_doc_count": 0
                       }
                     }
                   }
@@ -1247,12 +1251,14 @@ nci:
                          "aggs": {
                            "conceptStatus": {
                                    "terms": {
-                                     "field": "Concept_Status"
+                                     "field": "Concept_Status",
+                                      "min_doc_count": 0
                                             }
                                             },
                                           "contributingSource": {
                                             "terms": {
-                                              "field": "Contributing_Source"
+                                              "field": "Contributing_Source",
+                                               "min_doc_count": 0
                                             }
                                           }
                                   }
@@ -1277,12 +1283,14 @@ nci:
                   "aggs": {                   
                     "conceptStatus": {
                       "terms": {
-                        "field": "Concept_Status"
+                        "field": "Concept_Status",
+                         "min_doc_count": 0
                       }
                     },
                     "contributingSource": {
                       "terms": {
-                        "field": "Contributing_Source"
+                        "field": "Contributing_Source",
+                         "min_doc_count": 0
                       }
                     }
                   }
@@ -1314,12 +1322,14 @@ nci:
                   "aggs": {                  
                     "conceptStatus": {
                       "terms": {
-                        "field": "Concept_Status"
+                        "field": "Concept_Status",
+                         "min_doc_count": 0
                       }
                     },
                     "contributingSource": {
                       "terms": {
-                        "field": "Contributing_Source"
+                        "field": "Contributing_Source",
+                         "min_doc_count": 0
                       }
                     }
                   }
@@ -1376,12 +1386,14 @@ nci:
                          "aggs": {
                            "conceptStatus": {
                                    "terms": {
-                                     "field": "Concept_Status"
+                                     "field": "Concept_Status",
+                                      "min_doc_count": 0
                                             }
                                             },
                                       "contributingSource": {
                                         "terms": {
-                                          "field": "Contributing_Source"
+                                          "field": "Contributing_Source",
+                                           "min_doc_count": 0
                                         }
                                       }
                                   }
