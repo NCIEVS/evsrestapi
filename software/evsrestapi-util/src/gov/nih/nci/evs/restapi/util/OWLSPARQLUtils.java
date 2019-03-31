@@ -3697,6 +3697,44 @@ public class OWLSPARQLUtils {
 		return v;
 	}
 
+	public String search_by_label(String named_graph, String identifier, String matchText) {
+		return search_by_label(named_graph, identifier, matchText, -1);
+	}
+
+	public String search_by_label(String named_graph, String identifier, String matchText, int maxReturn) {
+		StringBuffer buf = new StringBuffer();
+		String matchText_lc = matchText.toLowerCase();
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x rdfs:label ?x_label .").append("\n");
+		buf.append("?x :" + identifier + " ?x_code ").append("\n");
+		buf.append("FILTER (contains(lcase(str(?x_label)), '" + matchText_lc + "'))").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		if (maxReturn > 0) {
+			buf.append("LIMIT " + maxReturn).append("\n");
+		}
+		return buf.toString();
+	}
+
+	public Vector searchByLabel(String named_graph, String identifier, String matchText) {
+		Vector v = executeQuery(search_by_label(named_graph, identifier, matchText));
+		if (v == null) return null;
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
+
     public static void main(String[] args) {
 		String serviceUrl = args[0];
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
