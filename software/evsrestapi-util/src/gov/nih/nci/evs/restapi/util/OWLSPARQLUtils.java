@@ -1753,7 +1753,10 @@ public class OWLSPARQLUtils {
 	}
 
     public String getOntologyName(String uri) {
-		return (String) ontologyUri2LabelMap.get(uri);
+		if (this.ontologyUri2LabelMap == null) {
+			this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
+		}
+		return (String) this.ontologyUri2LabelMap.get(uri);
 	}
 
 	public Vector getAvailableOntologies() {
@@ -3729,7 +3732,7 @@ public class OWLSPARQLUtils {
 
 	public Vector searchByLabel(String named_graph, String identifier, String matchText) {
 		Vector v = executeQuery(search_by_label(named_graph, identifier, matchText));
-		if (v == null) return null;
+		if (v == null || v.size() == 0) return null;
 		v = new ParserUtils().getResponseValues(v);
 		v = new SortUtils().quickSort(v);
 		return v;
