@@ -691,7 +691,7 @@ public class StringUtils {
 		return w;
 	}
 
-	public Vector getKeys(HashMap hmap) {
+	public static Vector getKeys(HashMap hmap) {
         Vector keys = new Vector();
         Iterator it = hmap.keySet().iterator();
         while (it.hasNext()) {
