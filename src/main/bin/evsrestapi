@@ -1,31 +1,60 @@
 #!/bin/bash
 
-export JAVA_HOME=/home/evsuser/opt/java/current
+### BEGIN INIT INFO
+# Provides: evsrestapi
+# Required-Start: $local_fs $syslog
+# Required-Stop: $local_fs $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: start and stop the Angular Core application
+### END INIT INFO
+
+export JAVA_HOME=$HOME/opt/java/current
 export PATH="${JAVA_HOME}/bin:${PATH}"
 USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
-APP_NAME=evsrestapi
+APP_NAME=`basename $0`
 APP_USER=evsuser
-APP_ROOT_DIR=/home/evsuser/apps/${APP_NAME}
-ENV_FILE=${APP_ROOT_DIR}/bin/setenv.sh
-JAR_FILE=${APP_ROOT_DIR}/lib/${APP_NAME}.war
-LOG_DIR=${APP_ROOT_DIR}/logs
+if
+  [ "$USER" != "" ]
+then
+  APP_USER="$USER"
+else
+  if
+    [ "$user" != "" ]
+  then
+    APP_USER="$user"
+  fi
+fi
+
+CONFIG_DIR=$HOME/config/${APP_NAME}
+CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
+
+APP_DIR=$HOME/apps/${APP_NAME}
+APP_ENV_FILE=${APP_DIR}/bin/setenv.sh
+
+JAR_FILE=${APP_DIR}/lib/${APP_NAME}.war
+LOG_DIR=${APP_DIR}/logs
 LOG_FILE=${LOG_DIR}/${APP_NAME}.log
-JAVA_OPTIONS="-Xmx8196m"
-JAVA_COMMAND="java $JAVA_OPTIONS -jar ${JAR_FILE}"
+JAVA_COMMAND="java -jar ${JAR_FILE} ${JAVA_OPTIONS}"
 SHUTDOWN_WAIT=45
 
 #
 # Set up the environment for this application if necessary
 #
 if
-    [ -f ${ENV_FILE} ]
+    [ -f ${CONFIG_ENV_FILE} ]
 then
-    JAVA_COMMAND=". ${ENV_FILE} ; ${JAVA_COMMAND}"
+    JAVA_COMMAND=". ${CONFIG_ENV_FILE} ; ${JAVA_COMMAND}"
+else
+    if
+        [ -f ${APP_ENV_FILE} ]
+    then
+        JAVA_COMMAND=". ${APP_ENV_FILE} ; ${JAVA_COMMAND}"
+    fi
 fi
 
-
 pid() {
-    echo `ps aux | fgrep java | fgrep -v fgrep | fgrep $APP_NAME | grep '^'$APP_USER | awk '{ print $2 }'`
+    echo `ps aux --user $APP_USER | fgrep java | fgrep -v fgrep | fgrep $APP_NAME | awk '{ print $2 }'`
 }
 
 start() {
@@ -54,9 +83,9 @@ start() {
         #
         echo "Starting $APP_NAME"
         if
-            [ "$USER" = "root" ]
+          [ "$UID" = "0" ]
         then
-            /bin/su - -c "$JAVA_COMMAND" $APP_USER 2>>$LOG_FILE >>$LOG_FILE &
+            /bin/su -c "$JAVA_COMMAND" $APP_USER - 2>>$LOG_FILE >>$LOG_FILE &
             until
                 [ "`ls -l $LOG_FILE 2> /dev/null`" != "" ]
             do
