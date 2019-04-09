@@ -1,13 +1,13 @@
 #!/bin/bash
 
-export JAVA_HOME=/home/immport/opt/java/current
+export JAVA_HOME=/home/evsuser/opt/java/current
 export PATH="${JAVA_HOME}/bin:${PATH}"
 USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
 APP_NAME=evsrestapi
-APP_USER=immport
-APP_ROOT_DIR=/data/apps/${APP_NAME}
+APP_USER=evsuser
+APP_ROOT_DIR=/home/evsuser/apps/${APP_NAME}
 ENV_FILE=${APP_ROOT_DIR}/bin/setenv.sh
-JAR_FILE=${APP_ROOT_DIR}/lib/${APP_NAME}.jar
+JAR_FILE=${APP_ROOT_DIR}/lib/${APP_NAME}.war
 LOG_DIR=${APP_ROOT_DIR}/logs
 LOG_FILE=${LOG_DIR}/${APP_NAME}.log
 JAVA_OPTIONS="-Xmx8196m"
