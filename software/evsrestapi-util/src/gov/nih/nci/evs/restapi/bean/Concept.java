@@ -68,6 +68,11 @@ public class Concept
 	private String label;
 	private String code;
 
+	private String cui;
+	private String aui;
+	private String sab;
+
+
 // Default constructor
 	public Concept() {
 	}
@@ -85,6 +90,49 @@ public class Concept
 		this.version = version;
 		this.label = label;
 		this.code = code;
+		this.cui = null;
+		this.aui = null;
+		this.sab = null;
+	}
+
+	public Concept(
+		int idx,
+		String label,
+		String code,
+		String cui,
+		String aui,
+		String sab
+		) {
+
+		this.idx = idx;
+		this.codingScheme = null;
+		this.version = null;
+		this.label = label;
+		this.code = code;
+		this.cui = cui;
+		this.aui = aui;
+		this.sab = sab;
+	}
+
+	public Concept(
+		int idx,
+		String codingScheme,
+		String version,
+		String label,
+		String code,
+		String cui,
+		String aui,
+		String sab
+		) {
+
+		this.idx = idx;
+		this.codingScheme = codingScheme;
+		this.version = version;
+		this.label = label;
+		this.code = code;
+		this.cui = cui;
+		this.aui = aui;
+		this.sab = sab;
 	}
 
 // Set methods
@@ -108,6 +156,17 @@ public class Concept
 		this.code = code;
 	}
 
+	public void setCui(String cui) {
+		this.cui = cui;
+	}
+
+	public void setAui(String aui) {
+		this.aui = aui;
+	}
+
+	public void setSab(String sab) {
+		this.sab = sab;
+	}
 
 // Get methods
 	public int getIdx() {
@@ -130,5 +189,15 @@ public class Concept
 		return this.code;
 	}
 
+	public String getCui() {
+		return this.cui;
+	}
+
+	public String getAui() {
+		return this.aui;
+	}
+	public String getSab() {
+		return this.sab;
+	}
 
 }
