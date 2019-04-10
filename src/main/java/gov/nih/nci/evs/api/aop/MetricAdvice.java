@@ -114,7 +114,7 @@ public class MetricAdvice {
 		// get the parameters
 		ObjectMapper mapper = new ObjectMapper();
 		String metricStr = mapper.writeValueAsString(metric);
-		log.info("metric -" + metricStr);
+		log.debug("metric -" + metricStr);
 
 		return retVal;
 	}
