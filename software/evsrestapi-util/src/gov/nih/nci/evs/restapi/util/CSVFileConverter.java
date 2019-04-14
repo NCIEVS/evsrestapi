@@ -65,12 +65,9 @@ public class CSVFileConverter {
         String heading = (String) v.elementAt(0);
         heading = heading.replace("REL", "rel");
         heading = heading.replaceAll(" ", "");
-        System.out.println(heading);
         heading = heading.replaceAll(",", "|");
-        System.out.println(heading);
         Vector u = new Vector();
         u.add(heading);
-        //Source Code,Source Name,Source Coding Scheme,Source Coding Scheme Version,Source Coding Scheme Namespace,Association Name,REL,Map Rank,Target Code,Target Name,Target Coding Scheme,Target Coding Scheme Version,Target Coding Scheme Namespace
         Vector w = CSVFileReader.csv2Delimited(v, true, "|");
         w = new SortUtils().quickSort(w);
         for (int j=0; j<w.size(); j++) {
