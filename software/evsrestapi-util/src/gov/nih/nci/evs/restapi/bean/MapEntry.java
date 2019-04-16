@@ -22,6 +22,7 @@ public class MapEntry
 	private String sourceCodingSchemeNamespace;
 	private String associationName;
 	private String rel;
+	private String mapRank;
 	private String targetCode;
 	private String targetCodingScheme;
 	private String targetCodingSchemeVersion;
@@ -40,6 +41,7 @@ public class MapEntry
 		String sourceCodingSchemeNamespace,
 		String associationName,
 		String rel,
+		String mapRank,
 		String targetCode,
 		String targetCodingScheme,
 		String targetCodingSchemeVersion,
@@ -52,6 +54,7 @@ public class MapEntry
 		this.sourceCodingSchemeNamespace = sourceCodingSchemeNamespace;
 		this.associationName = associationName;
 		this.rel = rel;
+		this.mapRank = mapRank;
 		this.targetCode = targetCode;
 		this.targetCodingScheme = targetCodingScheme;
 		this.targetCodingSchemeVersion = targetCodingSchemeVersion;
@@ -85,6 +88,10 @@ public class MapEntry
 
 	public void setRel(String rel) { 
 		this.rel = rel;
+	}
+
+	public void setMapRank(String mapRank) { 
+		this.mapRank = mapRank;
 	}
 
 	public void setTargetCode(String targetCode) { 
@@ -131,6 +138,10 @@ public class MapEntry
 
 	public String getRel() { 
 		return this.rel;
+	}
+
+	public String getMapRank() { 
+		return this.mapRank;
 	}
 
 	public String getTargetCode() { 
