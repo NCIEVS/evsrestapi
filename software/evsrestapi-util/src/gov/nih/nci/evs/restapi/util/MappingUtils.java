@@ -199,8 +199,7 @@ public class MappingUtils {
 		return null;
 	}
 
-
-	public String construct_mapentry_id_query(String named_graph, String sourcecode) {
+	public String construct_mapentry_id_query(String named_graph, String key, String value) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX :<" + named_graph + ">").append("\n");
 		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
@@ -218,23 +217,34 @@ public class MappingUtils {
 		buf.append("graph <http://gov.nih.nci.evs/mapping/go_to_ncit_mapping_1.1>").append("\n");
 		buf.append("{").append("\n");
 		buf.append("?x ?y ?z .").append("\n");
-		buf.append("FILTER(str(?z) = \"" + sourcecode + "\"^^xsd:string)").append("\n");
+		buf.append("FILTER(str(?z) = \"" + value + "\"^^xsd:string && endsWith(str(?y), \"" +key + "\"^^xsd:string))").append("\n");
 		buf.append("}").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
 
-	public String get_mapentry_id(String named_graph, String sourcecode) {
-		String query = construct_mapentry_id_query(named_graph, sourcecode);
+	public Vector get_mapentry_id_by_source_code(String named_graph, String code) {
+		String query = construct_mapentry_id_query(named_graph, "sourceCode", code);
 		Vector v = executeQuery(query);
 		if (v != null && v.size() > 0) {
 			v = new ParserUtils().getResponseValues(v);
 			v = new SortUtils().quickSort(v);
-			return (String) v.elementAt(0);
+			return v;
 		}
 		return null;
 	}
 
+
+	public Vector get_mapentry_id_by_target_code(String named_graph, String code) {
+		String query = construct_mapentry_id_query(named_graph, "targetCode", code);
+		Vector v = executeQuery(query);
+		if (v != null && v.size() > 0) {
+			v = new ParserUtils().getResponseValues(v);
+			v = new SortUtils().quickSort(v);
+			return v;
+		}
+		return null;
+	}
 
 	public String construct_mapentry_ids_query(String named_graph) {
 		StringBuffer buf = new StringBuffer();
@@ -358,23 +368,26 @@ public class MappingUtils {
 		String serviceUrl = args[0];
 		MappingUtils mappingUtils = new MappingUtils(serviceUrl);
         String named_graph = args[1];
+        String sourcecode = args[2];
+        Vector ids = mappingUtils.get_mapentry_id_by_source_code(named_graph, sourcecode);
+
+        for (int k=0; k<ids.size(); k++) {
+			String id = (String) ids.elementAt(k);
+			System.out.println(id);
+
+			Vector v = mappingUtils.get_mapentry(named_graph, id);
+			StringUtils.dumpVector("v", v);
+
+			MapEntry entry = mappingUtils.constructMapEntry(v);
+			System.out.println(entry.toXML());
+			System.out.println(entry.toJson());
+		}
+
 
         /*
-        String sourcecode = args[2];
-        String id = mappingUtils.get_mapentry_id(named_graph, sourcecode);
-        System.out.println(id);
-
-        Vector v = mappingUtils.get_mapentry(named_graph, id);
-        StringUtils.dumpVector("v", v);
-
-        MapEntry entry = mappingUtils.constructMapEntry(v);
-        System.out.println(entry.toXML());
-        System.out.println(entry.toJson());
-        */
-
         Vector w = mappingUtils.get_mapentry_ids(named_graph);
-         StringUtils.dumpVector("w", w);
-
+        StringUtils.dumpVector("w", w);
+        */
 	}
 
 }
