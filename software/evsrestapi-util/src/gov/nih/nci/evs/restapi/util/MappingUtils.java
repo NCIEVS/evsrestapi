@@ -102,13 +102,12 @@ public class MappingUtils {
     String named_graph = null;
     String prefixes = null;
     String serviceUrl = null;
-    String named_graph_id = ":NHC0";
-    String BASE_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
 
     ParserUtils parser = new ParserUtils();
     HashMap nameVersion2NamedGraphMap = null;
     HashMap ontologyUri2LabelMap = null;
     String version = null;
+    String ns = null;
 
     public void setServiceUrl(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
@@ -116,6 +115,10 @@ public class MappingUtils {
 
     public void setJSONUtils(JSONUtils jsonUtils) {
 		this.jsonUtils = jsonUtils;
+	}
+
+    public void setNs(String ns) {
+		this.ns = ns;
 	}
 
     public void setHTTPUtils(HTTPUtils httpUtils) {
@@ -192,8 +195,6 @@ public class MappingUtils {
 		Vector v = executeQuery(query);
 		if (v != null && v.size() > 0) {
 			v = new ParserUtils().getResponseValues(v);
-			//v = new SortUtils().quickSort(v);
-			v = trim_namespace(v, named_graph);
 			return v;
 		}
 		return null;
@@ -285,6 +286,9 @@ public class MappingUtils {
         Vector w = new Vector();
         for (int i=0; i<v.size(); i++) {
 		    String line = (String) v.elementAt(i);
+
+		    System.out.println(line);
+
 		    Vector u = StringUtils.parseData(line, '|');
 		    String x = (String) u.elementAt(0);
 		    String y = (String) u.elementAt(1);
@@ -376,14 +380,13 @@ public class MappingUtils {
 			System.out.println(id);
 
 			Vector v = mappingUtils.get_mapentry(named_graph, id);
+			v = mappingUtils.trim_namespace(v, named_graph);
 			StringUtils.dumpVector("v", v);
 
 			MapEntry entry = mappingUtils.constructMapEntry(v);
 			System.out.println(entry.toXML());
 			System.out.println(entry.toJson());
 		}
-
-
         /*
         Vector w = mappingUtils.get_mapentry_ids(named_graph);
         StringUtils.dumpVector("w", w);
