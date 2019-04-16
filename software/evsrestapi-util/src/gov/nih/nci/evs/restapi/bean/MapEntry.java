@@ -24,6 +24,7 @@ public class MapEntry
 	private String rel;
 	private String mapRank;
 	private String targetCode;
+	private String targetName;
 	private String targetCodingScheme;
 	private String targetCodingSchemeVersion;
 	private String targetCodingSchemeNamespace;
@@ -43,6 +44,7 @@ public class MapEntry
 		String rel,
 		String mapRank,
 		String targetCode,
+		String targetName,
 		String targetCodingScheme,
 		String targetCodingSchemeVersion,
 		String targetCodingSchemeNamespace) {
@@ -56,6 +58,7 @@ public class MapEntry
 		this.rel = rel;
 		this.mapRank = mapRank;
 		this.targetCode = targetCode;
+		this.targetName = targetName;
 		this.targetCodingScheme = targetCodingScheme;
 		this.targetCodingSchemeVersion = targetCodingSchemeVersion;
 		this.targetCodingSchemeNamespace = targetCodingSchemeNamespace;
@@ -96,6 +99,10 @@ public class MapEntry
 
 	public void setTargetCode(String targetCode) { 
 		this.targetCode = targetCode;
+	}
+
+	public void setTargetName(String targetName) { 
+		this.targetName = targetName;
 	}
 
 	public void setTargetCodingScheme(String targetCodingScheme) { 
@@ -146,6 +153,10 @@ public class MapEntry
 
 	public String getTargetCode() { 
 		return this.targetCode;
+	}
+
+	public String getTargetName() { 
+		return this.targetName;
 	}
 
 	public String getTargetCodingScheme() { 
