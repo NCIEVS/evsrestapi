@@ -81,6 +81,11 @@ public class SortComparator implements Comparator<Object> {
         } else if (c instanceof String) {
             String s = (String) c;
             return s;
+        } else if (c instanceof Atom) {
+			Atom atom = (Atom) c;
+            String s = atom.getStr();
+            return s;
+
         } else if (c instanceof gov.nih.nci.evs.restapi.bean.Property) {
 			gov.nih.nci.evs.restapi.bean.Property p = (gov.nih.nci.evs.restapi.bean.Property) c;
             String s = p.getName() + "|" + p.getValue();
