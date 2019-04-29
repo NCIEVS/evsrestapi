@@ -59,6 +59,9 @@ public class ElasticQueryProperties {
     private String mainQueryWithoutHighlights;
     private String mainNestedQueryWithoutHighlights;
     private String mainMultipleNestedQueryWithoutHighlights;
+    
+    //rescore query
+    private String rescoreQuery;
    
     
     //highlight tags	
@@ -381,6 +384,14 @@ public class ElasticQueryProperties {
 
 	public void setMainMultipleNestedQueryWithoutHighlights(String mainMultipleNestedQueryWithoutHighlights) {
 		this.mainMultipleNestedQueryWithoutHighlights = mainMultipleNestedQueryWithoutHighlights;
+	}
+
+	public String getRescoreQuery() {
+		return rescoreQuery;
+	}
+
+	public void setRescoreQuery(String rescoreQuery) {
+		this.rescoreQuery = rescoreQuery;
 	}
 
 	

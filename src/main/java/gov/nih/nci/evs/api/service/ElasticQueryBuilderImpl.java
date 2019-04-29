@@ -202,6 +202,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 					"Term Parameter is a required field and value for term cannot be null");
 		}
 		String operator = "";
+		String rescore = "";
 		if (filterCriteriaElasticFields.getType() != null) {
 			if (filterCriteriaElasticFields.getType() == "OR") {
 				operator = "";
@@ -229,10 +230,12 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")) {
 
 				operator = "\"type\":\"phrase_prefix\",\n";
+				rescore = elasticQueryProperties.getRescoreQuery();
 			}
 		} else {
 			operator = "";
 		}
+		valuesMap.put("rescore", rescore);
 		valuesMap.put("operator", operator);
 		valuesMap.put("searchterm", term);
 

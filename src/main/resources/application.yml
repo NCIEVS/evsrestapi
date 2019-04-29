@@ -104,11 +104,11 @@ nci:
                      '"synonyms_plain^95",
                       "synonyms_plain.exact^95",',
                    synonym:  
-                       '"synonyms_plain^70",
-                        "synonyms_plain.exact^70",',
+                       '"synonyms_plain^50",
+                        "synonyms_plain.exact^50",',
                    full_syn:    
-                       '"synonyms_plain^70",
-                        "synonyms_plain.exact^70",',   
+                       '"synonyms_plain^50",
+                        "synonyms_plain.exact^50",',   
                    nhc0:
                       '"Code^100",
                        "Code.exact^100"',
@@ -116,21 +116,21 @@ nci:
                        '"Code^100",
                        "Code.exact^100"', 
                    p97:
-                      '"definitions_plain^70",
-                      "definitions_plain.exact^70",
-                      "alt_definitions_plain^70",
-                      "alt_definitions_plain.exact^70",',
+                      '"definitions_plain^50",
+                      "definitions_plain.exact^50",
+                      "alt_definitions_plain^40",
+                      "alt_definitions_plain.exact^40",',
                    definition:
-                      '"definitions_plain^70",
-                       "definitions_plain.exact^70",
-                       "alt_definitions_plain^70",
-                       "alt_definitions_plain.exact^70",',   
+                      '"definitions_plain^50",
+                       "definitions_plain.exact^50",
+                       "alt_definitions_plain^40",
+                       "alt_definitions_plain.exact^40",',   
                    P325:   
-                      '"alt_definitions_plain^70",
-                      "alt_definitions_plain.exact^70",',
+                      '"alt_definitions_plain^40",
+                      "alt_definitions_plain.exact^40",',
                    alt_definition:
-                      '"alt_definitions_plain^70",
-                      "alt_definitions_plain.exact^70",',
+                      '"alt_definitions_plain^40",
+                      "alt_definitions_plain.exact^40",',
                    P310:    
                        '"Concept_Status^10",',       
                    conceptstatus:    
@@ -226,7 +226,10 @@ nci:
                    P211: '"go_annotation_plain^10","go_annotation_plain.exact^10",',
                    go_annotation: '"go_annotation_plain^10","go_annotation_plain.exact^10",', 
                    P106: '"Semantic_Type^10","Semantic_Type.exact^10",',
-                   semantic_type: '"Semantic_Type^10","Semantic_Type.exact^10",'
+                   semantic_type: '"Semantic_Type^10","Semantic_Type.exact^10",',
+                   superconcept:   '"Superconcept.label^10", "Superconcept.label.exact^10",',
+                   subconcept:   '"Subconcept.label^10", "Subconcept.label.exact^10",'         
+                   
                          }      
         propertyToQueryExact: {
                    p108: 
@@ -242,25 +245,25 @@ nci:
                    display_name:
                        '"Display_Name.exact^100",',  
                    p90:
-                     '"synonyms_plain.exact^95",',
+                     '"synonyms_plain.exact^50",',
                    synonym:  
-                       '"synonyms_plain.exact^70",',
+                       '"synonyms_plain.exact^50",',
                    full_syn:  
-                       '"synonyms_plain.exact^70",',  
+                       '"synonyms_plain.exact^50",',  
                    nhc0:
                       '"Code.exact^100",',
                    code:
                        '"Code.exact^100",',   
                    p97:
-                      '"definitions_plain.exact^70",
-                       "alt_definitions_plain.exact^60",',
+                      '"definitions_plain.exact^50",
+                       "alt_definitions_plain.exact^40",',
                    definition:
-                        '"definitions_plain.exact^70",
-                       "alt_definitions_plain.exact^60",',
+                        '"definitions_plain.exact^50",
+                       "alt_definitions_plain.exact^40",',
                    P325:    
-                      '"alt_definitions_plain.exact^60",',
+                      '"alt_definitions_plain.exact^40",',
                    alt_definition:
-                      '"alt_definitions_plain.exact^60",',
+                      '"alt_definitions_plain.exact^40",',
                    P310:
                       '"Concept_Status^10",',
                    conceptstatus:    
@@ -356,7 +359,10 @@ nci:
                     P211: '"go_annotation_plain.exact^10",',
                     go_annotation: '"go_annotation_plain.exact^10",',
                     P106: '"Semantic_Type.exact^10",',
-                    semantic_type: '"Semantic_Type.exact^10",'
+                    semantic_type: '"Semantic_Type.exact^10",',
+                    superconcept:  '"Superconcept.label.exact^10",',
+                    subconcept:   '"Subconcept.label.exact^10",'         
+                   
                          }  
         propertyToQueryContains:  { 
                    p108: 
@@ -384,16 +390,16 @@ nci:
                         "Display_Name.exact^100",
                         "Display_Name.ngram^50",',    
                    p90:
-                     '"synonyms_plain^95",
-                      "synonyms_plain.exact^95",
+                     '"synonyms_plain^50",
+                      "synonyms_plain.exact^50",
                       "synonyms_plain.ngram^50",',
                     synonym:  
-                       '"synonyms_plain^70",
-                        "synonyms_plain.exact^70",
-                        "synonyms_plain.ngram^50",',
+                       '"synonyms_plain^50",
+                        "synonyms_plain.exact^50",
+                        "synonyms_plain.ngram^30",',
                    full_syn:  
-                       '"synonyms_plain^70",
-                        "synonyms_plain.exact^70",
+                       '"synonyms_plain^50",
+                        "synonyms_plain.exact^50",
                         "synonyms_plain.ngram^30",',      
                    nhc0:
                        '"Code^100",
@@ -402,23 +408,23 @@ nci:
                        '"Code^100",
                        "Code.exact^100"',   
                    p97:
-                      '"definitions_plain^70",
+                      '"definitions_plain^50",
                        "definitions_plain.ngram^30",',
                    definition:
-                       '"definitions_plain^70",
-                        "definitions_plain.exact^70", 
+                       '"definitions_plain^50",
+                        "definitions_plain.exact^50", 
                         "definitions_plain.ngram^30",
-                        "alt_definitions_plain^70",
-                        "alt_definitions_plain.exact^70",
-                        "alt_definitions_plain.ngram^30",',                    
+                        "alt_definitions_plain^40",
+                        "alt_definitions_plain.exact^40",
+                        "alt_definitions_plain.ngram^20",',                    
                    P325:   
-                      '"alt_definitions_plain^70",
-                      "alt_definitions_plain.exact^70",
-                      "alt_definitions_plain.ngram^70",',
+                      '"alt_definitions_plain^40",
+                      "alt_definitions_plain.exact^40",
+                      "alt_definitions_plain.ngram^20",',
                    alt_definition:
-                      '"alt_definitions_plain^70",
-                      "alt_definitions_plain.exact^70",
-                      "alt_definitions_plain.ngram^70",',
+                      '"alt_definitions_plain^40",
+                      "alt_definitions_plain.exact^40",
+                      "alt_definitions_plain.ngram^20",',
                    P310:    
                        '"Concept_Status^10",',   
                    conceptstatus:    
@@ -514,7 +520,9 @@ nci:
                     P211: '"go_annotation_plain^10","go_annotation_plain.exact^10","go_annotation_plain.ngram^10",',
                     go_annotation: '"go_annotation_plain^10","go_annotation_plain.exact^10","go_annotation_plain.ngram^10",', 
                     P106: '"Semantic_Type^10","Semantic_Type.exact^10","Semantic_Type.ngram^10",',    
-                    semantic_type: '"Semantic_Type^10","Semantic_Type.exact^10","Semantic_Type.ngram^10",'      
+                    semantic_type: '"Semantic_Type^10","Semantic_Type.exact^10","Semantic_Type.ngram^10",',
+                    superconcept:   '"Superconcept.label^10", "Superconcept.label.exact^10","Superconcept.label.ngram^10",',
+                    subconcept:   '"Subconcept.label^10", "Subconcept.label.exact^10","Subconcept.label.ngram^10",'         
                          }                                          
         shortsourcefields: |
             [
@@ -545,12 +553,12 @@ nci:
             "Label.exact^100",           
             "Display_Name.exact^100",          
             "Preferred_Name.exact^100",  
-            "synonyms_plain.exact^70", 
-            "definitions_plain.exact^70", 
-            "alt_definitions_plain.exact^45",
-            "Semantic_Type.exact^45",           
-            "Superconcept.label.exact^45", 
-            "Subconcept.label.exact^45",
+            "synonyms_plain.exact^25", 
+            "definitions_plain.exact^25", 
+            "alt_definitions_plain.exact^25",
+            "Semantic_Type.exact^25",           
+            "Superconcept.label.exact^10", 
+            "Subconcept.label.exact^10",
             "Concept_Status^10",
             "Neoplastic_Status.exact^10",
             "UMLS_CUI.exact^10",
@@ -604,7 +612,7 @@ nci:
         exactstartswithdefinitionfields: |
              [
                "DEFINITION.definition.exact^100",
-               "ALT_DEFINITION.definition.exact^100"              
+               "ALT_DEFINITION.definition.exact^80"              
              ]     
         exactstartswithassociationfields: |
              [
@@ -623,15 +631,15 @@ nci:
               "Preferred_Name^100",
               "Preferred_Name.exact^100",
               "Preferred_Name.ngram^50",
-              "definitions_plain^70",
-              "definitions_plain.exact^70",
+              "definitions_plain^50",
+              "definitions_plain.exact^50",
               "definitions_plain.ngram^30",
               "alt_definitions_plain^20",
               "alt_definitions_plain.exact^20",
               "alt_definitions_plain.ngram^10",
               "Semantic_Type^10",       
-              "synonyms_plain^70",
-              "synonyms_plain.exact^70",
+              "synonyms_plain^50",
+              "synonyms_plain.exact^50",
               "synonyms_plain.ngram^30",              
               "Superconcept.label^20",
               "Superconcept.label.exact^20",
@@ -782,9 +790,9 @@ nci:
                    "DEFINITION.definition^100",
                    "DEFINITION.definition.exact^100",
                    "DEFINITION.definition.ngram^50",
-                   "ALT_DEFINITION.definition^100",
-                   "ALT_DEFINITION.definition.exact^100",
-                   "ALT_DEFINITION.definition.ngram^50"                    
+                   "ALT_DEFINITION.definition^95",
+                   "ALT_DEFINITION.definition.exact^95",
+                   "ALT_DEFINITION.definition.ngram^45"                    
                ]         
         containsassociationfields: |   
                [
@@ -802,8 +810,8 @@ nci:
                 "Display_Name.exact^100",
                 "Preferred_Name^100",
                 "Preferred_Name.exact^100",
-                "synonyms_plain^70",
-                "synonyms_plain.exact^70",
+                "synonyms_plain^50",
+                "synonyms_plain.exact^50",
                 "definitions_plain^30",
                 "definitions_plain.exact^30",
                 "alt_definitions_plain^25",
@@ -911,8 +919,8 @@ nci:
               [
                  "DEFINITION.definition^100",
                  "DEFINITION.definition.exact^100",
-                 "ALT_DEFINITION.definition^100",
-                 "ALT_DEFINITION.definition.exact^100"
+                 "ALT_DEFINITION.definition^80",
+                 "ALT_DEFINITION.definition.exact^80"
               ]      
         andorassociationfields: |
               [
@@ -1127,6 +1135,7 @@ nci:
                       ${filter}
                     }
                   },
+                  ${rescore}
                   "highlight": {
                     ${highlightTags}
                     "fields": {
@@ -1262,7 +1271,24 @@ nci:
                                             }
                                           }
                                   }
-                             }                  
+                             }   
+        rescoreQuery: |
+                  "rescore": {
+                  "window_size": 50,
+                  "query": {
+                    "rescore_query": {
+                      "query_string": {
+                        "query": "${searchterm}",
+                        "fields": [
+                          "Code.exact^100",
+                          "Label.exact^100"
+                                 ]
+                               }
+                              } ,
+                        "query_weight": 0.7,
+                        "rescore_query_weight": 1.2
+                            }
+                           },                                      
         mainQueryWithoutHighlights: | 
                 {
                   "_source": ${sourcefields},                  
@@ -1280,6 +1306,7 @@ nci:
                       ${filter}
                     }
                   },
+                  ${rescore}
                   "aggs": {                   
                     "conceptStatus": {
                       "terms": {
