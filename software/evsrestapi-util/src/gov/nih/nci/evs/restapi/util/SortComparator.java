@@ -86,6 +86,11 @@ public class SortComparator implements Comparator<Object> {
             String s = atom.getStr();
             return s;
 
+        } else if (c instanceof ExtendedMetaRelationship) {
+			ExtendedMetaRelationship extendedMetaRelationship = (ExtendedMetaRelationship) c;
+            String s = extendedMetaRelationship.getSortKey();
+            return s;
+
         } else if (c instanceof gov.nih.nci.evs.restapi.bean.Property) {
 			gov.nih.nci.evs.restapi.bean.Property p = (gov.nih.nci.evs.restapi.bean.Property) c;
             String s = p.getName() + "|" + p.getValue();
