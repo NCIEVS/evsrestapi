@@ -22,6 +22,7 @@ public class MetaRelationship
 	private String str;
 	private String sab;
 	private String code;
+	private String tty;
 
 // Default constructor
 	public MetaRelationship() {
@@ -35,7 +36,8 @@ public class MetaRelationship
 		String cui2,
 		String str,
 		String sab,
-		String code) {
+		String code,
+		String tty) {
 
 		this.rel = rel;
 		this.rela = rela;
@@ -44,65 +46,74 @@ public class MetaRelationship
 		this.str = str;
 		this.sab = sab;
 		this.code = code;
+		this.tty = tty;
 	}
 
 // Set methods
-	public void setRel(String rel) { 
+	public void setRel(String rel) {
 		this.rel = rel;
 	}
 
-	public void setRela(String rela) { 
+	public void setRela(String rela) {
 		this.rela = rela;
 	}
 
-	public void setCui1(String cui1) { 
+	public void setCui1(String cui1) {
 		this.cui1 = cui1;
 	}
 
-	public void setCui2(String cui2) { 
+	public void setCui2(String cui2) {
 		this.cui2 = cui2;
 	}
 
-	public void setStr(String str) { 
+	public void setStr(String str) {
 		this.str = str;
 	}
 
-	public void setSab(String sab) { 
+	public void setSab(String sab) {
 		this.sab = sab;
 	}
 
-	public void setCode(String code) { 
+	public void setCode(String code) {
 		this.code = code;
+	}
+
+	public void setTty(String tty) {
+		this.tty = tty;
 	}
 
 
 // Get methods
-	public String getRel() { 
+	public String getRel() {
 		return this.rel;
 	}
 
-	public String getRela() { 
+	public String getRela() {
 		return this.rela;
 	}
 
-	public String getCui1() { 
+	public String getCui1() {
 		return this.cui1;
 	}
 
-	public String getCui2() { 
+	public String getCui2() {
 		return this.cui2;
 	}
 
-	public String getStr() { 
+	public String getStr() {
 		return this.str;
 	}
 
-	public String getSab() { 
+	public String getSab() {
 		return this.sab;
 	}
 
-	public String getCode() { 
+	public String getCode() {
 		return this.code;
+	}
+
+	public String getTty() {
+		return this.tty;
 	}
 
 	public String toXML() {
