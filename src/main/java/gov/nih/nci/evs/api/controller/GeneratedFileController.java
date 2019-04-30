@@ -31,10 +31,9 @@ public class GeneratedFileController {
         String baseDirectory = applicationProperties.getGeneratedFilePath();
 
         File inputFile = new File(baseDirectory + fileName);
-        InputStream in = new FileInputStream(inputFile);
-        response.setHeader("Content-Disposition", "attachment; filename=" + inputFile.getName());
-        return IOUtils.toByteArray(in);
+        try (FileInputStream in = new FileInputStream(inputFile)) {
+            response.setHeader("Content-Disposition", "attachment; filename=" + inputFile.getName());
+            return IOUtils.toByteArray(in);
+        }
     }
-
-
 }
