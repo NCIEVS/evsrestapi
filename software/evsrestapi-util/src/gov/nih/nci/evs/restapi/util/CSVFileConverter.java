@@ -1,11 +1,13 @@
 package gov.nih.nci.evs.restapi.util;
 
-import gov.nih.nci.evs.restapi.bean.*;
+import com.opencsv.CSVReader;
+import java.io.*;
 import java.util.*;
+
 
 /**
  * <!-- LICENSE_TEXT_START -->
- * Copyright 2008-2017 NGIS. This software was developed in conjunction
+ * Copyright 2008-2016 NGIS. This software was developed in conjunction
  * with the National Cancer Institute, and so to the extent government
  * employees are co-authors, any rights in such works shall be subject
  * to Title 17 of the United States Code, section 105.
@@ -55,80 +57,25 @@ import java.util.*;
  */
 
 
-public class SortComparator implements Comparator<Object> {
-    //private static Logger _logger = Logger.getLogger(SortComparator.class);
-    private static final int SORT_BY_NAME = 1;
-    private static final int SORT_BY_CODE = 2;
-    private int _sort_option = SORT_BY_NAME;
+public class CSVFileConverter {
 
-    public SortComparator() {
-
-    }
-
-    public SortComparator(int sort_option) {
-        _sort_option = sort_option;
-    }
-
-    private String getKey(Object c, int sort_option) {
-        if (c == null)
-            return "NULL";
-
-        if (c instanceof TreeItem) {
-            TreeItem ti = (TreeItem) c;
-            if (sort_option == SORT_BY_CODE)
-                return ti._code;
-            return ti._text;
-        } else if (c instanceof String) {
-            String s = (String) c;
-            return s;
-        } else if (c instanceof Atom) {
-			Atom atom = (Atom) c;
-            String s = atom.getStr();
-            return s;
-
-        } else if (c instanceof ExtendedMetaRelationship) {
-			ExtendedMetaRelationship extendedMetaRelationship = (ExtendedMetaRelationship) c;
-            String s = extendedMetaRelationship.getSortKey();
-            return s;
-
-        } else if (c instanceof gov.nih.nci.evs.restapi.bean.Property) {
-			gov.nih.nci.evs.restapi.bean.Property p = (gov.nih.nci.evs.restapi.bean.Property) c;
-            String s = p.getName() + "|" + p.getValue();
-            return s;
-        }
-
-        return c.toString();
-    }
-
-    private String replaceCharacter(String s, char from, char to) {
-		if (s == null) return null;
-		int ascii_from = (int) from;
-		int ascii_to   = (int) to;
-		StringBuffer t = new StringBuffer();
-		for (int i=0; i<s.length(); i++) {
-			char c = s.charAt(i);
-			int ascii_c = (int) c;
-
-			if (ascii_c == ascii_from) {
-				t.append(to);
-			} else {
-				t.append(c);
-			}
+	public static void main(String[] args) {
+		String csvfile = args[0];
+        Vector v = Utils.readFile(csvfile);
+        String heading = (String) v.elementAt(0);
+        heading = heading.replace("REL", "rel");
+        heading = heading.replaceAll(" ", "");
+        heading = heading.replaceAll(",", "|");
+        Vector u = new Vector();
+        u.add(heading);
+        Vector w = CSVFileReader.csv2Delimited(v, true, "|");
+        w = new SortUtils().quickSort(w);
+        for (int j=0; j<w.size(); j++) {
+			String line = (String) w.elementAt(j);
+			u.add(line);
 		}
-	    return t.toString();
+        int n = csvfile.lastIndexOf(".");
+        String outputfile = csvfile.substring(0, n) + ".txt";
+        Utils.saveToFile(outputfile, u);
 	}
-
-
-    public int compare(Object object1, Object object2) {
-        // case insensitive sort
-        String key1 = getKey(object1, _sort_option);
-        String key2 = getKey(object2, _sort_option);
-
-        if (key1 == null || key2 == null)
-            return 0;
-        key1 = getKey(object1, _sort_option).toLowerCase();
-        key2 = getKey(object2, _sort_option).toLowerCase();
-
-        return key1.compareTo(key2);
-    }
 }

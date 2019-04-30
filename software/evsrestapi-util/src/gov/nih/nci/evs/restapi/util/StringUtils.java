@@ -690,4 +690,16 @@ public class StringUtils {
 		}
 		return w;
 	}
+
+	public static Vector getKeys(HashMap hmap) {
+        Vector keys = new Vector();
+        Iterator it = hmap.keySet().iterator();
+        while (it.hasNext()) {
+			String key = (String) it.next();
+			keys.add(key);
+		}
+		keys = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(keys);
+		return keys;
+	}
+
 }
