@@ -228,8 +228,12 @@ nci:
                    P106: '"Semantic_Type^10","Semantic_Type.exact^10",',
                    semantic_type: '"Semantic_Type^10","Semantic_Type.exact^10",',
                    superconcept:   '"Superconcept.label^10", "Superconcept.label.exact^10",',
-                   subconcept:   '"Subconcept.label^10", "Subconcept.label.exact^10",'         
-                   
+                   subconcept:   '"Subconcept.label^10", "Subconcept.label.exact^10",',         
+                   role: '"role_plain^10","role_plain.exact^10","role_code_plain^10","role_code_plain.exact^10",', 
+                   inverserole: '"inverserole_plain^10","inverserole_plain.exact^10","inverserole_code_plain^10","inverserole_code_plain.exact^10",',
+                   disjointwith: '"disjointwith_plain^10","disjointwith_plain.exact^10","disjointwith_code_plain^10","disjointwith_code_plain.exact^10",',
+                   inverseassociation: '"inverseassociation_plain^10","inverseassociation_plain.exact^10","inverseassociation_code_plain^10","inverseassociation_code_plain.exact^10",',
+                   association: '"association_plain^10","association_plain.exact^10","association_code_plain^10","association_code_plain.exact^10",'
                          }      
         propertyToQueryExact: {
                    p108: 
@@ -361,8 +365,12 @@ nci:
                     P106: '"Semantic_Type.exact^10",',
                     semantic_type: '"Semantic_Type.exact^10",',
                     superconcept:  '"Superconcept.label.exact^10",',
-                    subconcept:   '"Subconcept.label.exact^10",'         
-                   
+                    subconcept:   '"Subconcept.label.exact^10",',         
+                    role: '"role_plain.exact^10","role_code_plain.exact^10",', 
+                   inverserole: '"inverserole_plain.exact^10","inverserole_code_plain.exact^10",',
+                   disjointwith: '"disjointwith_plain.exact^10","disjointwith_code_plain.exact^10",',
+                   inverseassociation: '"inverseassociation_plain.exact^10","inverseassociation_code_plain.exact^10",',
+                   association: '"association_plain.exact^10","association_code_plain.exact^10",'
                          }  
         propertyToQueryContains:  { 
                    p108: 
@@ -522,7 +530,12 @@ nci:
                     P106: '"Semantic_Type^10","Semantic_Type.exact^10","Semantic_Type.ngram^10",',    
                     semantic_type: '"Semantic_Type^10","Semantic_Type.exact^10","Semantic_Type.ngram^10",',
                     superconcept:   '"Superconcept.label^10", "Superconcept.label.exact^10","Superconcept.label.ngram^10",',
-                    subconcept:   '"Subconcept.label^10", "Subconcept.label.exact^10","Subconcept.label.ngram^10",'         
+                    subconcept:   '"Subconcept.label^10", "Subconcept.label.exact^10","Subconcept.label.ngram^10",',
+                    role: '"role_plain^10","role_plain.exact^10","role_plain.ngram^10","role_code_plain^10","role_code_plain.exact^10",', 
+                    inverserole: '"inverserole_plain^10","inverserole_plain.exact^10","inverserole_plain.ngram^10","inverserole_code_plain^10","inverserole_code_plain.exact^10",',
+                    disjointwith: '"disjointwith_plain^10","disjointwith_plain.exact^10","disjointwith_plain.ngram^10","disjointwith_code_plain^10","disjointwith_code_plain.exact^10",',
+                    inverseassociation: '"inverseassociation_plain^10","inverseassociation_plain.exact^10","inverseassociation_plain.ngram^10","inverseassociation_code_plain^10","inverseassociation_code_plain.exact^10",',
+                    association: '"association_plain^10","association_plain.exact^10","association_plain.ngram^10","association_code_plain^10","association_code_plain.exact^10",'         
                          }                                          
         shortsourcefields: |
             [
@@ -603,7 +616,17 @@ nci:
             "Homologous_Gene.exact^10",
             "GenBank_Accession_Number.exact^10",
             "maps_to_plain.exact^10",
-            "go_annotation_plain.exact^10"
+            "go_annotation_plain.exact^10",
+            "role_plain.exact^10",
+            "inverserole_plain.exact^10",
+            "disjointwith_plain.exact^10",
+            "inverseassociation_plain.exact^10",
+            "association_plain.exact^10",
+            "role_code_plain.exact^10",
+            "inverserole_code_plain.exact^10",
+            "disjointwith_code_plain.exact^10",
+            "inverseassociation_code_plain.exact^10",
+            "association_code_plain.exact^10"
             ]
         exactstartswithsynonymfields: |
              [
@@ -777,7 +800,32 @@ nci:
                 "maps_to_plain.ngram^5",
                 "go_annotation_plain^10",
                 "go_annotation_plain.exact^10", 
-                "go_annotation_plain.ngram^5"                                         
+                "go_annotation_plain.ngram^5",
+                "role_plain^10",
+                "role_plain.exact^10",
+                "role_plain.ngram^10",              
+                "inverserole_plain^10",
+                "inverserole_plain.exact^10",
+                "inverserole_plain.ngram^10",                
+                "disjointwith_plain^10",
+                "disjointwith_plain.exact^10",
+                "disjointwith_plain.ngram^10",                
+                "inverseassociation_plain^10",
+                "inverseassociation_plain.exact^10",
+                "inverseassociation_plain.ngram^10",
+                "association_plain^10",
+                "association_plain.exact^10",
+                "association_plain.ngram^10",
+                "role_code_plain^10",
+                "role_code_plain.exact^10",
+                "inverserole_code_plain^10",
+                "inverserole_code_plain.exact^10",
+                "disjointwith_code_plain^10",
+                "disjointwith_code_plain.exact^10",
+                 "inverseassociation_code_plain^10",
+                "inverseassociation_code_plain.exact^10",
+                "association_code_plain^10",    
+                "association_code_plain.exact^10"                                         
               ] 
         containssynonymfields: |
                [
@@ -908,7 +956,27 @@ nci:
                 "maps_to_plain^10",
                 "maps_to_plain.exact^10",
                 "go_annotation_plain^10",
-                "go_annotation_plain.exact^10"               
+                "go_annotation_plain.exact^10",
+                "role_plain^10",
+                "role_plain.exact^10",                    
+                "inverserole_plain^10",
+                "inverserole_plain.exact^10",                                
+                "disjointwith_plain^10",
+                "disjointwith_plain.exact^10",                                
+                "inverseassociation_plain^10",
+                "inverseassociation_plain.exact^10",                
+                "association_plain^10",
+                "association_plain.exact^10",                
+                "role_code_plain^10",
+                "role_code_plain.exact^10",
+                "inverserole_code_plain^10",
+                "inverserole_code_plain.exact^10",
+                "disjointwith_code_plain^10",
+                "disjointwith_code_plain.exact^10",
+                 "inverseassociation_code_plain^10",
+                "inverseassociation_code_plain.exact^10",
+                "association_code_plain^10",    
+                "association_code_plain.exact^10"                
               ]  
         andorsynonymfields: |
               [
@@ -982,7 +1050,17 @@ nci:
               "Homologous_Gene.exact": {},
               "GenBank_Accession_Number.exact": {},
               "maps_to_plain.exact": {},
-              "go_annotation_plain.exact": {}
+              "go_annotation_plain.exact": {},
+              "role_plain.exact": {},
+              "role_code_plain.exact": {},
+              "inverserole_plain.exact": {},
+              "inverserole_code_plain.exact": {},
+              "disjointwith_plain.exact": {},
+              "disjointwith_code_plain.exact": {},
+              "inverseassociation_plain.exact": {},
+              "inverseassociation_code_plain.exact": {},
+              "association_plain.exact": {},
+              "association_code_plain.exact": {}            
         highlightsynonymexact: |
                "FULL_SYN.term-name.exact": {}  
         highlightdefinitionexact: |
@@ -1046,7 +1124,22 @@ nci:
               "Homologous_Gene.ngram": {},
               "GenBank_Accession_Number.ngram": {},
               "maps_to_plain.ngram": {},
-              "go_annotation_plain.ngram": {}  
+              "go_annotation_plain.ngram": {},
+              "role_plain.ngram": {},
+              "role_code_plain": {},
+              "role_code_plain.exact": {},
+              "inverserole_plain.ngram": {},
+              "inverserole_code_plain": {},
+              "inverserole_code_plain.exact": {},
+              "disjointwith_plain.ngram": {},
+              "disjointwith_code_plain": {},
+              "disjointwith_code_plain.exact": {},
+              "inverseassociation_plain.ngram": {},
+              "inverseassociation_code_plain": {},
+              "inverseassociation_code_plain.exact": {},
+              "association_plain.ngram": {},
+              "association_code_plain": {},
+              "association_code_plain.exact": {}  
         highlightsynonymcontains: |
                "FULL_SYN.term-name.ngram": {} 
         highlightdefinitioncontains: |
@@ -1110,7 +1203,17 @@ nci:
                 "Homologous_Gene": {},
                 "GenBank_Accession_Number": {},
                 "maps_to_plain": {},
-                "go_annotation_plain": {}
+                "go_annotation_plain": {},
+                "role_plain": {},
+                "role_code_plain": {},                
+                "inverserole_plain": {},
+                "inverserole_code_plain": {},                
+                "disjointwith_plain": {},
+                "disjointwith_code_plain": {},                
+                "inverseassociation_plain": {},
+                "inverseassociation_code_plain": {},                
+                "association_plain": {},
+                "association_code_plain": {}                  
         highlightsynonymandor: |
                 "FULL_SYN.term-name": {}   
         highlightdefinitionandor: |

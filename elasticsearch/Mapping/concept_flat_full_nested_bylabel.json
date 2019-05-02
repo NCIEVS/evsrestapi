@@ -1279,6 +1279,39 @@
             }
           }
         },
+       "association_code_plain": {
+         "type": "text",
+         "analyzer": "std_english",
+         "search_analyzer": "std_english",
+         "store": true,
+         "fields": {
+            "exact": {
+              "type": "text",
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            }
+          }
+        },
+          "association_plain": {
+          "type": "text",
+          "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english",
+          "fields": {
+            "exact": {
+              "type": "text",
+              "store": true,
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            },
+            "ngram": {
+              "type": "text",
+              "store": true,
+              "analyzer": "ngram_filter_analyzer",
+              "search_analyzer": "standard"
+            }
+          }
+        },
         "Association": {
           "type": "nested",
           "properties": {
@@ -1294,11 +1327,13 @@
             },
             "relatedConceptCode": {
               "type": "text",
+              "copy_to": "association_code_plain",  
               "analyzer": "std_english",
               "search_analyzer": "std_english"
             },
             "relatedConceptLabel": {
               "type": "text",
+              "copy_to": "association_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english",
               "fields": {
@@ -1313,6 +1348,39 @@
                   "search_analyzer": "standard"
                 }
               }
+            }
+          }
+        },
+        "inverseassociation_code_plain": {
+          "type": "text",
+           "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english", 
+          "fields": {
+            "exact": {
+              "type": "text",
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            }
+          }
+        },
+        "inverseassociation_plain": {
+          "type": "text",
+          "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english",
+          "fields": {
+            "exact": {
+              "type": "text",
+              "store": true,
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            },
+            "ngram": {
+              "type": "text",
+              "store": true,
+              "analyzer": "ngram_filter_analyzer",
+              "search_analyzer": "standard"
             }
           }
         },
@@ -1331,11 +1399,13 @@
             },
             "relatedConceptCode": {
               "type": "text",
+              "copy_to": "inverseassociation_code_plain",  
               "analyzer": "std_english",
               "search_analyzer": "std_english"
             },
             "relatedConceptLabel": {
               "type": "text",
+              "copy_to": "inverseassociation_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english",
               "fields": {
@@ -1353,6 +1423,39 @@
             }
           }
         },
+       "disjointwith_code_plain": {
+           "type": "text",
+           "store": true,
+	   "analyzer": "std_english",
+           "search_analyzer": "std_english",	
+          "fields": {
+            "exact": {
+              "type": "text",
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            }
+          }
+        },
+         "disjointwith_plain": {
+          "type": "text",
+          "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english",
+          "fields": {
+            "exact": {
+              "type": "text",
+              "store": true,
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            },
+            "ngram": {
+              "type": "text",
+              "store": true,
+              "analyzer": "ngram_filter_analyzer",
+              "search_analyzer": "standard"
+            }
+          }
+        },
         "DisjointWith": {
           "type": "nested",
           "properties": {
@@ -1363,11 +1466,13 @@
             },
             "relatedConceptCode": {
               "type": "text",
+              "copy_to": "disjointwith_code_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english"
             },
             "relatedConceptLabel": {
               "type": "text",
+              "copy_to": "disjointwith_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english",
               "fields": {
@@ -1382,6 +1487,39 @@
                   "search_analyzer": "standard"
                 }
               }
+            }
+          }
+        },
+       "role_code_plain": {
+          "type": "text",
+          "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english",
+          "fields": {
+            "exact": {
+              "type": "text",
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            }
+          }
+        },
+        "role_plain": {
+          "type": "text",
+          "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english",
+          "fields": {
+            "exact": {
+              "type": "text",
+              "store": true,
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            },
+            "ngram": {
+              "type": "text",
+              "store": true,
+              "analyzer": "ngram_filter_analyzer",
+              "search_analyzer": "standard"
             }
           }
         },
@@ -1400,11 +1538,13 @@
             },
             "relatedConceptCode": {
               "type": "text",
+              "copy_to": "role_code_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english"
             },
             "relatedConceptLabel": {
               "type": "text",
+              "copy_to": "role_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english",
               "fields": {
@@ -1419,6 +1559,39 @@
                   "search_analyzer": "standard"
                 }
               }
+            }
+          }
+        },
+ 	"inverserole_code_plain": {
+          "type": "text",
+          "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english",   
+          "fields": {
+            "exact": {
+              "type": "text",
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            }
+          }
+        },
+          "inverserole_plain": {
+          "type": "text",
+          "store": true,
+          "analyzer": "std_english",
+          "search_analyzer": "std_english",
+          "fields": {
+            "exact": {
+              "type": "text",
+              "store": true,
+              "analyzer": "exactandstartswith_analyzer",
+              "search_analyzer": "exactandstartswith_analyzer"
+            },
+            "ngram": {
+              "type": "text",
+              "store": true,
+              "analyzer": "ngram_filter_analyzer",
+              "search_analyzer": "standard"
             }
           }
         },
@@ -1437,11 +1610,13 @@
             },
             "relatedConceptCode": {
               "type": "text",
+              "copy_to": "inverserole_code_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english"
             },
             "relatedConceptLabel": {
               "type": "text",
+              "copy_to": "inverserole_plain", 
               "analyzer": "std_english",
               "search_analyzer": "std_english",
               "fields": {
