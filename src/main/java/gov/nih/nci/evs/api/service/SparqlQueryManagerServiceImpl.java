@@ -1267,6 +1267,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
     		return hierarchyWeekly.getChildNodes(parent, maxLevel);
 	    }
 	}
+
+	public List <String> getAllChildNodes(String parent, String dbType){
+		if (dbType.equals("monthly")) {
+    		return hierarchyMonthly.getAllChildNodes(parent);
+	    } else {
+    		return hierarchyWeekly.getAllChildNodes(parent);
+	    }
+	}
 	
 	public void checkPathInHierarchy(String code, HierarchyNode node, Path path, String dbType) {
 		if (path.getConcepts().size() == 0) {

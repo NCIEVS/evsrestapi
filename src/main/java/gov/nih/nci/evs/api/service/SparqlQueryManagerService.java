@@ -41,6 +41,7 @@ public interface SparqlQueryManagerService {
 	public List<HierarchyNode> getChildNodes(String parent, String dbType);
 	public List<HierarchyNode> getChildNodes(String parent, int maxLevel, String dbType);
 	public List <HierarchyNode> getPathInHierarchy(String code, String dbType);
+	public List<String> getAllChildNodes(String parent, String dbType);
 	
 	public Paths getPathToRoot(String conceptCode, String dbType) throws JsonMappingException, JsonParseException, IOException;
 	public Paths getPathToParent(String conceptCode, String parentConceptCode, String dbType) throws JsonMappingException, JsonParseException, IOException;

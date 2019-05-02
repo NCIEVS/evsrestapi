@@ -268,6 +268,27 @@ public class EvsController {
 		List <HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(conceptCode, maxLevel, dbType);
 		return nodes;
 	}
+
+	@ApiOperation(value = "Get the all children of the specified concept", response = String.class, responseContainer = "List")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully retrieved the children of the concept"),
+			@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+			@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	@RequestMapping(method = RequestMethod.GET, value = "/concept/{conceptCode}/allChildNodes", produces = "application/json")
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'",
+				required = false, dataType = "string", paramType = "query")
+	})
+	@RecordMetricDB
+	public @ResponseBody List<String> getAllChildNodes(
+			@PathVariable(value = "conceptCode") String conceptCode,
+			@RequestParam("db") Optional<String> db) throws IOException {
+		String dbType = db.orElse("monthly");
+		List <String> nodes = sparqlQueryManagerService.getAllChildNodes(conceptCode, dbType);
+		return nodes;
+	}
+	
 	
 	@ApiOperation(value = "Get different paths of the specified concept to the root path", response = Paths.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully retrieved the EVS Paths"),

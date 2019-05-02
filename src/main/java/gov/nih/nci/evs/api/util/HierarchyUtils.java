@@ -179,4 +179,32 @@ public class HierarchyUtils {
 		nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
 		node.setChildren(nodes);
 	}
+	
+	public void getAllChildNodesRecursive(String code, ArrayList <String> childCodes) {
+		List <String> children = this.parent2child.get(code);
+		if (children == null || children.size() == 0) {
+			return;
+		} else {
+			for (String childCode: children) {
+				childCodes.add(childCode);
+				getAllChildNodesRecursive(childCode, childCodes);
+			}
+		}
+	}
+
+	public List <String> getAllChildNodes(String code) {
+		ArrayList <String> childCodes = new ArrayList <String> ();
+
+		List <String> children = this.parent2child.get(code);
+		if (children == null || children.size() == 0) {
+			return childCodes;
+		} 
+
+		for (String childCode: children) {
+			childCodes.add(childCode);
+			getAllChildNodesRecursive(childCode, childCodes);
+		}
+		
+		return childCodes;
+	}
 }
