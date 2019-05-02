@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 
@@ -205,6 +206,7 @@ public class HierarchyUtils {
 			getAllChildNodesRecursive(childCode, childCodes);
 		}
 		
-		return childCodes;
+		return childCodes.stream().distinct().collect(Collectors.toList());
+		//return childCodes;
 	}
 }
