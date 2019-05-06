@@ -70,6 +70,37 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		return query.toString();
 	}
 	
+	/*
+	 * Keep for reference, counts may come in handy later
+	public String constructAxiomQualifierCountQuery(String propertyCode, String namedGraph) {
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT ?axiomQualifier (COUNT(?axiomQualifier) as (COUNT(!axiomQualifier) as?count)\n");
+		query.append("{ GRAPH <" + namedGraph + ">");
+		query.append("  { ?axiom a owl:Axiom .\n");
+		query.append("    ?axiom :"  + propertyCode + "?axiomQualifier\n");
+		query.append("  }\n");
+		query.append("}\n");
+		query.append("GROUP BY ?axiomQualifier\n");
+		query.append("ORDER BY ?axiomQualifier\n");
+
+		log.debug("constructAxiomQualifierCountQuery - " + query.toString());
+		return query.toString();
+	}
+	*/
+	
+	public String constructAxiomQualifierQuery(String propertyCode, String namedGraph) {
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT DISTINCT ?propertyValue\n");
+		query.append("{ GRAPH <" + namedGraph + ">");
+		query.append("  { ?axiom a owl:Axiom .\n");
+		query.append("    ?axiom :"  + propertyCode + "?propertyValue\n");
+		query.append("  }\n");
+		query.append("}\n");
+		query.append("ORDER BY ?propertyValue\n");
+
+		log.debug("constructAxiomQualiferQuery - " + query.toString());
+		return query.toString();
+	}
 	
 	public String constructPropertyQuery(String conceptCode, String namedGraph) {
 		StringBuffer query = new StringBuffer();

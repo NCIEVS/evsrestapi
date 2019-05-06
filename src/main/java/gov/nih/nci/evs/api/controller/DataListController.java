@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -74,5 +77,15 @@ public class DataListController {
 		
 		List<String> contributingSources = sparqlQueryManagerService.getConceptStatusForDocumentation();
 		return contributingSources;
+	}
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/axiomQualifiersList/{propertyCode}", produces = "application/json")
+	public @ResponseBody List<String> getAxiomQualifiersList(@PathVariable(value = "propertyCode") String propertyCode,
+			@RequestParam("db") Optional<String> db,
+			HttpServletResponse response) throws IOException {
+		
+        String dbType = db.orElse("monthly");
+		List<String> propertyValues = sparqlQueryManagerService.getAxiomQualifiersList(propertyCode, dbType);
+		return propertyValues;
 	}
 }
