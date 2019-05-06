@@ -1132,6 +1132,26 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 	
 	}
 	
+	public List<String> getAxiomQualifiersList(String propertyCode, String dbType) throws JsonMappingException,JsonParseException ,IOException {
+		String queryPrefix = queryBuilderService.contructPrefix();
+		String namedGraph = getNamedGraph(dbType);
+		String queryURL = getQueryURL(dbType);
+		String query = queryBuilderService.constructAxiomQualifierQuery(propertyCode, namedGraph);
+		String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		ArrayList<String> propertyValues = new ArrayList<String>();
+	
+		Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+		Bindings[] bindings = sparqlResult.getResults().getBindings();
+		for (Bindings b : bindings) {
+			String propertyValue = b.getPropertyValue().getValue();
+			propertyValues.add(propertyValue);
+		}
+		
+		return propertyValues;
+	}
 	
 	public List<String> getAllAssociationsForDocumentation(String dbType) throws JsonMappingException,JsonParseException ,IOException {
 		String queryPrefix = queryBuilderService.contructPrefix();

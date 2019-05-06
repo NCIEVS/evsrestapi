@@ -4,6 +4,7 @@ public interface QueryBuilderService {
 	public String constructAllPropertyQuery(String conceptCode,String namedGraph);
 	public String constructAllGraphNamesQuery();
     public String constructAxiomQuery(String conceptCode, String namedGraph);
+    public String constructAxiomQualifierQuery(String propertyCode, String namedGraph);
 	public String constructClassCountsQuery(String namedGraph);
 	public String constructConceptLabelQuery(String conceptCode, String namedGraph);
 	public String contructPrefix();
