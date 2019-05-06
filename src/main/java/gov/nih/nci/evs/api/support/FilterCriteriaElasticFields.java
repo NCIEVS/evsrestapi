@@ -18,6 +18,16 @@ public class FilterCriteriaElasticFields {
 	private String roleSearch;
 	private String format;
 	private String definitionSource;
+	private String hierarchySearch;
+	
+	public String getHierarchySearch() {
+		return hierarchySearch;
+	}
+
+	public void setHierarchySearch(String hierarchySearch) {
+		this.hierarchySearch = hierarchySearch;
+	}
+
 	private ArrayList<String> relationship;
 
 	public String getRoleSearch() {

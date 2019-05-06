@@ -40,6 +40,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 	
 	@Autowired
 	private ThesaurusProperties thesaurusProperties;
+	
+	@Autowired
+	private SparqlQueryManagerService sparqlQueryManagerService;
 
 	@PostConstruct
 	public void postInit() throws IOException {
@@ -60,6 +63,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		boolean synonymSource = false;
 		boolean definitionSource = false;
 		boolean associationSearch = false;
+		
 		boolean roleSearch = false;
 		String relation = null;
 
@@ -76,7 +80,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				display = "definition";
 			} else if (filterCriteriaElasticFields.getRoleSearch() != null) {
 				display = "role";
-			}
+			} 
 		} else {
 			if (filterCriteriaElasticFields.getReturnProperties().get(0).equalsIgnoreCase("all")) {
 				display = "all";
@@ -142,6 +146,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				&& !(filterCriteriaElasticFields.getDefinitionSource().equalsIgnoreCase("")))) {
 			definitionSource = true;
 		}
+		
+		
 
 		// *******source fields replace******************
 		String returnFields = "";
@@ -390,7 +396,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			
 			valuesMap.put("nestedPath", relation);
 		}
-
+		
+		
 		// ***************synonym source***********
 		if (synonymSource) {
 			String synonymSourceStr = constructSynonymSource(filterCriteriaElasticFields);
@@ -565,12 +572,14 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		
 		return value;
 	}
+	
+	
 
 	private String constructFilterQuery(FilterCriteriaElasticFields filterCriteriaElasticFields) throws InvalidParameterValueException {
 		String filter = "";
 		boolean contributingSourceFilter = false;		
 		boolean conceptStatusFilter = false;
-
+        boolean hierarchySearch = false;
 
 		ArrayList<String> conceptStatuses = filterCriteriaElasticFields.getConceptStatus();
 		
@@ -601,7 +610,13 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			contributingSourceFilter = true;
 		}
 		
-		if (contributingSourceFilter  || conceptStatusFilter) {
+		//hierarchy search
+		if ((!(filterCriteriaElasticFields.getHierarchySearch() == null)
+						&& !(filterCriteriaElasticFields.getHierarchySearch().equalsIgnoreCase("")))) {
+			hierarchySearch = true;
+		}
+		
+		if (contributingSourceFilter  || conceptStatusFilter || hierarchySearch) {
 			filter = filter + ",\n";
 			filter = filter + "\"filter\":\n";
 			filter = filter + "[\n";
@@ -642,6 +657,17 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 				}
 			}
 
+			if (hierarchySearch) {
+				List<String> childNodes = sparqlQueryManagerService.getAllChildNodes(filterCriteriaElasticFields.getHierarchySearch(), "monthly");
+				
+				filter = filter + "{\"terms\":{\"Code\": [" ;
+				for (String childNode: childNodes ) {
+				   filter = filter + "\"" + childNode + "\",";
+				 }
+				filter = filter.substring(0, filter.length() - 1);
+				filter = filter + "]}},\n";
+			}
+			
 			filter = filter.substring(0, filter.length() - 2);
 			filter = filter + "]\n";
 			//filter = filter + "}\n";
