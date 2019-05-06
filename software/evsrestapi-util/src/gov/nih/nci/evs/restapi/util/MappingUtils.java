@@ -215,7 +215,7 @@ public class MappingUtils {
 		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("SELECT ?x").append("\n");
 		buf.append("{").append("\n");
-		buf.append("graph <http://gov.nih.nci.evs/mapping/go_to_ncit_mapping_1.1>").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
 		buf.append("{").append("\n");
 		buf.append("?x ?y ?z .").append("\n");
 		buf.append("FILTER(str(?z) = \"" + value + "\"^^xsd:string && endsWith(str(?y), \"" +key + "\"^^xsd:string))").append("\n");
@@ -262,7 +262,7 @@ public class MappingUtils {
 		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("SELECT distinct ?z").append("\n");
 		buf.append("{").append("\n");
-		buf.append("graph <http://gov.nih.nci.evs/mapping/go_to_ncit_mapping_1.1>").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
 		buf.append("{").append("\n");
 		buf.append("?x ?y ?z .").append("\n");
 		buf.append("FILTER(endsWith(str(?y), \"sourceCode\"^^xsd:string))").append("\n");
