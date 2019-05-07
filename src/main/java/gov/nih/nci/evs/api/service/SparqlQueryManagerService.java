@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
@@ -12,6 +13,7 @@ import gov.nih.nci.evs.api.model.evs.EvsRelationships;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.model.evs.Paths;
+import gov.nih.nci.evs.api.support.ConfigData;
 
 public interface SparqlQueryManagerService {
 	
@@ -53,4 +55,7 @@ public interface SparqlQueryManagerService {
 
 	public EvsConcept getEvsConceptByLabelProperties(String conceptCode, String dbType, List <String> properties) throws JsonMappingException,JsonParseException,IOException;
 	public EvsConcept getEvsConceptByCodeProperties(String conceptCode, String dbType, List <String> properties) throws JsonMappingException,JsonParseException,IOException;
+	
+	
+	public ConfigData getConfigurationData(String dbType) throws JsonMappingException, JsonProcessingException, IOException;
 }

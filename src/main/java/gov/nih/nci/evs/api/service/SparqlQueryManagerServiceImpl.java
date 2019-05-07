@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +47,7 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
+import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathFinder;
@@ -1507,6 +1509,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		 
 		return statues;
 		
+	}
+	
+	
+	public ConfigData getConfigurationData(String dbType) throws JsonMappingException, JsonProcessingException, IOException {
+		
+		ConfigData configData = new ConfigData();
+		
+		List<EvsProperty>  properties = this.getAllPropertiesList("monthly", "byLabel");
+		configData.setProperties(properties);
+		List<String> definitionSources = this.getAxiomQualifiersList("P378", "monthly");
+		configData.setDefintionSources(definitionSources);
+		List<String> synonymSources = this.getAxiomQualifiersList("P384", "monthly");
+		configData.setSynonymSources(synonymSources);
+		List<String> synonymGroups = this.getAxiomQualifiersList("P383", "monthly");
+		configData.setSynonymGroups(synonymGroups);
+		
+	    return configData;	
 	}
 	
 }

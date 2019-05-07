@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.support.ConfigData;
 import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
@@ -87,5 +88,16 @@ public class DataListController {
         String dbType = db.orElse("monthly");
 		List<String> propertyValues = sparqlQueryManagerService.getAxiomQualifiersList(propertyCode, dbType);
 		return propertyValues;
+	}
+	
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/configuration", produces = "application/json")
+	public @ResponseBody ConfigData getConfigurationData(
+			@RequestParam("db") Optional<String> db,
+			HttpServletResponse response) throws IOException {
+		
+        String dbType = db.orElse("monthly");
+        ConfigData configData = sparqlQueryManagerService.getConfigurationData(dbType);
+		return configData;
 	}
 }
