@@ -1518,12 +1518,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		
 		List<EvsProperty>  properties = this.getAllPropertiesList("monthly", "byLabel");
 		configData.setProperties(properties);
-		List<String> definitionSources = this.getAxiomQualifiersList("P378", "monthly");
-		configData.setDefintionSources(definitionSources);
-		List<String> synonymSources = this.getAxiomQualifiersList("P384", "monthly");
-		configData.setSynonymSources(synonymSources);
-		List<String> synonymGroups = this.getAxiomQualifiersList("P383", "monthly");
-		configData.setSynonymGroups(synonymGroups);
+		configData.setEvsVersionInfo(this.getEvsVersionInfo("monthly"));
 		
 	    return configData;	
 	}
