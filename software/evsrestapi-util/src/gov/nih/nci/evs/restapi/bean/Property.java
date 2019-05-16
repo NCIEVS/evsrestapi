@@ -23,6 +23,7 @@ public class Property extends NameAndValue
 			String value,
 			String source) {
 			super(name, value);
+			this.source = source;
 		}
 
 		public void setSource(String source) {
