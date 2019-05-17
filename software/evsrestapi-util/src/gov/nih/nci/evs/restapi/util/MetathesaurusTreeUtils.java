@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.ui.*;
+//import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.bean.*;
 
 import java.io.*;
@@ -738,6 +739,7 @@ import java.util.Map.Entry;
 		return true;
 	}
 
+/*
 	public Vector getSourcesWithHierarchy() {
 		Vector w = new Vector();
 		Vector sabs = metathesaurusDataUtils.getSupportedSources();
@@ -750,6 +752,16 @@ import java.util.Map.Entry;
 		}
 		w = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
 		return w;
+	}
+*/
+
+    public Vector getSourcesWithHierarchy() {
+        Vector v = new Vector();
+        String query = construct_source_with_hierarcy_query();
+        v = executeQuery(query);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
 	}
 
     public String construct_atom_name_query(String cui, String sab, String aui) {
@@ -1453,6 +1465,54 @@ import java.util.Map.Entry;
 		 }
 		 return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
 	 }
+
+	public String construct_source_with_hierarcy_query() {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRHIER: <http://ncicb.nci.nih.gov/metathesaurus/mrhier/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT distinct ?sab {").append("\n");
+		buf.append("GRAPH <virtual://metathesaurus> {").append("\n");
+		buf.append("?s MRHIER:sab ?sab .").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public static String construct_distance_one_parents_query(String aui, String cui, String sab) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRHIER: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrhier/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT distinct ?ptr {").append("\n");
+		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+		buf.append("      ?s MRHIER:ptr ?ptr .").append("\n");
+		buf.append("      ?s MRHIER:aui \"" + aui + "\"^^xsd:string .").append("\n");
+		buf.append("      ?s MRHIER:cui ?cui .").append("\n");
+		buf.append("      ?s MRHIER:cui \"" + cui + "\"^^xsd:string .").append("\n");
+		buf.append("      ?s MRHIER:sab ?sab .").append("\n");
+		buf.append("      ?s MRHIER:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		buf.append("   }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+    public Vector getDistanceOneParents(String aui, String cui, String sab) {
+        Vector v = new Vector();
+        String query = construct_distance_one_parents_query(aui, cui, sab);
+        System.out.println(query);
+        v = executeQuery(query);
+		if (v == null) {
+			System.out.println("v == null");
+			return null;
+		}
+		if (v.size() == 0) {
+			System.out.println("v.size() == 0");
+			return null;
+		}
+		v = new ParserUtils().getResponseValues(v);
+        return v;
+	}
 
 
 	public static void main(String[] args) {

@@ -122,9 +122,12 @@ import java.util.Map.Entry;
 		 return generateSynonymTable(code, syn_vec, sourcesWithHierarchy_vec);
 	 }
 
-
-
      public String generateSynonymTable(String code, Vector syn_vec, Vector sourcesWithHierarchy_vec) {
+		 Vector codingSchemes = null;
+		 return generateSynonymTable(code, syn_vec, sourcesWithHierarchy_vec, codingSchemes);
+	 }
+
+     public String generateSynonymTable(String code, Vector syn_vec, Vector sourcesWithHierarchy_vec, Vector codingSchemes) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("<table border=\"0\" width=\"708px\" role='presentation'>").append("\n");
 		buf.append("<tr>").append("\n");
@@ -175,12 +178,6 @@ if (syn_vec != null) {
 	        String ncit_code = null;
 			String term = syn.getTermName();
 			String sab = syn.getTermSource();
-			/*
-			if (sab.compareTo("NCI") == 0) {
-				ncit_code = syn.getSourceCode();
-				break;
-			}
-			*/
 
 			String type = syn.getTermGroup();
 			String src_code = syn.getSourceCode();
@@ -191,10 +188,15 @@ if (syn_vec != null) {
 			buf.append("<td class=\"dataCellText\">" + type + "</td>").append("\n");
 			buf.append("<td class=\"dataCellText\">").append("\n");
 
-			if (sourcesWithHierarchy_vec != null && sourcesWithHierarchy_vec.contains(sab)) {
-				buf.append(src_code + " &nbsp;" + getViewInSourceHierarchyLink(code, sab)).append("\n");
+            if (codingSchemes != null && codingSchemes.contains(sab)) {
+                buf.append(getCodeHyperlink(src_code, sab));
+			} else {
+				buf.append(src_code);
 			}
-
+			if (sourcesWithHierarchy_vec != null && sourcesWithHierarchy_vec.contains(sab)) {
+				buf.append(" &nbsp;" + getViewInSourceHierarchyLink(code, sab));
+			}
+            buf.append("\n");
 			buf.append("</td>").append("\n");
 			buf.append("</tr>").append("\n");
 		}
@@ -817,6 +819,15 @@ if(property_hashmap != null) {
 		buf.append("'_blank','top=100, left=100, height=740, width=780, status=no, menubar=no, resizable=yes, scrollbars=yes, toolbar=no, location=no, directories=no');\">").append("\n");
 		buf.append("<img src=\"/" + this.application_name + "/images/visualize.gif\" width=\"12px\" height=\"12px\" title=\"View In " + sab + " Hierarchy\" alt=\"View In " + sab + " Hierarchy\" border=\"0\"/>").append("\n");
 		buf.append("</a>").append("\n");
+		return buf.toString();
+	}
+
+    public String getCodeHyperlink(String code, String sab) {
+		StringBuffer buf = new StringBuffer();
+	    buf.append("			  <a href=\"#\" onclick=\"javascript:window.open('/" + this.application_name + "/redirect?action=ncitdetails&sab=" + sab + "&code=" + code + "',").append("\n");
+	    buf.append("			  '_blank','top=100, left=100, height=740, width=780, status=no, menubar=no, resizable=yes, scrollbars=yes, toolbar=no, location=no, directories=no');\">").append("\n");
+	    buf.append(code);
+	    buf.append("			  </a>").append("\n");
 		return buf.toString();
 	}
 

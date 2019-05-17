@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.ui.*;
+
 import gov.nih.nci.evs.restapi.bean.*;
 
 import java.io.*;
@@ -2251,8 +2252,185 @@ import java.util.Map.Entry;
 	}
 
 
+     public Vector getAvailableCodingSchemes() {
+         OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl);
+         HashMap nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
+         Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+         Vector v = new Vector();
+         while (it.hasNext()) {
+			 String key = (String) it.next();
+			 Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(key, '|');
+			 String sab = (String) u.elementAt(0);
+			 if (sab.compareTo("MEDDRA") == 0) {
+				 sab = "MDR";
+			 } else if (sab.compareTo("NCI_Thesaurus") == 0) {
+				 sab = "NCI";
+			 } else if (sab.compareTo("SNOMEDCT") == 0) {
+				 sab = "SNOMEDCT_US";
+			 }
+			 if (!v.contains(sab)) {
+				 v.add(sab);
+			 }
+		 }
+		 return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
+	 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public static String construct_rsab_query() {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRSAB: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrsab/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT distinct ?rsab ?vcui ?rcui {").append("\n");
+		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+		buf.append("      ?s MRSAB:vcui ?vcui .").append("\n");
+		buf.append("      ?s MRSAB:rcui ?rcui .").append("\n");
+		buf.append("      ?s MRSAB:rsab ?rsab .").append("\n");
+		buf.append("   }").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
+
+    public Vector getSABData() {
+        Vector v = new Vector();
+        String query = construct_rsab_query();
+        System.out.println(query);
+        v = executeQuery(query);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+        return v;
+	}
+
+	public static String construct_relationship_query(String cui1, String rel, String sab) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT distinct ?aui1 ?aui2 ?cui1 ?cui2 ?rel ?rela ?sab {").append("\n");
+		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+		buf.append("      ?s MRREL:aui1 ?aui1 .").append("\n");
+		buf.append("      ?s MRREL:aui2 ?aui2 .").append("\n");
+		buf.append("      ?s MRREL:cui1 ?cui1 .").append("\n");
+		if (cui1 != null) {
+			buf.append("      ?s MRREL:cui1 \"" + cui1 + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("      ?s MRREL:cui2 ?cui2 .").append("\n");
+		buf.append("      ?s MRREL:rel  ?rel .").append("\n");
+		if (rel != null) {
+			buf.append("      ?s MRREL:rel \"" + rel + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("      ?s MRREL:rela ?rela .").append("\n");
+
+		buf.append("      ?s MRREL:sab  ?sab .").append("\n");
+		if (sab != null) {
+			buf.append("      ?s MRREL:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		}
+
+
+		buf.append("   }").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
+
+    public Vector getRelationshipTarget(String cui1, String rel, String sab) {
+        Vector v = new Vector();
+        String query = construct_relationship_query(cui1, rel, sab);
+        v = executeQuery(query);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+        return v;
+	}
+
+	public static String construct_mrhier_query(String aui, String cui, String sab) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRHIER: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrhier/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT distinct ?aui ?cui ?cvf ?cxn ?hcd ?paui ?ptr ?rela ?sab {").append("\n");
+		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+		buf.append("      ?s MRHIER:aui ?aui .").append("\n");
+		if (aui != null) {
+			buf.append("      ?s MRHIER:aui \"" + aui + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("      ?s MRHIER:cui ?cui .").append("\n");
+		if (cui != null) {
+			buf.append("      ?s MRHIER:cui \"" + cui + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("      ?s MRHIER:cvf ?cvf .").append("\n");
+		buf.append("      ?s MRHIER:cxn ?cxn .").append("\n");
+		buf.append("      ?s MRHIER:hcd ?hcd .").append("\n");
+		buf.append("      ?s MRHIER:paui ?paui .").append("\n");
+		buf.append("      ?s MRHIER:ptr ?ptr .").append("\n");
+		buf.append("      ?s MRHIER:rela ?rela .").append("\n");
+
+		buf.append("      ?s MRHIER:sab ?sab .").append("\n");
+		if (sab != null) {
+			buf.append("      ?s MRHIER:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("   }").append("\n");
+		buf.append("}").append("\n");
+		buf.append("LIMIT 10").append("\n");
+		return buf.toString();
+	}
+
+    public Vector getHIERData(String aui, String cui, String sab) {
+        Vector v = new Vector();
+        String query = construct_mrhier_query(aui, cui, sab);
+        System.out.println(query);
+        v = executeQuery(query);
+		if (v == null) {
+			System.out.println("v == null");
+			return null;
+		}
+
+		if (v.size() == 0) {
+			System.out.println("v.size() == 0");
+			return null;
+		}
+
+		v = new ParserUtils().getResponseValues(v);
+        return v;
+	}
+
+
+	public static String construct_atom_query(String sab, String aui) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT ?cui ?code ?str ?tty {").append("\n");
+		buf.append("GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+        buf.append("?s MRCONSO:aui ?aui .").append("\n");
+        buf.append("?s MRCONSO:aui \"" + aui + "\"^^xsd:string .").append("\n");
+        buf.append("?s MRCONSO:code ?code .").append("\n");
+		buf.append("?s MRCONSO:cui ?cui .").append("\n");
+		buf.append("?s MRCONSO:str ?str .").append("\n");
+		buf.append("?s MRCONSO:tty ?tty .").append("\n");
+		buf.append("?s MRCONSO:sab ?sab .").append("\n");
+		buf.append("?s MRCONSO:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+    public Vector getAtomDataByAUI(String sab, String aui) {
+        Vector v = new Vector();
+        String query = construct_atom_query(sab, aui);
+        v = executeQuery(query);
+		if (v == null) {
+			System.out.println("v == null");
+			return null;
+		}
+		if (v.size() == 0) {
+			System.out.println("v.size() == 0");
+			return null;
+		}
+		v = new ParserUtils().getResponseValues(v);
+        return v;
+	}
+
 
 	public static void main(String[] args) {
         String serviceUrl = args[0];

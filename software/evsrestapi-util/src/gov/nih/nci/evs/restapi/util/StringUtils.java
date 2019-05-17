@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.restapi.util;
 
+import gov.nih.nci.evs.restapi.bean.*;
+
 import java.io.*;
 import java.net.URI;
 import java.text.*;
@@ -232,9 +234,12 @@ public class StringUtils {
 						System.out.println("\t\t" + s);
 					}
 				}
-			} else {
+			} else if (obj instanceof String) {
 				String s = (String) obj;
 				System.out.println("\t\t" + s);
+			} else if (obj instanceof Atom) {
+				Atom s = (Atom) obj;
+				System.out.println("\t\t" + s.toJson());
 			}
 		}
 	}
