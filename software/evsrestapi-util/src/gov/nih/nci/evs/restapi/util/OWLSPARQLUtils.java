@@ -674,7 +674,8 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getSynonyms(String named_graph, String code) {
-		return getComplexProperties(named_graph, code, Constants.FULL_SYN);
+		//return getComplexProperties(named_graph, code, Constants.FULL_SYN);
+		return getAxioms(named_graph, code, Constants.FULL_SYN);
 	}
 
 	public String construct_get_annotation_properties(String named_graph) {
@@ -752,10 +753,11 @@ public class OWLSPARQLUtils {
 		//buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
 		return buf.toString();
 	}
-
+/*
 	public Vector getAxiomsByCode(String named_graph, String code) {
 		return getPropertyQualifiersByCode(named_graph, code);
 	}
+*/
 
 	public Vector getPropertyQualifiersByCode(String named_graph, String code) {
 		Vector v = executeQuery(construct_get_property_qualifiers_by_code(named_graph, code));
@@ -1753,10 +1755,7 @@ public class OWLSPARQLUtils {
 	}
 
     public String getOntologyName(String uri) {
-		if (this.ontologyUri2LabelMap == null) {
-			this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
-		}
-		return (String) this.ontologyUri2LabelMap.get(uri);
+		return (String) ontologyUri2LabelMap.get(uri);
 	}
 
 	public Vector getAvailableOntologies() {
@@ -2275,6 +2274,8 @@ public class OWLSPARQLUtils {
 		if (v == null) {
 			return null;
 		}
+		gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("v", v);
+
 		v = new ParserUtils().getResponseValues(v);
 		HashMap hmap = new HashMap();
 		SortUtils sortUtils = new SortUtils();
@@ -3700,57 +3701,91 @@ public class OWLSPARQLUtils {
 		return v;
 	}
 
-	public String search_by_label(String named_graph, String identifier, String matchText) {
-		return search_by_label(named_graph, identifier, matchText, -1);
+	public String construct_axiom_query(String named_graph, String code) {
+		String propertyName = null;
+		return construct_axiom_query(named_graph, code, propertyName);
 	}
 
-	public String search_by_label(String named_graph, String identifier, String matchText, int maxReturn) {
+	public String construct_axiom_query(String named_graph, String code, String propertyName) {
+		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
-		String matchText_lc = matchText.toLowerCase();
-		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
-		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
-		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
-		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
-		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
-		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
-		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
-		buf.append("SELECT distinct ?x_label ?x_code ").append("\n");
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT ?z_axiom ?x_label ?x_code ?p_label ?z_target ?y_label ?z").append("\n");
 		buf.append("{").append("\n");
-		buf.append("graph <" + named_graph + ">").append("\n");
-		buf.append("{").append("\n");
-		buf.append("?x rdfs:label ?x_label .").append("\n");
-		buf.append("?x :" + identifier + " ?x_code ").append("\n");
-		buf.append("FILTER (contains(lcase(str(?x_label)), '" + matchText_lc + "'))").append("\n");
-		buf.append("}").append("\n");
-		buf.append("}").append("\n");
-		if (maxReturn > 0) {
-			buf.append("LIMIT " + maxReturn).append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    { ").append("\n");
+		buf.append("    	{").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+
+		if (propertyName != null) {
+			buf.append("            ?p rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
 		}
+
+		buf.append("            ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("            ?z_axiom ?y ?z . ").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+
+		buf.append("        }").append("\n");
+		buf.append("     }").append("\n");
+		buf.append("}").append("\n");
+		//buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
 		return buf.toString();
 	}
 
-	public Vector searchByLabel(String named_graph, String identifier, String matchText) {
-		Vector v = executeQuery(search_by_label(named_graph, identifier, matchText));
-		if (v == null || v.size() == 0) return null;
+	public Vector getAxioms(String named_graph, String code, String propertyName) {
+		String query = construct_axiom_query(named_graph, code, propertyName);
+		Vector v = executeQuery(query);
 		v = new ParserUtils().getResponseValues(v);
-		v = new SortUtils().quickSort(v);
 		return v;
 	}
+
+	public Vector getAxioms(String named_graph, String code) {
+		Vector v = executeQuery(construct_axiom_query(named_graph, code));
+		v = new ParserUtils().getResponseValues(v);
+		return v;
+	}
+
+	public Vector getAxiomsByCode(String named_graph, String code, String propertyName) {
+		String query = construct_axiom_query(named_graph, code, propertyName);
+		Vector v = executeQuery(query);
+		v = new ParserUtils().getResponseValues(v);
+		return v;
+	}
+
+	public Vector getAxiomsByCode(String named_graph, String code) {
+		Vector v = executeQuery(construct_axiom_query(named_graph, code));
+		v = new ParserUtils().getResponseValues(v);
+		return v;
+	}
+
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         String named_graph = args[1];
-        String queryfile = args[2];
+        //String queryfile = args[2];
         owlSPARQLUtils.set_named_graph(named_graph);
         //owlSPARQLUtils.runQuery(queryfile);
 
-        Vector v = owlSPARQLUtils.get_roots(named_graph);
+        //Vector v = owlSPARQLUtils.get_roots(named_graph);
+        String code = "C4815";
+        System.out.println("Calling owlSPARQLUtils.getRolesByCode ...");
+
+        long ms = System.currentTimeMillis();
+        Vector v = owlSPARQLUtils.getRolesByCode(named_graph, code);
+        v = new ParserUtils().getResponseValues(v);
         for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			System.out.println(t);
 		}
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
     }
 }

@@ -507,17 +507,17 @@ public class GraphDrawer {
         view_graph(out, request, response, named_graph, scheme, version, namespace, code, type);
 	}
 
-
-    public void view_graph(PrintWriter out, HttpServletRequest request, HttpServletResponse response, String named_graph, String scheme, String version,
+    public void view_graph(PrintWriter out, HttpServletRequest request, HttpServletResponse response,
+        String named_graph, String scheme, String version,
                            String namespace, String code, String type) {
-        view_graph(out, request, response, "sparql", named_graph, scheme, version,
+		String applicationName = "sparql";
+        view_graph(out, request, response, applicationName, named_graph, scheme, version,
                            namespace, code, type);
 
 	}
 
 
-
-    public void view_graph(PrintWriter out, HttpServletRequest request, HttpServletResponse response, String sparql, String named_graph, String scheme, String version,
+    public void view_graph(PrintWriter out, HttpServletRequest request, HttpServletResponse response, String applicationName, String named_graph, String scheme, String version,
                            String namespace, String code, String type) {
        	HashMap hmap = null;
        	if (out == null && response != null && request != null) {
@@ -655,9 +655,9 @@ public class GraphDrawer {
 		out.println("    }");
 		out.println("  </style>");
 		out.println("");
-		out.println("  <script type=\"text/javascript\" src=\"/" + sparql + "/css/vis/vis.js\"></script>");
-		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/" + sparql + "/css/vis/vis.css\" />");
-		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/" + sparql + "/css/styleSheet.css\" />");
+		out.println("  <script type=\"text/javascript\" src=\"/" + applicationName + "/css/vis/vis.js\"></script>");
+		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/" + applicationName + "/css/vis/vis.css\" />");
+		out.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"/" + applicationName + "/css/styleSheet.css\" />");
 
 		out.println("");
 		out.println("  <script type=\"text/javascript\">");
@@ -667,7 +667,7 @@ public class GraphDrawer {
 		out.println("");
 
 		out.println("    function reset_graph(id) {");
-		out.println("        window.location.href=\"/" + sparql + "/ajax?action=reset_graph&id=\" + id;");
+		out.println("        window.location.href=\"/" + applicationName + "/ajax?action=reset_graph&id=\" + id;");
 		out.println("    }");
 
 
@@ -781,22 +781,22 @@ public class GraphDrawer {
 
 		out.println("<div class=\"ncibanner\">");
 		out.println("  <a href=\"http://www.cancer.gov\" target=\"_blank\">     ");
-		out.println("    <img src=\"/" + sparql + "/images/logotype.gif\"");
+		out.println("    <img src=\"/" + applicationName + "/images/logotype.gif\"");
 		out.println("      width=\"556\" height=\"39\" border=\"0\"");
 		out.println("      alt=\"National Cancer Institute\"/>");
 		out.println("  </a>");
 		out.println("  <a href=\"http://www.cancer.gov\" target=\"_blank\">     ");
-		out.println("    <img src=\"/" + sparql + "/images/spacer.gif\"");
+		out.println("    <img src=\"/" + applicationName + "/images/spacer.gif\"");
 		out.println("      width=\"60\" height=\"39\" border=\"0\" ");
 		out.println("      alt=\"National Cancer Institute\" class=\"print-header\"/>");
 		out.println("  </a>");
 		out.println("  <a href=\"http://www.nih.gov\" target=\"_blank\" >      ");
-		out.println("    <img src=\"/" + sparql + "/images/tagline_nologo.gif\"");
+		out.println("    <img src=\"/" + applicationName + "/images/tagline_nologo.gif\"");
 		out.println("      width=\"219\" height=\"39\" border=\"0\"");
 		out.println("      alt=\"U.S. National Institutes of Health\"/>");
 		out.println("  </a>");
 		out.println("  <a href=\"http://www.cancer.gov\" target=\"_blank\">      ");
-		out.println("    <img src=\"/" + sparql + "/images/cancer-gov.gif\"");
+		out.println("    <img src=\"/" + applicationName + "/images/cancer-gov.gif\"");
 		out.println("      width=\"125\" height=\"39\" border=\"0\"");
 		out.println("      alt=\"www.cancer.gov\"/>");
 		out.println("  </a>");
@@ -807,7 +807,7 @@ public class GraphDrawer {
 		  out.println("<p class=\"textbodyred\">&nbsp;No graph data is available.</p>");
 		}
 
-		out.println("<form id=\"data\" method=\"post\" action=\"/" + sparql + "/ajax?action=view_graph\">");
+		out.println("<form id=\"data\" method=\"post\" action=\"/" + applicationName + "/ajax?action=view_graph\">");
 
 		out.println("Relationships");
 		out.println("<select name=\"type\" >");

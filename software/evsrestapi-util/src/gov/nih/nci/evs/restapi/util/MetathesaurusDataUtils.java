@@ -373,6 +373,11 @@ import java.util.Map.Entry;
 		return generator.generateSynonymTable(cui, syn_vec, sourceWithHierarchy_vec);
 	 }
 
+	 public String generateSynonymTable(String cui, Vector syn_vec, Vector sourceWithHierarchy_vec, Vector codingSchemes) {
+		syn_vec = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(syn_vec);
+		return generator.generateSynonymTable(cui, syn_vec, sourceWithHierarchy_vec, codingSchemes);
+	 }
+
 	 public String generateRelationshipTable(HashMap hmap) {
 		return generator.generateRelationshipTable(hmap);
 	 }

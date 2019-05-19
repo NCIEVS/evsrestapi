@@ -71,20 +71,25 @@ import org.json.*;
 
 public class FormatUtils {
     ParserUtils parserUtils = null;
+    String applicationName = "sparql";
 
 	public FormatUtils() {
         parserUtils = new ParserUtils();
+	}
+
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
 	}
 
 	public Vector toDelimited(Vector v) {
 		return parserUtils.getResponseValues(v);
 	}
 
-	public static PrintWriter systemOut2PrintWriter() {
+	public PrintWriter systemOut2PrintWriter() {
 		return new PrintWriter(System.out, true);
 	}
 
-	public static Vector formatRelationships(Vector v, String label, String code) {
+	public Vector formatRelationships(Vector v, String label, String code) {
 		if (v == null || v.size() == 0) return new Vector();
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
@@ -98,7 +103,7 @@ public class FormatUtils {
 		return w;
 	}
 
-	public static Vector formatInverseRelationships(Vector v, String label, String code) {
+	public Vector formatInverseRelationships(Vector v, String label, String code) {
 		if (v == null || v.size() == 0) return new Vector();
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
@@ -112,7 +117,7 @@ public class FormatUtils {
 		return w;
 	}
 
-	public static Vector formatSuperclasses(Vector v, String label, String code) {
+	public Vector formatSuperclasses(Vector v, String label, String code) {
 		if (v == null || v.size() == 0) return new Vector();
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
@@ -126,7 +131,7 @@ public class FormatUtils {
 		return w;
 	}
 
-	public static Vector formatSubclasses(Vector v, String label, String code) {
+	public Vector formatSubclasses(Vector v, String label, String code) {
 		if (v == null || v.size() == 0) return new Vector();
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
@@ -141,7 +146,7 @@ public class FormatUtils {
 	}
 
 	//formatSynonyms
-	public static String formatSynonyms(Vector v) {
+	public String formatSynonyms(Vector v) {
 		StringBuffer buf = new StringBuffer();
 		if (v == null || v.size() == 0) return "";
 		List list = new ParserUtils().getSynonyms(v);
@@ -167,7 +172,7 @@ public class FormatUtils {
 		return buf.toString();
 	}
 
-     public static String formatComplexProperties(String name, String value) {
+     public String formatComplexProperties(String name, String value) {
 		 if (value == null) return null;
 		 if (value.compareTo("") == 0 || value.indexOf("ncicp:") == -1) {
 			 return value;
@@ -189,21 +194,21 @@ public class FormatUtils {
 	 }
 
 
-     public static String getHyperlink(String codingScheme, String version, String name, String code, String ns) {
+     public String getHyperlink(String codingScheme, String version, String name, String code, String ns) {
 		StringBuffer buf = new StringBuffer();
 		if (StringUtils.isNullOrBlank(ns)) {
-			buf.append("<a href=\"/sparql/ConceptReport.jsp?dictionary=" + codingScheme + "&version=" + version + "&code=" + code + "\">").append("\n");
+			buf.append("<a href=\"/" + applicationName + "/ConceptReport.jsp?dictionary=" + codingScheme + "&version=" + version + "&code=" + code + "\">").append("\n");
 		} else {
-			buf.append("<a href=\"/sparql/ConceptReport.jsp?dictionary=" + codingScheme + "&version=" + version + "&code=" + code + "&ns=" + ns + "\">").append("\n");
+			buf.append("<a href=\"/" + applicationName + "/ConceptReport.jsp?dictionary=" + codingScheme + "&version=" + version + "&code=" + code + "&ns=" + ns + "\">").append("\n");
 		}
 		buf.append(name).append("\n");
 		buf.append("</a>").append("\n");
 		return buf.toString();
      }
 
-     public static String getHyperlink(String named_graph, String name, String code) {
+     public String getHyperlink(String named_graph, String name, String code) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("<a href=\"/sparql/ConceptReport.jsp?ng=" + named_graph + "&code=" + code + "\">").append("\n");
+		buf.append("<a href=\"/" + applicationName + "/ConceptReport.jsp?ng=" + named_graph + "&code=" + code + "\">").append("\n");
 		buf.append(name).append("\n");
 		buf.append("</a>").append("\n");
 		return buf.toString();
@@ -265,7 +270,7 @@ public class FormatUtils {
 	    return label;
     }
 
-     public static Vector getSortedKeys(HashMap map) {
+     public Vector getSortedKeys(HashMap map) {
 		 if (map == null) return null;
          Vector v = new Vector();
          Iterator it = map.keySet().iterator();
@@ -277,7 +282,7 @@ public class FormatUtils {
          return v;
 	 }
 
-     public static String formatTable(HashMap map, String firstColumnHeading, String secondColumnHeading,
+     public String formatTable(HashMap map, String firstColumnHeading, String secondColumnHeading,
         int firstPercentColumnWidth, int secondPercentColumnWidth) {
 
          return formatTable(map, firstColumnHeading, secondColumnHeading,
@@ -285,7 +290,7 @@ public class FormatUtils {
 		}
 
 
-     public static String formatTable(HashMap map, String firstColumnHeading, String secondColumnHeading,
+     public String formatTable(HashMap map, String firstColumnHeading, String secondColumnHeading,
         int firstPercentColumnWidth, int secondPercentColumnWidth, boolean encode) {
 		Vector prop_names = getSortedKeys(map);
         StringBuffer buf = new StringBuffer();
@@ -335,7 +340,7 @@ public class FormatUtils {
     }
 
 
-     public static String formatTable(Vector v, String firstColumnHeading, String secondColumnHeading,
+     public String formatTable(Vector v, String firstColumnHeading, String secondColumnHeading,
         int firstPercentColumnWidth, int secondPercentColumnWidth) {
         StringBuffer buf = new StringBuffer();
 		buf.append("<table class=\"datatable_960\" border=\"0\" width=\"100%\">").append("\n");

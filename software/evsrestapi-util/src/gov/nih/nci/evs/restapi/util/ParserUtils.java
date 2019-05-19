@@ -218,9 +218,23 @@ public class ParserUtils {
 	}
 
 
+/*
+        (1) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492050|Cell Aging|C16394|FULL_SYN|Aging, Cellular|Term Type|SY
+        (2) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492050|Cell Aging|C16394|FULL_SYN|Aging, Cellular|Term Source|NCI
+        (3) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492051|Cell Aging|C16394|FULL_SYN|Cell Aging|Term Type|PT
+        (4) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492051|Cell Aging|C16394|FULL_SYN|Cell Aging|Term Source|NCI
+        (5) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492052|Cell Aging|C16394|FULL_SYN|Cell Senescence|Term Type|SY
+        (6) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492052|Cell Aging|C16394|FULL_SYN|Cell Senescence|Term Source|NCI
+        (7) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492053|Cell Aging|C16394|FULL_SYN|Cellular Aging|Term Type|SY
+        (8) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492053|Cell Aging|C16394|FULL_SYN|Cellular Aging|Term Source|NCI
+        (9) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492054|Cell Aging|C16394|FULL_SYN|Cellular Senescence|Term Type|SY
+        (10) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492054|Cell Aging|C16394|FULL_SYN|Cellular Senescence|Term Source|NCI
+*/
+
+
 	public List getSynonyms(Vector v) {
 		if (v == null) return null;
-	    v = sortAxiomData(v);
+	    //v = sortAxiomData(v);
 		List syn_list = new ArrayList();
         String z_axiom = null;
 		String code = null;
@@ -232,60 +246,45 @@ public class ParserUtils {
 		String subSourceName = null;
 		String subSourceCode = null;
 
-        String prev_z_axiom = null;
-		String prev_code = null;
-		String prev_label = null;
-		String prev_termName = null;
-		String prev_termGroup = null;
-		String prev_termSource = null;
-		String prev_sourceCode = null;
-		String prev_subSourceName = null;
-		String prev_subSourceCode = null;
-
 		String qualifier_name = null;
 		String qualifier_value = null;
 
+		HashMap hmap = new HashMap();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			String t0 = (String) u.elementAt(0);
+		    Vector u = StringUtils.parseData(line, '|');
+		    String key = (String) u.elementAt(0);
+		    Vector values = new Vector();
+		    if (hmap.containsKey(key)) {
+				values = (Vector) hmap.get(key);
+			}
+			values.add(line);
+			hmap.put(key, values);
+		}
 
-			if (t0.compareTo("z_axiom") == 0) {
-				z_axiom = (String) u.elementAt(u.size()-1);
-				if (prev_z_axiom != null && prev_z_axiom.compareTo(z_axiom) != 0) {
-					Synonym syn = new Synonym(
-						code,
-						label,
-						termName,
-						termGroup,
-						termSource,
-						sourceCode,
-						subSourceName,
-						subSourceCode);
-					syn_list.add(syn);
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector values = (Vector) hmap.get(key);
 
-					prev_code = null;
-					prev_label = null;
-					prev_termName = null;
+			code = null;
+			label = null;
+			termName = null;
+			termGroup = null;
+			termSource = null;
+			sourceCode = null;
+			subSourceName = null;
+			subSourceCode = null;
 
-					termGroup = null;
-					termSource = null;
-					sourceCode = null;
-					subSourceName = null;
-					subSourceCode = null;
-				}
-				prev_z_axiom = z_axiom;
+			for (int i=0; i<values.size(); i++) {
+				String line = (String) values.elementAt(i);
+				Vector u = StringUtils.parseData(line, '|');
+				label = (String) u.elementAt(1);
+				code = (String) u.elementAt(2);
+				termName = (String) u.elementAt(4);
+				qualifier_name = (String) u.elementAt(5);
+				qualifier_value = (String) u.elementAt(6);
 
-			} else if (t0.compareTo("x_label") == 0) {
-				label = getValue(line);
-			} else if (t0.compareTo("x_code") == 0) {
-				code = getValue(line);
-			} else if (t0.compareTo("z_target") == 0) {
-				termName = getValue(line);
-			} else if (t0.compareTo("y_label") == 0) {
-				qualifier_name = getValue(line);
-			} else if (t0.compareTo("z") == 0) {
-				qualifier_value = getValue(line);
 				if (qualifier_name.compareTo("term-source") == 0 || qualifier_name.compareTo("Term Source") == 0) {
 					termSource = qualifier_value;
 				} else if (qualifier_name.compareTo("P385") == 0) {
@@ -300,31 +299,24 @@ public class ParserUtils {
 					subSourceCode = qualifier_value;
 				}
 			}
+
+			Synonym syn = new Synonym(
+				code,
+				label,
+				termName,
+				termGroup,
+				termSource,
+				sourceCode,
+				subSourceName,
+				subSourceCode);
+			syn_list.add(syn);
 		}
-		Synonym syn = new Synonym(
-			code,
-			label,
-			termName,
-			termGroup,
-			termSource,
-			sourceCode,
-			subSourceName,
-			subSourceCode);
-		syn_list.add(syn);
 		return syn_list;
 	}
 
-/*
-        (7) z_axiom|bnode|bnode_8aeefc2e_62d6_4c80_af01_d3f8c0650595_1497620
-        (8) x_label|literal|Melanoma
-        (9) x_code|literal|C3224
-        (10) term_name|literal|A malignant neoplasm composed of melanocytes.
-        (11) y_label|literal|def-source
-        (12) z|literal|CDISC
-*/
+
 	public List getDefinitions(Vector v) {
 		if (v == null) return null;
-	    v = sortAxiomData(v);
 		List def_list = new ArrayList();
         String z_axiom = null;
 		String code = null;
@@ -332,58 +324,52 @@ public class ParserUtils {
 		String desc = null;
 		String defSource = null;
 
-        String prev_z_axiom = null;
-		String prev_code = null;
-		String prev_label = null;
-		String prev_desc = null;
-		String prev_defSource = null;
-
 		String qualifier_name = null;
 		String qualifier_value = null;
+
+		HashMap hmap = new HashMap();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			String t0 = (String) u.elementAt(0);
+		    Vector u = StringUtils.parseData(line, '|');
+		    String key = (String) u.elementAt(0);
+		    Vector values = new Vector();
+		    if (hmap.containsKey(key)) {
+				values = (Vector) hmap.get(key);
+			}
+			values.add(line);
+			hmap.put(key, values);
+		}
 
-			if (t0.compareTo("z_axiom") == 0) {
-				z_axiom = (String) u.elementAt(u.size()-1);
-				if (prev_z_axiom != null && prev_z_axiom.compareTo(z_axiom) != 0) {
-					Definition def = new Definition(
-						desc,
-						defSource);
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector values = (Vector) hmap.get(key);
 
+			code = null;
+			label = null;
+			desc = null;
+			defSource = null;
 
-					def_list.add(def);
-					prev_code = null;
-					prev_label = null;
-					prev_desc = null;
-					prev_defSource = null;
-					desc = null;
-					defSource = null;
-				}
-				prev_z_axiom = z_axiom;
+			qualifier_name = null;
+			qualifier_value = null;
 
-			} else if (t0.compareTo("x_label") == 0) {
-				label = getValue(line);
-			} else if (t0.compareTo("x_code") == 0) {
-				code = getValue(line);
-			} else if (t0.compareTo("z_target") == 0) {
-				desc = getValue(line);
-
-			} else if (t0.compareTo("y_label") == 0) {
-				qualifier_name = getValue(line);
-			} else if (t0.compareTo("z") == 0) {
-				qualifier_value = getValue(line);
+			for (int i=0; i<values.size(); i++) {
+				String line = (String) values.elementAt(i);
+				Vector u = StringUtils.parseData(line, '|');
+				label = (String) u.elementAt(1);
+				code = (String) u.elementAt(2);
+				desc = (String) u.elementAt(4);
+				qualifier_name = (String) u.elementAt(5);
+				qualifier_value = (String) u.elementAt(6);
                 if (qualifier_name.compareTo("P378") == 0 || qualifier_name.compareTo("def-source") == 0 || qualifier_name.compareTo("Definition Source") == 0) {
 					defSource = qualifier_value;
-
 				}
 			}
+			Definition def = new Definition(
+				desc,
+				defSource);
+			def_list.add(def);
 		}
-		Definition def = new Definition(
-			desc,
-			defSource);
-		def_list.add(def);
 		return def_list;
 	}
 
