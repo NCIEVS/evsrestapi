@@ -2,6 +2,7 @@ package gov.nih.nci.evs.restapi.ui;
 
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
+import gov.nih.nci.evs.restapi.util.*;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -156,4 +157,14 @@ public class UIUtils {
 		out.println("</html>");
 		out.println("");
 	}
+
+	public static StringBuffer treeItem2StringBuffer(String applicationName, gov.nih.nci.evs.restapi.bean.TreeItem ti) {
+        HashSet _vocabularyNameSet = null;
+        gov.nih.nci.evs.restapi.util.SimpleTreeUtils stu = new gov.nih.nci.evs.restapi.util.SimpleTreeUtils(_vocabularyNameSet);
+        stu.setBasePath("/" + applicationName + "/");
+		HashMap sourceValueSetTree = new HashMap();
+		sourceValueSetTree.put("<Root>", ti);
+		return stu.getValueSetTreeStringBuffer(sourceValueSetTree);
+	}
+
 }
