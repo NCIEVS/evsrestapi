@@ -95,15 +95,19 @@ public class SortComparator implements Comparator<Object> {
 			gov.nih.nci.evs.restapi.bean.Property p = (gov.nih.nci.evs.restapi.bean.Property) c;
             String s = p.getName() + "|" + p.getValue();
             return s;
-         } else if (c instanceof gov.nih.nci.evs.restapi.bean.Synonym) {
+        } else if (c instanceof gov.nih.nci.evs.restapi.bean.Synonym) {
 			gov.nih.nci.evs.restapi.bean.Synonym p = (gov.nih.nci.evs.restapi.bean.Synonym) c;
             String s = p.getTermName() + "|" + p.getTermSource() + "|" + p.getTermGroup();
             return s;
-         } else if (c instanceof gov.nih.nci.evs.restapi.bean.ResolvedConceptReference) {
+        } else if (c instanceof gov.nih.nci.evs.restapi.bean.ResolvedConceptReference) {
 			gov.nih.nci.evs.restapi.bean.ResolvedConceptReference p = (gov.nih.nci.evs.restapi.bean.ResolvedConceptReference) c;
             String s = p.getName();
             return s;
-        }
+        } else if (c instanceof gov.nih.nci.evs.restapi.bean.MapEntry) {
+			gov.nih.nci.evs.restapi.bean.MapEntry p = (gov.nih.nci.evs.restapi.bean.MapEntry) c;
+            String s = p.getSourceCode() + "|" + p.getSourceName();
+            return s;
+		}
         return c.toString();
     }
 

@@ -2303,7 +2303,6 @@ import java.util.Map.Entry;
     public Vector getSABData() {
         Vector v = new Vector();
         String query = construct_rsab_query();
-        System.out.println(query);
         v = executeQuery(query);
 		if (v == null || v.size() == 0) return null;
 		v = new ParserUtils().getResponseValues(v);
@@ -2386,7 +2385,6 @@ import java.util.Map.Entry;
     public Vector getHIERData(String aui, String cui, String sab) {
         Vector v = new Vector();
         String query = construct_mrhier_query(aui, cui, sab);
-        System.out.println(query);
         v = executeQuery(query);
 		if (v == null) {
 			System.out.println("v == null");

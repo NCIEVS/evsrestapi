@@ -1496,7 +1496,6 @@ import java.util.Map.Entry;
     public Vector getDistanceOneParents(String aui, String cui, String sab) {
         Vector v = new Vector();
         String query = construct_distance_one_parents_query(aui, cui, sab);
-        System.out.println(query);
         v = executeQuery(query);
 		if (v == null) {
 			System.out.println("v == null");

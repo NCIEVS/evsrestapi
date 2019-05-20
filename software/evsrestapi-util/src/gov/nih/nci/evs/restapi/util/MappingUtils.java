@@ -286,9 +286,6 @@ public class MappingUtils {
         Vector w = new Vector();
         for (int i=0; i<v.size(); i++) {
 		    String line = (String) v.elementAt(i);
-
-		    System.out.println(line);
-
 		    Vector u = StringUtils.parseData(line, '|');
 		    String x = (String) u.elementAt(0);
 		    String y = (String) u.elementAt(1);
@@ -368,29 +365,27 @@ public class MappingUtils {
 			targetCodingSchemeNamespace);
 	}
 
+	public Vector<MapEntry> getMapEntries(String named_graph) {
+		Vector<MapEntry> w = new Vector();
+		Vector ids = get_mapentry_ids(named_graph);
+		for (int k=0; k<ids.size(); k++) {
+			String id = (String) ids.elementAt(k);
+			Vector v = get_mapentry_id_by_source_code(named_graph, id);
+			String x = (String) v.elementAt(0);
+			v = get_mapentry(named_graph, x);
+			v = trim_namespace(v, named_graph);
+			MapEntry entry = constructMapEntry(v);
+            w.add(entry);
+		}
+		w = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
+		return w;
+	}
+
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		MappingUtils mappingUtils = new MappingUtils(serviceUrl);
         String named_graph = args[1];
-        String sourcecode = args[2];
-        Vector ids = mappingUtils.get_mapentry_id_by_source_code(named_graph, sourcecode);
-
-        for (int k=0; k<ids.size(); k++) {
-			String id = (String) ids.elementAt(k);
-			System.out.println(id);
-
-			Vector v = mappingUtils.get_mapentry(named_graph, id);
-			v = mappingUtils.trim_namespace(v, named_graph);
-			StringUtils.dumpVector("v", v);
-
-			MapEntry entry = mappingUtils.constructMapEntry(v);
-			System.out.println(entry.toXML());
-			System.out.println(entry.toJson());
-		}
-        /*
-        Vector w = mappingUtils.get_mapentry_ids(named_graph);
-        StringUtils.dumpVector("w", w);
-        */
+        Vector<MapEntry> w = mappingUtils.getMapEntries(named_graph);
+        System.out.println(w.size());
 	}
-
 }
