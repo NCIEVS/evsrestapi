@@ -193,22 +193,18 @@ import java.util.Map.Entry;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public String get_hierarchy_roots(String sab) {
-        String code = "V_" + sab;
+	public String get_hierarchy_roots(String sab) {
 		StringBuffer buf = new StringBuffer();
-		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
 		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
-		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		buf.append("SELECT ?cui ?sab ?code {").append("\n");
+		buf.append("SELECT distinct ?cui ?sab ?code {").append("\n");
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
-		//buf.append("      ?s a :MRCONSO .").append("\n");
-		buf.append("      ?s MRCONSO:cui ?cui .").append("\n");
-		buf.append("      ?s MRCONSO:sab ?sab .").append("\n");
-		buf.append("      ?s MRCONSO:code ?code .").append("\n");
-		buf.append("      ?s MRCONSO:sab \"" + sab + "\"^^xsd:string .").append("\n");
-		buf.append("      ?s MRCONSO:code \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("   }").append("\n");
+		buf.append("?s MRCONSO:cui ?cui .").append("\n");
+		buf.append("?s MRCONSO:sab ?sab .").append("\n");
+		buf.append("?s MRCONSO:code ?code .").append("\n");
+		buf.append("?s MRCONSO:sab \"SRC\"^^xsd:string .").append("\n");
+		buf.append("?s MRCONSO:code \"V-" + sab + "\"^^xsd:string .").append("\n");
+		buf.append("}").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
@@ -1514,6 +1510,35 @@ import java.util.Map.Entry;
         return v;
 	}
 
+	public Vector getRootAtomData(String sab) {
+		Vector roots = getHierarchyRoots(sab);
+		String line = (String) roots.elementAt(0);
+		Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
+		String root_cui = (String) u.elementAt(0);
+		Vector root_vec = getChildRelationships(root_cui, sab);
+		root_vec = new SortUtils().quickSort(root_vec);
+		return root_vec;
+	}
+
+	public Vector<Atom> getRootAtoms(String sab) {
+		Vector root_vec = getRootAtomData(sab);
+		if (root_vec == null) return null;
+		Vector<Atom> w = new Vector();
+		for (int i=0; i<root_vec.size(); i++) {
+			String t = (String) root_vec.elementAt(i);
+			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(t, '|');
+			String aui = (String) u.elementAt(1);
+			String cui = (String) u.elementAt(3);
+			String nameAndCode = metathesaurusDataUtils.getAtomNameAndCodeByAUI(cui, sab, aui);
+			Vector u2 = gov.nih.nci.evs.restapi.util.StringUtils.parseData(nameAndCode);
+			String str = (String) u2.elementAt(0);
+			String code = (String) u2.elementAt(1);
+			Atom atom = new Atom(code, str, aui, sab, cui);
+			w.add(atom);
+		}
+		w = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
+		return w;
+	}
 
 	public static void main(String[] args) {
         String serviceUrl = args[0];

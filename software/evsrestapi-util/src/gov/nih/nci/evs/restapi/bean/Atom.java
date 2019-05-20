@@ -67,10 +67,10 @@ public class Atom
 		this.aui = aui;
 		this.sab = sab;
 		this.cui = cui;
-		this.ispref = "Y";
-		this.lat = "ENG";
-		this.stt = "PF";
-		this.ts = "P";
+		this.ispref = null;
+		this.lat = null;
+		this.stt = null;
+		this.ts = null;
 		this.tty = null;
 	}
 

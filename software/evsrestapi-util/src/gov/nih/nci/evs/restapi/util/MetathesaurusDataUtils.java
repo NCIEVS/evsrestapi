@@ -1603,7 +1603,11 @@ import java.util.Map.Entry;
         Vector v = new Vector();
         String query = construct_label_query(cui, sab, aui);
         v = executeQuery(query);
-		if (v == null || v.size() == 0) return null;
+		if (v == null || v.size() == 0) {
+			Atom atom = getHighestRankAtom(cui, sab);
+			if (atom == null) return null;
+			return atom.getStr() + "|" + atom.getCode();
+		}
 		v = new ParserUtils().getResponseValues(v);
 		String first_line = (String) v.elementAt(0);
 		Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(first_line);
