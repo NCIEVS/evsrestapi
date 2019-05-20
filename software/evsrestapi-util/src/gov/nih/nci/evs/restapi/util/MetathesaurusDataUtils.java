@@ -2440,6 +2440,30 @@ import java.util.Map.Entry;
         return v;
 	}
 
+	public String construct_semantic_type_query(String cui) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRSTY: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrsty/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT ?sty {").append("\n");
+		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+		buf.append("      ?s MRSTY:cui ?cui .").append("\n");
+		buf.append("      ?t MRSTY:cui \"" + cui + "\"^^xsd:string .").append("\n");
+		buf.append("      ?s MRSTY:sty ?sty .").append("\n");
+		buf.append("   }").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+	    return buf.toString();
+	}
+
+    public Vector getSemanticTypes(String cui) {
+        Vector v = new Vector();
+        String query = construct_semantic_type_query(cui);
+        v = executeQuery(query);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
+	}
+
 
 	public static void main(String[] args) {
         String serviceUrl = args[0];

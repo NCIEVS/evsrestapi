@@ -113,6 +113,59 @@ public class UIUtils {
 		}
 	}
 
+	public static String generateCartContent(String applicationName, Vector label_vec, Vector semtype_vec) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("<form id=\"cartFormId\" name=\"cartFormId\" method=\"post\" action=\"/" + applicationName + "/pages/cart.jsf\" enctype=\"application/x-www-form-urlencoded\">");
+		buf.append("<input type=\"hidden\" name=\"cartFormId\" value=\"cartFormId\" />");
+		buf.append("");
+		buf.append("       <table border=\"0\" class=\"datatable_960\">");
+		buf.append("            <tr>");
+		buf.append("              <td width=\"200px\">");
+		buf.append("              <table border=\"0\" width=\"100%\" role='presentation'>");
+		buf.append("                <tr>");
+		buf.append("                  <td class=\"texttitle-blue\" width=\"40\">Cart</td>").append("\n");
+		buf.append("                  <td class=\"texttitle-gray\">(1)</td>").append("\n");
+		buf.append("                  <td class=\"texttitle-gray\">").append("\n");
+		buf.append("<script type=\"text/javascript\" language=\"Javascript\">function dpf(f) {var adp = f.adp;if (adp != null) {for (var i = 0;i < adp.length;i++) {f.removeChild(adp[i]);}}};function apf(f, pvp) {var adp = new Array();f.adp = adp;var i = 0;for (k in pvp) {var p = document.createElement(\"input\");p.type = \"hidden\";p.name = k;p.value = pvp[k];f.appendChild(p);adp[i++] = p;}};function jsfcljs(f, pvp, t) {apf(f, pvp);var ft = f.target;if (t) {f.target = t;}f.submit();f.target = ft;dpf(f);};</script>").append("\n");
+		buf.append("<a href=\"#\" title=\"Return to previous screen\" onclick=\"var a=function(){backButton();return false;};var b=function(){if(typeof jsfcljs == 'function'){jsfcljs(document.getElementById('cartFormId'),{'cartFormId:j_id_jsp_2089217805_14':'cartFormId:j_id_jsp_2089217805_14'},'');}return false};return (a()==false) ? false : b();\" class=\"texttitle-blue-small\">Exit Cart</a>").append("\n");
+		buf.append("                  </td>").append("\n");
+		buf.append("                </tr>").append("\n");
+		buf.append("              </table>").append("\n");
+		buf.append("              </td>").append("\n");
+		buf.append("            <td align=\"right\" valign=\"bottom\" nowrap>").append("\n");
+		buf.append("              <a href=\"#\" onclick=\"if(typeof jsfcljs == 'function'){jsfcljs(document.getElementById('cartFormId'),{'cartFormId:j_id_jsp_2089217805_15':'cartFormId:j_id_jsp_2089217805_15'},'');}return false\" class=\"texttitle-blue-small\"><img src=\"../images/selectall.gif\" alt=\"Select All\" style=\"border: none\" title=\"Select all concepts\" /></a>&nbsp;").append("\n");
+		buf.append("              <a href=\"#\" onclick=\"if(typeof jsfcljs == 'function'){jsfcljs(document.getElementById('cartFormId'),{'cartFormId:j_id_jsp_2089217805_17':'cartFormId:j_id_jsp_2089217805_17'},'');}return false\" class=\"texttitle-blue-small\"><img src=\"../images/clearselections.gif\" alt=\"Unselect\" style=\"border: none\" title=\"Unselect all concepts\" /></a>&nbsp;");
+		buf.append("              <a href=\"#\" onclick=\"var a=function(){return confirmRemoveMessage();};var b=function(){if(typeof jsfcljs == 'function'){jsfcljs(document.getElementById('cartFormId'),{'cartFormId:j_id_jsp_2089217805_19':'cartFormId:j_id_jsp_2089217805_19'},'');}return false};return (a()==false) ? false : b();\" class=\"texttitle-blue-small\"><img src=\"../images/remove.gif\" alt=\"Remove\" style=\"border: none\" title=\"Remove concepts from the cart\" /></a>&nbsp;").append("\n");
+		buf.append("              <a href=\"#\" onclick=\"if(typeof jsfcljs == 'function'){jsfcljs(document.getElementById('cartFormId'),{'cartFormId:j_id_jsp_2089217805_21':'cartFormId:j_id_jsp_2089217805_21'},'');}return false\" class=\"texttitle-blue-small\"><img src=\"../images/exportxml.gif\" alt=\"Export XML\" style=\"border: none\" title=\"Export cart contents in LexGrid XML format\" /></a>&nbsp;").append("\n");
+		buf.append("              <a href=\"#\" onclick=\"if(typeof jsfcljs == 'function'){jsfcljs(document.getElementById('cartFormId'),{'cartFormId:j_id_jsp_2089217805_23':'cartFormId:j_id_jsp_2089217805_23'},'');}return false\" class=\"texttitle-blue-small\"><img src=\"../images/exportcsv.gif\" alt=\"Export CSV\" style=\"border: none\" title=\"Generate a list of cart concepts in CSV format readable from Excel\" /></a>").append("\n");
+		buf.append("            </td>").append("\n");
+		buf.append("          </tr>").append("\n");
+		buf.append("       </table>").append("\n");
+		buf.append("      <hr/>").append("\n");
+		buf.append("      <table class=\"datatable_960\" summary=\"\" cellpadding=\"3\" cellspacing=\"0\" border=\"0\" width=\"100%\">").append("\n");
+		buf.append("            <tr>").append("\n");
+		buf.append("              <th class=\"dataTableHeader\" scope=\"col\" align=\"left\" width=\"20px\">&nbsp;</th>").append("\n");
+		buf.append("              <th class=\"dataTableHeader\" scope=\"col\" align=\"left\">Concept</th>").append("\n");
+		buf.append("              <th class=\"dataTableHeader\" scope=\"col\" align=\"left\">Semantic Type</th>").append("\n");
+		buf.append("            </tr>").append("\n");
+		for (int i=0; i<label_vec.size(); i++ ) {
+			String label = (String) label_vec.elementAt(i);
+			String semtype = (String) semtype_vec.elementAt(i);
+			buf.append("            <tr class=\"dataRowDark\">").append("\n");
+			buf.append("              <td><input id=\"cartFormId:checkboxId\" type=\"checkbox\" name=\"cartFormId:checkboxId\" onclick=\"submit()\" /></td>").append("\n");
+			buf.append("              <td>").append("\n");
+			buf.append("                   <label for=\"cartFormId:checkboxId\">" + label + "</label>").append("\n");
+			buf.append("              </td>").append("\n");
+			buf.append("              <td>" + semtype + "</td>").append("\n");
+			buf.append("            </tr>").append("\n");
+		}		buf.append("").append("\n");
+		buf.append("      </table>").append("\n");
+		buf.append("      <input type=\"hidden\" name=\"javax.faces.ViewState\" value=\"j_id7:j_id8\" />").append("\n");
+		buf.append("</form>").append("\n");
+        return buf.toString();
+	}
+
+
     public static void generateTestPage(PrintWriter out, String serviceUrl) {
 		out.println("<!DOCTYPE html>");
 		out.println("<html>");
