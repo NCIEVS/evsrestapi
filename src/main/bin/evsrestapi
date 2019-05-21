@@ -9,11 +9,12 @@
 # Short-Description: start and stop the Angular Core application
 ### END INIT INFO
 
-export JAVA_HOME=$HOME/opt/java/current
+export JAVA_HOME=/usr/local/jdk1.8
 export PATH="${JAVA_HOME}/bin:${PATH}"
 USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
 APP_NAME=`basename $0`
 APP_USER=evsuser
+APP_HOME=/local/content
 if
   [ "$USER" != "" ]
 then
@@ -26,10 +27,10 @@ else
   fi
 fi
 
-CONFIG_DIR=$HOME/config/${APP_NAME}
+CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
 CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
 
-APP_DIR=$HOME/apps/${APP_NAME}
+APP_DIR=${APP_HOME}/${APP_NAME}/${APP_NAME}
 APP_ENV_FILE=${APP_DIR}/bin/setenv.sh
 
 JAR_FILE=${APP_DIR}/lib/${APP_NAME}.war
