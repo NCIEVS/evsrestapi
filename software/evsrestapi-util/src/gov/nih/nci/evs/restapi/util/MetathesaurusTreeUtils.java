@@ -195,7 +195,7 @@ import java.util.Map.Entry;
 
 	public String get_hierarchy_roots(String sab) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT distinct ?cui ?sab ?code {").append("\n");
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
@@ -221,7 +221,7 @@ import java.util.Map.Entry;
 	public static String construct_mrhier_query(String cui) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRHIER: <http://ncicb.nci.nih.gov/metathesaurus/mrhier/>").append("\n");
+		buf.append("PREFIX MRHIER: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrhier/>").append("\n");
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT ?aui ?cui ?cvf ?cxn ?hcd ?paui ?ptr ?rela ?sab {").append("\n");
@@ -321,7 +321,7 @@ import java.util.Map.Entry;
 	public static String construct_mrrel_query(String cui, String rel, String sab, String aui) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/metathesaurus/mrrel/>").append("\n");
+		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		//buf.append("SELECT ?aui1 ?aui2 ?cui1 ?cui2 ?cvf ?dir ?rel ?rela ?rg ?rui ?sab ?sl ?srui ?stype1 ?stype2 ?suppress {").append("\n");
@@ -400,7 +400,7 @@ import java.util.Map.Entry;
 	public static String construct_label_query(String cui, String sab, String aui, String tty, String stt, String ispref, String lat) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 		////buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT ?str ?code ?aui ?tty ?ispref ?lat ?stt ?ts{").append("\n");
@@ -500,8 +500,8 @@ import java.util.Map.Entry;
 	public static String construct_related_concepts_query(String cui, String ts, String stt, String ispref, String lat) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/metathesaurus/mrrel/>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
@@ -580,8 +580,8 @@ import java.util.Map.Entry;
 	public static String construct_atoms_in_related_concepts_query(String cui) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/metathesaurus/mrrel/>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
@@ -628,8 +628,8 @@ import java.util.Map.Entry;
 	public static String construct_related_concept_query(String rel, String sab, String cui, String code) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/metathesaurus/mrrel/>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
@@ -693,7 +693,7 @@ import java.util.Map.Entry;
     public String construct_cui_query(String sab, String code) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT distinct ?cui {").append("\n");
@@ -735,22 +735,6 @@ import java.util.Map.Entry;
 		return true;
 	}
 
-/*
-	public Vector getSourcesWithHierarchy() {
-		Vector w = new Vector();
-		Vector sabs = metathesaurusDataUtils.getSupportedSources();
-		for (int i=0; i<sabs.size(); i++) {
-			String src = (String) sabs.elementAt(i);
-			boolean bool_val = sourceHierarchyAvailable(src);
-			if (bool_val) {
-				w.add(src);
-			}
-		}
-		w = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
-		return w;
-	}
-*/
-
     public Vector getSourcesWithHierarchy() {
         Vector v = new Vector();
         String query = construct_source_with_hierarcy_query();
@@ -763,7 +747,7 @@ import java.util.Map.Entry;
     public String construct_atom_name_query(String cui, String sab, String aui) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT ?str {").append("\n");
@@ -793,7 +777,7 @@ import java.util.Map.Entry;
     public String construct_atom_name_by_code_query(String cui, String sab, String code) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT ?str {").append("\n");
@@ -824,7 +808,7 @@ import java.util.Map.Entry;
 	public static String construct_intra_cui_relationships_query(String cui, String sab, String rel, String rela) {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/metathesaurus/mrrel/>").append("\n");
+		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
 		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT ?cui1 ?aui1 ?cui2 ?aui2 ?rel ?rela {").append("\n");
@@ -907,7 +891,7 @@ import java.util.Map.Entry;
 	// Find all atoms in SRC with source-code (i.e., atom code) matching "V-<source)"
 	public static String construct_meta_root_query() {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/metathesaurus/mrconso/>").append("\n");
+		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT ?code ?str ?aui ?sab ?cui ?ispref ?lat ?stt ?ts ?tty {").append("\n");
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
@@ -1464,10 +1448,10 @@ import java.util.Map.Entry;
 
 	public String construct_source_with_hierarcy_query() {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX MRHIER: <http://ncicb.nci.nih.gov/metathesaurus/mrhier/>").append("\n");
+		buf.append("PREFIX MRHIER: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrhier/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT distinct ?sab {").append("\n");
-		buf.append("GRAPH <virtual://metathesaurus> {").append("\n");
+		buf.append("GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
 		buf.append("?s MRHIER:sab ?sab .").append("\n");
 		buf.append("}").append("\n");
 		buf.append("}").append("\n");

@@ -109,6 +109,7 @@ import java.util.Map.Entry;
      String bookmarkUrl = "https://localhost:8080/sparqlncim/ConceptReport.jsp?dictionary=NCI Metathesaurus&code=";
      String applicationName = "sparqlncim";
      HashMap rankMap = null;
+     HashMap sab2RootCUIHashMap = null;
 
 	 public MetathesaurusDataUtils(String serviceUrl) {
 		this.serviceUrl = verifyServiceUrl(serviceUrl);
@@ -119,6 +120,7 @@ import java.util.Map.Entry;
 		generator.set_bookmark_url(bookmarkUrl);
 		rel2LabelHashMap = createRel2LabelHashMap();
 		rankMap = createRankMap();
+        sab2RootCUIHashMap = getSAB2RootCUIHashMap();
 	 }
 
 	 public int getRank(String sab, String tty) {
@@ -1279,54 +1281,31 @@ import java.util.Map.Entry;
 
 	public static String construct_mrrel_query(String cui, String rel, String sab, String aui) {
 		StringBuffer buf = new StringBuffer();
-		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
 		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
-		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		//buf.append("SELECT ?aui1 ?aui2 ?cui1 ?cui2 ?cvf ?dir ?rel ?rela ?rg ?rui ?sab ?sl ?srui ?stype1 ?stype2 ?suppress {").append("\n");
-
 		buf.append("SELECT ?aui1 ?aui2 ?cui1 ?cui2 ?rel ?rela ?sab {").append("\n");
-
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
-		//buf.append("      ?s a :MRREL .").append("\n");
 		buf.append("      ?s MRREL:aui1 ?aui1 .").append("\n");
 		if (aui != null) {
 		    buf.append("      ?s MRREL:aui1 \"" + aui + "\"^^xsd:string .").append("\n");
 	    }
-
 		buf.append("      ?s MRREL:aui2 ?aui2 .").append("\n");
 		buf.append("      ?s MRREL:cui1 ?cui1 .").append("\n");
 		buf.append("      ?s MRREL:cui1 \"" + cui + "\"^^xsd:string .").append("\n");
 		buf.append("      ?s MRREL:cui2 ?cui2 .").append("\n");
-		//buf.append("      ?s MRREL:cvf ?cvf .").append("\n");
-		//buf.append("      ?s MRREL:dir ?dir .").append("\n");
 		buf.append("      ?s MRREL:rel ?rel .").append("\n");
 
 		if (rel != null) {
 		    buf.append("      ?s MRREL:rel \"" + rel + "\"^^xsd:string .").append("\n");
 	    }
-
-		//buf.append("      ?s MRREL:rela ?rela .").append("\n");
-		//buf.append("      ?s MRREL:rg ?rg .").append("\n");
-		//buf.append("      ?s MRREL:rui ?rui .").append("\n");
 		buf.append("      ?s MRREL:sab ?sab .").append("\n");
-
 		if (sab != null) {
 			buf.append("      ?s MRREL:sab \"" + sab + "\"^^xsd:string .").append("\n");
 		}
-		//buf.append("      ?s MRREL:sl ?sl .").append("\n");
-		//buf.append("      ?s MRREL:srui ?srui .").append("\n");
-		//buf.append("      ?s MRREL:stype1 ?stype1 .").append("\n");
-		//buf.append("      ?s MRREL:stype2 ?stype2 .").append("\n");
-		//buf.append("      ?s MRREL:suppress ?suppress .").append("\n");
 		buf.append("   }").append("\n");
-
  		buf.append("OPTIONAL {").append("\n");
         buf.append("      ?s MRREL:rela ?rela .").append("\n");
 		buf.append("}").append("\n");
-
-
-
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
 		return buf.toString();
@@ -2120,6 +2099,7 @@ import java.util.Map.Entry;
 
      public Atom getHighestRankAtom(String cui, String sab) {
 		 Vector v = getSortedAtomData(cui, sab);
+		 //gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("v", v);
 		 AtomData a = (AtomData) v.elementAt(v.size()-1);
 		 return atomData2Atom(a);
 	 }
@@ -2285,14 +2265,17 @@ import java.util.Map.Entry;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//C4550278|C1140284|RXNORM_17AB_180305F|RXNORM|RxNorm Vocabulary,
+
 	public static String construct_rsab_query() {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX MRSAB: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrsab/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		buf.append("SELECT distinct ?rsab ?vcui ?rcui {").append("\n");
+		buf.append("SELECT distinct ?vcui ?rcui ?vsab ?rsab {").append("\n");
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
 		buf.append("      ?s MRSAB:vcui ?vcui .").append("\n");
 		buf.append("      ?s MRSAB:rcui ?rcui .").append("\n");
+		buf.append("      ?s MRSAB:vsab ?vsab .").append("\n");
 		buf.append("      ?s MRSAB:rsab ?rsab .").append("\n");
 		buf.append("   }").append("\n");
 		buf.append("}").append("\n");
@@ -2304,9 +2287,39 @@ import java.util.Map.Entry;
         Vector v = new Vector();
         String query = construct_rsab_query();
         v = executeQuery(query);
-		if (v == null || v.size() == 0) return null;
+		if (v == null || v.size() == 0) {
+			System.out.println("WARNING: getSABData returns nothing");
+			return null;
+		}
 		v = new ParserUtils().getResponseValues(v);
         return v;
+	}
+
+
+	public HashMap getSAB2RootCUIHashMap() {
+		HashMap hmap = new HashMap();
+		Vector v = getSABData();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(t, '|');
+			String sab = (String) u.elementAt(3);
+			String rcui = (String) u.elementAt(1);
+			hmap.put(sab, rcui);
+		}
+		return hmap;
+	}
+
+	public String getRootCUI(String sab) {
+		if (sab2RootCUIHashMap.containsKey(sab)) {
+			return (String) sab2RootCUIHashMap.get(sab);
+		}
+		return null;
+	}
+
+	//buf.append("SELECT ?aui1 ?aui2 ?cui1 ?cui2 ?rel ?rela ?sab {").append("\n");
+	public Vector getSABRoots(String sab) {
+		String cui = getRootCUI(sab);
+        return getChildRelationships(cui, sab);
 	}
 
 	public static String construct_relationship_query(String cui1, String rel, String sab) {
