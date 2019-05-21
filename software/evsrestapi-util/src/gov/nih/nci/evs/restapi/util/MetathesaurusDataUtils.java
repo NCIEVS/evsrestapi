@@ -110,6 +110,7 @@ import java.util.Map.Entry;
      String applicationName = "sparqlncim";
      HashMap rankMap = null;
      HashMap sab2RootCUIHashMap = null;
+     MetathesaurusSearchUtils metathesaurusSearchUtils = null;
 
 	 public MetathesaurusDataUtils(String serviceUrl) {
 		this.serviceUrl = verifyServiceUrl(serviceUrl);
@@ -121,6 +122,7 @@ import java.util.Map.Entry;
 		rel2LabelHashMap = createRel2LabelHashMap();
 		rankMap = createRankMap();
         sab2RootCUIHashMap = getSAB2RootCUIHashMap();
+        metathesaurusSearchUtils = new MetathesaurusSearchUtils(serviceUrl);
 	 }
 
 	 public int getRank(String sab, String tty) {
@@ -1772,148 +1774,15 @@ import java.util.Map.Entry;
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // searchConceptsByAtomName
-	public String construct_search_by_code_query(String sab, String matchText) {
-		String ts = "P";
-		String stt = "PF";
-		String ispref = "Y";
-		String lat = "ENG";
-	    return construct_search_by_code_query(sab, matchText, ts,
-	        stt, ispref, lat);
-	}
 
-        // searchConceptsByAtomName
-	public String construct_search_by_code_query(String sab, String matchText, String ts,
-	    String stt, String ispref, String lat) {
-		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
-		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		buf.append("SELECT ?str ?cui ?aui ?code {").append("\n");
-		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
-        buf.append("      {").append("\n");
-		buf.append("      ?t MRCONSO:cui ?cui .").append("\n");
-		buf.append("      ?t MRCONSO:cui \"" + matchText + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:code ?code .").append("\n");
-		buf.append("      ?t MRCONSO:aui ?aui .").append("\n");
-		buf.append("      ?t MRCONSO:ispref \"" + ispref + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:lat \"" + lat + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:str ?str .").append("\n");
-		buf.append("      ?t MRCONSO:sab ?sab .").append("\n");
-		if (sab != null) {
-			buf.append("      ?t MRCONSO:sab \"" + sab + "\"^^xsd:string .").append("\n");
-		}
-		buf.append("      ?t MRCONSO:tty ?tty .").append("\n");
-		buf.append("      ?t MRCONSO:stt \"" + stt + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:ts \"" + ts + "\"^^xsd:string .").append("\n");
-		buf.append("      }").append("\n");
-		buf.append("      UNION ").append("\n");
-        buf.append("      {").append("\n");
-		buf.append("      ?t MRCONSO:cui ?cui .").append("\n");
-		buf.append("      ?t MRCONSO:code ?code .").append("\n");
-		buf.append("      ?t MRCONSO:code \"" + matchText + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:aui ?aui .").append("\n");
-		buf.append("      ?t MRCONSO:ispref \"" + ispref + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:lat \"" + lat + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:str ?str .").append("\n");
-		buf.append("      ?t MRCONSO:sab ?sab .").append("\n");
-		if (sab != null) {
-			buf.append("      ?t MRCONSO:sab \"" + sab + "\"^^xsd:string .").append("\n");
-		}
-		buf.append("      ?t MRCONSO:tty ?tty .").append("\n");
-		buf.append("      ?t MRCONSO:stt \"" + stt + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:ts \"" + ts + "\"^^xsd:string .").append("\n");
-		buf.append("      }").append("\n");
-		buf.append("   }").append("\n");
-		buf.append("}").append("\n");
-		buf.append("").append("\n");
-		return buf.toString();
-	}
-
-    public Vector<Atom> searchConceptsByAtomCode(String sab, String matchText) {
-		Vector w = new Vector();
-        Vector v = new Vector();
-        String query = construct_search_by_code_query(sab, matchText);
-        v = executeQuery(query);
-		if (v == null || v.size() == 0) return null;
-		v = new ParserUtils().getResponseValues(v);
-		for (int i=0; i<v.size(); i++) {
-			String line = (String) v.elementAt(i);
-			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
-			Atom atom = new Atom((String) u.elementAt(3),
-			                     (String) u.elementAt(0),
-			                     (String) u.elementAt(2),
-			                     sab, (String) u.elementAt(1));
-			w.add(atom);
-		}
-        return w;
+    public Vector<Atom> searchConceptsByCode(String sab, String matchText) {
+		return metathesaurusSearchUtils.searchConceptsByCode(sab, matchText);
     }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	public String construct_search_by_name_query(String algorithm, String matchText) {
-		return construct_search_by_name_query(null, algorithm, matchText);
-	}
-
-
-	public String construct_search_by_name_query(String sab, String algorithm, String matchText) {
-		String ts = "P";
-		String stt = "PF";
-		String ispref = "Y";
-		String lat = "ENG";
-	    return construct_search_by_name_query(sab, algorithm, matchText, ts,
-	        stt, ispref, lat);
-	}
-
-        // searchConceptsByAtomName
-	public String construct_search_by_name_query(String sab, String algorithm, String matchText, String ts,
-	    String stt, String ispref, String lat) {
-		StringBuffer buf = new StringBuffer();
-		//buf.append("PREFIX sm: <tag:stardog:api:mapping:>").append("\n");
-		buf.append("PREFIX MRCONSO: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrconso/>").append("\n");
-		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
-		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		buf.append("SELECT ?str ?cui ?aui ?code {").append("\n");
-		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
-		//buf.append("      ?t a :MRCONSO .").append("\n");
-		buf.append("      ?t MRCONSO:cui ?cui .").append("\n");
-		buf.append("      ?t MRCONSO:aui ?aui .").append("\n");
-		buf.append("      ?t MRCONSO:ispref \"" + ispref + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:lat \"" + lat + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:code ?code .").append("\n");
-		buf.append("      ?t MRCONSO:str ?str .").append("\n");
-		buf.append("      ?t MRCONSO:sab ?sab .").append("\n");
-		if (sab != null) {
-			buf.append("      ?t MRCONSO:sab \"" + sab + "\"^^xsd:string .").append("\n");
-		}
-		buf.append("      ?t MRCONSO:tty ?tty .").append("\n");
-		buf.append("      ?t MRCONSO:stt \"" + stt + "\"^^xsd:string .").append("\n");
-		buf.append("      ?t MRCONSO:ts \"" + ts + "\"^^xsd:string .").append("\n");
-
-        String s = getMatchFilter("str", algorithm, matchText);
-        buf.append(s).append("\n");
-		buf.append("   }").append("\n");
-		buf.append("}").append("\n");
-		buf.append("").append("\n");
-		return buf.toString();
-	}
 
     public Vector<Atom> searchConceptsByAtomName(String sab, String algorithm, String matchText) {
-		Vector w = new Vector();
-        Vector v = new Vector();
-        String query = construct_search_by_name_query(sab, algorithm, matchText);
-        v = executeQuery(query);
-		if (v == null || v.size() == 0) return null;
-		v = new ParserUtils().getResponseValues(v);
-		for (int i=0; i<v.size(); i++) {
-			String line = (String) v.elementAt(i);
-			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
-			Atom atom = new Atom((String) u.elementAt(3),
-			                     (String) u.elementAt(0),
-			                     (String) u.elementAt(2),
-			                     sab,
-			                     (String) u.elementAt(1));
-			w.add(atom);
-		}
-        return w;
+		return metathesaurusSearchUtils.searchConceptsByName(sab, algorithm, matchText);
     }
 
 
