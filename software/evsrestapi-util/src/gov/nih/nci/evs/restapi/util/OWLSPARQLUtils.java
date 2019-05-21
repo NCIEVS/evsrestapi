@@ -2274,8 +2274,6 @@ public class OWLSPARQLUtils {
 		if (v == null) {
 			return null;
 		}
-		gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("v", v);
-
 		v = new ParserUtils().getResponseValues(v);
 		HashMap hmap = new HashMap();
 		SortUtils sortUtils = new SortUtils();

@@ -529,17 +529,22 @@ if(property_hashmap != null) {
 		buf.append("<table class=\"datatable_960\">").append("\n");
 		v = (Vector) property_hashmap.get("Synonym");
 		lcv = 0;
+		HashSet syn_hset = new HashSet();
+		int k = 0;
 		for (int i=0; i<v.size(); i++) {
 			Synonym syn = (Synonym) v.elementAt(i);
 			String termname = syn.getTermName();
-			String dataRowColor = "dataRowDark";
-			if (!isEven(lcv).equals(Boolean.TRUE)) {
-				dataRowColor = "dataRowLight";
+			if (!syn_hset.contains(termname)) {
+				syn_hset.add(termname);
+				String dataRowColor = "dataRowDark";
+				if (!isEven(lcv).equals(Boolean.TRUE)) {
+					dataRowColor = "dataRowLight";
+				}
+				buf.append("<tr class=\"" + dataRowColor + "\">").append("\n");
+				buf.append("<td>" + termname + "</td>").append("\n");
+				buf.append("</tr>").append("\n");
+				lcv++;
 			}
-			buf.append("<tr class=\"" + dataRowColor + "\">").append("\n");
-			buf.append("<td>" + termname + "</td>").append("\n");
-			buf.append("</tr>").append("\n");
-			lcv++;
 		}
 		buf.append("</table>").append("\n");
 		buf.append("</p>").append("\n");
