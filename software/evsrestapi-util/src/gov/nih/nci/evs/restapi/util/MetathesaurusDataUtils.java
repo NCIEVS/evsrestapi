@@ -2474,6 +2474,29 @@ import java.util.Map.Entry;
 		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
 	}
 
+	public String onstruct_sab_definition_query() {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRSAB: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrsab/>").append("\n");
+		buf.append("SELECT ?rsab ?son {").append("\n");
+		buf.append("GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+		buf.append("?s MRSAB:rsab ?rsab .").append("\n");
+		buf.append("?s MRSAB:son ?son .").append("\n");
+		buf.append("} ").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
+
+    public Vector getSABDefinitions() {
+        Vector v = new Vector();
+        String query = onstruct_sab_definition_query();
+        v = executeQuery(query);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
+	}
+
 
 	public static void main(String[] args) {
         String serviceUrl = args[0];
