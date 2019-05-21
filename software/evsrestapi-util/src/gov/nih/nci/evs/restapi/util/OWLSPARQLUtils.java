@@ -1063,6 +1063,8 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_inverse_associations_by_code(named_graph, code));
 	}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	public String construct_get_associations_by_code(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -1090,6 +1092,63 @@ public class OWLSPARQLUtils {
 	public Vector getAssociationsByCode(String named_graph, String code) {
 		return executeQuery(construct_get_associations_by_code(named_graph, code));
 	}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public String construct_get_annotaion_properties_by_code(String named_graph, String code) {
+		return construct_get_annotaion_properties_by_code(named_graph, code, null);
+	}
+
+	public String construct_get_annotaion_properties_by_code(String named_graph, String code, String associationName) {
+        StringBuffer buf = new StringBuffer();
+        buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+        buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+        buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+        buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+        buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+        buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+        buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+        buf.append("PREFIX protege:<http://protege.stanford.edu/plugins/owl/protege#>").append("\n");
+        buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+        buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+        buf.append("PREFIX ncicp:<http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#>").append("\n");
+        buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+        buf.append("").append("\n");
+        buf.append("SELECT ?x_label ?y_label ?z").append("\n");
+        buf.append("{").append("\n");
+        buf.append("graph <" + named_graph + ">").append("\n");
+        buf.append("{").append("\n");
+        buf.append("?x a owl:Class .").append("\n");
+        buf.append("?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+        buf.append("?x rdfs:label ?x_label .").append("\n");
+        buf.append("?x ?y ?z .").append("\n");
+        buf.append("?y rdfs:label ?y_label .").append("\n");
+
+        if (associationName !=null) {
+			buf.append("?y rdfs:label \"" + associationName + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		}
+
+        buf.append("}").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getAnnotaionPropertiesByCode(String named_graph, String code) {
+		String query = construct_get_annotaion_properties_by_code(named_graph, code);
+		Vector v = executeQuery(query);
+        v = new ParserUtils().getResponseValues(v);
+        return v;
+	}
+
+	public Vector getAnnotaionPropertiesByCode(String named_graph, String code, String assoicationName) {
+		String query = construct_get_annotaion_properties_by_code(named_graph, code, assoicationName);
+		Vector v = executeQuery(query);
+        v = new ParserUtils().getResponseValues(v);
+        return v;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public Vector getDiseaseIsStageSourceCodes(String named_graph) {
 		return executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Stage", true));
