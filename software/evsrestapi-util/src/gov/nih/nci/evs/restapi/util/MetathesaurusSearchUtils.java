@@ -260,7 +260,6 @@ import java.util.Map.Entry;
     public Vector getSemanticTypesInBatch(Vector cuis) {
         Vector v = new Vector();
         String query = construct_batch_semantic_type_query(cuis);
-        System.out.println(query);
         v = executeQuery(query);
 		if (v == null || v.size() == 0) return null;
 		v = new ParserUtils().getResponseValues(v);
@@ -349,7 +348,6 @@ import java.util.Map.Entry;
 		Vector w = new Vector();
         Vector v = new Vector();
         String query = construct_search_by_code_query(sab, matchText);
-        System.out.println(query);
         v = executeQuery(query);
 		if (v == null || v.size() == 0) return null;
 		v = new ParserUtils().getResponseValues(v);
@@ -362,7 +360,7 @@ import java.util.Map.Entry;
 			                     sab, (String) u.elementAt(1));
 			w.add(atom);
 		}
-        return w;
+        return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
     }
 
 	public Vector getCUIsFromAtoms(Vector<Atom> atoms) {
@@ -428,8 +426,6 @@ import java.util.Map.Entry;
 		buf.append("   }").append("\n");
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
-
-		System.out.println(buf.toString());
 		return buf.toString();
 	}
 
@@ -451,7 +447,7 @@ import java.util.Map.Entry;
 			                     (String) u.elementAt(1));
 			w.add(atom);
 		}
-        return w;
+        return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -459,65 +455,9 @@ import java.util.Map.Entry;
 	public static void main(String[] args) {
         String serviceUrl = args[0];
         MetathesaurusSearchUtils test = new MetathesaurusSearchUtils(serviceUrl);
-        System.out.println("serviceUrl: " + serviceUrl);
         String named_graph = args[1];
         String queryfile = args[2];
-        //test.runQuery(queryfile);
-
-/*
-        String sab = "NCI";
-        String matchText = "C0007581";
-
-        System.out.println("Calling searchConceptsByAtomCode ...");
-        Vector<Atom> atoms = test.searchConceptsByCode(sab, matchText);
-        if (atoms == null) {
-			System.out.println("atoms == null???");
-		} else if (atoms.size() == 0) {
-			System.out.println("atoms.size() == 0???");
-		} else {
-            System.out.println("atoms.size() = " + atoms.size());
-            for (int i=0; i<atoms.size(); i++) {
-				Atom atom = (Atom) atoms.elementAt(i);
-				System.out.println(atom.toJson());
-			}
-			Vector cuis = test.getCUIsFromAtoms(atoms);
-            gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("cuis", cuis);
-		}
-
-        long ms = System.currentTimeMillis();
-		Vector cuis = new Vector();
-        cuis.add("C1140168");
-        cuis.add("C1512759");
-        cuis.add("C1512762");
-        cuis.add("C1254372");
-		Vector w = test.getSemanticTypesInBatch(cuis);
-        gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("w", w);
-        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-*/
-
-        String sab = "NCI";
-        String matchText = "rash";
-        String algorithm = "contains";
-
-        Vector<Atom> atoms = test.searchConceptsByName(sab, algorithm, matchText);
-        if (atoms == null) {
-			System.out.println("atoms == null???");
-		} else if (atoms.size() == 0) {
-			System.out.println("atoms.size() == 0???");
-		} else {
-            System.out.println("atoms.size() = " + atoms.size());
-            for (int i=0; i<atoms.size(); i++) {
-				Atom atom = (Atom) atoms.elementAt(i);
-				System.out.println(atom.toJson());
-			}
-			Vector cuis = test.getCUIsFromAtoms(atoms);
-            gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("cuis", cuis);
-
-			long ms = System.currentTimeMillis();
-			Vector w = test.getSemanticTypesInBatch(cuis);
-			gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("w", w);
-			System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-		}
+        test.runQuery(queryfile);
 	}
 
 }
