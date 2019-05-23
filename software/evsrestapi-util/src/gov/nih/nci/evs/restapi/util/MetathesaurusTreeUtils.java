@@ -200,7 +200,8 @@ import java.util.Map.Entry;
 		buf.append("SELECT distinct ?cui ?sab ?code {").append("\n");
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
 		buf.append("?s MRCONSO:cui ?cui .").append("\n");
-		buf.append("?s MRCONSO:sab ?sab .").append("\n");
+		//buf.append("?s MRCONSO:sab ?sab .").append("\n");
+
 		buf.append("?s MRCONSO:code ?code .").append("\n");
 		buf.append("?s MRCONSO:sab \"SRC\"^^xsd:string .").append("\n");
 		buf.append("?s MRCONSO:code \"V-" + sab + "\"^^xsd:string .").append("\n");
@@ -1345,7 +1346,9 @@ import java.util.Map.Entry;
 	}
 
      public TreeItem clone(TreeItem ti) {
+		 if (ti == null) return null;
 		 TreeItem item = new TreeItem(ti._code, ti._text, ti._auis);
+		 item._expandable = ti._expandable;
 		 List<TreeItem> children = ti._assocToChildMap.get("CHD");
 		 if (children != null) {
 			 for (int i=0; i<children.size(); i++) {
@@ -1405,7 +1408,7 @@ import java.util.Map.Entry;
 				 root._expandable = true;
 			 }
 		 }
-		 return clone(root);
+		 return root;
 	 }
 
      public Vector getParentTreeItems(TreeItem ti) {
@@ -1522,6 +1525,34 @@ import java.util.Map.Entry;
 		w = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
 		return w;
 	}
+
+    public Vector getRootsInSourceHierarchy(String sab) {
+        Vector hierarchyRoots = getHierarchyRoots(sab);
+        Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData((String) hierarchyRoots.elementAt(0));
+        String hierarchyRoot = (String) u.elementAt(0);
+        Vector w = metathesaurusDataUtils.getChildRelationships(hierarchyRoot, sab);
+        if (w == null) {
+			System.out.println("WARNING: " + sab + " " + hierarchyRoot + " does not have child nodes.");
+			return null;
+		}
+
+        Vector atom_vec = new Vector();
+        for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(t, '|');
+			String aui = (String) u.elementAt(1);
+			String cui = (String) u.elementAt(3);
+		    String nameAndCode = metathesaurusDataUtils.getAtomNameAndCodeByAUI(cui, sab, aui);
+			Vector u2 = gov.nih.nci.evs.restapi.util.StringUtils.parseData(nameAndCode);
+			String name = (String) u2.elementAt(0);
+			String code = (String) u2.elementAt(1);
+			Atom atom = new Atom(code, name, aui, sab, cui);
+            atom_vec.add(atom);
+		}
+        atom_vec = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(atom_vec);
+        return atom_vec;
+	}
+
 
 	public static void main(String[] args) {
         String serviceUrl = args[0];
