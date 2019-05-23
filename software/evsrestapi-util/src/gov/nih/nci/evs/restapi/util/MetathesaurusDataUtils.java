@@ -2367,6 +2367,35 @@ import java.util.Map.Entry;
 	}
 
 
+	public String construct_term_type_definition_query() {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX MRDOC: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrdoc/>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("SELECT distinct ?value ?expl{").append("\n");
+		buf.append("GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
+		buf.append("?s MRDOC:dockey ?dockey .").append("\n");
+		buf.append("?s MRDOC:dockey \"TTY\"^^xsd:string  .").append("\n");
+		buf.append("?s MRDOC:valuestr ?value .").append("\n");
+		buf.append("?s MRDOC:type ?type .").append("\n");
+		buf.append("?s MRDOC:type \"expanded_form\"^^xsd:string  .").append("\n");
+		buf.append("?s MRDOC:expl ?expl .").append("\n");
+		buf.append("} ").append("\n");
+		buf.append("}").append("\n");
+		buf.append("ORDER BY ?value").append("\n");
+		buf.append("").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
+
+    public Vector getTermTypeDefinitions() {
+        Vector v = new Vector();
+        String query = construct_term_type_definition_query();
+        v = executeQuery(query);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
+	}
+
 	public static void main(String[] args) {
         String serviceUrl = args[0];
         MetathesaurusDataUtils test = new MetathesaurusDataUtils(serviceUrl);
