@@ -1123,12 +1123,7 @@ import java.util.Map.Entry;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // View in Hierarchy
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-    public TreeItem buildViewInHierarchyTree(String sab, String cui, String aui) {
-		Paths paths = findPathsToRoots(sab, cui, aui);
-        return paths2MetaTreeNode(sab, paths);
-	}
-*/
+
 	public TreeItem concept2TreeItem(Concept c) {
 		if (c == null) return null;
 		return new TreeItem(c.getCode(),
@@ -1361,54 +1356,173 @@ import java.util.Map.Entry;
 		 return item;
 	 }
 
-	 public TreeItem buildViewInHierarchyTree(String cui, String sab) {
-		 Vector root_cui_vec = new Vector();
-         List list = getRootConcepts(sab);
-         for (int i=0; i<list.size(); i++) {
-			 ResolvedConceptReference rcr = (ResolvedConceptReference) list.get(i);
-			 root_cui_vec.add(rcr.getCode());
+	 public HashMap createCUI2TreeItemHashMap(Vector<Atom> sab_roots) {
+		 HashMap hmap = new HashMap();
+		 for (int i=0; i<sab_roots.size(); i++) {
+			 Atom atom = (Atom) sab_roots.elementAt(i);
+			 TreeItem ti = new TreeItem(atom.getCui(), atom.getStr(), atom.getSab());
+			 ti._expandable = true;
+			 hmap.put(atom.getCui(), ti);
 		 }
+		 return hmap;
+	 }
+
+/*
+	 public TreeItem buildViewInHierarchyTree(String cui, String sab) {
+		 Vector<Atom> sab_roots = getRootsInSourceHierarchy(sab);
+		 HashMap cui2TreeItemHashMap = createCUI2TreeItemHashMap(sab_roots);
 		 HashSet visit_links = new HashSet();
-		 TreeItem root = new TreeItem("<Root>", "Root node");
+		 Vector v = new Vector();
+         String parent_code = null;
+		 Stack stack = new Stack();
+
 		 Atom atom = metathesaurusDataUtils.getPreferredAtom(cui, sab);
 		 TreeItem ti = new TreeItem(cui, atom.getStr(), sab);
          ti._expandable = metathesaurusDataUtils.isExpandable(cui, sab);
-		 Vector v = new Vector();
-         String parent_code = "root";
-		 Stack stack = new Stack();
 		 stack.push(ti);
+
 		 while (!stack.isEmpty()) {
 			 TreeItem next_ti = (TreeItem) stack.pop();
-			 v = getParentRelationships(next_ti._code, sab);
-			 if (v != null && v.size() > 0) {
-				 for (int i=0; i<v.size(); i++) {
-					 String line = (String) v.elementAt(i);
-					 Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line);
-					 String cui2 = (String) u.elementAt(3);
-					 if (cui2.compareTo(next_ti._code) != 0) {
-						 if (!visit_links.contains(next_ti._code + "|" + cui2)) {
-							 visit_links.add(next_ti._code + "|" + cui2);
-							 atom = metathesaurusDataUtils.getPreferredAtom(cui2, sab);
-							 TreeItem parent_ti = new TreeItem(cui2, atom.getStr(), sab);
-							 parent_ti.addChild("CHD", next_ti);
-							 parent_ti._expandable = true;
-							 if (root_cui_vec.contains(cui2)) {
-								 root.addChild("CHD", parent_ti);
-								 root._expandable = true;
-							 } else {
+			 if (cui2TreeItemHashMap.containsKey(next_ti._code)) {
+				 TreeItem root_ti = (TreeItem) cui2TreeItemHashMap.get(next_ti._code);
+				 List<TreeItem> children = next_ti._assocToChildMap.get("CHD");
+				 for (int i=0; i<children.size(); i++) {
+					 TreeItem childItem = (TreeItem) children.get(i);
+					 root_ti.addChild("CHD", childItem);
+				 }
+			 } else {
+				 v = getParentRelationships(next_ti._code, sab);
+				 if (v != null && v.size() > 0) {
+					 for (int i=0; i<v.size(); i++) {
+						 String line = (String) v.elementAt(i);
+						 Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line);
+						 String cui2 = (String) u.elementAt(3);
+						 if (cui2.compareTo(next_ti._code) != 0) {
+							 if (!visit_links.contains(next_ti._code + "|" + cui2)) {
+								 visit_links.add(next_ti._code + "|" + cui2);
+								 atom = metathesaurusDataUtils.getPreferredAtom(cui2, sab);
+								 TreeItem parent_ti = new TreeItem(cui2, atom.getStr(), sab);
+								 parent_ti.addChild("CHD", next_ti);
+								 parent_ti._expandable = true;
 								 stack.push(parent_ti);
 							 }
-						 } else {
-							 //System.out.println("WARNING: Possible loop encountered -- " + next_ti._code + "|" + cui2);
 						 }
 					 }
 				 }
-			 } else {
-				 root.addChild("CHD", next_ti);
-				 root._expandable = true;
 			 }
 		 }
+		 TreeItem root = new TreeItem("<Root>", "Root node");
+		 Vector cuis = new Vector();
+		 Vector root_tis = new Vector();
+		 Iterator it = cui2TreeItemHashMap.keySet().iterator();
+		 while (it.hasNext()) {
+			 cui = (String) it.next();
+			 root_tis.add((TreeItem) cui2TreeItemHashMap.get(cui));
+		 }
+		 root_tis = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(root_tis);
+		 for (int i=0; i<root_tis.size(); i++) {
+			 ti = (TreeItem) root_tis.elementAt(i);
+			 root.addChild("CHD", ti);
+		 }
 		 return root;
+	 }
+*/
+
+	 public TreeItem buildViewInHierarchyTree(String cui, String sab) {
+		 Vector<Atom> sab_roots = getRootsInSourceHierarchy(sab);
+		 HashMap cui2TreeItemHashMap = createCUI2TreeItemHashMap(sab_roots);
+		 HashSet visit_links = new HashSet();
+		 Vector v = new Vector();
+         String parent_code = null;
+		 Stack stack = new Stack();
+         Vector<TreeItem> parent_ti_vec = addSiblingConcepts(cui, sab);
+         for (int i=0; i<parent_ti_vec.size(); i++) {
+			 TreeItem ti = (TreeItem) parent_ti_vec.elementAt(i);
+			 stack.push(ti);
+		 }
+		 while (!stack.isEmpty()) {
+			 TreeItem next_ti = (TreeItem) stack.pop();
+			 if (cui2TreeItemHashMap.containsKey(next_ti._code)) {
+				 TreeItem root_ti = (TreeItem) cui2TreeItemHashMap.get(next_ti._code);
+				 List<TreeItem> children = next_ti._assocToChildMap.get("CHD");
+				 for (int i=0; i<children.size(); i++) {
+					 TreeItem childItem = (TreeItem) children.get(i);
+					 root_ti.addChild("CHD", childItem);
+				 }
+			 } else {
+				 v = getParentRelationships(next_ti._code, sab);
+				 if (v != null && v.size() > 0) {
+					 for (int i=0; i<v.size(); i++) {
+						 String line = (String) v.elementAt(i);
+						 Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line);
+						 String cui2 = (String) u.elementAt(3);
+						 if (cui2.compareTo(next_ti._code) != 0) {
+							 if (!visit_links.contains(next_ti._code + "|" + cui2)) {
+								 visit_links.add(next_ti._code + "|" + cui2);
+								 Atom atom = metathesaurusDataUtils.getPreferredAtom(cui2, sab);
+								 TreeItem parent_ti = new TreeItem(cui2, atom.getStr(), sab);
+								 parent_ti.addChild("CHD", next_ti);
+								 parent_ti._expandable = true;
+								 stack.push(parent_ti);
+							 }
+						 }
+					 }
+				 }
+			 }
+		 }
+		 TreeItem root = new TreeItem("<Root>", "Root node");
+		 Vector cuis = new Vector();
+		 Vector root_tis = new Vector();
+		 Iterator it = cui2TreeItemHashMap.keySet().iterator();
+		 while (it.hasNext()) {
+			 cui = (String) it.next();
+			 root_tis.add((TreeItem) cui2TreeItemHashMap.get(cui));
+		 }
+		 root_tis = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(root_tis);
+		 for (int i=0; i<root_tis.size(); i++) {
+			 TreeItem ti = (TreeItem) root_tis.elementAt(i);
+			 root.addChild("CHD", ti);
+		 }
+		 return root;
+	 }
+
+     public Vector<TreeItem> addSiblingConcepts(String focus_code, String sab) {
+         Vector<TreeItem> w = new Vector<TreeItem>();
+		 System.out.println("cui: " + focus_code);
+		 System.out.println("sab: " + sab);
+         Vector v = getParentRelationships(focus_code, sab);
+         //gov.nih.nci.evs.restapi.util.StringUtils.dumpVector("getParentRelationships", v);
+         for (int i=0; i<v.size(); i++) {
+			 Vector<Atom> atom_vec = new Vector();
+			 String t = (String) v.elementAt(i);
+			 Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(t, '|');
+			 //(1) A2721044|A2721285|C0007581|C0007613|PAR|NCI
+			 String parent_cui = (String) u.elementAt(3);
+			 Atom highest_rank_atom = metathesaurusDataUtils.getHighestRankAtom(parent_cui, sab);
+
+			 Vector v2 = getChildRelationships(parent_cui, sab);
+			 for (int k=0; k<v2.size(); k++) {
+				 String t2 = (String) v2.elementAt(k);
+				 //System.out.println(t2);
+				 Vector u2 = gov.nih.nci.evs.restapi.util.StringUtils.parseData(t2, '|');
+				 Atom atom = metathesaurusDataUtils.getHighestRankAtom((String) u2.elementAt(3), (String) u2.elementAt(5));
+				 atom_vec.add(atom);
+			 }
+
+			 TreeItem parent_ti = new TreeItem(parent_cui, highest_rank_atom.getStr(), sab);
+			 parent_ti._expandable = false;
+			 atom_vec = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(atom_vec);
+			 for (int j=0; j<atom_vec.size(); j++) {
+				 Atom atom = (Atom) atom_vec.elementAt(j);
+				 TreeItem child_ti = new TreeItem(atom.getCui(), atom.getStr(), sab);
+				 child_ti._expandable = metathesaurusDataUtils.isExpandable(atom);
+				 parent_ti.addChild("CHD", child_ti);
+				 parent_ti._expandable = true;
+			 }
+
+			 w.add(parent_ti);
+		 }
+		 return w;
 	 }
 
      public Vector getParentTreeItems(TreeItem ti) {
