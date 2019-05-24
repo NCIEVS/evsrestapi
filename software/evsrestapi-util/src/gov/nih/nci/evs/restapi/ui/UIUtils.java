@@ -122,12 +122,16 @@ public class UIUtils {
 		buf.append("              <th class=\"dataTableHeader\" scope=\"col\" align=\"left\">Semantic Type</th>").append("\n");
 		buf.append("            </tr>").append("\n");
 		for (int i=0; i<label_vec.size(); i++ ) {
-			String label = (String) label_vec.elementAt(i);
+			String label_and_code = (String) label_vec.elementAt(i);
+			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(label_and_code, '$');
+			String name = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
 			String semtype = (String) semtype_vec.elementAt(i);
 			buf.append("            <tr class=\"dataRowDark\">").append("\n");
 			buf.append("              <td><input id=\"cartFormId:checkboxId\" type=\"checkbox\" name=\"cartFormId:checkboxId\" onclick=\"submit()\" /></td>").append("\n");
 			buf.append("              <td>").append("\n");
-			buf.append("                   <label for=\"cartFormId:checkboxId\">" + label + "</label>").append("\n");
+			String hyperlink = getConceptReportHyperlink(applicationName, null, name, code);
+			buf.append("                   <label for=\"cartFormId:checkboxId\">" + hyperlink + "</label>").append("\n");
 			buf.append("              </td>").append("\n");
 			buf.append("              <td>" + semtype + "</td>").append("\n");
 			buf.append("            </tr>").append("\n");
