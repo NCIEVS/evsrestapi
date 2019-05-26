@@ -1,4 +1,5 @@
-import gov.nih.nci.evs.restapi.util.*;
+package gov.nih.nci.evs.restapi.util;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
