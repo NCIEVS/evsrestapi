@@ -776,7 +776,7 @@ import java.util.Map.Entry;
 		buf.append("      ?t MRCONSO:stt \"" + stt + "\"^^xsd:string .").append("\n");
 		buf.append("      ?t MRCONSO:ts \"" + ts + "\"^^xsd:string .").append("\n");
 
-		buf.append("      FILTER (str(?cui2) = str(?cui))").append("\n");
+		buf.append("      FILTER (?cui2 = ?cui)").append("\n");
 
 		buf.append("   }").append("\n");
 		buf.append("}").append("\n");
