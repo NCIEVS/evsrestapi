@@ -323,9 +323,9 @@ if (rel_hashmap != null) {
 		return buf.toString();
 	}
 
-    public String generateSourceTable(String source, Vector source_vec) {
+    public String generateSourceTable(String cui, String source, Vector source_vec) {
 		StringBuffer buf = new StringBuffer();
-		String str = generateSourceSynonymTable(source, source_vec);
+		String str = generateSourceSynonymTable(cui, source, source_vec);
 		buf.append(str);
 
 		buf.append("<span class=\"textsubtitle-blue-small\">Relationships</span><a name=\"Relationships\"></a>").append("\n");
@@ -339,17 +339,17 @@ if (rel_hashmap != null) {
 		buf.append("</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\" valign=\"top\" nowrap>").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=C0007581&type=sources&sortBy2=rel&sortBy=name&sab=NCI#Relationships\">Rel. Attribute</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=" + cui + "&type=sources&sortBy2=rel&sortBy=name&sab=NCI#Relationships\">Rel. Attribute</a>").append("\n");
 		buf.append("<a href=\"#\" onclick=\"javascript:window.open('/" + application_name + "/pages/rela_help_info.jsf',").append("\n");
 		buf.append("'_blank','top=100, left=100, height=740, width=680, status=no, menubar=no, resizable=yes, scrollbars=yes, toolbar=no, location=no, directories=no');\">").append("\n");
 		buf.append("<img src=\"/" + application_name + "/images/help.gif\" alt=\"Relationship Attr. Definitions\" title=\"Relationship Attr. Definitions\" border=\"0\">").append("\n");
 		buf.append("</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\">").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=C0007581&type=sources&sortBy2=cui&sortBy=name&sab=NCI#Relationships\">CUI</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=" + cui + "&type=sources&sortBy2=cui&sortBy=name&sab=NCI#Relationships\">CUI</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\">").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=C0007581&type=sources&sortBy2=name&sortBy=name&sab=NCI#Relationships\">Term</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=" + cui + "&type=sources&sortBy2=name&sortBy=name&sab=NCI#Relationships\">Term</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\" valign=\"top\">").append("\n");
 		buf.append("Source").append("\n");
@@ -359,53 +359,55 @@ if (rel_hashmap != null) {
 		buf.append("</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\" valign=\"top\">").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=C0007581&type=sources&sortBy2=type&sortBy=name&sab=NCI#Relationships\">Type</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=" + cui + "&type=sources&sortBy2=type&sortBy=name&sab=NCI#Relationships\">Type</a>").append("\n");
 		buf.append("<a href=\"#\" onclick=\"javascript:window.open('/" + application_name + "/pages/term_type_help_info.jsf',").append("\n");
 		buf.append("'_blank','top=100, left=100, height=740, width=680, status=no, menubar=no, resizable=yes, scrollbars=yes, toolbar=no, location=no, directories=no');\">").append("\n");
 		buf.append("<img src=\"/" + application_name + "/images/help.gif\" alt=\"Term Type Definition\" title=\"Term Type Definition\" border=\"0\">").append("\n");
 		buf.append("</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\" valign=\"top\">").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=C0007581&type=sources&sortBy2=code&sortBy=name&sab=NCI#Relationships\">Code</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=" + cui + "&type=sources&sortBy2=code&sortBy=name&sab=NCI#Relationships\">Code</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("</tr>").append("\n");
 
 
-if (source_vec != null) {
+        if (source_vec != null) {
 
-        int lcv = 0;
-		for (int i=0; i<source_vec.size(); i++) {
-			String line = (String) source_vec.elementAt(i);
-			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
-			String rel = (String) u.elementAt(0);
-			String rela = (String) u.elementAt(1);
-			String cui = (String) u.elementAt(2);
-            String term = (String) u.elementAt(3);
-			String sab = (String) u.elementAt(4);
-			String type = (String) u.elementAt(5);
-			String code = (String) u.elementAt(6);
-			if (sab.compareTo(source) == 0) {
-				String dataRowColor = "dataRowDark";
-				if (!isEven(lcv).equals(Boolean.TRUE)) {
-					dataRowColor = "dataRowLight";
+			int lcv = 0;
+			for (int i=0; i<source_vec.size(); i++) {
+				String line = (String) source_vec.elementAt(i);
+				Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
+				String rel = (String) u.elementAt(0);
+				String rela = (String) u.elementAt(1);
+				String cui2 = (String) u.elementAt(2);
+				String term = (String) u.elementAt(3);
+				String sab = (String) u.elementAt(4);
+				String type = (String) u.elementAt(5);
+				String code = (String) u.elementAt(6);
+				if (sab.compareTo(source) == 0) {
+					String dataRowColor = "dataRowDark";
+					if (!isEven(lcv).equals(Boolean.TRUE)) {
+						dataRowColor = "dataRowLight";
+					}
+					buf.append("<tr class=\"" + dataRowColor + "\">").append("\n");
+					buf.append("<td class=\"dataCellText\" width=80>" + rel + "</td>").append("\n");
+					buf.append("<td class=\"dataCellText\" width=230>" + rela + "</td>").append("\n");
+					buf.append("<td class=\"dataCellText\" width=66>").append("\n");
+					buf.append("<a href=\"/" + application_name + "/ConceptReport.jsp?dictionary=NCI Metathesaurus&code=C0007613\">").append("\n");
+					buf.append("" + cui2 + "").append("\n");
+					buf.append("</a>").append("\n");
+					buf.append("</td>").append("\n");
+					buf.append("<td class=\"dataCellText\" width=130><a href=\"/" + application_name + "/ConceptReport.jsp?dictionary=NCI Metathesaurus&code=C0007613\">" + term + "</a></td>").append("\n");
+					buf.append("<td class=\"dataCellText\" width=60>" + sab + "</td>").append("\n");
+					buf.append("<td class=\"dataCellText\" width=50>" + type + "</td>").append("\n");
+					buf.append("<td class=\"dataCellText\" width=50><a href=\"/" + application_name + "/pages/concept_details.jsf?type=sources&cui=" + cui + "&sab=" + sab + "&sourcecode=" + code + "&checkmultiplicity=true\">" + code + "</a></td>").append("\n");
+					buf.append("</tr>").append("\n");
+					lcv++;
 				}
-				buf.append("<tr class=\"" + dataRowColor + "\">").append("\n");
-				buf.append("<td class=\"dataCellText\" width=80>" + rel + "</td>").append("\n");
-				buf.append("<td class=\"dataCellText\" width=230>" + rela + "</td>").append("\n");
-				buf.append("<td class=\"dataCellText\" width=66>").append("\n");
-				buf.append("<a href=\"/" + application_name + "/ConceptReport.jsp?dictionary=NCI Metathesaurus&code=C0007613\">").append("\n");
-				buf.append("" + cui + "").append("\n");
-				buf.append("</a>").append("\n");
-				buf.append("</td>").append("\n");
-				buf.append("<td class=\"dataCellText\" width=130><a href=\"/" + application_name + "/ConceptReport.jsp?dictionary=NCI Metathesaurus&code=C0007613\">" + term + "</a></td>").append("\n");
-				buf.append("<td class=\"dataCellText\" width=60>" + sab + "</td>").append("\n");
-				buf.append("<td class=\"dataCellText\" width=50>" + type + "</td>").append("\n");
-				buf.append("<td class=\"dataCellText\" width=50><a href=\"/" + application_name + "/pages/concept_details.jsf?type=sources&cui=" + cui + "&sab=" + sab + "&sourcecode=" + code + "&checkmultiplicity=true\">" + code + "</a></td>").append("\n");
-				buf.append("</tr>").append("\n");
-				lcv++;
 			}
-		}
-}
+
+
+        }
 		buf.append("</table>").append("\n");
 		buf.append("<p>").append("\n");
 		buf.append("</p>").append("\n");
@@ -413,7 +415,7 @@ if (source_vec != null) {
 		return buf.toString();
 	 }
 
-     public String generateSourceSynonymTable(String source, Vector source_vec) {
+     public String generateSourceSynonymTable(String cui, String source, Vector source_vec) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("<span class=\"textsubtitle-blue-small\">Synonyms</span><a name=\"Synonyms\"></a>").append("\n");
 		buf.append("<table class=\"datatable_960\" border=\"0\">").append("\n");
@@ -429,14 +431,14 @@ if (source_vec != null) {
 		buf.append("</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\" valign=\"top\" nowrap>").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=C0007581&type=sources&sortBy=type&sortBy2=rel_type&sab=NCI#Synonyms\">Type</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=" + cui + "&type=sources&sortBy=type&sortBy2=rel_type&sab=NCI#Synonyms\">Type</a>").append("\n");
 		buf.append("<a href=\"#\" onclick=\"javascript:window.open('/" + application_name + "/pages/term_type_help_info.jsf',").append("\n");
 		buf.append("'_blank','top=100, left=100, height=740, width=780, status=no, menubar=no, resizable=yes, scrollbars=yes, toolbar=no, location=no, directories=no');\">").append("\n");
 		buf.append("<img src=\"/" + application_name + "/images/help.gif\" alt=\"Term Type Definition\" title=\"Term Type Definition\" border=\"0\">").append("\n");
 		buf.append("</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("<th class=\"dataTableHeader\" scope=\"col\" align=\"left\" valign=\"top\" nowrap>").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=C0007581&type=sources&sortBy=code&sortBy2=rel_type&sab=NCI#Synonyms\">Code</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?code=" + cui + "&type=sources&sortBy=code&sortBy2=rel_type&sab=NCI#Synonyms\">Code</a>").append("\n");
 		buf.append("</th>").append("\n");
 		buf.append("</tr>").append("\n");
 
@@ -447,7 +449,7 @@ if (source_vec != null) {
 			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
 			String rel = (String) u.elementAt(0);
 			String rela = (String) u.elementAt(1);
-			String cui = (String) u.elementAt(2);
+			String cui2 = (String) u.elementAt(2);
             String term = (String) u.elementAt(3);
 			String sab = (String) u.elementAt(4);
 			String type = (String) u.elementAt(5);
@@ -525,7 +527,7 @@ if(property_hashmap != null) {
 
 		buf.append("<p>").append("\n");
 		buf.append("<b>Synonyms &amp; Abbreviations:</b>").append("\n");
-		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?dictionary=NCI Metathesaurus&code=C0007581&type=synonym\">(see Synonym Details)</a>").append("\n");
+		buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?dictionary=NCI Metathesaurus&code=" + cui + "&type=synonym\">(see Synonym Details)</a>").append("\n");
 		buf.append("<table class=\"datatable_960\">").append("\n");
 		v = (Vector) property_hashmap.get("Synonym");
 		lcv = 0;

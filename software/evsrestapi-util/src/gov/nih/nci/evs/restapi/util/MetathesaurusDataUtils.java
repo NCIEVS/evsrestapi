@@ -386,8 +386,8 @@ import java.util.Map.Entry;
 		return generator.generateRelationshipTable(hmap);
 	 }
 
-	 public String generateSourceTable(String source, Vector source_vec) {
-		return generator.generateSourceTable(source, source_vec);
+	 public String generateSourceTable(String cui, String source, Vector source_vec) {
+		return generator.generateSourceTable(cui, source, source_vec);
 	 }
 
 	 public String generateSourceSelection(String code, Vector v) {
@@ -976,7 +976,7 @@ import java.util.Map.Entry;
 	 }
 
 
-	 public String generateSourceTable(Vector v) {
+	 public String generateSourceTable(String cui, Vector v) {
 	    Vector source_vec = new Vector();
 	    String[] rels = new String[] {"PAR", "CHD", "RB", "RN", "SIB"};
 	    List<String> list = Arrays.asList(rels);
@@ -1014,12 +1014,12 @@ import java.util.Map.Entry;
 				source_vec.add(rel + "|" + rela + "|" + rel_cui + "|" + term + "|" + sab + "|" + type + "|" + code);
 			}
 		}
-		return generateSourceTable("NCI", source_vec);
+		return generateSourceTable(cui, "NCI", source_vec);
 	 }
 
 	 public String generateSourceTable(String cui) {
 	    Vector v = getAtomsInRelatedConcepts(cui);
-	    return generateSourceTable(v);
+	    return generateSourceTable(cui, v);
 	 }
 
 
