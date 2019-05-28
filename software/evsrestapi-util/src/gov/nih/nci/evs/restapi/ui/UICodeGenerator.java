@@ -77,6 +77,10 @@ import java.util.Map.Entry;
 		 this.application_name = application_name;
 	 }
 
+	 public String get_application_name() {
+		 return this.application_name;
+	 }
+
 	 public void set_bookmark_url(String bookmark_url) {
 		 this.bookmark_url = bookmark_url;
 	 }
@@ -616,7 +620,7 @@ if(property_hashmap != null) {
 
 		for (int i=0; i<sab_vec.size(); i++) {
 			String source = (String) sab_vec.elementAt(i);
-			buf.append("<a href=\"" + application_name + "/pages/concept_details.jsf?type=sources&dictionary=NCI Metathesaurus&code=" + code + "&sab=" + source + "\">").append("\n");
+			buf.append("<a href=\"/" + application_name + "/pages/concept_details.jsf?type=sources&dictionary=NCI Metathesaurus&code=" + code + "&sab=" + source + "\">").append("\n");
 			buf.append(source).append("\n");
 			buf.append("</a>&nbsp;").append("\n");
 		}

@@ -94,6 +94,7 @@ public class GeneralizedQueryUtils {
 
     HashMap namedGraph2UIDPredicateHashMap = null;
     HashMap basePrefixUIDHashMap = null;
+    static String PARENT_CHILD_FILE = "parent_child.txt";
 
     static String[] COMMON_PREFIXES = new String[] {
 		"PREFIX xml:<http://www.w3.org/XML/1998/namespace>",
@@ -154,9 +155,10 @@ public class GeneralizedQueryUtils {
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
 		this.sparqlSearchUtils = new SPARQLSearchUtils(serviceUrl);
 
-		Vector parent_child_vec = Utils.readFile("parent_child.txt");
-		hh = new HierarchyHelper(parent_child_vec);
-
+        if (FileUtils.fileExists(PARENT_CHILD_FILE)) {
+			Vector parent_child_vec = Utils.readFile(PARENT_CHILD_FILE);
+			hh = new HierarchyHelper(parent_child_vec);
+		}
 		namedGraph2UIDPredicateHashMap = createNamedGraph2UIDPredicateHashMap();
 		basePrefixUIDHashMap = createBasePrefixUIDHashMap();
 		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));

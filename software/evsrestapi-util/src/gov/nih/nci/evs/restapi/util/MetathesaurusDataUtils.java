@@ -404,6 +404,27 @@ import java.util.Map.Entry;
 		 String label = getConceptName(code);
 		 return generator.generateSourceSelection(code, label, (String) sab_vec.elementAt(0), sab_vec);
 	 }
+
+
+	 public String generateSourceSelection(String code, String sab, Vector v) {
+		 Vector sab_vec = new Vector();
+		 for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(t, '|');
+			String sab2 = (String) u.elementAt(4);
+			if (!sab_vec.contains(sab2)) {
+				sab_vec.add(sab2);
+			}
+		 }
+		 sab_vec = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(sab_vec);
+		 String label = getConceptName(code);
+		 if (sab == null) {
+			 sab = "NCI";//(String) sab_vec.elementAt(0);
+		 }
+
+		 return generator.generateSourceSelection(code, label, sab, sab_vec);
+	 }
+
 //===========================================================================================================================================
 
 	public static String construct_mrconso_query(String cui) {

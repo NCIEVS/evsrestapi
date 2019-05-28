@@ -35,6 +35,15 @@ public class FileUtils
     	}
     }
 
+    public static boolean fileExists(String filename) {
+		File f = new File(filename);
+		if(f.exists() && !f.isDirectory()) {
+            return true;
+		}
+		return false;
+	}
+
+
     public static void main(String[] args) {
 		Vector files = gov.nih.nci.evs.restapi.util.Utils.readFile(args[0]);
         for(int i=0; i<files.size(); i++) {
