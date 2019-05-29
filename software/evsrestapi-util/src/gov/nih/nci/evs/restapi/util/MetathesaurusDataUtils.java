@@ -308,14 +308,14 @@ import java.util.Map.Entry;
 	public static String construct_rel_query(String sab) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX MRREL: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrrel/>").append("\n");
-		//buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("SELECT distinct ?rel {").append("\n");
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
-		//buf.append("      ?s a :MRREL .").append("\n");
 		buf.append("      ?s MRREL:rel ?rel .").append("\n");
-		buf.append("      ?s MRREL:sab \"" + sab + "\"^^xsd:string .").append("\n");
-
+		buf.append("      ?s MRREL:sab ?sab .").append("\n");
+		if (sab != null) {
+			buf.append("      ?s MRREL:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		}
 		buf.append("   }").append("\n");
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
@@ -332,7 +332,10 @@ import java.util.Map.Entry;
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
 		//buf.append("      ?s a :MRREL .").append("\n");
 		buf.append("      ?s MRREL:rela ?rela .").append("\n");
-		buf.append("      ?s MRREL:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		buf.append("      ?s MRREL:sab ?sab .").append("\n");
+		if (sab != null) {
+			buf.append("      ?s MRREL:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		}
 		buf.append("   }").append("\n");
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
@@ -349,7 +352,10 @@ import java.util.Map.Entry;
 		buf.append("   GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
 		//buf.append("      ?s a :MRSAT .").append("\n");
 		buf.append("      ?s MRSAT:atn ?atn .").append("\n");
-		buf.append("      ?s MRSAT:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		buf.append("      ?s MRSAT:sab ?sab .").append("\n");
+		if (sab != null) {
+			buf.append("      ?s MRSAT:sab \"" + sab + "\"^^xsd:string .").append("\n");
+		}
 		buf.append("   }").append("\n");
 		buf.append("}").append("\n");
 		buf.append("").append("\n");
