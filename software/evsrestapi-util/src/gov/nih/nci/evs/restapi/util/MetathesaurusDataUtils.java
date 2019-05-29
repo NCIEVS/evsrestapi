@@ -1846,7 +1846,7 @@ import java.util.Map.Entry;
 
 	public String create_in_filter_statement(String var, Vector cuis) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("filter(str(?cui) in (");
+		buf.append("filter(str(" + var + ") in (");
 		for (int i=0; i<cuis.size(); i++) {
 			String cui = (String) cuis.elementAt(i);
 			buf.append("\"" + cui + "\"");
@@ -2002,6 +2002,9 @@ import java.util.Map.Entry;
 
      public Atom getHighestRankAtom(String cui, String sab, String code) {
 		 Vector v = getSortedAtomData(cui, sab, code);
+		 if (v == null || v.size() == 0) {
+			 v = getSortedAtomData(cui, sab);
+		 }
 		 AtomData a = (AtomData) v.elementAt(v.size()-1);
 		 return atomData2Atom(a);
 	 }
