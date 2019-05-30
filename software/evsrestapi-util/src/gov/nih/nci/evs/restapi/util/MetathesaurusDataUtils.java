@@ -1779,16 +1779,7 @@ import java.util.Map.Entry;
 		return v;
 	}
 
-       // getSupportedTermTypes
-    public Vector getSupportedTermTypes() {
-        Vector v = new Vector();
-        String query = construct_term_type_query();
-        v = executeQuery(query);
-		if (v == null || v.size() == 0) return null;
-		v = new ParserUtils().getResponseValues(v);
-		v = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
-		return v;
-	}
+
 
         // getSemanticTypes
     public Vector getSemanticTypes() {
@@ -2396,17 +2387,30 @@ import java.util.Map.Entry;
 		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
 	}
 
+    public Vector getTermTypeDefinitions() {
+        return getSupportedTermTypeExplanations();
+	}
 
-	public String construct_term_type_definition_query() {
+	public String construct_mrdoc_query(String dockey) {
+		boolean valueOnly = true;
+		return construct_mrdoc_query(dockey, valueOnly);
+	}
+
+
+	public String construct_mrdoc_query(String dockey, boolean valueOnly) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX MRDOC: <http://ncicb.nci.nih.gov/" + VIRTUAL_GRAPH_NAME + "/mrdoc/>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		buf.append("SELECT distinct ?value ?expl{").append("\n");
+		if (valueOnly) {
+			buf.append("SELECT distinct ?value {").append("\n");
+		} else {
+			buf.append("SELECT distinct ?value ?expl {").append("\n");
+		}
 		buf.append("GRAPH <virtual://" + VIRTUAL_GRAPH_NAME + "> {").append("\n");
 		buf.append("?s MRDOC:dockey ?dockey .").append("\n");
-		buf.append("?s MRDOC:dockey \"TTY\"^^xsd:string  .").append("\n");
+		buf.append("?s MRDOC:dockey \"" + dockey + "\"^^xsd:string  .").append("\n");
 		buf.append("?s MRDOC:valuestr ?value .").append("\n");
-		buf.append("?s MRDOC:type ?type .").append("\n");
+		//buf.append("?s MRDOC:type ?type .").append("\n");
 		buf.append("?s MRDOC:type \"expanded_form\"^^xsd:string  .").append("\n");
 		buf.append("?s MRDOC:expl ?expl .").append("\n");
 		buf.append("} ").append("\n");
@@ -2417,13 +2421,54 @@ import java.util.Map.Entry;
 		return buf.toString();
 	}
 
-    public Vector getTermTypeDefinitions() {
+    public Vector getExpandedFormForDocKey(String dockey) {
         Vector v = new Vector();
-        String query = construct_term_type_definition_query();
+        String query = construct_mrdoc_query(dockey, false);
         v = executeQuery(query);
 		if (v == null || v.size() == 0) return null;
 		v = new ParserUtils().getResponseValues(v);
-		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(v);
+		return v;
+	}
+
+    public Vector getValuesForDocKey(String dockey) {
+        Vector v = new Vector();
+        String query = construct_mrdoc_query(dockey, true);
+        v = executeQuery(query);
+		if (v == null || v.size() == 0) return null;
+		v = new ParserUtils().getResponseValues(v);
+		return v;
+	}
+
+	public Vector getSupportedPropertyExplanations() {
+		return getExpandedFormForDocKey("ATN");
+	}
+
+	public Vector getSupportedProperties() {
+		return getValuesForDocKey("ATN");
+	}
+
+	public Vector getSupportedRelationshipExplanations() {
+		return getExpandedFormForDocKey("REL");
+	}
+
+	public Vector getSupportedRelationships() {
+		return getValuesForDocKey("REL");
+	}
+
+	public Vector getSupportedRelationshipAttributeExplanations() {
+		return getExpandedFormForDocKey("RELA");
+	}
+
+	public Vector getSupportedRelationshipAttributes() {
+		return getValuesForDocKey("RELA");
+	}
+
+	public Vector getSupportedTermTypeExplanations() {
+		return getExpandedFormForDocKey("TTY");
+	}
+
+	public Vector getSupportedTermTypes() {
+		return getValuesForDocKey("TTY");
 	}
 
 	public static void main(String[] args) {
