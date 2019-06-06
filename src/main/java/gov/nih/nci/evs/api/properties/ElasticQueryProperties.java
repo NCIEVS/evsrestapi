@@ -55,9 +55,11 @@ public class ElasticQueryProperties {
     //main query and main nested query
     private String mainQuery;
     private String mainNestedQuery;
+    private String mainNestedWithNonNestedQuery;
     private String mainMultipleNestedQuery;
     private String mainQueryWithoutHighlights;
     private String mainNestedQueryWithoutHighlights;
+    private String mainNestedWithNonNestedQuerywithoutHL;
     private String mainMultipleNestedQueryWithoutHighlights;
     
     //rescore query
@@ -392,6 +394,22 @@ public class ElasticQueryProperties {
 
 	public void setRescoreQuery(String rescoreQuery) {
 		this.rescoreQuery = rescoreQuery;
+	}
+
+	public String getMainNestedWithNonNestedQuery() {
+		return mainNestedWithNonNestedQuery;
+	}
+
+	public void setMainNestedWithNonNestedQuery(String mainNestedWithNonNestedQuery) {
+		this.mainNestedWithNonNestedQuery = mainNestedWithNonNestedQuery;
+	}
+
+	public String getMainNestedWithNonNestedQuerywithoutHL() {
+		return mainNestedWithNonNestedQuerywithoutHL;
+	}
+
+	public void setMainNestedWithNonNestedQuerywithoutHL(String mainNestedWithNonNestedQuerywithoutHL) {
+		this.mainNestedWithNonNestedQuerywithoutHL = mainNestedWithNonNestedQuerywithoutHL;
 	}
 
 	

@@ -33,9 +33,10 @@
     <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
        
     <property name="log.dir" value="/local/content/tomcat/evsrestapi/logs"/>
+    <springProperty scope="context" name="metriclog" source="nci.evs.application.metricLogDirectory"/>
     
    <appender name="METRIC" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${log.dir}/metric.log</file>
+    <file>${metriclog}/metric.log</file>
     <append>true</append>
     <!--cleanHistoryOnStart>true</cleanHistoryOnStart-->
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">

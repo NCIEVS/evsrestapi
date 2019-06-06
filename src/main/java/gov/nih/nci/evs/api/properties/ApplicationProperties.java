@@ -15,6 +15,7 @@ public class ApplicationProperties {
     private String contextPath;
     private String generatedFilePath;
     private Boolean forceFileGeneration;
+    private String metricLogDirectory;
 
 	public String getContextPath() {
 		return contextPath;
@@ -38,6 +39,14 @@ public class ApplicationProperties {
 
 	public void setForceFileGeneration(Boolean forceFileGeneration) {
 		this.forceFileGeneration = forceFileGeneration;
+	}
+
+	public String getMetricLogDirectory() {
+		return metricLogDirectory;
+	}
+
+	public void setMetricLogDirectory(String metricLogDirectory) {
+		this.metricLogDirectory = metricLogDirectory;
 	}
 		
 		

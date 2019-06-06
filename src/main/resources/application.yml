@@ -65,6 +65,7 @@ nci:
       contextPath: ${NCI_EVS_API_PATH:/api/v1}
       generatedFilePath: ${NCI_EVS_API_GENERATED_FILE_PATH:${user.home}/apps/evsrestapi/data/}
       forceFileGeneration: ${NCI_EVS_API_FORCE_FILE_GENERATION:true}
+      metricLogDirectory:  ${NCI_EVS_API_METRIC_LOG_PATH:${user.home}/apps/evsrestapi/logs/}
     stardog:
       monthlyQueryUrl: ${STARDOG_MONTHLY_QUERY_URL:http://localhost:5820/NCIT2/query}
       monthlyGraphName: ${STARDOG_MONTHLY_GRAPH_NAME:http://NCI_T}
@@ -1281,7 +1282,7 @@ nci:
                                     ]
                     
                     }
-                    }                      
+                    }         
                     }
                   },
                   "highlight": {
@@ -1305,6 +1306,57 @@ nci:
                     }
                   }
                 } 
+        mainNestedWithNonNestedQuery: |
+               {
+                  "_source": ${sourcefields},  
+                  "from": ${fromRecord},
+                  "size": ${pageSize},
+                  "query": {
+                    "bool": {
+                      "must": [
+                     {
+                       
+                          "nested": {
+                            "path": "${nestedPath}",
+                            "query": {
+                              "bool": {
+                                "must": [
+                                  {
+                                    "multi_match": {
+                                      "query": "${searchterm}",
+                                        ${operator}
+                                      "fields": ${fields}
+                                    }
+                                  }
+                                  ${searchFilter}
+                                ]
+                      }
+                    }
+                  }}
+                  ${nonNestedQuery}
+                  ]
+                  }},
+                  "highlight": {
+                    ${highlightTags}
+                    "fields": {
+                     ${highlightFields}  
+                    }
+                  },
+                  "aggs": {
+                    "conceptStatus": {
+                      "terms": {
+                        "field": "Concept_Status",
+                        "min_doc_count": 0
+                      }
+                    },
+                    "contributingSource": {
+                      "terms": {
+                        "field": "Contributing_Source",
+                        "min_doc_count": 0
+                      }
+                    }
+                  }
+                }                        
         mainMultipleNestedQuery: |
                 {
                  "_source": ${sourcefields},
@@ -1463,7 +1515,52 @@ nci:
                       }
                     }
                   }
-                }                 
+                }   
+        mainNestedWithNonNestedQuerywithoutHL: |  
+                  {
+                  "_source": ${sourcefields},  
+                  "from": ${fromRecord},
+                  "size": ${pageSize},
+                  "query": {
+                    "bool": {
+                      "must": [
+                     {
+                       
+                          "nested": {
+                            "path": "${nestedPath}",
+                            "query": {
+                              "bool": {
+                                "must": [
+                                  {
+                                    "multi_match": {
+                                      "query": "${searchterm}",
+                                        ${operator}
+                                      "fields": ${fields}
+                                    }
+                                  }
+                                  ${searchFilter}
+                                ]
+                      }
+                    }
+                  }}
+                  ${nonNestedQuery}
+                  ]
+                  }},
+                  "aggs": {
+                    "conceptStatus": {
+                      "terms": {
+                        "field": "Concept_Status",
+                        "min_doc_count": 0
+                      }
+                    },
+                    "contributingSource": {
+                      "terms": {
+                        "field": "Contributing_Source",
+                        "min_doc_count": 0
+                      }
+                    }
+                  }
+                  }                         
         mainMultipleNestedQueryWithoutHighlights: |
                 {
                  "_source": ${sourcefields},

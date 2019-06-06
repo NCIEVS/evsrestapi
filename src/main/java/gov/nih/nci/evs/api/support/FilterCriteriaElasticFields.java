@@ -12,12 +12,12 @@ public class FilterCriteriaElasticFields {
 	private ArrayList<String> returnProperties;
 	private ArrayList<String> conceptStatus;
 	private ArrayList<String> contributingSource;
-	private String synonymSource;
+	private ArrayList<String> synonymSource;
 	private String synonymGroup;
 	private String associationSearch;
 	private String roleSearch;
 	private String format;
-	private String definitionSource;
+	private ArrayList<String> definitionSource;
 	private String hierarchySearch;
 	
 	public String getHierarchySearch() {
@@ -103,11 +103,11 @@ public class FilterCriteriaElasticFields {
 		this.returnProperties = returnProperties;
 	}
 
-	public String getSynonymSource() {
+	public ArrayList<String> getSynonymSource() {
 		return synonymSource;
 	}
 
-	public void setSynonymSource(String synonymSource) {
+	public void setSynonymSource(ArrayList<String> synonymSource) {
 		this.synonymSource = synonymSource;
 	}
 
@@ -127,11 +127,11 @@ public class FilterCriteriaElasticFields {
 		this.synonymGroup = synonymGroup;
 	}
 
-	public String getDefinitionSource() {
+	public ArrayList<String> getDefinitionSource() {
 		return definitionSource;
 	}
 
-	public void setDefinitionSource(String definitionSource) {
+	public void setDefinitionSource(ArrayList<String> definitionSource) {
 		this.definitionSource = definitionSource;
 	}
 
