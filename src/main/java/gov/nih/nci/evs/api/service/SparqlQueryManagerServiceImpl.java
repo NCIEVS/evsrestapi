@@ -5,10 +5,14 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -1516,9 +1520,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		
 		ConfigData configData = new ConfigData();
 		
-		List<EvsProperty>  properties = this.getAllPropertiesList("monthly", "byLabel");
-		configData.setProperties(properties);
+		//List<EvsProperty>  properties = this.getAllPropertiesList("monthly", "byLabel");
+		//configData.setProperties(properties);
 		configData.setEvsVersionInfo(this.getEvsVersionInfo("monthly"));
+		
+		 List<String> termSources = getAxiomQualifiersList("P384", "monthly");
+		 
+		 List<String> subsourceSources = getAxiomQualifiersList("P386", "monthly");
+		 
+		 List<String> uniqueSources = Stream.concat(termSources.stream(),subsourceSources.stream())
+                 .map(x -> x)
+                 .distinct()
+                 .collect(Collectors.toList());
+		 
+		Collections.sort(uniqueSources); 
+		 
+		 configData.setFullSynSources(uniqueSources);
 		
 	    return configData;	
 	}

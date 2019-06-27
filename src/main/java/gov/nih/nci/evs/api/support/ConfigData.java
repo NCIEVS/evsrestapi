@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 public class ConfigData {
 	private List<EvsProperty> properties;
 	private EvsVersionInfo evsVersionInfo;
+	private List<String> fullSynSources;
 	
 	public List<EvsProperty> getProperties() {
 		return properties;
@@ -20,6 +21,12 @@ public class ConfigData {
 	}
 	public void setEvsVersionInfo(EvsVersionInfo evsVersionInfo) {
 		this.evsVersionInfo = evsVersionInfo;
+	}
+	public List<String> getFullSynSources() {
+		return fullSynSources;
+	}
+	public void setFullSynSources(List<String> fullSynSources) {
+		this.fullSynSources = fullSynSources;
 	}
 	
 	
