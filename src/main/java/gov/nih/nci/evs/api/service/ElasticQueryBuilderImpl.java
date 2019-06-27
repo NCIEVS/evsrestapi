@@ -457,7 +457,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 		ArrayList<String> synonymSources = filterCriteriaElasticFields.getSynonymSource();
 		String synonymGroup = filterCriteriaElasticFields.getSynonymGroup();
 
-		
+		/*
 	    if (synonymSources != null && synonymSources.size() > 0) {	
 			//synonymSourceStr = synonymSourceStr + ",{ \"match\" : {\"FULL_SYN.term-source\" : \"" + synonymSource
 			//		+ "\"} }";
@@ -467,8 +467,28 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 			 }
 			synonymSourceStr = synonymSourceStr.substring(0, synonymSourceStr.length() - 1);
 			synonymSourceStr = synonymSourceStr + "]}}";
-		}
+		}*/
+	    
+	    if (synonymSources != null && synonymSources.size() > 0) {	
+	    	synonymSourceStr = synonymSourceStr + ",{\"bool\": {";
+	    	synonymSourceStr = synonymSourceStr + "\"should\": [";
+			synonymSourceStr = synonymSourceStr + "{\"terms\":{\"FULL_SYN.term-source\": [" ;
+			for (String synonymSource: synonymSources ) {
+				synonymSourceStr = synonymSourceStr + "\"" + synonymSource + "\",";
+			 }
+			synonymSourceStr = synonymSourceStr.substring(0, synonymSourceStr.length() - 1);
+			synonymSourceStr = synonymSourceStr + "]}}";
+			synonymSourceStr = synonymSourceStr + ",{\"terms\":{\"FULL_SYN.subsource-name\": [" ;
+			for (String synonymSource: synonymSources ) {
+				synonymSourceStr = synonymSourceStr + "\"" + synonymSource + "\",";
+			 }
+			synonymSourceStr = synonymSourceStr.substring(0, synonymSourceStr.length() - 1);
+			synonymSourceStr = synonymSourceStr + "]}}";
+			synonymSourceStr = synonymSourceStr + "]}}";
 			
+	    }
+			
+	   
 			
 		
 		if (synonymGroup != null && !synonymGroup.equalsIgnoreCase("")) {
