@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.properties;
 
+import java.util.List;
 import java.util.Map;
 
 public class ThesaurusProperties {
@@ -19,6 +20,8 @@ public class ThesaurusProperties {
 	
 	//code to be removed 
 	private Map<String,String> returnFieldsByLabel;
+	
+	private String[]  sourcesToBeRemoved;
 
 	public Map<String,String> getRoles() {
 		return roles;
@@ -74,6 +77,14 @@ public class ThesaurusProperties {
 
 	public void setPropertyNotConsidered(Map<String,String> propertyNotConsidered) {
 		this.propertyNotConsidered = propertyNotConsidered;
+	}
+
+	public String[]  getSourcesToBeRemoved() {
+		return sourcesToBeRemoved;
+	}
+
+	public void setSourcesToBeRemoved(String[]  sourcesToBeRemoved) {
+		this.sourcesToBeRemoved = sourcesToBeRemoved;
 	}
 
 }

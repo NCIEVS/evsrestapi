@@ -1528,6 +1528,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		 
 		 List<String> subsourceSources = getAxiomQualifiersList("P386", "monthly");
 		 
+		 String[]  sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
+		 
+		
+		 List<String> sourceToBeRemovedList = Arrays.asList( sourceToBeRemoved ); 
+		 
+		 subsourceSources.removeAll(sourceToBeRemovedList);
+		 
 		 List<String> uniqueSources = Stream.concat(termSources.stream(),subsourceSources.stream())
                  .map(x -> x)
                  .distinct()
@@ -1539,5 +1546,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		
 	    return configData;	
 	}
+	
+	
 	
 }

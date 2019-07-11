@@ -196,6 +196,8 @@ thesaurus:
                             pi-rads: 'PI-RADS',
                             ucum: 'UCUM'        
                          }
+        sourcesToBeRemoved: ['cadsr', 'CADSR', 'CAdsr','caDSR'
+                        ]                 
         associations:  {a1: 'Role_Has_Domain',
                         a10: 'Has_CDRH_Parent',
                         a11: 'Has_NICHD_Parent',
