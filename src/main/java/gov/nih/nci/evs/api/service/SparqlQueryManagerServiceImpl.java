@@ -1534,6 +1534,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		 List<String> sourceToBeRemovedList = Arrays.asList( sourceToBeRemoved ); 
 		 
 		 subsourceSources.removeAll(sourceToBeRemovedList);
+		 termSources.removeAll(sourceToBeRemovedList);
+		 
+		
 		 
 		 List<String> uniqueSources = Stream.concat(termSources.stream(),subsourceSources.stream())
                  .map(x -> x)
@@ -1541,8 +1544,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
                  .collect(Collectors.toList());
 		 
 		Collections.sort(uniqueSources); 
-		 
-		 configData.setFullSynSources(uniqueSources);
+			 
+		configData.setFullSynSources(uniqueSources);
 		
 	    return configData;	
 	}
