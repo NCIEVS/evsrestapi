@@ -583,4 +583,20 @@ public class QueryBuilderServiceImpl implements QueryBuilderService{
 		log.debug("constructAllRolesQuery - " + query.toString());
 		return query.toString();
 	}
+	
+    public String constructUniqueSourcesQuery(String namedGraph) {
+        StringBuffer query = new StringBuffer();
+        query.append("SELECT DISTINCT ?propertyValue\n");
+        query.append("{ GRAPH <" + namedGraph + ">");
+        query.append("  { ?axiom a owl:Axiom .\n");
+        query.append("    { ?axiom :P384 ?propertyValue }\n");
+        query.append("    UNION\n");
+        query.append("    { ?axiom :P386 ?propertyValue }\n");
+        query.append("  }\n");
+        query.append("}\n");
+        query.append("ORDER BY ?propertyValue\n");
+
+        log.debug("constructUniqueSourcesQuery - " + query.toString());
+        return query.toString();
+}
 }
