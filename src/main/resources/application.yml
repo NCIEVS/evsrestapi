@@ -44,7 +44,7 @@ info:
 logging:
     level:
         org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}       
-        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:DEBUG}
+        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
         
   
 
@@ -1078,7 +1078,7 @@ nci:
               "definitions_plain.ngram": {},
               "alt_definitions_plain.ngram": {},
               "Semantic_Type": {},
-              "synonyms_plain.ngram": {},             
+              "synonyms_plain.ngram": {},                        
               "Superconcept.label.ngram": {},
               "Subconcept.label.ngram": {},
               "Concept_Status": {},
@@ -1241,6 +1241,7 @@ nci:
                   },
                   ${rescore}
                   "highlight": {
+                    "number_of_fragments" : 10,
                     ${highlightTags}
                     "fields": {
                       ${highlightFields}         
@@ -1286,6 +1287,7 @@ nci:
                     }
                   },
                   "highlight": {
+                    "number_of_fragments" : 10,
                     ${highlightTags}
                     "fields": {
                       ${highlightFields}         
@@ -1337,6 +1339,7 @@ nci:
                   ]
                   }},
                   "highlight": {
+                    "number_of_fragments" : 10,
                     ${highlightTags}
                     "fields": {
                      ${highlightFields}  
@@ -1407,6 +1410,7 @@ nci:
                              }
                            },
                           "highlight": {
+                                 "number_of_fragments" : 10,
                                  ${highlightTags}
                                  "fields": {
                                     ${highlightFields}  
