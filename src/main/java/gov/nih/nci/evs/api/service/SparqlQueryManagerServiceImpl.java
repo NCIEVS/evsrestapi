@@ -85,6 +85,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 	private HierarchyUtils hierarchyWeekly = null;
 	private Paths pathsMonthly = null;
 	private Paths pathsWeekly = null;
+    private List <String> uniqueSourcesMonthly = null;
+    private List <String> uniqueSourcesWeekly = null;
 	
 	@PostConstruct
 	public void postInit() throws IOException{
@@ -136,7 +138,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		pathsMonthly = pathFinder.findPaths();
 		pathFinder = new PathFinder(hierarchyMonthly);
 		pathsWeekly = pathFinder.findPaths();
+		uniqueSourcesWeekly = getUniqueSourcesList("weekly");
+        uniqueSourcesMonthly = getUniqueSourcesList("montly");
 	}
+
 	
 	public void genDocumentationFiles() throws IOException {
 		String baseDirectory = applicationProperties.getGeneratedFilePath();
@@ -1519,37 +1524,55 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 	public ConfigData getConfigurationData(String dbType) throws JsonMappingException, JsonProcessingException, IOException {
 		
 		ConfigData configData = new ConfigData();
-		
-		//List<EvsProperty>  properties = this.getAllPropertiesList("monthly", "byLabel");
-		//configData.setProperties(properties);
 		configData.setEvsVersionInfo(this.getEvsVersionInfo("monthly"));
 		
-		 List<String> termSources = getAxiomQualifiersList("P384", "monthly");
-		 
-		 List<String> subsourceSources = getAxiomQualifiersList("P386", "monthly");
-		 
-		 String[]  sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
-		 
+		/*
+		//List<EvsProperty>  properties = this.getAllPropertiesList("monthly", "byLabel");
+		//configData.setProperties(properties);
 		
-		 List<String> sourceToBeRemovedList = Arrays.asList( sourceToBeRemoved ); 
-		 
-		 subsourceSources.removeAll(sourceToBeRemovedList);
-		 termSources.removeAll(sourceToBeRemovedList);
-		 
-		
-		 
+		List<String> termSources = getAxiomQualifiersList("P384", "monthly");
+	    List<String> subsourceSources = getAxiomQualifiersList("P386", "monthly");
+        String[]  sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
+	    List<String> sourceToBeRemovedList = Arrays.asList( sourceToBeRemoved ); 
+		subsourceSources.removeAll(sourceToBeRemovedList);
+		termSources.removeAll(sourceToBeRemovedList);
 		 List<String> uniqueSources = Stream.concat(termSources.stream(),subsourceSources.stream())
                  .map(x -> x)
                  .distinct()
                  .collect(Collectors.toList());
-		 
 		Collections.sort(uniqueSources); 
-			 
 		configData.setFullSynSources(uniqueSources);
+		*/
+		
+		String[]  sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
+	    List<String> sourceToBeRemovedList = Arrays.asList( sourceToBeRemoved ); 
+		List <String> sources = uniqueSourcesMonthly;
+		sources.removeAll(sourceToBeRemovedList);
+		configData.setFullSynSources(sources);
 		
 	    return configData;	
 	}
+
 	
-	
+    public List<String> getUniqueSourcesList(String dbType) throws JsonMappingException,JsonParseException ,IOException {
+        String queryPrefix = queryBuilderService.contructPrefix();
+        String namedGraph = getNamedGraph(dbType);
+        String queryURL = getQueryURL(dbType);
+        String query = queryBuilderService.constructUniqueSourcesQuery(namedGraph);
+        String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ArrayList<String> sources = new ArrayList<String>();
+
+        Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+        Bindings[] bindings = sparqlResult.getResults().getBindings();
+        for (Bindings b : bindings) {
+                String source = b.getPropertyValue().getValue();
+                sources.add(source);
+        }
+
+        return sources;
+   }
 	
 }
