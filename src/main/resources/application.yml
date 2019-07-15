@@ -112,10 +112,10 @@ nci:
                         "synonyms_plain.exact^50",',   
                    nhc0:
                       '"Code^100",
-                       "Code.exact^100"',
+                       "Code.exact^100",',   
                    code:
                        '"Code^100",
-                       "Code.exact^100"', 
+                       "Code.exact^100",',    
                    p97:
                       '"definitions_plain^50",
                       "definitions_plain.exact^50",
@@ -412,10 +412,10 @@ nci:
                         "synonyms_plain.ngram^30",',      
                    nhc0:
                        '"Code^100",
-                       "Code.exact^100"',
+                       "Code.exact^100",',   
                    code:
                        '"Code^100",
-                       "Code.exact^100"',   
+                       "Code.exact^100",',     
                    p97:
                       '"definitions_plain^50",
                        "definitions_plain.ngram^30",',
