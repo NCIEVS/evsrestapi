@@ -375,16 +375,16 @@ nci:
                          }  
         propertyToQueryContains:  { 
                    p108: 
-                      '"Preferred_Name^100",
-                       "Preferred_Name.exact^100",
+                      '"Preferred_Name^200",
+                       "Preferred_Name.exact^1000",
                        "Preferred_Name.ngram^50",',
                    preferredname:
-                       '"Preferred_Name^100",
-                        "Preferred_Name.exact^100",
+                       '"Preferred_Name^200",
+                        "Preferred_Name.exact^1000",
                         "Preferred_Name.ngram^50",',
                    preferred_name:
-                       '"Preferred_Name^100",
-                        "Preferred_Name.exact^100",
+                       '"Preferred_Name^200",
+                        "Preferred_Name.exact^1000",
                         "Preferred_Name.ngram^50",',        
                    p107: 
                      '"Display_Name^100",
@@ -399,16 +399,16 @@ nci:
                         "Display_Name.exact^100",
                         "Display_Name.ngram^50",',    
                    p90:
-                     '"synonyms_plain^50",
-                      "synonyms_plain.exact^50",
-                      "synonyms_plain.ngram^50",',
+                     '"synonyms_plain^100",
+                      "synonyms_plain.exact^500",
+                      "synonyms_plain.ngram^30",',
                     synonym:  
-                       '"synonyms_plain^50",
-                        "synonyms_plain.exact^50",
+                       '"synonyms_plain^100",
+                        "synonyms_plain.exact^500",
                         "synonyms_plain.ngram^30",',
                    full_syn:  
-                       '"synonyms_plain^50",
-                        "synonyms_plain.exact^50",
+                       '"synonyms_plain^100",
+                        "synonyms_plain.exact^500",
                         "synonyms_plain.ngram^30",',      
                    nhc0:
                        '"Code^100",
