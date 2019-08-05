@@ -490,8 +490,8 @@ public class SearchController {
 		}catch(Exception e) {
 			log.error(e.getMessage(), e);
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-	        String errorMessage = e.getMessage();
-	        log.error("returning status code " + statusCode + " with error message " + errorMessage);
+	        String errorMessage  = "An error occurred in the system. Please contact the NCI help desk.";
+	        log.error("returning status code " + statusCode + " with error message " + e.getMessage());
 	        response.sendError(statusCode, errorMessage);
 		}
 		return result;
