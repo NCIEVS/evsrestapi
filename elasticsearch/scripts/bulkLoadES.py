@@ -19,6 +19,9 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
 from elasticsearch.helpers import bulk, scan, streaming_bulk, parallel_bulk
 
+import evs_sparql_batch as es
+import evs_util_batch as eu
+
 from multiprocessing.pool import Pool
 
 env_path = Path('.')/'.env'
@@ -133,6 +136,92 @@ def download_concept(conceptCode):
     output_file.close()
 
     return r.json()
+
+def download_concept_files_batch(concepts_list, clean):
+    number_of_concepts = len(concepts_list)
+    print("Number of Concepts: " + str(number_of_concepts))
+    if clean:
+        shutil.rmtree(CONCEPT_OUTPUT_DIR)
+        os.makedirs(CONCEPT_OUTPUT_DIR)
+    start = 0
+    end = 10000
+    while (start < number_of_concepts):
+        print("Downloading concepts: " + str(start) + " to " + str(end))
+        in_clause = "'" + "', '".join(concepts_list[start:end]) + "'"
+        start = end
+        end = end + 10000
+        if end > number_of_concepts:
+            end = number_of_concepts
+
+        concepts = eu.getBulkConcepts(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        properties = eu.getAllProperties(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+
+        eu.mergeConceptsAndProperties(concepts, properties)
+        del properties
+
+        axioms = eu.getAllAxioms(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndAxioms(concepts, axioms)
+        del axioms
+
+        subclasses = eu.getAllSubclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndSubclasses(concepts, subclasses)
+        del subclasses
+
+        superclasses = eu.getAllSuperclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndSuperclasses(concepts, superclasses)
+        del superclasses
+
+        associations = eu.getAllAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndAssociations(concepts, associations)
+        del associations
+
+        inverse_associations = eu.getAllInverseAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndInverseAssociations(concepts, inverse_associations)
+        del inverse_associations
+
+        roles = eu.getAllRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndRoles(concepts, roles)
+        del roles
+
+        inverse_roles = eu.getAllInverseRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndInverseRoles(concepts, inverse_roles)
+        del inverse_roles
+
+        disjoint_withs = eu.getAllDisjointWith(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        eu.mergeConceptsAndDisjointWith(concepts, disjoint_withs)
+        del disjoint_withs
+
+        for code, concept in concepts.items():
+            eu.addAdditionalProperties(concept)
+            del concept['properties']
+            eu.addFullSynonyms(concept)
+            eu.addDefinitions(concept)
+            eu.addAltDefinitions(concept)
+            eu.addMapsTo(concept)
+            eu.addGO_Annotation(concept)
+            del concept['axioms']
+            eu.addSubclasses(concept)
+            del concept['subclasses']
+            eu.addSuperclasses(concept)
+            del concept['superclasses']
+            eu.addAssociations(concept)
+            del concept['associations']
+            eu.addInverseAssociations(concept)
+            del concept['inverse_associations']
+            eu.addRoles(concept)
+            del concept['roles']
+            eu.addInverseRoles(concept)
+            del concept['inverse_roles']
+            eu.addDisjointWith(concept)
+            del concept['disjoint_with']
+
+        for code, concept in concepts.items():
+            with open(CONCEPT_OUTPUT_DIR + concept['Code'] + ".json", "w") as output_file:
+                print(json.dumps(concept, indent=2, sort_keys=False), file=output_file)
+                output_file.close()
+
+    os.system('touch {}'.format(CONCEPT_OUTPUT_DIR + "/DownloadSuccessfull.lck"))
+    print_log("Finished Download Process")
 
 
 def download_concept_files(concepts, processors, clean):
@@ -318,6 +407,15 @@ if __name__ == '__main__':
     parser.set_defaults(download_only=False)
 
     parser.add_argument(
+            '--download_using_api',
+            dest="download_using_api",
+            required=False,
+            default=False,
+            action="store_true",
+            help="If present, downloads the files using the REST API.")
+    parser.set_defaults(download_using_api=False)
+
+    parser.add_argument(
             '--download_continue',
             dest="download_continue",
             required=False,
@@ -409,7 +507,10 @@ if __name__ == '__main__':
     # Warning this code removes the contents of the CONCEPT_OUTPUT_DIR
     if args.download_only:
         #download_concept_files(concepts_in_stardog[:1000])
-        download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL, True)
+        if args.download_using_api:
+            download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL, True)
+        else:
+            download_concept_files_batch(concepts_in_stardog, True)
         sys.exit(1)
 
     if args.download_continue:
@@ -417,7 +518,11 @@ if __name__ == '__main__':
         concepts_in_file_system_set = set(get_concepts_from_directory())
         concepts_not_in_file_system = list(concepts_in_stardog_set - concepts_in_file_system_set)
         print_log("Number of missing files: " + str(len(concepts_not_in_file_system)))
-        download_concept_files(concepts_not_in_file_system, MULTI_PROCESSING_POOL, False)
+        #download_concept_files(concepts_not_in_file_system, MULTI_PROCESSING_POOL, False)
+        if args.download_using_api:
+            download_concept_files(concepts_not_in_file_system, MULTI_PROCESSING_POOL, True)
+        else:
+            download_concept_files_batch(concepts_not_in_file_system, True)
         sys.exit(1)
 
     create_index(es, args.index_name, INDEX_MAPPING_FILE, args.drop_index)
@@ -432,7 +537,11 @@ if __name__ == '__main__':
             print_log("No download of concepts to the file system")
         else:
             #download_concept_files(concepts_in_stardog[:200], MULTI_PROCESSING_POOL)
-            download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL, True)
+            #download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL, True)
+            if args.download_using_api:
+                download_concept_files(concepts_in_stardog, MULTI_PROCESSING_POOL, True)
+            else:
+                download_concept_files_batch(concepts_in_stardog, True)
 
         concepts_in_file_system = get_concepts_from_directory()
         print_log("Number of concepts in File System: " + str(len(concepts_in_file_system)))
