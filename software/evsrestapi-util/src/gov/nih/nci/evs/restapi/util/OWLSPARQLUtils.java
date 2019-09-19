@@ -3823,43 +3823,46 @@ public class OWLSPARQLUtils {
 	}
 
 
-/*
-    public String role_query(String named_graph, String code) {
-        StringBuffer buf = new StringBuffer();
-        buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-        buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-        buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-        buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
-        buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
-        buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
-        buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
-        buf.append("PREFIX protege:<http://protege.stanford.edu/plugins/owl/protege#>").append("\n");
-        buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-        buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
-        buf.append("PREFIX ncicp:<http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#>").append("\n");
-        buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
-        buf.append("").append("\n");
-        buf.append("SELECT ?x_label ?x_code ?p_label ?p_code ?z_label ?z_code").append("\n");
-        buf.append("{").append("\n");
-        buf.append("graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.rdf> {").append("\n");
-        buf.append("?x :NHC0 ?x_code .").append("\n");
-        buf.append("?x :NHC0 \"C34103\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-        buf.append("?x rdfs:label ?x_label . ").append("\n");
-        buf.append("?x ?p ?z .").append("\n");
-        buf.append("?p rdfs:label ?p_label .").append("\n");
-        buf.append("?p :NHC0 ?p_code .").append("\n");
-        buf.append("?z rdfs:label ?z_label .").append("\n");
-        buf.append("?z :NHC0 ?z_code .").append("\n");
-        buf.append("}").append("\n");
-        buf.append("FILTER( STRSTARTS(STR(?p_code), 'R') ) ").append("\n");
-        buf.append("}").append("\n");
-        buf.append("").append("\n");
-        buf.append("").append("\n");
-        buf.append("").append("\n");
-        buf.append("").append("\n");
-        return buf.toString();
-    }
-*/
+	public String construct_get_axioms_by_code(String named_graph, String code, String prop_label) {
+		return construct_get_property_qualifiers_by_code(named_graph, code, prop_label);
+	}
+
+	public String construct_get_property_qualifiers_by_code(String named_graph, String code, String prop_label) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?z_axiom ?x_label ?x_code ?p_label ?p_code ?z_target ?y_label ?y_code ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    { ").append("\n");
+		buf.append("    	{").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("            ?p :NHC0 ?p_code .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("            ?z_axiom ?y ?z . ").append("\n");
+		buf.append("            ?y :NHC0 ?y_code .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label").append("\n");
+		buf.append("        }").append("\n");
+		buf.append("     }").append("\n");
+		buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\")").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getPropertyQualifiersByCode(String named_graph, String code, String prop_label) {
+		Vector v = executeQuery(construct_get_property_qualifiers_by_code(named_graph, code, prop_label));
+		return v;
+	}
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
@@ -3883,4 +3886,5 @@ public class OWLSPARQLUtils {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
     }
+
 }
