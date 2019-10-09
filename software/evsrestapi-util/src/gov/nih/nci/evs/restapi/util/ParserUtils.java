@@ -533,6 +533,8 @@ public class ParserUtils {
 		ParserUtils parser = new ParserUtils();
 		Vector w = new Vector();
 		Vector vars = getResponseVariables(v);
+		//KLO 10082019
+		if (vars.size() == 0) return new Vector();
 		String firstVar = (String) vars.elementAt(0);
 		String[] values = new String[vars.size()];
 		for (int i=0; i<vars.size(); i++) {

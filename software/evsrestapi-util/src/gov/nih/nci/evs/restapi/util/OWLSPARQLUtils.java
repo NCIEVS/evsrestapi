@@ -231,6 +231,11 @@ public class OWLSPARQLUtils {
         try {
 			query = httpUtils.encode(query);
             String json = httpUtils.executeQuery(query);
+/*
+            Vector w = new Vector();
+            w.add(json);
+            Utils.saveToFile("json_debug.txt", w);
+*/
 			v = new JSONUtils().parseJSON(json);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -3340,7 +3345,9 @@ public class OWLSPARQLUtils {
         buf.append("graph <" + named_graph + "> {").append("\n");
         buf.append("?x a owl:Class .").append("\n");
         buf.append("?x :NHC0 ?x_code .").append("\n");
-        buf.append("?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+        if (code != null) {
+            buf.append("?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
         buf.append("?x rdfs:label ?x_label .").append("\n");
         buf.append("?z_axiom owl:annotatedSource ?x .").append("\n");
         buf.append("?z_axiom owl:annotatedProperty ?p .").append("\n");
@@ -3836,7 +3843,6 @@ public class OWLSPARQLUtils {
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    { ").append("\n");
-		buf.append("    	{").append("\n");
 		buf.append("            ?x a owl:Class .").append("\n");
 		if (code != null) {
 			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
@@ -3852,16 +3858,104 @@ public class OWLSPARQLUtils {
 		buf.append("            ?z_axiom ?y ?z . ").append("\n");
 		buf.append("            ?y :NHC0 ?y_code .").append("\n");
 		buf.append("            ?y rdfs:label ?y_label").append("\n");
-		buf.append("        }").append("\n");
-		buf.append("     }").append("\n");
+		buf.append("    }").append("\n");
 		buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\")").append("\n");
 		buf.append("}").append("\n");
+		//buf.append("LIMIT 1000").append("\n");
 		return buf.toString();
 	}
 
 	public Vector getPropertyQualifiersByCode(String named_graph, String code, String prop_label) {
-		Vector v = executeQuery(construct_get_property_qualifiers_by_code(named_graph, code, prop_label));
+		String query = construct_get_property_qualifiers_by_code(named_graph, code, prop_label);
+		System.out.println(query);
+		Vector v = executeQuery(query);
 		return v;
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242621|Thorax|C12799|Maps_To|P375|Thorax, NOS|Target_Terminology|P396|GDC
+bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242621|Thorax|C12799|Maps_To|P375|Thorax, NOS|Target_Code|P395|SRB
+bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Thorax|Target_Code|P395|BAS
+bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Thorax|Target_Terminology|P396|GDC
+*/
+
+	public Vector getPropertyQualifiersByCode(String named_graph, String code, String prop_label, String prop_value) {
+		String query = construct_get_property_qualifiers_by_code(named_graph, code, prop_label, prop_value);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		return v;
+	}
+
+	public String construct_get_property_qualifiers_by_code(String named_graph, String code, String prop_label, String prop_value) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?z_axiom ?x_label ?x_code ?p_label ?p_code ?z_target ?y_label ?y_code ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    { ").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("            ?p :NHC0 ?p_code .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("            ?z_axiom ?y ?z . ").append("\n");
+		buf.append("            ?y :NHC0 ?y_code .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label").append("\n");
+		buf.append("    }").append("\n");
+
+		if (prop_value != null) {
+			buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\" && str(?z) = \"" + prop_value + "\")").append("\n");
+		} else {
+			buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\")").append("\n");
+		}
+
+		buf.append("}").append("\n");
+		buf.append("LIMIT 100").append("\n");
+		return buf.toString();
+	}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public Vector get_codes_with_axiom(String named_graph, String prop_label, String prop_value) {
+		String query = construct_get_codes_with_axiom(named_graph, prop_label, prop_value);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		return v;
+	}
+
+	public String construct_get_codes_with_axiom(String named_graph, String prop_label, String prop_value) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?x_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    { ").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("            ?z_axiom ?y ?z . ").append("\n");
+		buf.append("            ?y rdfs:label ?y_label").append("\n");
+		buf.append("    }").append("\n");
+		if (prop_value != null) {
+			buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\" && str(?z) = \"" + prop_value + "\")").append("\n");
+		} else {
+			buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\")").append("\n");
+		}
+		buf.append("}").append("\n");
+		return buf.toString();
 	}
 
     public static void main(String[] args) {
