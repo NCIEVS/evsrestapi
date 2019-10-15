@@ -188,6 +188,7 @@ public class MapsToReportWriter {
         Utils.saveToFile(property_name + "_" + StringUtils.getToday() + ".txt", v);
 	}
 
+/*
     public static Vector get_codes_with_axiom(String serviceUrl, String named_graph, String propertyName, String propertyValue) {
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         owlSPARQLUtils.set_named_graph(named_graph);
@@ -195,6 +196,7 @@ public class MapsToReportWriter {
         v = new ParserUtils().getResponseValues(v);
         return v;
 	}
+*/
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
