@@ -4114,13 +4114,6 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		return w;
 	}
 
-
-	public void retrieveAndSaveConceptsWithProperty(String named_graph, String prop_label, String prop_code) {
-		Vector v = getConceptsWithProperty(named_graph, prop_code);
-		Utils.saveToFile(prop_label + ".txt", v);
-	}
-
-
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
@@ -4131,22 +4124,6 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
         Vector v = owlSPARQLUtils.getAllConceptProperties(named_graph);
         Utils.saveToFile("all_properties.txt", v);
-
-        //owlSPARQLUtils.runQuery(queryfile);
-        //Utils.saveToFile("output_" + queryfile, v);
-        //Vector v = owlSPARQLUtils.get_roots(named_graph);
-        //String code = "C4815";
-        //System.out.println("Calling owlSPARQLUtils.getRolesByCode ...");
-/*
-
-        Vector v = owlSPARQLUtils.getRolesByCode(named_graph, code);
-        v = new ParserUtils().getResponseValues(v);
-        for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			System.out.println(t);
-		}
-*/
-
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
     }
