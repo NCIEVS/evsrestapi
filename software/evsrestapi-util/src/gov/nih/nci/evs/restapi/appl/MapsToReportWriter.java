@@ -21,8 +21,9 @@ import org.json.*;
 
 
 public class MapsToReportWriter {
-	public static String MAPS_TO_HEADING = "CODE|PT|RELATIONSHIP_TO_TARGET|TARGET_CODE|TARGET_TERM|TARGET_TERM_TYPE|TARGET_TERMINOLOGY";
+	public static String MAPS_TO_HEADING = "CODE|PT|RELATIONSHIP_TO_TARGET|TARGET_CODE|TARGET_TERM|TARGET_TERM_TYPE|TARGET_TERMINOLOGY|TARGET_TERMINOLOGY_VERSION";
 	public static String MAPS_TO = "Maps_To";
+	public static int NUMER_OF_FIELDS = 8;
     JSONUtils jsonUtils = null;
     HTTPUtils httpUtils = null;
     String named_graph = null;
@@ -47,12 +48,12 @@ public class MapsToReportWriter {
 	}
 
 
-	public static void generateMapsToReport(String inputfile) {
-		generateMapsToReport(inputfile, null);
+	public static void generateMapsToReport(Vector v) {
+		generateMapsToReport(v, null);
 	}
 
-    public static void generateMapsToReport(String inputfile, String target_terminology) {
-		Vector v = Utils.readFile(inputfile);
+    public static void generateMapsToReport(Vector v, String target_terminology) {
+		//Vector v = Utils.readFile(inputfile);
 		Vector w = new Vector();
 		System.out.println(v.size());
 		HashMap hmap = new HashMap();
@@ -69,7 +70,7 @@ public class MapsToReportWriter {
 					String axiomId = (String) u.elementAt(0);
 					axiomIds.add(axiomId);
 					Vector values = new Vector();
-					for (int k=0; k<7; k++) {
+					for (int k=0; k<NUMER_OF_FIELDS; k++) {
 						values.add("N/A");
 					}
 					hmap.put(axiomId, values);
@@ -80,7 +81,7 @@ public class MapsToReportWriter {
 				if (!hmap.containsKey(axiomId)) {
 					axiomIds.add(axiomId);
 					Vector values = new Vector();
-					for (int k=0; k<7; k++) {
+					for (int k=0; k<NUMER_OF_FIELDS; k++) {
 						values.add("N/A");
 					}
 					hmap.put(axiomId, values);
@@ -108,6 +109,8 @@ public class MapsToReportWriter {
 					values.setElementAt(value, 5);
 				} else if (field_name.compareTo("Target_Terminology") == 0) {
 					values.setElementAt(value, 6);
+				} else if (field_name.compareTo("Target_Terminology_Version") == 0) {
+					values.setElementAt(value, 7);
 				}
 				values.setElementAt(code, 0);
 				values.setElementAt(label, 1);
@@ -122,10 +125,10 @@ public class MapsToReportWriter {
 			String axiomId = (String) axiomIds.elementAt(i);
 			Vector values = (Vector) hmap.get(axiomId);
 			StringBuffer buf = new StringBuffer();
-			for (int j=0; j<7; j++) {
+			for (int j=0; j<NUMER_OF_FIELDS; j++) {
 				String value = (String) values.elementAt(j);
 				buf.append(value);
-				if (j<6) {
+				if (j<NUMER_OF_FIELDS-1) {
 					buf.append("|");
 				}
 			}
@@ -140,7 +143,6 @@ public class MapsToReportWriter {
 		w2.addAll(lines);
 		Utils.saveToFile(target_terminology + "_Report" + "_" + StringUtils.getToday() + ".txt", w2);
 	}
-
 
     public static void findFullSynForSourceCodes(OWLSPARQLUtils owlSPARQLUtils, String named_graph, String mapsToFile) { // "mapsToGDC.txt"
 		Vector v = Utils.readFile(mapsToFile);
@@ -164,63 +166,39 @@ public class MapsToReportWriter {
 		Utils.saveToFile("fullSyn.txt", fullSynVec);
 	}
 
-	public static void retrievePropertyQualifierData(String serviceUrl, String named_graph, String property_name) {
+	public static Vector retrievePropertyQualifierData(String serviceUrl, String named_graph, String property_name) {
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         long ms = System.currentTimeMillis();
         owlSPARQLUtils.set_named_graph(named_graph);
-        System.out.println("Calling owlSPARQLUtils....");
         Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(named_graph, null, property_name);
-        Utils.saveToFile(property_name + "_debug_" + StringUtils.getToday() + ".txt", v);
-
-        v = new ParserUtils().getResponseValues(v);
-        Utils.saveToFile(property_name + "_" + StringUtils.getToday() + ".txt", v);
-	}
-
-	public static void retrievePropertyQualifierData(String serviceUrl, String named_graph, String property_name, String property_value) {
-		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-        long ms = System.currentTimeMillis();
-        owlSPARQLUtils.set_named_graph(named_graph);
-        System.out.println("Calling owlSPARQLUtils....");
-        Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(named_graph, null, property_name, property_value);
-        Utils.saveToFile(property_name + "_debug_" + StringUtils.getToday() + ".txt", v);
-
-        v = new ParserUtils().getResponseValues(v);
-        Utils.saveToFile(property_name + "_" + StringUtils.getToday() + ".txt", v);
-	}
-
-/*
-    public static Vector get_codes_with_axiom(String serviceUrl, String named_graph, String propertyName, String propertyValue) {
-		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-        owlSPARQLUtils.set_named_graph(named_graph);
-        Vector v = owlSPARQLUtils.get_codes_with_axiom(named_graph, propertyName, propertyValue);
         v = new ParserUtils().getResponseValues(v);
         return v;
 	}
-*/
+
+	public static Vector retrievePropertyQualifierData(String serviceUrl, String named_graph, String property_name, String property_value) {
+		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+        long ms = System.currentTimeMillis();
+        owlSPARQLUtils.set_named_graph(named_graph);
+        Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(named_graph, null, property_name, property_value);
+        v = new ParserUtils().getResponseValues(v);
+        return v;
+	}
+
+    public static void generateMapsToReport(String serviceUrl, String named_graph) {
+		String propertyName = MAPS_TO;
+		Vector v = retrievePropertyQualifierData(serviceUrl, named_graph, propertyName);
+		generateMapsToReport(v, null);
+	}
 
     public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
 		String named_graph = args[1];
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
 		String propertyName = MAPS_TO;
 		String propertyValue = "GDC";
-        //retrievePropertyQualifierData(serviceUrl, named_graph, propertyName, propertyValue);
-        //retrievePropertyQualifierData(serviceUrl, named_graph, propertyName);
-        //String inputfile = "Maps_To_10-07-2019.txt";
-        //generateMapsToReport(inputfile);
-
-        /*
-        long ms = System.currentTimeMillis();
-        owlSPARQLUtils.set_named_graph(named_graph);
-        System.out.println("Calling owlSPARQLUtils....");
-        Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(named_graph, null, "Maps_To");
-        v = new ParserUtils().getResponseValues(v);
-        */
-
-        /*
-		Note: Use HTTPUtils to generate maps_to.txt
-        */
-        generateMapsToReport("maps_to.txt");
+        generateMapsToReport(retrievePropertyQualifierData(serviceUrl, named_graph, "Maps_To"));
+        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
 }
 
