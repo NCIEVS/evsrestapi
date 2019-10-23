@@ -103,7 +103,7 @@ STARDOG_PASSWORD=admin
 ---------------------------------------------------------------------------
                            Example Program Option 1
 ---------------------------------------------------------------------------
-bulkLoadES.py --index_name concept_test --delete_document
+bulkLoadES.py --index_name concept --delete_document
 
   This version tries to use an existing ElasticSearch index, and if does
   not exit, then creates a new index using the file indicated by the

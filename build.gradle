@@ -15,6 +15,16 @@ buildscript {
     }
 }
 
+repositories {
+    mavenLocal()
+    jcenter()
+    maven { url "http://repo.spring.io/release" }
+    maven { url "http://repo.spring.io/milestone" }
+    maven { url "http://repo.spring.io/snapshot" }
+    mavenCentral()
+}
+
+
 /*
  * Extra Properties
  */
@@ -38,7 +48,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 
-
+/* Version info */
 group = "gov.nih.nci.evs.api"
 version = "1.0.0.RELEASE"
 
@@ -46,23 +56,12 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 springBoot {
-    buildInfo()          // generate file META-INF/build-info.properties during the build
+    // generate file META-INF/build-info.properties during the build
+    buildInfo()          
 }
-
-repositories {
-    mavenLocal()
-    jcenter()
-    maven { url "http://repo.spring.io/release" }
-    maven { url "http://repo.spring.io/milestone" }
-    maven { url "http://repo.spring.io/snapshot" }
-    mavenCentral()
-}
-
-
 
 dependencies {
    
-
     compile 'org.springframework.boot:spring-boot-starter-web'       
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.springframework.boot:spring-boot-starter-actuator'  
@@ -74,16 +73,14 @@ dependencies {
     compile 'org.springframework:spring-aop'
     compile 'org.aspectj:aspectjweaver:1.9.2'
      
-   providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
-   /*
+    /*
      * Test Dependencies
-   */
-   testCompile 'org.springframework.boot:spring-boot-starter-test'
-   
+    */
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
 
 }
-
 
 test {
     /*
@@ -92,8 +89,6 @@ test {
      */
     testLogging.showStandardStreams = true
 }
-
-
 
 task zipFile(type: Zip) {
     def zipFileRootDirectory = "${project.name}-${project.version}"
@@ -123,8 +118,6 @@ task zipFile(type: Zip) {
         fileName.replace("-${project.version}", "")
     }
 }
-
-
 
 zipFile.dependsOn = [ bootWar ]
 build.dependsOn = [ test, bootWar, zipFile ]

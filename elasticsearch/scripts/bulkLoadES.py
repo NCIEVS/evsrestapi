@@ -144,12 +144,12 @@ def download_concept_files_batch(concepts_list, clean):
         shutil.rmtree(CONCEPT_OUTPUT_DIR)
         os.makedirs(CONCEPT_OUTPUT_DIR)
     start = 0
-    end = 10000
+    end = 100
     while (start < number_of_concepts):
         print("Downloading concepts: " + str(start) + " to " + str(end))
         in_clause = "'" + "', '".join(concepts_list[start:end]) + "'"
         start = end
-        end = end + 10000
+        end = end + 100
         if end > number_of_concepts:
             end = number_of_concepts
 
