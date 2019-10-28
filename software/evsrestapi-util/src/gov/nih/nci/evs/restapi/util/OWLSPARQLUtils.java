@@ -4194,7 +4194,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("SELECT distinct ?y_label ?z").append("\n");
 		buf.append("{").append("\n");
-		buf.append("graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl> {").append("\n");
+		buf.append("graph <" + named_graph + "> {").append("\n");
 		buf.append("?z_axiom owl:annotatedProperty ?p .").append("\n");
 		buf.append("?p rdfs:label ?p_label .").append("\n");
 		buf.append("?p rdfs:label 'FULL_SYN'^^xsd:string .").append("\n");
@@ -4229,7 +4229,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
 		buf.append("SELECT distinct ?y_label ?z").append("\n");
 		buf.append("{").append("\n");
-		buf.append("graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl> {").append("\n");
+		buf.append("graph <" + named_graph + "> {").append("\n");
 		buf.append("?z_axiom owl:annotatedProperty ?p .").append("\n");
 		buf.append("?p rdfs:label ?p_label .").append("\n");
 		buf.append("?p rdfs:label '" + property_name + "'^^xsd:string .").append("\n");
