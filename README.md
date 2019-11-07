@@ -66,7 +66,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
     * If loaded properly, the loaded artifacts should be persistent and you can take down and restart the docker processes and the data will still be there.
     * NOTE: both services must be loaded and running for the application tests to run properly
 * Configure application
-    * see src/main/resources/application-local.yml file for local setup (these settings should be suitable for local deployment)
+    * see `src/main/resources/application-local.yml` file for local setup (these settings should be suitable for local deployment)
 * Build the application (MUST DO BEFORE RUNNING if using “external tools configuration”)
     * `SPRING_PROFILES_ACTIVE=local ./gradlew clean build`
     * Executable war file present in build/libs
@@ -74,12 +74,12 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
 * Run application in Eclipse (SpringBoot)
     * Click "Run" → "External Tools" → "External Tools Configurations"
     * Create a new entry under “Program” and configure it as follows:
-        * location = <path to java executable, e.g. C:/Program Files/Java/jdk1.8.0_191/bin/java.exe>
-        * working dir = <path to project, e.g. C:/Users/bcarl/Desktop/workspace/evsrestapi>
+        * location = <path to java executable, e.g. `C:/Program Files/Java/jdk1.8.0_191/bin/java.exe`>
+        * working dir = <path to project, e.g. `C:/Users/bcarl/Desktop/workspace/evsrestapi`>
         * Arguments = command line args
-            * -Xmx4096M - ensure enough memory usage
-            * -Dspring.profiles.active=local - make sure to use application-local.yml
+            * `-Xmx4096M - ensure enough memory usage`
+            * `-Dspring.profiles.active=local - make sure to use application-local.yml`
             * -jar *.war - point to the war file.
 
-    * Test that it’s up by looking for swagger docs: http://localhost:8080/swagger-ui.html#/
+    * Test that it’s up by looking for swagger docs: [http://localhost:8080/swagger-ui.html#/](http://localhost:8080/swagger-ui.html#/)
 
