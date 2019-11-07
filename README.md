@@ -26,38 +26,38 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
 
 * Load/Compute Indexes - Run from the “elasticsearch/scripts” folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
 
-        # From the root of cloned https://github.com/NCIEVS/evsrestapi
-        cd elasticsearch/scripts
-        
-        # Configure .env file
-        # NOTE: host.docker.internal refers to "localhost" of the environment running docker, 
-        #       an easy way to avoid having to network containers together.
-        cat > .env << EOF
-        API_ENDPOINT=http://host.docker.internal:8080/api/v1/concept/
-        CONCEPT_OUTPUT_DIR=/tmp/
-        CONCEPT_INPUT_DIR=/tmp/
-        ES_HOST=host.docker.internal
-        ES_PORT=9200
-        INDEX_MAPPING_FILE=../Mapping/concept_flat_full_nested_bylabel.json
-        LOG_DIRECTORY=/tmp/
-        MULTI_PROCESSING_POOL=2
-        NAMED_GRAPH=http://NCI_T
-        SPARQL_ENDPOINT=http://host.docker.internal:5820/NCIT2/query
-        STARDOG_USERNAME=admin
-        STARDOG_PASSWORD=admin
-        EOF
+      # From the root of cloned https://github.com/NCIEVS/evsrestapi
+      cd elasticsearch/scripts
+      
+      # Configure .env file
+      # NOTE: host.docker.internal refers to "localhost" of the environment running docker, 
+      #       an easy way to avoid having to network containers together.
+      cat > .env << EOF
+      API_ENDPOINT=http://host.docker.internal:8080/api/v1/concept/
+      CONCEPT_OUTPUT_DIR=/tmp/
+      CONCEPT_INPUT_DIR=/tmp/
+      ES_HOST=host.docker.internal
+      ES_PORT=9200
+      INDEX_MAPPING_FILE=../Mapping/concept_flat_full_nested_bylabel.json
+      LOG_DIRECTORY=/tmp/
+      MULTI_PROCESSING_POOL=2
+      NAMED_GRAPH=http://NCI_T
+      SPARQL_ENDPOINT=http://host.docker.internal:5820/NCIT2/query
+      STARDOG_USERNAME=admin
+      STARDOG_PASSWORD=admin
+      EOF
 
 * Run the python load script in the docker container (from the “elasticsearch” directory of the cloned project)
 
-        # From the root of cloned https://github.com/NCIEVS/evsrestapi
-        cd elasticsearch
-        
-        docker build -t evsrestapi:elasticsearch .
-        docker run -it evsrestapi:elasticsearch
-        (base) root@b63d5d1f4038:/elasticsearch# cd scripts/
-        (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --download_only
-        (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --no_download --delete_document
-        (base) root@b63d5d1f4038:/elasticsearch# exit
+      # From the root of cloned https://github.com/NCIEVS/evsrestapi
+      cd elasticsearch
+      
+      docker build -t evsrestapi:elasticsearch .
+      docker run -it evsrestapi:elasticsearch
+      (base) root@b63d5d1f4038:/elasticsearch# cd scripts/
+      (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --download_only
+      (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --no_download --delete_document
+      (base) root@b63d5d1f4038:/elasticsearch# exit
 
 
 ### Steps for Building and Running EVSRESTAPI locally
