@@ -9,8 +9,8 @@ Information on the build and deployment process for the EVSRESTAPI project
     * Swap = 1G
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
 * Choose a local directory $dir (e.g. c:/evsrestapi)
-* Make directories $dir/elasticsearch/hdata
-* Download an NCI Thesaurus file (e.g. Thesaurus.owl) to $dir/
+* Make directories $dir/elasticsearch/data
+* Download an NCI Thesaurus file as "Thesaurus.owl" to $dir/ (see [https://evs.nci.nih.gov/evs-download/thesaurus-downloads](https://evs.nci.nih.gov/evs-download/thesaurus-downloads))
 
 ### Steps for Loading Data and Indexes Locally
 
@@ -18,10 +18,10 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Launch Elasticsearch docker container 
 In a terminal/Cygwin window, run the following to have an elasticsearch instance running. Keep this window open to keep the server running.
 
-        docker pull docker.elastic.co/elasticsearch/elasticsearch:6.4.0
-        # Choose a directory for your elasticsearch data to live
-        dir=c:/evsrestapi/elasticsearch/data
-        docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+      docker pull docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+      # Choose a directory for your elasticsearch data to live
+      dir=c:/evsrestapi/elasticsearch/data
+      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.4.0
 
 
 * Load/Compute Indexes - Run from the “elasticsearch/scripts” folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
