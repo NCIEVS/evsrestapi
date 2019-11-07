@@ -21,7 +21,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       docker pull docker.elastic.co/elasticsearch/elasticsearch:6.4.0
       # Choose a directory for your elasticsearch data to live
       dir=c:/evsrestapi/elasticsearch/data
-      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.4.0
 
 
 * Load/Compute Indexes - Run from the “elasticsearch/scripts” folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
@@ -77,9 +77,9 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         * location = <path to java executable, e.g. `C:/Program Files/Java/jdk1.8.0_191/bin/java.exe`>
         * working dir = <path to project, e.g. `C:/Users/bcarl/Desktop/workspace/evsrestapi`>
         * Arguments = command line args
-            * `-Xmx4096M - ensure enough memory usage`
-            * `-Dspring.profiles.active=local - make sure to use application-local.yml`
-            * -jar *.war - point to the war file.
+            * `-Xmx4096M` - ensure enough memory usage
+            * `-Dspring.profiles.active=local` - make sure to use application-local.yml
+            * `-jar *.war` - point to the war file
 
     * Test that it’s up by looking for swagger docs: [http://localhost:8080/swagger-ui.html#/](http://localhost:8080/swagger-ui.html#/)
 
