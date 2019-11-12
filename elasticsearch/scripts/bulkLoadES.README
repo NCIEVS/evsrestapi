@@ -103,7 +103,7 @@ STARDOG_PASSWORD=admin
 ---------------------------------------------------------------------------
                            Example Program Option 1
 ---------------------------------------------------------------------------
-bulkLoadES.py --index_name concept_test --delete_document
+bulkLoadES.py --index_name concept --delete_document
 
   This version tries to use an existing ElasticSearch index, and if does
   not exit, then creates a new index using the file indicated by the
@@ -122,8 +122,8 @@ into 2 steps. After the initial download you may want to check this
 step completed properly, before starting the process to upload the
 concepts into ElasticSearch.
 
-bulkLoadES.py --index_name concept_test --download_only
-bulkLoadES.py --index_name concept_test --no_download --delete_document
+bulkLoadES.py --index_name concept --download_only
+bulkLoadES.py --index_name concept --no_download --delete_document
 
 ---------------------------------------------------------------------------
                            Example Program Option 3
@@ -136,5 +136,6 @@ concepts into ElasticSearch.
 Finally using the --drop_index option ensures you are starting with an
 empty ElasticSearch index.
 
-bulkLoadES.py --index_name concept_test --download_only
-bulkLoadES.py --index_name concept_test --no_download --drop_index
+bulkLoadES.py --index_name concept --download_only
+bulkLoadES.py --index_name concept --no_download --drop_index
+
