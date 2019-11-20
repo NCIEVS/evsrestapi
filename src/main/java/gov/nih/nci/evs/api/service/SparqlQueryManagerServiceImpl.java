@@ -133,13 +133,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService{
 		List <String> parentchildMonthly = getHierarchy("monthly");
 		hierarchyMonthly = new HierarchyUtils(parentchildMonthly);
 		List <String> parentchildWeekly = getHierarchy("weekly");
-		hierarchyMonthly = new HierarchyUtils(parentchildWeekly);
+		hierarchyWeekly = new HierarchyUtils(parentchildWeekly);
 		PathFinder pathFinder = new PathFinder(hierarchyMonthly);
 		pathsMonthly = pathFinder.findPaths();
-		pathFinder = new PathFinder(hierarchyMonthly);
+		pathFinder = new PathFinder(hierarchyWeekly);
 		pathsWeekly = pathFinder.findPaths();
 		uniqueSourcesWeekly = getUniqueSourcesList("weekly");
-        uniqueSourcesMonthly = getUniqueSourcesList("montly");
+        uniqueSourcesMonthly = getUniqueSourcesList("monthly");
 	}
 
 	
