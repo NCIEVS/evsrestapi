@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,8 +21,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -75,10 +79,13 @@ public class MetadataControllerTests {
     final MvcResult result =
         mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
-    assertThat(content).isNotNull();
-    log.info("Successfully tested url - " + url);
+    log.info("  content = " + content);
+    final List<Terminology>list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
 
-    // TODO: parse this back into terminology objects and confirm!
     log.info("Done Testing getTerminologies");
 
   }

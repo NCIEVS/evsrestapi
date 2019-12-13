@@ -31,6 +31,12 @@ public class Terminology {
   /** The name. */
   private String name;
 
+  /** The description. */
+  private String description;
+
+  /** The graph. */
+  private String graph;
+
   /** The terminology version. */
   private String terminologyVersion;
 
@@ -64,7 +70,10 @@ public class Terminology {
    */
   public Terminology(final EvsVersionInfo info) {
     version = info.getVersion();
-    name = info.getComment();
+    name = info.getComment().substring(0, info.getComment().indexOf(",")) + " "
+        + info.getVersion();
+    description = info.getComment();
+    graph = info.getGraph();
     terminology = "ncit";
     terminologyVersion = terminology + "_" + version;
   }
@@ -78,6 +87,8 @@ public class Terminology {
     terminology = other.getTerminology();
     version = other.getVersion();
     name = other.getName();
+    description = other.getDescription();
+    graph = other.getGraph();
     terminologyVersion = other.getTerminologyVersion();
     latest = other.getLatest();
     tags = new HashMap<>(other.getTags());
@@ -138,6 +149,42 @@ public class Terminology {
   }
 
   /**
+   * Returns the description.
+   *
+   * @return the description
+   */
+  public String getDescription() {
+    return description;
+  }
+
+  /**
+   * Sets the description.
+   *
+   * @param description the description
+   */
+  public void setDescription(final String description) {
+    this.description = description;
+  }
+
+  /**
+   * Returns the graph.
+   *
+   * @return the graph
+   */
+  public String getGraph() {
+    return graph;
+  }
+
+  /**
+   * Sets the graph.
+   *
+   * @param graph the graph
+   */
+  public void setGraph(final String graph) {
+    this.graph = graph;
+  }
+
+  /**
    * Returns the terminology version.
    *
    * @return the terminology version
@@ -179,6 +226,9 @@ public class Terminology {
    * @return the tags
    */
   public Map<String, String> getTags() {
+    if (tags == null) {
+      tags = new HashMap<>();
+    }
     return tags;
   }
 
@@ -191,11 +241,13 @@ public class Terminology {
     this.tags = tags;
   }
 
-  /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result =
+        prime * result + ((description == null) ? 0 : description.hashCode());
+    result = prime * result + ((graph == null) ? 0 : graph.hashCode());
     result = prime * result + ((latest == null) ? 0 : latest.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result =
@@ -206,7 +258,6 @@ public class Terminology {
     return result;
   }
 
-  /* see superclass */
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) {
@@ -219,6 +270,20 @@ public class Terminology {
       return false;
     }
     final Terminology other = (Terminology) obj;
+    if (description == null) {
+      if (other.description != null) {
+        return false;
+      }
+    } else if (!description.equals(other.description)) {
+      return false;
+    }
+    if (graph == null) {
+      if (other.graph != null) {
+        return false;
+      }
+    } else if (!graph.equals(other.graph)) {
+      return false;
+    }
     if (latest == null) {
       if (other.latest != null) {
         return false;

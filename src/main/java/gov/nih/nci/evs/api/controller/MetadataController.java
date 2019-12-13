@@ -59,7 +59,7 @@ public class MetadataController {
   })
   @RecordMetricDB
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies", produces = "application/json")
-  public @ResponseBody List<Terminology> getVersionInfo() throws IOException {
+  public @ResponseBody List<Terminology> getTerminologies() throws IOException {
 
     final Terminology monthlyNcit =
         new Terminology(sparqlQueryManagerService.getEvsVersionInfo("monthly"));

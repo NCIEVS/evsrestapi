@@ -50,7 +50,7 @@ nci:
     application:
       contextPath: /api/v1
       generatedFilePath: ${user.home}/apps/evsrestapi/data/
-      forceFileGeneration: true
+      forceFileGeneration: false
       metricLogDirectory: ${user.home}/apps/evsrestapi/logs/
     stardog:
       monthlyQueryUrl: http://localhost:5820/NCIT2/query
