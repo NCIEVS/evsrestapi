@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -37,6 +38,7 @@ public class SerializationTester extends ProxyTester {
     logger.debug("Test json serialization - " + getClazz().getName());
     final Object obj = createObject(1);
     final ObjectMapper mapper = new ObjectMapper();
+    mapper.setSerializationInclusion(Include.NON_EMPTY);
     logger.debug(" " + obj);
     final String json = mapper.writeValueAsString(obj);
     logger.info("json = " + json);

@@ -92,9 +92,9 @@ public class Concept extends BaseModel {
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
     associations = new ArrayList<>(other.getAssociations());
-    inverseAssociations = new ArrayList<>(other.getAssociations());
+    inverseAssociations = new ArrayList<>(other.getInverseAssociations());
     roles = new ArrayList<>(other.getRoles());
-    inverseRoles = new ArrayList<>(other.getRoles());
+    inverseRoles = new ArrayList<>(other.getInverseRoles());
     maps = new ArrayList<>(other.getMaps());
   }
 
@@ -140,6 +140,9 @@ public class Concept extends BaseModel {
    * @return the synonyms
    */
   public List<Synonym> getSynonyms() {
+    if (synonyms == null) {
+      synonyms = new ArrayList<>();
+    }
     return synonyms;
   }
 
@@ -158,6 +161,9 @@ public class Concept extends BaseModel {
    * @return the definitions
    */
   public List<Definition> getDefinitions() {
+    if (definitions == null) {
+      definitions = new ArrayList<>();
+    }
     return definitions;
   }
 
@@ -176,6 +182,9 @@ public class Concept extends BaseModel {
    * @return the properties
    */
   public List<Property> getProperties() {
+    if (properties == null) {
+      properties = new ArrayList<>();
+    }
     return properties;
   }
 
@@ -194,6 +203,9 @@ public class Concept extends BaseModel {
    * @return the associations
    */
   public List<Association> getAssociations() {
+    if (associations == null) {
+      associations = new ArrayList<>();
+    }
     return associations;
   }
 
@@ -212,6 +224,9 @@ public class Concept extends BaseModel {
    * @return the inverse associations
    */
   public List<Association> getInverseAssociations() {
+    if (inverseAssociations == null) {
+      inverseAssociations = new ArrayList<>();
+    }
     return inverseAssociations;
   }
 
@@ -231,6 +246,9 @@ public class Concept extends BaseModel {
    * @return the roles
    */
   public List<Role> getRoles() {
+    if (roles == null) {
+      roles = new ArrayList<>();
+    }
     return roles;
   }
 
@@ -249,6 +267,9 @@ public class Concept extends BaseModel {
    * @return the inverse roles
    */
   public List<Role> getInverseRoles() {
+    if (inverseRoles == null) {
+      inverseRoles = new ArrayList<>();
+    }
     return inverseRoles;
   }
 
@@ -267,6 +288,9 @@ public class Concept extends BaseModel {
    * @return the maps
    */
   public List<Map> getMaps() {
+    if (maps == null) {
+      maps = new ArrayList<>();
+    }
     return maps;
   }
 
