@@ -64,16 +64,20 @@ public class MetadataController {
     final Terminology monthlyNcit =
         new Terminology(sparqlQueryManagerService.getEvsVersionInfo("monthly"));
     monthlyNcit.getTags().put("monthly", "true");
+    // Monthly is the latest published version
+    monthlyNcit.setLatest(true);
 
     final Terminology weeklyNcit =
         new Terminology(sparqlQueryManagerService.getEvsVersionInfo("weekly"));
 
+    // If these are equal, there's only one version, return it
     if (monthlyNcit.equals(weeklyNcit)) {
-      monthlyNcit.setLatest(true);
       return EVSUtils.asList(monthlyNcit);
-    } else {
+    } 
+    // Otherwise, there are two versions
+    else {
       weeklyNcit.getTags().put("weekly", "true");
-      weeklyNcit.setLatest(true);
+      weeklyNcit.setLatest(false);
       return EVSUtils.asList(monthlyNcit, weeklyNcit);
     }
   }
