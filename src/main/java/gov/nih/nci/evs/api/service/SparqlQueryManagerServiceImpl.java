@@ -136,24 +136,34 @@ public class SparqlQueryManagerServiceImpl
     log.info("Start populating cache");
     classCountMonthly = getGetClassCounts("monthly");
     log.info("  class count monthly = " + classCountMonthly);
-    classCountWeekly = getGetClassCounts("weekly");
-    log.info("  class count weekly = " + classCountMonthly);
 
     log.info("  get hierarchy = monthly");
     List<String> parentchildMonthly = getHierarchy("monthly");
     hierarchyMonthly = new HierarchyUtils(parentchildMonthly);
-    log.info("  get hierarchy = weekly");
-    List<String> parentchildWeekly = getHierarchy("weekly");
-    hierarchyWeekly = new HierarchyUtils(parentchildWeekly);
     log.info("  find paths = monthly");
     PathFinder pathFinder = new PathFinder(hierarchyMonthly);
     pathsMonthly = pathFinder.findPaths();
-    log.info("  find paths = weekly");
-    pathFinder = new PathFinder(hierarchyWeekly);
-    pathsWeekly = pathFinder.findPaths();
-    log.info("  get unique sources list");
-    uniqueSourcesWeekly = getUniqueSourcesList("weekly");
     uniqueSourcesMonthly = getUniqueSourcesList("monthly");
+
+    // Weekly
+    if (getNamedGraph("weekly").equals(getNamedGraph("monthly"))) {
+      log.info("  copy weekly to montly = " + classCountMonthly);
+      classCountWeekly = classCountMonthly;
+      hierarchyWeekly = hierarchyMonthly;
+      pathsWeekly = pathsMonthly;
+      uniqueSourcesWeekly = uniqueSourcesMonthly;
+    } else {
+      classCountWeekly = getGetClassCounts("weekly");
+      log.info("  class count weekly = " + classCountMonthly);
+      log.info("  get hierarchy = weekly");
+      List<String> parentchildWeekly = getHierarchy("weekly");
+      hierarchyWeekly = new HierarchyUtils(parentchildWeekly);
+      log.info("  find paths = weekly");
+      pathFinder = new PathFinder(hierarchyWeekly);
+      pathsWeekly = pathFinder.findPaths();
+      uniqueSourcesWeekly = getUniqueSourcesList("weekly");
+    }
+
     log.info("Done populating the cache");
 
   }
@@ -293,7 +303,7 @@ public class SparqlQueryManagerServiceImpl
       evsVersionInfo.setVersion(b.getVersion().getValue());
       evsVersionInfo.setDate(b.getDate().getValue());
       evsVersionInfo.setComment(b.getComment().getValue());
-      evsVersionInfo.setGraph(namedGraph);      
+      evsVersionInfo.setGraph(namedGraph);
     }
     return evsVersionInfo;
   }
@@ -678,11 +688,12 @@ public class SparqlQueryManagerServiceImpl
         .setSubconcepts(getEvsSubconcepts(conceptCode, dbType, outputType));
     evsConcept
         .setSuperconcepts(getEvsSuperconcepts(conceptCode, dbType, outputType));
-    evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
-    evsConcept
-        .setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
-    evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
-    evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+    log.info("ZZZ - currently not reading associations/roles for testing perf");
+//    evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+//    evsConcept
+//        .setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
+//    evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+    //    evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
     evsConcept.setMapsTo(EVSUtils.getMapsTo(axioms, outputType));
     evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
     evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
