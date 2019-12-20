@@ -1,26 +1,93 @@
+
 package gov.nih.nci.evs.api.model.evs;
 
+/**
+ * The Class EvsVersionInfo.
+ */
 public class EvsVersionInfo {
-	String version;
-	String date;
-	String comment;
-	public String getVersion() {
-		return version;
-	}
-	public void setVersion(String version) {
-		this.version = version;
-	}
-	public String getDate() {
-		return date;
-	}
-	public void setDate(String date) {
-		this.date = date;
-	}
-	public String getComment() {
-		return comment;
-	}
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+
+  /** The version. */
+  String version;
+
+  /** The date. */
+  String date;
+
+  /** The comment. */
+  String comment;
+
+  /** The graph. */
+  String graph;
+
+  /**
+   * Returns the version.
+   *
+   * @return the version
+   */
+  public String getVersion() {
+    return version;
+  }
+
+  /**
+   * Sets the version.
+   *
+   * @param version the version
+   */
+  public void setVersion(String version) {
+    this.version = version;
+  }
+
+  /**
+   * Returns the date.
+   *
+   * @return the date
+   */
+  public String getDate() {
+    return date;
+  }
+
+  /**
+   * Sets the date.
+   *
+   * @param date the date
+   */
+  public void setDate(String date) {
+    this.date = date;
+  }
+
+  /**
+   * Returns the comment.
+   *
+   * @return the comment
+   */
+  public String getComment() {
+    return comment;
+  }
+
+  /**
+   * Sets the comment.
+   *
+   * @param comment the comment
+   */
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
+
+  /**
+   * Returns the graph.
+   *
+   * @return the graph
+   */
+  public String getGraph() {
+    return graph;
+  }
+
+  /**
+   * Sets the graph.
+   *
+   * @param graph the graph
+   */
+  public void setGraph(String graph) {
+    this.graph = graph;
+  }
 
 }
