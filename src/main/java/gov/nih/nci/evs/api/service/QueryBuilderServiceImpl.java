@@ -121,7 +121,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     log.debug("constructPropertyQuery - " + query.toString());
     return query.toString();
   }
-
+  
   public String constructPropertyNoRestrictionsQuery(String conceptCode,
     String namedGraph) {
     StringBuffer query = new StringBuffer();
