@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.IncludeFlagUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -46,6 +48,44 @@ public class ConceptController {
   SparqlQueryManagerService sparqlQueryManagerService;
 
   /**
+   * Returns the associations.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the associations
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get concepts specified by list parameter", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}", produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list", value = "List of codes to return concepts for", required = true, dataType = "string", paramType = "query")
+  })
+  @RecordMetricDBFormat
+  public @ResponseBody List<Concept> getAssociations(
+    @PathVariable(value = "terminology") final String terminology,
+    @RequestParam("include") final Optional<String> include,
+    @RequestParam("list") final String list) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsConcept> associations =
+        sparqlQueryManagerService.getAllAssociations(dbType, "byLabel");
+    return IncludeFlagUtils.applyIncludeAndList(associations,
+        include.orElse("minimal"), list);
+  }
+
+  /**
    * Returns the concept.
    *
    * @param terminology the terminology
@@ -71,7 +111,8 @@ public class ConceptController {
     @PathVariable(value = "code") String code,
     @RequestParam("include") Optional<String> include) throws Exception {
 
-    final Terminology term = TerminologyUtils.getTerminology(terminology);
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 

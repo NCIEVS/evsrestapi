@@ -566,11 +566,13 @@ public class SparqlQueryManagerServiceImpl
         .setSubconcepts(getEvsSubconcepts(conceptCode, dbType, outputType));
     evsConcept
         .setSuperconcepts(getEvsSuperconcepts(conceptCode, dbType, outputType));
-    evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
-    evsConcept
-        .setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
-    evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
-    evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+    log.info(
+        "ZZZ2 - currently not reading associations/roles for testing perf");
+    // evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+    // evsConcept
+    // .setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
+    // evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+    // evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
     evsConcept.setMapsTo(EVSUtils.getMapsTo(axioms, outputType));
     evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
     evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
@@ -689,11 +691,11 @@ public class SparqlQueryManagerServiceImpl
     evsConcept
         .setSuperconcepts(getEvsSuperconcepts(conceptCode, dbType, outputType));
     log.info("ZZZ - currently not reading associations/roles for testing perf");
-//    evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
-//    evsConcept
-//        .setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
-//    evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
-    //    evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+    // evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+    // evsConcept
+    // .setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
+    // evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+    // evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
     evsConcept.setMapsTo(EVSUtils.getMapsTo(axioms, outputType));
     evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
     evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));

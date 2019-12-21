@@ -71,7 +71,7 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies", produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws IOException {
 
-    return TerminologyUtils.getTerminologies();
+    return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
 
   }
 
@@ -102,7 +102,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    final Terminology term = TerminologyUtils.getTerminology(terminology);
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -138,7 +139,8 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term = TerminologyUtils.getTerminology(terminology);
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -190,7 +192,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    final Terminology term = TerminologyUtils.getTerminology(terminology);
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -226,7 +229,8 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term = TerminologyUtils.getTerminology(terminology);
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -278,7 +282,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    final Terminology term = TerminologyUtils.getTerminology(terminology);
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -314,7 +319,8 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term = TerminologyUtils.getTerminology(terminology);
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 

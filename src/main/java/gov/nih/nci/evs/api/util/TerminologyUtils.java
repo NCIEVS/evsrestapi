@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,9 +23,6 @@ public final class TerminologyUtils {
   private static final Logger logger =
       LoggerFactory.getLogger(TerminologyUtils.class);
 
-  @Autowired
-  static SparqlQueryManagerService sparqlQueryManagerService;
-
   /**
    * Instantiates an empty {@link TerminologyUtils}.
    */
@@ -37,10 +33,13 @@ public final class TerminologyUtils {
   /**
    * Returns the terminologies.
    *
+   * @param sparqlQueryManagerService the sparql query manager service
    * @return the terminologies
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public static List<Terminology> getTerminologies() throws IOException {
+  public static List<Terminology> getTerminologies(
+    final SparqlQueryManagerService sparqlQueryManagerService)
+    throws IOException {
     // TODO: Next step for this is to use approaches in MetadataUtils
     // to discover the ontologies loaded into stardog (via sparql).
     final Terminology monthlyNcit =
@@ -69,13 +68,15 @@ public final class TerminologyUtils {
   /**
    * Returns the terminology.
    *
+   * @param sparqlQueryManagerService the sparql query manager service
    * @param terminology the terminology
    * @return the terminology
    * @throws Exception the exception
    */
-  public static Terminology getTerminology(final String terminology)
-    throws Exception {
-    for (final Terminology t : getTerminologies()) {
+  public static Terminology getTerminology(
+    final SparqlQueryManagerService sparqlQueryManagerService,
+    final String terminology) throws Exception {
+    for (final Terminology t : getTerminologies(sparqlQueryManagerService)) {
       if (t.getTerminology().equals(terminology) && t.getLatest() != null
           && t.getLatest()) {
         return t;

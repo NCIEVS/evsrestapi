@@ -25,7 +25,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -115,4 +114,32 @@ public class ConceptControllerTests {
 
   }
 
+
+  /**
+   * Test get concepts with list.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptsWithList() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl
+        + "/ncit?list=C3224,XYZ,C131506&include=summary";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Concept> list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.get(0).getSynonyms()).isNotEmpty();
+    assertThat(list.get(0).getDefinitions()).isNotEmpty();
+
+  }
 }
