@@ -24,9 +24,9 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.IncludeFlagUtils;
 import gov.nih.nci.evs.api.util.ModelUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -71,50 +71,8 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies", produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws IOException {
 
-    // TODO: Next step for this is to use approaches in MetadataUtils
-    // to discover the ontologies loaded into stardog (via sparql).
-    final Terminology monthlyNcit =
-        new Terminology(sparqlQueryManagerService.getEvsVersionInfo("monthly"));
-    monthlyNcit.getTags().put("monthly", "true");
+    return TerminologyUtils.getTerminologies();
 
-    final Terminology weeklyNcit =
-        new Terminology(sparqlQueryManagerService.getEvsVersionInfo("weekly"));
-
-    // If these are equal, there's only one version, return it
-    if (monthlyNcit.equals(weeklyNcit)) {
-      // Monthly is the latest published version
-      monthlyNcit.setLatest(true);
-      return EVSUtils.asList(monthlyNcit);
-    }
-    // Otherwise, there are two versions
-    else {
-      // Monthly is the latest published version
-      monthlyNcit.setLatest(true);
-      weeklyNcit.getTags().put("weekly", "true");
-      weeklyNcit.setLatest(false);
-      return EVSUtils.asList(monthlyNcit, weeklyNcit);
-    }
-  }
-
-  /**
-   * Returns the terminology.
-   *
-   * @param terminology the terminology
-   * @return the terminology
-   * @throws Exception the exception
-   */
-  private Terminology getTerminology(final String terminology)
-    throws Exception {
-    for (final Terminology t : getTerminologies()) {
-      if (t.getTerminology().equals(terminology) && t.getLatest() != null
-          && t.getLatest()) {
-        return t;
-      } else if (t.getTerminologyVersion().equals(terminology)) {
-        return t;
-      }
-    }
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-        terminology + " not found");
   }
 
   /**
@@ -144,7 +102,7 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    final Terminology term = getTerminology(terminology);
+    final Terminology term = TerminologyUtils.getTerminology(terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -180,7 +138,7 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term = getTerminology(terminology);
+    final Terminology term = TerminologyUtils.getTerminology(terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -232,7 +190,7 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    final Terminology term = getTerminology(terminology);
+    final Terminology term = TerminologyUtils.getTerminology(terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -268,7 +226,7 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term = getTerminology(terminology);
+    final Terminology term = TerminologyUtils.getTerminology(terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -320,7 +278,7 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    final Terminology term = getTerminology(terminology);
+    final Terminology term = TerminologyUtils.getTerminology(terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
@@ -356,7 +314,7 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term = getTerminology(terminology);
+    final Terminology term = TerminologyUtils.getTerminology(terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
