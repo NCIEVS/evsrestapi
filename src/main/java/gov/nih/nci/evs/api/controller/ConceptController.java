@@ -469,16 +469,8 @@ public class ConceptController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "No roots for found for terminology = " + terminology);
     }
-    final List<Concept> concepts = new ArrayList<>();
-    for (final HierarchyNode node : list) {
-      final Concept concept =
-          include.orElse("minimal").equals("minimal") ? new Concept(node)
-              : ConceptUtils.applyInclude(sparqlQueryManagerService
-                  .getEvsConceptByCode(node.getCode(), dbType),
-                  include.orElse("minimal"));
-      concepts.add(concept);
-    }
-    return concepts;
+    return ConceptUtils.convertConceptsFromHierarchyWithInclude(
+        sparqlQueryManagerService, include.orElse("minimal"), dbType, list);
   }
 
   /**
@@ -517,9 +509,10 @@ public class ConceptController {
           "Code not found = " + code);
     }
     final Paths paths = sparqlQueryManagerService.getPathToRoot(code, dbType);
-    // TODO: handle "include" flag -> means re-reading all the concepts like the
-    // prior call
-    return ConceptUtils.convertPaths(paths, true);
+
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService,
+        include.orElse("minimal"), dbType, paths, true);
+
   }
 
   /**
@@ -558,8 +551,52 @@ public class ConceptController {
           "Code not found = " + code);
     }
     final Paths paths = sparqlQueryManagerService.getPathToRoot(code, dbType);
-    // TODO: handle "include" flag -> means re-reading all the concepts like the
-    // prior call
-    return ConceptUtils.convertPaths(paths, false);
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService,
+        include.orElse("minimal"), dbType, paths, false);
+
+  }
+
+  /**
+   * Returns the paths to ancestor.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param ancestorCode the ancestor code
+   * @param include the include
+   * @return the paths to ancestor
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get paths from the specified code to the specified ancestor code", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}", produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+  })
+  public @ResponseBody List<List<Concept>> getPathsToAncestor(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code,
+    @PathVariable(value = "ancestorCode") String ancestorCode,
+    @RequestParam("include") Optional<String> include) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Code not found = " + code);
+    }
+    final Paths paths =
+        sparqlQueryManagerService.getPathToParent(code, ancestorCode, dbType);
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService,
+        include.orElse("minimal"), dbType, paths, false);
+
   }
 }
