@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -90,6 +91,7 @@ public final class ConceptUtils {
       return null;
     }
     final Concept concept = new Concept();
+    final Set<String> contributingSources = new HashSet<>();
 
     // Apply minimal always
     concept.setCode(evsConcept.getCode());
@@ -125,6 +127,9 @@ public final class ConceptUtils {
         // TODO: NCI-specific, instead get this from somewhere
         sy.setType("FULL_SYN");
         concept.getSynonyms().add(sy);
+        if (sy.getSource() != null) {
+          contributingSources.add(sy.getSource());
+        }
       }
     }
 
@@ -136,6 +141,9 @@ public final class ConceptUtils {
         // TODO: NCI-specific, instead get this from somewhere
         def.setType("DEFINITION");
         concept.getDefinitions().add(def);
+        if (def.getSource() != null) {
+          contributingSources.add(def.getSource());
+        }
       }
     }
     if (evsConcept.getAltDefinitions() != null) {
@@ -152,7 +160,8 @@ public final class ConceptUtils {
     // Add properties
     if (evsConcept.getProperties() != null) {
       for (final String key : evsConcept.getProperties().keySet()) {
-        if (!key.endsWith("_Name")) {
+        // TODO: very ncit specific...deal with that
+        if (!key.endsWith("_Name") && !key.equals("Contributing_Source")) {
           for (final String value : evsConcept.getProperties().get(key)) {
             final Property property = new Property();
             property.setType(key);
@@ -219,6 +228,8 @@ public final class ConceptUtils {
       }
     }
 
+    concept.setContributingSources(contributingSources.stream()
+        .sorted((a, b) -> a.compareTo(b)).collect(Collectors.toList()));
     return concept;
   }
 

@@ -62,6 +62,9 @@ public class Concept extends BaseModel {
   /** The properties. */
   private List<Property> properties;
 
+  /** The contributing sources. */
+  private List<String> contributingSources;
+
   /** The children. */
   private List<Concept> children;
 
@@ -153,6 +156,7 @@ public class Concept extends BaseModel {
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
+    contributingSources = new ArrayList<>(other.getContributingSources());
     children = new ArrayList<>(other.getChildren());
     parents = new ArrayList<>(other.getParents());
     associations = new ArrayList<>(other.getAssociations());
@@ -314,6 +318,27 @@ public class Concept extends BaseModel {
    */
   public void setProperties(final List<Property> properties) {
     this.properties = properties;
+  }
+
+  /**
+   * Returns the contributing sources.
+   *
+   * @return the contributing sources
+   */
+  public List<String> getContributingSources() {
+    if (contributingSources == null) {
+      contributingSources = new ArrayList<>();
+    }
+    return contributingSources;
+  }
+
+  /**
+   * Sets the contributing sources.
+   *
+   * @param contributingSources the contributing sources
+   */
+  public void setContributingSources(final List<String> contributingSources) {
+    this.contributingSources = contributingSources;
   }
 
   /**
