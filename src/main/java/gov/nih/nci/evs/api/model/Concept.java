@@ -77,6 +77,9 @@ public class Concept extends BaseModel {
   /** The roles. */
   private List<Role> roles;
 
+  /** The disjoint with. */
+  private List<DisjointWith> disjointWith;
+
   /** The inverse roles. */
   private List<Role> inverseRoles;
 
@@ -156,6 +159,7 @@ public class Concept extends BaseModel {
     inverseAssociations = new ArrayList<>(other.getInverseAssociations());
     roles = new ArrayList<>(other.getRoles());
     inverseRoles = new ArrayList<>(other.getInverseRoles());
+    disjointWith = new ArrayList<>(other.getDisjointWith());
     maps = new ArrayList<>(other.getMaps());
   }
 
@@ -437,6 +441,27 @@ public class Concept extends BaseModel {
    */
   public void setInverseRoles(final List<Role> inverseRoles) {
     this.inverseRoles = inverseRoles;
+  }
+
+  /**
+   * Returns the disjoint with.
+   *
+   * @return the disjoint with
+   */
+  public List<DisjointWith> getDisjointWith() {
+    if (disjointWith == null) {
+      disjointWith = new ArrayList<>();
+    }
+    return disjointWith;
+  }
+
+  /**
+   * Sets the disjoint with.
+   *
+   * @param disjointWith the disjoint with
+   */
+  public void setDisjointWith(final List<DisjointWith> disjointWith) {
+    this.disjointWith = disjointWith;
   }
 
   /**

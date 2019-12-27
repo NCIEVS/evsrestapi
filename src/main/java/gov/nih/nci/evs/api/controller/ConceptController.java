@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -86,12 +87,12 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     final List<Concept> concepts = new ArrayList<>();
     for (final String code : list.split(",")) {
-      final Concept concept = ConceptUtils.applyInclude(
-          sparqlQueryManagerService.getEvsConceptByCode(code, dbType),
-          include.orElse("summary"));
+      final Concept concept = ConceptUtils.convertConcept(
+          sparqlQueryManagerService.getEvsConceptByCode(code, dbType, ip));
       if (concept != null && concept.getCode() != null) {
         concepts.add(concept);
       }
@@ -129,10 +130,11 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    final Concept concept = ConceptUtils.applyInclude(
-        sparqlQueryManagerService.getEvsConceptByCode(code, dbType),
-        include.orElse("summary"));
+    final Concept concept = ConceptUtils.convertConcept(
+        sparqlQueryManagerService.getEvsConceptByCode(code, dbType, ip));
+
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           code + " not found");
@@ -462,6 +464,7 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<HierarchyNode> list =
         sparqlQueryManagerService.getRootNodes(dbType);
@@ -470,7 +473,7 @@ public class ConceptController {
           "No roots for found for terminology = " + terminology);
     }
     return ConceptUtils.convertConceptsFromHierarchyWithInclude(
-        sparqlQueryManagerService, include.orElse("minimal"), dbType, list);
+        sparqlQueryManagerService, ip, dbType, list);
   }
 
   /**
@@ -503,6 +506,7 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -510,8 +514,8 @@ public class ConceptController {
     }
     final Paths paths = sparqlQueryManagerService.getPathToRoot(code, dbType);
 
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService,
-        include.orElse("minimal"), dbType, paths, true);
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip,
+        dbType, paths, true);
 
   }
 
@@ -545,14 +549,15 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Code not found = " + code);
     }
     final Paths paths = sparqlQueryManagerService.getPathToRoot(code, dbType);
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService,
-        include.orElse("minimal"), dbType, paths, false);
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip,
+        dbType, paths, false);
 
   }
 
@@ -588,6 +593,7 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -595,8 +601,8 @@ public class ConceptController {
     }
     final Paths paths =
         sparqlQueryManagerService.getPathToParent(code, ancestorCode, dbType);
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService,
-        include.orElse("minimal"), dbType, paths, false);
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip,
+        dbType, paths, false);
 
   }
 }

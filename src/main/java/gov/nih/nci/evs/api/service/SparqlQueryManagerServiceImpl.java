@@ -6,14 +6,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -29,15 +25,13 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.evs.ConceptNode;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsAxiom;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByCode;
 import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsDefinition;
-import gov.nih.nci.evs.api.model.evs.EvsDefinitionByCode;
-import gov.nih.nci.evs.api.model.evs.EvsDefinitionByLabel;
 import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
@@ -389,6 +383,14 @@ public class SparqlQueryManagerServiceImpl
     return evsConcept;
   }
 
+  public EvsConcept getEvsConceptByCode(String conceptCode, String dbType,
+    IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    EvsConceptByCode evsConcept = new EvsConceptByCode();
+    getConcept(evsConcept, conceptCode, dbType, ip);
+    return evsConcept;
+  }
+
   public EvsConcept getEvsConceptByLabelShort(String conceptCode, String dbType)
     throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByLabel evsConcept = new EvsConceptByLabel();
@@ -580,6 +582,90 @@ public class SparqlQueryManagerServiceImpl
     evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
   }
 
+  public void getConcept(EvsConcept evsConcept, String conceptCode,
+    String dbType, IncludeParam ip) throws IOException {
+    evsConcept.setCode(conceptCode);
+
+    List<EvsProperty> properties = getEvsProperties(conceptCode, dbType);
+
+    // minimal, always do these
+    evsConcept.setLabel(getEvsConceptLabel(conceptCode, dbType));
+    evsConcept.setCode(EVSUtils.getConceptCode(properties));
+
+    // This becomes a synonym
+    if (ip.isSynonyms()) {
+      evsConcept.setPreferredName(EVSUtils.getPreferredName(properties));
+    }
+
+    // Properties ending in "Name" are rendered as synonyms here.
+    if (ip.isSynonyms() || ip.isProperties()) {
+      Map<String, List<String>> allProperties = evsConcept.getProperties();
+      List<EvsProperty> additionalProperties =
+          EVSUtils.getAdditionalPropertiesByCode(properties);
+      for (EvsProperty property : additionalProperties) {
+        String code = property.getCode();
+        String value = property.getValue();
+        if (allProperties.containsKey(code)) {
+          allProperties.get(code).add(value);
+        } else {
+          allProperties.put(code, new ArrayList<String>());
+          allProperties.get(code).add(value);
+        }
+      }
+    }
+    final String outputType = "byCode";
+
+    if (ip.hasAnyTrue()) {
+      final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
+      if (ip.isSynonyms()) {
+        evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
+      }
+
+      if (ip.isDefinitions()) {
+        evsConcept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
+        evsConcept
+            .setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
+      }
+      if (ip.isChildren()) {
+        evsConcept
+            .setSubconcepts(getEvsSubconcepts(conceptCode, dbType, outputType));
+      }
+
+      if (ip.isParents()) {
+        evsConcept.setSuperconcepts(
+            getEvsSuperconcepts(conceptCode, dbType, outputType));
+      }
+
+      if (ip.isAssociations()) {
+        evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+      }
+
+      if (ip.isInverseAssociations()) {
+        evsConcept.setInverseAssociations(
+            getEvsInverseAssociations(conceptCode, dbType));
+      }
+
+      if (ip.isRoles()) {
+        evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+      }
+
+      if (ip.isInverseRoles()) {
+        evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+      }
+
+      if (ip.isMaps()) {
+        evsConcept.setMapsTo(EVSUtils.getMapsTo(axioms, outputType));
+      }
+
+      // evsConcept
+      // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
+
+      if (ip.isDisjoint()) {
+        evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
+      }
+    }
+  }
+
   public void getConceptShort(EvsConcept evsConcept, String conceptCode,
     String dbType, String outputType) throws IOException {
     evsConcept.setCode(conceptCode);
@@ -649,6 +735,14 @@ public class SparqlQueryManagerServiceImpl
     return evsConcept;
   }
 
+  public EvsConcept getEvsPropertyByCode(String conceptCode, String dbType,
+    IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    EvsConceptByCode evsConcept = new EvsConceptByCode();
+    getProperty(evsConcept, conceptCode, dbType, ip);
+    return evsConcept;
+  }
+
   public void getProperty(EvsConcept evsConcept, String conceptCode,
     String dbType, String outputType) throws IOException {
     evsConcept.setCode(conceptCode);
@@ -707,6 +801,93 @@ public class SparqlQueryManagerServiceImpl
     evsConcept.setMapsTo(EVSUtils.getMapsTo(axioms, outputType));
     evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
     evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
+  }
+
+  public void getProperty(EvsConcept evsConcept, String conceptCode,
+    String dbType, IncludeParam ip) throws IOException {
+    evsConcept.setCode(conceptCode);
+
+    List<EvsProperty> properties =
+        getEvsPropertiesNoRestrictions(conceptCode, dbType);
+
+    // minimal, always do these
+    evsConcept.setLabel(getEvsConceptLabel(conceptCode, dbType));
+    evsConcept.setCode(EVSUtils.getConceptCode(properties));
+
+    // This becomes a synonym
+    if (ip.isSynonyms()) {
+      evsConcept.setPreferredName(EVSUtils.getPreferredName(properties));
+    }
+
+    // Properties ending in "Name" are rendered as synonyms here.
+    if (ip.isSynonyms() || ip.isProperties()) {
+
+      Map<String, List<String>> allProperties = evsConcept.getProperties();
+      List<EvsProperty> additionalProperties =
+          EVSUtils.getAdditionalPropertiesByCode(properties);
+
+      for (EvsProperty property : additionalProperties) {
+        String code = property.getCode();
+        String value = property.getValue();
+        if (allProperties.containsKey(code)) {
+          allProperties.get(code).add(value);
+        } else {
+          allProperties.put(code, new ArrayList<String>());
+          allProperties.get(code).add(value);
+        }
+      }
+    }
+    final String outputType = "byCode";
+
+    if (ip.hasAnyTrue()) {
+      List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
+
+      if (ip.isSynonyms()) {
+        evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
+      }
+
+      if (ip.isDefinitions()) {
+        evsConcept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
+        evsConcept
+            .setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
+      }
+
+      if (ip.isChildren()) {
+        evsConcept
+            .setSubconcepts(getEvsSubconcepts(conceptCode, dbType, outputType));
+      }
+
+      if (ip.isParents()) {
+        evsConcept.setSuperconcepts(
+            getEvsSuperconcepts(conceptCode, dbType, outputType));
+      }
+
+      if (ip.isAssociations()) {
+        evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+      }
+
+      if (ip.isInverseAssociations()) {
+        evsConcept.setInverseAssociations(
+            getEvsInverseAssociations(conceptCode, dbType));
+      }
+
+      if (ip.isRoles()) {
+        evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+      }
+
+      if (ip.isInverseRoles()) {
+        evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+      }
+
+      if (ip.isMaps()) {
+        evsConcept.setMapsTo(EVSUtils.getMapsTo(axioms, outputType));
+      }
+      // evsConcept
+      // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
+      if (ip.isDisjoint()) {
+        evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
+      }
+    }
   }
 
   public List<EvsProperty> getEvsProperties(String conceptCode, String dbType)
@@ -1237,6 +1418,34 @@ public class SparqlQueryManagerServiceImpl
     return evsConcepts;
   }
 
+  public List<EvsConcept> getAllProperties(String dbType, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix();
+    String namedGraph = getNamedGraph(dbType);
+    String queryURL = getQueryURL(dbType);
+    String query = queryBuilderService.constructAllPropertiesQuery(namedGraph);
+    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ArrayList<String> evsProperties = new ArrayList<String>();
+    ArrayList<EvsConcept> evsConcepts = new ArrayList<EvsConcept>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      evsProperties.add(b.getPropertyCode().getValue());
+    }
+
+    for (String code : evsProperties) {
+      EvsConcept concept = null;
+      concept = getEvsPropertyByCode(code, dbType, ip);
+      evsConcepts.add(concept);
+    }
+
+    return evsConcepts;
+  }
+
   public List<EvsProperty> getAllPropertiesList(String dbType, String fmt)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
@@ -1354,6 +1563,36 @@ public class SparqlQueryManagerServiceImpl
     return evsConcepts;
   }
 
+  public List<EvsConcept> getAllAssociations(String dbType, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix();
+    String namedGraph = getNamedGraph(dbType);
+    String queryURL = getQueryURL(dbType);
+    String query =
+        queryBuilderService.constructAllAssociationsQuery(namedGraph);
+    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ArrayList<String> evsProperties = new ArrayList<String>();
+    ArrayList<EvsConcept> evsConcepts = new ArrayList<EvsConcept>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      evsProperties.add(b.getPropertyCode().getValue());
+    }
+
+    for (String code : evsProperties) {
+      EvsConcept concept = null;
+      concept = getEvsPropertyByCode(code, dbType, ip);
+      evsConcepts.add(concept);
+
+    }
+
+    return evsConcepts;
+  }
+
   public List<String> getAllRolesForDocumentation(String dbType)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
@@ -1405,6 +1644,34 @@ public class SparqlQueryManagerServiceImpl
       }
       evsConcepts.add(concept);
 
+    }
+
+    return evsConcepts;
+  }
+
+  public List<EvsConcept> getAllRoles(String dbType, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix();
+    String namedGraph = getNamedGraph(dbType);
+    String queryURL = getQueryURL(dbType);
+    String query = queryBuilderService.constructAllRolesQuery(namedGraph);
+    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ArrayList<String> evsProperties = new ArrayList<String>();
+    ArrayList<EvsConcept> evsConcepts = new ArrayList<EvsConcept>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      evsProperties.add(b.getPropertyCode().getValue());
+    }
+
+    for (String code : evsProperties) {
+      EvsConcept concept = null;
+      concept = getEvsPropertyByCode(code, dbType, ip);
+      evsConcepts.add(concept);
     }
 
     return evsConcepts;
@@ -1713,6 +1980,5 @@ public class SparqlQueryManagerServiceImpl
 
     return sources;
   }
-
 
 }

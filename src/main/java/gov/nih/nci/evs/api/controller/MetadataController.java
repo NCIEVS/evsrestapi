@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetricDB;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
@@ -106,11 +107,12 @@ public class MetadataController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> associations =
-        sparqlQueryManagerService.getAllAssociations(dbType, "byLabel");
-    return ConceptUtils.applyIncludeAndList(associations,
-        include.orElse("minimal"), list.orElse(null));
+        sparqlQueryManagerService.getAllAssociations(dbType, "byCode");
+    return ConceptUtils.applyIncludeAndList(associations, ip,
+        list.orElse(null));
   }
 
   /**
@@ -143,11 +145,11 @@ public class MetadataController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = ConceptUtils.applyInclude(
-          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType),
-          include.orElse("summary"));
+      final Concept concept = ConceptUtils.convertConcept(
+          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             code + " not found");
@@ -196,11 +198,11 @@ public class MetadataController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> roles =
-        sparqlQueryManagerService.getAllRoles(dbType, "byLabel");
-    return ConceptUtils.applyIncludeAndList(roles,
-        include.orElse("minimal"), list.orElse(null));
+        sparqlQueryManagerService.getAllRoles(dbType, "byCode");
+    return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
   /**
@@ -233,11 +235,11 @@ public class MetadataController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = ConceptUtils.applyInclude(
-          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType),
-          include.orElse("summary"));
+      final Concept concept = ConceptUtils.convertConcept(
+          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             code + " not found");
@@ -286,11 +288,11 @@ public class MetadataController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> properties =
-        sparqlQueryManagerService.getAllProperties(dbType, "byLabel");
-    return ConceptUtils.applyIncludeAndList(properties,
-        include.orElse("minimal"), list.orElse(null));
+        sparqlQueryManagerService.getAllProperties(dbType, "byCode");
+    return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
   }
 
   /**
@@ -323,11 +325,11 @@ public class MetadataController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = ConceptUtils.applyInclude(
-          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType),
-          include.orElse("summary"));
+      final Concept concept = ConceptUtils.convertConcept(
+          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             code + " not found");

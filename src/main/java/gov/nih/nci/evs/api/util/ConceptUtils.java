@@ -15,7 +15,10 @@ import org.slf4j.LoggerFactory;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.DisjointWith;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.evs.ConceptNode;
@@ -51,14 +54,14 @@ public final class ConceptUtils {
    * Apply include.
    *
    * @param evsConcepts the evs concepts
-   * @param include the include
+   * @param ip the ip
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
   public static List<Concept> applyIncludeAndList(
-    final List<EvsConcept> evsConcepts, final String include, final String list)
-    throws Exception {
+    final List<EvsConcept> evsConcepts, final IncludeParam ip,
+    final String list) throws Exception {
     final Set<String> codes = (list == null || list.isEmpty()) ? null
         : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
@@ -66,7 +69,7 @@ public final class ConceptUtils {
         || codes.contains(ec.getCode()) || codes.contains(ec.getLabel()))
         .map(ec -> {
           try {
-            return ConceptUtils.applyInclude(ec, include);
+            return ConceptUtils.convertConcept(ec);
           } catch (Exception e) {
             logger.error("Unexpected failure converting to concept", e);
             throw new RuntimeException(e);
@@ -78,81 +81,140 @@ public final class ConceptUtils {
    * Apply include.
    *
    * @param evsConcept the evs concept
-   * @param include the include
    * @return the concept
    * @throws Exception the exception
    */
-  public static Concept applyInclude(final EvsConcept evsConcept,
-    final String include) throws Exception {
+  public static Concept convertConcept(final EvsConcept evsConcept)
+    throws Exception {
     if (evsConcept == null) {
       return null;
     }
     final Concept concept = new Concept();
-    final Set<String> includes = (include == null || include.isEmpty()) ? null
-        : Arrays.stream(include.split(",")).collect(Collectors.toSet());
 
-    // Apply minimal
+    // Apply minimal always
     concept.setCode(evsConcept.getCode());
     concept.setName(evsConcept.getLabel());
 
-    // If we're not in minimal mode, handle the other cases
-    if (!"minimal".equals(include)) {
+    // Handle preferred name
+    if (evsConcept.getPreferredName() != null) {
+      final Synonym pn = new Synonym();
+      // TODO: NCI-specific, instead get this from somewhere
+      pn.setType("Preferred_Name");
+      pn.setName(evsConcept.getPreferredName());
+      concept.getSynonyms().add(pn);
+    }
 
-      // TODO: finish implementing include
-
-      // Add synonyms
-      if (includes == null || includes.contains("synonyms")
-          || includes.contains("summary") || includes.contains("full")) {
-
-        // Handle preferred name
-        final Synonym pn = new Synonym();
-        // TODO: NCI-specific, instead get this from somewhere
-        pn.setType("Preferred_Name");
-        pn.setName(evsConcept.getPreferredName());
-        concept.getSynonyms().add(pn);
-
-        // "Name" based properties
-        for (final String key : evsConcept.getProperties().keySet()) {
-          if (key.endsWith("_Name")) {
-            for (final String value : evsConcept.getProperties().get(key)) {
-              final Synonym name = new Synonym();
-              name.setType(key);
-              name.setName(value);
-            }
+    // "Name" based properties
+    if (evsConcept.getProperties() != null) {
+      for (final String key : evsConcept.getProperties().keySet()) {
+        if (key.endsWith("_Name")) {
+          for (final String value : evsConcept.getProperties().get(key)) {
+            final Synonym name = new Synonym();
+            name.setType(key);
+            name.setName(value);
           }
         }
+      }
+    }
 
-        for (final EvsSynonym evsSy : evsConcept.getSynonyms()) {
-          final Synonym sy = new Synonym(evsSy);
-          // TODO: NCI-specific, instead get this from somewhere
-          sy.setType("FULL_SYN");
-          concept.getSynonyms().add(sy);
-        }
+    // Synonyms
+    if (evsConcept.getSynonyms() != null) {
+      for (final EvsSynonym evsSy : evsConcept.getSynonyms()) {
+        final Synonym sy = new Synonym(evsSy);
+        // TODO: NCI-specific, instead get this from somewhere
+        sy.setType("FULL_SYN");
+        concept.getSynonyms().add(sy);
+      }
+    }
 
+    // Add definitions
+    if (evsConcept.getDefinitions() != null) {
+
+      for (final EvsDefinition evsDef : evsConcept.getDefinitions()) {
+        final Definition def = new Definition(evsDef);
+        // TODO: NCI-specific, instead get this from somewhere
+        def.setType("DEFINITION");
+        concept.getDefinitions().add(def);
+      }
+    }
+    if (evsConcept.getAltDefinitions() != null) {
+
+      for (final EvsDefinition evsDef : evsConcept.getAltDefinitions()) {
+        final Definition def = new Definition(evsDef);
+        // TODO: NCI-specific, instead get this from somewhere
+        def.setType("ALT_DEFINITION");
+        concept.getDefinitions().add(def);
       }
 
-      // Add definitions
-      if (includes == null || includes.contains("definitions")
-          || includes.contains("summary") || includes.contains("full")) {
+    }
 
-        for (final EvsDefinition evsDef : evsConcept.getDefinitions()) {
-          final Definition def = new Definition(evsDef);
-          // TODO: NCI-specific, instead get this from somewhere
-          def.setType("DEFINITION");
-          concept.getDefinitions().add(def);
+    // Add properties
+    if (evsConcept.getProperties() != null) {
+      for (final String key : evsConcept.getProperties().keySet()) {
+        if (!key.endsWith("_Name")) {
+          for (final String value : evsConcept.getProperties().get(key)) {
+            final Property property = new Property();
+            property.setType(key);
+            property.setValue(value);
+          }
         }
-
-        for (final EvsDefinition evsDef : evsConcept.getAltDefinitions()) {
-          final Definition def = new Definition(evsDef);
-          // TODO: NCI-specific, instead get this from somewhere
-          def.setType("ALT_DEFINITION");
-          concept.getDefinitions().add(def);
-        }
-
       }
+    }
 
-      // TODO: continue with other parts
+    // Add children
+    if (evsConcept.getSubconcepts() != null) {
+      for (final EvsRelatedConcept ec : evsConcept.getSubconcepts()) {
+        concept.getChildren().add(new Concept(ec));
+      }
+    }
 
+    // Add parents
+    if (evsConcept.getSuperconcepts() != null) {
+      for (final EvsRelatedConcept ec : evsConcept.getSuperconcepts()) {
+        concept.getParents().add(new Concept(ec));
+      }
+    }
+
+    // Add associations
+    if (evsConcept.getAssociations() != null) {
+      for (final EvsAssociation ea : evsConcept.getAssociations()) {
+        concept.getAssociations().add(new Association(ea));
+      }
+    }
+
+    // Add inverse associations
+    if (evsConcept.getInverseAssociations() != null) {
+      for (final EvsAssociation ea : evsConcept.getInverseAssociations()) {
+        concept.getInverseAssociations().add(new Association(ea));
+      }
+    }
+
+    // Add roles
+    if (evsConcept.getRoles() != null) {
+      for (final EvsAssociation ea : evsConcept.getRoles()) {
+        concept.getRoles().add(new Role(ea));
+      }
+    }
+
+    // Add inverse roles
+    if (evsConcept.getInverseRoles() != null) {
+      for (final EvsAssociation ea : evsConcept.getInverseRoles()) {
+        concept.getInverseRoles().add(new Role(ea));
+      }
+    }
+
+    // Add maps
+    if (evsConcept.getMapsTo() != null) {
+      for (final EvsMapsTo em : evsConcept.getMapsTo()) {
+        concept.getMaps().add(new Map(em));
+      }
+    }
+
+    // Add disjoint
+    if (evsConcept.getDisjointWith() != null) {
+      for (final EvsAssociation ea : evsConcept.getDisjointWith()) {
+        concept.getDisjointWith().add(new DisjointWith(ea));
+      }
     }
 
     return concept;
@@ -218,23 +280,23 @@ public final class ConceptUtils {
    * Convert concepts fy with include.
    *
    * @param service the service
-   * @param include the include
+   * @param ip the ip
    * @param dbType the db type
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
   public static List<Concept> convertConceptsWithInclude(
-    final SparqlQueryManagerService service, final String include,
+    final SparqlQueryManagerService service, final IncludeParam ip,
     final String dbType, final List<EvsRelatedConcept> list) throws Exception {
 
     final List<Concept> concepts = convertConcepts(list);
-    if (include != null && !include.equals("minimal")) {
+    if (ip.hasAnyTrue()) {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(ConceptUtils.applyInclude(
-            service.getEvsConceptByCode(concept.getCode(), dbType), include));
+        concept.populateFrom(ConceptUtils.convertConcept(
+            service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -261,23 +323,23 @@ public final class ConceptUtils {
    * Convert concepts from hierarchy with include.
    *
    * @param service the service
-   * @param include the include
+   * @param ip the ip
    * @param dbType the db type
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
   public static List<Concept> convertConceptsFromHierarchyWithInclude(
-    final SparqlQueryManagerService service, final String include,
+    final SparqlQueryManagerService service, final IncludeParam ip,
     final String dbType, final List<HierarchyNode> list) throws Exception {
 
     final List<Concept> concepts = convertConceptsFromHierarchy(list);
-    if (include != null && !include.equals("minimal")) {
+    if (ip.hasAnyTrue()) {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(ConceptUtils.applyInclude(
-            service.getEvsConceptByCode(concept.getCode(), dbType), include));
+        concept.populateFrom(ConceptUtils.convertConcept(
+            service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -321,7 +383,7 @@ public final class ConceptUtils {
    * Convert paths with include.
    *
    * @param service the service
-   * @param include the include
+   * @param ip the ip
    * @param dbType the db type
    * @param paths the paths
    * @param reverse the reverse
@@ -329,12 +391,12 @@ public final class ConceptUtils {
    * @throws Exception the exception
    */
   public static List<List<Concept>> convertPathsWithInclude(
-    final SparqlQueryManagerService service, final String include,
+    final SparqlQueryManagerService service, final IncludeParam ip,
     final String dbType, final Paths paths, final boolean reverse)
     throws Exception {
 
     final List<List<Concept>> list = convertPaths(paths, reverse);
-    if (include != null && !include.equals("minimal")) {
+    if (ip.hasAnyTrue()) {
       final java.util.Map<String, Concept> cache = new HashMap<>();
       for (final List<Concept> concepts : list) {
         for (final Concept concept : concepts) {
@@ -342,9 +404,8 @@ public final class ConceptUtils {
           if (cache.containsKey(concept.getCode())) {
             concept.populateFrom(cache.get(concept.getCode()));
           } else {
-            concept.populateFrom(ConceptUtils.applyInclude(
-                service.getEvsConceptByCode(concept.getCode(), dbType),
-                include));
+            concept.populateFrom(ConceptUtils.convertConcept(
+                service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
             cache.put(concept.getCode(), concept);
           }
           concept.setLevel(level);

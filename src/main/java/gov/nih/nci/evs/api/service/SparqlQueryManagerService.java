@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
@@ -29,6 +30,10 @@ public interface SparqlQueryManagerService {
   public EvsConcept getEvsConceptByCode(String conceptCode, String dbType)
     throws JsonMappingException, JsonParseException, IOException;
 
+  public EvsConcept getEvsConceptByCode(String conceptCode, String dbType,
+    IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException;
+
   public EvsConcept getEvsConceptByLabelShort(String conceptCode, String dbType)
     throws JsonMappingException, JsonParseException, IOException;
 
@@ -39,6 +44,9 @@ public interface SparqlQueryManagerService {
     String format) throws JsonMappingException, JsonParseException, IOException;
 
   public List<EvsConcept> getAllProperties(String dbType, String format)
+    throws JsonParseException, JsonMappingException, IOException;
+
+  public List<EvsConcept> getAllProperties(String dbType, IncludeParam ip)
     throws JsonParseException, JsonMappingException, IOException;
 
   public List<EvsProperty> getAllPropertiesList(String dbType, String format)
@@ -53,10 +61,16 @@ public interface SparqlQueryManagerService {
   public List<EvsConcept> getAllAssociations(String dbType, String format)
     throws JsonParseException, JsonMappingException, IOException;
 
+  public List<EvsConcept> getAllAssociations(String dbType, IncludeParam ip)
+    throws JsonParseException, JsonMappingException, IOException;
+
   public List<String> getAllAssociationsForDocumentation(String dbType)
     throws JsonParseException, JsonMappingException, IOException;
 
   public List<EvsConcept> getAllRoles(String dbType, String format)
+    throws JsonParseException, JsonMappingException, IOException;
+
+  public List<EvsConcept> getAllRoles(String dbType, IncludeParam ip)
     throws JsonParseException, JsonMappingException, IOException;
 
   public List<String> getAllRolesForDocumentation(String dbType)
@@ -66,6 +80,10 @@ public interface SparqlQueryManagerService {
     throws JsonMappingException, JsonParseException, IOException;
 
   public EvsConcept getEvsPropertyByCode(String conceptCode, String dbType)
+    throws JsonMappingException, JsonParseException, IOException;
+
+  public EvsConcept getEvsPropertyByCode(String conceptCode, String dbType,
+    IncludeParam param)
     throws JsonMappingException, JsonParseException, IOException;
 
   public List<EvsAssociation> getEvsAssociations(String conceptCode,
