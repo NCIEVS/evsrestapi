@@ -1,6 +1,9 @@
 
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 /**
  * Represents choices about how much data to include when reading content.
  */
@@ -37,7 +40,7 @@ public class IncludeParam extends BaseModel {
   private boolean maps;
 
   /** The disjoint classes. */
-  private boolean disjoint;
+  private boolean disjointWith;
 
   /**
    * Instantiates an empty {@link IncludeParam}.
@@ -55,7 +58,8 @@ public class IncludeParam extends BaseModel {
     if (include == null) {
       populateMinimal();
     } else {
-      for (final String part : include.split(",")) {
+      for (final String partPreTrim : include.split(",")) {
+        final String part = partPreTrim.trim();
         if (part.equals("minimal")) {
           populateMinimal();
         } else if (part.equals("summary")) {
@@ -82,8 +86,11 @@ public class IncludeParam extends BaseModel {
           inverseRoles = true;
         } else if (part.equals("maps")) {
           maps = true;
-        } else if (part.equals("disjoint")) {
-          disjoint = true;
+        } else if (part.equals("disjointWith")) {
+          disjointWith = true;
+        } else {
+          throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+              "Invalid includes value = " + part + ", " + include);
         }
       }
     }
@@ -114,7 +121,7 @@ public class IncludeParam extends BaseModel {
     roles = other.isRoles();
     inverseRoles = other.isInverseRoles();
     maps = other.isMaps();
-    disjoint = other.isDisjoint();
+    disjointWith = other.isDisjointWith();
 
   }
 
@@ -149,7 +156,7 @@ public class IncludeParam extends BaseModel {
     roles = true;
     inverseRoles = true;
     maps = true;
-    disjoint = true;
+    disjointWith = true;
   }
 
   /**
@@ -160,7 +167,7 @@ public class IncludeParam extends BaseModel {
   public boolean hasAnyTrue() {
     return synonyms || definitions || properties || children || parents
         || associations || inverseAssociations || roles || inverseRoles || maps
-        || disjoint;
+        || disjointWith;
   }
 
   /**
@@ -348,8 +355,8 @@ public class IncludeParam extends BaseModel {
    *
    * @return <code>true</code> if so, <code>false</code> otherwise
    */
-  public boolean isDisjoint() {
-    return disjoint;
+  public boolean isDisjointWith() {
+    return disjointWith;
   }
 
   /**
@@ -357,8 +364,8 @@ public class IncludeParam extends BaseModel {
    *
    * @param disjoint the disjoint
    */
-  public void setDisjoint(boolean disjoint) {
-    this.disjoint = disjoint;
+  public void setDisjointWith(boolean disjoint) {
+    this.disjointWith = disjoint;
   }
 
 }

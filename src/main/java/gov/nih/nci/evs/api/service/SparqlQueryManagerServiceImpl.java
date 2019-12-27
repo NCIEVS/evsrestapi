@@ -603,17 +603,20 @@ public class SparqlQueryManagerServiceImpl
       List<EvsProperty> additionalProperties =
           EVSUtils.getAdditionalPropertiesByCode(properties);
       for (EvsProperty property : additionalProperties) {
-        String code = property.getCode();
-        String value = property.getValue();
-        if (allProperties.containsKey(code)) {
-          allProperties.get(code).add(value);
-        } else {
-          allProperties.put(code, new ArrayList<String>());
-          allProperties.get(code).add(value);
+        String label = property.getLabel();
+        if ((label.endsWith("_Name") && ip.isSynonyms())
+            || (!label.endsWith("_Name") && ip.isProperties())) {
+          String value = property.getValue();
+          if (allProperties.containsKey(label)) {
+            allProperties.get(label).add(value);
+          } else {
+            allProperties.put(label, new ArrayList<String>());
+            allProperties.get(label).add(value);
+          }
         }
       }
     }
-    final String outputType = "byCode";
+    final String outputType = "byLabel";
 
     if (ip.hasAnyTrue()) {
       final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
@@ -660,7 +663,7 @@ public class SparqlQueryManagerServiceImpl
       // evsConcept
       // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
 
-      if (ip.isDisjoint()) {
+      if (ip.isDisjointWith()) {
         evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
       }
     }
@@ -735,10 +738,10 @@ public class SparqlQueryManagerServiceImpl
     return evsConcept;
   }
 
-  public EvsConcept getEvsPropertyByCode(String conceptCode, String dbType,
+  public EvsConcept getEvsProperty(String conceptCode, String dbType,
     IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
-    EvsConceptByCode evsConcept = new EvsConceptByCode();
+    EvsConceptByLabel evsConcept = new EvsConceptByLabel();
     getProperty(evsConcept, conceptCode, dbType, ip);
     return evsConcept;
   }
@@ -827,17 +830,21 @@ public class SparqlQueryManagerServiceImpl
           EVSUtils.getAdditionalPropertiesByCode(properties);
 
       for (EvsProperty property : additionalProperties) {
-        String code = property.getCode();
-        String value = property.getValue();
-        if (allProperties.containsKey(code)) {
-          allProperties.get(code).add(value);
-        } else {
-          allProperties.put(code, new ArrayList<String>());
-          allProperties.get(code).add(value);
+        String label = property.getLabel();
+        if ((label.endsWith("_Name") && ip.isSynonyms())
+            || (!label.endsWith("_Name") && ip.isProperties())) {
+          String value = property.getValue();
+          if (allProperties.containsKey(label)) {
+            allProperties.get(label).add(value);
+          } else {
+            allProperties.put(label, new ArrayList<String>());
+            allProperties.get(label).add(value);
+          }
         }
       }
+
     }
-    final String outputType = "byCode";
+    final String outputType = "byLabel";
 
     if (ip.hasAnyTrue()) {
       List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
@@ -884,7 +891,7 @@ public class SparqlQueryManagerServiceImpl
       }
       // evsConcept
       // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
-      if (ip.isDisjoint()) {
+      if (ip.isDisjointWith()) {
         evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
       }
     }
@@ -1439,7 +1446,7 @@ public class SparqlQueryManagerServiceImpl
 
     for (String code : evsProperties) {
       EvsConcept concept = null;
-      concept = getEvsPropertyByCode(code, dbType, ip);
+      concept = getEvsProperty(code, dbType, ip);
       evsConcepts.add(concept);
     }
 
@@ -1585,7 +1592,7 @@ public class SparqlQueryManagerServiceImpl
 
     for (String code : evsProperties) {
       EvsConcept concept = null;
-      concept = getEvsPropertyByCode(code, dbType, ip);
+      concept = getEvsProperty(code, dbType, ip);
       evsConcepts.add(concept);
 
     }
@@ -1670,7 +1677,7 @@ public class SparqlQueryManagerServiceImpl
 
     for (String code : evsProperties) {
       EvsConcept concept = null;
-      concept = getEvsPropertyByCode(code, dbType, ip);
+      concept = getEvsProperty(code, dbType, ip);
       evsConcepts.add(concept);
     }
 

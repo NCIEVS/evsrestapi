@@ -112,6 +112,7 @@ public final class ConceptUtils {
             final Synonym name = new Synonym();
             name.setType(key);
             name.setName(value);
+            concept.getSynonyms().add(name);
           }
         }
       }
@@ -156,6 +157,7 @@ public final class ConceptUtils {
             final Property property = new Property();
             property.setType(key);
             property.setValue(value);
+            concept.getProperties().add(property);
           }
         }
       }

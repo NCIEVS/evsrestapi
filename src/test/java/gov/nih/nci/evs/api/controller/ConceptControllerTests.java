@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.properties.TestProperties;
@@ -378,12 +379,40 @@ public class ConceptControllerTests {
         mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list =
+    final List<Map> list =
         new ObjectMapper().readValue(content, new TypeReference<List<Map>>() {
           // n/a
         });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
+
+  }
+
+  /**
+   * Test get concept disjoint with.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptDisjointWith() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3910/disjointWith";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<DisjointWith> list = new ObjectMapper().readValue(content,
+        new TypeReference<List<DisjointWith>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(
+        list.stream().filter(d -> d.getRelatedCode().equals("C7057")).count())
+            .isGreaterThan(0);
 
   }
 
@@ -454,7 +483,7 @@ public class ConceptControllerTests {
         new TypeReference<List<List<Concept>>>() {
           // n/a
         });
-    log.info("  list = " + list.size());    
+    log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
     // Assert that the first element is a "root" - e.g. C7057
@@ -612,5 +641,6 @@ public class ConceptControllerTests {
 
   }
 
-  // TODO: would be nice to have a really comprehensive "include" parameter test -> maybe in its own class
+  // TODO: would be nice to have a really comprehensive "include" parameter test
+  // -> maybe in its own class
 }

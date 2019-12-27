@@ -82,7 +82,7 @@ public interface SparqlQueryManagerService {
   public EvsConcept getEvsPropertyByCode(String conceptCode, String dbType)
     throws JsonMappingException, JsonParseException, IOException;
 
-  public EvsConcept getEvsPropertyByCode(String conceptCode, String dbType,
+  public EvsConcept getEvsProperty(String conceptCode, String dbType,
     IncludeParam param)
     throws JsonMappingException, JsonParseException, IOException;
 

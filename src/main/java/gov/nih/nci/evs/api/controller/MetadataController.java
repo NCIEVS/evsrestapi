@@ -110,7 +110,7 @@ public class MetadataController {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> associations =
-        sparqlQueryManagerService.getAllAssociations(dbType, "byCode");
+        sparqlQueryManagerService.getAllAssociations(dbType, ip);
     return ConceptUtils.applyIncludeAndList(associations, ip,
         list.orElse(null));
   }
@@ -149,7 +149,7 @@ public class MetadataController {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType, ip));
+          sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             code + " not found");
@@ -201,7 +201,7 @@ public class MetadataController {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> roles =
-        sparqlQueryManagerService.getAllRoles(dbType, "byCode");
+        sparqlQueryManagerService.getAllRoles(dbType, ip);
     return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
@@ -239,7 +239,7 @@ public class MetadataController {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType, ip));
+          sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             code + " not found");
@@ -291,7 +291,7 @@ public class MetadataController {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> properties =
-        sparqlQueryManagerService.getAllProperties(dbType, "byCode");
+        sparqlQueryManagerService.getAllProperties(dbType, ip);
     return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
   }
 
@@ -329,7 +329,7 @@ public class MetadataController {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsPropertyByCode(code, dbType, ip));
+          sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             code + " not found");

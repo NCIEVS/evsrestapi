@@ -450,6 +450,15 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
 
+    // TODO: need to implement this to
+    // // Lookup of an association instead of a property
+    // url = baseUrl + "/ncit/property/A8";
+    // log.info("Testing url - " + url);
+    // result =
+    // mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+
   }
 
   /**
@@ -517,4 +526,5 @@ public class MetadataControllerTests {
     log.info("  content = " + content);
 
   }
+
 }

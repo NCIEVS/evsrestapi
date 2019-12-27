@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
@@ -122,9 +123,9 @@ public class ConceptController {
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   public @ResponseBody Concept getConcept(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code,
-    @RequestParam("include") Optional<String> include) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code,
+    @RequestParam("include") final Optional<String> include) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -160,8 +161,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations", produces = "application/json")
   public @ResponseBody List<Association> getAssociations(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -196,8 +197,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
   public @ResponseBody List<Association> getInverseAssociations(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -232,8 +233,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles", produces = "application/json")
   public @ResponseBody List<Role> getRoles(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -268,8 +269,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles", produces = "application/json")
   public @ResponseBody List<Role> getInverseRoles(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -304,8 +305,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents", produces = "application/json")
   public @ResponseBody List<Concept> getParents(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -340,8 +341,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children", produces = "application/json")
   public @ResponseBody List<Concept> getChildren(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -380,9 +381,10 @@ public class ConceptController {
       @ApiImplicitParam(name = "maxLevel", value = "Maximum level of ancestors to include, if applicable", required = false, dataType = "string", paramType = "query")
   })
   public @ResponseBody List<Concept> getDescendants(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code,
-    @RequestParam("maxLevel") Optional<Integer> maxLevel) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code,
+    @RequestParam("maxLevel") final Optional<Integer> maxLevel)
+    throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -418,8 +420,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps", produces = "application/json")
   public @ResponseBody List<Map> getMaps(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -434,6 +436,43 @@ public class ConceptController {
     }
 
     return ConceptUtils.convertMaps(list);
+  }
+
+  /**
+   * Returns the disjoint with.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the disjoint with
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get \"disjoint with\" info for the specified concept", response = DisjointWith.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith", produces = "application/json")
+  public @ResponseBody List<DisjointWith> getDisjointWith(
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam("disjointWith");
+
+    final Concept concept = ConceptUtils.convertConcept(
+        sparqlQueryManagerService.getEvsConceptByCode(code, dbType, ip));
+
+    if (concept == null || concept.getCode() == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+    return concept.getDisjointWith();
   }
 
   /**
@@ -457,8 +496,8 @@ public class ConceptController {
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<Concept> getRoots(
-    @PathVariable(value = "terminology") String terminology,
-    @RequestParam("include") Optional<String> include) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @RequestParam("include") final Optional<String> include) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -498,9 +537,9 @@ public class ConceptController {
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code,
-    @RequestParam("include") Optional<String> include) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code,
+    @RequestParam("include") final Optional<String> include) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -541,9 +580,9 @@ public class ConceptController {
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code,
-    @RequestParam("include") Optional<String> include) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code,
+    @RequestParam("include") final Optional<String> include) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -584,10 +623,10 @@ public class ConceptController {
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(
-    @PathVariable(value = "terminology") String terminology,
-    @PathVariable(value = "code") String code,
-    @PathVariable(value = "ancestorCode") String ancestorCode,
-    @RequestParam("include") Optional<String> include) throws Exception {
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code,
+    @PathVariable(value = "ancestorCode") final String ancestorCode,
+    @RequestParam("include") final Optional<String> include) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
