@@ -24,7 +24,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -84,6 +87,9 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C3224");
+    assertThat(concept.getName()).isEqualTo("Melanoma");
 
   }
 
@@ -114,7 +120,6 @@ public class ConceptControllerTests {
 
   }
 
-
   /**
    * Test get concepts with list.
    *
@@ -124,8 +129,7 @@ public class ConceptControllerTests {
   public void testGetConceptsWithList() throws Exception {
 
     // NOTE, this includes a middle concept code that is bougs
-    final String url = baseUrl
-        + "/ncit?list=C3224,XYZ,C131506&include=summary";
+    final String url = baseUrl + "/ncit?list=C3224,XYZ,C131506&include=summary";
     log.info("Testing url - " + url);
 
     final MvcResult result =
@@ -141,5 +145,246 @@ public class ConceptControllerTests {
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
     assertThat(list.get(0).getDefinitions()).isNotEmpty();
 
+  }
+
+  /**
+   * Test get concept associations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptAssociations() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3224/associations";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Association> list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Association>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+  }
+
+  /**
+   * Test get concept inverse associations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptInverseAssociations() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3224/inverseAssociations";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Association> list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Association>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+  }
+
+  /**
+   * Test get concept roles.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptRoles() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3224/roles";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Role> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+  }
+
+  /**
+   * Test get concept inverse roles.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptInverseRoles() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3224/inverseRoles";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Role> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+  }
+
+  /**
+   * Test get concept parents.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptParents() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3224/parents";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Concept> list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+  }
+
+  /**
+   * Test get concept children.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptChildren() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3224/children";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Concept> list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+  }
+
+  /**
+   * Test get concept descendants.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptDescendants() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    // NOTE, this includes a middle concept code that is bougs
+    url = baseUrl + "/ncit/C7058/descendants?maxLevel=3";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+  }
+
+  /**
+   * Test get concept maps.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptMaps() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    final String url = baseUrl + "/ncit/C3224/maps";
+    log.info("Testing url - " + url);
+
+    final MvcResult result =
+        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Map>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+
+  }
+
+  /**
+   * Test get roots.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetRoots() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    url = baseUrl + "/ncit/roots";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).getSynonyms()).isEmpty();
+
+    url = baseUrl + "/ncit/roots?include=summary";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).getSynonyms()).isNotEmpty();
   }
 }

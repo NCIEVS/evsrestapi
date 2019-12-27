@@ -4,6 +4,9 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
+
 /**
  * Represents a concept with a code from a terminology.
  * 
@@ -39,6 +42,12 @@ public class Concept extends BaseModel {
 
   /** The name. */
   private String name;
+
+  /** The highlight. */
+  private String highlight;
+
+  /** The level. */
+  private Integer level;
 
   /** The synonyms. */
   private List<Synonym> synonyms;
@@ -81,6 +90,27 @@ public class Concept extends BaseModel {
   }
 
   /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public Concept(final EvsRelatedConcept other) {
+    code = other.getCode();
+    name = other.getLabel();
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public Concept(final HierarchyNode other) {
+    code = other.getCode();
+    name = other.getLabel();
+    level = other.getLevel();
+  }
+
+  /**
    * Populate from.
    *
    * @param other the other
@@ -88,6 +118,8 @@ public class Concept extends BaseModel {
   public void populateFrom(final Concept other) {
     code = other.getCode();
     name = other.getName();
+    highlight = other.getHighlight();
+    level = other.getLevel();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
@@ -132,6 +164,42 @@ public class Concept extends BaseModel {
    */
   public void setName(final String name) {
     this.name = name;
+  }
+
+  /**
+   * Returns the highlight.
+   *
+   * @return the highlight
+   */
+  public String getHighlight() {
+    return highlight;
+  }
+
+  /**
+   * Sets the highlight.
+   *
+   * @param highlight the highlight
+   */
+  public void setHighlight(final String highlight) {
+    this.highlight = highlight;
+  }
+
+  /**
+   * Returns the level.
+   *
+   * @return the level
+   */
+  public Integer getLevel() {
+    return level;
+  }
+
+  /**
+   * Sets the level.
+   *
+   * @param level the level
+   */
+  public void setLevel(final Integer level) {
+    this.level = level;
   }
 
   /**

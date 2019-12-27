@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -9,27 +10,34 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsDefinition;
+import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
+import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
 import gov.nih.nci.evs.api.model.evs.EvsSynonym;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 
 /**
  * Utilities for handling the "include" flag, and converting EVSConcept to
  * Concept.
  */
-public final class IncludeFlagUtils {
+public final class ConceptUtils {
 
   /** The Constant logger. */
   private static final Logger logger =
-      LoggerFactory.getLogger(IncludeFlagUtils.class);
+      LoggerFactory.getLogger(ConceptUtils.class);
 
   /**
-   * Instantiates an empty {@link IncludeFlagUtils}.
+   * Instantiates an empty {@link ConceptUtils}.
    */
-  private IncludeFlagUtils() {
+  private ConceptUtils() {
     // n/a
   }
 
@@ -52,7 +60,7 @@ public final class IncludeFlagUtils {
         || codes.contains(ec.getCode()) || codes.contains(ec.getLabel()))
         .map(ec -> {
           try {
-            return IncludeFlagUtils.applyInclude(ec, include);
+            return ConceptUtils.applyInclude(ec, include);
           } catch (Exception e) {
             logger.error("Unexpected failure converting to concept", e);
             throw new RuntimeException(e);
@@ -142,5 +150,76 @@ public final class IncludeFlagUtils {
     }
 
     return concept;
+  }
+
+  /**
+   * Convert associations.
+   *
+   * @param list the list
+   * @return the list
+   */
+  public static List<Association> convertAssociations(
+    final List<EvsAssociation> list) {
+    if (list == null || list.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return list.stream().map(ea -> new Association(ea))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Convert roles.
+   *
+   * @param list the list
+   * @return the list
+   */
+  public static List<Role> convertRoles(final List<EvsAssociation> list) {
+    if (list == null || list.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return list.stream().map(ea -> new Role(ea)).collect(Collectors.toList());
+  }
+
+  /**
+   * Convert concepts.
+   *
+   * @param list the list
+   * @return the list
+   */
+  public static List<Concept> convertConcepts(
+    final List<EvsRelatedConcept> list) {
+    if (list == null || list.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return list.stream().map(ea -> new Concept(ea))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Convert concepts from hierarchy.
+   *
+   * @param list the list
+   * @return the list
+   */
+  public static List<Concept> convertConceptsFromHierarchy(
+    final List<HierarchyNode> list) {
+    if (list == null || list.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return list.stream().map(ea -> new Concept(ea))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Convert maps.
+   *
+   * @param list the list
+   * @return the list
+   */
+  public static List<Map> convertMaps(final List<EvsMapsTo> list) {
+    if (list == null || list.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return list.stream().map(ea -> new Map(ea)).collect(Collectors.toList());
   }
 }

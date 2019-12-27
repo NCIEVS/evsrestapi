@@ -12,6 +12,9 @@ public class Property extends BaseModel {
   /** The value. */
   private String value;
 
+  /** The highlight. */
+  private String highlight;
+
   /**
    * Instantiates an empty {@link Property}.
    */
@@ -36,6 +39,7 @@ public class Property extends BaseModel {
   public void populateFrom(final Property other) {
     type = other.getType();
     value = other.getValue();
+    highlight = other.getHighlight();
   }
 
   /**
@@ -72,6 +76,24 @@ public class Property extends BaseModel {
    */
   public void setValue(final String value) {
     this.value = value;
+  }
+
+  /**
+   * Returns the highlight.
+   *
+   * @return the highlight
+   */
+  public String getHighlight() {
+    return highlight;
+  }
+
+  /**
+   * Sets the hightlight.
+   *
+   * @param highlight the hightlight
+   */
+  public void setHightlight(final String highlight) {
+    this.highlight = highlight;
   }
 
   /* see superclass */

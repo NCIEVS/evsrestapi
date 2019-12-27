@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,11 +18,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.EvsConcept;
+import gov.nih.nci.evs.api.model.evs.EvsAssociation;
+import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
+import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.util.IncludeFlagUtils;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -69,7 +76,7 @@ public class ConceptController {
       @ApiImplicitParam(name = "list", value = "List of codes to return concepts for", required = true, dataType = "string", paramType = "query")
   })
   @RecordMetricDBFormat
-  public @ResponseBody List<Concept> getAssociations(
+  public @ResponseBody List<Concept> getConcepts(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final String list) throws Exception {
@@ -79,10 +86,16 @@ public class ConceptController {
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
-    final List<EvsConcept> associations =
-        sparqlQueryManagerService.getAllAssociations(dbType, "byLabel");
-    return IncludeFlagUtils.applyIncludeAndList(associations,
-        include.orElse("minimal"), list);
+    final List<Concept> concepts = new ArrayList<>();
+    for (final String code : list.split(",")) {
+      final Concept concept = ConceptUtils.applyInclude(
+          sparqlQueryManagerService.getEvsConceptByCode(code, dbType),
+          include.orElse("summary"));
+      if (concept != null && concept.getCode() != null) {
+        concepts.add(concept);
+      }
+    }
+    return concepts;
   }
 
   /**
@@ -116,7 +129,7 @@ public class ConceptController {
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
-    final Concept concept = IncludeFlagUtils.applyInclude(
+    final Concept concept = ConceptUtils.applyInclude(
         sparqlQueryManagerService.getEvsConceptByCode(code, dbType),
         include.orElse("summary"));
     if (concept == null || concept.getCode() == null) {
@@ -124,6 +137,348 @@ public class ConceptController {
           code + " not found");
     }
     return concept;
+  }
+
+  /**
+   * Returns the associations.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the associations
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get associations for the specified concept", response = Association.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations", produces = "application/json")
+  public @ResponseBody List<Association> getAssociations(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsAssociation> list =
+        sparqlQueryManagerService.getEvsAssociations(code, dbType);
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertAssociations(list);
+  }
+
+  /**
+   * Returns the inverse associations.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the inverse associations
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get inverse associations for the specified concept", response = Association.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
+  public @ResponseBody List<Association> getInverseAssociations(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsAssociation> list =
+        sparqlQueryManagerService.getEvsInverseAssociations(code, dbType);
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertAssociations(list);
+  }
+
+  /**
+   * Returns the roles.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the roles
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get roles for the specified concept", response = Role.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles", produces = "application/json")
+  public @ResponseBody List<Role> getRoles(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsAssociation> list =
+        sparqlQueryManagerService.getEvsRoles(code, dbType);
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertRoles(list);
+  }
+
+  /**
+   * Returns the inverse roles.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the inverse roles
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get inverse roles for the specified concept", response = Role.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles", produces = "application/json")
+  public @ResponseBody List<Role> getInverseRoles(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsAssociation> list =
+        sparqlQueryManagerService.getEvsInverseRoles(code, dbType);
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertRoles(list);
+  }
+
+  /**
+   * Returns the parents.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the parents
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get parent concepts for the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents", produces = "application/json")
+  public @ResponseBody List<Concept> getParents(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsRelatedConcept> list =
+        sparqlQueryManagerService.getEvsSuperconcepts(code, dbType, "byCode");
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertConcepts(list);
+  }
+
+  /**
+   * Returns the children.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the children
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get child concepts for the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children", produces = "application/json")
+  public @ResponseBody List<Concept> getChildren(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsRelatedConcept> list =
+        sparqlQueryManagerService.getEvsSubconcepts(code, dbType, "byCode");
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertConcepts(list);
+  }
+
+  /**
+   * Returns the descendants.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param maxLevel the max level
+   * @return the descendants
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get descendant concepts for the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants", produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "maxLevel", value = "Maximum level of ancestors to include, if applicable", required = false, dataType = "string", paramType = "query")
+  })
+  public @ResponseBody List<Concept> getDescendants(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code,
+    @RequestParam("maxLevel") Optional<Integer> maxLevel) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    logger.info("XXX maxLevel = " + maxLevel.orElse(0));
+    final List<HierarchyNode> list = sparqlQueryManagerService
+        .getChildNodes(code, maxLevel.orElse(0), dbType);
+
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertConceptsFromHierarchy(list);
+  }
+
+  /**
+   * Returns the maps.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the maps
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get maps for the specified concept", response = Map.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps", produces = "application/json")
+  public @ResponseBody List<Map> getMaps(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<EvsMapsTo> list =
+        sparqlQueryManagerService.getEvsMapsTo(code, dbType);
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          code + " not found");
+    }
+
+    return ConceptUtils.convertMaps(list);
+  }
+
+  /**
+   * Returns the roots.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @return the roots
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get root concepts for the specified terminology", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots", produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+  })
+  public @ResponseBody List<Concept> getRoots(
+    @PathVariable(value = "terminology") String terminology,
+    @RequestParam("include") Optional<String> include) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<HierarchyNode> list =
+        sparqlQueryManagerService.getRootNodes(dbType);
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "No roots for found for terminology = " + terminology);
+    }
+    final List<Concept> concepts = new ArrayList<>();
+    for (final HierarchyNode node : list) {
+      final Concept concept =
+          include.orElse("minimal").equals("minimal") ? new Concept(node)
+              : ConceptUtils.applyInclude(sparqlQueryManagerService
+                  .getEvsConceptByCode(node.getCode(), dbType),
+                  include.orElse("minimal"));
+      concepts.add(concept);
+    }
+    return concepts;
   }
 
 }

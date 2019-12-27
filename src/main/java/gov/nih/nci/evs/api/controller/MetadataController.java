@@ -24,7 +24,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.util.IncludeFlagUtils;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.ModelUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
@@ -109,7 +109,7 @@ public class MetadataController {
 
     final List<EvsConcept> associations =
         sparqlQueryManagerService.getAllAssociations(dbType, "byLabel");
-    return IncludeFlagUtils.applyIncludeAndList(associations,
+    return ConceptUtils.applyIncludeAndList(associations,
         include.orElse("minimal"), list.orElse(null));
   }
 
@@ -145,7 +145,7 @@ public class MetadataController {
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = IncludeFlagUtils.applyInclude(
+      final Concept concept = ConceptUtils.applyInclude(
           sparqlQueryManagerService.getEvsPropertyByCode(code, dbType),
           include.orElse("summary"));
       if (concept == null || concept.getCode() == null) {
@@ -199,7 +199,7 @@ public class MetadataController {
 
     final List<EvsConcept> roles =
         sparqlQueryManagerService.getAllRoles(dbType, "byLabel");
-    return IncludeFlagUtils.applyIncludeAndList(roles,
+    return ConceptUtils.applyIncludeAndList(roles,
         include.orElse("minimal"), list.orElse(null));
   }
 
@@ -235,7 +235,7 @@ public class MetadataController {
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = IncludeFlagUtils.applyInclude(
+      final Concept concept = ConceptUtils.applyInclude(
           sparqlQueryManagerService.getEvsPropertyByCode(code, dbType),
           include.orElse("summary"));
       if (concept == null || concept.getCode() == null) {
@@ -289,7 +289,7 @@ public class MetadataController {
 
     final List<EvsConcept> properties =
         sparqlQueryManagerService.getAllProperties(dbType, "byLabel");
-    return IncludeFlagUtils.applyIncludeAndList(properties,
+    return ConceptUtils.applyIncludeAndList(properties,
         include.orElse("minimal"), list.orElse(null));
   }
 
@@ -325,7 +325,7 @@ public class MetadataController {
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = IncludeFlagUtils.applyInclude(
+      final Concept concept = ConceptUtils.applyInclude(
           sparqlQueryManagerService.getEvsPropertyByCode(code, dbType),
           include.orElse("summary"));
       if (concept == null || concept.getCode() == null) {

@@ -15,6 +15,9 @@ public class Relationship extends BaseModel {
   /** The related name. */
   private String relatedName;
 
+  /** The highlight. */
+  private String highlight;
+
   /**
    * Instantiates an empty {@link Relationship}.
    */
@@ -40,6 +43,7 @@ public class Relationship extends BaseModel {
     type = other.getType();
     relatedCode = other.getRelatedCode();
     relatedName = other.getRelatedName();
+    highlight = other.getHighlight();
   }
 
   /**
@@ -94,6 +98,24 @@ public class Relationship extends BaseModel {
    */
   public void setRelatedName(final String relatedName) {
     this.relatedName = relatedName;
+  }
+
+  /**
+   * Returns the highlight.
+   *
+   * @return the highlight
+   */
+  public String getHighlight() {
+    return highlight;
+  }
+
+  /**
+   * Sets the highlight.
+   *
+   * @param highlight the highlight
+   */
+  public void setHighlight(final String highlight) {
+    this.highlight = highlight;
   }
 
   /* see superclass */

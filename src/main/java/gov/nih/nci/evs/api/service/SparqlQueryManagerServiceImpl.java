@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.service;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
 import gov.nih.nci.evs.api.model.evs.EvsDefinition;
 import gov.nih.nci.evs.api.model.evs.EvsDefinitionByCode;
 import gov.nih.nci.evs.api.model.evs.EvsDefinitionByLabel;
+import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
 import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConceptByCode;
@@ -627,6 +629,12 @@ public class SparqlQueryManagerServiceImpl
     evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
   }
 
+  public List<EvsMapsTo> getEvsMapsTo(String conceptCode, String dbType)
+    throws IOException {
+    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
+    return EVSUtils.getMapsTo(axioms, "byCode");
+  }
+
   public EvsConcept getEvsPropertyByLabel(String conceptCode, String dbType)
     throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByLabel evsConcept = new EvsConceptByLabel();
@@ -782,6 +790,7 @@ public class SparqlQueryManagerServiceImpl
     return evsProperties;
   }
 
+  @Override
   public List<EvsRelatedConcept> getEvsSubconcepts(String conceptCode,
     String dbType, String outputType)
     throws JsonMappingException, JsonParseException, IOException {
@@ -815,6 +824,7 @@ public class SparqlQueryManagerServiceImpl
     return evsSubclasses;
   }
 
+  @Override
   public List<EvsRelatedConcept> getEvsSuperconcepts(String conceptCode,
     String dbType, String outputType)
     throws JsonMappingException, JsonParseException, IOException {
@@ -848,6 +858,7 @@ public class SparqlQueryManagerServiceImpl
     return evsSuperclasses;
   }
 
+  @Override
   public List<EvsAssociation> getEvsAssociations(String conceptCode,
     String dbType)
     throws JsonMappingException, JsonParseException, IOException {
@@ -1702,5 +1713,6 @@ public class SparqlQueryManagerServiceImpl
 
     return sources;
   }
+
 
 }
