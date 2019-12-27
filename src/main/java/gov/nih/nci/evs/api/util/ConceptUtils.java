@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.evs.ConceptNode;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsDefinition;
@@ -23,6 +25,8 @@ import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
 import gov.nih.nci.evs.api.model.evs.EvsSynonym;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
+import gov.nih.nci.evs.api.model.evs.Path;
+import gov.nih.nci.evs.api.model.evs.Paths;
 
 /**
  * Utilities for handling the "include" flag, and converting EVSConcept to
@@ -221,5 +225,37 @@ public final class ConceptUtils {
       return new ArrayList<>();
     }
     return list.stream().map(ea -> new Map(ea)).collect(Collectors.toList());
+  }
+
+  /**
+   * Convert paths.
+   *
+   * @param paths the paths
+   * @param reverse the reverse
+   * @return the list
+   */
+  public static List<List<Concept>> convertPaths(final Paths paths,
+    final boolean reverse) {
+    final List<List<Concept>> list = new ArrayList<>();
+    if (paths == null || paths.getPaths() == null
+        || paths.getPaths().isEmpty()) {
+      return list;
+    }
+    for (final Path path : paths.getPaths()) {
+      final List<Concept> concepts = new ArrayList<>();
+      for (final ConceptNode cn : path.getConcepts()) {
+        final Concept concept = new Concept(cn);
+        concepts.add(concept);
+      }
+      // Reverse if indicated
+      if (reverse) {
+        Collections.reverse(concepts);
+      }
+      for (int i = 0; i < concepts.size(); i++) {
+        concepts.get(i).setLevel(i + 1);
+      }
+      list.add(concepts);
+    }
+    return list;
   }
 }

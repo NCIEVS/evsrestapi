@@ -4,6 +4,7 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import gov.nih.nci.evs.api.model.evs.ConceptNode;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 
@@ -104,6 +105,16 @@ public class Concept extends BaseModel {
    * @param other the other
    */
   public Concept(final EvsRelatedConcept other) {
+    code = other.getCode();
+    name = other.getLabel();
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public Concept(final ConceptNode other) {
     code = other.getCode();
     name = other.getLabel();
   }

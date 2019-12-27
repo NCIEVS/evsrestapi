@@ -442,7 +442,7 @@ public class ConceptControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-    List<Concept> list = null;
+    List<List<Concept>> list = null;
 
     url = baseUrl + "/ncit/C3224/pathsFromRoot";
     log.info("Testing url - " + url);
@@ -451,14 +451,65 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
+        new TypeReference<List<List<Concept>>>() {
           // n/a
         });
     log.info("  list = " + list.size());
+    // TODO
     assertThat(list).isNotEmpty();
-    assertThat(list.get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
+    // Assert that the first element is a "root" - e.g. C7057
+    assertThat(list.get(0).get(0).getCode()).isEqualTo("C7057");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
+        .isEqualTo("C3224");
+    // Assert that numbers count in order, starting at 1 and ending in legnth
+    assertThat(list.get(0).get(0).getLevel()).isEqualTo(1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size());
 
     url = baseUrl + "/ncit/C3224/pathsFromRoot?include=summary";
-
+    // TODO: support include=summary
   }
+
+  /**
+   * Test get paths to root.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetPathsToRoot() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<List<Concept>> list = null;
+
+    url = baseUrl + "/ncit/C3224/pathsToRoot";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content,
+        new TypeReference<List<List<Concept>>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    // TODO
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
+    // Assert that the first element is a "root" - e.g. C7057
+    assertThat(list.get(0).get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
+        .isEqualTo("C7057");
+    // Assert that numbers count in order, starting at 1 and ending in legnth
+    assertThat(list.get(0).get(0).getLevel()).isEqualTo(1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size());
+
+    url = baseUrl + "/ncit/C3224/pathsFromRoot?include=summary";
+    // TODO: support include=summary
+  }
+
 }

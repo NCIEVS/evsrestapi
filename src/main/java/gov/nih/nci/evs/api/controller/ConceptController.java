@@ -27,6 +27,7 @@ import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
+import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -480,6 +481,15 @@ public class ConceptController {
     return concepts;
   }
 
+  /**
+   * Returns the paths from root.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the paths from root
+   * @throws Exception the exception
+   */
   @ApiOperation(value = "Get paths from the hierarchy root to the specified concept", response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -492,7 +502,7 @@ public class ConceptController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<Concept> getPathsFromRoot(
+  public @ResponseBody List<List<Concept>> getPathsFromRoot(
     @PathVariable(value = "terminology") String terminology,
     @PathVariable(value = "code") String code,
     @RequestParam("include") Optional<String> include) throws Exception {
@@ -502,21 +512,54 @@ public class ConceptController {
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
-    final List<HierarchyNode> list =
-        sparqlQueryManagerService.getPathInHierarchy(code, dbType);
-    if (list == null || list.isEmpty()) {
+    if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          "No roots for found for terminology = " + terminology);
+          "Code not found = " + code);
     }
-    final List<Concept> concepts = new ArrayList<>();
-    for (final HierarchyNode node : list) {
-      final Concept concept =
-          include.orElse("minimal").equals("minimal") ? new Concept(node)
-              : ConceptUtils.applyInclude(sparqlQueryManagerService
-                  .getEvsConceptByCode(node.getCode(), dbType),
-                  include.orElse("minimal"));
-      concepts.add(concept);
+    final Paths paths = sparqlQueryManagerService.getPathToRoot(code, dbType);
+    // TODO: handle "include" flag -> means re-reading all the concepts like the
+    // prior call
+    return ConceptUtils.convertPaths(paths, true);
+  }
+
+  /**
+   * Returns the paths to root.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the paths to root
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get paths to the hierarchy root from the specified code", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot", produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+  })
+  public @ResponseBody List<List<Concept>> getPathsToRoot(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code,
+    @RequestParam("include") Optional<String> include) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Code not found = " + code);
     }
-    return concepts;
+    final Paths paths = sparqlQueryManagerService.getPathToRoot(code, dbType);
+    // TODO: handle "include" flag -> means re-reading all the concepts like the
+    // prior call
+    return ConceptUtils.convertPaths(paths, false);
   }
 }
