@@ -386,7 +386,6 @@ public class ConceptController {
     final String dbType =
         "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
 
-    logger.info("XXX maxLevel = " + maxLevel.orElse(0));
     final List<HierarchyNode> list = sparqlQueryManagerService
         .getChildNodes(code, maxLevel.orElse(0), dbType);
 
@@ -481,4 +480,43 @@ public class ConceptController {
     return concepts;
   }
 
+  @ApiOperation(value = "Get paths from the hierarchy root to the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot", produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+  })
+  public @ResponseBody List<Concept> getPathsFromRoot(
+    @PathVariable(value = "terminology") String terminology,
+    @PathVariable(value = "code") String code,
+    @RequestParam("include") Optional<String> include) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+
+    final List<HierarchyNode> list =
+        sparqlQueryManagerService.getPathInHierarchy(code, dbType);
+    if (list == null || list.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "No roots for found for terminology = " + terminology);
+    }
+    final List<Concept> concepts = new ArrayList<>();
+    for (final HierarchyNode node : list) {
+      final Concept concept =
+          include.orElse("minimal").equals("minimal") ? new Concept(node)
+              : ConceptUtils.applyInclude(sparqlQueryManagerService
+                  .getEvsConceptByCode(node.getCode(), dbType),
+                  include.orElse("minimal"));
+      concepts.add(concept);
+    }
+    return concepts;
+  }
 }

@@ -305,7 +305,7 @@ public class ConceptControllerTests {
     List<Concept> list = null;
 
     // NOTE, this includes a middle concept code that is bougs
-    url = baseUrl + "/ncit/C7058/descendants?maxLevel=3";
+    url = baseUrl + "/ncit/C7058/descendants";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -318,6 +318,48 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
+    // nothing should have children
+    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count())
+        .isEqualTo(0);
+    // nothing should be a leaf node
+    assertThat(
+        list.stream().filter(c -> c.getLeaf() != null && c.getLeaf()).count())
+            .isEqualTo(0);
+
+    url = baseUrl + "/ncit/C7058/descendants?maxLevel=2";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+    // something should have children
+    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count())
+        .isGreaterThan(0);
+    // something should have grand children
+    assertThat(list.stream()
+        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
+            .filter(c2 -> c2.getChildren().size() > 0).count() > 0)
+        .count()).isGreaterThan(0);
+    // grand children should NOT have children
+    assertThat(list.stream()
+        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
+            .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren()
+                .stream().filter(c3 -> c3.getChildren().size() > 0).count() > 0)
+            .count() > 0)
+        .count()).isEqualTo(0);
+    // Some grand children should be leaf nodes
+    assertThat(list.stream().filter(c -> c.getChildren().size() > 0 && c
+        .getChildren().stream()
+        .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren().stream()
+            .filter(c3 -> c3.getLeaf() != null && c3.getLeaf()).count() > 0)
+        .count() > 0).count()).isGreaterThan(0);
   }
 
   /**
@@ -386,5 +428,37 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
+  }
+
+  /**
+   * Test get paths from root.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetPathsFromRoot() throws Exception {
+
+    // NOTE, this includes a middle concept code that is bougs
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    url = baseUrl + "/ncit/C3224/pathsFromRoot";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content,
+        new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).getSynonyms()).isEmpty();
+
+    url = baseUrl + "/ncit/C3224/pathsFromRoot?include=summary";
+
   }
 }

@@ -49,6 +49,9 @@ public class Concept extends BaseModel {
   /** The level. */
   private Integer level;
 
+  /** The leaf. */
+  private Boolean leaf;
+
   /** The synonyms. */
   private List<Synonym> synonyms;
 
@@ -57,6 +60,12 @@ public class Concept extends BaseModel {
 
   /** The properties. */
   private List<Property> properties;
+
+  /** The children. */
+  private List<Concept> children;
+
+  /** The parents. */
+  private List<Concept> parents;
 
   /** The associations. */
   private List<Association> associations;
@@ -108,6 +117,12 @@ public class Concept extends BaseModel {
     code = other.getCode();
     name = other.getLabel();
     level = other.getLevel();
+    if (other.getLeaf() != null && other.getLeaf()) {
+      leaf = other.getLeaf();
+    }
+    for (final HierarchyNode child : other.getChildren()) {
+      getChildren().add(new Concept(child));
+    }
   }
 
   /**
@@ -120,9 +135,12 @@ public class Concept extends BaseModel {
     name = other.getName();
     highlight = other.getHighlight();
     level = other.getLevel();
+    leaf = other.getLeaf();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
+    children = new ArrayList<>(other.getChildren());
+    parents = new ArrayList<>(other.getParents());
     associations = new ArrayList<>(other.getAssociations());
     inverseAssociations = new ArrayList<>(other.getInverseAssociations());
     roles = new ArrayList<>(other.getRoles());
@@ -203,6 +221,24 @@ public class Concept extends BaseModel {
   }
 
   /**
+   * Returns the leaf.
+   *
+   * @return the leaf
+   */
+  public Boolean getLeaf() {
+    return leaf;
+  }
+
+  /**
+   * Sets the leaf.
+   *
+   * @param leaf the leaf
+   */
+  public void setLeaf(final Boolean leaf) {
+    this.leaf = leaf;
+  }
+
+  /**
    * Returns the synonyms.
    *
    * @return the synonyms
@@ -263,6 +299,48 @@ public class Concept extends BaseModel {
    */
   public void setProperties(final List<Property> properties) {
     this.properties = properties;
+  }
+
+  /**
+   * Returns the children.
+   *
+   * @return the children
+   */
+  public List<Concept> getChildren() {
+    if (children == null) {
+      children = new ArrayList<>();
+    }
+    return children;
+  }
+
+  /**
+   * Sets the children.
+   *
+   * @param children the children
+   */
+  public void setChildren(final List<Concept> children) {
+    this.children = children;
+  }
+
+  /**
+   * Returns the parents.
+   *
+   * @return the parents
+   */
+  public List<Concept> getParents() {
+    if (parents == null) {
+      parents = new ArrayList<>();
+    }
+    return parents;
+  }
+
+  /**
+   * Sets the parents.
+   *
+   * @param parents the parents
+   */
+  public void setParents(final List<Concept> parents) {
+    this.parents = parents;
   }
 
   /**

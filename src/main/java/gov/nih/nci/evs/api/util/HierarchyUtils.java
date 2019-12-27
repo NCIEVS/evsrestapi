@@ -158,9 +158,6 @@ public class HierarchyUtils {
     }
     for (String code : children) {
       HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
-      node.setLevel(1);
-      System.out
-          .println("XXX = " + 0 + "," + maxLevel + ", " + node.getLevel());
       getChildNodesLevel(node, maxLevel, 0);
       nodes.add(node);
     }
@@ -170,10 +167,8 @@ public class HierarchyUtils {
 
   public void getChildNodesLevel(HierarchyNode node, int maxLevel, int level) {
     List<String> children = this.parent2child.get(node.getCode());
-    node.setLevel(level + 1);
+    node.setLevel(level);
 
-    System.out
-        .println("YYY = " + level + ", " + maxLevel + ", " + node.getLevel());
     if (children == null || children.size() == 0) {
       node.setLeaf(true);
       return;
@@ -189,15 +184,10 @@ public class HierarchyUtils {
     for (String code : children) {
       HierarchyNode newnode =
           new HierarchyNode(code, code2label.get(code), false);
-      System.out.println(
-          "ZZZa = " + level + ", " + maxLevel + ", " + newnode.getLevel());
       getChildNodesLevel(newnode, maxLevel, level);
-      System.out.println(
-          "ZZZb = " + level + ", " + maxLevel + ", " + newnode.getLevel());
       List<HierarchyNode> sortedChildren = newnode.getChildren();
-      if (sortedChildren == null || sortedChildren.size() == 0) {
-        newnode.setLeaf(true);
-      } else {
+      // Sort children if they exist
+      if (sortedChildren != null && sortedChildren.size() > 0) {
         sortedChildren.sort(Comparator.comparing(HierarchyNode::getLabel));
       }
 
