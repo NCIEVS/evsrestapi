@@ -228,8 +228,10 @@ public final class ConceptUtils {
       }
     }
 
-    concept.setContributingSources(contributingSources.stream()
-        .sorted((a, b) -> a.compareTo(b)).collect(Collectors.toList()));
+    // Skip NCI - really this should be better focused on
+    concept.setContributingSources(
+        contributingSources.stream().sorted((a, b) -> a.compareTo(b))
+            .filter(s -> !s.equals("NCI")).collect(Collectors.toList()));
     return concept;
   }
 
