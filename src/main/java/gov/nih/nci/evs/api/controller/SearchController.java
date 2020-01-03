@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ import gov.nih.nci.evs.api.aop.RecordMetricSearch;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
+import gov.nih.nci.evs.api.support.SearchCriteria;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -329,7 +331,7 @@ public class SearchController {
 
   })
   @RecordMetricSearch
-  @RequestMapping(method = RequestMethod.GET, value = "/search", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/elasticsearch", produces = "application/json")
   public @ResponseBody String elasticsearch(
     @ModelAttribute FilterCriteriaElasticFields filterCriteriaElasticFields,
     BindingResult bindingResult, HttpServletResponse response)
@@ -368,19 +370,6 @@ public class SearchController {
     log.debug("From Record - " + filterCriteriaElasticFields.getFromRecord());
     log.debug("Page size - " + filterCriteriaElasticFields.getPageSize());
 
-    log.debug("Format - " + filterCriteriaElasticFields.getFormat());
-    if (filterCriteriaElasticFields.getReturnProperties() != null) {
-      for (String returnField : filterCriteriaElasticFields
-          .getReturnProperties()) {
-        log.debug("return field - " + returnField);
-      }
-    }
-    if (filterCriteriaElasticFields.getProperty() != null) {
-      for (String returnField : filterCriteriaElasticFields.getProperty()) {
-        log.debug("property - " + returnField);
-      }
-    }
-
     try {
       result = elasticSearchService.elasticsearch(filterCriteriaElasticFields);
     } catch (IOException exception) {
@@ -388,7 +377,7 @@ public class SearchController {
       String errorMessage = exception.getMessage();
       log.error("returning status code " + statusCode + " with error message "
           + errorMessage);
-      response.sendError(statusCode, errorMessage);
+      response.sendError(statusCode, errorMessage);    
     } catch (HttpClientErrorException httpClientErrorException) {
       int statusCode = httpClientErrorException.getStatusCode().value();
       String errorMessage = httpClientErrorException.getMessage();
@@ -410,9 +399,8 @@ public class SearchController {
   /**
    * Search.
    *
-   * @param filterCriteriaElasticFields the filter criteria elastic fields
+   * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
-   * @param response the response
    * @return the string
    * @throws IOException Signals that an I/O exception has occurred.
    */
@@ -426,80 +414,58 @@ public class SearchController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "terminologies", value = "Comma-separated list of terminologies to search", required = true, dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched", required = true, dataType = "string", paramType = "query", defaultValue = ""),
-    @ApiImplicitParam(name = "type", value = "The match type contains, match, startswith, phrase, AND, OR, fuzzy.", required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
-    @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-    @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false, dataType = "string", paramType = "query", defaultValue = "0"),
-    @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false, dataType = "string", paramType = "query", defaultValue = "10"),
-    @ApiImplicitParam(name = "conceptStatus", value = "Filter search results by concept status.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-
-    @ApiImplicitParam(name = "associationSearch", value = "This paramter controls if the search happens in the associations or inverse associations", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "contributingSource", value = "This parameter is a filter. The results can be filtered by the value of the contributing source. <a href='api/v1/contributingSourcesList' target='_blank'>Click here for a list of values.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "definitionSource", value = "This parameter specifies the source of a definition. When this parameter is specified the search occurs in the definition and alt_definition properties of the concepts", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "format", value = "This parameter specifies the format of the output. Valid values: clean, cleanWithHighlights, raw", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "property", value = "List of comma separated properties to be searched for the given term. e.g P107,P108. <a href='api/v1/propertiesList' target='_blank'>Click here for a list of properties.</a>. The properties can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "relationship", value = "List of comma separated relationship to be searched for the given term. This parameter is used in combination with the parameters:associationSearch, roleSearch. If roleSearch, then <a href='api/v1/rolesList' target='_blank'>click here for role relationship list</a>. if associationSearch then <a href='api/v1/associationsList' target='_blank'>click here for association relationship list.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "returnProperties", value = "List of comma separated properties to be returned for the given term search. e.g P107,P108,roles. <a href='api/v1/propertiesList' target='_blank'>Click here for a list of properties</a>. The properties can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "roleSearch", value = "This paramter controls if the search happens in the roles or inverse roles", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "synonymGroup", value = "This parameter specifies the group of a synonym. This parameter is used in combination with the parameters:synonymSource. This parameter restricts the search to occur in synonyms in the specified group.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "synonymSource", value = "This parameter specifies the source of a synonym. This parameter restricts the search to occur in synonyms in the specified source.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "pageSize", value = "This parameter specifies the number of records to be returned from the start record specified by the fromRecord parameter. Used for paging the results", required = false, dataType = "string", paramType = "query", defaultValue = "10"),
+      @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search", required = true, dataType = "string", paramType = "query"),
+      @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched", required = true, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "type", value = "The match type contains, match, startswith, phrase, AND, OR, fuzzy.", required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false, dataType = "string", paramType = "query", defaultValue = "10"),
+      @ApiImplicitParam(name = "conceptStatus", value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "property", value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "contributingSource", value = "Comma-separated list of contributing sources to restrict search results to. <a href='api/v1/metadata/ncit/contributingSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "definitionSource", value = "Comma-separated list of definition sources to restrict search results to.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymSource", value = "Comma-separated list of synonym sources to restrict search results to.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymTermGroup", value = "Comma-separated list of synonym term groups to restrict search results to. Use with \"synonymSource\".", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "inverse", value = "Used with \"associations\" or \"roles\" when true to indicate that inverse associations or roles should be searched", required = false, dataType = "string", paramType = "query", defaultValue = "false"),
+      @ApiImplicitParam(name = "association", value = "Comma-separated list of associations to search. e.g A10,A215. <a href='api/v1/metadata/ncit/associations' target='_blank'>Click here for a list of NCI Thesaurus associations.</a>. The associations can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "role", value = "Comma-separated list of roles to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles' target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The roles can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = "")
   })
   @RecordMetricSearch
-  @RequestMapping(method = RequestMethod.GET, value = "/concepts/search", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/search", produces = "application/json")
   public @ResponseBody String search(
-    @ModelAttribute FilterCriteriaElasticFields filterCriteriaElasticFields,
-    BindingResult bindingResult, HttpServletResponse response)
+    @ModelAttribute SearchCriteria searchCriteria, BindingResult bindingResult)
     throws IOException {
+
+    // Check whether or not parameter binding was successful
     if (bindingResult.hasErrors()) {
-      log.debug("Error " + bindingResult.getObjectName());
-      List<FieldError> errors = bindingResult.getFieldErrors();
-      String errorMessage = "";
-      for (FieldError error : errors) {
-        log.debug("field name :" + error.getField());
-        log.debug("Error Code :" + error.getCode());
-        String newlinetest = System.getProperty("line.separator");
-        if (error.getCode().equalsIgnoreCase("typeMismatch")) {
-          errorMessage =
-              errorMessage + "Could not convert the value of the field "
-                  + error.getField() + " to the expected type. Details: "
-                  + error.getDefaultMessage() + ". ";
-        }
-
+      final List<FieldError> errors = bindingResult.getFieldErrors();
+      final List<String> errorMessages = new ArrayList<>();
+      for (final FieldError error : errors) {
+        final String errorMessage = "ERROR " + bindingResult.getObjectName()
+            + " = " + error.getField() + ", " + error.getCode();
+        log.error(errorMessage);
+        errorMessages.add(errorMessage);
       }
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          String.join("\n ", errorMessages));
+    }
 
+    if (!searchCriteria.checkRequiredFields()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Missing required field = "
+              + searchCriteria.computeMissingRequiredFields());
     }
-    String result = "";
-    String queryTerm = filterCriteriaElasticFields.getTerm();
-    if (queryTerm == null) {
-      return null;
-    }
-    queryTerm = RESTUtils.escapeLuceneSpecialCharacters(queryTerm);
-    filterCriteriaElasticFields.setTerm(queryTerm);
-    log.debug("Term/Partial Term - " + filterCriteriaElasticFields.getTerm());
-    log.debug("Type - " + filterCriteriaElasticFields.getType());
-    log.debug("From Record - " + filterCriteriaElasticFields.getFromRecord());
-    log.debug("Page size - " + filterCriteriaElasticFields.getPageSize());
 
-    log.debug("Format - " + filterCriteriaElasticFields.getFormat());
-    if (filterCriteriaElasticFields.getReturnProperties() != null) {
-      for (String returnField : filterCriteriaElasticFields
-          .getReturnProperties()) {
-        log.debug("return field - " + returnField);
-      }
-    }
-    if (filterCriteriaElasticFields.getProperty() != null) {
-      for (String returnField : filterCriteriaElasticFields.getProperty()) {
-        log.debug("property - " + returnField);
-      }
-    }
+    final String queryTerm =
+        RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
+    searchCriteria.setTerm(queryTerm);
+    log.debug("  Search = " + searchCriteria);
 
     try {
-      result = elasticSearchService.elasticsearch(filterCriteriaElasticFields);
+      return elasticSearchService.search(searchCriteria);
+
     } catch (IOException e) {
-      log.error("Unexpected HTTP error", e);
+      log.error("Unexpected IO error", e);
       String errorMessage = e.getMessage();
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
 
@@ -515,6 +481,6 @@ public class SearchController {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
           errorMessage);
     }
-    return result;
+
   }
 }
