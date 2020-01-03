@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Configuration;
 
 import gov.nih.nci.evs.api.properties.TestProperties;
 
-
-
 @Configuration
 @EnableConfigurationProperties({ TestProperties.class })
 public class TestConfiguration {
