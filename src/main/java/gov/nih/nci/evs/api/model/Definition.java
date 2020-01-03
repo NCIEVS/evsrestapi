@@ -11,6 +11,9 @@ public class Definition extends BaseModel {
   /** The definition. */
   private String definition;
 
+  /** The highlight. */
+  private String highlight;
+
   /** The type. */
   private String type;
 
@@ -24,11 +27,15 @@ public class Definition extends BaseModel {
     // n/a
   }
 
+  /**
+   * Instantiates a {@link Definition} from the specified parameters.
+   *
+   * @param other the other
+   */
   public Definition(EvsDefinition other) {
-definition=    other.getDefinition();
-source = other.getDefSource();
+    definition = other.getDefinition();
+    source = other.getDefSource();
   }
-
 
   /**
    * Instantiates a {@link Definition} from the specified parameters.
@@ -46,6 +53,7 @@ source = other.getDefSource();
    */
   public void populateFrom(final Definition other) {
     definition = other.getDefinition();
+    highlight = other.getHighlight();
     type = other.getType();
     source = other.getSource();
   }
@@ -66,6 +74,24 @@ source = other.getDefSource();
    */
   public void setDefinition(final String definition) {
     this.definition = definition;
+  }
+
+  /**
+   * Returns the highlight.
+   *
+   * @return the highlight
+   */
+  public String getHighlight() {
+    return highlight;
+  }
+
+  /**
+   * Sets the highlight.
+   *
+   * @param highlight the highlight
+   */
+  public void setHighlight(final String highlight) {
+    this.highlight = highlight;
   }
 
   /**

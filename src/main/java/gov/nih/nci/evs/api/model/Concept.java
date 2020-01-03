@@ -4,6 +4,10 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import gov.nih.nci.evs.api.model.evs.ConceptNode;
+import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
+
 /**
  * Represents a concept with a code from a terminology.
  * 
@@ -40,6 +44,15 @@ public class Concept extends BaseModel {
   /** The name. */
   private String name;
 
+  /** The highlight. */
+  private String highlight;
+
+  /** The level. */
+  private Integer level;
+
+  /** The leaf. */
+  private Boolean leaf;
+
   /** The synonyms. */
   private List<Synonym> synonyms;
 
@@ -49,6 +62,15 @@ public class Concept extends BaseModel {
   /** The properties. */
   private List<Property> properties;
 
+  /** The contributing sources. */
+  private List<String> contributingSources;
+
+  /** The children. */
+  private List<Concept> children;
+
+  /** The parents. */
+  private List<Concept> parents;
+
   /** The associations. */
   private List<Association> associations;
 
@@ -57,6 +79,9 @@ public class Concept extends BaseModel {
 
   /** The roles. */
   private List<Role> roles;
+
+  /** The disjoint with. */
+  private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
   private List<Role> inverseRoles;
@@ -81,6 +106,43 @@ public class Concept extends BaseModel {
   }
 
   /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public Concept(final EvsRelatedConcept other) {
+    code = other.getCode();
+    name = other.getLabel();
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public Concept(final ConceptNode other) {
+    code = other.getCode();
+    name = other.getLabel();
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public Concept(final HierarchyNode other) {
+    code = other.getCode();
+    name = other.getLabel();
+    level = other.getLevel();
+    if (other.getLeaf() != null && other.getLeaf()) {
+      leaf = other.getLeaf();
+    }
+    for (final HierarchyNode child : other.getChildren()) {
+      getChildren().add(new Concept(child));
+    }
+  }
+
+  /**
    * Populate from.
    *
    * @param other the other
@@ -88,13 +150,20 @@ public class Concept extends BaseModel {
   public void populateFrom(final Concept other) {
     code = other.getCode();
     name = other.getName();
+    highlight = other.getHighlight();
+    level = other.getLevel();
+    leaf = other.getLeaf();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
+    contributingSources = new ArrayList<>(other.getContributingSources());
+    children = new ArrayList<>(other.getChildren());
+    parents = new ArrayList<>(other.getParents());
     associations = new ArrayList<>(other.getAssociations());
     inverseAssociations = new ArrayList<>(other.getInverseAssociations());
     roles = new ArrayList<>(other.getRoles());
     inverseRoles = new ArrayList<>(other.getInverseRoles());
+    disjointWith = new ArrayList<>(other.getDisjointWith());
     maps = new ArrayList<>(other.getMaps());
   }
 
@@ -132,6 +201,60 @@ public class Concept extends BaseModel {
    */
   public void setName(final String name) {
     this.name = name;
+  }
+
+  /**
+   * Returns the highlight.
+   *
+   * @return the highlight
+   */
+  public String getHighlight() {
+    return highlight;
+  }
+
+  /**
+   * Sets the highlight.
+   *
+   * @param highlight the highlight
+   */
+  public void setHighlight(final String highlight) {
+    this.highlight = highlight;
+  }
+
+  /**
+   * Returns the level.
+   *
+   * @return the level
+   */
+  public Integer getLevel() {
+    return level;
+  }
+
+  /**
+   * Sets the level.
+   *
+   * @param level the level
+   */
+  public void setLevel(final Integer level) {
+    this.level = level;
+  }
+
+  /**
+   * Returns the leaf.
+   *
+   * @return the leaf
+   */
+  public Boolean getLeaf() {
+    return leaf;
+  }
+
+  /**
+   * Sets the leaf.
+   *
+   * @param leaf the leaf
+   */
+  public void setLeaf(final Boolean leaf) {
+    this.leaf = leaf;
   }
 
   /**
@@ -195,6 +318,69 @@ public class Concept extends BaseModel {
    */
   public void setProperties(final List<Property> properties) {
     this.properties = properties;
+  }
+
+  /**
+   * Returns the contributing sources.
+   *
+   * @return the contributing sources
+   */
+  public List<String> getContributingSources() {
+    if (contributingSources == null) {
+      contributingSources = new ArrayList<>();
+    }
+    return contributingSources;
+  }
+
+  /**
+   * Sets the contributing sources.
+   *
+   * @param contributingSources the contributing sources
+   */
+  public void setContributingSources(final List<String> contributingSources) {
+    this.contributingSources = contributingSources;
+  }
+
+  /**
+   * Returns the children.
+   *
+   * @return the children
+   */
+  public List<Concept> getChildren() {
+    if (children == null) {
+      children = new ArrayList<>();
+    }
+    return children;
+  }
+
+  /**
+   * Sets the children.
+   *
+   * @param children the children
+   */
+  public void setChildren(final List<Concept> children) {
+    this.children = children;
+  }
+
+  /**
+   * Returns the parents.
+   *
+   * @return the parents
+   */
+  public List<Concept> getParents() {
+    if (parents == null) {
+      parents = new ArrayList<>();
+    }
+    return parents;
+  }
+
+  /**
+   * Sets the parents.
+   *
+   * @param parents the parents
+   */
+  public void setParents(final List<Concept> parents) {
+    this.parents = parents;
   }
 
   /**
@@ -280,6 +466,27 @@ public class Concept extends BaseModel {
    */
   public void setInverseRoles(final List<Role> inverseRoles) {
     this.inverseRoles = inverseRoles;
+  }
+
+  /**
+   * Returns the disjoint with.
+   *
+   * @return the disjoint with
+   */
+  public List<DisjointWith> getDisjointWith() {
+    if (disjointWith == null) {
+      disjointWith = new ArrayList<>();
+    }
+    return disjointWith;
+  }
+
+  /**
+   * Sets the disjoint with.
+   *
+   * @param disjointWith the disjoint with
+   */
+  public void setDisjointWith(final List<DisjointWith> disjointWith) {
+    this.disjointWith = disjointWith;
   }
 
   /**

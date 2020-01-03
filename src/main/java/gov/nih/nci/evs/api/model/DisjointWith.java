@@ -4,31 +4,31 @@ package gov.nih.nci.evs.api.model;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 
 /**
- * Represents a role relationship between two concepts.
+ * Represents an disjointness association between two concepts.
  */
-public class Role extends Relationship {
+public class DisjointWith extends Relationship {
   /**
-   * Instantiates an empty {@link Role}.
+   * Instantiates an empty {@link DisjointWith}.
    */
-  public Role() {
+  public DisjointWith() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link Role} from the specified parameters.
+   * Instantiates a {@link DisjointWith} from the specified parameters.
    *
    * @param other the other
    */
-  public Role(final Role other) {
+  public DisjointWith(final DisjointWith other) {
     populateFrom(other);
   }
 
   /**
-   * Instantiates a {@link Role} from the specified parameters.
+   * Instantiates a {@link DisjointWith} from the specified parameters.
    *
    * @param other the other
    */
-  public Role(final EvsAssociation other) {
+  public DisjointWith(final EvsAssociation other) {
     setType(other.getRelationship());
     setRelatedCode(other.getRelatedConceptCode());
     setRelatedName(other.getRelatedConceptLabel());
@@ -39,7 +39,7 @@ public class Role extends Relationship {
    *
    * @param other the other
    */
-  public void populateFrom(final Role other) {
+  public void populateFrom(final DisjointWith other) {
     super.populateFrom(other);
   }
 

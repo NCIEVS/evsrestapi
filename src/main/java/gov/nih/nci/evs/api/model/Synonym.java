@@ -11,6 +11,9 @@ public class Synonym extends BaseModel {
   /** The name. */
   private String name;
 
+  /** The highlight. */
+  private String highlight;
+
   /** The term group. */
   private String termGroup;
 
@@ -64,6 +67,7 @@ public class Synonym extends BaseModel {
    */
   public void populateFrom(final Synonym other) {
     name = other.getName();
+    highlight = other.getHighlight();
     termGroup = other.getTermGroup();
     type = other.getType();
     source = other.getSource();
@@ -87,6 +91,24 @@ public class Synonym extends BaseModel {
    */
   public void setName(final String name) {
     this.name = name;
+  }
+
+  /**
+   * Returns the highlight.
+   *
+   * @return the highlight
+   */
+  public String getHighlight() {
+    return highlight;
+  }
+
+  /**
+   * Sets the highlight.
+   *
+   * @param highlight the highlight
+   */
+  public void setHighlight(final String highlight) {
+    this.highlight = highlight;
   }
 
   /**
