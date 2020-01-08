@@ -32,6 +32,7 @@ import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 import gov.nih.nci.evs.api.support.SearchCriteria;
+import gov.nih.nci.evs.api.support.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -361,7 +362,6 @@ public class SearchController {
       for (FieldError error : errors) {
         log.debug("field name :" + error.getField());
         log.debug("Error Code :" + error.getCode());
-        String newlinetest = System.getProperty("line.separator");
         if (error.getCode().equalsIgnoreCase("typeMismatch")) {
           errorMessage =
               errorMessage + "Could not convert the value of the field "
@@ -414,50 +414,50 @@ public class SearchController {
     return result;
   }
 
-//  /**
-//   * Search within a single terminology.
-//   *
-//   * @param terminology the terminology
-//   * @param searchCriteria the filter criteria elastic fields
-//   * @param bindingResult the binding result
-//   * @return the string
-//   * @throws IOException Signals that an I/O exception has occurred.
-//   */
-//  @ApiOperation(value = "Get concept search results", notes = "TBD"
-//
-//  )
-//  @ApiResponses(value = {
-//      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-//      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-//      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
-//      @ApiResponse(code = 404, message = "Resource not found")
-//  })
-//  @ApiImplicitParams({
-//      @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search", required = true, dataType = "string", paramType = "query"),
-//      @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched", required = true, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "type", value = "The match type contains, match, startswith, phrase, AND, OR, fuzzy.", required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
-//      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-//      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false, dataType = "string", paramType = "query", defaultValue = "0"),
-//      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false, dataType = "string", paramType = "query", defaultValue = "10"),
-//      @ApiImplicitParam(name = "conceptStatus", value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "property", value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "contributingSource", value = "Comma-separated list of contributing sources to restrict search results to. <a href='api/v1/metadata/ncit/contributingSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "definitionSource", value = "Comma-separated list of definition sources to restrict search results to.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "synonymSource", value = "Comma-separated list of synonym sources to restrict search results to.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "synonymTermGroup", value = "Comma-separated list of synonym term groups to restrict search results to. Use with \"synonymSource\".", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "inverse", value = "Used with \"associations\" or \"roles\" when true to indicate that inverse associations or roles should be searched", required = false, dataType = "string", paramType = "query", defaultValue = "false"),
-//      @ApiImplicitParam(name = "association", value = "Comma-separated list of associations to search. e.g A10,A215. <a href='api/v1/metadata/ncit/associations' target='_blank'>Click here for a list of NCI Thesaurus associations.</a>. The associations can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
-//      @ApiImplicitParam(name = "role", value = "Comma-separated list of roles to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles' target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The roles can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = "")
-//  })
-//  @RecordMetricSearch
-//  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search", produces = "application/json")
-//  public @ResponseBody ConceptResultList searchSingleTerminology(
-//    @PathVariable(value = "terminology") final String terminology,
-//    @ModelAttribute SearchCriteria searchCriteria, BindingResult bindingResult)
-//    throws IOException {
-//    searchCriteria.getTerminology().add(terminology);
-//    return search(searchCriteria, bindingResult);
-//  }
+  /**
+   * Search within a single terminology.
+   *
+   * @param terminology the terminology
+   * @param searchCriteria the filter criteria elastic fields
+   * @param bindingResult the binding result
+   * @return the string
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @ApiOperation(value = "Get concept search results", notes = "TBD"
+
+  )
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search", required = true, dataType = "string", paramType = "query"),
+      @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched", required = true, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "type", value = "The match type contains, match, startswith, phrase, AND, OR, fuzzy.", required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false, dataType = "string", paramType = "query", defaultValue = "10"),
+      @ApiImplicitParam(name = "conceptStatus", value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "property", value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "contributingSource", value = "Comma-separated list of contributing sources to restrict search results to. <a href='api/v1/metadata/ncit/contributingSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "definitionSource", value = "Comma-separated list of definition sources to restrict search results to.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymSource", value = "Comma-separated list of synonym sources to restrict search results to.", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymTermGroup", value = "Comma-separated list of synonym term groups to restrict search results to. Use with \"synonymSource\".", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "inverse", value = "Used with \"associations\" or \"roles\" when true to indicate that inverse associations or roles should be searched", required = false, dataType = "string", paramType = "query", defaultValue = "false"),
+      @ApiImplicitParam(name = "association", value = "Comma-separated list of associations to search. e.g A10,A215. <a href='api/v1/metadata/ncit/associations' target='_blank'>Click here for a list of NCI Thesaurus associations.</a>. The associations can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "role", value = "Comma-separated list of roles to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles' target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The roles can be specified as code or label", required = false, dataType = "string", paramType = "query", defaultValue = "")
+  })
+  @RecordMetricSearch
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search", produces = "application/json")
+  public @ResponseBody ConceptResultList searchSingleTerminology(
+    @PathVariable(value = "terminology") final String terminology,
+    @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
+    BindingResult bindingResult) throws IOException {
+    return search(new SearchCriteria(searchCriteria, terminology),
+        bindingResult);
+  }
 
   /**
    * Search.

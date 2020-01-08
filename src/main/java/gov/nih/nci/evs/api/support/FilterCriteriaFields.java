@@ -10,25 +10,25 @@ public class FilterCriteriaFields {
 	public String getLimit() {
 		return limit;
 	}
-	public void setLimit(String limit) {
+	public void setLimit(final String limit) {
 		this.limit = limit;
 	}
 	public String getType() {
 		return type;
 	}
-	public void setType(String type) {
+	public void setType(final String type) {
 		this.type = type;
 	}
 	public String getTerm() {
 		return term;
 	}
-	public void setTerm(String term) {
+	public void setTerm(final String term) {
 		this.term = term;
 	}
 	public String getProperty() {
 		return property;
 	}
-	public void setProperty(String property) {
+	public void setProperty(final String property) {
 		this.property = property;
 	}
 

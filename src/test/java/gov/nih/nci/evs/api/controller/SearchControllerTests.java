@@ -100,12 +100,12 @@ public class SearchControllerTests {
     assertThat(list.getParameters().getPageSize()).isEqualTo(10);
 
     // Test a basic term search with single terminology form
-//    url = "/api/v1/concept/ncit/search";
-//    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma");
-//    result = this.mvc.perform(get(url).param("term", "melanoma"))
-//        .andExpect(status().isOk()).andReturn();
-//    final String content2 = result.getResponse().getContentAsString();
-//    assertThat(content).isEqualTo(content2);
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma");
+    result = this.mvc.perform(get(url).param("term", "melanoma"))
+        .andExpect(status().isOk()).andReturn();
+    final String content2 = result.getResponse().getContentAsString();
+    assertThat(content).isEqualTo(content2);
 
   }
 
@@ -138,7 +138,8 @@ public class SearchControllerTests {
     log.info(
         "Testing url - " + url + "?terminology=ncit&term=melanoma&include=XXX");
     mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-        .param("include", "XXX")).andExpect(status().isInternalServerError()).andReturn();
+        .param("include", "XXX")).andExpect(status().isInternalServerError())
+        .andReturn();
     // content is blank because of MockMvc
 
   }
@@ -161,7 +162,7 @@ public class SearchControllerTests {
     // Test a basic term search
     result = this.mvc
         .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-            .param("include", "synonym"))
+            .param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     assertThat(content).isNotNull();
@@ -180,16 +181,16 @@ public class SearchControllerTests {
     assertThat(list.getParameters().getPageSize()).isEqualTo(10);
 
     // Test a basic term search with single terminology form
-    // url = "/api/v1/concept/ncit/search";
-    // log.info("Testing url - " + url
-    // + "?terminology=ncit&term=melanoma&include=synonyms");
-    //
-    // result = this.mvc
-    // .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-    // .param("include", "synonyms"))
-    // .andExpect(status().isOk()).andReturn();
-    // final String content2 = result.getResponse().getContentAsString();
-    // assertThat(content).isEqualTo(content2);
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=melanoma&include=synonyms");
+
+    result = this.mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    final String content2 = result.getResponse().getContentAsString();
+    assertThat(content).isEqualTo(content2);
 
   }
 

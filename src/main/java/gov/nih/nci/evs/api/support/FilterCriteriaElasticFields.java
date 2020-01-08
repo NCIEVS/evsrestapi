@@ -24,7 +24,7 @@ public class FilterCriteriaElasticFields {
 		return hierarchySearch;
 	}
 
-	public void setHierarchySearch(String hierarchySearch) {
+	public void setHierarchySearch(final String hierarchySearch) {
 		this.hierarchySearch = hierarchySearch;
 	}
 
@@ -34,7 +34,7 @@ public class FilterCriteriaElasticFields {
 		return roleSearch;
 	}
 
-	public void setRoleSearch(String roleSearch) {
+	public void setRoleSearch(final String roleSearch) {
 		this.roleSearch = roleSearch;
 	}
 
@@ -42,7 +42,7 @@ public class FilterCriteriaElasticFields {
 		return associationSearch;
 	}
 
-	public void setAssociationSearch(String associationSearch) {
+	public void setAssociationSearch(final String associationSearch) {
 		this.associationSearch = associationSearch;
 	}
 
@@ -50,7 +50,7 @@ public class FilterCriteriaElasticFields {
 		return format;
 	}
 
-	public void setFormat(String format) {
+	public void setFormat(final String format) {
 		this.format = format;
 	}
 
@@ -58,7 +58,7 @@ public class FilterCriteriaElasticFields {
 		return fromRecord;
 	}
 
-	public void setFromRecord(Integer fromRecord) {
+	public void setFromRecord(final Integer fromRecord) {
 		this.fromRecord = fromRecord;
 	}
 
@@ -66,7 +66,7 @@ public class FilterCriteriaElasticFields {
 		return pageSize;
 	}
 
-	public void setPageSize(Integer pageSize) {
+	public void setPageSize(final Integer pageSize) {
 		this.pageSize = pageSize;
 	}
 	
@@ -75,7 +75,7 @@ public class FilterCriteriaElasticFields {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(final String type) {
 		this.type = type;
 	}
 
@@ -83,7 +83,7 @@ public class FilterCriteriaElasticFields {
 		return term;
 	}
 
-	public void setTerm(String term) {
+	public void setTerm(final String term) {
 		this.term = term;
 	}
 
@@ -91,7 +91,7 @@ public class FilterCriteriaElasticFields {
 		return property;
 	}
 
-	public void setProperty(ArrayList<String> property) {
+	public void setProperty(final ArrayList<String> property) {
 		this.property = property;
 	}
 
@@ -99,7 +99,7 @@ public class FilterCriteriaElasticFields {
 		return returnProperties;
 	}
 
-	public void setReturnProperties(ArrayList<String> returnProperties) {
+	public void setReturnProperties(final ArrayList<String> returnProperties) {
 		this.returnProperties = returnProperties;
 	}
 
@@ -107,7 +107,7 @@ public class FilterCriteriaElasticFields {
 		return synonymSource;
 	}
 
-	public void setSynonymSource(ArrayList<String> synonymSource) {
+	public void setSynonymSource(final ArrayList<String> synonymSource) {
 		this.synonymSource = synonymSource;
 	}
 
@@ -115,7 +115,7 @@ public class FilterCriteriaElasticFields {
 		return relationship;
 	}
 
-	public void setRelationship(ArrayList<String> relationship) {
+	public void setRelationship(final ArrayList<String> relationship) {
 		this.relationship = relationship;
 	}
 
@@ -123,7 +123,7 @@ public class FilterCriteriaElasticFields {
 		return synonymGroup;
 	}
 
-	public void setSynonymGroup(String synonymGroup) {
+	public void setSynonymGroup(final String synonymGroup) {
 		this.synonymGroup = synonymGroup;
 	}
 
@@ -131,7 +131,7 @@ public class FilterCriteriaElasticFields {
 		return definitionSource;
 	}
 
-	public void setDefinitionSource(ArrayList<String> definitionSource) {
+	public void setDefinitionSource(final ArrayList<String> definitionSource) {
 		this.definitionSource = definitionSource;
 	}
 
@@ -139,7 +139,7 @@ public class FilterCriteriaElasticFields {
 		return conceptStatus;
 	}
 
-	public void setConceptStatus(ArrayList<String> conceptStatus) {
+	public void setConceptStatus(final ArrayList<String> conceptStatus) {
 		this.conceptStatus = conceptStatus;
 	}
 
@@ -147,7 +147,7 @@ public class FilterCriteriaElasticFields {
 		return contributingSource;
 	}
 
-	public void setContributingSource(ArrayList<String> contributingSource) {
+	public void setContributingSource(final ArrayList<String> contributingSource) {
 		this.contributingSource = contributingSource;
 	}
 

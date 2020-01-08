@@ -13,7 +13,7 @@ public class ConceptCriteriaFields {
 		return concepts;
 	}
 
-	public void setConcepts(List<String> concepts) {
+	public void setConcepts(final List<String> concepts) {
 		this.concepts = concepts;
 	}
 
@@ -21,7 +21,7 @@ public class ConceptCriteriaFields {
 		return db;
 	}
 
-	public void setDb(String db) {
+	public void setDb(final String db) {
 		this.db = db;
 	}
 
@@ -29,7 +29,7 @@ public class ConceptCriteriaFields {
 		return fmt;
 	}
 
-	public void setFmt(String fmt) {
+	public void setFmt(final String fmt) {
 		this.fmt = fmt;
 	}
 
@@ -37,7 +37,7 @@ public class ConceptCriteriaFields {
 		return properties;
 	}
 
-	public void setProperties(List<String> properties) {
+	public void setProperties(final List<String> properties) {
 		this.properties = properties;
 	}
 

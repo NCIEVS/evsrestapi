@@ -8,7 +8,7 @@ public class FilterParameter {
 		return searchterm;
 	}
 
-	public void setSearchterm(String searchterm) {
+	public void setSearchterm(final String searchterm) {
 		this.searchterm = searchterm;
 	}
 	
