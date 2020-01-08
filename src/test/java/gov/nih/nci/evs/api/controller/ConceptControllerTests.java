@@ -102,22 +102,18 @@ public class ConceptControllerTests {
   @Test
   public void testBadGetConcept() throws Exception {
     String url = null;
-    MvcResult result = null;
-    String content = null;
 
     // Bad terminology
     url = baseUrl + "/ncitXXX/C3224";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    // content is blank because of MockMvc
 
     // Bad lookup
     url = baseUrl + "/ncit/NOTACODE";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    // content is blank because of MockMvc
 
   }
 

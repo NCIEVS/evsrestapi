@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 import gov.nih.nci.evs.api.support.SearchCriteria;
@@ -138,7 +140,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @throws JsonProcessingException the json processing exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private String constructReturnResponse(String responseStr,
+  @SuppressWarnings("unused")
+  private ConceptResultList constructReturnResponse(String responseStr,
     SearchCriteria searchCriteria) throws JsonProcessingException, IOException {
     String returnStr = "";
 
@@ -148,43 +151,33 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // get the total hits
     JsonNode totalHits = jsonNode.path("hits").path("total");
-    log.info("XXX = " + jsonNode);
+
     // adding the highlights to the concepts
     List<JsonNode> sources = jsonNode.findValues("_source");
+
     // TODO:
-    // List<JsonNode> highlights = jsonNode.findValues("highlight");
+    List<JsonNode> highlights = jsonNode.findValues("highlight");
     // int count = 0;
     // for (JsonNode node : sources) {
     // ((ObjectNode) node).set("highlight", highlights.get(count));
     // count++;
     // }
 
-    // create a new node
-    JsonNode rootNode = mapper.createObjectNode();
-
-    // add pagesize and from
-    ObjectNode newRootNode =
-        ((ObjectNode) rootNode).put("from", searchCriteria.getFromRecord());
-    newRootNode = newRootNode.put("size", searchCriteria.getPageSize());
-    newRootNode = (ObjectNode) newRootNode.set("total", totalHits);
-
-    // adding the array for concept hits
-    ArrayNode newArrayNode = ((ObjectNode) newRootNode).putArray("hits");
+    final ConceptResultList result = new ConceptResultList();
+    result.setTotal(totalHits.asInt());
+    result.setParameters(searchCriteria);
 
     for (JsonNode node : sources) {
-      newArrayNode.add(node);
+      result.getConcepts().add(new Concept(node.get("Code").asText()));
     }
 
-    Object json = mapper.readValue(newRootNode.toString(), Object.class);
-    returnStr =
-        mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
-
-    return returnStr;
+    return result;
   }
 
   /* see superclass */
   @SuppressWarnings("unchecked")
-  public String search(SearchCriteria searchCriteria)
+  @Override
+  public ConceptResultList search(SearchCriteria searchCriteria)
     throws IOException, HttpClientErrorException {
     String responseStr = "";
 
@@ -249,9 +242,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // construct return response
-    responseStr = constructReturnResponse(responseStr, searchCriteria);
+    return constructReturnResponse(responseStr, searchCriteria);
 
-    return responseStr;
   }
 
   /**

@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -69,23 +70,126 @@ public class SearchControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void getSearchSimple() throws Exception {
+  public void testSearchTerm() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-    String url = baseUrl;
-    log.info("Testing url - " + url);
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma");
 
-    MvcResult result = this.mvc
+    // Test a basic term search
+    result = this.mvc
         .perform(
             get(url).param("terminology", "ncit").param("term", "melanoma"))
         .andExpect(status().isOk()).andReturn();
-    String content = result.getResponse().getContentAsString();
-    log.info("XXX = " + content);
+    content = result.getResponse().getContentAsString();
     assertThat(content).isNotNull();
+
+    ConceptResultList list =
+        new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(10);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getSynonyms()).isEmpty();
+    assertThat(list.getTotal()).isGreaterThan(100);
+    assertThat(list.getParameters().getTerm()).isEqualTo("melanoma");
+    assertThat(list.getParameters().getType()).isEqualTo("contains");
+    assertThat(list.getParameters().getFromRecord()).isEqualTo(0);
+    assertThat(list.getParameters().getPageSize()).isEqualTo(10);
+
+    // Test a basic term search with single terminology form
+//    url = "/api/v1/concept/ncit/search";
+//    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma");
+//    result = this.mvc.perform(get(url).param("term", "melanoma"))
+//        .andExpect(status().isOk()).andReturn();
+//    final String content2 = result.getResponse().getContentAsString();
+//    assertThat(content).isEqualTo(content2);
+
+  }
+
+  /**
+   * Test bad search.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testBadSearch() throws Exception {
+    String url = null;
+
+    // Bad terminology
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncitXXX&term=melanoma");
+    mvc.perform(
+        get(url).param("terminology", "ncitXXX").param("term", "melanoma"))
+        .andExpect(status().isNotFound()).andReturn();
+    // content is blank because of MockMvc
+
+    // Missing "term" parameter
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit");
+    mvc.perform(get(url).param("terminology", "ncit"))
+        .andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
+    // Invalid "include" parameter
+    url = baseUrl;
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&include=XXX");
+    mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+        .param("include", "XXX")).andExpect(status().isInternalServerError()).andReturn();
+    // content is blank because of MockMvc
+
+  }
+
+  /**
+   * Test search include.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchInclude() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    url = baseUrl;
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=melanoma&include=synonyms");
+
+    // Test a basic term search
+    result = this.mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("include", "synonym"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    ConceptResultList list =
+        new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(10);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getSynonyms()).isNotEmpty();
+    assertThat(list.getTotal()).isGreaterThan(100);
+    assertThat(list.getParameters().getTerm()).isEqualTo("melanoma");
+    assertThat(list.getParameters().getType()).isEqualTo("contains");
+    assertThat(list.getParameters().getFromRecord()).isEqualTo(0);
+    assertThat(list.getParameters().getPageSize()).isEqualTo(10);
+
+    // Test a basic term search with single terminology form
+    // url = "/api/v1/concept/ncit/search";
+    // log.info("Testing url - " + url
+    // + "?terminology=ncit&term=melanoma&include=synonyms");
     //
-    // JsonNode jsonNode = this.objectMapper.readTree(content);
-    // jsonNode = jsonNode.path("hits");
-    // jsonNode = jsonNode.path("total");
-    // assertThat(jsonNode.intValue() > 0).isTrue();
+    // result = this.mvc
+    // .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+    // .param("include", "synonyms"))
+    // .andExpect(status().isOk()).andReturn();
+    // final String content2 = result.getResponse().getContentAsString();
+    // assertThat(content).isEqualTo(content2);
 
   }
 
@@ -99,7 +203,7 @@ public class SearchControllerTests {
   //
   //
   // MvcResult result =
-  // this.mvc.perform(get(url).param("term","carcinoma").param("format","clean"))
+  // mvc.perform(get(url).param("term","carcinoma").param("format","clean"))
   // .andExpect(status().isOk())
   // .andReturn();
   // String content = result.getResponse().getContentAsString();
@@ -137,7 +241,7 @@ public class SearchControllerTests {
   // log.info("Testing url - " + url);
   //
   //
-  // MvcResult result = this.mvc.perform(get(url).param("term","Lung
+  // MvcResult result = mvc.perform(get(url).param("term","Lung
   // Carcinoma").param("format","clean").param("type", "match"))
   // .andExpect(status().isOk())
   // .andReturn();
@@ -176,7 +280,7 @@ public class SearchControllerTests {
   //
   //
   // MvcResult result =
-  // this.mvc.perform(get(url).param("term","enzymi").param("format","clean").param("type",
+  // mvc.perform(get(url).param("term","enzymi").param("format","clean").param("type",
   // "fuzzy"))
   // .andExpect(status().isOk())
   // .andReturn();
@@ -215,7 +319,7 @@ public class SearchControllerTests {
   //
   //
   // MvcResult result =
-  // this.mvc.perform(get(url).param("term","XAV05295I5").param("format","cleanWithHighlights").param("property",
+  // mvc.perform(get(url).param("term","XAV05295I5").param("format","cleanWithHighlights").param("property",
   // "fda_unii_code"))
   // .andExpect(status().isOk())
   // .andReturn();
@@ -258,7 +362,7 @@ public class SearchControllerTests {
   //
   //
   // MvcResult result =
-  // this.mvc.perform(get(url).param("term","carcinoma").param("format","clean").param("returnProperties",
+  // mvc.perform(get(url).param("term","carcinoma").param("format","clean").param("returnProperties",
   // "roles"))
   // .andExpect(status().isOk())
   // .andReturn();
@@ -303,7 +407,7 @@ public class SearchControllerTests {
   //
   //
   // MvcResult result =
-  // this.mvc.perform(get(url).param("term","carcinoma").param("format","clean").param("returnProperties",
+  // mvc.perform(get(url).param("term","carcinoma").param("format","clean").param("returnProperties",
   // "roles,definition"))
   // .andExpect(status().isOk())
   // .andReturn();
@@ -348,7 +452,7 @@ public class SearchControllerTests {
   //
   //
   // MvcResult result =
-  // this.mvc.perform(get(url).param("term","dsDNA").param("format","clean").param("synonymSource",
+  // mvc.perform(get(url).param("term","dsDNA").param("format","clean").param("synonymSource",
   // "NCI"))
   // .andExpect(status().isOk())
   // .andReturn();
@@ -403,7 +507,7 @@ public class SearchControllerTests {
   //
   //
   // MvcResult result =
-  // this.mvc.perform(get(url).param("term","melanoma").param("format","clean").param("conceptStatus",
+  // mvc.perform(get(url).param("term","melanoma").param("format","clean").param("conceptStatus",
   // "Retired_Concept"))
   // .andExpect(status().isOk())
   // .andReturn();

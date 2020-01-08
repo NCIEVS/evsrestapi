@@ -99,6 +99,15 @@ public class Concept extends BaseModel {
   /**
    * Instantiates a {@link Concept} from the specified parameters.
    *
+   * @param code the code
+   */
+  public Concept(final String code) {
+    this.code = code;
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
    * @param other the other
    */
   public Concept(final Concept other) {

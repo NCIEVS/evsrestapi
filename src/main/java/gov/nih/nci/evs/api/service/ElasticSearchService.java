@@ -5,11 +5,13 @@ import java.io.IOException;
 
 import org.springframework.web.client.HttpClientErrorException;
 
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 import gov.nih.nci.evs.api.support.SearchCriteria;
 
 /**
- * Represents a service that performs a search against an elasticsearch endpoint.
+ * Represents a service that performs a search against an elasticsearch
+ * endpoint.
  */
 public interface ElasticSearchService {
 
@@ -33,7 +35,7 @@ public interface ElasticSearchService {
    * @throws IOException Signals that an I/O exception has occurred.
    * @throws HttpClientErrorException the http client error exception
    */
-  public String search(SearchCriteria searchCriteria)
+  public ConceptResultList search(SearchCriteria searchCriteria)
     throws IOException, HttpClientErrorException;
 
 }

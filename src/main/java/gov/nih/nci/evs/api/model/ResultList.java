@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api.model;
 
+import gov.nih.nci.evs.api.support.SearchCriteria;
+
 /**
  * Represents a list of results with paging parameters.
  */
@@ -9,11 +11,8 @@ public class ResultList extends BaseModel {
   /** The total. */
   private Integer total;
 
-  /** The from record. */
-  private Integer fromRecord;
-
-  /** The page size. */
-  private Integer pageSize;
+  /** The parameters. */
+  private SearchCriteria parameters;
 
   /**
    * Instantiates an empty {@link ResultList}.
@@ -38,8 +37,7 @@ public class ResultList extends BaseModel {
    */
   public void populateFrom(final ResultList other) {
     total = other.getTotal();
-    fromRecord = other.getFromRecord();
-    pageSize = other.getPageSize();
+    parameters = other.getParameters();
   }
 
   /**
@@ -60,88 +58,54 @@ public class ResultList extends BaseModel {
     this.total = total;
   }
 
+
   /**
-   * Returns the from record.
+   * Returns the parameters.
    *
-   * @return the from record
+   * @return the parameters
    */
-  public Integer getFromRecord() {
-    return fromRecord;
+  public SearchCriteria getParameters() {
+    return parameters;
   }
 
   /**
-   * Sets the from record.
+   * Sets the parameters.
    *
-   * @param fromRecord the from record
+   * @param parameters the parameters
    */
-  public void setFromRecord(final Integer fromRecord) {
-    this.fromRecord = fromRecord;
+  public void setParameters(final SearchCriteria parameters) {
+    this.parameters = parameters;
   }
 
-  /**
-   * Returns the page size.
-   *
-   * @return the page size
-   */
-  public Integer getPageSize() {
-    return pageSize;
-  }
-
-  /**
-   * Sets the page size.
-   *
-   * @param pageSize the page size
-   */
-  public void setPageSize(final Integer pageSize) {
-    this.pageSize = pageSize;
-  }
-
-  /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result =
-        prime * result + ((fromRecord == null) ? 0 : fromRecord.hashCode());
-    result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
+        prime * result + ((parameters == null) ? 0 : parameters.hashCode());
     result = prime * result + ((total == null) ? 0 : total.hashCode());
     return result;
   }
 
-  /* see superclass */
   @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
+  public boolean equals(Object obj) {
+    if (this == obj)
       return true;
-    }
-    if (obj == null) {
+    if (obj == null)
       return false;
-    }
-    if (getClass() != obj.getClass()) {
+    if (getClass() != obj.getClass())
       return false;
-    }
-    final ResultList other = (ResultList) obj;
-    if (fromRecord == null) {
-      if (other.fromRecord != null) {
+    ResultList other = (ResultList) obj;
+    if (parameters == null) {
+      if (other.parameters != null)
         return false;
-      }
-    } else if (!fromRecord.equals(other.fromRecord)) {
+    } else if (!parameters.equals(other.parameters))
       return false;
-    }
-    if (pageSize == null) {
-      if (other.pageSize != null) {
-        return false;
-      }
-    } else if (!pageSize.equals(other.pageSize)) {
-      return false;
-    }
     if (total == null) {
-      if (other.total != null) {
+      if (other.total != null)
         return false;
-      }
-    } else if (!total.equals(other.total)) {
+    } else if (!total.equals(other.total))
       return false;
-    }
     return true;
   }
 
