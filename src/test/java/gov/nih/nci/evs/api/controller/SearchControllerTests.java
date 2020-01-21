@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +23,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -194,6 +197,70 @@ public class SearchControllerTests {
 
   }
 
+  /**
+   * Test page size from page.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeFromRecord() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    // Page size smaller than default
+    url = baseUrl;
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=2");
+
+    // Test a basic term search
+    result =
+        this.mvc
+            .perform(get(url).param("terminology", "ncit")
+                .param("term", "melanoma").param("pageSize", "2"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(2);
+    // From 5 with page size of 9 (should match the last 9 records of
+    // pageSize of 14
+    url = baseUrl;
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=melanoma&pageSize=9&fromRecord=5");
+
+    // Test a basic term search
+    result = this.mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("pageSize", "9").param("fromRecord", "5"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(9);
+    final List<Concept> cl1 = list.getConcepts();
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=14");
+
+    // Test a basic term search
+    result =
+        this.mvc
+            .perform(get(url).param("terminology", "ncit")
+                .param("term", "melanoma").param("pageSize", "14"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(14);
+    assertThat(list.getConcepts().subList(5, 14).toString())
+        .isEqualTo(cl1.toString());
+  }
   //
   // @Test
   // public void getSearchFormatClean() throws Exception {
