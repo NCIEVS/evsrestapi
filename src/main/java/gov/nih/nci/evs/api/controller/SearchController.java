@@ -531,8 +531,12 @@ public class SearchController {
       if (searchCriteria.getTerminology().size() > 1) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "Search currently supports only terminology ncit");
+      } else if (searchCriteria.getTerminology().size() == 0) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Required parameter 'terminology' is missing");
       }
       // Look up info for all the concepts
+
       final String terminology = searchCriteria.getTerminology().get(0);
       final Terminology term = TerminologyUtils
           .getTerminology(sparqlQueryManagerService, terminology);

@@ -104,7 +104,7 @@ public class SearchControllerTests {
 
     // Test a basic term search with single terminology form
     url = "/api/v1/concept/ncit/search";
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma");
+    log.info("Testing url - " + url + "?term=melanoma");
     result = this.mvc.perform(get(url).param("term", "melanoma"))
         .andExpect(status().isOk()).andReturn();
     final String content2 = result.getResponse().getContentAsString();
@@ -133,6 +133,13 @@ public class SearchControllerTests {
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=ncit");
     mvc.perform(get(url).param("terminology", "ncit"))
+        .andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
+    // Missing "terminology" parameter
+    url = baseUrl;
+    log.info("Testing url - " + url + "?term=melanoma");
+    mvc.perform(get(url).param("melanoma", "melanoma"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
@@ -261,6 +268,71 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().subList(5, 14).toString())
         .isEqualTo(cl1.toString());
   }
+
+  /**
+   * Returns the search property.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchProperty() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=XAV05295I5&property=fda_unii_code&include=properties");
+
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("include", "properties")
+                .param("term", "XAV05295I5").param("property", "fda_unii_code"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("content -" + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
+    assertThat(list.getConcepts().get(0).getProperties().stream()
+        .filter(p -> p.getType().equals("FDA_UNII_Code")).count())
+            .isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getProperties().stream()
+        .filter(p -> p.getType().equals("FDA_UNII_Code")).findFirst().get()
+        .getValue()).isEqualTo("XAV05295I5");
+
+
+    // With property code also - P319
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=XAV05295I5&property=P319&include=properties");
+
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("include", "properties")
+                .param("term", "XAV05295I5").param("property", "P319"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("content -" + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
+    assertThat(list.getConcepts().get(0).getProperties().stream()
+        .filter(p -> p.getType().equals("FDA_UNII_Code")).count())
+            .isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getProperties().stream()
+        .filter(p -> p.getType().equals("FDA_UNII_Code")).findFirst().get()
+        .getValue()).isEqualTo("XAV05295I5");
+
+    // TODO: BAD property type - 404?
+
+    log.info("Done Testing getSearchProperty ");
+  }
+
   //
   // @Test
   // public void getSearchFormatClean() throws Exception {
