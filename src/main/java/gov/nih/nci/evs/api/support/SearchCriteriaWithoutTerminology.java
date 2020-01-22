@@ -4,14 +4,18 @@ package gov.nih.nci.evs.api.support;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
- * Search criteria object for /concept/search implementation without a terminology field.
+ * Search criteria object for /concept/search implementation without a
+ * terminology field.
  */
 public class SearchCriteriaWithoutTerminology extends BaseModel {
-
 
   /** The term. */
   private String term;
@@ -63,11 +67,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
-   * Instantiates a {@link SearchCriteriaWithoutTerminology} from the specified parameters.
+   * Instantiates a {@link SearchCriteriaWithoutTerminology} from the specified
+   * parameters.
    *
    * @param other the other
    */
-  public SearchCriteriaWithoutTerminology(final SearchCriteriaWithoutTerminology other) {
+  public SearchCriteriaWithoutTerminology(
+      final SearchCriteriaWithoutTerminology other) {
     populateFrom(other);
   }
 
@@ -396,6 +402,34 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     return "term";
   }
 
+  /**
+   * Validate.
+   */
+  public void validate() {
+    if (getTerm() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Required parameter 'term' is missing");
+    }
+
+    if (!TerminologyUtils
+        .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy")
+        .contains(getType())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Required parameter 'type' has an invalid value = " + type);
+    }
+
+    if (fromRecord < 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
+    }
+
+    if (pageSize < 0 || pageSize > 1000) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Parameter 'pageSize' must be between 0 and 1000 = " + pageSize);
+    }
+
+  }
+
   /* see superclass */
   @Override
   public int hashCode() {
@@ -437,7 +471,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final SearchCriteriaWithoutTerminology other = (SearchCriteriaWithoutTerminology) obj;
+    final SearchCriteriaWithoutTerminology other =
+        (SearchCriteriaWithoutTerminology) obj;
     if (association == null) {
       if (other.association != null) {
         return false;

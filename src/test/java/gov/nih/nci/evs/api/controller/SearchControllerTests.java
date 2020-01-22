@@ -267,6 +267,52 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isEqualTo(14);
     assertThat(list.getConcepts().subList(5, 14).toString())
         .isEqualTo(cl1.toString());
+
+    // Bad page size = -1
+    url = baseUrl;
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=-1");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("pageSize", "-1"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // Bad page size = 1001
+    url = baseUrl;
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=1001");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("pageSize", "1001"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // Bad from record = -1
+    url = baseUrl;
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&fromRecord=-1");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("fromRecord", "-1"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // Bad page size = not a number
+    url = baseUrl;
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=ABC");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("pageSize", "ABC"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // Bad from record = not a number
+    url = baseUrl;
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=melanoma&formRecord=ABC");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("fromRecord", "ABC"))
+        .andExpect(status().isBadRequest()).andReturn();
+
   }
 
   /**
@@ -280,6 +326,7 @@ public class SearchControllerTests {
     String url = baseUrl;
     MvcResult result = null;
     String content = null;
+    String content2 = null;
     ConceptResultList list = null;
 
     log.info("Testing url - " + url
@@ -304,8 +351,21 @@ public class SearchControllerTests {
         .filter(p -> p.getType().equals("FDA_UNII_Code")).findFirst().get()
         .getValue()).isEqualTo("XAV05295I5");
 
+    // Test with single terminology form
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url
+        + "?term=XAV05295I5&property=fda_unii_code&include=properties");
+
+    result = this.mvc
+        .perform(get(url).param("include", "properties")
+            .param("term", "XAV05295I5").param("property", "fda_unii_code"))
+        .andExpect(status().isOk()).andReturn();
+    content2 = result.getResponse().getContentAsString();
+    log.info("content2 -" + content2);
+    assertThat(content).isEqualTo(content2);
 
     // With property code also - P319
+    url = baseUrl;
     log.info("Testing url - " + url
         + "?terminology=ncit&term=XAV05295I5&property=P319&include=properties");
 
@@ -328,261 +388,73 @@ public class SearchControllerTests {
         .filter(p -> p.getType().equals("FDA_UNII_Code")).findFirst().get()
         .getValue()).isEqualTo("XAV05295I5");
 
-    // TODO: BAD property type - 404?
+    // Test with single terminology form
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url
+        + "?term=XAV05295I5&property=P319&include=properties");
+
+    result = this.mvc
+        .perform(get(url).param("include", "properties")
+            .param("term", "XAV05295I5").param("property", "P319"))
+        .andExpect(status().isOk()).andReturn();
+    content2 = result.getResponse().getContentAsString();
+    log.info("content2 -" + content2);
+    assertThat(content).isEqualTo(content2);
+
+    // BAD property type
+    url = baseUrl;
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=XAV05295I5&property=P999999");
+
+    result = mvc
+        .perform(get(url).param("terminology", "ncit")
+            .param("term", "XAV05295I5").param("property", "P999999"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // Test with single terminology form
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url + "?term=XAV05295I5&property=P999999");
+
+    result = this.mvc
+        .perform(
+            get(url).param("term", "XAV05295I5").param("property", "P999999"))
+        .andExpect(status().isBadRequest()).andReturn();
 
     log.info("Done Testing getSearchProperty ");
   }
 
-  //
-  // @Test
-  // public void getSearchFormatClean() throws Exception {
-  //
-  //
-  // String url = baseUrl;
-  // log.info("Testing url - " + url);
-  //
-  //
-  // MvcResult result =
-  // mvc.perform(get(url).param("term","carcinoma").param("format","clean"))
-  // .andExpect(status().isOk())
-  // .andReturn();
-  // String content = result.getResponse().getContentAsString();
-  //
-  // assertThat(content).isNotNull();
-  //
-  // JsonNode jsonNode = this.objectMapper.readTree(content);
-  // JsonNode jsonNodeTotal = jsonNode.path("total");
-  // assertThat(jsonNodeTotal.intValue() > 0).isTrue();
-  // JsonNode jsonNodeSize = jsonNode.path("size");
-  // assertThat(jsonNodeSize.intValue() > 0).isTrue();
-  //
-  // JsonNode jsonNodeHits = jsonNode.path("hits");
-  // Iterator<JsonNode> iterator = jsonNodeHits.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode node = iterator.next();
-  // node = node.path("Label");
-  // log.info(node.textValue());
-  // assertThat(node.textValue()).isEqualToIgnoringCase("Carcinoma");
-  //
-  //
-  //
-  //
-  // log.info("Done Testing getSearchFormatClean ");
-  //
-  // }
-  //
-  //
-  // @Test
-  // public void getSearchTypeMatch() throws Exception {
-  //
-  //
-  // String url = baseUrl;
-  // log.info("Testing url - " + url);
-  //
-  //
-  // MvcResult result = mvc.perform(get(url).param("term","Lung
-  // Carcinoma").param("format","clean").param("type", "match"))
-  // .andExpect(status().isOk())
-  // .andReturn();
-  // String content = result.getResponse().getContentAsString();
-  //
-  // assertThat(content).isNotNull();
-  //
-  // JsonNode jsonNode = this.objectMapper.readTree(content);
-  // JsonNode jsonNodeTotal = jsonNode.path("total");
-  // assertThat(jsonNodeTotal.intValue() > 0).isTrue();
-  // JsonNode jsonNodeSize = jsonNode.path("size");
-  // assertThat(jsonNodeSize.intValue() > 0).isTrue();
-  //
-  // JsonNode jsonNodeHits = jsonNode.path("hits");
-  // Iterator<JsonNode> iterator = jsonNodeHits.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode node = iterator.next();
-  // node = node.path("Label");
-  // log.info(node.textValue());
-  // assertThat(node.textValue()).isEqualToIgnoringCase("Lung Carcinoma");
-  //
-  //
-  //
-  //
-  // log.info("Done Testing getSearchTypeMatch ");
-  //
-  // }
-  //
-  // @Test
-  // public void getSearchTypeFuzzy() throws Exception {
-  //
-  //
-  // String url = baseUrl;
-  // log.info("Testing url - " + url);
-  //
-  //
-  // MvcResult result =
-  // mvc.perform(get(url).param("term","enzymi").param("format","clean").param("type",
-  // "fuzzy"))
-  // .andExpect(status().isOk())
-  // .andReturn();
-  // String content = result.getResponse().getContentAsString();
-  //
-  // assertThat(content).isNotNull();
-  //
-  // JsonNode jsonNode = this.objectMapper.readTree(content);
-  // JsonNode jsonNodeTotal = jsonNode.path("total");
-  // assertThat(jsonNodeTotal.intValue() > 0).isTrue();
-  // JsonNode jsonNodeSize = jsonNode.path("size");
-  // assertThat(jsonNodeSize.intValue() > 0).isTrue();
-  //
-  // JsonNode jsonNodeHits = jsonNode.path("hits");
-  // Iterator<JsonNode> iterator = jsonNodeHits.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode node = iterator.next();
-  // node = node.path("Label");
-  // log.info(node.textValue());
-  // assertThat(node.textValue()).isEqualToIgnoringCase("Enzyme");
-  //
-  //
-  //
-  //
-  // log.info("Done Testing getSearchTypeFuzzy ");
-  //
-  // }
-  //
-  // @Test
-  // public void getSearchProperty() throws Exception {
-  //
-  //
-  // String url = baseUrl;
-  // log.info("Testing url - " + url);
-  //
-  //
-  // MvcResult result =
-  // mvc.perform(get(url).param("term","XAV05295I5").param("format","cleanWithHighlights").param("property",
-  // "fda_unii_code"))
-  // .andExpect(status().isOk())
-  // .andReturn();
-  // String content = result.getResponse().getContentAsString();
-  // log.info("content -" + content);
-  // assertThat(content).isNotNull();
-  //
-  // JsonNode jsonNode = this.objectMapper.readTree(content);
-  // JsonNode jsonNodeTotal = jsonNode.path("total");
-  // assertThat(jsonNodeTotal.intValue() > 0).isTrue();
-  // assertThat(jsonNodeTotal.intValue()).isEqualTo(1);
-  //
-  //
-  // JsonNode jsonNodeHits = jsonNode.path("hits");
-  // Iterator<JsonNode> iterator = jsonNodeHits.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode node = iterator.next();
-  // JsonNode nodeLabel = node.path("Label");
-  // log.info(nodeLabel.textValue());
-  // assertThat(nodeLabel.textValue()).isEqualToIgnoringCase("Sivifene");
-  // JsonNode nodeFDA = node.path("FDA_UNII_Code");
-  // Iterator<JsonNode> iteratorFDA = nodeFDA.elements();
-  // JsonNode nodeFDAValue = iteratorFDA.next();
-  // assertThat(nodeFDAValue.textValue()).isEqualToIgnoringCase("XAV05295I5");
-  //
-  //
-  //
-  // log.info("Done Testing getSearchProperty ");
-  //
-  // }
-  //
-  //
-  // @Test
-  // public void getSearchReturnProperty() throws Exception {
-  //
-  //
-  // String url = baseUrl;
-  // log.info("Testing url - " + url);
-  //
-  //
-  // MvcResult result =
-  // mvc.perform(get(url).param("term","carcinoma").param("format","clean").param("returnProperties",
-  // "roles"))
-  // .andExpect(status().isOk())
-  // .andReturn();
-  // String content = result.getResponse().getContentAsString();
-  // //log.info("content -" + content);
-  // assertThat(content).isNotNull();
-  //
-  // JsonNode jsonNode = this.objectMapper.readTree(content);
-  // JsonNode jsonNodeTotal = jsonNode.path("total");
-  // assertThat(jsonNodeTotal.intValue() > 0).isTrue();
-  //
-  //
-  //
-  // JsonNode jsonNodeHits = jsonNode.path("hits");
-  // Iterator<JsonNode> iterator = jsonNodeHits.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode node = iterator.next();
-  //
-  // JsonNode nodeRole = node.path("Role");
-  // Iterator<JsonNode> iteratorRole = nodeRole.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode nodeDefintion = node.path("DEFINITION");
-  // assertThat(nodeDefintion).isEmpty();
-  //
-  //
-  //
-  //
-  //
-  //
-  // log.info("Done Testing getSearchReturnProperty ");
-  //
-  // }
-  //
-  // @Test
-  // public void getSearchReturnPropertyWithDefinition() throws Exception {
-  //
-  //
-  // String url = baseUrl;
-  // log.info("Testing url - " + url);
-  //
-  //
-  // MvcResult result =
-  // mvc.perform(get(url).param("term","carcinoma").param("format","clean").param("returnProperties",
-  // "roles,definition"))
-  // .andExpect(status().isOk())
-  // .andReturn();
-  // String content = result.getResponse().getContentAsString();
-  // //log.info("content -" + content);
-  // assertThat(content).isNotNull();
-  //
-  // JsonNode jsonNode = this.objectMapper.readTree(content);
-  // JsonNode jsonNodeTotal = jsonNode.path("total");
-  // assertThat(jsonNodeTotal.intValue() > 0).isTrue();
-  //
-  //
-  //
-  // JsonNode jsonNodeHits = jsonNode.path("hits");
-  // Iterator<JsonNode> iterator = jsonNodeHits.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode node = iterator.next();
-  //
-  // JsonNode nodeRole = node.path("Role");
-  // Iterator<JsonNode> iteratorRole = nodeRole.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode nodeDefintion = node.path("DEFINITION");
-  // assertThat(nodeDefintion).isNotEmpty();
-  //
-  //
-  //
-  //
-  //
-  //
-  // log.info("Done Testing getSearchReturnPropertyWithDefinition ");
-  //
-  // }
-  //
+  /**
+   * Test search type fuzzy.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchType() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Fuzzy search
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=enzymi&type=fuzzy");
+
+    result = mvc.perform(get(url).param("terminology", "ncit")
+        .param("term", "enzymi").param("type", "fuzzy"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("content -" + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getName())
+        .isEqualToIgnoringCase("enzyme");
+
+    log.info("Done Testing getSearchType");
+
+  }
+
   // @Test
   // public void getSearchSynonym() throws Exception {
   //

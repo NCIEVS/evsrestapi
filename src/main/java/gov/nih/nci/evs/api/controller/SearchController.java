@@ -518,6 +518,7 @@ public class SearchController {
           "Missing required field = "
               + searchCriteria.computeMissingRequiredFields());
     }
+    searchCriteria.validate();
 
     final String queryTerm =
         RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());

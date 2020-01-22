@@ -143,7 +143,7 @@ public class SparqlQueryManagerServiceImpl
 
     // Weekly
     if (getNamedGraph("weekly").equals(getNamedGraph("monthly"))) {
-      log.info("  copy weekly to montly = " + classCountMonthly);
+      log.info("  copy weekly to monthly = " + classCountMonthly);
       classCountWeekly = classCountMonthly;
       hierarchyWeekly = hierarchyMonthly;
       pathsWeekly = pathsMonthly;
