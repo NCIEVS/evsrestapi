@@ -540,7 +540,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     StrSubstitutor sub = new StrSubstitutor(valuesMap);
     String resolvedString = sub.replace(templateString);
 
-    log.debug("query string - " + resolvedString);
+    log.info("query string - " + resolvedString);
     return resolvedString;
   }
 

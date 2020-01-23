@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
@@ -404,16 +405,17 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /**
    * Validate.
+   *
+   * @param thesaurusProperties the thesaurus properties
    */
-  public void validate() {
+  public void validate(final ThesaurusProperties thesaurusProperties) {
     if (getTerm() == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'term' is missing");
     }
 
-    if (!TerminologyUtils
-        .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy")
-        .contains(getType())) {
+    if (!TerminologyUtils.asSet("AND", "OR", "phrase", "exact", "contains",
+        "fuzzy", "match", "startsWith").contains(getType())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'type' has an invalid value = " + type);
     }
@@ -428,6 +430,21 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           "Parameter 'pageSize' must be between 0 and 1000 = " + pageSize);
     }
 
+    // Validate concept status
+    for (final String cs : getConceptStatus()) {
+      if (!thesaurusProperties.getConceptStatuses().values().contains(cs)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "Parameter 'conceptStatus' has an invalid value = " + cs);
+      }
+    }
+
+    // Validate contributing source
+    for (final String cs : getContributingSource()) {
+      if (!thesaurusProperties.getContributingSources().values().contains(cs)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "Parameter 'contributingSource' has an invalid value = " + cs);
+      }
+    }
   }
 
   /* see superclass */

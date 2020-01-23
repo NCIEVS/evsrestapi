@@ -28,6 +28,7 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
@@ -58,6 +59,10 @@ public class SearchController {
   /** The stardog properties. */
   @Autowired
   StardogProperties stardogProperties;
+
+  /** The thesaurus properties. */
+  @Autowired
+  ThesaurusProperties thesaurusProperties;
 
   /** The elastic search service. */
   @Autowired
@@ -518,7 +523,7 @@ public class SearchController {
           "Missing required field = "
               + searchCriteria.computeMissingRequiredFields());
     }
-    searchCriteria.validate();
+    searchCriteria.validate(thesaurusProperties);
 
     final String queryTerm =
         RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
