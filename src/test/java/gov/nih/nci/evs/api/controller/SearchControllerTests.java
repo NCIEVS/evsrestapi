@@ -671,7 +671,7 @@ public class SearchControllerTests {
         + "?terminology=ncit&term=dsDNA&synonymSource=NCI&synonymTermGroup=PT");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-            .param("synonymSource", "NCI").param("synonymTermGroup", "PT")
+            .param("synonymSource", "NCI").param("synonymTermGroup", "SY")
             .param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -683,7 +683,7 @@ public class SearchControllerTests {
     found = false;
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
       if (syn.getName().contains("dsDNA") && syn.getSource().equals("NCI")
-          && syn.getTermGroup().equals("PT")) {
+          && syn.getTermGroup().equals("SY")) {
         found = true;
         break;
       }
