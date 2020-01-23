@@ -445,6 +445,24 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
             "Parameter 'contributingSource' has an invalid value = " + cs);
       }
     }
+
+    // Validate synonym source - must be a valid contributing source
+    for (final String ss : getSynonymSource()) {
+      if (!ss.equals("NCI") && !thesaurusProperties.getContributingSources()
+          .values().contains(ss)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "Parameter 'synonymSource' has an invalid value = " + ss);
+      }
+    }
+
+    // Validate synonym source - must be a valid contributing source
+    for (final String ds : getDefinitionSource()) {
+      if (!ds.equals("NCI") && !thesaurusProperties.getContributingSources()
+          .values().contains(ds)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "Parameter 'definitionSource' has an invalid value = " + ds);
+      }
+    }
   }
 
   /* see superclass */

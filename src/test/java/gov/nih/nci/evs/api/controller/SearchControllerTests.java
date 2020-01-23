@@ -25,8 +25,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 
 /**
  * The Class SearchControllerTests.
@@ -590,6 +591,11 @@ public class SearchControllerTests {
 
   }
 
+  /**
+   * Test contributing source.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testContributingSource() throws Exception {
 
@@ -624,60 +630,101 @@ public class SearchControllerTests {
     log.info("Done Testing testSearchType");
 
   }
-  // @Test
-  // public void getSearchSynonym() throws Exception {
-  //
-  //
-  // String url = baseUrl;
-  // log.info("Testing url - " + url);
-  //
-  //
-  // MvcResult result =
-  // mvc.perform(get(url).param("term","dsDNA").param("format","clean").param("synonymSource",
-  // "NCI"))
-  // .andExpect(status().isOk())
-  // .andReturn();
-  // String content = result.getResponse().getContentAsString();
-  // //log.info("content - " + content);
-  // assertThat(content).isNotNull();
-  //
-  // JsonNode jsonNode = this.objectMapper.readTree(content);
-  // JsonNode jsonNodeTotal = jsonNode.path("total");
-  // assertThat(jsonNodeTotal.intValue() > 0).isTrue();
-  // assertThat(jsonNodeTotal.intValue()).isEqualTo(2);
-  //
-  //
-  // JsonNode jsonNodeHits = jsonNode.path("hits");
-  // Iterator<JsonNode> iterator = jsonNodeHits.elements();
-  // assertThat(iterator.hasNext()).isTrue();
-  //
-  // JsonNode node = iterator.next();
-  //
-  // JsonNode nodeSynonym = node.path("FULL_SYN");
-  // Iterator<JsonNode> iteratorSyn = nodeSynonym.elements();
-  //
-  // boolean found= false;
-  // while (iteratorSyn.hasNext()) {
-  // JsonNode syn = iteratorSyn.next();
-  // JsonNode synTerm = syn.path("term-name");
-  // if (synTerm.textValue().indexOf("dsDNA") > -1) {
-  // JsonNode synSource = syn.path("term-source");
-  // if (synSource.textValue().equalsIgnoreCase("NCI")) {
-  // found = true;
-  // break;
-  // }
-  // }
-  // }
-  //
-  //
-  // assertThat(found).isTrue();
-  //
-  //
-  //
-  //
-  // log.info("Done Testing getSearchSynonym ");
-  //
-  // }
-  //
 
+  /**
+   * Test synonym source.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSynonymSource() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Valid test
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=dsDNA&synonymSource=NCI");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+            .param("synonymSource", "NCI").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("content - " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    boolean found = false;
+    for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
+      if (syn.getName().contains("dsDNA") && syn.getSource().equals("NCI")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+    // Bad value test - just no results found in this case.
+    // Valid test
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=dsDNA&synonymSource=Bad_Value");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+            .param("synonymSource", "Bad_Value"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    log.info("Done Testing testSynonymSource");
+
+  }
+
+  /**
+   * Test definition source.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testDefinitionSource() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Valid test
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=melanoma&definitionSource=NCI");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("definitionSource", "NCI").param("include", "definitions"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("content - " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    boolean found = false;
+    for (final Definition def : list.getConcepts().get(0).getDefinitions()) {
+      if (def.getDefinition().contains("melanoma")
+          && def.getSource().equals("NCI")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+    // Bad value test - just no results found in this case.
+    // Valid test
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=dsDNA&definitionSource=Bad_Value");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+            .param("definitionSource", "Bad_Value"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    log.info("Done Testing testDefinitionSource ");
+
+  }
 }
