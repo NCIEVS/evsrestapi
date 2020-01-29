@@ -530,19 +530,19 @@ public class SearchController {
     searchCriteria.setTerm(queryTerm);
     log.debug("  Search = " + searchCriteria);
 
+    if (searchCriteria.getTerminology().size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Search currently supports only terminology ncit");
+    } else if (searchCriteria.getTerminology().size() == 0) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Required parameter 'terminology' is missing");
+    }
+
     try {
-      final ConceptResultList result =
+      final ConceptResultList results =
           elasticSearchService.search(searchCriteria);
 
-      if (searchCriteria.getTerminology().size() > 1) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Search currently supports only terminology ncit");
-      } else if (searchCriteria.getTerminology().size() == 0) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Required parameter 'terminology' is missing");
-      }
       // Look up info for all the concepts
-
       final String terminology = searchCriteria.getTerminology().get(0);
       final Terminology term = TerminologyUtils
           .getTerminology(sparqlQueryManagerService, terminology);
@@ -551,13 +551,17 @@ public class SearchController {
       final IncludeParam ip = searchCriteria.computeIncludeParam();
 
       final List<Concept> concepts = new ArrayList<>();
-      for (final Concept concept : result.getConcepts()) {
-        concepts.add(ConceptUtils.convertConcept(sparqlQueryManagerService
-            .getEvsConceptByCode(concept.getCode(), dbType, ip)));
+      for (final Concept result : results.getConcepts()) {
+        final Concept concept =
+            ConceptUtils.convertConcept(sparqlQueryManagerService
+                .getEvsConceptByCode(result.getCode(), dbType, ip));
+        ConceptUtils.applyHighlights(concept, result.getHighlights());
+        concept.setHighlights(null);
+        concepts.add(concept);
       }
-      result.setConcepts(concepts);
+      results.setConcepts(concepts);
 
-      return result;
+      return results;
     } catch (ResponseStatusException rse) {
       throw rse;
     } catch (IOException e) {

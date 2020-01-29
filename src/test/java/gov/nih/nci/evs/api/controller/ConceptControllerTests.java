@@ -637,6 +637,4 @@ public class ConceptControllerTests {
 
   }
 
-  // TODO: would be nice to have a really comprehensive "include" parameter test
-  // -> maybe in its own class
 }

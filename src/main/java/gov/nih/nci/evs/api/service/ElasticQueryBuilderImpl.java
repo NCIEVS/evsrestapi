@@ -527,13 +527,13 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     // *********get main query
     String templateString = "";
     if (definitionSource) {
-      templateString = getMainMultipleNestedQuery();
+      templateString = getMainMultipleNestedQuery(false);
     } else if (synonymSource && contributingSource) {
-      templateString = getMainNestedWithNonNestedQuery();
+      templateString = getMainNestedWithNonNestedQuery(false);
     } else if (synonymSource || associationSearch || roleSearch) {
-      templateString = getMainNestedQuery();
+      templateString = getMainNestedQuery(false);
     } else {
-      templateString = getMainQuery();
+      templateString = getMainQuery(false);
     }
 
     // replace values
@@ -887,7 +887,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
    *
    * @return the main query
    */
-  private String getMainQuery() {
+  private String getMainQuery(final boolean highlightFlag) {
+    if (highlightFlag) {
+      return elasticQueryProperties.getMainQuery();
+    }
     return elasticQueryProperties.getMainQueryWithoutHighlights();
   }
 
@@ -896,7 +899,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
    *
    * @return the main nested query
    */
-  private String getMainNestedQuery() {
+  private String getMainNestedQuery(final boolean highlightFlag) {
+    if (highlightFlag) {
+      return elasticQueryProperties.getMainNestedQuery();
+    }
     return elasticQueryProperties.getMainNestedQueryWithoutHighlights();
   }
 
@@ -905,7 +911,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
    *
    * @return the main multiple nested query
    */
-  private String getMainMultipleNestedQuery() {
+  private String getMainMultipleNestedQuery(final boolean highlightFlag) {
+    if (highlightFlag) {
+      return elasticQueryProperties.getMainMultipleNestedQuery();
+    }
     return elasticQueryProperties.getMainMultipleNestedQueryWithoutHighlights();
   }
 
@@ -914,7 +923,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
    *
    * @return the main nested with non nested query
    */
-  private String getMainNestedWithNonNestedQuery() {
+  private String getMainNestedWithNonNestedQuery(final boolean highlightFlag) {
+    if (highlightFlag) {
+      return elasticQueryProperties.getMainNestedWithNonNestedQuery();
+    }
     return elasticQueryProperties.getMainNestedWithNonNestedQuerywithoutHL();
   }
 
@@ -1203,17 +1215,19 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     // *********get main query
     String templateString = "";
+    final boolean highlightFlag =
+        searchCriteria.computeIncludeParam().isHighlights();
     if (searchCriteria.getDefinitionSource().size() > 0) {
-      templateString = getMainMultipleNestedQuery();
+      templateString = getMainMultipleNestedQuery(highlightFlag);
     } else if (searchCriteria.getSynonymSource().size() > 0
         && searchCriteria.getContributingSource().size() > 0) {
-      templateString = getMainNestedWithNonNestedQuery();
+      templateString = getMainNestedWithNonNestedQuery(highlightFlag);
     } else if (searchCriteria.getSynonymSource().size() > 0
         || searchCriteria.getAssociation().size() > 0
         || searchCriteria.getRole().size() > 0) {
-      templateString = getMainNestedQuery();
+      templateString = getMainNestedQuery(highlightFlag);
     } else {
-      templateString = getMainQuery();
+      templateString = getMainQuery(highlightFlag);
     }
 
     // replace values

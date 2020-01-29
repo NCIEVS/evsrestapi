@@ -2,8 +2,11 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,23 +155,32 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // get the total hits
     JsonNode totalHits = jsonNode.path("hits").path("total");
 
-    // adding the highlights to the concepts
-    List<JsonNode> sources = jsonNode.findValues("_source");
-
-    // TODO:
-    List<JsonNode> highlights = jsonNode.findValues("highlight");
-    // int count = 0;
-    // for (JsonNode node : sources) {
-    // ((ObjectNode) node).set("highlight", highlights.get(count));
-    // count++;
-    // }
-
     final ConceptResultList result = new ConceptResultList();
     result.setTotal(totalHits.asInt());
     result.setParameters(searchCriteria);
 
-    for (JsonNode node : sources) {
-      result.getConcepts().add(new Concept(node.get("Code").asText()));
+    // Iterate over hits
+    for (final JsonNode node : jsonNode.get("hits").get("hits")) {
+      final JsonNode source = node.get("_source");
+      final Concept concept = new Concept(source.get("Code").asText());
+
+      final JsonNode highlightNode = node.get("highlight");
+      final Iterator<Map.Entry<String, JsonNode>> fields =
+          highlightNode.fields();
+      final Set<String> highlights = new HashSet<>();
+      while (fields.hasNext()) {
+        final JsonNode values = fields.next().getValue();
+        for (final JsonNode value : values) {
+          highlights.add(value.asText());
+        }
+      }
+      for (final String highlight : highlights) {
+        concept.getHighlights().put(
+            highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
+            highlight);
+      }
+      result.getConcepts().add(concept);
+
     }
 
     return result;

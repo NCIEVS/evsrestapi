@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import gov.nih.nci.evs.api.model.evs.ConceptNode;
@@ -46,6 +47,9 @@ public class Concept extends BaseModel {
 
   /** The highlight. */
   private String highlight;
+
+  /** The highlights. */
+  private java.util.Map<String, String> highlights;
 
   /** The level. */
   private Integer level;
@@ -160,6 +164,7 @@ public class Concept extends BaseModel {
     code = other.getCode();
     name = other.getName();
     highlight = other.getHighlight();
+    highlights = new HashMap<>(other.getHighlights());
     level = other.getLevel();
     leaf = other.getLeaf();
     synonyms = new ArrayList<>(other.getSynonyms());
@@ -230,6 +235,26 @@ public class Concept extends BaseModel {
     this.highlight = highlight;
   }
 
+  /**
+   * Returns the highlights.
+   *
+   * @return the highlights
+   */
+  public java.util.Map<String, String> getHighlights() {
+    if (highlights == null) {
+      highlights = new HashMap<>();
+    }
+    return highlights;
+  }
+
+  /**
+   * Sets the highlights.
+   *
+   * @param highlights the highlights
+   */
+  public void setHighlights(final java.util.Map<String, String> highlights) {
+    this.highlights = highlights;
+  }
   /**
    * Returns the level.
    *

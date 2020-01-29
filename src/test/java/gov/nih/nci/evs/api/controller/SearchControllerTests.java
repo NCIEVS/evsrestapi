@@ -115,6 +115,56 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test highlight.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHighlight() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    url = baseUrl;
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=melanoma&include=synonyms,highlights");
+
+    // Test a basic term search
+    result = this.mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("include", "synonyms,highlights"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    ConceptResultList list =
+        new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(10);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getHighlight())
+        .isEqualTo("<em>Melanoma</em>");
+    assertThat(list.getTotal()).isGreaterThan(100);
+    assertThat(list.getParameters().getTerm()).isEqualTo("melanoma");
+    assertThat(list.getParameters().getType()).isEqualTo("contains");
+    assertThat(list.getParameters().getFromRecord()).isEqualTo(0);
+    assertThat(list.getParameters().getPageSize()).isEqualTo(10);
+
+    // Test a basic term search with single terminology form
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url + "?term=melanoma&include=highlights");
+    result = this.mvc
+        .perform(
+            get(url).param("term", "melanoma").param("include", "highlights"))
+        .andExpect(status().isOk()).andReturn();
+    final String content2 = result.getResponse().getContentAsString();
+    assertThat(content).isEqualTo(content2);
+
+  }
+
+  /**
    * Test bad search.
    *
    * @throws Exception the exception

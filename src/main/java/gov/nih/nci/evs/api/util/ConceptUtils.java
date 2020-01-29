@@ -41,7 +41,7 @@ import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 public final class ConceptUtils {
 
   /** The Constant logger. */
-  private static final Logger logger =
+  private static final Logger log =
       LoggerFactory.getLogger(ConceptUtils.class);
 
   /**
@@ -49,6 +49,55 @@ public final class ConceptUtils {
    */
   private ConceptUtils() {
     // n/a
+  }
+
+  /**
+   * Apply highlights.
+   *
+   * @param concept the concept
+   * @param highlights the highlights
+   * @throws Exception the exception
+   */
+  public static void applyHighlights(final Concept concept,
+    final java.util.Map<String, String> highlights) throws Exception {
+
+    // concept
+    if (highlights.containsKey(concept.getName())) {
+      concept.setHighlight(highlights.get(concept.getName()));
+    }
+
+    // synonyms
+    for (final Synonym sn : concept.getSynonyms()) {
+      final String value = highlights.get(sn.getName());
+      if (value != null) {
+        sn.setHighlight(value);
+      }
+    }
+
+    // definitions
+    for (final Definition def : concept.getDefinitions()) {
+      final String value = highlights.get(def.getDefinition());
+      if (value != null) {
+        def.setHighlight(value);
+      }
+    }
+
+    // properties
+    for (final Property prop : concept.getProperties()) {
+      String value = highlights.get(prop.getValue());
+      if (value != null) {
+        prop.setHighlight(value);
+      } else {
+        value = highlights.get(prop.getType());
+        if (value != null) {
+          prop.setHighlight(value);
+        }
+      }
+    }
+
+    // TODO - when role search is supported
+    // TODO - when association search is supported
+
   }
 
   /**
@@ -72,7 +121,7 @@ public final class ConceptUtils {
           try {
             return ConceptUtils.convertConcept(ec);
           } catch (Exception e) {
-            logger.error("Unexpected failure converting to concept", e);
+            log.error("Unexpected failure converting to concept", e);
             throw new RuntimeException(e);
           }
         }).collect(Collectors.toList());

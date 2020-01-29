@@ -367,7 +367,7 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology)
     throws IOException {
 
-    if (terminology.equals("ncit")) {
+    if (terminology.startsWith("ncit")) {
       return sparqlQueryManagerService.getConceptStatusForDocumentation();
     }
 
@@ -395,11 +395,57 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology)
     throws IOException {
 
-    if (terminology.equals("ncit")) {
+    if (terminology.startsWith("ncit")) {
       return sparqlQueryManagerService.getContributingSourcesForDocumentation();
     }
 
     throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
+  }
+
+  /**
+   * Returns the graph names. UNDOCUMENTED. 
+   * BAC - "weekly" and "monthly" don't really make sense here. This needs to be generalized
+   * for the multi-environment scenario.  And techically, this is probably for debugging and
+   * may not really make sense as part of THIS API.
+   *
+   * @param terminology the terminology
+   * @return the graph names
+   * @throws Exception the exception
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/graphNames", produces = "application/json")
+  public @ResponseBody List<String> getGraphNames(
+    @PathVariable(value = "terminology") final String terminology)
+    throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    List<String> graphNames =
+        sparqlQueryManagerService.getAllGraphNames(dbType);
+    return graphNames;
+  }
+
+  /**
+   * Returns the axiom qualifiers list. UNDOCUMENTED.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the axiom qualifiers list
+   * @throws Exception the exception
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/property/{codeOrLabel}/axiomQualifiers", produces = "application/json")
+  public @ResponseBody List<String> getAxiomQualifiersList(
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "codeOrLabel") final String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    List<String> propertyValues =
+        sparqlQueryManagerService.getAxiomQualifiersList(code, dbType);
+    return propertyValues;
   }
 }
