@@ -529,7 +529,7 @@ public class ParserUtils {
 
 
 	public Vector getResponseValues(Vector v) {
-		if (v == null) return null;
+		if (v == null || v.size() == 0) return null;
 		ParserUtils parser = new ParserUtils();
 		Vector w = new Vector();
 		Vector vars = getResponseVariables(v);

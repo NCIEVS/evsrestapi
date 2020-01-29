@@ -92,7 +92,7 @@ public class Property extends BaseModel {
    *
    * @param highlight the hightlight
    */
-  public void setHightlight(final String highlight) {
+  public void setHighlight(final String highlight) {
     this.highlight = highlight;
   }
 

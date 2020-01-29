@@ -2,7 +2,9 @@
 package gov.nih.nci.evs.api.util;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +88,24 @@ public final class TerminologyUtils {
     }
     throw new ResponseStatusException(HttpStatus.NOT_FOUND,
         terminology + " not found");
+  }
+
+  /**
+   * As set.
+   *
+   * @param <T> the
+   * @param values the values
+   * @return the sets the
+   */
+  public static <T> Set<T> asSet(
+    @SuppressWarnings("unchecked") final T... values) {
+    final Set<T> set = new HashSet<>(values.length);
+    for (final T value : values) {
+      if (value != null) {
+        set.add(value);
+      }
+    }
+    return set;
   }
 
 }

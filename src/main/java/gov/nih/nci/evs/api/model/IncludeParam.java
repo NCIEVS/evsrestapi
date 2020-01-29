@@ -42,6 +42,9 @@ public class IncludeParam extends BaseModel {
   /** The disjoint classes. */
   private boolean disjointWith;
 
+  /** The highlights. */
+  private boolean highlights;
+
   /**
    * Instantiates an empty {@link IncludeParam}.
    */
@@ -86,10 +89,12 @@ public class IncludeParam extends BaseModel {
           inverseRoles = true;
         } else if (part.equals("maps")) {
           maps = true;
+        } else if (part.equals("highlights")) {
+          highlights = true;
         } else if (part.equals("disjointWith")) {
           disjointWith = true;
         } else {
-          throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "Invalid includes value = " + part + ", " + include);
         }
       }
@@ -121,6 +126,7 @@ public class IncludeParam extends BaseModel {
     roles = other.isRoles();
     inverseRoles = other.isInverseRoles();
     maps = other.isMaps();
+    highlights = other.isHighlights();
     disjointWith = other.isDisjointWith();
 
   }
@@ -156,6 +162,7 @@ public class IncludeParam extends BaseModel {
     roles = true;
     inverseRoles = true;
     maps = true;
+    highlights = true;
     disjointWith = true;
   }
 
@@ -348,6 +355,24 @@ public class IncludeParam extends BaseModel {
    */
   public void setMaps(boolean maps) {
     this.maps = maps;
+  }
+
+  /**
+   * Indicates whether or not highlights is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isHighlights() {
+    return highlights;
+  }
+
+  /**
+   * Sets the highlights.
+   *
+   * @param highlights the highlights
+   */
+  public void setHighlights(boolean highlights) {
+    this.highlights = highlights;
   }
 
   /**

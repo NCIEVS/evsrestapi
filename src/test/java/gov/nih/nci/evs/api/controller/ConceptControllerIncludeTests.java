@@ -98,6 +98,23 @@ public class ConceptControllerIncludeTests {
   }
 
   /**
+   * Test bad get include.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testBadGetInclude() throws Exception {
+    String url = null;
+
+    // Bad terminology
+    url = baseUrl + "/ncit/C3224?include=NOT_AN_INCLUDE";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
+  }
+
+  /**
    * Test include summary.
    *
    * @throws Exception the exception

@@ -23,7 +23,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -49,9 +48,6 @@ public class DocumentationPayloadExamplesTests {
   /** The urls. */
   private List<String> urls = new ArrayList<>();
 
-  /** The base url. */
-  private String baseUrl = "";
-
   /**
    * Sets the up.
    */
@@ -67,14 +63,12 @@ public class DocumentationPayloadExamplesTests {
     urls.add("/api/v1/concept/ncit/C3224?include=full");
     urls.add("/api/v1/concept/ncit/C3224/pathsToRoot");
     urls.add("/api/v1/concept/ncit/C3224/children");
-    urls.add(
-        "/api/v1/concept/ncit/C3224/descendants?maxLevel=3");
+    urls.add("/api/v1/concept/ncit/C3224/descendants?maxLevel=3");
     urls.add("/api/v1/concept/ncit/roots");
     urls.add("/api/v1/metadata/ncit/associations?include=minimal");
     urls.add("/api/v1/metadata/ncit/association/A8");
-
- //   urls.add(
-   //     "/api/v1/concept/ncit/search?term=melanoma&include=summary,highlights&fromRecord=0&pageSize=1");
+    // urls.add(
+    // "/api/v1/concept/ncit/search?term=melanoma&include=summary,highlights&fromRecord=0&pageSize=1");
 
   }
 
@@ -88,7 +82,7 @@ public class DocumentationPayloadExamplesTests {
 
     MvcResult result = null;
     String content = null;
-    Concept concept = null;
+    // Concept concept = null;
 
     // Test with "minimal"
     for (final String url : urls) {

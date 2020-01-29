@@ -352,7 +352,7 @@ public class MetadataController {
    *
    * @param terminology the terminology
    * @return the concept statuses
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get the concept status values", response = String.class)
   @ApiResponses(value = {
@@ -365,9 +365,11 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses", produces = "application/json")
   public @ResponseBody List<String> getConceptStatuses(
     @PathVariable(value = "terminology") final String terminology)
-    throws IOException {
+    throws Exception {
 
-    if (terminology.equals("ncit")) {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (term.getTerminology().equals("ncit")) {
       return sparqlQueryManagerService.getConceptStatusForDocumentation();
     }
 
@@ -380,7 +382,7 @@ public class MetadataController {
    *
    * @param terminology the terminology
    * @return the contributing sources
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get the contributing sources", response = String.class)
   @ApiResponses(value = {
@@ -393,13 +395,61 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources", produces = "application/json")
   public @ResponseBody List<String> getContributingSources(
     @PathVariable(value = "terminology") final String terminology)
-    throws IOException {
+    throws Exception {
 
-    if (terminology.equals("ncit")) {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (term.getTerminology().equals("ncit")) {
       return sparqlQueryManagerService.getContributingSourcesForDocumentation();
     }
 
     throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
+  }
+
+  /**
+   * Returns the graph names. UNDOCUMENTED. BAC - "weekly" and "monthly" don't
+   * really make sense here. This needs to be generalized for the
+   * multi-environment scenario. And techically, this is probably for debugging
+   * and may not really make sense as part of THIS API.
+   *
+   * @param terminology the terminology
+   * @return the graph names
+   * @throws Exception the exception
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/graphNames", produces = "application/json")
+  public @ResponseBody List<String> getGraphNames(
+    @PathVariable(value = "terminology") final String terminology)
+    throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    List<String> graphNames =
+        sparqlQueryManagerService.getAllGraphNames(dbType);
+    return graphNames;
+  }
+
+  /**
+   * Returns the axiom qualifiers list. UNDOCUMENTED.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the axiom qualifiers list
+   * @throws Exception the exception
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/property/{codeOrLabel}/axiomQualifiers", produces = "application/json")
+  public @ResponseBody List<String> getAxiomQualifiersList(
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "codeOrLabel") final String code) throws Exception {
+
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType =
+        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    List<String> propertyValues =
+        sparqlQueryManagerService.getAxiomQualifiersList(code, dbType);
+    return propertyValues;
   }
 }

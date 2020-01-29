@@ -143,7 +143,7 @@ public class SparqlQueryManagerServiceImpl
 
     // Weekly
     if (getNamedGraph("weekly").equals(getNamedGraph("monthly"))) {
-      log.info("  copy weekly to montly = " + classCountMonthly);
+      log.info("  copy weekly to monthly = " + classCountMonthly);
       classCountWeekly = classCountMonthly;
       hierarchyWeekly = hierarchyMonthly;
       pathsWeekly = pathsMonthly;
@@ -1909,8 +1909,9 @@ public class SparqlQueryManagerServiceImpl
     for (String name : contributingSources.keySet()) {
       // search for value
       String value = contributingSources.get(name);
-      String conSource = name + " : " + value;
-      sources.add(conSource);
+      // String conSource = name + " : " + value;
+      // sources.add(conSource);
+      sources.add(value);
     }
 
     return sources;
@@ -1926,8 +1927,9 @@ public class SparqlQueryManagerServiceImpl
     for (String name : conceptStatuses.keySet()) {
       // search for value
       String value = conceptStatuses.get(name);
-      String conSource = name + " : " + value;
-      statues.add(conSource);
+      // String conSource = name + " : " + value;
+      // sources.add(conSource);
+      statues.add(value);
     }
 
     return statues;
