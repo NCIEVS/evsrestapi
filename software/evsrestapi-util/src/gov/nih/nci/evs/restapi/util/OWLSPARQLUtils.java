@@ -3843,13 +3843,17 @@ public class OWLSPARQLUtils {
 	public Vector getAxioms(String named_graph, String code, String propertyName) {
 		String query = construct_axiom_query(named_graph, code, propertyName);
 		Vector v = executeQuery(query);
-		v = new ParserUtils().getResponseValues(v);
+		if (v != null) {
+			v = new ParserUtils().getResponseValues(v);
+		}
 		return v;
 	}
 
 	public Vector getAxioms(String named_graph, String code) {
 		Vector v = executeQuery(construct_axiom_query(named_graph, code));
-		v = new ParserUtils().getResponseValues(v);
+		if (v != null) {
+			v = new ParserUtils().getResponseValues(v);
+		}
 		return v;
 	}
 
