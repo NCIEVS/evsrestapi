@@ -179,8 +179,6 @@ public class ConceptResultListUnitTest {
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("total");
-    tester.include("fromRecord");
-    tester.include("pageSize");
     tester.include("parameters");
     
     tester.proxy("concepts", 1, c1);

@@ -352,7 +352,7 @@ public class MetadataController {
    *
    * @param terminology the terminology
    * @return the concept statuses
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get the concept status values", response = String.class)
   @ApiResponses(value = {
@@ -365,9 +365,11 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses", produces = "application/json")
   public @ResponseBody List<String> getConceptStatuses(
     @PathVariable(value = "terminology") final String terminology)
-    throws IOException {
+    throws Exception {
 
-    if (terminology.startsWith("ncit")) {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (term.getTerminology().equals("ncit")) {
       return sparqlQueryManagerService.getConceptStatusForDocumentation();
     }
 
@@ -380,7 +382,7 @@ public class MetadataController {
    *
    * @param terminology the terminology
    * @return the contributing sources
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get the contributing sources", response = String.class)
   @ApiResponses(value = {
@@ -393,9 +395,11 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources", produces = "application/json")
   public @ResponseBody List<String> getContributingSources(
     @PathVariable(value = "terminology") final String terminology)
-    throws IOException {
+    throws Exception {
 
-    if (terminology.startsWith("ncit")) {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (term.getTerminology().equals("ncit")) {
       return sparqlQueryManagerService.getContributingSourcesForDocumentation();
     }
 
@@ -404,10 +408,10 @@ public class MetadataController {
   }
 
   /**
-   * Returns the graph names. UNDOCUMENTED. 
-   * BAC - "weekly" and "monthly" don't really make sense here. This needs to be generalized
-   * for the multi-environment scenario.  And techically, this is probably for debugging and
-   * may not really make sense as part of THIS API.
+   * Returns the graph names. UNDOCUMENTED. BAC - "weekly" and "monthly" don't
+   * really make sense here. This needs to be generalized for the
+   * multi-environment scenario. And techically, this is probably for debugging
+   * and may not really make sense as part of THIS API.
    *
    * @param terminology the terminology
    * @return the graph names

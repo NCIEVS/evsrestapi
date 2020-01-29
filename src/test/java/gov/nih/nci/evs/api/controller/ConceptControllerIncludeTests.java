@@ -109,7 +109,7 @@ public class ConceptControllerIncludeTests {
     // Bad terminology
     url = baseUrl + "/ncit/C3224?include=NOT_AN_INCLUDE";
     log.info("Testing url - " + url);
-    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
   }

@@ -88,13 +88,6 @@ public class VersionControllerTests {
     final String buildGradleVersion = getBuildGradleVersion();
     assertThat(data.getVersion()).isEqualTo(buildGradleVersion);
 
-    url = "/api/v1/documentation/versionInfo";
-    log.info("Testing url - " + url);
-
-    // Test a basic term search
-    result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-log.info("XXX = " + content);
   }
 
   /**

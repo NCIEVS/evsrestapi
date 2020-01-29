@@ -539,16 +539,17 @@ public class SearchController {
     }
 
     try {
-      final ConceptResultList results =
-          elasticSearchService.search(searchCriteria);
-
-      // Look up info for all the concepts
       final String terminology = searchCriteria.getTerminology().get(0);
       final Terminology term = TerminologyUtils
           .getTerminology(sparqlQueryManagerService, terminology);
       final String dbType =
           "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
       final IncludeParam ip = searchCriteria.computeIncludeParam();
+
+      final ConceptResultList results =
+          elasticSearchService.search(searchCriteria);
+
+      // Look up info for all the concepts
 
       final List<Concept> concepts = new ArrayList<>();
       for (final Concept result : results.getConcepts()) {

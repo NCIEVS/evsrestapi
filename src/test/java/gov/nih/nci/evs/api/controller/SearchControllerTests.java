@@ -89,6 +89,7 @@ public class SearchControllerTests {
             get(url).param("terminology", "ncit").param("term", "melanoma"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
 
     ConceptResultList list =
@@ -127,12 +128,12 @@ public class SearchControllerTests {
 
     url = baseUrl;
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=melanoma&include=synonyms,highlights");
+        + "?terminology=ncit&term=melanoma&include=highlights");
 
     // Test a basic term search
     result = this.mvc
         .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-            .param("include", "synonyms,highlights"))
+            .param("include", "highlights"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -200,7 +201,7 @@ public class SearchControllerTests {
     log.info(
         "Testing url - " + url + "?terminology=ncit&term=melanoma&include=XXX");
     mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-        .param("include", "XXX")).andExpect(status().isInternalServerError())
+        .param("include", "XXX")).andExpect(status().isBadRequest())
         .andReturn();
     // content is blank because of MockMvc
 
@@ -227,6 +228,7 @@ public class SearchControllerTests {
             .param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
 
     ConceptResultList list =
@@ -279,6 +281,7 @@ public class SearchControllerTests {
                 .param("term", "melanoma").param("pageSize", "2"))
             .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -296,6 +299,7 @@ public class SearchControllerTests {
             .param("pageSize", "9").param("fromRecord", "5"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -312,6 +316,7 @@ public class SearchControllerTests {
                 .param("term", "melanoma").param("pageSize", "14"))
             .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -390,7 +395,7 @@ public class SearchControllerTests {
                 .param("term", "XAV05295I5").param("property", "fda_unii_code"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
@@ -427,7 +432,7 @@ public class SearchControllerTests {
                 .param("term", "XAV05295I5").param("property", "P319"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
@@ -496,7 +501,7 @@ public class SearchControllerTests {
         .param("term", "enzymi").param("type", "fuzzy"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -511,7 +516,7 @@ public class SearchControllerTests {
         .param("term", "melanoma").param("type", "exact"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -527,7 +532,7 @@ public class SearchControllerTests {
             .param("term", "malignant melanoma").param("type", "phrase"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -541,7 +546,7 @@ public class SearchControllerTests {
             .param("term", "Lung Carcinoma").param("type", "match"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -555,7 +560,7 @@ public class SearchControllerTests {
             .param("type", "startsWith"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -569,7 +574,7 @@ public class SearchControllerTests {
             .param("term", "lentiginous melanoma").param("type", "AND"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -583,7 +588,7 @@ public class SearchControllerTests {
             .param("term", "lentiginous melanoma").param("type", "OR"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -623,7 +628,7 @@ public class SearchControllerTests {
             .param("conceptStatus", "Retired_Concept"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -663,7 +668,7 @@ public class SearchControllerTests {
             .param("contributingSource", "CDISC"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -702,7 +707,7 @@ public class SearchControllerTests {
             .param("synonymSource", "NCI").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -725,7 +730,7 @@ public class SearchControllerTests {
             .param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
@@ -774,7 +779,7 @@ public class SearchControllerTests {
             .param("definitionSource", "NCI").param("include", "definitions"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info("content - " + content);
+    log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);

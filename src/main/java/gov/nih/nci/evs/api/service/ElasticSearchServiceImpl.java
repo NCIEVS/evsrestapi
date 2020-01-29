@@ -165,19 +165,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       final Concept concept = new Concept(source.get("Code").asText());
 
       final JsonNode highlightNode = node.get("highlight");
-      final Iterator<Map.Entry<String, JsonNode>> fields =
-          highlightNode.fields();
-      final Set<String> highlights = new HashSet<>();
-      while (fields.hasNext()) {
-        final JsonNode values = fields.next().getValue();
-        for (final JsonNode value : values) {
-          highlights.add(value.asText());
+      // Only if there are highlights
+      if (highlightNode != null) {
+        final Iterator<Map.Entry<String, JsonNode>> fields =
+            highlightNode.fields();
+        final Set<String> highlights = new HashSet<>();
+        while (fields.hasNext()) {
+          final JsonNode values = fields.next().getValue();
+          for (final JsonNode value : values) {
+            highlights.add(value.asText());
+          }
         }
-      }
-      for (final String highlight : highlights) {
-        concept.getHighlights().put(
-            highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
-            highlight);
+        for (final String highlight : highlights) {
+          concept.getHighlights().put(
+              highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
+              highlight);
+        }
       }
       result.getConcepts().add(concept);
 
