@@ -13,19 +13,19 @@ public class ConfigData {
 	public List<EvsProperty> getProperties() {
 		return properties;
 	}
-	public void setProperties(List<EvsProperty> properties) {
+	public void setProperties(final List<EvsProperty> properties) {
 		this.properties = properties;
 	}
 	public EvsVersionInfo getEvsVersionInfo() {
 		return evsVersionInfo;
 	}
-	public void setEvsVersionInfo(EvsVersionInfo evsVersionInfo) {
+	public void setEvsVersionInfo(final EvsVersionInfo evsVersionInfo) {
 		this.evsVersionInfo = evsVersionInfo;
 	}
 	public List<String> getFullSynSources() {
 		return fullSynSources;
 	}
-	public void setFullSynSources(List<String> fullSynSources) {
+	public void setFullSynSources(final List<String> fullSynSources) {
 		this.fullSynSources = fullSynSources;
 	}
 	

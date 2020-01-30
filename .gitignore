@@ -8,3 +8,4 @@ setenv.sh
 .settings/
 bin/
 __pycache__
+/build/

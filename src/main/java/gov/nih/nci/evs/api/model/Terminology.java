@@ -20,7 +20,7 @@ import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
  *  }
  * </pre>
  */
-public class Terminology {
+public class Terminology extends BaseModel {
 
   /** The terminology. */
   private String terminology;

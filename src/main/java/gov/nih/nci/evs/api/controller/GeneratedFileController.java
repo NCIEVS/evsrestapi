@@ -1,9 +1,9 @@
+
 package gov.nih.nci.evs.api.controller;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -18,22 +18,36 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 
+/**
+ * The Class GeneratedFileController.
+ */
 @RestController
-@RequestMapping("${nci.evs.application.contextPath}")
+// @RequestMapping("${nci.evs.application.contextPath}")
 public class GeneratedFileController {
 
-	@Autowired
-	ApplicationProperties applicationProperties;
-	
-    @RequestMapping(value = "/getDataFromFile/{fileName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public @ResponseBody byte[] getDataFromFile(@PathVariable(value = "fileName") String fileName,
-                    HttpServletResponse response ) throws IOException {
-        String baseDirectory = applicationProperties.getGeneratedFilePath();
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties applicationProperties;
 
-        File inputFile = new File(baseDirectory + fileName);
-        try (FileInputStream in = new FileInputStream(inputFile)) {
-            response.setHeader("Content-Disposition", "attachment; filename=" + inputFile.getName());
-            return IOUtils.toByteArray(in);
-        }
+  /**
+   * Returns the data from file.
+   *
+   * @param fileName the file name
+   * @param response the response
+   * @return the data from file
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @RequestMapping(value = "/getDataFromFile/{fileName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+  public @ResponseBody byte[] getDataFromFile(
+    @PathVariable(value = "fileName") String fileName,
+    HttpServletResponse response) throws IOException {
+    String baseDirectory = applicationProperties.getGeneratedFilePath();
+
+    File inputFile = new File(baseDirectory + fileName);
+    try (FileInputStream in = new FileInputStream(inputFile)) {
+      response.setHeader("Content-Disposition",
+          "attachment; filename=" + inputFile.getName());
+      return IOUtils.toByteArray(in);
     }
+  }
 }

@@ -21,13 +21,13 @@ public class MatchedConcept
 
 // Constructor
 	public MatchedConcept(
-		String label,
-		String code,
-		String conceptStatus,
-		String preferredName,
-		String propertyName,
-		String propertyValue,
-		int score) {
+		final String label,
+		final String code,
+		final String conceptStatus,
+		final String preferredName,
+		final String propertyName,
+		final String propertyValue,
+		final int score) {
 
 		this.label = label;
 		this.code = code;
@@ -37,12 +37,12 @@ public class MatchedConcept
 	}
 
 	public MatchedConcept(
-		String label,
-		String code,
-		String conceptStatus,
-		String preferredName,
-		String propertyName,
-		String propertyValue
+		final String label,
+		final String code,
+		final String conceptStatus,
+		final String preferredName,
+		final String propertyName,
+		final String propertyValue
 		) {
 
 		this.label = label;
@@ -53,23 +53,23 @@ public class MatchedConcept
 	}
 
 // Set methods
-	public void setLabel(String label) {
+	public void setLabel(final String label) {
 		this.label = label;
 	}
 
-	public void setCode(String code) {
+	public void setCode(final String code) {
 		this.code = code;
 	}
 
-	public void setPropertyName(String propertyName) {
+	public void setPropertyName(final String propertyName) {
 		this.propertyName = propertyName;
 	}
 
-	public void setPropertyValue(String propertyValue) {
+	public void setPropertyValue(final String propertyValue) {
 		this.propertyValue = propertyValue;
 	}
 
-	public void setScore(double score) {
+	public void setScore(final double score) {
 		this.score = score;
 	}
 
@@ -87,7 +87,7 @@ public class MatchedConcept
 		return conceptStatus;
 	}
 
-	public void setConceptStatus(String conceptStatus) {
+	public void setConceptStatus(final String conceptStatus) {
 		this.conceptStatus = conceptStatus;
 	}
 
@@ -95,7 +95,7 @@ public class MatchedConcept
 		return preferredName;
 	}
 
-	public void setPreferredName(String preferredName) {
+	public void setPreferredName(final String preferredName) {
 		this.preferredName = preferredName;
 	}
 
