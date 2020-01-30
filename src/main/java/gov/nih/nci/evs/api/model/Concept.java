@@ -37,13 +37,7 @@ import gov.nih.nci.evs.api.model.evs.HierarchyNode;
  * }
  * </pre>
  */
-public class Concept extends BaseModel {
-
-  /** The code. */
-  private String code;
-
-  /** The name. */
-  private String name;
+public class Concept extends ConceptMinimal {
 
   /** The highlight. */
   private String highlight;
@@ -106,7 +100,7 @@ public class Concept extends BaseModel {
    * @param code the code
    */
   public Concept(final String code) {
-    this.code = code;
+    super(code);
   }
 
   /**
@@ -124,8 +118,7 @@ public class Concept extends BaseModel {
    * @param other the other
    */
   public Concept(final EvsRelatedConcept other) {
-    code = other.getCode();
-    name = other.getLabel();
+    super(other);
   }
 
   /**
@@ -134,8 +127,7 @@ public class Concept extends BaseModel {
    * @param other the other
    */
   public Concept(final ConceptNode other) {
-    code = other.getCode();
-    name = other.getLabel();
+    super(other);
   }
 
   /**
@@ -144,8 +136,8 @@ public class Concept extends BaseModel {
    * @param other the other
    */
   public Concept(final HierarchyNode other) {
-    code = other.getCode();
-    name = other.getLabel();
+    super(other.getCode());
+    setName(other.getLabel());
     level = other.getLevel();
     if (other.getLeaf() != null && other.getLeaf()) {
       leaf = other.getLeaf();
@@ -161,8 +153,7 @@ public class Concept extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final Concept other) {
-    code = other.getCode();
-    name = other.getName();
+    super.populateFrom(other);
     highlight = other.getHighlight();
     highlights = new HashMap<>(other.getHighlights());
     level = other.getLevel();
@@ -179,42 +170,6 @@ public class Concept extends BaseModel {
     inverseRoles = new ArrayList<>(other.getInverseRoles());
     disjointWith = new ArrayList<>(other.getDisjointWith());
     maps = new ArrayList<>(other.getMaps());
-  }
-
-  /**
-   * Returns the code.
-   *
-   * @return the code
-   */
-  public String getCode() {
-    return code;
-  }
-
-  /**
-   * Sets the code.
-   *
-   * @param code the code
-   */
-  public void setCode(final String code) {
-    this.code = code;
-  }
-
-  /**
-   * Returns the name.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * Sets the name.
-   *
-   * @param name the name
-   */
-  public void setName(final String name) {
-    this.name = name;
   }
 
   /**
@@ -255,6 +210,7 @@ public class Concept extends BaseModel {
   public void setHighlights(final java.util.Map<String, String> highlights) {
     this.highlights = highlights;
   }
+
   /**
    * Returns the level.
    *
@@ -542,46 +498,6 @@ public class Concept extends BaseModel {
    */
   public void setMaps(final List<Map> maps) {
     this.maps = maps;
-  }
-
-  /* see superclass */
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((code == null) ? 0 : code.hashCode());
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    return result;
-  }
-
-  /* see superclass */
-  @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final Concept other = (Concept) obj;
-    if (code == null) {
-      if (other.code != null) {
-        return false;
-      }
-    } else if (!code.equals(other.code)) {
-      return false;
-    }
-    if (name == null) {
-      if (other.name != null) {
-        return false;
-      }
-    } else if (!name.equals(other.name)) {
-      return false;
-    }
-    return true;
   }
 
 }

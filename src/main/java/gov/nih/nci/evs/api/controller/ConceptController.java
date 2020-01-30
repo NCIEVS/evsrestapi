@@ -20,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.ConceptPath;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
@@ -75,8 +77,9 @@ public class ConceptController {
   })
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}", produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list", value = "List of codes to return concepts for", required = true, dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list", value = "List (comma-separated) of codes to return concepts for, e.g. C2291,C3224.", required = true, dataType = "string", paramType = "query")
   })
   @RecordMetricDBFormat
   public @ResponseBody List<Concept> getConcepts(
@@ -95,6 +98,7 @@ public class ConceptController {
       final Concept concept = ConceptUtils.convertConcept(
           sparqlQueryManagerService.getEvsConceptByCode(code, dbType, ip));
       if (concept != null && concept.getCode() != null) {
+        concept.setTerminology(terminology);
         concepts.add(concept);
       }
     }
@@ -110,7 +114,7 @@ public class ConceptController {
    * @return the concept
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the specified concept", response = Concept.class)
+  @ApiOperation(value = "Get the concept for the specified terminology and code", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -120,7 +124,9 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}", produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody Concept getConcept(
     @PathVariable(value = "terminology") final String terminology,
@@ -140,6 +146,7 @@ public class ConceptController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           code + " not found");
     }
+    concept.setTerminology(terminology);
     return concept;
   }
 
@@ -151,12 +158,16 @@ public class ConceptController {
    * @return the associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get associations for the specified concept", response = Association.class, responseContainer = "List")
+  @ApiOperation(value = "Get the associations for the specified terminology and code", response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations", produces = "application/json")
@@ -187,12 +198,16 @@ public class ConceptController {
    * @return the inverse associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get inverse associations for the specified concept", response = Association.class, responseContainer = "List")
+  @ApiOperation(value = "Get inverse associations for the specified terminology and code", response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
@@ -223,12 +238,16 @@ public class ConceptController {
    * @return the roles
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get roles for the specified concept", response = Role.class, responseContainer = "List")
+  @ApiOperation(value = "Get roles for the specified terminology and code", response = Role.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles", produces = "application/json")
@@ -259,12 +278,16 @@ public class ConceptController {
    * @return the inverse roles
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get inverse roles for the specified concept", response = Role.class, responseContainer = "List")
+  @ApiOperation(value = "Get inverse roles for the specified terminology and code", response = Role.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles", produces = "application/json")
@@ -295,12 +318,16 @@ public class ConceptController {
    * @return the parents
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get parent concepts for the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get parent concepts for the specified terminology and code", response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents", produces = "application/json")
@@ -331,12 +358,16 @@ public class ConceptController {
    * @return the children
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get child concepts for the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get child concepts for the specified terminology and code", response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children", produces = "application/json")
@@ -368,7 +399,7 @@ public class ConceptController {
    * @return the descendants
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get descendant concepts for the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get descendant concepts for the specified terminology and code", response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -378,6 +409,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants", produces = "application/json")
   @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "maxLevel", value = "Maximum level of ancestors to include, if applicable", required = false, dataType = "string", paramType = "query")
   })
   public @ResponseBody List<Concept> getDescendants(
@@ -410,12 +443,16 @@ public class ConceptController {
    * @return the maps
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get maps for the specified concept", response = Map.class, responseContainer = "List")
+  @ApiOperation(value = "Get maps for the specified terminology and code", response = Map.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps", produces = "application/json")
@@ -446,12 +483,16 @@ public class ConceptController {
    * @return the disjoint with
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get \"disjoint with\" info for the specified concept", response = DisjointWith.class, responseContainer = "List")
+  @ApiOperation(value = "Get \"disjoint with\" info for the specified terminology and code", response = DisjointWith.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith", produces = "application/json")
@@ -493,7 +534,8 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots", produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<Concept> getRoots(
     @PathVariable(value = "terminology") final String terminology,
@@ -524,7 +566,7 @@ public class ConceptController {
    * @return the paths from root
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths from the hierarchy root to the specified concept", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get paths from the hierarchy root to the specified concept", response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -534,7 +576,9 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot", produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(
     @PathVariable(value = "terminology") final String terminology,
@@ -567,7 +611,7 @@ public class ConceptController {
    * @return the paths to root
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths to the hierarchy root from the specified code", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get paths to the hierarchy root from the specified code", response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -577,7 +621,9 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot", produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
@@ -610,7 +656,7 @@ public class ConceptController {
    * @return the paths to ancestor
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths from the specified code to the specified ancestor code", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get paths from the specified code to the specified ancestor code", response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -620,7 +666,10 @@ public class ConceptController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}", produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "ancestorCode", value = "Ancestor code of the other specified code, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,

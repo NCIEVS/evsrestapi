@@ -91,6 +91,7 @@ public class ConceptControllerTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
+    assertThat(concept.getTerminology()).isEqualTo("ncit");
 
   }
 
@@ -139,6 +140,7 @@ public class ConceptControllerTests {
         });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(2);
+    assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
     assertThat(list.get(0).getDefinitions()).isNotEmpty();
 

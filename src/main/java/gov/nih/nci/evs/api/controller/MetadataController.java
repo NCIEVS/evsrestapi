@@ -23,7 +23,6 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
-import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.ModelUtils;
@@ -58,22 +57,17 @@ public class MetadataController {
    * @return the version info
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @ApiOperation(value = "Gets terminologies loaded into the API", response = EvsVersionInfo.class)
+  @ApiOperation(value = "Get all available terminologies", response = Terminology.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "db", value = "Specify either 'monthly' or 'weekly', if not specified defaults to 'monthly'", required = false, dataType = "string", paramType = "query")
-  })
   @RecordMetricDB
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies", produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws IOException {
-
     return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
-
   }
 
   /**
@@ -85,7 +79,7 @@ public class MetadataController {
    * @return the associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get a all associations, or those specified by list parameter", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get all associations (or those specified by list parameter) for the specified terminology", response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -124,7 +118,7 @@ public class MetadataController {
    * @return the association
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the specified association code or label", response = Concept.class)
+  @ApiOperation(value = "Get the association for the specified terminology and code/label", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -176,7 +170,7 @@ public class MetadataController {
    * @return the roles
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all roles, or those specified by list parameter", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get all roles (or those specified by list parameter) for the specified terminology", response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -214,7 +208,7 @@ public class MetadataController {
    * @return the role
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the specified role code or label", response = Concept.class)
+  @ApiOperation(value = "Get the role for the specified terminology and code/label", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -266,7 +260,7 @@ public class MetadataController {
    * @return the properties
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all properties, or those specified by list parameter", response = Concept.class, responseContainer = "List")
+  @ApiOperation(value = "Get all properties (or those specified by list parameter) for the specified terminology", response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -304,7 +298,7 @@ public class MetadataController {
    * @return the property
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the specified property code or label", response = Concept.class)
+  @ApiOperation(value = "Get the property for the specified terminology and code/label", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -354,7 +348,7 @@ public class MetadataController {
    * @return the concept statuses
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the concept status values", response = String.class)
+  @ApiOperation(value = "Get all concept status values for the specified terminology", response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -384,7 +378,7 @@ public class MetadataController {
    * @return the contributing sources
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the contributing sources", response = String.class)
+  @ApiOperation(value = "Get all contributing sources for the specified terminology", response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -417,19 +411,20 @@ public class MetadataController {
    * @return the graph names
    * @throws Exception the exception
    */
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/graphNames", produces = "application/json")
-  public @ResponseBody List<String> getGraphNames(
-    @PathVariable(value = "terminology") final String terminology)
-    throws Exception {
-
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    List<String> graphNames =
-        sparqlQueryManagerService.getAllGraphNames(dbType);
-    return graphNames;
-  }
+  // @RequestMapping(method = RequestMethod.GET, value =
+  // "/metadata/{terminology}/graphNames", produces = "application/json")
+  // public @ResponseBody List<String> getGraphNames(
+  // @PathVariable(value = "terminology") final String terminology)
+  // throws Exception {
+  //
+  // final Terminology term =
+  // TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+  // final String dbType =
+  // "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+  // List<String> graphNames =
+  // sparqlQueryManagerService.getAllGraphNames(dbType);
+  // return graphNames;
+  // }
 
   /**
    * Returns the axiom qualifiers list. UNDOCUMENTED.
@@ -439,6 +434,14 @@ public class MetadataController {
    * @return the axiom qualifiers list
    * @throws Exception the exception
    */
+  @ApiOperation(value = "Get axiom qualifiers for the specified property", response = String.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/property/{codeOrLabel}/axiomQualifiers", produces = "application/json")
   public @ResponseBody List<String> getAxiomQualifiersList(
     @PathVariable(value = "terminology") final String terminology,

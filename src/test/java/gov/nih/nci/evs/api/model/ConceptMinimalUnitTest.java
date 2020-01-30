@@ -22,19 +22,19 @@ import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 
 /**
- * Unit test for {@link Concept}.
+ * Unit test for {@link ConceptMinimal}.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
-public class ConceptUnitTest {
+public class ConceptMinimalUnitTest {
 
   /** The logger. */
   @SuppressWarnings("unused")
   private static final Logger log =
-      LoggerFactory.getLogger(ConceptUnitTest.class);
+      LoggerFactory.getLogger(ConceptMinimalUnitTest.class);
 
   /** The model object to test. */
-  private Concept object;
+  private ConceptMinimal object;
 
   /** The s 1. */
   private List<Synonym> s1;
@@ -79,7 +79,7 @@ public class ConceptUnitTest {
    */
   @Before
   public void setup() throws Exception {
-    object = new Concept();
+    object = new ConceptMinimal();
 
     final ProxyTester tester1 = new ProxyTester(new Synonym());
     s1 = new ArrayList<>();
@@ -192,7 +192,7 @@ public class ConceptUnitTest {
     tester.proxy("roles", 1, r1);
     tester.proxy("maps", 1, m1);
 
-    assertTrue(tester.testCopyConstructor(Concept.class));
+    assertTrue(tester.testCopyConstructor(ConceptMinimal.class));
   }
 
   /**

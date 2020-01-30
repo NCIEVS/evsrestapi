@@ -1,8 +1,15 @@
+
 package gov.nih.nci.evs.api.configuration;
+
+import java.io.IOException;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.google.common.base.Predicates;
+
+import gov.nih.nci.evs.api.controller.VersionController;
+import gov.nih.nci.evs.api.support.HomePageData;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -12,34 +19,41 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+/**
+ * The Class SwaggerConfiguration.
+ */
 @Configuration
 @EnableSwagger2
 public class SwaggerConfiguration {
-	
-	@Bean
-    public Docket api() { 
-           return new Docket(DocumentationType.SWAGGER_2)  
-             .select()                                  
-             .apis(RequestHandlerSelectors.any())              
-             .paths(PathSelectors.ant("/api/v1/**"))                          
-             .build()
-             .apiInfo(apiInfo());          
-           
-    }
-	
-	
-	 ApiInfo apiInfo() {
-	        return new ApiInfoBuilder()
-	            .title("EVS Rest API")
-	            .description("EVS Rest API")
-	            .license("")
-	            .licenseUrl("")
-	            .termsOfServiceUrl("")
-	            .version("")
-	            .contact(new Contact("", "", ""))
-	            .build();
-	    }
-	
-	
+
+  /**
+   * Api.
+   *
+   * @return the docket
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Bean
+  public Docket api() throws IOException {
+    return new Docket(DocumentationType.SWAGGER_2).select()
+        .apis(RequestHandlerSelectors.any())
+        .paths(Predicates.or(PathSelectors.ant("/api/v1/**"),
+            PathSelectors.ant("/version/**")))
+        .build().apiInfo(apiInfo());
+
+  }
+
+  /**
+   * Api info.
+   *
+   * @return the api info
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  ApiInfo apiInfo() throws IOException {
+    final HomePageData data = new VersionController().getApplicationVersion();
+    return new ApiInfoBuilder().title(data.getName())
+        .description(data.getDescription()).license("").licenseUrl("")
+        .termsOfServiceUrl("").version(data.getVersion())
+        .contact(new Contact("", "", "")).build();
+  }
 
 }

@@ -3,8 +3,6 @@ package gov.nih.nci.evs.api.controller;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -27,11 +25,10 @@ public class VersionController {
   /**
    * Returns the evs concept detail.
    *
-   * @param response the response
    * @return the evs concept detail
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @ApiOperation(value = "Get the application version information", response = String.class)
+  @ApiOperation(value = "Get the application version information", response = HomePageData.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -40,10 +37,11 @@ public class VersionController {
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/version", produces = "application/json")
-  public @ResponseBody HomePageData getApplicationVersion(
-    HttpServletResponse response) throws IOException {
-    HomePageData homePageData = new HomePageData();
-    homePageData.setDescription("NCI EVS API");
+  public @ResponseBody HomePageData getApplicationVersion() throws IOException {
+    final HomePageData homePageData = new HomePageData();
+    homePageData.setName("NCI EVS Rest API");
+    homePageData.setDescription(
+        "Endpoints to support searching, metadata, and content retrieval for EVS terminologies.");
     homePageData.setVersion("1.1.0-SNAPSHOT");
     return homePageData;
   }

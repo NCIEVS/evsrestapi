@@ -98,6 +98,7 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isEqualTo(10);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
     assertThat(list.getConcepts().get(0).getSynonyms()).isEmpty();
     assertThat(list.getTotal()).isGreaterThan(100);
     assertThat(list.getParameters().getTerm()).isEqualTo("melanoma");
