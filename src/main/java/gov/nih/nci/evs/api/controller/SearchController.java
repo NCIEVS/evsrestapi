@@ -86,7 +86,7 @@ public class SearchController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search, e.g. 'ncit'", required = true, dataType = "string", paramType = "query"),
+      @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched", required = true, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type", value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.", required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
