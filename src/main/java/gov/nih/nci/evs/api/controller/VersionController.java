@@ -42,7 +42,7 @@ public class VersionController {
     homePageData.setName("NCI EVS Rest API");
     homePageData.setDescription(
         "Endpoints to support searching, metadata, and content retrieval for EVS terminologies.");
-    homePageData.setVersion("1.1.0-SNAPSHOT");
+    homePageData.setVersion("1.1.0.RELEASE");
     return homePageData;
   }
 
