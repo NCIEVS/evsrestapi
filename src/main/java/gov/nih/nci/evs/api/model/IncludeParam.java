@@ -95,7 +95,8 @@ public class IncludeParam extends BaseModel {
           disjointWith = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              "Invalid includes value = " + part + ", " + include);
+              "Invalid includes value = " + part
+                  + (part.equals(include) ? "" : "; " + include));
         }
       }
     }
