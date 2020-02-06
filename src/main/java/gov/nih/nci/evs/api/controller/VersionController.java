@@ -41,7 +41,10 @@ public class VersionController {
     final HomePageData homePageData = new HomePageData();
     homePageData.setName("NCI EVS Rest API");
     homePageData.setDescription(
-        "Endpoints to support searching, metadata, and content retrieval for EVS terminologies.");
+        "Endpoints to support searching, metadata, and content retrieval for EVS terminologies. "
+        + "To learn more about how to interact with this api, see the  "
+        + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK' "
+        + "target='_blank'>Github evsrestapi-client-SDK project</a>.");
     homePageData.setVersion("1.1.1-SNAPSHOT");
     return homePageData;
   }
