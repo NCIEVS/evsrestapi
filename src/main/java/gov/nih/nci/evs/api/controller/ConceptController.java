@@ -183,8 +183,12 @@ public class ConceptController {
     final List<EvsAssociation> list =
         sparqlQueryManagerService.getEvsAssociations(code, dbType);
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertAssociations(list);
@@ -223,8 +227,12 @@ public class ConceptController {
     final List<EvsAssociation> list =
         sparqlQueryManagerService.getEvsInverseAssociations(code, dbType);
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertAssociations(list);
@@ -263,8 +271,12 @@ public class ConceptController {
     final List<EvsAssociation> list =
         sparqlQueryManagerService.getEvsRoles(code, dbType);
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertRoles(list);
@@ -303,8 +315,12 @@ public class ConceptController {
     final List<EvsAssociation> list =
         sparqlQueryManagerService.getEvsInverseRoles(code, dbType);
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertRoles(list);
@@ -343,8 +359,12 @@ public class ConceptController {
     final List<EvsRelatedConcept> list =
         sparqlQueryManagerService.getEvsSuperconcepts(code, dbType, "byCode");
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertConcepts(list);
@@ -383,8 +403,12 @@ public class ConceptController {
     final List<EvsRelatedConcept> list =
         sparqlQueryManagerService.getEvsSubconcepts(code, dbType, "byCode");
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertConcepts(list);
@@ -428,8 +452,12 @@ public class ConceptController {
         .getChildNodes(code, maxLevel.orElse(0), dbType);
 
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertConceptsFromHierarchy(list);
@@ -468,8 +496,12 @@ public class ConceptController {
     final List<EvsMapsTo> list =
         sparqlQueryManagerService.getEvsMapsTo(code, dbType);
     if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      if (!sparqlQueryManagerService.checkConceptExists(code, dbType)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            code + " not found");
+      } else {
+        return new ArrayList<>();
+      }
     }
 
     return ConceptUtils.convertMaps(list);
