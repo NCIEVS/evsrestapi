@@ -314,7 +314,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
+        new TypeReference<List<Role>>() {
           // n/a
         });
     assertThat(list).isEmpty();
@@ -354,7 +354,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
+        new TypeReference<List<Role>>() {
           // n/a
         });
     assertThat(list).isEmpty();
@@ -394,7 +394,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
+        new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isEmpty();
@@ -435,7 +435,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
+        new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isEmpty();
@@ -519,7 +519,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
+        new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isEmpty();
@@ -559,7 +559,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
+        new TypeReference<List<Map>>() {
           // n/a
         });
     assertThat(list).isEmpty();
@@ -602,7 +602,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
+        new TypeReference<List<DisjointWith>>() {
           // n/a
         });
     assertThat(list).isEmpty();
