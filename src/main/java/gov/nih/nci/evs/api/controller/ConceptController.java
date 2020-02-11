@@ -125,7 +125,7 @@ public class ConceptController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}", produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody Concept getConcept(
@@ -167,7 +167,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations", produces = "application/json")
@@ -207,7 +207,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
@@ -247,7 +247,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles", produces = "application/json")
@@ -287,7 +287,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles", produces = "application/json")
@@ -327,7 +327,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents", produces = "application/json")
@@ -367,7 +367,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children", produces = "application/json")
@@ -410,7 +410,7 @@ public class ConceptController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants", produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "maxLevel", value = "Maximum level of ancestors to include, if applicable", required = false, dataType = "string", paramType = "query")
   })
   public @ResponseBody List<Concept> getDescendants(
@@ -452,7 +452,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps", produces = "application/json")
@@ -492,7 +492,7 @@ public class ConceptController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3910'", required = true, dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith", produces = "application/json")
@@ -577,7 +577,7 @@ public class ConceptController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot", produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(
@@ -622,7 +622,7 @@ public class ConceptController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot", produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(
@@ -668,7 +668,7 @@ public class ConceptController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "ancestorCode", value = "Ancestor code of the other specified code, e.g. 'C2291'", required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "ancestorCode", value = "Ancestor code of the other specified code, e.g. 'C2991'", required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.", required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(

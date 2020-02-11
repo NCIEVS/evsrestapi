@@ -87,7 +87,7 @@ public class SearchController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched", required = true, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type", value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.", required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false, dataType = "string", paramType = "query", defaultValue = "0"),
@@ -129,7 +129,7 @@ public class SearchController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search, e.g. 'ncit'", required = true, dataType = "string", paramType = "query"),
-      @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched", required = true, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type", value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.", required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
       @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false, dataType = "string", paramType = "query", defaultValue = "0"),
@@ -206,6 +206,7 @@ public class SearchController {
                 .getEvsConceptByCode(result.getCode(), dbType, ip));
         ConceptUtils.applyHighlights(concept, result.getHighlights());
         concept.setTerminology(terminology);
+        // Clear highlights now that they have been applied
         concept.setHighlights(null);
         concepts.add(concept);
       }
