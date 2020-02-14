@@ -52,13 +52,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   private String synonymTermGroup;
 
   /** The inverse. */
-  private Boolean inverse = null;
+  // private Boolean inverse = null;
 
   /** The association. */
-  private List<String> association;
+  // private List<String> association;
 
   /** The role. */
-  private List<String> role;
+  // private List<String> role;
 
   /**
    * Instantiates an empty {@link SearchCriteriaWithoutTerminology}.
@@ -73,8 +73,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @param other the other
    */
-  public SearchCriteriaWithoutTerminology(
-      final SearchCriteriaWithoutTerminology other) {
+  public SearchCriteriaWithoutTerminology(final SearchCriteriaWithoutTerminology other) {
     populateFrom(other);
   }
 
@@ -84,16 +83,16 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final SearchCriteriaWithoutTerminology other) {
-    association = new ArrayList<>(other.getAssociation());
+    // association = new ArrayList<>(other.getAssociation());
     conceptStatus = new ArrayList<>(other.getConceptStatus());
     contributingSource = new ArrayList<>(other.getContributingSource());
     definitionSource = new ArrayList<>(other.getDefinitionSource());
     fromRecord = other.getFromRecord();
     include = other.getInclude();
-    inverse = other.getInverse();
+    // inverse = other.getInverse();
     pageSize = other.getPageSize();
     property = new ArrayList<>(other.getProperty());
-    role = new ArrayList<>(other.getRole());
+    // role = new ArrayList<>(other.getRole());
     synonymSource = new ArrayList<>(other.getSynonymSource());
     synonymTermGroup = other.getSynonymTermGroup();
     term = other.getTerm();
@@ -318,60 +317,60 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the inverse
    */
-  public Boolean getInverse() {
-    return inverse;
-  }
+  // public Boolean getInverse() {
+  // return inverse;
+  // }
 
   /**
    * Sets the inverse.
    *
    * @param inverse the inverse
    */
-  public void setInverse(final Boolean inverse) {
-    this.inverse = inverse;
-  }
+  // public void setInverse(final Boolean inverse) {
+  // this.inverse = inverse;
+  // }
 
   /**
    * Returns the association.
    *
    * @return the association
    */
-  public List<String> getAssociation() {
-    if (association == null) {
-      association = new ArrayList<>();
-    }
-    return association;
-  }
+  // public List<String> getAssociation() {
+  // if (association == null) {
+  // association = new ArrayList<>();
+  // }
+  // return association;
+  // }
 
   /**
    * Sets the association.
    *
    * @param association the association
    */
-  public void setAssociation(final List<String> association) {
-    this.association = association;
-  }
+  // public void setAssociation(final List<String> association) {
+  // this.association = association;
+  // }
 
   /**
    * Returns the role.
    *
    * @return the role
    */
-  public List<String> getRole() {
-    if (role == null) {
-      role = new ArrayList<>();
-    }
-    return role;
-  }
+  // public List<String> getRole() {
+  // if (role == null) {
+  // role = new ArrayList<>();
+  // }
+  // return role;
+  // }
 
   /**
    * Sets the role.
    *
    * @param role the role
    */
-  public void setRole(final List<String> role) {
-    this.role = role;
-  }
+  // public void setRole(final List<String> role) {
+  // this.role = role;
+  // }
 
   /**
    * Compute include param.
@@ -414,8 +413,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           "Required parameter 'term' is missing");
     }
 
-    if (!TerminologyUtils.asSet("AND", "OR", "phrase", "exact", "contains",
-        "fuzzy", "match", "startsWith").contains(getType())) {
+    if (!TerminologyUtils
+        .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
+        .contains(getType())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'type' has an invalid value = " + type);
     }
@@ -448,8 +448,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid contributing source
     for (final String ss : getSynonymSource()) {
-      if (!ss.equals("NCI") && !thesaurusProperties.getContributingSources()
-          .values().contains(ss)) {
+      if (!ss.equals("NCI")
+          && !thesaurusProperties.getContributingSources().values().contains(ss)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'synonymSource' has an invalid value = " + ss);
       }
@@ -457,8 +457,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid contributing source
     for (final String ds : getDefinitionSource()) {
-      if (!ds.equals("NCI") && !thesaurusProperties.getContributingSources()
-          .values().contains(ds)) {
+      if (!ds.equals("NCI")
+          && !thesaurusProperties.getContributingSources().values().contains(ds)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'definitionSource' has an invalid value = " + ds);
       }
@@ -470,25 +470,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result =
-        prime * result + ((association == null) ? 0 : association.hashCode());
-    result = prime * result
-        + ((conceptStatus == null) ? 0 : conceptStatus.hashCode());
-    result = prime * result
-        + ((contributingSource == null) ? 0 : contributingSource.hashCode());
-    result = prime * result
-        + ((definitionSource == null) ? 0 : definitionSource.hashCode());
-    result =
-        prime * result + ((fromRecord == null) ? 0 : fromRecord.hashCode());
+    // result =
+    // prime * result + ((association == null) ? 0 :
+    // association.hashCode());
+    result = prime * result + ((conceptStatus == null) ? 0 : conceptStatus.hashCode());
+    result = prime * result + ((contributingSource == null) ? 0 : contributingSource.hashCode());
+    result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
+    result = prime * result + ((fromRecord == null) ? 0 : fromRecord.hashCode());
     result = prime * result + ((include == null) ? 0 : include.hashCode());
-    result = prime * result + ((inverse == null) ? 0 : inverse.hashCode());
+    // result = prime * result + ((inverse == null) ? 0 : inverse.hashCode());
     result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
     result = prime * result + ((property == null) ? 0 : property.hashCode());
-    result = prime * result + ((role == null) ? 0 : role.hashCode());
-    result = prime * result
-        + ((synonymSource == null) ? 0 : synonymSource.hashCode());
-    result = prime * result
-        + ((synonymTermGroup == null) ? 0 : synonymTermGroup.hashCode());
+    // result = prime * result + ((role == null) ? 0 : role.hashCode());
+    result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
+    result = prime * result + ((synonymTermGroup == null) ? 0 : synonymTermGroup.hashCode());
     result = prime * result + ((term == null) ? 0 : term.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
@@ -506,15 +501,14 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final SearchCriteriaWithoutTerminology other =
-        (SearchCriteriaWithoutTerminology) obj;
-    if (association == null) {
-      if (other.association != null) {
-        return false;
-      }
-    } else if (!association.equals(other.association)) {
-      return false;
-    }
+    final SearchCriteriaWithoutTerminology other = (SearchCriteriaWithoutTerminology) obj;
+    // if (association == null) {
+    // if (other.association != null) {
+    // return false;
+    // }
+    // } else if (!association.equals(other.association)) {
+    // return false;
+    // }
     if (conceptStatus == null) {
       if (other.conceptStatus != null) {
         return false;
@@ -550,13 +544,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     } else if (!include.equals(other.include)) {
       return false;
     }
-    if (inverse == null) {
-      if (other.inverse != null) {
-        return false;
-      }
-    } else if (!inverse.equals(other.inverse)) {
-      return false;
-    }
+    // if (inverse == null) {
+    // if (other.inverse != null) {
+    // return false;
+    // }
+    // } else if (!inverse.equals(other.inverse)) {
+    // return false;
+    // }
     if (pageSize == null) {
       if (other.pageSize != null) {
         return false;
@@ -571,13 +565,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     } else if (!property.equals(other.property)) {
       return false;
     }
-    if (role == null) {
-      if (other.role != null) {
-        return false;
-      }
-    } else if (!role.equals(other.role)) {
-      return false;
-    }
+    // if (role == null) {
+    // if (other.role != null) {
+    // return false;
+    // }
+    // } else if (!role.equals(other.role)) {
+    // return false;
+    // }
     if (synonymSource == null) {
       if (other.synonymSource != null) {
         return false;
