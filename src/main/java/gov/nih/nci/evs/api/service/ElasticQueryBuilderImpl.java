@@ -29,8 +29,7 @@ import gov.nih.nci.evs.api.support.SearchCriteria;
 public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
   /** The Constant log. */
-  private static final Logger log =
-      LoggerFactory.getLogger(ElasticQueryBuilderImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(ElasticQueryBuilderImpl.class);
 
   /** The return field map. */
   private HashMap<String, String> returnFieldMap;
@@ -78,26 +77,20 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   @PostConstruct
   public void postInit() throws IOException {
 
-    conceptStatus =
-        (HashMap<String, String>) thesaurusProperties.getConceptStatuses();
-    contributingSource =
-        (HashMap<String, String>) thesaurusProperties.getContributingSources();
+    conceptStatus = (HashMap<String, String>) thesaurusProperties.getConceptStatuses();
+    contributingSource = (HashMap<String, String>) thesaurusProperties.getContributingSources();
     roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();
-    associationToQuery =
-        (HashMap<String, String>) thesaurusProperties.getAssociations();
-    returnFieldMap =
-        (HashMap<String, String>) thesaurusProperties.getReturnFields();
-    propertyToQuery =
-        (HashMap<String, String>) elasticQueryProperties.getPropertyToQuery();
-    propertyToQueryExact = (HashMap<String, String>) elasticQueryProperties
-        .getPropertyToQueryExact();
-    propertyToQueryContains = (HashMap<String, String>) elasticQueryProperties
-        .getPropertyToQueryContains();
+    associationToQuery = (HashMap<String, String>) thesaurusProperties.getAssociations();
+    returnFieldMap = (HashMap<String, String>) thesaurusProperties.getReturnFields();
+    propertyToQuery = (HashMap<String, String>) elasticQueryProperties.getPropertyToQuery();
+    propertyToQueryExact =
+        (HashMap<String, String>) elasticQueryProperties.getPropertyToQueryExact();
+    propertyToQueryContains =
+        (HashMap<String, String>) elasticQueryProperties.getPropertyToQueryContains();
   }
 
   /* see superclass */
-  public String constructQuery(
-    FilterCriteriaElasticFields filterCriteriaElasticFields)
+  public String constructQuery(FilterCriteriaElasticFields filterCriteriaElasticFields)
     throws IOException {
     Map<String, String> valuesMap = new HashMap<>();
     // setting defaults
@@ -124,12 +117,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         display = "role";
       }
     } else {
-      if (filterCriteriaElasticFields.getReturnProperties().get(0)
-          .equalsIgnoreCase("all")) {
+      if (filterCriteriaElasticFields.getReturnProperties().get(0).equalsIgnoreCase("all")) {
         display = "all";
       }
-      if (filterCriteriaElasticFields.getReturnProperties().get(0)
-          .equalsIgnoreCase("short")) {
+      if (filterCriteriaElasticFields.getReturnProperties().get(0).equalsIgnoreCase("short")) {
         display = "short";
       }
     }
@@ -148,18 +139,14 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     // association
     if (filterCriteriaElasticFields.getAssociationSearch() != null) {
-      if (!(filterCriteriaElasticFields.getAssociationSearch()
-          .equalsIgnoreCase("source")
-          || filterCriteriaElasticFields.getAssociationSearch()
-              .equalsIgnoreCase("target"))) {
-        throw new InvalidParameterValueException(
-            "Invalid Parameter value for associationSearch -"
-                + filterCriteriaElasticFields.getAssociationSearch()
-                + ". The valid values are source,target.");
+      if (!(filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("source")
+          || filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("target"))) {
+        throw new InvalidParameterValueException("Invalid Parameter value for associationSearch -"
+            + filterCriteriaElasticFields.getAssociationSearch()
+            + ". The valid values are source,target.");
 
       }
-      if (filterCriteriaElasticFields.getAssociationSearch()
-          .equalsIgnoreCase("source")) {
+      if (filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("source")) {
         relation = "Association";
       } else {
         relation = "InverseAssociation";
@@ -168,18 +155,14 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     }
     // role
     if (filterCriteriaElasticFields.getRoleSearch() != null) {
-      if (!(filterCriteriaElasticFields.getRoleSearch()
-          .equalsIgnoreCase("source")
-          || filterCriteriaElasticFields.getRoleSearch()
-              .equalsIgnoreCase("target"))) {
+      if (!(filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("source")
+          || filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("target"))) {
         throw new InvalidParameterValueException(
-            "Invalid Parameter value for roleSearch -"
-                + filterCriteriaElasticFields.getRoleSearch()
+            "Invalid Parameter value for roleSearch -" + filterCriteriaElasticFields.getRoleSearch()
                 + ". The valid values are source,target.");
 
       }
-      if (filterCriteriaElasticFields.getRoleSearch()
-          .equalsIgnoreCase("source")) {
+      if (filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("source")) {
         relation = "Role";
       } else {
         relation = "InverseRole";
@@ -191,8 +174,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     if ((!(filterCriteriaElasticFields.getSynonymSource() == null)
         && (filterCriteriaElasticFields.getSynonymSource().size() > 0))
         || (!(filterCriteriaElasticFields.getSynonymGroup() == null)
-            && !(filterCriteriaElasticFields.getSynonymGroup()
-                .equalsIgnoreCase("")))) {
+            && !(filterCriteriaElasticFields.getSynonymGroup().equalsIgnoreCase("")))) {
       synonymSource = true;
     }
 
@@ -203,8 +185,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     }
 
     // contributingSource
-    ArrayList<String> contributingSources =
-        filterCriteriaElasticFields.getContributingSource();
+    ArrayList<String> contributingSources = filterCriteriaElasticFields.getContributingSource();
     if (contributingSources != null && contributingSources.size() > 0) {
       contributingSource = true;
     }
@@ -220,8 +201,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         returnFields = "true";
       } else if (display.equalsIgnoreCase("definition")) {
         returnFields = elasticQueryProperties.getDefinitionsourcefields();
-      } else if (display.equalsIgnoreCase("association")
-          || display.equalsIgnoreCase("role")) {
+      } else if (display.equalsIgnoreCase("association") || display.equalsIgnoreCase("role")) {
         returnFields = elasticQueryProperties.getAssociationsourcefields();
         returnFields = returnFields.replace("${relation}", relation);
 
@@ -230,8 +210,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
       }
     } else {
       returnFields = "[\n";
-      returnFields =
-          returnFields + elasticQueryProperties.getDefaultsourcefields();
+      returnFields = returnFields + elasticQueryProperties.getDefaultsourcefields();
       returnFields = returnFields.substring(0, returnFields.length() - 1);
       for (String field : filterCriteriaElasticFields.getReturnProperties()) {
         String fieldValue = this.returnFieldMap.get(field.toLowerCase());
@@ -240,8 +219,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
               "Invalid Parameter value for returnProperties -" + field);
 
         } else {
-          if (!(fieldValue.equalsIgnoreCase("Label")
-              || fieldValue.equalsIgnoreCase("Code")))
+          if (!(fieldValue.equalsIgnoreCase("Label") || fieldValue.equalsIgnoreCase("Code")))
             returnFields = returnFields + "\"" + fieldValue + "\",";
         }
 
@@ -278,8 +256,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         operator = "";
       }
       if (filterCriteriaElasticFields.getType().equalsIgnoreCase("AND")) {
-        if (synonymSource || associationSearch || roleSearch
-            || definitionSource)
+        if (synonymSource || associationSearch || roleSearch || definitionSource)
           operator = "\"operator\":\"and\",\n";
         else
           operator = "\"default_operator\":\"AND\",\n";
@@ -298,8 +275,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         operator = "";
         term = term + "~";
       }
-      if (filterCriteriaElasticFields.getType()
-          .equalsIgnoreCase("startswith")) {
+      if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")) {
 
         operator = "\"type\":\"phrase_prefix\",\n";
         rescore = elasticQueryProperties.getRescoreQuery();
@@ -316,11 +292,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     if (synonymSource) {
       // any getProperty field will be ignored
       if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
-          || (filterCriteriaElasticFields.getType()
-              .equalsIgnoreCase("match"))) {
+          || (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
         fields = elasticQueryProperties.getExactstartswithsynonymfields();
-      } else if (filterCriteriaElasticFields.getType()
-          .equalsIgnoreCase("contains")) {
+      } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
         fields = elasticQueryProperties.getContainssynonymfields();
 
       } else {
@@ -330,11 +304,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     } else if (associationSearch || roleSearch) {
       // any getProperty field will be ignored
       if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
-          || (filterCriteriaElasticFields.getType()
-              .equalsIgnoreCase("match"))) {
+          || (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
         fields = elasticQueryProperties.getExactstartswithassociationfields();
-      } else if (filterCriteriaElasticFields.getType()
-          .equalsIgnoreCase("contains")) {
+      } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
         fields = elasticQueryProperties.getContainsassociationfields();
 
       } else {
@@ -346,11 +318,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     } else if (definitionSource) {
       // any getProperty field will be ignored
       if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
-          || (filterCriteriaElasticFields.getType()
-              .equalsIgnoreCase("match"))) {
+          || (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
         fields = elasticQueryProperties.getExactstartswithdefinitionfields();
-      } else if (filterCriteriaElasticFields.getType()
-          .equalsIgnoreCase("contains")) {
+      } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
         fields = elasticQueryProperties.getContainsdefinitionfields();
 
       } else {
@@ -364,22 +334,18 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
           fields = "[\n";
           for (String property : properties) {
             String value = "";
-            if ((filterCriteriaElasticFields.getType()
-                .equalsIgnoreCase("startswith"))
-                || (filterCriteriaElasticFields.getType()
-                    .equalsIgnoreCase("match"))) {
+            if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
+                || (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
               value = this.propertyToQueryExact.get(property.toLowerCase());
 
-            } else if (filterCriteriaElasticFields.getType()
-                .equalsIgnoreCase("contains")) {
+            } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
               value = this.propertyToQueryContains.get(property.toLowerCase());
             } else {
               value = this.propertyToQuery.get(property.toLowerCase());
             }
             if (value == null) {
               throw new InvalidParameterValueException(
-                  "Invalid Parameter value for property field. Rejected value - "
-                      + property);
+                  "Invalid Parameter value for property field. Rejected value - " + property);
 
             } else
               fields = fields + value;
@@ -388,13 +354,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
           fields = fields + "]\n";
 
         }
-      } else if ((filterCriteriaElasticFields.getType()
-          .equalsIgnoreCase("startswith"))
-          || (filterCriteriaElasticFields.getType()
-              .equalsIgnoreCase("match"))) {
+      } else if ((filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith"))
+          || (filterCriteriaElasticFields.getType().equalsIgnoreCase("match"))) {
         fields = elasticQueryProperties.getExactstartswithfields();
-      } else if (filterCriteriaElasticFields.getType()
-          .equalsIgnoreCase("contains")) {
+      } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
         fields = elasticQueryProperties.getContainsfields();
 
       } else {
@@ -408,62 +371,47 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     if (!filterCriteriaElasticFields.getFormat().equalsIgnoreCase("clean")) {
       if (synonymSource) {
         if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
-            || filterCriteriaElasticFields.getType()
-                .equalsIgnoreCase("match")) {
+            || filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
           highlightFields = elasticQueryProperties.getHighlightsynonymexact();
 
-        } else if (filterCriteriaElasticFields.getType()
-            .equalsIgnoreCase("contains")) {
-          highlightFields =
-              elasticQueryProperties.getHighlightsynonymcontains();
+        } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+          highlightFields = elasticQueryProperties.getHighlightsynonymcontains();
 
         } else {
           highlightFields = elasticQueryProperties.getHighlightsynonymandor();
         }
       } else if (associationSearch || roleSearch) {
         if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
-            || filterCriteriaElasticFields.getType()
-                .equalsIgnoreCase("match")) {
-          highlightFields =
-              elasticQueryProperties.getHighlightassociationexact();
+            || filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
+          highlightFields = elasticQueryProperties.getHighlightassociationexact();
 
-        } else if (filterCriteriaElasticFields.getType()
-            .equalsIgnoreCase("contains")) {
-          highlightFields =
-              elasticQueryProperties.getHighlightassociationcontains();
+        } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+          highlightFields = elasticQueryProperties.getHighlightassociationcontains();
 
         } else {
-          highlightFields =
-              elasticQueryProperties.getHighlightassociationandor();
+          highlightFields = elasticQueryProperties.getHighlightassociationandor();
         }
 
         highlightFields = highlightFields.replace("${relation}", relation);
 
       } else if (definitionSource) {
         if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
-            || filterCriteriaElasticFields.getType()
-                .equalsIgnoreCase("match")) {
-          highlightFields =
-              elasticQueryProperties.getHighlightdefinitionexact();
+            || filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
+          highlightFields = elasticQueryProperties.getHighlightdefinitionexact();
 
-        } else if (filterCriteriaElasticFields.getType()
-            .equalsIgnoreCase("contains")) {
-          highlightFields =
-              elasticQueryProperties.getHighlightdefinitioncontains();
+        } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
+          highlightFields = elasticQueryProperties.getHighlightdefinitioncontains();
 
         } else {
-          highlightFields =
-              elasticQueryProperties.getHighlightdefinitionandor();
+          highlightFields = elasticQueryProperties.getHighlightdefinitionandor();
         }
 
       } else {
         if (filterCriteriaElasticFields.getType().equalsIgnoreCase("startswith")
-            || filterCriteriaElasticFields.getType()
-                .equalsIgnoreCase("match")) {
+            || filterCriteriaElasticFields.getType().equalsIgnoreCase("match")) {
           highlightFields = elasticQueryProperties.getHighlightexact();
 
-        } else if (filterCriteriaElasticFields.getType()
-            .equalsIgnoreCase("contains")) {
+        } else if (filterCriteriaElasticFields.getType().equalsIgnoreCase("contains")) {
           highlightFields = elasticQueryProperties.getHighlightcontains();
 
         } else {
@@ -482,8 +430,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     }
     // get association relationship
     if (associationSearch || roleSearch) {
-      String associationRelationship = constructAssociationRelationship(
-          filterCriteriaElasticFields, relation);
+      String associationRelationship =
+          constructAssociationRelationship(filterCriteriaElasticFields, relation);
       valuesMap.put("searchFilter", associationRelationship);
 
       valuesMap.put("nestedPath", relation);
@@ -497,8 +445,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
       valuesMap.put("searchFilter", synonymSourceStr);
       valuesMap.put("nestedPath", "FULL_SYN");
       if (contributingSource) {
-        String contributingSourceStr = constructContributingSource(
-            filterCriteriaElasticFields.getContributingSource());
+        String contributingSourceStr =
+            constructContributingSource(filterCriteriaElasticFields.getContributingSource());
         valuesMap.put("nonNestedQuery", contributingSourceStr);
       }
 
@@ -506,11 +454,11 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     // ***************definition source***********
     if (definitionSource) {
-      String definitionSourceStr = constructDefintionSource(
-          filterCriteriaElasticFields.getDefinitionSource());
+      String definitionSourceStr =
+          constructDefintionSource(filterCriteriaElasticFields.getDefinitionSource());
       valuesMap.put("searchFilter1", definitionSourceStr);
-      definitionSourceStr = constructAltDefintionSource(
-          filterCriteriaElasticFields.getDefinitionSource());
+      definitionSourceStr =
+          constructAltDefintionSource(filterCriteriaElasticFields.getDefinitionSource());
       valuesMap.put("searchFilter2", definitionSourceStr);
       valuesMap.put("nestedPath1", "DEFINITION");
       valuesMap.put("nestedPath2", "ALT_DEFINITION");
@@ -518,8 +466,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     // **********************filter replace********************
     if (!(synonymSource || associationSearch || roleSearch)) {
-      String filter = this.constructFilterQuery(
-          filterCriteriaElasticFields.getConceptStatus(),
+      String filter = this.constructFilterQuery(filterCriteriaElasticFields.getConceptStatus(),
           filterCriteriaElasticFields.getContributingSource());
       valuesMap.put("filter", filter);
     }
@@ -551,8 +498,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
    * @param synonymGroup the synonym group
    * @return the string
    */
-  private String constructSynonymSource(List<String> synonymSources,
-    final String synonymGroup) {
+  private String constructSynonymSource(List<String> synonymSources, final String synonymGroup) {
     String synonymSourceStr = "";
 
     /*
@@ -570,30 +516,25 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     if (synonymSources != null && synonymSources.size() > 0) {
       synonymSourceStr = synonymSourceStr + ",{\"bool\": {";
       synonymSourceStr = synonymSourceStr + "\"should\": [";
-      synonymSourceStr =
-          synonymSourceStr + "{\"terms\":{\"FULL_SYN.term-source\": [";
+      synonymSourceStr = synonymSourceStr + "{\"terms\":{\"FULL_SYN.term-source\": [";
       for (String synonymSource : synonymSources) {
         synonymSourceStr = synonymSourceStr + "\"" + synonymSource + "\",";
       }
-      synonymSourceStr =
-          synonymSourceStr.substring(0, synonymSourceStr.length() - 1);
+      synonymSourceStr = synonymSourceStr.substring(0, synonymSourceStr.length() - 1);
       synonymSourceStr = synonymSourceStr + "]}}";
-      synonymSourceStr =
-          synonymSourceStr + ",{\"terms\":{\"FULL_SYN.subsource-name\": [";
+      synonymSourceStr = synonymSourceStr + ",{\"terms\":{\"FULL_SYN.subsource-name\": [";
       for (String synonymSource : synonymSources) {
         synonymSourceStr = synonymSourceStr + "\"" + synonymSource + "\",";
       }
-      synonymSourceStr =
-          synonymSourceStr.substring(0, synonymSourceStr.length() - 1);
+      synonymSourceStr = synonymSourceStr.substring(0, synonymSourceStr.length() - 1);
       synonymSourceStr = synonymSourceStr + "]}}";
       synonymSourceStr = synonymSourceStr + "]}}";
 
     }
 
     if (synonymGroup != null && !synonymGroup.equalsIgnoreCase("")) {
-      synonymSourceStr =
-          synonymSourceStr + ",{ \"match\" : {\"FULL_SYN.term-group\" : \""
-              + synonymGroup + "\"} }";
+      synonymSourceStr = synonymSourceStr + ",{ \"match\" : {\"FULL_SYN.term-group\" : \""
+          + synonymGroup + "\"} }";
     }
 
     return synonymSourceStr;
@@ -616,14 +557,11 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     // }
     if (definitionSources != null && definitionSources.size() > 0) {
 
-      definitionSourceStr =
-          definitionSourceStr + ",{\"terms\":{\"DEFINITION.def-source\": [";
+      definitionSourceStr = definitionSourceStr + ",{\"terms\":{\"DEFINITION.def-source\": [";
       for (String definitionSource : definitionSources) {
-        definitionSourceStr =
-            definitionSourceStr + "\"" + definitionSource + "\",";
+        definitionSourceStr = definitionSourceStr + "\"" + definitionSource + "\",";
       }
-      definitionSourceStr =
-          definitionSourceStr.substring(0, definitionSourceStr.length() - 1);
+      definitionSourceStr = definitionSourceStr.substring(0, definitionSourceStr.length() - 1);
       definitionSourceStr = definitionSourceStr + "]}}";
     }
 
@@ -642,14 +580,12 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     if (contributingSources != null && contributingSources.size() > 0) {
 
-      contributingSourceStr =
-          contributingSourceStr + ",{\"terms\":{\"Contributing_Source\": [";
+      contributingSourceStr = contributingSourceStr + ",{\"terms\":{\"Contributing_Source\": [";
       for (String definitionSource : contributingSources) {
-        contributingSourceStr =
-            contributingSourceStr + "\"" + definitionSource + "\",";
+        contributingSourceStr = contributingSourceStr + "\"" + definitionSource + "\",";
       }
-      contributingSourceStr = contributingSourceStr.substring(0,
-          contributingSourceStr.length() - 1);
+      contributingSourceStr =
+          contributingSourceStr.substring(0, contributingSourceStr.length() - 1);
       contributingSourceStr = contributingSourceStr + "]}}";
     }
 
@@ -673,14 +609,11 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     // }
     if (definitionSources != null && definitionSources.size() > 0) {
 
-      definitionSourceStr =
-          definitionSourceStr + ",{\"terms\":{\"ALT_DEFINITION.def-source\": [";
+      definitionSourceStr = definitionSourceStr + ",{\"terms\":{\"ALT_DEFINITION.def-source\": [";
       for (String definitionSource : definitionSources) {
-        definitionSourceStr =
-            definitionSourceStr + "\"" + definitionSource + "\",";
+        definitionSourceStr = definitionSourceStr + "\"" + definitionSource + "\",";
       }
-      definitionSourceStr =
-          definitionSourceStr.substring(0, definitionSourceStr.length() - 1);
+      definitionSourceStr = definitionSourceStr.substring(0, definitionSourceStr.length() - 1);
       definitionSourceStr = definitionSourceStr + "]}}";
     }
 
@@ -705,11 +638,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         || filterCriteriaElasticFields.getRelationship().size() <= 0) {
       associationRelationship = "";
       if (((filterCriteriaElasticFields.getAssociationSearch() != null)
-          && (filterCriteriaElasticFields.getAssociationSearch()
-              .equalsIgnoreCase("target")))
+          && (filterCriteriaElasticFields.getAssociationSearch().equalsIgnoreCase("target")))
           || ((filterCriteriaElasticFields.getRoleSearch() != null)
-              && (filterCriteriaElasticFields.getRoleSearch()
-                  .equalsIgnoreCase("target")))) {
+              && (filterCriteriaElasticFields.getRoleSearch().equalsIgnoreCase("target")))) {
         throw new InvalidParameterValueException(
             "If association/role search is specified as target then a relationship should be specified.");
       }
@@ -728,13 +659,12 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         associationRelationship = "";
       } else if (filterCriteriaElasticFields.getRelationship().size() == 1) {
         String value = null;
-        value = searchValue(
-            filterCriteriaElasticFields.getRelationship().get(0), mapToSearch);
+        value = searchValue(filterCriteriaElasticFields.getRelationship().get(0), mapToSearch);
 
         if (value != null) {
           associationRelationship = associationRelationship + ",\n";
-          associationRelationship = associationRelationship + "{\"match\" : {\""
-              + relation + ".relationship\" : \"" + value + "\"} }";
+          associationRelationship = associationRelationship + "{\"match\" : {\"" + relation
+              + ".relationship\" : \"" + value + "\"} }";
         } else {
 
           throw new InvalidParameterValueException(
@@ -747,16 +677,14 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         associationRelationship = associationRelationship + ",\n";
         associationRelationship = associationRelationship + " {\"bool\":{\n";
         associationRelationship = associationRelationship + "   \"should\":[\n";
-        for (String relationship : filterCriteriaElasticFields
-            .getRelationship()) {
+        for (String relationship : filterCriteriaElasticFields.getRelationship()) {
           String value = null;
           value = searchValue(relationship, mapToSearch);
 
           if (value != null) {
 
-            associationRelationship =
-                associationRelationship + "{\"match\" : {\"" + relation
-                    + ".relationship\" : \"" + value + "\"} },";
+            associationRelationship = associationRelationship + "{\"match\" : {\"" + relation
+                + ".relationship\" : \"" + value + "\"} },";
           } else {
 
             throw new InvalidParameterValueException(
@@ -768,8 +696,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
         }
 
-        associationRelationship = associationRelationship.substring(0,
-            associationRelationship.length() - 1);
+        associationRelationship =
+            associationRelationship.substring(0, associationRelationship.length() - 1);
         associationRelationship = associationRelationship + "]\n";
         associationRelationship = associationRelationship + "}\n";
         associationRelationship = associationRelationship + "}\n";
@@ -813,8 +741,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         conceptStatus = conceptStatus.toLowerCase();
         if (conceptStatus == null) {
           throw new InvalidParameterValueException(
-              "Invalid Parameter value for conceptStatus field. Rejected value - "
-                  + conceptStatus);
+              "Invalid Parameter value for conceptStatus field. Rejected value - " + conceptStatus);
         }
       }
       conceptStatusFilter = true;
@@ -842,8 +769,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
       if (conceptStatusFilter) {
         if (conceptStatuses.size() == 1) {
-          filter = filter + "{\"term\":{\"Concept_Status\":\""
-              + conceptStatuses.get(0) + "\"}},\n";
+          filter = filter + "{\"term\":{\"Concept_Status\":\"" + conceptStatuses.get(0) + "\"}},\n";
         } else {
           filter = filter + "{\"terms\":{\"Concept_Status\": [";
           for (String conceptStatus : conceptStatuses) {
@@ -863,8 +789,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
       if (contributingSourceFilter) {
         if (contributingSources.size() == 1) {
-          filter = filter + "{\"term\":{\"Contributing_Source\":\""
-              + contributingSources.get(0) + "\"}},\n";
+          filter = filter + "{\"term\":{\"Contributing_Source\":\"" + contributingSources.get(0)
+              + "\"}},\n";
         } else {
           filter = filter + "{\"terms\":{\"Contributing_Source\": [";
           for (String contributingSource : contributingSources) {
@@ -931,8 +857,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   }
 
   /* see superclass */
-  public String constructQuery(SearchCriteria searchCriteria)
-    throws IOException {
+  public String constructQuery(SearchCriteria searchCriteria) throws IOException {
     Map<String, String> valuesMap = new HashMap<>();
 
     // setting defaults - already handeld by SearchCriteria
@@ -993,8 +918,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
       }
       if (searchCriteria.getType().equalsIgnoreCase("AND")) {
         if (!searchCriteria.getSynonymSource().isEmpty()
-            || !searchCriteria.getAssociation().isEmpty()
-            || !searchCriteria.getRole().isEmpty()
+            // || !searchCriteria.getAssociation().isEmpty()
+            // || !searchCriteria.getRole().isEmpty()
             || !searchCriteria.getDefinitionSource().isEmpty()) {
           operator = "\"operator\":\"and\",\n";
         } else {
@@ -1040,18 +965,18 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         fields = elasticQueryProperties.getAndorsynonymfields();
       }
 
-    } else if (!searchCriteria.getAssociation().isEmpty()
-        || !searchCriteria.getRole().isEmpty()) {
-      // any getProperty field will be ignored
-      if ((searchCriteria.getType().equalsIgnoreCase("startswith"))
-          || (searchCriteria.getType().equalsIgnoreCase("match"))) {
-        fields = elasticQueryProperties.getExactstartswithassociationfields();
-      } else if (searchCriteria.getType().equalsIgnoreCase("contains")) {
-        fields = elasticQueryProperties.getContainsassociationfields();
-
-      } else {
-        fields = elasticQueryProperties.getAndorassociationfields();
-      }
+      // } else if (!searchCriteria.getAssociation().isEmpty()
+      // || !searchCriteria.getRole().isEmpty()) {
+      // // any getProperty field will be ignored
+      // if ((searchCriteria.getType().equalsIgnoreCase("startswith"))
+      // || (searchCriteria.getType().equalsIgnoreCase("match"))) {
+      // fields = elasticQueryProperties.getExactstartswithassociationfields();
+      // } else if (searchCriteria.getType().equalsIgnoreCase("contains")) {
+      // fields = elasticQueryProperties.getContainsassociationfields();
+      //
+      // } else {
+      // fields = elasticQueryProperties.getAndorassociationfields();
+      // }
 
       // fields = fields.replace("${relation}", relation);
 
@@ -1067,8 +992,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         fields = elasticQueryProperties.getAndordefinitionfields();
       }
     } else {
-      if (searchCriteria.getProperty() != null
-          && searchCriteria.getProperty().size() > 0) {
+      if (searchCriteria.getProperty() != null && searchCriteria.getProperty().size() > 0) {
         List<String> properties = searchCriteria.getProperty();
         if (properties != null && properties.size() > 0) {
           fields = "[\n";
@@ -1085,8 +1009,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
             }
             if (value == null) {
               throw new InvalidParameterValueException(
-                  "Invalid Parameter value for property field. Rejected value - "
-                      + property);
+                  "Invalid Parameter value for property field. Rejected value - " + property);
 
             } else
               fields = fields + value;
@@ -1120,19 +1043,21 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
       } else {
         highlightFields = elasticQueryProperties.getHighlightsynonymandor();
       }
-    } else if (searchCriteria.getAssociation().size() > 0
-        || searchCriteria.getRole().size() > 0) {
-      if (searchCriteria.getType().equalsIgnoreCase("startswith")
-          || searchCriteria.getType().equalsIgnoreCase("match")) {
-        highlightFields = elasticQueryProperties.getHighlightassociationexact();
-
-      } else if (searchCriteria.getType().equalsIgnoreCase("contains")) {
-        highlightFields =
-            elasticQueryProperties.getHighlightassociationcontains();
-
-      } else {
-        highlightFields = elasticQueryProperties.getHighlightassociationandor();
-      }
+      // } else if (searchCriteria.getAssociation().size() > 0
+      // || searchCriteria.getRole().size() > 0) {
+      // if (searchCriteria.getType().equalsIgnoreCase("startswith")
+      // || searchCriteria.getType().equalsIgnoreCase("match")) {
+      // highlightFields =
+      // elasticQueryProperties.getHighlightassociationexact();
+      //
+      // } else if (searchCriteria.getType().equalsIgnoreCase("contains")) {
+      // highlightFields =
+      // elasticQueryProperties.getHighlightassociationcontains();
+      //
+      // } else {
+      // highlightFields =
+      // elasticQueryProperties.getHighlightassociationandor();
+      // }
 
       // TODO:
       // highlightFields = highlightFields.replace("${relation}", relation);
@@ -1143,8 +1068,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
         highlightFields = elasticQueryProperties.getHighlightdefinitionexact();
 
       } else if (searchCriteria.getType().equalsIgnoreCase("contains")) {
-        highlightFields =
-            elasticQueryProperties.getHighlightdefinitioncontains();
+        highlightFields = elasticQueryProperties.getHighlightdefinitioncontains();
 
       } else {
         highlightFields = elasticQueryProperties.getHighlightdefinitionandor();
@@ -1177,9 +1101,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     // ***************synonym source***********
     if (searchCriteria.getSynonymSource().size() > 0) {
-      String synonymSourceStr =
-          constructSynonymSource(searchCriteria.getSynonymSource(),
-              searchCriteria.getSynonymTermGroup());
+      String synonymSourceStr = constructSynonymSource(searchCriteria.getSynonymSource(),
+          searchCriteria.getSynonymTermGroup());
 
       valuesMap.put("searchFilter", synonymSourceStr);
       valuesMap.put("nestedPath", "FULL_SYN");
@@ -1193,11 +1116,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     // ***************definition source***********
     if (searchCriteria.getDefinitionSource().size() > 0) {
-      String definitionSourceStr =
-          constructDefintionSource(searchCriteria.getDefinitionSource());
+      String definitionSourceStr = constructDefintionSource(searchCriteria.getDefinitionSource());
       valuesMap.put("searchFilter1", definitionSourceStr);
-      definitionSourceStr =
-          constructAltDefintionSource(searchCriteria.getDefinitionSource());
+      definitionSourceStr = constructAltDefintionSource(searchCriteria.getDefinitionSource());
       valuesMap.put("searchFilter2", definitionSourceStr);
       valuesMap.put("nestedPath1", "DEFINITION");
       valuesMap.put("nestedPath2", "ALT_DEFINITION");
@@ -1205,26 +1126,26 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     // **********************filter replace********************
     if (!(searchCriteria.getSynonymSource().size() > 0
-        || searchCriteria.getAssociation().size() > 0
-        || searchCriteria.getRole().size() > 0)) {
-      String filter =
-          this.constructFilterQuery(searchCriteria.getConceptStatus(),
-              searchCriteria.getContributingSource());
+    // || searchCriteria.getAssociation().size() > 0
+    // || searchCriteria.getRole().size() > 0
+    )) {
+      String filter = this.constructFilterQuery(searchCriteria.getConceptStatus(),
+          searchCriteria.getContributingSource());
       valuesMap.put("filter", filter);
     }
 
     // *********get main query
     String templateString = "";
-    final boolean highlightFlag =
-        searchCriteria.computeIncludeParam().isHighlights();
+    final boolean highlightFlag = searchCriteria.computeIncludeParam().isHighlights();
     if (searchCriteria.getDefinitionSource().size() > 0) {
       templateString = getMainMultipleNestedQuery(highlightFlag);
     } else if (searchCriteria.getSynonymSource().size() > 0
         && searchCriteria.getContributingSource().size() > 0) {
       templateString = getMainNestedWithNonNestedQuery(highlightFlag);
     } else if (searchCriteria.getSynonymSource().size() > 0
-        || searchCriteria.getAssociation().size() > 0
-        || searchCriteria.getRole().size() > 0) {
+    // || searchCriteria.getAssociation().size() > 0
+    // || searchCriteria.getRole().size() > 0
+    ) {
       templateString = getMainNestedQuery(highlightFlag);
     } else {
       templateString = getMainQuery(highlightFlag);
