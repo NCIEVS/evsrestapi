@@ -41,8 +41,7 @@ import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 public final class ConceptUtils {
 
   /** The Constant logger. */
-  private static final Logger log =
-      LoggerFactory.getLogger(ConceptUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(ConceptUtils.class);
 
   /**
    * Instantiates an empty {@link ConceptUtils}.
@@ -109,14 +108,14 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyIncludeAndList(
-    final List<EvsConcept> evsConcepts, final IncludeParam ip,
-    final String list) throws Exception {
+  public static List<Concept> applyIncludeAndList(final List<EvsConcept> evsConcepts,
+    final IncludeParam ip, final String list) throws Exception {
     final Set<String> codes = (list == null || list.isEmpty()) ? null
         : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
-    return evsConcepts.stream().filter(ec -> codes == null
-        || codes.contains(ec.getCode()) || codes.contains(ec.getLabel()))
+    return evsConcepts.stream()
+        .filter(
+            ec -> codes == null || codes.contains(ec.getCode()) || codes.contains(ec.getLabel()))
         .map(ec -> {
           try {
             return ConceptUtils.convertConcept(ec);
@@ -134,8 +133,7 @@ public final class ConceptUtils {
    * @return the concept
    * @throws Exception the exception
    */
-  public static Concept convertConcept(final EvsConcept evsConcept)
-    throws Exception {
+  public static Concept convertConcept(final EvsConcept evsConcept) throws Exception {
     if (evsConcept == null) {
       return null;
     }
@@ -144,6 +142,7 @@ public final class ConceptUtils {
 
     // Apply minimal always
     concept.setCode(evsConcept.getCode());
+    // What if label is different than the preferred name?
     concept.setName(evsConcept.getLabel());
 
     // Handle preferred name
@@ -173,11 +172,21 @@ public final class ConceptUtils {
     if (evsConcept.getSynonyms() != null) {
       for (final EvsSynonym evsSy : evsConcept.getSynonyms()) {
         final Synonym sy = new Synonym(evsSy);
+        // Handle special case of rdfs:label
+        if ("rdfs:label".equals(sy.getTermGroup())) {
+          final Synonym rdfsSy = new Synonym();
+          rdfsSy.setType("rdfs:label");
+          rdfsSy.setName(sy.getName());
+          concept.getSynonyms().add(rdfsSy);
+        }
         // TODO: NCI-specific, instead get this from somewhere
-        sy.setType("FULL_SYN");
-        concept.getSynonyms().add(sy);
-        if (sy.getSource() != null) {
-          contributingSources.add(sy.getSource());
+        // The evsSy.getCode() will be equal to "P90" in this case
+        else {
+          sy.setType("FULL_SYN");
+          concept.getSynonyms().add(sy);
+          if (sy.getSource() != null) {
+            contributingSources.add(sy.getSource());
+          }
         }
       }
     }
@@ -278,9 +287,8 @@ public final class ConceptUtils {
     }
 
     // Skip NCI - really this should be better focused on
-    concept.setContributingSources(
-        contributingSources.stream().sorted((a, b) -> a.compareTo(b))
-            .filter(s -> !s.equals("NCI")).collect(Collectors.toList()));
+    concept.setContributingSources(contributingSources.stream().sorted((a, b) -> a.compareTo(b))
+        .filter(s -> !s.equals("NCI")).collect(Collectors.toList()));
     return concept;
   }
 
@@ -290,13 +298,11 @@ public final class ConceptUtils {
    * @param list the list
    * @return the list
    */
-  public static List<Association> convertAssociations(
-    final List<EvsAssociation> list) {
+  public static List<Association> convertAssociations(final List<EvsAssociation> list) {
     if (list == null || list.isEmpty()) {
       return new ArrayList<>();
     }
-    return list.stream().map(ea -> new Association(ea))
-        .collect(Collectors.toList());
+    return list.stream().map(ea -> new Association(ea)).collect(Collectors.toList());
   }
 
   /**
@@ -331,13 +337,11 @@ public final class ConceptUtils {
    * @param list the list
    * @return the list
    */
-  public static List<Concept> convertConcepts(
-    final List<EvsRelatedConcept> list) {
+  public static List<Concept> convertConcepts(final List<EvsRelatedConcept> list) {
     if (list == null || list.isEmpty()) {
       return new ArrayList<>();
     }
-    return list.stream().map(ea -> new Concept(ea))
-        .collect(Collectors.toList());
+    return list.stream().map(ea -> new Concept(ea)).collect(Collectors.toList());
   }
 
   /**
@@ -350,17 +354,17 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> convertConceptsWithInclude(
-    final SparqlQueryManagerService service, final IncludeParam ip,
-    final String dbType, final List<EvsRelatedConcept> list) throws Exception {
+  public static List<Concept> convertConceptsWithInclude(final SparqlQueryManagerService service,
+    final IncludeParam ip, final String dbType, final List<EvsRelatedConcept> list)
+    throws Exception {
 
     final List<Concept> concepts = convertConcepts(list);
     if (ip.hasAnyTrue()) {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(ConceptUtils.convertConcept(
-            service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
+        concept.populateFrom(ConceptUtils
+            .convertConcept(service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -374,13 +378,11 @@ public final class ConceptUtils {
    * @param list the list
    * @return the list
    */
-  public static List<Concept> convertConceptsFromHierarchy(
-    final List<HierarchyNode> list) {
+  public static List<Concept> convertConceptsFromHierarchy(final List<HierarchyNode> list) {
     if (list == null || list.isEmpty()) {
       return new ArrayList<>();
     }
-    return list.stream().map(ea -> new Concept(ea))
-        .collect(Collectors.toList());
+    return list.stream().map(ea -> new Concept(ea)).collect(Collectors.toList());
   }
 
   /**
@@ -394,16 +396,16 @@ public final class ConceptUtils {
    * @throws Exception the exception
    */
   public static List<Concept> convertConceptsFromHierarchyWithInclude(
-    final SparqlQueryManagerService service, final IncludeParam ip,
-    final String dbType, final List<HierarchyNode> list) throws Exception {
+    final SparqlQueryManagerService service, final IncludeParam ip, final String dbType,
+    final List<HierarchyNode> list) throws Exception {
 
     final List<Concept> concepts = convertConceptsFromHierarchy(list);
     if (ip.hasAnyTrue()) {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(ConceptUtils.convertConcept(
-            service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
+        concept.populateFrom(ConceptUtils
+            .convertConcept(service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -418,11 +420,9 @@ public final class ConceptUtils {
    * @param reverse the reverse
    * @return the list
    */
-  public static List<List<Concept>> convertPaths(final Paths paths,
-    final boolean reverse) {
+  public static List<List<Concept>> convertPaths(final Paths paths, final boolean reverse) {
     final List<List<Concept>> list = new ArrayList<>();
-    if (paths == null || paths.getPaths() == null
-        || paths.getPaths().isEmpty()) {
+    if (paths == null || paths.getPaths() == null || paths.getPaths().isEmpty()) {
       return list;
     }
     for (final Path path : paths.getPaths()) {
@@ -454,9 +454,8 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<List<Concept>> convertPathsWithInclude(
-    final SparqlQueryManagerService service, final IncludeParam ip,
-    final String dbType, final Paths paths, final boolean reverse)
+  public static List<List<Concept>> convertPathsWithInclude(final SparqlQueryManagerService service,
+    final IncludeParam ip, final String dbType, final Paths paths, final boolean reverse)
     throws Exception {
 
     final List<List<Concept>> list = convertPaths(paths, reverse);
@@ -468,8 +467,8 @@ public final class ConceptUtils {
           if (cache.containsKey(concept.getCode())) {
             concept.populateFrom(cache.get(concept.getCode()));
           } else {
-            concept.populateFrom(ConceptUtils.convertConcept(
-                service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
+            concept.populateFrom(ConceptUtils
+                .convertConcept(service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
             cache.put(concept.getCode(), concept);
           }
           concept.setLevel(level);

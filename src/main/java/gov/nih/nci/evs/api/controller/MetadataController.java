@@ -44,8 +44,7 @@ public class MetadataController {
 
   /** The Constant log. */
   @SuppressWarnings("unused")
-  private static final Logger logger =
-      LoggerFactory.getLogger(MetadataController.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetadataController.class);
 
   /** The sparql query manager service. */
   @Autowired
@@ -57,7 +56,8 @@ public class MetadataController {
    * @return the version info
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @ApiOperation(value = "Get all available terminologies", response = Terminology.class, responseContainer = "List")
+  @ApiOperation(value = "Get all available terminologies", response = Terminology.class,
+      responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -65,7 +65,8 @@ public class MetadataController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDB
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
+      produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws IOException {
     return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
   }
@@ -79,18 +80,25 @@ public class MetadataController {
    * @return the associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all associations (or those specified by list parameter) for the specified terminology", response = Concept.class, responseContainer = "List")
+  @ApiOperation(
+      value = "Get all associations (or those specified by list parameter) for the specified terminology",
+      response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations",
+      produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list", value = "List of codes or labels to return associations for (or leave blank for all)", required = false, dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list",
+          value = "List of codes or labels to return associations for (or leave blank for all)",
+          required = false, dataType = "string", paramType = "query")
   })
   @RecordMetricDBFormat
   public @ResponseBody List<Concept> getAssociations(
@@ -100,14 +108,11 @@ public class MetadataController {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> associations =
-        sparqlQueryManagerService.getAllAssociations(dbType, ip);
-    return ConceptUtils.applyIncludeAndList(associations, ip,
-        list.orElse(null));
+    final List<EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(dbType, ip);
+    return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
   }
 
   /**
@@ -119,7 +124,8 @@ public class MetadataController {
    * @return the association
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the association for the specified terminology and code/label", response = Concept.class)
+  @ApiOperation(value = "Get the association for the specified terminology and code/label",
+      response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -127,12 +133,17 @@ public class MetadataController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "codeOrLabel", value = "Association code (or label), e.g. 'A10' or 'Has_CDRH_Parent'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "codeOrLabel",
+          value = "Association code (or label), e.g. 'A10' or 'Has_CDRH_Parent'", required = true,
+          dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/association/{codeOrLabel}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/metadata/{terminology}/association/{codeOrLabel}", produces = "application/json")
   public @ResponseBody Concept getAssociation(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code,
@@ -140,27 +151,23 @@ public class MetadataController {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+      final Concept concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
       return concept;
     }
     final List<Concept> list = getAssociations(terminology,
-        Optional.ofNullable(include.orElse("summary")),
-        Optional.ofNullable(code));
+        Optional.ofNullable(include.orElse("summary")), Optional.ofNullable(code));
     if (list.size() > 0) {
       return list.get(0);
     }
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-        code + " not found");
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
   }
 
@@ -173,18 +180,25 @@ public class MetadataController {
    * @return the roles
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all roles (or those specified by list parameter) for the specified terminology", response = Concept.class, responseContainer = "List")
+  @ApiOperation(
+      value = "Get all roles (or those specified by list parameter) for the specified terminology",
+      response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles",
+      produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list", value = "List of codes or labels to return roles for (or leave blank for all)", required = false, dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list",
+          value = "List of codes or labels to return roles for (or leave blank for all)",
+          required = false, dataType = "string", paramType = "query")
   })
   @RecordMetricDBFormat
   public @ResponseBody List<Concept> getRoles(
@@ -194,12 +208,10 @@ public class MetadataController {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> roles =
-        sparqlQueryManagerService.getAllRoles(dbType, ip);
+    final List<EvsConcept> roles = sparqlQueryManagerService.getAllRoles(dbType, ip);
     return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
@@ -212,7 +224,8 @@ public class MetadataController {
    * @return the role
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the role for the specified terminology and code/label", response = Concept.class)
+  @ApiOperation(value = "Get the role for the specified terminology and code/label",
+      response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -220,12 +233,17 @@ public class MetadataController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "codeOrLabel", value = "Role code (or label), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "codeOrLabel",
+          value = "Role code (or label), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'",
+          required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrLabel}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrLabel}",
+      produces = "application/json")
   public @ResponseBody Concept getRole(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code,
@@ -233,27 +251,23 @@ public class MetadataController {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+      final Concept concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
       return concept;
     }
-    final List<Concept> list =
-        getRoles(terminology, Optional.ofNullable(include.orElse("summary")),
-            Optional.ofNullable(code));
+    final List<Concept> list = getRoles(terminology, Optional.ofNullable(include.orElse("summary")),
+        Optional.ofNullable(code));
     if (list.size() > 0) {
       return list.get(0);
     }
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-        code + " not found");
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
   }
 
@@ -266,18 +280,25 @@ public class MetadataController {
    * @return the properties
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all properties (or those specified by list parameter) for the specified terminology", response = Concept.class, responseContainer = "List")
+  @ApiOperation(
+      value = "Get all properties (or those specified by list parameter) for the specified terminology",
+      response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
       @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
+      produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list", value = "List of codes or labels to return properties for (or leave blank for all)", required = false, dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list",
+          value = "List of codes or labels to return properties for (or leave blank for all)",
+          required = false, dataType = "string", paramType = "query")
   })
   @RecordMetricDBFormat
   public @ResponseBody List<Concept> getProperties(
@@ -287,12 +308,10 @@ public class MetadataController {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> properties =
-        sparqlQueryManagerService.getAllProperties(dbType, ip);
+    final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, ip);
     return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
   }
 
@@ -305,7 +324,8 @@ public class MetadataController {
    * @return the property
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the property for the specified terminology and code/label", response = Concept.class)
+  @ApiOperation(value = "Get the property for the specified terminology and code/label",
+      response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -313,12 +333,17 @@ public class MetadataController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "codeOrLabel", value = "Property code (or label), e.g. 'P90' or 'FULL_SYN'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return", required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "codeOrLabel",
+          value = "Property code (or label), e.g. 'P90' or 'FULL_SYN'", required = true,
+          dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/property/{codeOrLabel}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/metadata/{terminology}/property/{codeOrLabel}", produces = "application/json")
   public @ResponseBody Concept getProperty(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code,
@@ -326,27 +351,25 @@ public class MetadataController {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+      final Concept concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
       if (concept == null || concept.getCode() == null) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
       return concept;
     }
-    final List<Concept> list = getProperties(terminology,
-        Optional.ofNullable(include.orElse("summary")),
-        Optional.ofNullable(code));
+
+    final List<Concept> list =
+        getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
     if (list.size() > 0) {
-      return list.get(0);
+      return ConceptUtils.convertConcept(
+          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), dbType, ip));
     }
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-        code + " not found");
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
   }
 
@@ -357,7 +380,8 @@ public class MetadataController {
    * @return the concept statuses
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all concept status values for the specified terminology", response = String.class, responseContainer = "List")
+  @ApiOperation(value = "Get all concept status values for the specified terminology",
+      response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -365,13 +389,14 @@ public class MetadataController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses",
+      produces = "application/json")
   public @ResponseBody List<String> getConceptStatuses(
-    @PathVariable(value = "terminology") final String terminology)
-    throws Exception {
+    @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -390,7 +415,8 @@ public class MetadataController {
    * @return the contributing sources
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all contributing sources for the specified terminology", response = String.class, responseContainer = "List")
+  @ApiOperation(value = "Get all contributing sources for the specified terminology",
+      response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -398,13 +424,14 @@ public class MetadataController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources",
+      produces = "application/json")
   public @ResponseBody List<String> getContributingSources(
-    @PathVariable(value = "terminology") final String terminology)
-    throws Exception {
+    @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -449,7 +476,8 @@ public class MetadataController {
    * @return the axiom qualifiers list
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get axiom qualifiers for the specified property", response = String.class, responseContainer = "List")
+  @ApiOperation(value = "Get axiom qualifiers for the specified property", response = String.class,
+      responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -457,39 +485,46 @@ public class MetadataController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "codeOrLabel", value = "Property code (or label), e.g. 'P383' or 'term-group'", required = true, dataType = "string", paramType = "path")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "codeOrLabel",
+          value = "Property code (or label), e.g. 'P383' or 'term-group'", required = true,
+          dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/property/{codeOrLabel}/axiomQualifiers", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/metadata/{terminology}/property/{codeOrLabel}/axiomQualifiers",
+      produces = "application/json")
   public @ResponseBody List<String> getAxiomQualifiersList(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code) throws Exception {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType =
-        "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam("minimal");
 
-    // Like "get properties", if it's "name style", we need to get all and then find this one.
+    // Like "get properties", if it's "name style", we need to get all and then
+    // find
+    // this one.
     Concept concept = null;
     if (ModelUtils.isCodeStyle(code)) {
-      concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+      concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
     }
-    final List<Concept> list = getProperties(terminology,
-        Optional.ofNullable("minimal"), Optional.ofNullable(code));
+
+    final List<Concept> list =
+        getProperties(terminology, Optional.ofNullable("minimal"), Optional.ofNullable(code));
     if (list.size() > 0) {
       concept = list.get(0);
     }
+    
     if (concept == null || concept.getCode() == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          code + " not found");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
     }
 
-    final List<String> propertyValues = sparqlQueryManagerService
-        .getAxiomQualifiersList(concept.getCode(), dbType);
+    final List<String> propertyValues =
+        sparqlQueryManagerService.getAxiomQualifiersList(concept.getCode(), dbType);
     return propertyValues;
   }
 }

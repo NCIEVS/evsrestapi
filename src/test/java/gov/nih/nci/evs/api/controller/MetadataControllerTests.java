@@ -37,8 +37,7 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 public class MetadataControllerTests {
 
   /** The logger. */
-  private static final Logger log =
-      LoggerFactory.getLogger(MetadataControllerTests.class);
+  private static final Logger log = LoggerFactory.getLogger(MetadataControllerTests.class);
 
   /** The mvc. */
   @Autowired
@@ -77,12 +76,11 @@ public class MetadataControllerTests {
     final String url = baseUrl + "/terminologies";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Terminology> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Terminology>>() {
+    final List<Terminology> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
@@ -100,15 +98,16 @@ public class MetadataControllerTests {
     final String url = baseUrl + "/ncit/associations";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
+    // Assert that no cases involve a concept with a name having a space
+    assertThat(list.stream().filter(c -> c.getName().contains(" ")).count()).isEqualTo(0);
 
   }
 
@@ -121,16 +120,15 @@ public class MetadataControllerTests {
   public void testGetAssociationsWithList() throws Exception {
 
     // NOTE, this includes a middle association label that is bogus.
-    final String url = baseUrl
-        + "/ncit/associations?list=Concept_In_Subset,XYZ,A10&include=summary";
+    final String url =
+        baseUrl + "/ncit/associations?list=Concept_In_Subset,XYZ,A10&include=summary";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
@@ -221,15 +219,16 @@ public class MetadataControllerTests {
     final String url = baseUrl + "/ncit/roles";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
+    // Assert that no cases involve a concept with a name having a space
+    assertThat(list.stream().filter(c -> c.getName().contains(" ")).count()).isEqualTo(0);
 
   }
 
@@ -242,16 +241,14 @@ public class MetadataControllerTests {
   public void testGetRolesWithList() throws Exception {
 
     // NOTE, this includes a middle role label that is bogus.
-    final String url = baseUrl
-        + "/ncit/roles?list=Conceptual_Part_Of,XYZ,R123&include=summary";
+    final String url = baseUrl + "/ncit/roles?list=Conceptual_Part_Of,XYZ,R123&include=summary";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
@@ -342,15 +339,23 @@ public class MetadataControllerTests {
     final String url = baseUrl + "/ncit/properties";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
+    // Assert that no cases involve a concept with a name having a space
+    assertThat(list.stream().filter(c -> c.getName().contains(" ")).count()).isEqualTo(0);
+    // In "minimal" mode (which is default), there shouldn't be any rdfs:labels
+    assertThat(list.stream()
+        .filter(
+            c -> c.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count() > 0)
+        .count()).isEqualTo(0);
+
+    // TODO: test that with include=summary that P383 has an rdfs:label
 
   }
 
@@ -362,23 +367,58 @@ public class MetadataControllerTests {
   @Test
   public void testGetPropertiesWithList() throws Exception {
 
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
     // NOTE, this includes a middle property label that is bogus.
-    final String url = baseUrl
-        + "/ncit/properties?list=Chemical_Formula,XYZ,P90&include=summary";
+    url = baseUrl + "/ncit/properties?list=Chemical_Formula,XYZ,P90&include=summary";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(2);
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
     assertThat(list.get(0).getDefinitions()).isNotEmpty();
+
+    // Test with a case having an rdfs:label
+    url = baseUrl + "/ncit/properties?list=term-group&include=summary";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    // This should have an rdfs:label synonym
+    assertThat(
+        list.get(0).getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
+            .isEqualTo(1);
+
+    // Test with a case having an rdfs:label but using "minimal" where it
+    // shouldn't show up
+    url = baseUrl + "/ncit/properties?list=P383&include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    // This should have an rdfs:label synonym
+    assertThat(
+        list.get(0).getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
+            .isEqualTo(0);
 
   }
 
@@ -415,6 +455,30 @@ public class MetadataControllerTests {
     assertThat(concept.getName()).isEqualTo("Chemical_Formula");
     assertThat(concept.getCode()).isEqualTo("P350");
     assertThat(concept.getSynonyms()).isNotEmpty();
+
+    // Test with a code that has an rdfs:label synonym (default mode is summary here)
+    url = baseUrl + "/ncit/property/p383";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    // This should have an rdfs:label synonym
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
+            .isEqualTo(1);
+
+    // Test with same code in mimal model where rdfs:label does not show up
+    url = baseUrl + "/ncit/property/p383?include=minimal";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    // This should have an rdfs:label synonym
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
+            .isEqualTo(0);
 
   }
 
@@ -479,8 +543,8 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<String> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<String>>() {
+    final List<String> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
@@ -512,8 +576,8 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<String> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<String>>() {
+    final List<String> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();

@@ -10,9 +10,6 @@ spring:
     profiles:
       include: thesaurus
 
-
-
-
     #
     # JSON Formatting Properties
     #
@@ -20,67 +17,63 @@ spring:
         serialization:
             INDENT_OUTPUT: true
 
-
 management:
   endpoints:
     web:
       exposure:
         include: heapdump,liquibase,loggers,prometheus,threaddump,info,metrics,health
 
-
-
-
+#
+# TODO: need to inject this into the application and use in VersionController, currently ignored
+#
 info:
     app:
         name: NCI EVS API
-        version: 1.0.0.RELEASE
-
-
-
+        version: 1.1.2.RELEASE
 
 #
 # Logging Properties
 #
 logging:
     level:
-        org.springframework: WARN
-        gov.nih.nci.evs.api: INFO
-
+        org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
+        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
 
 #
 # Server Properties
 #
 server:
-    port: 8080
+    port: ${EVS_SERVER_PORT:8080}
     servlet:
        context-path: /
        session:
         persistent: false
 
-
+#
+# Application Properties
+#
 nci:
   evs:
     application:
-      contextPath: /api/v1
-      generatedFilePath: D:/EVSFocus/evsrestapi_08112018/apps/evsrestapi/data/
-      forceFileGeneration: true
-      metricLogDirectory:  D:/EVSFocus/evsrestapi_08112018/apps/evsrestapi/logs/
+      contextPath: ${NCI_EVS_API_PATH:/api/v1}
+      generatedFilePath: ${NCI_EVS_API_GENERATED_FILE_PATH:${user.home}/apps/evsrestapi/data/}
+      forceFileGeneration: ${NCI_EVS_API_FORCE_FILE_GENERATION:false}
+      metricLogDirectory:  ${NCI_EVS_API_METRIC_LOG_PATH:${user.home}/apps/evsrestapi/logs/}
     stardog:
-      monthlyQueryUrl: http://ncias-d2175-c.nci.nih.gov:5820/NCIT2/query
-      monthlyGraphName: http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl
-      weeklyQueryUrl: http://ncias-d2175-c.nci.nih.gov:5820/NCIT2/query
-      weeklyGraphName: http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl
-      username: triplereadonly
-      password: Ad4CoEb3ll  
-      readTimeout: 60
-      connectTimeout: 60
-      owlfileName: Thesaurus.owl
-      populateCacheCron: 0 0 1 * * *
-      forcePopulateCache: N  
+      monthlyQueryUrl: ${STARDOG_MONTHLY_QUERY_URL:http://localhost:5820/NCIT2/query}
+      monthlyGraphName: ${STARDOG_MONTHLY_GRAPH_NAME:http://NCI_T}
+      weeklyQueryUrl: ${STARDOG_WEEKLY_QUERY_URL:http://localhost:5820/NCIT2/query}
+      weeklyGraphName: ${STARDOG_WEEKLY_GRAPH_NAME:http://NCI_T}
+      username: ${STARDOG_USERNAME:REPLACE_WITH_USERNAME}
+      password: ${STARDOG_PASSWORD:REPLACE_WITH_PASSWORD}
+      readTimeout: ${STARDOG_READ_TIMEOUT:30}
+      connectTimeout: ${STARDOG_CONNECT_TIMEOUT:30}
+      owlfileName: ${STARDOG_OWL_FILENAME:REPLACE_WITH_OWL_FILENAME}
+      populateCacheCron: ${POPULATE_CACHE_CRON:0 0 1 * * *}
+      forcePopulateCache: ${FORCE_POPULATE_CACHE:N}
     elasticsearch:
       server:
-        url: https://vpc-nci-evs-dev-ajb2grrjeiq6nxy3ue5qfuqgje.us-east-1.es.amazonaws.com/concept_flat_full_nested_bylabel/concept/_search
-
+        url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://localhost:9200/concept_flat_full_nested_bylabel/concept/_search}
       query:
         propertyToQuery: {
                    p108:
