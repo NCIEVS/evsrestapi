@@ -24,6 +24,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.ModelUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -49,6 +50,26 @@ public class MetadataController {
   /** The sparql query manager service. */
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
+
+  /**
+   * Returns the version info.
+   *
+   * @return the version info
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @ApiOperation(value = "Get application metadata for evs-explore application", response = ConfigData.class,
+      responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDB
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata", produces = "application/json")
+  public @ResponseBody ConfigData getApplicationMetadata() throws IOException {
+    return sparqlQueryManagerService.getConfigurationData("monthly");
+  }
 
   /**
    * Returns the version info.
@@ -518,7 +539,7 @@ public class MetadataController {
     if (list.size() > 0) {
       concept = list.get(0);
     }
-    
+
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
     }

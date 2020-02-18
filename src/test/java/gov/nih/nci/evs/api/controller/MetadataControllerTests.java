@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.support.ConfigData;
 
 /**
  * Integration tests for MetadataController.
@@ -85,6 +86,24 @@ public class MetadataControllerTests {
         });
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
+  }
+
+  /**
+   * Test get application metadata.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetApplicationMetadata() throws Exception {
+
+    final String url = baseUrl;
+    log.info("Testing url - " + url);
+
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final ConfigData config = new ObjectMapper().readValue(content, ConfigData.class);
+    assertThat(config).isNotNull();
   }
 
   /**
@@ -456,7 +475,8 @@ public class MetadataControllerTests {
     assertThat(concept.getCode()).isEqualTo("P350");
     assertThat(concept.getSynonyms()).isNotEmpty();
 
-    // Test with a code that has an rdfs:label synonym (default mode is summary here)
+    // Test with a code that has an rdfs:label synonym (default mode is summary
+    // here)
     url = baseUrl + "/ncit/property/p383";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -464,9 +484,8 @@ public class MetadataControllerTests {
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     // This should have an rdfs:label synonym
-    assertThat(
-        concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
-            .isEqualTo(1);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
+        .isEqualTo(1);
 
     // Test with same code in mimal model where rdfs:label does not show up
     url = baseUrl + "/ncit/property/p383?include=minimal";
@@ -476,9 +495,8 @@ public class MetadataControllerTests {
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     // This should have an rdfs:label synonym
-    assertThat(
-        concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
-            .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
+        .isEqualTo(0);
 
   }
 
