@@ -1096,6 +1096,34 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_associations_by_code(named_graph, code));
 	}
 
+	public String construct_get_associations(String named_graph, String associationName) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    ?x a owl:Class .").append("\n");
+		buf.append("	    ?x rdfs:label ?x_label .").append("\n");
+		buf.append("	    ?x :NHC0 ?x_code .").append("\n");
+		buf.append("	    ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
+		buf.append("	    ?y  rdfs:label  \"" + associationName + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		buf.append("	    ?x ?y ?z .").append("\n");
+		buf.append("	    ?z a owl:Class .").append("\n");
+		buf.append("	    ?z rdfs:label ?z_label .").append("\n");
+		buf.append("	    ?z :NHC0 ?z_code .").append("\n");
+		//buf.append("	    ?y rdfs:range ?y_range").append("\n");
+		buf.append("    }").append("\n");
+		//buf.append("    FILTER (str(?y_range)=\"http://www.w3.org/2001/XMLSchema#anyURI\")").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getAssociations(String named_graph, String associationName) {
+		return executeQuery(construct_get_associations(named_graph, associationName));
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public String construct_get_annotaion_properties_by_code(String named_graph, String code) {
