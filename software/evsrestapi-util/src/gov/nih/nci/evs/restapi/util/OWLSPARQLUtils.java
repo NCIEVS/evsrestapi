@@ -1728,6 +1728,38 @@ public class OWLSPARQLUtils {
 	}
 
 
+	public String construct_get_subset_membership(String named_graph, String code, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT ?z_code").append("\n");
+		} else {
+			buf.append("SELECT ?z_label ?z_code").append("\n");
+	    }
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " \"" + code + "\"^^xsd:string .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+		buf.append("            ?z rdfs:label ?z_label .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + "Concept_In_Subset" + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getSubsetMembership(String named_graph, String code, boolean codeOnly) {
+		return executeQuery(construct_get_subset_membership(named_graph, code, codeOnly));
+	}
+
+
+
+
 	public String construct_get_associated_concepts(String named_graph, String target_code, String association) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
