@@ -96,7 +96,12 @@ public class SearchController {
       @ApiImplicitParam(name = "type",
           value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.",
           required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
           required = false, dataType = "string", paramType = "query", defaultValue = "0"),
@@ -173,7 +178,12 @@ public class SearchController {
       @ApiImplicitParam(name = "type",
           value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.",
           required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
           required = false, dataType = "string", paramType = "query", defaultValue = "0"),
@@ -233,6 +243,8 @@ public class SearchController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("\n ", errorMessages));
     }
 
+    final long startDate = System.currentTimeMillis();
+
     if (!searchCriteria.checkRequiredFields()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
@@ -275,7 +287,7 @@ public class SearchController {
         concepts.add(concept);
       }
       results.setConcepts(concepts);
-
+      results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
     } catch (ResponseStatusException rse) {
       throw rse;

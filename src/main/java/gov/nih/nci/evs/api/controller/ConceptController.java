@@ -81,7 +81,11 @@ public class ConceptController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List (comma-separated) of codes to return concepts for, e.g. C2291,C3224.",
@@ -136,8 +140,12 @@ public class ConceptController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   public @ResponseBody Concept getConcept(
     @PathVariable(value = "terminology") final String terminology,
@@ -595,7 +603,11 @@ public class ConceptController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<Concept> getRoots(
@@ -642,7 +654,11 @@ public class ConceptController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(
@@ -690,8 +706,12 @@ public class ConceptController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+          + "for detailed information</a>.",
+      required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
@@ -743,8 +763,12 @@ public class ConceptController {
           value = "Ancestor code of the other specified code, e.g. 'C2991'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, roles, synonyms.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+          + "for detailed information</a>.",
+      required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,

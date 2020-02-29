@@ -57,8 +57,8 @@ public class MetadataController {
    * @return the version info
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @ApiOperation(value = "Get application metadata for evs-explore application", response = ConfigData.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get application metadata for evs-explore application",
+      response = ConfigData.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 401, message = "Not authorized to view this resource"),
@@ -115,7 +115,12 @@ public class MetadataController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return associations for (or leave blank for all)",
@@ -159,8 +164,13 @@ public class MetadataController {
       @ApiImplicitParam(name = "codeOrLabel",
           value = "Association code (or label), e.g. 'A10' or 'Has_CDRH_Parent'", required = true,
           dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+      @ApiImplicitParam(name = "include",
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+          + "for detailed information</a>.",
+      required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET,
@@ -215,7 +225,12 @@ public class MetadataController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return roles for (or leave blank for all)",
@@ -259,8 +274,13 @@ public class MetadataController {
       @ApiImplicitParam(name = "codeOrLabel",
           value = "Role code (or label), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'",
           required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+      @ApiImplicitParam(name = "include",
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+          + "for detailed information</a>.",
+      required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrLabel}",
@@ -315,7 +335,12 @@ public class MetadataController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return properties for (or leave blank for all)",
@@ -359,8 +384,13 @@ public class MetadataController {
       @ApiImplicitParam(name = "codeOrLabel",
           value = "Property code (or label), e.g. 'P90' or 'FULL_SYN'", required = true,
           dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "include", value = "Indicator of how much data to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+      @ApiImplicitParam(name = "include",
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+          + "for detailed information</a>.",
+      required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET,

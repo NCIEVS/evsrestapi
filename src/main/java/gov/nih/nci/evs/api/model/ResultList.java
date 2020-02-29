@@ -11,6 +11,9 @@ public class ResultList extends BaseModel {
   /** The total. */
   private Integer total;
 
+  /** The time taken. */
+  private Long timeTaken;
+
   /** The parameters. */
   private SearchCriteria parameters;
 
@@ -37,6 +40,7 @@ public class ResultList extends BaseModel {
    */
   public void populateFrom(final ResultList other) {
     total = other.getTotal();
+    timeTaken = other.getTimeTaken();
     parameters = other.getParameters();
   }
 
@@ -58,6 +62,23 @@ public class ResultList extends BaseModel {
     this.total = total;
   }
 
+  /**
+   * Time taken.
+   *
+   * @return the long
+   */
+  public Long getTimeTaken() {
+    return timeTaken;
+  }
+
+  /**
+   * Sets the time taken.
+   *
+   * @param timeTaken the time taken
+   */
+  public void setTimeTaken(final Long timeTaken) {
+    this.timeTaken = timeTaken;
+  }
 
   /**
    * Returns the parameters.
@@ -77,16 +98,26 @@ public class ResultList extends BaseModel {
     this.parameters = parameters;
   }
 
+  /**
+   * Hash code.
+   *
+   * @return the int
+   */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result =
-        prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+    result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
     result = prime * result + ((total == null) ? 0 : total.hashCode());
     return result;
   }
 
+  /**
+   * Equals.
+   *
+   * @param obj the obj
+   * @return true, if successful
+   */
   @Override
   public boolean equals(Object obj) {
     if (this == obj)
