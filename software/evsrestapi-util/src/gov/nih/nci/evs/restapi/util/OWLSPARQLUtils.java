@@ -1793,6 +1793,27 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+	public String construct_get_associated_concepts(String named_graph, String association) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+		buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + association + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
 	public String construct_get_associated_concepts(String named_graph, String target_code, String association) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -1811,6 +1832,10 @@ public class OWLSPARQLUtils {
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
+	}
+
+	public Vector getAssociatedConcepts(String named_graph, String association) {
+		return executeQuery(construct_get_associated_concepts(named_graph, association));
 	}
 
 	public Vector getAssociatedConcepts(String named_graph, String target_code, String association) {
