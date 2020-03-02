@@ -1797,7 +1797,7 @@ public class OWLSPARQLUtils {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("SELECT ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    {").append("\n");
@@ -1808,6 +1808,7 @@ public class OWLSPARQLUtils {
 		buf.append("            ?x ?y ?z .").append("\n");
 		buf.append("            ?y rdfs:label ?y_label .").append("\n");
 		buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+		buf.append("            ?z rdfs:label ?z_label .").append("\n");
 		buf.append("            ?y rdfs:label " + "\"" + association + "\"^^xsd:string ").append("\n");
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
