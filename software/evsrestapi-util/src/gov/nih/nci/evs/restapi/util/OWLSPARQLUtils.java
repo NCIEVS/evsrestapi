@@ -1758,7 +1758,40 @@ public class OWLSPARQLUtils {
 	}
 
 
+	public String construct_get_associated_concepts(String named_graph, String focus_code, String association, boolean sourceOf) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (sourceOf) {
+			buf.append("SELECT ?x_label ?x_code").append("\n");
+		} else {
+			buf.append("SELECT ?z_label ?z_code").append("\n");
+		}
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		if (sourceOf) {
+		    buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		} else {
+			buf.append("            ?x " + named_graph_id + " \"" + focus_code + "\"^^xsd:string .").append("\n");
+		}
 
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+
+		if (sourceOf) {
+		    buf.append("            ?z " + named_graph_id + " \"" + focus_code + "\"^^xsd:string .").append("\n");
+		} else {
+			buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+		}
+		buf.append("            ?z rdfs:label ?z_label .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + association + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
 
 	public String construct_get_associated_concepts(String named_graph, String target_code, String association) {
 		String prefixes = getPrefixes();
@@ -1784,7 +1817,9 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association));
 	}
 
-
+	public Vector getAssociatedConcepts(String named_graph, String target_code, String association, boolean sourceOf) {
+		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association, sourceOf));
+	}
 
 	public String[] get_concept_in_subset_codes(String named_graph, String subset_code) {
 		Vector w = getConceptsInSubset(named_graph, subset_code);
