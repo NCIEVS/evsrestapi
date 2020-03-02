@@ -1763,9 +1763,9 @@ public class OWLSPARQLUtils {
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		if (sourceOf) {
-			buf.append("SELECT ?x_label ?x_code").append("\n");
+			buf.append("SELECT distinct ?x_label ?x_code").append("\n");
 		} else {
-			buf.append("SELECT ?z_label ?z_code").append("\n");
+			buf.append("SELECT distinct ?z_label ?z_code").append("\n");
 		}
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
@@ -1774,14 +1774,14 @@ public class OWLSPARQLUtils {
 		buf.append("            ?x rdfs:label ?x_label .").append("\n");
 		if (sourceOf) {
 		    buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
-		} else {
+		} else if (focus_code != null) {
 			buf.append("            ?x " + named_graph_id + " \"" + focus_code + "\"^^xsd:string .").append("\n");
 		}
 
 		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
 		buf.append("            ?x ?y ?z .").append("\n");
 
-		if (sourceOf) {
+		if (sourceOf && focus_code != null) {
 		    buf.append("            ?z " + named_graph_id + " \"" + focus_code + "\"^^xsd:string .").append("\n");
 		} else {
 			buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
