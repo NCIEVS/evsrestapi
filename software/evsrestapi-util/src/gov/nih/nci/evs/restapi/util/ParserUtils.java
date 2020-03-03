@@ -231,7 +231,67 @@ public class ParserUtils {
         (10) bnode_3cb4419c_bd44_4b0d_af55_94fcc08da3b2_492054|Cell Aging|C16394|FULL_SYN|Cellular Senescence|Term Source|NCI
 */
 
+    public Vector parseSynonymData(Vector axiom_data) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String axiom_id = (String) u.elementAt(0);
+			String label = (String) u.elementAt(1);
+			String code = (String) u.elementAt(2);
+			String propertyName = (String) u.elementAt(3);
+			String term_name = (String) u.elementAt(4);
+			String qualifier_name = (String) u.elementAt(5);
+			String qualifier_value = (String) u.elementAt(6);
+            Synonym syn = (Synonym) hmap.get(axiom_id);
+            if (syn == null) {
+				syn = new Synonym(
+							code,
+							label,
+							term_name,
+							null, //termGroup,
+							null, //termSource,
+							null, //sourceCode,
+							null, //subSourceName,
+		                    null); //subSourceCode
+			}
+			if (qualifier_name.compareTo("Term Type") == 0) {
+				syn.setTermGroup(qualifier_value);
+			} else if (qualifier_name.compareTo("Term Source") == 0) {
+				syn.setTermSource(qualifier_value);
+			} else if (qualifier_name.compareTo("Source Code") == 0) {
+				syn.setSourceCode(qualifier_value);
+			} else if (qualifier_name.compareTo("Subsource Name") == 0) {
+				syn.setSubSourceName(qualifier_value);
+			} else if (qualifier_name.compareTo("Subsource Code") == 0) {
+				syn.setSubSourceCode(qualifier_value);
+			} else if (qualifier_name.compareTo("Subsource Name") == 0) {
+				syn.setSubSourceName(qualifier_value);
+			}
+			hmap.put(axiom_id, syn);
+		}
+		Vector w2 = new Vector();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String axiom_id = (String) it.next();
+			Synonym syn = (Synonym) hmap.get(axiom_id);
+			w2.add(syn);
+		}
+		return w2;
+	}
 
+	public List getSynonyms(Vector v) {
+		if (v == null) return null;
+		List syn_list = new ArrayList();
+		Vector w = parseSynonymData(v);
+		for (int i=0; i<v.size(); i++) {
+			Synonym syn = (Synonym) v.elementAt(i);
+			syn_list.add(syn);
+		}
+		return syn_list;
+	}
+
+/*
 	public List getSynonyms(Vector v) {
 		if (v == null) return null;
 	    //v = sortAxiomData(v);
@@ -313,7 +373,7 @@ public class ParserUtils {
 		}
 		return syn_list;
 	}
-
+*/
 
 	public List getDefinitions(Vector v) {
 		if (v == null) return null;
