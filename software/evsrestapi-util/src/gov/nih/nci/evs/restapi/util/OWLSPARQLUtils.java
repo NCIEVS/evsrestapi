@@ -1794,10 +1794,18 @@ public class OWLSPARQLUtils {
 	}
 
 	public String construct_get_associated_concepts(String named_graph, String association) {
+        return construct_get_associated_concepts(named_graph, association, true);
+	}
+
+	public String construct_get_associated_concepts(String named_graph, String association, boolean sourceOf) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		if (sourceOf) {
+			buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		} else {
+			buf.append("SELECT distinct ?z_label ?z_code ?y_label ?x_label ?x_code").append("\n");
+		}
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    {").append("\n");
@@ -1814,6 +1822,7 @@ public class OWLSPARQLUtils {
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
 
 	public String construct_get_associated_concepts(String named_graph, String target_code, String association) {
 		String prefixes = getPrefixes();
