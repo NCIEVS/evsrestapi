@@ -52,8 +52,7 @@ public class RESTUtils {
    * @param readTimeout the read timeout
    * @param connectTimeout the connect timeout
    */
-  public RESTUtils(String username, String password, long readTimeout,
-      long connectTimeout) {
+  public RESTUtils(String username, String password, long readTimeout, long connectTimeout) {
     this.username = username;
     this.password = password;
     this.readTimeout = Duration.ofSeconds(readTimeout);
@@ -68,18 +67,16 @@ public class RESTUtils {
    * @return the string
    */
   public String runSPARQL(String query, String restURL) {
-    RestTemplate restTemplate = new RestTemplateBuilder().rootUri(restURL)
-        .basicAuthentication(username, password).setReadTimeout(readTimeout)
-        .setConnectTimeout(connectTimeout).build();
+    RestTemplate restTemplate =
+        new RestTemplateBuilder().rootUri(restURL).basicAuthentication(username, password)
+            .setReadTimeout(readTimeout).setConnectTimeout(connectTimeout).build();
     restTemplate.getMessageConverters().add(0,
         new StringHttpMessageConverter(Charset.forName("UTF-8")));
-    MultiValueMap<String, String> body =
-        new LinkedMultiValueMap<String, String>();
+    MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
     body.add("query", query);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-    headers.setAccept(
-        Arrays.asList(new MediaType("application", "sparql-results+json")));
+    headers.setAccept(Arrays.asList(new MediaType("application", "sparql-results+json")));
     HttpEntity<?> entity = new HttpEntity<Object>(body, headers);
     String results = restTemplate.postForObject(restURL, entity, String.class);
     return results;
@@ -97,10 +94,8 @@ public class RESTUtils {
     Matcher matcher = pattern.matcher(before);
     StringBuffer buf = new StringBuffer();
     while (matcher.find()) {
-      matcher.appendReplacement(buf,
-          before.substring(matcher.start(), matcher.start(1)) + "\\\\" + "\\\\"
-              + matcher.group(1)
-              + before.substring(matcher.end(1), matcher.end()));
+      matcher.appendReplacement(buf, before.substring(matcher.start(), matcher.start(1)) + "\\\\"
+          + "\\\\" + matcher.group(1) + before.substring(matcher.end(1), matcher.end()));
     }
     String after = matcher.appendTail(buf).toString();
     return after;
