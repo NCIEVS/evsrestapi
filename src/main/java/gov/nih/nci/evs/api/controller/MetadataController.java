@@ -2,7 +2,9 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -43,6 +45,15 @@ import io.swagger.annotations.ApiResponses;
 @Api(tags = "Metadata endpoints")
 public class MetadataController {
 
+  /** The cache. */
+  private static Map<String, List<Concept>> cache =
+      new LinkedHashMap<String, List<Concept>>(1000 * 4 / 3, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(final Map.Entry<String, List<Concept>> eldest) {
+          return size() > 1001;
+        }
+      };
+
   /** The Constant log. */
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MetadataController.class);
@@ -55,6 +66,13 @@ public class MetadataController {
    * Returns the version info.
    *
    * @return the version info
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+
+  /**
+   * Returns the application metadata.
+   *
+   * @return the application metadata
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @ApiOperation(value = "Get application metadata for evs-explore application",
@@ -77,6 +95,13 @@ public class MetadataController {
    * @return the version info
    * @throws IOException Signals that an I/O exception has occurred.
    */
+
+  /**
+   * Returns the terminologies.
+   *
+   * @return the terminologies
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @ApiOperation(value = "Get all available terminologies", response = Terminology.class,
       responseContainer = "List")
   @ApiResponses(value = {
@@ -91,6 +116,16 @@ public class MetadataController {
   public @ResponseBody List<Terminology> getTerminologies() throws IOException {
     return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
   }
+
+  /**
+   * Returns the associations.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the associations
+   * @throws Exception the exception
+   */
 
   /**
    * Returns the associations.
@@ -150,6 +185,16 @@ public class MetadataController {
    * @return the association
    * @throws Exception the exception
    */
+
+  /**
+   * Returns the association.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the association
+   * @throws Exception the exception
+   */
   @ApiOperation(value = "Get the association for the specified terminology and code/label",
       response = Concept.class)
   @ApiResponses(value = {
@@ -165,12 +210,12 @@ public class MetadataController {
           value = "Association code (or label), e.g. 'A10' or 'Has_CDRH_Parent'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
-          + "for detailed information</a>.",
-      required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET,
@@ -201,6 +246,16 @@ public class MetadataController {
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
   }
+
+  /**
+   * Returns the roles.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the roles
+   * @throws Exception the exception
+   */
 
   /**
    * Returns the roles.
@@ -260,6 +315,16 @@ public class MetadataController {
    * @return the role
    * @throws Exception the exception
    */
+
+  /**
+   * Returns the role.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the role
+   * @throws Exception the exception
+   */
   @ApiOperation(value = "Get the role for the specified terminology and code/label",
       response = Concept.class)
   @ApiResponses(value = {
@@ -275,12 +340,12 @@ public class MetadataController {
           value = "Role code (or label), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
-          + "for detailed information</a>.",
-      required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrLabel}",
@@ -311,6 +376,16 @@ public class MetadataController {
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
   }
+
+  /**
+   * Returns the properties.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the properties
+   * @throws Exception the exception
+   */
 
   /**
    * Returns the properties.
@@ -352,14 +427,38 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
+    // TODO: Arun - cache this in a sprint friendly way - and other metadata  calls too
+    final String key = include.orElse("") + terminology;
+    if (list.orElse("").isEmpty()) {
+      if (cache.containsKey(key)) {
+        return cache.get(key);
+      }
+    }
+
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, ip);
-    return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
+    final List<Concept> results =
+        ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
+    if (list.orElse("").isEmpty()) {
+      cache.put(key, results);
+    }
+    return results;
+
   }
+
+  /**
+   * Returns the property.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the property
+   * @throws Exception the exception
+   */
 
   /**
    * Returns the property.
@@ -385,12 +484,12 @@ public class MetadataController {
           value = "Property code (or label), e.g. 'P90' or 'FULL_SYN'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
-          + "for detailed information</a>.",
-      required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET,
@@ -423,6 +522,14 @@ public class MetadataController {
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
   }
+
+  /**
+   * Returns the concept statuses.
+   *
+   * @param terminology the terminology
+   * @return the concept statuses
+   * @throws Exception the exception
+   */
 
   /**
    * Returns the concept statuses.
@@ -466,6 +573,14 @@ public class MetadataController {
    * @return the contributing sources
    * @throws Exception the exception
    */
+
+  /**
+   * Returns the contributing sources.
+   *
+   * @param terminology the terminology
+   * @return the contributing sources
+   * @throws Exception the exception
+   */
   @ApiOperation(value = "Get all contributing sources for the specified terminology",
       response = String.class, responseContainer = "List")
   @ApiResponses(value = {
@@ -501,6 +616,7 @@ public class MetadataController {
    * and may not really make sense as part of THIS API.
    *
    * @param terminology the terminology
+   * @param code the code
    * @return the graph names
    * @throws Exception the exception
    */
@@ -521,6 +637,15 @@ public class MetadataController {
 
   /**
    * Returns the axiom qualifiers list. UNDOCUMENTED.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the axiom qualifiers list
+   * @throws Exception the exception
+   */
+
+  /**
+   * Returns the axiom qualifiers list.
    *
    * @param terminology the terminology
    * @param code the code
