@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.File;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.LineIterator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,13 +98,15 @@ public class VersionControllerTests {
    * @throws Exception the exception
    */
   private String getBuildGradleVersion() throws Exception {
-    final String file =
-        FileUtils.readFileToString(new File("build.gradle"), "UTF-8");
-    for (final String line : file.split("\n")) {
+    final LineIterator iter = FileUtils.lineIterator(new File("build.gradle"), "UTF-8");
+
+    while (iter.hasNext()) {
+      final String line = iter.next();
       if (line.matches("^version\\s+=\\s+\".*")) {
         return line.replaceFirst("version\\s+=\\s+", "").replaceAll("\"", "");
       }
     }
+
     return null;
   }
 
