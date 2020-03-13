@@ -40,8 +40,7 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 public class ConceptControllerTests {
 
   /** The logger. */
-  private static final Logger log =
-      LoggerFactory.getLogger(ConceptControllerTests.class);
+  private static final Logger log = LoggerFactory.getLogger(ConceptControllerTests.class);
 
   /** The mvc. */
   @Autowired
@@ -184,12 +183,11 @@ public class ConceptControllerTests {
     final String url = baseUrl + "/ncit?list=C3224,XYZ,C131506&include=summary";
     log.info("Testing url - " + url);
 
-    final MvcResult result =
-        mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
@@ -219,10 +217,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Association>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
 
@@ -232,10 +229,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Association>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
 
   }
@@ -260,10 +256,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Association>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
 
@@ -273,10 +268,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Association>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Association>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
 
   }
@@ -301,10 +295,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
 
     // Test case without roles
@@ -313,10 +306,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Role>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
   }
 
@@ -340,10 +332,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
 
@@ -353,10 +344,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Role>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Role>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
   }
 
@@ -380,10 +370,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
 
@@ -393,10 +382,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
   }
 
@@ -420,10 +408,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
@@ -434,10 +421,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
   }
 
@@ -461,20 +447,16 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // nothing should have children
-    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count())
-        .isEqualTo(0);
+    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isEqualTo(0);
     // nothing should be a leaf node
-    assertThat(
-        list.stream().filter(c -> c.getLeaf() != null && c.getLeaf()).count())
-            .isEqualTo(0);
+    assertThat(list.stream().filter(c -> c.getLeaf() != null && c.getLeaf()).count()).isEqualTo(0);
 
     // Test maxLevel
     url = baseUrl + "/ncit/C7058/descendants?maxLevel=2";
@@ -483,34 +465,33 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // something should have children
-    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count())
-        .isGreaterThan(0);
+    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
     // something should have grand children
     assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
-            .filter(c2 -> c2.getChildren().size() > 0).count() > 0)
+        .filter(c -> c.getChildren().size() > 0
+            && c.getChildren().stream().filter(c2 -> c2.getChildren().size() > 0).count() > 0)
         .count()).isGreaterThan(0);
     // grand children should NOT have children
     assertThat(list.stream()
         .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
-            .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren()
-                .stream().filter(c3 -> c3.getChildren().size() > 0).count() > 0)
+            .filter(c2 -> c2.getChildren().size() > 0
+                && c2.getChildren().stream().filter(c3 -> c3.getChildren().size() > 0).count() > 0)
             .count() > 0)
         .count()).isEqualTo(0);
     // Some grand children should be leaf nodes
-    assertThat(list.stream().filter(c -> c.getChildren().size() > 0 && c
-        .getChildren().stream()
-        .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren().stream()
-            .filter(c3 -> c3.getLeaf() != null && c3.getLeaf()).count() > 0)
-        .count() > 0).count()).isGreaterThan(0);
+    assertThat(list.stream()
+        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
+            .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren().stream()
+                .filter(c3 -> c3.getLeaf() != null && c3.getLeaf()).count() > 0)
+            .count() > 0)
+        .count()).isGreaterThan(0);
 
     // Test case without descendants
     url = baseUrl + "/ncit/C2291/descendants";
@@ -518,10 +499,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
   }
 
@@ -545,10 +525,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Map>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Map>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
 
@@ -558,10 +537,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Map>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Map>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
   }
 
@@ -585,15 +563,13 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<DisjointWith>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<DisjointWith>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
-    assertThat(
-        list.stream().filter(d -> d.getRelatedCode().equals("C7057")).count())
-            .isGreaterThan(0);
+    assertThat(list.stream().filter(d -> d.getRelatedCode().equals("C7057")).count())
+        .isGreaterThan(0);
 
     // Test case without disjointWith
     url = baseUrl + "/ncit/C2291/disjointWith";
@@ -601,10 +577,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<DisjointWith>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<DisjointWith>>() {
+      // n/a
+    });
     assertThat(list).isEmpty();
   }
 
@@ -628,10 +603,9 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getSynonyms()).isEmpty();
@@ -642,13 +616,23 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
+  }
+
+  /**
+   * Test get subtree.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetSubtree() throws Exception {
+    // TODO: this needed to be added to support the UI. It requires some
+    // testing.
   }
 
   /**
@@ -671,17 +655,15 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C7057");
-    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
-        .isEqualTo("C3224");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C3224");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
@@ -693,17 +675,15 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isNotEmpty();
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C7057");
-    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
-        .isEqualTo("C3224");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C3224");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
@@ -731,18 +711,16 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
 
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C3224");
-    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
-        .isEqualTo("C7057");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C7057");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
@@ -754,17 +732,15 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isNotEmpty();
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C3224");
-    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
-        .isEqualTo("C7057");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C7057");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
@@ -792,18 +768,16 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
 
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C3224");
-    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
-        .isEqualTo("C2991");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C2991");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
@@ -815,17 +789,15 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content,
-        new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isNotEmpty();
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C3224");
-    assertThat(list.get(0).get(list.get(0).size() - 1).getCode())
-        .isEqualTo("C2991");
+    assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C2991");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())

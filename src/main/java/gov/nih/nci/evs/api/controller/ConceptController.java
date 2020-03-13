@@ -681,6 +681,41 @@ public class ConceptController {
   }
 
   /**
+   * Returns the subtree.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the subtree
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get the entire subtree from the root node to the specified code",
+      response = HierarchyNode.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree",
+      produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
+          required = true, dataType = "string", paramType = "path")
+  })
+  public @ResponseBody List<HierarchyNode> getSubtree(
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, dbType);
+    return nodes;
+  }
+
+  /**
    * Returns the paths to root.
    *
    * @param terminology the terminology
@@ -706,12 +741,12 @@ public class ConceptController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
-          + "for detailed information</a>.",
-      required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
@@ -763,12 +798,12 @@ public class ConceptController {
           value = "Ancestor code of the other specified code, e.g. 'C2991'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
-          + "for detailed information</a>.",
-      required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,
