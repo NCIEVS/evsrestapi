@@ -779,6 +779,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final String pn = EVSUtils.getPreferredName(properties);
     final String conceptLabel = getEvsConceptLabel(conceptCode, dbType);
+    log.info("conceptLabel - " + conceptLabel);
     // If the label has a space and the preferred name doesn't,
     // and they don't match, use the preferred name
     // This is to handle the NCIt properties like "term-group" and "def-source"
@@ -786,7 +787,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // the callback
     // This condition ONLY applies to properties in NCIt, but should be
     // double-checked for other terminologies
-    if (!conceptLabel.equals(pn) && conceptLabel.contains(" ")) {
+    if (conceptLabel != null && !conceptLabel.equals(pn) && conceptLabel.contains(" ")) {
       evsConcept.setLabel(pn);
     } else {
       evsConcept.setLabel(conceptLabel);
@@ -826,7 +827,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
-        if (!conceptLabel.equals(pn) && conceptLabel.contains(" ")) {
+        if (conceptLabel != null && !conceptLabel.equals(pn) && conceptLabel.contains(" ")) {
           final EvsSynonym rdfsLabel = new EvsSynonymByLabel();
           rdfsLabel.setTermGroup("rdfs:label");
           rdfsLabel.setLabel(conceptLabel);
