@@ -20,7 +20,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.evs.Metric;
-import gov.nih.nci.evs.api.support.FilterCriteriaElasticFields;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,23 +56,6 @@ public class MetricAdvice {
 				.getRequest();
 		String filterParams = "{\"db\":\"" + request.getParameter("db") + "\",\"fmt\":\"" + request.getParameter("fmt")
 				+ "\"}";
-
-		return recordMetric(pjp, request, filterParams);
-
-	}
-
-	@Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && args(filterCriteriaElasticFields,..) && @annotation(recordMetricSearch)")
-	private Object recordMetricForSearch(ProceedingJoinPoint pjp,
-			FilterCriteriaElasticFields filterCriteriaElasticFields, RecordMetricSearch recordMetricSearch)
-			throws Throwable {
-		log.debug("log search");
-		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-				.getRequest();
-
-		// get the parameters
-		ObjectMapper mapper = new ObjectMapper();
-		String filterParams = mapper.writeValueAsString(filterCriteriaElasticFields);
-		log.debug("params - " + filterParams);
 
 		return recordMetric(pjp, request, filterParams);
 
