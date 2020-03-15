@@ -20,6 +20,7 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +30,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -631,8 +633,45 @@ public class ConceptControllerTests {
    */
   @Test
   public void testGetSubtree() throws Exception {
-    // TODO: this needed to be added to support the UI. It requires some
-    // testing.
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<HierarchyNode> list = null;
+
+    // NOTE, this includes a middle concept code that is bougs
+    url = baseUrl + "/ncit/C7058/subtree";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+    // something should have children
+    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
+    // there should be a leaf node in the hierarchy
+    assertThat(hasLeafNode(list)).isTrue();
+    // something should have grand children
+    assertThat(list.stream()
+        .filter(c -> c.getChildren().size() > 0
+            && c.getChildren().stream().filter(c2 -> c2.getChildren().size() > 0).count() > 0)
+        .count()).isGreaterThan(0);
+    // Some grand children should be leaf nodes
+    assertThat(list.stream()
+        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
+            .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren().stream()
+                .filter(c3 -> c3.getLeaf() != null && c3.getLeaf()).count() > 0)
+            .count() > 0)
+        .count()).isGreaterThan(0);
+
+    // Test case with bad terminology
+    url = baseUrl + "/test/C2291/subtree";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound());
   }
 
   /**
@@ -805,4 +844,22 @@ public class ConceptControllerTests {
 
   }
 
+  /**
+   * Checks if hierarchy has a leaf node anywhere in the hierarchy
+   * 
+   * @param list list of hierarchy nodes
+   * @return boolean true if hierarchy has a leaf node, else false
+   */
+  private boolean hasLeafNode(List<HierarchyNode> list) {
+    if (CollectionUtils.isEmpty(list)) return false;
+    for(HierarchyNode node: list) {
+      if (node.getLeaf() != null && node.getLeaf()) return true;
+      if (!CollectionUtils.isEmpty(node.getChildren())) {
+        if (hasLeafNode(node.getChildren())) return true;
+      }
+    }
+    
+    return false;
+  }
+  
 }
