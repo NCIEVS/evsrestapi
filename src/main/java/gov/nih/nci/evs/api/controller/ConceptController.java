@@ -716,6 +716,41 @@ public class ConceptController {
   }
 
   /**
+   * Returns the subtree children.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the subtree children
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get the entire subtree from the root node to the specified code",
+      response = HierarchyNode.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
+      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/concept/{terminology}/{code}/subtree/children", produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
+          required = true, dataType = "string", paramType = "path")
+  })
+  public @ResponseBody List<HierarchyNode> getSubtreeChildren(
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "code") final String code) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final List<HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(code, dbType);
+    return nodes;
+  }
+
+  /**
    * Returns the paths to root.
    *
    * @param terminology the terminology
