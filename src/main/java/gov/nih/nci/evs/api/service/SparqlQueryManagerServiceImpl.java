@@ -779,7 +779,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final String pn = EVSUtils.getPreferredName(properties);
     final String conceptLabel = getEvsConceptLabel(conceptCode, dbType);
-    log.info("conceptLabel - " + conceptLabel);
+    // log.info("conceptLabel - " + conceptLabel);
     // If the label has a space and the preferred name doesn't,
     // and they don't match, use the preferred name
     // This is to handle the NCIt properties like "term-group" and "def-source"
@@ -834,7 +834,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           evsConcept.getSynonyms().add(rdfsLabel);
         }
       }
-      
+
       if (ip.isDefinitions()) {
         evsConcept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
         evsConcept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
