@@ -1,5 +1,12 @@
 package gov.nih.nci.evs.api.service;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.text.StringSubstitutor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +47,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   }
 
   public String constructClassCountsQuery(String namedGraph) {
-    String query = String.format(env.getProperty("class.counts"), namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedQuery("class.counts", values);
 
     log.debug("constructGetClassCounts - " + query);
     return query;
@@ -60,8 +69,10 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return SPARQL Version Info query
    */
   public String constructVersionInfoQuery(String namedGraph) {
-    String query = String.format(env.getProperty("version.info"), namedGraph);
-
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedQuery("version.info", values);
+    
     log.debug("constructVersionInfoQuery - " + query);
     return query;
   }
@@ -83,14 +94,18 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructAxiomQualifierQuery(String propertyCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("axiom.qualifier"), propertyCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        propertyCode, namedGraph);
+    String query = getResolvedQuery("axiom.qualifier", values);
 
     log.debug("constructAxiomQualiferQuery - " + query);
     return query;
   }
 
   public String constructPropertyQuery(String conceptCode, String namedGraph) {
-    String query = String.format(env.getProperty("property"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("property", values);
 
     log.debug("constructPropertyQuery - " + query);
     return query;
@@ -98,7 +113,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   
   public String constructPropertyNoRestrictionsQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("property.no.restrictions"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("property.no.restrictions", values);
     
     log.debug("constructPropertyNoRestrictionsQuery - " + query);
     return query;
@@ -106,7 +123,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructAllPropertyQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("all.property"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("all.property", values);
 
     log.debug("constructPropertyQuery - " + query);
     return query;
@@ -114,14 +133,18 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructConceptLabelQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("concept.label"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("concept.label", values);
 
     log.debug("constructConceptLabelQuery - " + query);
     return query;
   }
 
   public String constructAxiomQuery(String conceptCode, String namedGraph) {
-    String query = String.format(env.getProperty("axiom"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("axiom", values);
 
     log.debug("constructAxiomQuery - " + query);
     return query;
@@ -129,7 +152,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructSubconceptQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("subconcept"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("subconcept", values);
 
     log.debug("constructSubconceptQuery - " + query);
     return query;
@@ -137,7 +162,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructSuperconceptQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("superconcept"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("superconcept", values);
 
     log.debug("constructSuperconceptQuery - " + query);
     return query;
@@ -145,7 +172,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructAssociationsQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("associations"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("associations", values);
 
     log.debug("constructAssociationsQuery - " + query);
     return query;
@@ -153,7 +182,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructInverseAssociationsQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("inverse.associations"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("inverse.associations", values);
 
     log.debug("constructInverseAssociationsQuery - " + query);
     return query;
@@ -161,14 +192,18 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructInverseRolesQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("inverse.roles"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("inverse.roles", values);
 
     log.debug("constructInverseRolesQuery - " + query);
     return query;
   }
 
   public String constructRolesQuery(String conceptCode, String namedGraph) {
-    String query = String.format(env.getProperty("roles"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("roles", values);
     
     log.debug("constructRolesQuery - " + query);
     return query;
@@ -176,44 +211,76 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   public String constructDisjointWithQuery(String conceptCode,
     String namedGraph) {
-    String query = String.format(env.getProperty("disjoint.with"), conceptCode, namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        conceptCode, namedGraph);
+    String query = getResolvedQuery("disjoint.with", values);
     
     log.debug("constructDisjointWithQuery - " + query);
     return query;
   }
 
   public String constructHierarchyQuery(String namedGraph) {
-    String query = String.format(env.getProperty("hierarchy"), namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedQuery("hierarchy", values);
 
     log.debug("constructHierarchyQuery - " + query);
     return query;
   }
 
   public String constructAllPropertiesQuery(String namedGraph) {
-    String query = String.format(env.getProperty("all.properties"), namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedQuery("all.properties", values);
 
     log.debug("constructAllPropertiesQuery - " + query);
     return query;
   }
 
   public String constructAllAssociationsQuery(String namedGraph) {
-    String query = String.format(env.getProperty("all.associations"), namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedQuery("all.associations", values);
     
     log.debug("constructAllAssociationsQuery - " + query);
     return query;
   }
 
   public String constructAllRolesQuery(String namedGraph) {
-    String query = String.format(env.getProperty("all.roles"), namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedQuery("all.roles", values);
 
     log.debug("constructAllRolesQuery - " + query);
     return query;
   }
 
   public String constructUniqueSourcesQuery(String namedGraph) {
-    String query = String.format(env.getProperty("unique.sources"), namedGraph);
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedQuery("unique.sources", values);
 
     log.debug("constructUniqueSourcesQuery - " + query);
     return query;
   }
+
+  private Map<String, String> getParamValueMap(Method m, String ...values) {
+    Parameter[] params = m.getParameters();
+    Map<String, String> paramMap = new HashMap<>();
+    if (params.length == 0) return paramMap;
+    if (values == null || values.length != params.length) 
+      throw new RuntimeException(String.format("Values length does not parameters length for %s!", m.getName()));
+    for(int i=0; i<params.length; i++) {
+      paramMap.put(params[i].getName(), values[i]);
+    }
+    
+    if (log.isDebugEnabled()) log.debug("paramMap - " + paramMap);
+    
+    return paramMap;
+  }
+
+  private String getResolvedQuery(String queryKey, Map<String, String> values) {
+    return StringSubstitutor.replace(env.getProperty(queryKey), values, "#{", "}");
+  }
+  
 }
