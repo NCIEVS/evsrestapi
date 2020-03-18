@@ -86,7 +86,7 @@ public class MetadataController {
   @RecordMetricDB
   @RequestMapping(method = RequestMethod.GET, value = "/metadata", produces = "application/json")
   public @ResponseBody ConfigData getApplicationMetadata() throws IOException {
-    return sparqlQueryManagerService.getConfigurationData("monthly");
+    return TerminologyUtils.getApplicationMetadata(sparqlQueryManagerService, "monthly");
   }
 
   /**
@@ -427,7 +427,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    // TODO: Arun - cache this in a sprint friendly way - and other metadata  calls too
+    // TODO: Arun - cache this in a sprint friendly way - and other metadata
+    // calls too
     final String key = include.orElse("") + terminology;
     if (list.orElse("").isEmpty()) {
       if (cache.containsKey(key)) {

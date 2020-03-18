@@ -2,7 +2,6 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +63,11 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   @Autowired
   private ThesaurusProperties thesaurusProperties;
 
-  /** The sparql query manager service. */
+  /**
+   * The sparql query manager service.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   // @Autowired
   // private SparqlQueryManagerService sparqlQueryManagerService;
 
@@ -77,7 +80,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   public void postInit() throws IOException {
 
     conceptStatus = (HashMap<String, String>) thesaurusProperties.getConceptStatuses();
-    contributingSource = (HashMap<String, String>) thesaurusProperties.getContributingSources();
+    // contributingSource = (HashMap<String, String>)
+    // thesaurusProperties.getContributingSources();
     roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();
     associationToQuery = (HashMap<String, String>) thesaurusProperties.getAssociations();
     returnFieldMap = (HashMap<String, String>) thesaurusProperties.getReturnFields();
@@ -216,17 +220,6 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
     return definitionSourceStr;
 
-  }
-
-  /**
-   * Searh value.
-   *
-   * @param term the term
-   * @param searchMap the search map
-   * @return the string
-   */
-  private String searchValue(String term, Map<String, String> searchMap) {
-    return searchMap.get(term.toLowerCase());
   }
 
   /**

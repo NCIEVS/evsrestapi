@@ -4,7 +4,6 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,8 +23,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
@@ -40,8 +37,7 @@ import gov.nih.nci.evs.api.support.SearchCriteria;
 public class ElasticSearchServiceImpl implements ElasticSearchService {
 
   /** The Constant log. */
-  private static final Logger log =
-      LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
 
   /** The elastic query builder. */
   @Autowired
@@ -91,8 +87,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       final JsonNode highlightNode = node.get("highlight");
       // Only if there are highlights
       if (highlightNode != null) {
-        final Iterator<Map.Entry<String, JsonNode>> fields =
-            highlightNode.fields();
+        final Iterator<Map.Entry<String, JsonNode>> fields = highlightNode.fields();
         final Set<String> highlights = new HashSet<>();
         while (fields.hasNext()) {
           final JsonNode values = fields.next().getValue();
@@ -101,8 +96,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           }
         }
         for (final String highlight : highlights) {
-          concept.getHighlights().put(
-              highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
+          concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
               highlight);
         }
       }
@@ -113,6 +107,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     return result;
   }
 
+  /**
+   * Search.
+   *
+   * @param searchCriteria the search criteria
+   * @return the concept result list
+   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws HttpClientErrorException the http client error exception
+   */
   /* see superclass */
   @SuppressWarnings("unchecked")
   @Override
@@ -128,8 +130,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Call the elastic search url
     HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.add(HttpHeaders.CONTENT_TYPE,
-        MediaType.APPLICATION_JSON_UTF8_VALUE);
+    httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
     HttpEntity<String> requestbody = new HttpEntity<>(query, httpHeaders);
 
     ResponseEntity<String> response =
@@ -148,20 +149,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       // error handling
       if (error != null) {
         if ((statusCode.toString().equals(HttpStatus.BAD_REQUEST.toString()))) {
-          log.debug(
-              "statusCode.toString() is equal to HttpStatus.BAD_REQUEST.toString()");
-          String errorDescription =
-              (String) responseMap.get("error_description");
+          log.debug("statusCode.toString() is equal to HttpStatus.BAD_REQUEST.toString()");
+          String errorDescription = (String) responseMap.get("error_description");
           log.debug("errorDescription = " + errorDescription);
           String message = (String) responseMap.get("message");
           log.debug("message = " + message);
           log.debug("throw HttpClientErrorException");
           throw new HttpClientErrorException(statusCode, message);
 
-        } else if ((statusCode.toString()
-            .equals(HttpStatus.NOT_FOUND.toString()))) {
-          log.debug(
-              "statusCode.toString() is equal to HttpStatus.NOT_FOUND.toString()");
+        } else if ((statusCode.toString().equals(HttpStatus.NOT_FOUND.toString()))) {
+          log.debug("statusCode.toString() is equal to HttpStatus.NOT_FOUND.toString()");
           String message = (String) responseMap.get("message");
           log.debug("message = " + message);
           log.debug("throw HttpClientErrorException");

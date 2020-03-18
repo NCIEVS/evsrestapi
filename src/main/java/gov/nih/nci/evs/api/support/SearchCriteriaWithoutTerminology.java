@@ -4,12 +4,14 @@ package gov.nih.nci.evs.api.support;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
@@ -17,6 +19,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  * terminology field.
  */
 public class SearchCriteriaWithoutTerminology extends BaseModel {
+
+  /** The sparql query manager service. */
+  @Autowired
+  SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The term. */
   private String term;
@@ -405,9 +411,14 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Validate.
    *
+   * @param dbType the db type
+   * @param sparqlQueryManagerService the sparql query manager service
    * @param thesaurusProperties the thesaurus properties
+   * @throws Exception the exception
    */
-  public void validate(final ThesaurusProperties thesaurusProperties) {
+  public void validate(final String dbType,
+    final SparqlQueryManagerService sparqlQueryManagerService,
+    final ThesaurusProperties thesaurusProperties) throws Exception {
     if (getTerm() == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'term' is missing");
@@ -438,7 +449,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
       }
     }
 
-    // Validate contributing source
     for (final String cs : getContributingSource()) {
       if (!thesaurusProperties.getContributingSources().values().contains(cs)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -448,8 +458,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid contributing source
     for (final String ss : getSynonymSource()) {
-      if (!ss.equals("NCI")
-          && !thesaurusProperties.getContributingSources().values().contains(ss)) {
+      if (!TerminologyUtils.getApplicationMetadata(sparqlQueryManagerService, dbType)
+          .getFullSynSources().contains(ss)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'synonymSource' has an invalid value = " + ss);
       }
@@ -465,6 +475,11 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
   }
 
+  /**
+   * Hash code.
+   *
+   * @return the int
+   */
   /* see superclass */
   @Override
   public int hashCode() {
@@ -489,6 +504,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     return result;
   }
 
+  /**
+   * Equals.
+   *
+   * @param obj the obj
+   * @return true, if successful
+   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {

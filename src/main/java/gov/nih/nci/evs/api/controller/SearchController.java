@@ -249,7 +249,6 @@ public class SearchController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
     }
-    searchCriteria.validate(thesaurusProperties);
 
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
     searchCriteria.setTerm(queryTerm);
@@ -272,6 +271,7 @@ public class SearchController {
       final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
       final IncludeParam ip = searchCriteria.computeIncludeParam();
 
+      searchCriteria.validate(dbType, sparqlQueryManagerService, thesaurusProperties);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
