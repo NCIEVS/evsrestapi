@@ -72,6 +72,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-properties-migrator'
     compile 'org.springframework:spring-aop'
     compile 'org.aspectj:aspectjweaver:1.9.2'
+    compile 'org.apache.commons:commons-text:1.8'
      
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
