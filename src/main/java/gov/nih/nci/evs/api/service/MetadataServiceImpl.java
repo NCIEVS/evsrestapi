@@ -97,17 +97,42 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   @Override
+  @Cacheable(value = "metadata", key="{#root.methodName, #include.orElse(''), #terminology}",
+    condition = "#list.orElse('').isEmpty()")
   public List<Concept> getRoles(String terminology, 
-      Optional<String> include, Optional<String> list) {
-    // TODO Auto-generated method stub
-    return null;
+      Optional<String> include, Optional<String> list) throws Exception {
+    
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
+
+    final List<EvsConcept> roles = sparqlQueryManagerService.getAllRoles(dbType, ip);
+    return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
   @Override
-  public Concept getRole(String terminology, String code, 
-      Optional<String> include) {
-    // TODO Auto-generated method stub
-    return null;
+  public Optional<Concept> getRole(String terminology, String code, 
+      Optional<String> include) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+
+    if (ModelUtils.isCodeStyle(code)) {
+      final Concept concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+      if (concept == null || concept.getCode() == null) {
+        return Optional.empty();
+      }
+      return Optional.of(concept);
+    }
+    final List<Concept> list = getRoles(terminology, Optional.ofNullable(include.orElse("summary")),
+        Optional.ofNullable(code));
+    if (list.size() > 0) {
+      return Optional.of(list.get(0));
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -125,10 +150,31 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   @Override
-  public Concept getProperty(String terminology, String code, 
-      Optional<String> include) {
-    // TODO Auto-generated method stub
-    return null;
+  public Optional<Concept> getProperty(String terminology, String code, 
+      Optional<String> include) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+
+    if (ModelUtils.isCodeStyle(code)) {
+      final Concept concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+      if (concept == null || concept.getCode() == null) {
+        return Optional.empty();
+      }
+      return Optional.of(concept);
+    }
+
+    final List<Concept> list =
+        getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
+    logger.info(String.format("list from properties [%s] with size [%s]", String.valueOf(list), list==null?0:list.size()));
+    if (list.size() > 0) {
+      final Concept concept = ConceptUtils.convertConcept(
+          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), dbType, ip));
+      return Optional.of(concept);
+    }
+    return Optional.empty();
   }
 
   @Override

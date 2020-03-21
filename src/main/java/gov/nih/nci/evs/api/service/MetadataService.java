@@ -23,13 +23,13 @@ public interface MetadataService {
   Optional<Concept> getAssociation(final String terminology,
       final String code, final Optional<String> include) throws Exception;
   List<Concept> getRoles(final String terminology,
-      final Optional<String> include, final Optional<String> list);
-  Concept getRole(final String terminology,
-      final String code, final Optional<String> include);
+      final Optional<String> include, final Optional<String> list) throws Exception;
+  Optional<Concept> getRole(final String terminology,
+      final String code, final Optional<String> include) throws Exception;
   List<Concept> getProperties(final String terminology,
       final Optional<String> include, final Optional<String> list) throws Exception;
-  Concept getProperty(final String terminology,
-      final String code, final Optional<String> include);
+  Optional<Concept> getProperty(final String terminology,
+      final String code, final Optional<String> include) throws Exception;
   List<String> getConceptStatuses(final String terminology);
   List<String> getContributingSources(final String terminology);
   List<String> getAxiomQualifiersList(final String terminology, final String code);

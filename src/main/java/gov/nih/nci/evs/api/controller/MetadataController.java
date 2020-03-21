@@ -250,24 +250,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
-
-    final List<EvsConcept> roles = sparqlQueryManagerService.getAllRoles(dbType, ip);
-    return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
+    return metadataService.getRoles(terminology, include, list);
   }
-
-  /**
-   * Returns the role.
-   *
-   * @param terminology the terminology
-   * @param code the code
-   * @param include the include
-   * @return the role
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the role.
@@ -308,37 +292,11 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+    Optional<Concept> concept = metadataService.getRole(terminology, code, include);
+    if (!concept.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
-      if (concept == null || concept.getCode() == null) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      }
-      return concept;
-    }
-    final List<Concept> list = getRoles(terminology, Optional.ofNullable(include.orElse("summary")),
-        Optional.ofNullable(code));
-    if (list.size() > 0) {
-      return list.get(0);
-    }
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-
+    return concept.get();
   }
-
-  /**
-   * Returns the properties.
-   *
-   * @param terminology the terminology
-   * @param include the include
-   * @param list the list
-   * @return the properties
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the properties.
@@ -492,29 +450,10 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+    Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
+    if (!concept.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
-      if (concept == null || concept.getCode() == null) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      }
-      return concept;
-    }
-
-    final List<Concept> list =
-        getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
-    logger.info(String.format("list from properties [%s] with size [%s]", String.valueOf(list), list==null?0:list.size()));
-    if (list.size() > 0) {
-      return ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), dbType, ip));
-    }
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-
+    return concept.get();
   }
 
   /**
