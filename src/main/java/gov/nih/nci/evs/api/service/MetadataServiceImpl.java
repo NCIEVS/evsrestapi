@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -19,6 +21,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.ModelUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
@@ -56,18 +59,41 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   @Override
-  @Cacheable(value = "metadata", key="#root.methodName")
+  @Cacheable(value = "metadata", key="{#root.methodName, #include.orElse(''), #terminology}",
+      condition = "#list.orElse('').isEmpty()")
   public List<Concept> getAssociations(String terminology, 
-      Optional<String> include, Optional<String> list) {
-    // TODO Auto-generated method stub
-    return null;
+      Optional<String> include, Optional<String> list) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
+
+    final List<EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(dbType, ip);
+    return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
   }
 
   @Override
-  public Concept getAssociation(String terminology, String code, 
-      Optional<String> include) {
-    // TODO Auto-generated method stub
-    return null;
+  public Optional<Concept> getAssociation(String terminology, String code, 
+      Optional<String> include) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+
+    if (ModelUtils.isCodeStyle(code)) {
+      final Concept concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+      if (concept == null || concept.getCode() == null) {
+        return Optional.empty();
+      }
+      return Optional.of(concept);
+    }
+    final List<Concept> list = getAssociations(terminology,
+        Optional.ofNullable(include.orElse("summary")), Optional.ofNullable(code));
+    if (list.size() > 0) {
+      return Optional.of(list.get(0));
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -91,15 +117,11 @@ public class MetadataServiceImpl implements MetadataService {
       Optional<String> list) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    
     final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, ip);
-    final List<Concept> results =
-        ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
-
-    return results;
+    return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
   }
 
   @Override

@@ -19,9 +19,9 @@ public interface MetadataService {
   ConfigData getApplicationMetadata(String dbType) throws IOException;
   List<Terminology> getTerminologies() throws IOException;
   List<Concept> getAssociations(final String terminology, 
-      final Optional<String> include, final Optional<String> list);
-  Concept getAssociation(final String terminology,
-      final String code, final Optional<String> include);
+      final Optional<String> include, final Optional<String> list) throws Exception;
+  Optional<Concept> getAssociation(final String terminology,
+      final String code, final Optional<String> include) throws Exception;
   List<Concept> getRoles(final String terminology,
       final Optional<String> include, final Optional<String> list);
   Concept getRole(final String terminology,

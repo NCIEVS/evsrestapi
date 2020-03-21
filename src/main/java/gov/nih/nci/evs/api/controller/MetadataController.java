@@ -161,25 +161,9 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
-
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
-
-    final List<EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(dbType, ip);
-    return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
+    
+    return metadataService.getAssociations(terminology, include, list);
   }
-
-  /**
-   * Returns the association.
-   *
-   * @param terminology the terminology
-   * @param code the code
-   * @param include the include
-   * @return the association
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the association.
@@ -220,37 +204,11 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+    Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
+    if (!concept.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
-      if (concept == null || concept.getCode() == null) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      }
-      return concept;
-    }
-    final List<Concept> list = getAssociations(terminology,
-        Optional.ofNullable(include.orElse("summary")), Optional.ofNullable(code));
-    if (list.size() > 0) {
-      return list.get(0);
-    }
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-
+    return concept.get();
   }
-
-  /**
-   * Returns the roles.
-   *
-   * @param terminology the terminology
-   * @param include the include
-   * @param list the list
-   * @return the roles
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the roles.
