@@ -30,7 +30,7 @@ public interface MetadataService {
       final Optional<String> include, final Optional<String> list) throws Exception;
   Optional<Concept> getProperty(final String terminology,
       final String code, final Optional<String> include) throws Exception;
-  List<String> getConceptStatuses(final String terminology);
-  List<String> getContributingSources(final String terminology);
-  List<String> getAxiomQualifiersList(final String terminology, final String code);
+  Optional<List<String>> getConceptStatuses(final String terminology) throws Exception;
+  Optional<List<String>> getContributingSources(final String terminology) throws Exception;
+  Optional<List<String>> getAxiomQualifiersList(final String terminology, final String code) throws Exception;
 }

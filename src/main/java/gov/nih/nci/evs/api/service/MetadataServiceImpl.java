@@ -178,21 +178,59 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   @Override
-  public List<String> getConceptStatuses(String terminology) {
-    // TODO Auto-generated method stub
-    return null;
+  @Cacheable(value = "metadata", key="{#root.methodName, #terminology}", 
+    condition = "#terminology.equals('ncit')")
+  public Optional<List<String>> getConceptStatuses(String terminology) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (!term.getTerminology().equals("ncit")) return Optional.empty(); 
+    
+    List<String> result = sparqlQueryManagerService.getConceptStatusForDocumentation();
+    return Optional.of(result);
   }
 
   @Override
-  public List<String> getContributingSources(String terminology) {
-    // TODO Auto-generated method stub
-    return null;
+  @Cacheable(value = "metadata", key="{#root.methodName, #terminology}", 
+    condition = "#terminology.equals('ncit')")
+  public Optional<List<String>> getContributingSources(String terminology) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (!term.getTerminology().equals("ncit")) return Optional.empty();
+    
+    List<String> result = sparqlQueryManagerService.getContributingSourcesForDocumentation();
+    return Optional.of(result);
   }
 
   @Override
-  public List<String> getAxiomQualifiersList(String terminology, String code) {
-    // TODO Auto-generated method stub
-    return null;
+  @Cacheable(value = "metadata", key="{#root.methodName, #terminology, #code}")
+  public Optional<List<String>> getAxiomQualifiersList(String terminology, String code) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam("minimal");
+
+    // Like "get properties", if it's "name style", we need to get all and then
+    // find
+    // this one.
+    Concept concept = null;
+    if (ModelUtils.isCodeStyle(code)) {
+      concept =
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+    }
+
+    final List<Concept> list =
+        getProperties(terminology, Optional.ofNullable("minimal"), Optional.ofNullable(code));
+    if (list.size() > 0) {
+      concept = list.get(0);
+    }
+
+    if (concept == null || concept.getCode() == null) {
+      return Optional.empty();
+    }
+
+    final List<String> propertyValues =
+        sparqlQueryManagerService.getAxiomQualifiersList(concept.getCode(), dbType);
+    return Optional.of(propertyValues);
   }
 
 }

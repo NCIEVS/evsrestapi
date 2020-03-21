@@ -489,14 +489,10 @@ public class MetadataController {
   public @ResponseBody List<String> getConceptStatuses(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    if (term.getTerminology().equals("ncit")) {
-      return sparqlQueryManagerService.getConceptStatusForDocumentation();
-    }
+    Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
+    if (!result.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
+    return result.get();
   }
 
   /**
@@ -532,14 +528,10 @@ public class MetadataController {
   public @ResponseBody List<String> getContributingSources(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    if (term.getTerminology().equals("ncit")) {
-      return sparqlQueryManagerService.getContributingSourcesForDocumentation();
-    }
+    Optional<List<String>> result = metadataService.getContributingSources(terminology);
+    if (!result.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
+    return result.get();
   }
 
   /**
@@ -567,15 +559,6 @@ public class MetadataController {
   // sparqlQueryManagerService.getAllGraphNames(dbType);
   // return graphNames;
   // }
-
-  /**
-   * Returns the axiom qualifiers list. UNDOCUMENTED.
-   *
-   * @param terminology the terminology
-   * @param code the code
-   * @return the axiom qualifiers list
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the axiom qualifiers list.
@@ -608,32 +591,9 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    final IncludeParam ip = new IncludeParam("minimal");
+    Optional<List<String>> result = metadataService.getAxiomQualifiersList(terminology, code);
+    if (!result.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-    // Like "get properties", if it's "name style", we need to get all and then
-    // find
-    // this one.
-    Concept concept = null;
-    if (ModelUtils.isCodeStyle(code)) {
-      concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
-    }
-
-    final List<Concept> list =
-        getProperties(terminology, Optional.ofNullable("minimal"), Optional.ofNullable(code));
-    if (list.size() > 0) {
-      concept = list.get(0);
-    }
-
-    if (concept == null || concept.getCode() == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-    }
-
-    final List<String> propertyValues =
-        sparqlQueryManagerService.getAxiomQualifiersList(concept.getCode(), dbType);
-    return propertyValues;
+    return result.get();
   }
 }
