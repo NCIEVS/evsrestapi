@@ -26,6 +26,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
+import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -63,6 +64,9 @@ public class MetadataController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  @Autowired
+  MetadataService metadataService;
+  
   /**
    * Returns the version info.
    *
@@ -87,7 +91,7 @@ public class MetadataController {
   @RecordMetricDB
   @RequestMapping(method = RequestMethod.GET, value = "/metadata", produces = "application/json")
   public @ResponseBody ConfigData getApplicationMetadata() throws IOException {
-    return TerminologyUtils.getApplicationMetadata(sparqlQueryManagerService, "monthly");
+    return metadataService.getApplicationMetadata();
   }
 
   /**
@@ -115,18 +119,8 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws IOException {
-    return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
+    return metadataService.getTerminologies();
   }
-
-  /**
-   * Returns the associations.
-   *
-   * @param terminology the terminology
-   * @param include the include
-   * @param list the list
-   * @return the associations
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the associations.
@@ -428,28 +422,13 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    // TODO: Arun - cache this in a sprint friendly way - and other metadata
-    // calls too
-    final String key = include.orElse("") + terminology;
-    if (list.orElse("").isEmpty()) {
-      if (cache.containsKey(key)) {
-        return cache.get(key);
-      }
-    }
-
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
-
-    final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, ip);
-    final List<Concept> results =
-        ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
-    if (list.orElse("").isEmpty()) {
-      cache.put(key, results);
-    }
+    logger.info(String.format("getProperties(%s, %s, %s)", terminology, include, list));
+    
+    long startTime = System.currentTimeMillis();
+    List<Concept> results = metadataService.getProperties(terminology, include, list);
+    long endTime = System.currentTimeMillis();
+    logger.info("Total time taken = " + (endTime - startTime));
     return results;
-
   }
 
   /**
@@ -571,6 +550,7 @@ public class MetadataController {
 
     final List<Concept> list =
         getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
+    logger.info(String.format("list from properties [%s] with size [%s]", String.valueOf(list), list==null?0:list.size()));
     if (list.size() > 0) {
       return ConceptUtils.convertConcept(
           sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), dbType, ip));

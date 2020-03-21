@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,11 +8,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
-import gov.nih.nci.evs.api.controller.MetadataController;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.support.ConfigData;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Implementation for {@link MetadataService}
@@ -19,6 +27,7 @@ import gov.nih.nci.evs.api.support.ConfigData;
  * @author Arun
  *
  */
+@Service
 public class MetadataServiceImpl implements MetadataService {
 
   /** The cache. */
@@ -30,17 +39,20 @@ public class MetadataServiceImpl implements MetadataService {
   private SparqlQueryManagerService sparqlQueryManagerService;
   
   @Override
-  @Cacheable(value = "metadata", key="#root.methodName")
-  public ConfigData getApplicationMetadata() {
-    // TODO Auto-generated method stub
-    return null;
+  public ConfigData getApplicationMetadata() throws IOException {
+    return getApplicationMetadata("monthly");
+  }
+
+  @Override
+  @Cacheable(value = "metadata", key="{#root.methodName, #dbType}")
+  public ConfigData getApplicationMetadata(String dbType) throws IOException {
+    return sparqlQueryManagerService.getConfigurationData(dbType);
   }
 
   @Override
   @Cacheable(value = "metadata", key="#root.methodName")
-  public List<Terminology> getTerminologies() {
-    // TODO Auto-generated method stub
-    return null;
+  public List<Terminology> getTerminologies() throws IOException {
+    return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
   }
 
   @Override
@@ -73,10 +85,21 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   @Override
-  public List<Concept> getProperties(String terminology, 
-      Optional<String> include, Optional<String> list) {
-    // TODO Auto-generated method stub
-    return null;
+  @Cacheable(value = "metadata", key="{#root.methodName, #include.orElse(''), #terminology}", 
+    condition = "#list.orElse('').isEmpty()")
+  public List<Concept> getProperties(String terminology, Optional<String> include, 
+      Optional<String> list) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    
+    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
+
+    final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, ip);
+    final List<Concept> results =
+        ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
+
+    return results;
   }
 
   @Override

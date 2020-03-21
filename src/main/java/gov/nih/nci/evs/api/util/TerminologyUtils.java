@@ -27,9 +27,6 @@ public final class TerminologyUtils {
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
 
-  /** The application metadata. */
-  private static Map<String, ConfigData> applicationMetadataMap = new HashMap<>();
-
   /**
    * Instantiates an empty {@link TerminologyUtils}.
    */
@@ -107,23 +104,6 @@ public final class TerminologyUtils {
       }
     }
     return set;
-  }
-
-  /**
-   * Returns the application metadata.
-   *
-   * @param sparqlQueryManagerService the sparql query manager service
-   * @param dbType the db type
-   * @return the application metadata
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static ConfigData getApplicationMetadata(
-    final SparqlQueryManagerService sparqlQueryManagerService, final String dbType)
-    throws IOException {
-    if (!applicationMetadataMap.containsKey(dbType)) {
-      applicationMetadataMap.put(dbType, sparqlQueryManagerService.getConfigurationData(dbType));
-    }
-    return applicationMetadataMap.get(dbType);
   }
 
 }
