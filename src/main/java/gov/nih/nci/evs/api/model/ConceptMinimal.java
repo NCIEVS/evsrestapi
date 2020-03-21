@@ -45,6 +45,19 @@ public class ConceptMinimal extends BaseModel {
   /**
    * Instantiates a {@link ConceptMinimal} from the specified parameters.
    *
+   * @param terminology the terminology
+   * @param code the code
+   * @param name the name
+   */
+  public ConceptMinimal(final String terminology, final String code, final String name) {
+    this.terminology = terminology;
+    this.code = code;
+    this.name = name;
+  }
+
+  /**
+   * Instantiates a {@link ConceptMinimal} from the specified parameters.
+   *
    * @param other the other
    */
   public ConceptMinimal(final ConceptMinimal other) {
@@ -143,8 +156,7 @@ public class ConceptMinimal extends BaseModel {
     int result = 1;
     result = prime * result + ((code == null) ? 0 : code.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result =
-        prime * result + ((terminology == null) ? 0 : terminology.hashCode());
+    result = prime * result + ((terminology == null) ? 0 : terminology.hashCode());
     return result;
   }
 

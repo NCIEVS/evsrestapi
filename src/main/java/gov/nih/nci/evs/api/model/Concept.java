@@ -106,6 +106,17 @@ public class Concept extends ConceptMinimal {
   /**
    * Instantiates a {@link Concept} from the specified parameters.
    *
+   * @param terminology the terminology
+   * @param code the code
+   * @param name the name
+   */
+  public Concept(final String terminology, final String code, final String name) {
+    super(terminology, code, name);
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
    * @param other the other
    */
   public Concept(final Concept other) {
@@ -411,8 +422,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param inverseAssociations the inverse associations
    */
-  public void setInverseAssociations(
-    final List<Association> inverseAssociations) {
+  public void setInverseAssociations(final List<Association> inverseAssociations) {
     this.inverseAssociations = inverseAssociations;
   }
 
