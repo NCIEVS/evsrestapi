@@ -338,13 +338,7 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    logger.info(String.format("getProperties(%s, %s, %s)", terminology, include, list));
-    
-    long startTime = System.currentTimeMillis();
-    List<Concept> results = metadataService.getProperties(terminology, include, list);
-    long endTime = System.currentTimeMillis();
-    logger.info("Total time taken = " + (endTime - startTime));
-    return results;
+    return metadataService.getProperties(terminology, include, list);
   }
 
   /**
