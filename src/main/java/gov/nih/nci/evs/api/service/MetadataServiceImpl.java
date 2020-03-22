@@ -8,12 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -33,7 +28,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 @Service
 public class MetadataServiceImpl implements MetadataService {
 
-  /** The cache. */
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MetadataServiceImpl.class);
   
