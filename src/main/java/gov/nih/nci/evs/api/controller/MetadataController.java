@@ -47,15 +47,6 @@ import io.swagger.annotations.ApiResponses;
 @Api(tags = "Metadata endpoints")
 public class MetadataController {
 
-  /** The cache. */
-  private static Map<String, List<Concept>> cache =
-      new LinkedHashMap<String, List<Concept>>(1000 * 4 / 3, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(final Map.Entry<String, List<Concept>> eldest) {
-          return size() > 1001;
-        }
-      };
-
   /** The Constant log. */
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MetadataController.class);
