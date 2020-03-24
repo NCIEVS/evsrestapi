@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -225,6 +226,37 @@ public class MetadataServiceImpl implements MetadataService {
     final List<String> propertyValues =
         sparqlQueryManagerService.getAxiomQualifiersList(concept.getCode(), dbType);
     return Optional.of(propertyValues);
+  }
+
+  @Override
+  @Cacheable(value = "metadata", key="{#root.methodName, #terminology}")
+  public List<Concept> getTermTypes(String terminology) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+
+    final List<Concept> list = new ArrayList<>();
+    list.add(new Concept(terminology, "AB", "Abbreviation"));
+    list.add(new Concept(terminology, "AD", "Adjectival form (and other parts of grammar)"));
+    list.add(new Concept(terminology, "AQ*", "Antiquated preferred term"));
+    list.add(new Concept(terminology, "AQS",
+        "Antiquated term, use when tehre are antiquated synonyms within a concept"));
+    list.add(new Concept(terminology, "BR", "US brand name, which may be trademarked"));
+    list.add(new Concept(terminology, "CA2", "ISO 3166 alpha-2 country code"));
+    list.add(new Concept(terminology, "CA3", "ISO 3166 alpha-3 country code"));
+    list.add(new Concept(terminology, "CNU", "ISO 3166 numeric country code"));
+    list.add(new Concept(terminology, "CI", "ISO country code"));
+    list.add(new Concept(terminology, "CN", "Drug study code"));
+    list.add(new Concept(terminology, "CS", "US State Department country code"));
+    list.add(new Concept(terminology, "DN", "Display n ame"));
+    list.add(new Concept(terminology, "FB", "Foreign brand name, which may be trademarked"));
+    list.add(new Concept(terminology, "LLT", "Lower level term"));
+    list.add(
+        new Concept(terminology, "HD*", "Header (groups concepts, but not used for coding data)"));
+    list.add(new Concept(terminology, "PT*", "Preferred term"));
+    list.add(new Concept(terminology, "SN", "Chemical structure name"));
+    list.add(new Concept(terminology, "SY", "Synonym"));
+
+    return list;
   }
 
 }

@@ -59,13 +59,6 @@ public class MetadataController {
   MetadataService metadataService;
   
   /**
-   * Returns the version info.
-   *
-   * @return the version info
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-
-  /**
    * Returns the application metadata.
    *
    * @return the application metadata
@@ -84,13 +77,6 @@ public class MetadataController {
   public @ResponseBody ConfigData getApplicationMetadata() throws IOException {
     return metadataService.getApplicationMetadata();
   }
-
-  /**
-   * Returns the version info.
-   *
-   * @return the version info
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
 
   /**
    * Returns the terminologies.
@@ -357,44 +343,8 @@ public class MetadataController {
   public @ResponseBody List<Concept> getTermTypes(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-
-    final List<Concept> list = new ArrayList<>();
-    list.add(new Concept(terminology, "AB", "Abbreviation"));
-    list.add(new Concept(terminology, "AD", "Adjectival form (and other parts of grammar)"));
-    list.add(new Concept(terminology, "AQ*", "Antiquated preferred term"));
-    list.add(new Concept(terminology, "AQS",
-        "Antiquated term, use when tehre are antiquated synonyms within a concept"));
-    list.add(new Concept(terminology, "BR", "US brand name, which may be trademarked"));
-    list.add(new Concept(terminology, "CA2", "ISO 3166 alpha-2 country code"));
-    list.add(new Concept(terminology, "CA3", "ISO 3166 alpha-3 country code"));
-    list.add(new Concept(terminology, "CNU", "ISO 3166 numeric country code"));
-    list.add(new Concept(terminology, "CI", "ISO country code"));
-    list.add(new Concept(terminology, "CN", "Drug study code"));
-    list.add(new Concept(terminology, "CS", "US State Department country code"));
-    list.add(new Concept(terminology, "DN", "Display n ame"));
-    list.add(new Concept(terminology, "FB", "Foreign brand name, which may be trademarked"));
-    list.add(new Concept(terminology, "LLT", "Lower level term"));
-    list.add(
-        new Concept(terminology, "HD*", "Header (groups concepts, but not used for coding data)"));
-    list.add(new Concept(terminology, "PT*", "Preferred term"));
-    list.add(new Concept(terminology, "SN", "Chemical structure name"));
-    list.add(new Concept(terminology, "SY", "Synonym"));
-
-    return list;
-
+    return metadataService.getTermTypes(terminology);
   }
-
-  /**
-   * Returns the property.
-   *
-   * @param terminology the terminology
-   * @param code the code
-   * @param include the include
-   * @return the property
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the property.
@@ -448,14 +398,6 @@ public class MetadataController {
    * @return the concept statuses
    * @throws Exception the exception
    */
-
-  /**
-   * Returns the concept statuses.
-   *
-   * @param terminology the terminology
-   * @return the concept statuses
-   * @throws Exception the exception
-   */
   @ApiOperation(value = "Get all concept status values for the specified terminology",
       response = String.class, responseContainer = "List")
   @ApiResponses(value = {
@@ -479,14 +421,6 @@ public class MetadataController {
 
     return result.get();
   }
-
-  /**
-   * Returns the contributing sources.
-   *
-   * @param terminology the terminology
-   * @return the contributing sources
-   * @throws Exception the exception
-   */
 
   /**
    * Returns the contributing sources.

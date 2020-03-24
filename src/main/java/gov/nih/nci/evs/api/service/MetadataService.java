@@ -139,4 +139,12 @@ public interface MetadataService {
    * @throws Exception
    */
   Optional<List<String>> getAxiomQualifiersList(final String terminology, final String code) throws Exception;
+  
+  /**
+   * Get term types
+   * 
+   * @param terminology
+   * @return the list of term types
+   */
+  List<Concept> getTermTypes(final String terminology) throws Exception;
 }
