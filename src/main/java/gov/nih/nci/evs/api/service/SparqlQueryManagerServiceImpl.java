@@ -71,6 +71,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Autowired
   ApplicationProperties applicationProperties;
 
+  @Autowired
+  ElasticSearchService elasticSearchService;
+
   private RESTUtils restUtils = null;
 
   private HashMap<String, String> propertyNotConsidered;
@@ -128,9 +131,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
   }
 
+  /**
+   * Populate cache.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public void populateCache() throws IOException {
     LocalDateTime currentTime = LocalDateTime.now();
     log.info("Start populating cache");
+    log.info("  configure elasticsearch");
+    elasticSearchService.initSettings();
+
     classCountMonthly = getGetClassCounts("monthly");
     log.info("  class count monthly = " + classCountMonthly);
 
