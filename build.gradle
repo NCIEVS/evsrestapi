@@ -65,6 +65,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'       
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.springframework.boot:spring-boot-starter-actuator'  
+    compile 'org.springframework.boot:spring-boot-starter-cache'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'commons-io:commons-io:2.6'
     compile "io.springfox:springfox-swagger2:$swaggerversion" 
@@ -73,7 +74,9 @@ dependencies {
     compile 'org.springframework:spring-aop'
     compile 'org.aspectj:aspectjweaver:1.9.2'
     compile 'org.apache.commons:commons-text:1.8'
-     
+    compile 'javax.cache:cache-api:1.1.1'
+    compile 'org.ehcache:ehcache:3.8.1'
+
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     /*
@@ -123,5 +126,4 @@ task zipFile(type: Zip) {
 zipFile.dependsOn = [ bootWar ]
 build.dependsOn = [ test, bootWar, zipFile ]
 install.dependsOn = [ bootWar, zipFile ]
-
 

@@ -4,14 +4,15 @@ package gov.nih.nci.evs.api.support;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
@@ -20,10 +21,9 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  */
 public class SearchCriteriaWithoutTerminology extends BaseModel {
 
-  /** The sparql query manager service. */
-  @Autowired
-  SparqlQueryManagerService sparqlQueryManagerService;
-
+  @SuppressWarnings("unused")
+  private static final Logger logger = LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
+  
   /** The term. */
   private String term;
 
@@ -417,7 +417,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @throws Exception the exception
    */
   public void validate(final String dbType,
-    final SparqlQueryManagerService sparqlQueryManagerService,
+    final MetadataService metadataService,
     final ThesaurusProperties thesaurusProperties) throws Exception {
     if (getTerm() == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -458,7 +458,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid contributing source
     for (final String ss : getSynonymSource()) {
-      if (!TerminologyUtils.getApplicationMetadata(sparqlQueryManagerService, dbType)
+      if (!metadataService.getApplicationMetadata(dbType)
           .getFullSynSources().contains(ss)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'synonymSource' has an invalid value = " + ss);
