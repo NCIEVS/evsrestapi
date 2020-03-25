@@ -28,6 +28,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.SearchCriteria;
 import gov.nih.nci.evs.api.support.SearchCriteriaWithoutTerminology;
@@ -68,6 +69,10 @@ public class SearchController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The metadata service **/
+  @Autowired
+  MetadataService metadataService;
+  
   /**
    * Search within a single terminology.
    *
@@ -271,7 +276,7 @@ public class SearchController {
       final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
       final IncludeParam ip = searchCriteria.computeIncludeParam();
 
-      searchCriteria.validate(dbType, sparqlQueryManagerService, thesaurusProperties);
+      searchCriteria.validate(dbType, metadataService, thesaurusProperties);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
