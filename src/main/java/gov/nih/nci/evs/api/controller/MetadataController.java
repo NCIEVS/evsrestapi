@@ -477,7 +477,6 @@ public class MetadataController {
   public @ResponseBody List<Concept> getTermTypes(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
-    final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
     final List<Concept> list = new ArrayList<>();
