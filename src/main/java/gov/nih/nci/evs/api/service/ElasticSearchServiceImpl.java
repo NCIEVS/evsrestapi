@@ -123,7 +123,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     HttpEntity<String> requestbody =
         new HttpEntity<>("{\"max_result_window\":500000}", httpHeaders);
 
-    ResponseEntity<String> response =restTemplate.exchange(url.replace("concept/_search", "_settings"), HttpMethod.PUT, requestbody,
+    restTemplate.exchange(url.replace("concept/_search", "_settings"), HttpMethod.PUT, requestbody,
         String.class);
   }
 
@@ -150,7 +150,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Call the elastic search url
     HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+    httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
     HttpEntity<String> requestbody = new HttpEntity<>(query, httpHeaders);
 
     ResponseEntity<String> response =

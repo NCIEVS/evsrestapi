@@ -22,16 +22,16 @@ public interface MetadataService {
    * @throws IOException
    */
   ConfigData getApplicationMetadata() throws IOException;
-  
+
   /**
-   * Get application metadata for {@code dbType}} 
+   * Get application metadata for {@code dbType}}
    * 
    * @param dbType the db type (monthly, weekly etc)
    * @return the config data
    * @throws IOException
    */
   ConfigData getApplicationMetadata(String dbType) throws IOException;
-  
+
   /**
    * Get list of terminologies
    * 
@@ -39,19 +39,19 @@ public interface MetadataService {
    * @throws IOException
    */
   List<Terminology> getTerminologies() throws IOException;
-  
+
   /**
    * Get list of associations
    * 
    * @param terminology
-   * @param include 
-   * @param list 
+   * @param include
+   * @param list
    * @return the list of associations
    * @throws Exception
    */
-  List<Concept> getAssociations(final String terminology, 
-      final Optional<String> include, final Optional<String> list) throws Exception;
-  
+  List<Concept> getAssociations(final String terminology, final Optional<String> include,
+    final Optional<String> list) throws Exception;
+
   /**
    * Get association for the given code
    * 
@@ -61,9 +61,9 @@ public interface MetadataService {
    * @return the optional association - empty if association is not found
    * @throws Exception
    */
-  Optional<Concept> getAssociation(final String terminology,
-      final String code, final Optional<String> include) throws Exception;
-  
+  Optional<Concept> getAssociation(final String terminology, final String code,
+    final Optional<String> include) throws Exception;
+
   /**
    * Get roles
    * 
@@ -73,9 +73,9 @@ public interface MetadataService {
    * @return the list of roles
    * @throws Exception
    */
-  List<Concept> getRoles(final String terminology,
-      final Optional<String> include, final Optional<String> list) throws Exception;
-  
+  List<Concept> getRoles(final String terminology, final Optional<String> include,
+    final Optional<String> list) throws Exception;
+
   /**
    * Get role for the given code
    * 
@@ -85,11 +85,11 @@ public interface MetadataService {
    * @return the optional role - empty if role is not found
    * @throws Exception
    */
-  Optional<Concept> getRole(final String terminology,
-      final String code, final Optional<String> include) throws Exception;
-  
+  Optional<Concept> getRole(final String terminology, final String code,
+    final Optional<String> include) throws Exception;
+
   /**
-   * Get properties 
+   * Get properties
    * 
    * @param terminology
    * @param include
@@ -97,9 +97,9 @@ public interface MetadataService {
    * @return the list of properties
    * @throws Exception
    */
-  List<Concept> getProperties(final String terminology,
-      final Optional<String> include, final Optional<String> list) throws Exception;
-  
+  List<Concept> getProperties(final String terminology, final Optional<String> include,
+    boolean forDocumentation, final Optional<String> list) throws Exception;
+
   /**
    * Get property for the given code
    * 
@@ -109,9 +109,9 @@ public interface MetadataService {
    * @return the optional property - empty if property is not found
    * @throws Exception
    */
-  Optional<Concept> getProperty(final String terminology,
-      final String code, final Optional<String> include) throws Exception;
-  
+  Optional<Concept> getProperty(final String terminology, final String code,
+    final Optional<String> include) throws Exception;
+
   /**
    * Get status list
    * 
@@ -120,7 +120,7 @@ public interface MetadataService {
    * @throws Exception
    */
   Optional<List<String>> getConceptStatuses(final String terminology) throws Exception;
-  
+
   /**
    * Get contributing sources
    * 
@@ -129,7 +129,7 @@ public interface MetadataService {
    * @throws Exception
    */
   Optional<List<String>> getContributingSources(final String terminology) throws Exception;
-  
+
   /**
    * Get axiom qualifiers
    * 
@@ -138,8 +138,9 @@ public interface MetadataService {
    * @return the list of axiom qualifiers
    * @throws Exception
    */
-  Optional<List<String>> getAxiomQualifiersList(final String terminology, final String code) throws Exception;
-  
+  Optional<List<String>> getAxiomQualifiersList(final String terminology, final String code)
+    throws Exception;
+
   /**
    * Get term types
    * 

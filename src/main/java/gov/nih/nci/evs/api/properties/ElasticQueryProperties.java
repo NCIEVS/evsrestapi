@@ -1,420 +1,889 @@
+
 package gov.nih.nci.evs.api.properties;
 
 import java.util.HashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+/**
+ * Elasticsearch query properties.
+ */
 public class ElasticQueryProperties {
-	
-	/** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(ElasticQueryProperties.class);
-
-    //source fields
-    private String shortsourcefields;
-    private String defaultsourcefields;
-    private String associationsourcefields;
-    private String definitionsourcefields;
-    
-    //exact and starts with fields
-    private String exactstartswithfields;
-    private String exactstartswithsynonymfields;
-    private String exactstartswithdefinitionfields;
-    private String exactstartswithassociationfields;
-    
-    //contains fields
-    private String containsfields;
-    private String containssynonymfields;
-    private String containsdefinitionfields;
-    private String containsassociationfields;
-    
-    //andor fields
-    private String andorfields;
-    private String andorsynonymfields;
-    private String andordefinitionfields;
-    private String andorassociationfields;
-    
-    //highlight fields for exact
-    private String highlightexact;
-    private String highlightsynonymexact;
-    private String highlightdefinitionexact;
-    private String highlightassociationexact;
-    
-    //highlight fields for contains
-    private String highlightcontains;
-    private String highlightsynonymcontains;
-    private String highlightdefinitioncontains;
-    private String highlightassociationcontains;
-    
-    //highlight fields for and or
-    private String highlightandor;
-    private String highlightsynonymandor;
-    private String highlightdefinitionandor;
-    private String highlightassociationandor;
-    
-    //main query and main nested query
-    private String mainQuery;
-    private String mainNestedQuery;
-    private String mainNestedWithNonNestedQuery;
-    private String mainMultipleNestedQuery;
-    private String mainQueryWithoutHighlights;
-    private String mainNestedQueryWithoutHighlights;
-    private String mainNestedWithNonNestedQuerywithoutHL;
-    private String mainMultipleNestedQueryWithoutHighlights;
-    
-    //rescore query
-    private String rescoreQuery;
-   
-    
-    //highlight tags	
-    private String highlightTags;
-      
-    //Property fields    
-    private HashMap<String, String> propertyToQuery;
-    private HashMap<String, String> propertyToQueryExact;
-    private HashMap<String, String> propertyToQueryContains;
-    
-    
-   
-    
-    public String getExactstartswithassociationfields() {
-		return exactstartswithassociationfields;
-	}
-
-	public void setExactstartswithassociationfields(String exactstartswithassociationfields) {
-		this.exactstartswithassociationfields = exactstartswithassociationfields;
-	}
-
-	public String getContainsassociationfields() {
-		return containsassociationfields;
-	}
-
-	public void setContainsassociationfields(String containsassociationfields) {
-		this.containsassociationfields = containsassociationfields;
-	}
-
-	public String getAndorassociationfields() {
-		return andorassociationfields;
-	}
-
-	public void setAndorassociationfields(String andorassociationfields) {
-		this.andorassociationfields = andorassociationfields;
-	}
-
-	public String getHighlightassociationexact() {
-		return highlightassociationexact;
-	}
-
-	public void setHighlightassociationexact(String highlightassociationexact) {
-		this.highlightassociationexact = highlightassociationexact;
-	}
 
-	public String getHighlightassociationcontains() {
-		return highlightassociationcontains;
-	}
+  /** The shortsourcefields. */
+  // source fields
+  private String shortsourcefields;
 
-	public void setHighlightassociationcontains(String highlightassociationcontains) {
-		this.highlightassociationcontains = highlightassociationcontains;
-	}
+  /** The defaultsourcefields. */
+  private String defaultsourcefields;
 
-	public String getHighlightassociationandor() {
-		return highlightassociationandor;
-	}
+  /** The associationsourcefields. */
+  private String associationsourcefields;
 
-	public void setHighlightassociationandor(String highlightassociationandor) {
-		this.highlightassociationandor = highlightassociationandor;
-	}
+  /** The definitionsourcefields. */
+  private String definitionsourcefields;
 
-	
-	public String getHighlightsynonymexact() {
-		return highlightsynonymexact;
-	}
+  /** The exactstartswithfields. */
+  // exact and starts with fields
+  private String exactstartswithfields;
 
-	public void setHighlightsynonymexact(String highlightsynonymexact) {
-		this.highlightsynonymexact = highlightsynonymexact;
-	}
+  /** The exactstartswithsynonymfields. */
+  private String exactstartswithsynonymfields;
 
-	public String getHighlightsynonymcontains() {
-		return highlightsynonymcontains;
-	}
+  /** The exactstartswithdefinitionfields. */
+  private String exactstartswithdefinitionfields;
 
-	public void setHighlightsynonymcontains(String highlightsynonymcontains) {
-		this.highlightsynonymcontains = highlightsynonymcontains;
-	}
+  /** The exactstartswithassociationfields. */
+  private String exactstartswithassociationfields;
 
-	public String getHighlightsynonymandor() {
-		return highlightsynonymandor;
-	}
+  /** The containsfields. */
+  // contains fields
+  private String containsfields;
 
-	public void setHighlightsynonymandor(String highlightsynonymandor) {
-		this.highlightsynonymandor = highlightsynonymandor;
-	}
+  /** The containssynonymfields. */
+  private String containssynonymfields;
 
-	public String getExactstartswithsynonymfields() {
-		return exactstartswithsynonymfields;
-	}
+  /** The containsdefinitionfields. */
+  private String containsdefinitionfields;
 
-	public void setExactstartswithsynonymfields(String exactstartswithsynonymfields) {
-		this.exactstartswithsynonymfields = exactstartswithsynonymfields;
-	}
+  /** The containsassociationfields. */
+  private String containsassociationfields;
 
-	public String getContainssynonymfields() {
-		return containssynonymfields;
-	}
+  /** The andorfields. */
+  // andor fields
+  private String andorfields;
 
-	public void setContainssynonymfields(String containssynonymfields) {
-		this.containssynonymfields = containssynonymfields;
-	}
+  /** The andorsynonymfields. */
+  private String andorsynonymfields;
 
-	public String getAndorsynonymfields() {
-		return andorsynonymfields;
-	}
+  /** The andordefinitionfields. */
+  private String andordefinitionfields;
 
-	public void setAndorsynonymfields(String andorsynonymfields) {
-		this.andorsynonymfields = andorsynonymfields;
-	}
+  /** The andorassociationfields. */
+  private String andorassociationfields;
 
-	public String getHighlightTags() {
-		return highlightTags;
-	}
+  /** The highlightexact. */
+  // highlight fields for exact
+  private String highlightexact;
 
-	public void setHighlightTags(String highlightTags) {
-		this.highlightTags = highlightTags;
-	}
+  /** The highlightsynonymexact. */
+  private String highlightsynonymexact;
 
-	public String getHighlightexact() {
-		return highlightexact;
-	}
+  /** The highlightdefinitionexact. */
+  private String highlightdefinitionexact;
 
-	public void setHighlightexact(String highlightexact) {
-		this.highlightexact = highlightexact;
-	}
+  /** The highlightassociationexact. */
+  private String highlightassociationexact;
 
-	public String getHighlightcontains() {
-		return highlightcontains;
-	}
+  /** The highlightcontains. */
+  // highlight fields for contains
+  private String highlightcontains;
 
-	public void setHighlightcontains(String highlightcontains) {
-		this.highlightcontains = highlightcontains;
-	}
+  /** The highlightsynonymcontains. */
+  private String highlightsynonymcontains;
 
-	public String getHighlightandor() {
-		return highlightandor;
-	}
+  /** The highlightdefinitioncontains. */
+  private String highlightdefinitioncontains;
 
-	public void setHighlightandor(String highlightandor) {
-		this.highlightandor = highlightandor;
-	}
+  /** The highlightassociationcontains. */
+  private String highlightassociationcontains;
 
-	
+  /** The highlightandor. */
+  // highlight fields for and or
+  private String highlightandor;
 
-	public String getMainQuery() {
-		return mainQuery;
-	}
+  /** The highlightsynonymandor. */
+  private String highlightsynonymandor;
 
-	public void setMainQuery(String mainQuery) {
-		this.mainQuery = mainQuery;
-	}
+  /** The highlightdefinitionandor. */
+  private String highlightdefinitionandor;
 
-	public String getExactstartswithfields() {
-		return exactstartswithfields;
-	}
+  /** The highlightassociationandor. */
+  private String highlightassociationandor;
 
-	public void setExactstartswithfields(String exactstartswithfields) {
-		this.exactstartswithfields = exactstartswithfields;
-	}
-
-	public String getContainsfields() {
-		return containsfields;
-	}
-
-	public void setContainsfields(String containsfields) {
-		this.containsfields = containsfields;
-	}
-
-	public String getAndorfields() {
-		return andorfields;
-	}
-
-	public void setAndorfields(String andorfields) {
-		this.andorfields = andorfields;
-	}
-
-	public String getShortsourcefields() {
-		return shortsourcefields;
-	}
-
-	public void setShortsourcefields(String shortsourcefields) {
-		this.shortsourcefields = shortsourcefields;
-	}
-
-	public String getDefaultsourcefields() {
-		return defaultsourcefields;
-	}
-
-	public void setDefaultsourcefields(String defaultsourcefields) {
-		this.defaultsourcefields = defaultsourcefields;
-	}
-
-	public String getMainQueryWithoutHighlights() {
-		return mainQueryWithoutHighlights;
-	}
-
-	public void setMainQueryWithoutHighlights(String mainQueryWithoutHighlights) {
-		this.mainQueryWithoutHighlights = mainQueryWithoutHighlights;
-	}
-
-	
-
-	public String getExactstartswithdefinitionfields() {
-		return exactstartswithdefinitionfields;
-	}
-
-	public void setExactstartswithdefinitionfields(String exactstartswithdefinitionfields) {
-		this.exactstartswithdefinitionfields = exactstartswithdefinitionfields;
-	}
-
-	public String getContainsdefinitionfields() {
-		return containsdefinitionfields;
-	}
-
-	public void setContainsdefinitionfields(String containsdefinitionfields) {
-		this.containsdefinitionfields = containsdefinitionfields;
-	}
-
-	public String getAndordefinitionfields() {
-		return andordefinitionfields;
-	}
-
-	public void setAndordefinitionfields(String andordefinitionfields) {
-		this.andordefinitionfields = andordefinitionfields;
-	}
-
-	public String getHighlightdefinitionexact() {
-		return highlightdefinitionexact;
-	}
-
-	public void setHighlightdefinitionexact(String highlightdefinitionexact) {
-		this.highlightdefinitionexact = highlightdefinitionexact;
-	}
-
-	public String getHighlightdefinitioncontains() {
-		return highlightdefinitioncontains;
-	}
-
-	public void setHighlightdefinitioncontains(String highlightdefinitioncontains) {
-		this.highlightdefinitioncontains = highlightdefinitioncontains;
-	}
-
-	public String getHighlightdefinitionandor() {
-		return highlightdefinitionandor;
-	}
-
-	public void setHighlightdefinitionandor(String highlightdefinitionandor) {
-		this.highlightdefinitionandor = highlightdefinitionandor;
-	}
-
-	public String getMainNestedQuery() {
-		return mainNestedQuery;
-	}
-
-	public void setMainNestedQuery(String mainNestedQuery) {
-		this.mainNestedQuery = mainNestedQuery;
-	}
-
-	public String getMainNestedQueryWithoutHighlights() {
-		return mainNestedQueryWithoutHighlights;
-	}
-
-	public void setMainNestedQueryWithoutHighlights(String mainNestedQueryWithoutHighlights) {
-		this.mainNestedQueryWithoutHighlights = mainNestedQueryWithoutHighlights;
-	}
-
-	public String getAssociationsourcefields() {
-		return associationsourcefields;
-	}
-
-	public void setAssociationsourcefields(String associationsourcefields) {
-		this.associationsourcefields = associationsourcefields;
-	}
-
-	public String getDefinitionsourcefields() {
-		return definitionsourcefields;
-	}
-
-	public void setDefinitionsourcefields(String definitionsourcefields) {
-		this.definitionsourcefields = definitionsourcefields;
-	}
-
-	
-
-	public HashMap<String, String> getPropertyToQuery() {
-		return propertyToQuery;
-	}
-
-	public void setPropertyToQuery(HashMap<String, String> propertyToQuery) {
-		this.propertyToQuery = propertyToQuery;
-	}
-
-	public HashMap<String, String> getPropertyToQueryExact() {
-		return propertyToQueryExact;
-	}
-
-	public void setPropertyToQueryExact(HashMap<String, String> propertyToQueryExact) {
-		this.propertyToQueryExact = propertyToQueryExact;
-	}
-
-	public HashMap<String, String> getPropertyToQueryContains() {
-		return propertyToQueryContains;
-	}
-
-	public void setPropertyToQueryContains(HashMap<String, String> propertyToQueryContains) {
-		this.propertyToQueryContains = propertyToQueryContains;
-	}
-
-	public String getMainMultipleNestedQuery() {
-		return mainMultipleNestedQuery;
-	}
-
-	public void setMainMultipleNestedQuery(String mainMultipleNestedQuery) {
-		this.mainMultipleNestedQuery = mainMultipleNestedQuery;
-	}
-
-	public String getMainMultipleNestedQueryWithoutHighlights() {
-		return mainMultipleNestedQueryWithoutHighlights;
-	}
-
-	public void setMainMultipleNestedQueryWithoutHighlights(String mainMultipleNestedQueryWithoutHighlights) {
-		this.mainMultipleNestedQueryWithoutHighlights = mainMultipleNestedQueryWithoutHighlights;
-	}
-
-	public String getRescoreQuery() {
-		return rescoreQuery;
-	}
-
-	public void setRescoreQuery(String rescoreQuery) {
-		this.rescoreQuery = rescoreQuery;
-	}
-
-	public String getMainNestedWithNonNestedQuery() {
-		return mainNestedWithNonNestedQuery;
-	}
-
-	public void setMainNestedWithNonNestedQuery(String mainNestedWithNonNestedQuery) {
-		this.mainNestedWithNonNestedQuery = mainNestedWithNonNestedQuery;
-	}
-
-	public String getMainNestedWithNonNestedQuerywithoutHL() {
-		return mainNestedWithNonNestedQuerywithoutHL;
-	}
-
-	public void setMainNestedWithNonNestedQuerywithoutHL(String mainNestedWithNonNestedQuerywithoutHL) {
-		this.mainNestedWithNonNestedQuerywithoutHL = mainNestedWithNonNestedQuerywithoutHL;
-	}
-
-	
-	
-
-	
+  /** The main query. */
+  // main query and main nested query
+  private String mainQuery;
+
+  /** The main nested query. */
+  private String mainNestedQuery;
+
+  /** The main nested with non nested query. */
+  private String mainNestedWithNonNestedQuery;
+
+  /** The main multiple nested query. */
+  private String mainMultipleNestedQuery;
+
+  /** The main query without highlights. */
+  private String mainQueryWithoutHighlights;
+
+  /** The main nested query without highlights. */
+  private String mainNestedQueryWithoutHighlights;
+
+  /** The main nested with non nested querywithout HL. */
+  private String mainNestedWithNonNestedQuerywithoutHL;
+
+  /** The main multiple nested query without highlights. */
+  private String mainMultipleNestedQueryWithoutHighlights;
+
+  /** The rescore query. */
+  // rescore query
+  private String rescoreQuery;
+
+  /** The highlight tags. */
+  // highlight tags
+  private String highlightTags;
+
+  /** The property to query. */
+  // Property fields
+  private HashMap<String, String> propertyToQuery;
+
+  /** The property to query exact. */
+  private HashMap<String, String> propertyToQueryExact;
+
+  /** The property to query contains. */
+  private HashMap<String, String> propertyToQueryContains;
+
+  /**
+   * Returns the exactstartswithassociationfields.
+   *
+   * @return the exactstartswithassociationfields
+   */
+  public String getExactstartswithassociationfields() {
+    return exactstartswithassociationfields;
+  }
+
+  /**
+   * Sets the exactstartswithassociationfields.
+   *
+   * @param exactstartswithassociationfields the
+   *          exactstartswithassociationfields
+   */
+  public void setExactstartswithassociationfields(String exactstartswithassociationfields) {
+    this.exactstartswithassociationfields = exactstartswithassociationfields;
+  }
+
+  /**
+   * Returns the containsassociationfields.
+   *
+   * @return the containsassociationfields
+   */
+  public String getContainsassociationfields() {
+    return containsassociationfields;
+  }
+
+  /**
+   * Sets the containsassociationfields.
+   *
+   * @param containsassociationfields the containsassociationfields
+   */
+  public void setContainsassociationfields(String containsassociationfields) {
+    this.containsassociationfields = containsassociationfields;
+  }
+
+  /**
+   * Returns the andorassociationfields.
+   *
+   * @return the andorassociationfields
+   */
+  public String getAndorassociationfields() {
+    return andorassociationfields;
+  }
+
+  /**
+   * Sets the andorassociationfields.
+   *
+   * @param andorassociationfields the andorassociationfields
+   */
+  public void setAndorassociationfields(String andorassociationfields) {
+    this.andorassociationfields = andorassociationfields;
+  }
+
+  /**
+   * Returns the highlightassociationexact.
+   *
+   * @return the highlightassociationexact
+   */
+  public String getHighlightassociationexact() {
+    return highlightassociationexact;
+  }
+
+  /**
+   * Sets the highlightassociationexact.
+   *
+   * @param highlightassociationexact the highlightassociationexact
+   */
+  public void setHighlightassociationexact(String highlightassociationexact) {
+    this.highlightassociationexact = highlightassociationexact;
+  }
+
+  /**
+   * Returns the highlightassociationcontains.
+   *
+   * @return the highlightassociationcontains
+   */
+  public String getHighlightassociationcontains() {
+    return highlightassociationcontains;
+  }
+
+  /**
+   * Sets the highlightassociationcontains.
+   *
+   * @param highlightassociationcontains the highlightassociationcontains
+   */
+  public void setHighlightassociationcontains(String highlightassociationcontains) {
+    this.highlightassociationcontains = highlightassociationcontains;
+  }
+
+  /**
+   * Returns the highlightassociationandor.
+   *
+   * @return the highlightassociationandor
+   */
+  public String getHighlightassociationandor() {
+    return highlightassociationandor;
+  }
+
+  /**
+   * Sets the highlightassociationandor.
+   *
+   * @param highlightassociationandor the highlightassociationandor
+   */
+  public void setHighlightassociationandor(String highlightassociationandor) {
+    this.highlightassociationandor = highlightassociationandor;
+  }
+
+  /**
+   * Returns the highlightsynonymexact.
+   *
+   * @return the highlightsynonymexact
+   */
+  public String getHighlightsynonymexact() {
+    return highlightsynonymexact;
+  }
+
+  /**
+   * Sets the highlightsynonymexact.
+   *
+   * @param highlightsynonymexact the highlightsynonymexact
+   */
+  public void setHighlightsynonymexact(String highlightsynonymexact) {
+    this.highlightsynonymexact = highlightsynonymexact;
+  }
+
+  /**
+   * Returns the highlightsynonymcontains.
+   *
+   * @return the highlightsynonymcontains
+   */
+  public String getHighlightsynonymcontains() {
+    return highlightsynonymcontains;
+  }
+
+  /**
+   * Sets the highlightsynonymcontains.
+   *
+   * @param highlightsynonymcontains the highlightsynonymcontains
+   */
+  public void setHighlightsynonymcontains(String highlightsynonymcontains) {
+    this.highlightsynonymcontains = highlightsynonymcontains;
+  }
+
+  /**
+   * Returns the highlightsynonymandor.
+   *
+   * @return the highlightsynonymandor
+   */
+  public String getHighlightsynonymandor() {
+    return highlightsynonymandor;
+  }
+
+  /**
+   * Sets the highlightsynonymandor.
+   *
+   * @param highlightsynonymandor the highlightsynonymandor
+   */
+  public void setHighlightsynonymandor(String highlightsynonymandor) {
+    this.highlightsynonymandor = highlightsynonymandor;
+  }
+
+  /**
+   * Returns the exactstartswithsynonymfields.
+   *
+   * @return the exactstartswithsynonymfields
+   */
+  public String getExactstartswithsynonymfields() {
+    return exactstartswithsynonymfields;
+  }
+
+  /**
+   * Sets the exactstartswithsynonymfields.
+   *
+   * @param exactstartswithsynonymfields the exactstartswithsynonymfields
+   */
+  public void setExactstartswithsynonymfields(String exactstartswithsynonymfields) {
+    this.exactstartswithsynonymfields = exactstartswithsynonymfields;
+  }
+
+  /**
+   * Returns the containssynonymfields.
+   *
+   * @return the containssynonymfields
+   */
+  public String getContainssynonymfields() {
+    return containssynonymfields;
+  }
+
+  /**
+   * Sets the containssynonymfields.
+   *
+   * @param containssynonymfields the containssynonymfields
+   */
+  public void setContainssynonymfields(String containssynonymfields) {
+    this.containssynonymfields = containssynonymfields;
+  }
+
+  /**
+   * Returns the andorsynonymfields.
+   *
+   * @return the andorsynonymfields
+   */
+  public String getAndorsynonymfields() {
+    return andorsynonymfields;
+  }
+
+  /**
+   * Sets the andorsynonymfields.
+   *
+   * @param andorsynonymfields the andorsynonymfields
+   */
+  public void setAndorsynonymfields(String andorsynonymfields) {
+    this.andorsynonymfields = andorsynonymfields;
+  }
+
+  /**
+   * Returns the highlight tags.
+   *
+   * @return the highlight tags
+   */
+  public String getHighlightTags() {
+    return highlightTags;
+  }
+
+  /**
+   * Sets the highlight tags.
+   *
+   * @param highlightTags the highlight tags
+   */
+  public void setHighlightTags(String highlightTags) {
+    this.highlightTags = highlightTags;
+  }
+
+  /**
+   * Returns the highlightexact.
+   *
+   * @return the highlightexact
+   */
+  public String getHighlightexact() {
+    return highlightexact;
+  }
+
+  /**
+   * Sets the highlightexact.
+   *
+   * @param highlightexact the highlightexact
+   */
+  public void setHighlightexact(String highlightexact) {
+    this.highlightexact = highlightexact;
+  }
+
+  /**
+   * Returns the highlightcontains.
+   *
+   * @return the highlightcontains
+   */
+  public String getHighlightcontains() {
+    return highlightcontains;
+  }
+
+  /**
+   * Sets the highlightcontains.
+   *
+   * @param highlightcontains the highlightcontains
+   */
+  public void setHighlightcontains(String highlightcontains) {
+    this.highlightcontains = highlightcontains;
+  }
+
+  /**
+   * Returns the highlightandor.
+   *
+   * @return the highlightandor
+   */
+  public String getHighlightandor() {
+    return highlightandor;
+  }
+
+  /**
+   * Sets the highlightandor.
+   *
+   * @param highlightandor the highlightandor
+   */
+  public void setHighlightandor(String highlightandor) {
+    this.highlightandor = highlightandor;
+  }
+
+  /**
+   * Returns the main query.
+   *
+   * @return the main query
+   */
+  public String getMainQuery() {
+    return mainQuery;
+  }
+
+  /**
+   * Sets the main query.
+   *
+   * @param mainQuery the main query
+   */
+  public void setMainQuery(String mainQuery) {
+    this.mainQuery = mainQuery;
+  }
+
+  /**
+   * Returns the exactstartswithfields.
+   *
+   * @return the exactstartswithfields
+   */
+  public String getExactstartswithfields() {
+    return exactstartswithfields;
+  }
+
+  /**
+   * Sets the exactstartswithfields.
+   *
+   * @param exactstartswithfields the exactstartswithfields
+   */
+  public void setExactstartswithfields(String exactstartswithfields) {
+    this.exactstartswithfields = exactstartswithfields;
+  }
+
+  /**
+   * Returns the containsfields.
+   *
+   * @return the containsfields
+   */
+  public String getContainsfields() {
+    return containsfields;
+  }
+
+  /**
+   * Sets the containsfields.
+   *
+   * @param containsfields the containsfields
+   */
+  public void setContainsfields(String containsfields) {
+    this.containsfields = containsfields;
+  }
+
+  /**
+   * Returns the andorfields.
+   *
+   * @return the andorfields
+   */
+  public String getAndorfields() {
+    return andorfields;
+  }
+
+  /**
+   * Sets the andorfields.
+   *
+   * @param andorfields the andorfields
+   */
+  public void setAndorfields(String andorfields) {
+    this.andorfields = andorfields;
+  }
+
+  /**
+   * Returns the shortsourcefields.
+   *
+   * @return the shortsourcefields
+   */
+  public String getShortsourcefields() {
+    return shortsourcefields;
+  }
+
+  /**
+   * Sets the shortsourcefields.
+   *
+   * @param shortsourcefields the shortsourcefields
+   */
+  public void setShortsourcefields(String shortsourcefields) {
+    this.shortsourcefields = shortsourcefields;
+  }
+
+  /**
+   * Returns the defaultsourcefields.
+   *
+   * @return the defaultsourcefields
+   */
+  public String getDefaultsourcefields() {
+    return defaultsourcefields;
+  }
+
+  /**
+   * Sets the defaultsourcefields.
+   *
+   * @param defaultsourcefields the defaultsourcefields
+   */
+  public void setDefaultsourcefields(String defaultsourcefields) {
+    this.defaultsourcefields = defaultsourcefields;
+  }
+
+  /**
+   * Returns the main query without highlights.
+   *
+   * @return the main query without highlights
+   */
+  public String getMainQueryWithoutHighlights() {
+    return mainQueryWithoutHighlights;
+  }
+
+  /**
+   * Sets the main query without highlights.
+   *
+   * @param mainQueryWithoutHighlights the main query without highlights
+   */
+  public void setMainQueryWithoutHighlights(String mainQueryWithoutHighlights) {
+    this.mainQueryWithoutHighlights = mainQueryWithoutHighlights;
+  }
+
+  /**
+   * Returns the exactstartswithdefinitionfields.
+   *
+   * @return the exactstartswithdefinitionfields
+   */
+  public String getExactstartswithdefinitionfields() {
+    return exactstartswithdefinitionfields;
+  }
+
+  /**
+   * Sets the exactstartswithdefinitionfields.
+   *
+   * @param exactstartswithdefinitionfields the exactstartswithdefinitionfields
+   */
+  public void setExactstartswithdefinitionfields(String exactstartswithdefinitionfields) {
+    this.exactstartswithdefinitionfields = exactstartswithdefinitionfields;
+  }
+
+  /**
+   * Returns the containsdefinitionfields.
+   *
+   * @return the containsdefinitionfields
+   */
+  public String getContainsdefinitionfields() {
+    return containsdefinitionfields;
+  }
+
+  /**
+   * Sets the containsdefinitionfields.
+   *
+   * @param containsdefinitionfields the containsdefinitionfields
+   */
+  public void setContainsdefinitionfields(String containsdefinitionfields) {
+    this.containsdefinitionfields = containsdefinitionfields;
+  }
+
+  /**
+   * Returns the andordefinitionfields.
+   *
+   * @return the andordefinitionfields
+   */
+  public String getAndordefinitionfields() {
+    return andordefinitionfields;
+  }
+
+  /**
+   * Sets the andordefinitionfields.
+   *
+   * @param andordefinitionfields the andordefinitionfields
+   */
+  public void setAndordefinitionfields(String andordefinitionfields) {
+    this.andordefinitionfields = andordefinitionfields;
+  }
+
+  /**
+   * Returns the highlightdefinitionexact.
+   *
+   * @return the highlightdefinitionexact
+   */
+  public String getHighlightdefinitionexact() {
+    return highlightdefinitionexact;
+  }
+
+  /**
+   * Sets the highlightdefinitionexact.
+   *
+   * @param highlightdefinitionexact the highlightdefinitionexact
+   */
+  public void setHighlightdefinitionexact(String highlightdefinitionexact) {
+    this.highlightdefinitionexact = highlightdefinitionexact;
+  }
+
+  /**
+   * Returns the highlightdefinitioncontains.
+   *
+   * @return the highlightdefinitioncontains
+   */
+  public String getHighlightdefinitioncontains() {
+    return highlightdefinitioncontains;
+  }
+
+  /**
+   * Sets the highlightdefinitioncontains.
+   *
+   * @param highlightdefinitioncontains the highlightdefinitioncontains
+   */
+  public void setHighlightdefinitioncontains(String highlightdefinitioncontains) {
+    this.highlightdefinitioncontains = highlightdefinitioncontains;
+  }
+
+  /**
+   * Returns the highlightdefinitionandor.
+   *
+   * @return the highlightdefinitionandor
+   */
+  public String getHighlightdefinitionandor() {
+    return highlightdefinitionandor;
+  }
+
+  /**
+   * Sets the highlightdefinitionandor.
+   *
+   * @param highlightdefinitionandor the highlightdefinitionandor
+   */
+  public void setHighlightdefinitionandor(String highlightdefinitionandor) {
+    this.highlightdefinitionandor = highlightdefinitionandor;
+  }
+
+  /**
+   * Returns the main nested query.
+   *
+   * @return the main nested query
+   */
+  public String getMainNestedQuery() {
+    return mainNestedQuery;
+  }
+
+  /**
+   * Sets the main nested query.
+   *
+   * @param mainNestedQuery the main nested query
+   */
+  public void setMainNestedQuery(String mainNestedQuery) {
+    this.mainNestedQuery = mainNestedQuery;
+  }
+
+  /**
+   * Returns the main nested query without highlights.
+   *
+   * @return the main nested query without highlights
+   */
+  public String getMainNestedQueryWithoutHighlights() {
+    return mainNestedQueryWithoutHighlights;
+  }
+
+  /**
+   * Sets the main nested query without highlights.
+   *
+   * @param mainNestedQueryWithoutHighlights the main nested query without
+   *          highlights
+   */
+  public void setMainNestedQueryWithoutHighlights(String mainNestedQueryWithoutHighlights) {
+    this.mainNestedQueryWithoutHighlights = mainNestedQueryWithoutHighlights;
+  }
+
+  /**
+   * Returns the associationsourcefields.
+   *
+   * @return the associationsourcefields
+   */
+  public String getAssociationsourcefields() {
+    return associationsourcefields;
+  }
+
+  /**
+   * Sets the associationsourcefields.
+   *
+   * @param associationsourcefields the associationsourcefields
+   */
+  public void setAssociationsourcefields(String associationsourcefields) {
+    this.associationsourcefields = associationsourcefields;
+  }
+
+  /**
+   * Returns the definitionsourcefields.
+   *
+   * @return the definitionsourcefields
+   */
+  public String getDefinitionsourcefields() {
+    return definitionsourcefields;
+  }
+
+  /**
+   * Sets the definitionsourcefields.
+   *
+   * @param definitionsourcefields the definitionsourcefields
+   */
+  public void setDefinitionsourcefields(String definitionsourcefields) {
+    this.definitionsourcefields = definitionsourcefields;
+  }
+
+  /**
+   * Returns the property to query.
+   *
+   * @return the property to query
+   */
+  public HashMap<String, String> getPropertyToQuery() {
+    return propertyToQuery;
+  }
+
+  /**
+   * Sets the property to query.
+   *
+   * @param propertyToQuery the property to query
+   */
+  public void setPropertyToQuery(HashMap<String, String> propertyToQuery) {
+    this.propertyToQuery = propertyToQuery;
+  }
+
+  /**
+   * Returns the property to query exact.
+   *
+   * @return the property to query exact
+   */
+  public HashMap<String, String> getPropertyToQueryExact() {
+    return propertyToQueryExact;
+  }
+
+  /**
+   * Sets the property to query exact.
+   *
+   * @param propertyToQueryExact the property to query exact
+   */
+  public void setPropertyToQueryExact(HashMap<String, String> propertyToQueryExact) {
+    this.propertyToQueryExact = propertyToQueryExact;
+  }
+
+  /**
+   * Returns the property to query contains.
+   *
+   * @return the property to query contains
+   */
+  public HashMap<String, String> getPropertyToQueryContains() {
+    return propertyToQueryContains;
+  }
+
+  /**
+   * Sets the property to query contains.
+   *
+   * @param propertyToQueryContains the property to query contains
+   */
+  public void setPropertyToQueryContains(HashMap<String, String> propertyToQueryContains) {
+    this.propertyToQueryContains = propertyToQueryContains;
+  }
+
+  /**
+   * Returns the main multiple nested query.
+   *
+   * @return the main multiple nested query
+   */
+  public String getMainMultipleNestedQuery() {
+    return mainMultipleNestedQuery;
+  }
+
+  /**
+   * Sets the main multiple nested query.
+   *
+   * @param mainMultipleNestedQuery the main multiple nested query
+   */
+  public void setMainMultipleNestedQuery(String mainMultipleNestedQuery) {
+    this.mainMultipleNestedQuery = mainMultipleNestedQuery;
+  }
+
+  /**
+   * Returns the main multiple nested query without highlights.
+   *
+   * @return the main multiple nested query without highlights
+   */
+  public String getMainMultipleNestedQueryWithoutHighlights() {
+    return mainMultipleNestedQueryWithoutHighlights;
+  }
+
+  /**
+   * Sets the main multiple nested query without highlights.
+   *
+   * @param mainMultipleNestedQueryWithoutHighlights the main multiple nested
+   *          query without highlights
+   */
+  public void setMainMultipleNestedQueryWithoutHighlights(
+    String mainMultipleNestedQueryWithoutHighlights) {
+    this.mainMultipleNestedQueryWithoutHighlights = mainMultipleNestedQueryWithoutHighlights;
+  }
+
+  /**
+   * Returns the rescore query.
+   *
+   * @return the rescore query
+   */
+  public String getRescoreQuery() {
+    return rescoreQuery;
+  }
+
+  /**
+   * Sets the rescore query.
+   *
+   * @param rescoreQuery the rescore query
+   */
+  public void setRescoreQuery(String rescoreQuery) {
+    this.rescoreQuery = rescoreQuery;
+  }
+
+  /**
+   * Returns the main nested with non nested query.
+   *
+   * @return the main nested with non nested query
+   */
+  public String getMainNestedWithNonNestedQuery() {
+    return mainNestedWithNonNestedQuery;
+  }
+
+  /**
+   * Sets the main nested with non nested query.
+   *
+   * @param mainNestedWithNonNestedQuery the main nested with non nested query
+   */
+  public void setMainNestedWithNonNestedQuery(String mainNestedWithNonNestedQuery) {
+    this.mainNestedWithNonNestedQuery = mainNestedWithNonNestedQuery;
+  }
+
+  /**
+   * Returns the main nested with non nested querywithout HL.
+   *
+   * @return the main nested with non nested querywithout HL
+   */
+  public String getMainNestedWithNonNestedQuerywithoutHL() {
+    return mainNestedWithNonNestedQuerywithoutHL;
+  }
+
+  /**
+   * Sets the main nested with non nested querywithout HL.
+   *
+   * @param mainNestedWithNonNestedQuerywithoutHL the main nested with non
+   *          nested querywithout HL
+   */
+  public void setMainNestedWithNonNestedQuerywithoutHL(
+    String mainNestedWithNonNestedQuerywithoutHL) {
+    this.mainNestedWithNonNestedQuerywithoutHL = mainNestedWithNonNestedQuerywithoutHL;
+  }
 
 }

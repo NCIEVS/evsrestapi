@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.support.HomePageData;
+import gov.nih.nci.evs.api.support.ApplicationVersion;
 
 /**
  * The Class VersionControllerTests.
@@ -84,8 +84,8 @@ public class VersionControllerTests {
     result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     assertThat(content).isNotEmpty();
-    final HomePageData data =
-        new ObjectMapper().readValue(content, HomePageData.class);
+    final ApplicationVersion data =
+        new ObjectMapper().readValue(content, ApplicationVersion.class);
     final String buildGradleVersion = getBuildGradleVersion();
     assertThat(data.getVersion()).isEqualTo(buildGradleVersion);
 

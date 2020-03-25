@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
-import gov.nih.nci.evs.api.service.exception.InvalidParameterValueException;
 import gov.nih.nci.evs.api.support.SearchCriteria;
 
 /**
@@ -30,6 +29,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   private static final Logger log = LoggerFactory.getLogger(ElasticQueryBuilderImpl.class);
 
   /** The return field map. */
+  @SuppressWarnings("unused")
   private HashMap<String, String> returnFieldMap;
 
   /** The property to query. */
@@ -42,7 +42,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   private HashMap<String, String> propertyToQueryContains;
 
   /** The association to query. */
-  private HashMap<String, String> associationToQuery;
+//  private HashMap<String, String> associationToQuery;
 
   /** The concept status. */
   @SuppressWarnings("unused")
@@ -53,7 +53,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   private HashMap<String, String> contributingSource;
 
   /** The role to query. */
-  private HashMap<String, String> roleToQuery;
+  // private HashMap<String, String> roleToQuery;
 
   /** The elastic query properties. */
   @Autowired
@@ -82,8 +82,8 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     conceptStatus = (HashMap<String, String>) thesaurusProperties.getConceptStatuses();
     // contributingSource = (HashMap<String, String>)
     // thesaurusProperties.getContributingSources();
-    roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();
-    associationToQuery = (HashMap<String, String>) thesaurusProperties.getAssociations();
+    // roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();
+    // associationToQuery = (HashMap<String, String>) thesaurusProperties.getAssociations();
     returnFieldMap = (HashMap<String, String>) thesaurusProperties.getReturnFields();
     propertyToQuery = (HashMap<String, String>) elasticQueryProperties.getPropertyToQuery();
     propertyToQueryExact =
@@ -228,11 +228,10 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
    * @param conceptStatuses the concept statuses
    * @param contributingSources the contributing sources
    * @return the string
-   * @throws InvalidParameterValueException the invalid parameter value
-   *           exception
+   * @throws IOException Signals that an I/O exception has occurred.
    */
   private String constructFilterQuery(List<String> conceptStatuses,
-    List<String> contributingSources) throws InvalidParameterValueException {
+    List<String> contributingSources) throws IOException {
 
     String filter = "";
     boolean contributingSourceFilter = false;
@@ -244,7 +243,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
       for (String conceptStatus : conceptStatuses) {
         conceptStatus = conceptStatus.toLowerCase();
         if (conceptStatus == null) {
-          throw new InvalidParameterValueException(
+          throw new IOException(
               "Invalid Parameter value for conceptStatus field. Rejected value - " + conceptStatus);
         }
       }
@@ -256,7 +255,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
       for (String contributingSource : contributingSources) {
         contributingSource = contributingSource.toLowerCase();
         if (contributingSource == null) {
-          throw new InvalidParameterValueException(
+          throw new IOException(
               "Invalid Parameter value for contributingSource field. Rejected value - "
                   + contributingSource);
         }
@@ -315,6 +314,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   /**
    * Returns the main query.
    *
+   * @param highlightFlag the highlight flag
    * @return the main query
    */
   private String getMainQuery(final boolean highlightFlag) {
@@ -327,6 +327,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   /**
    * Returns the main nested query.
    *
+   * @param highlightFlag the highlight flag
    * @return the main nested query
    */
   private String getMainNestedQuery(final boolean highlightFlag) {
@@ -339,6 +340,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   /**
    * Returns the main multiple nested query.
    *
+   * @param highlightFlag the highlight flag
    * @return the main multiple nested query
    */
   private String getMainMultipleNestedQuery(final boolean highlightFlag) {
@@ -351,6 +353,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   /**
    * Returns the main nested with non nested query.
    *
+   * @param highlightFlag the highlight flag
    * @return the main nested with non nested query
    */
   private String getMainNestedWithNonNestedQuery(final boolean highlightFlag) {
@@ -360,6 +363,13 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     return elasticQueryProperties.getMainNestedWithNonNestedQuerywithoutHL();
   }
 
+  /**
+   * Construct query.
+   *
+   * @param searchCriteria the search criteria
+   * @return the string
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   /* see superclass */
   public String constructQuery(SearchCriteria searchCriteria) throws IOException {
     Map<String, String> valuesMap = new HashMap<>();
@@ -375,7 +385,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     // if (searchCritiera.getAssociationSearch() != null) {
     // if (!(searchCritiera.getAssociationSearch().equalsIgnoreCase("source")
     // || searchCritiera.getAssociationSearch().equalsIgnoreCase("target"))) {
-    // throw new InvalidParameterValueException("Invalid Parameter value for
+    // throw new IOException("Invalid Parameter value for
     // associationSearch -"
     // + searchCritiera.getAssociationSearch() + ". The valid values are
     // source,target.");
@@ -392,7 +402,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     // if (searchCritiera.getRoleSearch() != null) {
     // if (!(searchCritiera.getRoleSearch().equalsIgnoreCase("source")
     // || searchCritiera.getRoleSearch().equalsIgnoreCase("target"))) {
-    // throw new InvalidParameterValueException("Invalid Parameter value for
+    // throw new IOException("Invalid Parameter value for
     // roleSearch -"
     // + searchCritiera.getRoleSearch() + ". The valid values are
     // source,target.");
@@ -512,7 +522,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
               value = this.propertyToQuery.get(property.toLowerCase());
             }
             if (value == null) {
-              throw new InvalidParameterValueException(
+              throw new IOException(
                   "Invalid Parameter value for property field. Rejected value - " + property);
 
             } else

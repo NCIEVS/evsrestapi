@@ -1,53 +1,93 @@
+
 package gov.nih.nci.evs.api.properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
-
-
+/**
+ * Application properties.
+ */
 public class ApplicationProperties {
-	
-	
-	/** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(ApplicationProperties.class);
 
-    private String contextPath;
-    private String generatedFilePath;
-    private Boolean forceFileGeneration;
-    private String metricLogDirectory;
+  /** The context path. */
+  private String contextPath;
 
-	public String getContextPath() {
-		return contextPath;
-	}
+  /** The generated file path. */
+  private String generatedFilePath;
 
-	public void setContextPath(String contextPath) {
-		this.contextPath = contextPath;
-	}
-    
-	public String getGeneratedFilePath() {
-		return generatedFilePath;
-	}
+  /** The force file generation. */
+  private Boolean forceFileGeneration;
 
-	public void setGeneratedFilePath(String generatedFilePath) {
-		this.generatedFilePath = generatedFilePath;
-	}
+  /** The metric log directory. */
+  private String metricLogDirectory;
 
-	public Boolean getForceFileGeneration() {
-		return forceFileGeneration;
-	}
+  /**
+   * Returns the context path.
+   *
+   * @return the context path
+   */
+  public String getContextPath() {
+    return contextPath;
+  }
 
-	public void setForceFileGeneration(Boolean forceFileGeneration) {
-		this.forceFileGeneration = forceFileGeneration;
-	}
+  /**
+   * Sets the context path.
+   *
+   * @param contextPath the context path
+   */
+  public void setContextPath(String contextPath) {
+    this.contextPath = contextPath;
+  }
 
-	public String getMetricLogDirectory() {
-		return metricLogDirectory;
-	}
+  /**
+   * Returns the generated file path.
+   *
+   * @return the generated file path
+   */
+  public String getGeneratedFilePath() {
+    return generatedFilePath;
+  }
 
-	public void setMetricLogDirectory(String metricLogDirectory) {
-		this.metricLogDirectory = metricLogDirectory;
-	}
-		
-		
+  /**
+   * Sets the generated file path.
+   *
+   * @param generatedFilePath the generated file path
+   */
+  public void setGeneratedFilePath(String generatedFilePath) {
+    this.generatedFilePath = generatedFilePath;
+  }
+
+  /**
+   * Returns the force file generation.
+   *
+   * @return the force file generation
+   */
+  public Boolean getForceFileGeneration() {
+    return forceFileGeneration;
+  }
+
+  /**
+   * Sets the force file generation.
+   *
+   * @param forceFileGeneration the force file generation
+   */
+  public void setForceFileGeneration(Boolean forceFileGeneration) {
+    this.forceFileGeneration = forceFileGeneration;
+  }
+
+  /**
+   * Returns the metric log directory.
+   *
+   * @return the metric log directory
+   */
+  public String getMetricLogDirectory() {
+    return metricLogDirectory;
+  }
+
+  /**
+   * Sets the metric log directory.
+   *
+   * @param metricLogDirectory the metric log directory
+   */
+  public void setMetricLogDirectory(String metricLogDirectory) {
+    this.metricLogDirectory = metricLogDirectory;
+  }
+
 }

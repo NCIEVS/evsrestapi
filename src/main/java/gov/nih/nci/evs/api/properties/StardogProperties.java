@@ -1,117 +1,240 @@
+
 package gov.nih.nci.evs.api.properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
-
-
+/**
+ * Stardog properties.
+ */
 public class StardogProperties {
-	
-	
-	/** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(StardogProperties.class);
 
-    private String username;
-    private String password;
-    private long readTimeout;
-    private long connectTimeout;
-    private String owlfileName;
-    private String populateCacheCron;
-    private String forcePopulateCache;
-    
-    private String monthlyQueryUrl;
-    private String weeklyQueryUrl;
-    private String monthlyGraphName;
-    private String weeklyGraphName;
+  /** The username. */
+  private String username;
 
-	public String getUsername() {
-		return username;
-	}
+  /** The password. */
+  private String password;
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  /** The read timeout. */
+  private long readTimeout;
 
-	public String getPassword() {
-		return password;
-	}
+  /** The connect timeout. */
+  private long connectTimeout;
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+  /** The owlfile name. */
+  private String owlfileName;
 
-	public long getReadTimeout() {
-		return readTimeout;
-	}
+  /** The populate cache cron. */
+  private String populateCacheCron;
 
-	public void setReadTimeout(long readTimeout) {
-		this.readTimeout = readTimeout;
-	}
+  /** The force populate cache. */
+  private String forcePopulateCache;
 
-	public long getConnectTimeout() {
-		return connectTimeout;
-	}
+  /** The monthly query url. */
+  private String monthlyQueryUrl;
 
-	public void setConnectTimeout(long connectTimeout) {
-		this.connectTimeout = connectTimeout;
-	}
+  /** The weekly query url. */
+  private String weeklyQueryUrl;
 
-	public String getOwlfileName() {
-		return owlfileName;
-	}
+  /** The monthly graph name. */
+  private String monthlyGraphName;
 
-	public void setOwlfileName(String owlfileName) {
-		this.owlfileName = owlfileName;
-	}
+  /** The weekly graph name. */
+  private String weeklyGraphName;
 
-	public String getPopulateCacheCron() {
-		return populateCacheCron;
-	}
+  /**
+   * Returns the username.
+   *
+   * @return the username
+   */
+  public String getUsername() {
+    return username;
+  }
 
-	public void setPopulateCacheCron(String populateCacheCron) {
-		this.populateCacheCron = populateCacheCron;
-	}
+  /**
+   * Sets the username.
+   *
+   * @param username the username
+   */
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-	public String getForcePopulateCache() {
-		return forcePopulateCache;
-	}
+  /**
+   * Returns the password.
+   *
+   * @return the password
+   */
+  public String getPassword() {
+    return password;
+  }
 
-	public void setForcePopulateCache(String forcePopulateCache) {
-		this.forcePopulateCache = forcePopulateCache;
-	}
+  /**
+   * Sets the password.
+   *
+   * @param password the password
+   */
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-	public String getMonthlyQueryUrl() {
-		return monthlyQueryUrl;
-	}
+  /**
+   * Returns the read timeout.
+   *
+   * @return the read timeout
+   */
+  public long getReadTimeout() {
+    return readTimeout;
+  }
 
-	public void setMonthlyQueryUrl(String monthlyQueryUrl) {
-		this.monthlyQueryUrl = monthlyQueryUrl;
-	}
+  /**
+   * Sets the read timeout.
+   *
+   * @param readTimeout the read timeout
+   */
+  public void setReadTimeout(long readTimeout) {
+    this.readTimeout = readTimeout;
+  }
 
-	public String getWeeklyQueryUrl() {
-		return weeklyQueryUrl;
-	}
+  /**
+   * Returns the connect timeout.
+   *
+   * @return the connect timeout
+   */
+  public long getConnectTimeout() {
+    return connectTimeout;
+  }
 
-	public void setWeeklyQueryUrl(String weeklyQueryUrl) {
-		this.weeklyQueryUrl = weeklyQueryUrl;
-	}
+  /**
+   * Sets the connect timeout.
+   *
+   * @param connectTimeout the connect timeout
+   */
+  public void setConnectTimeout(long connectTimeout) {
+    this.connectTimeout = connectTimeout;
+  }
 
-	public String getMonthlyGraphName() {
-		return monthlyGraphName;
-	}
+  /**
+   * Returns the owlfile name.
+   *
+   * @return the owlfile name
+   */
+  public String getOwlfileName() {
+    return owlfileName;
+  }
 
-	public void setMonthlyGraphName(String monthlyGraphName) {
-		this.monthlyGraphName = monthlyGraphName;
-	}
+  /**
+   * Sets the owlfile name.
+   *
+   * @param owlfileName the owlfile name
+   */
+  public void setOwlfileName(String owlfileName) {
+    this.owlfileName = owlfileName;
+  }
 
-	public String getWeeklyGraphName() {
-		return weeklyGraphName;
-	}
+  /**
+   * Returns the populate cache cron.
+   *
+   * @return the populate cache cron
+   */
+  public String getPopulateCacheCron() {
+    return populateCacheCron;
+  }
 
-	public void setWeeklyGraphName(String weeklyGraphName) {
-		this.weeklyGraphName = weeklyGraphName;
-	}
+  /**
+   * Sets the populate cache cron.
+   *
+   * @param populateCacheCron the populate cache cron
+   */
+  public void setPopulateCacheCron(String populateCacheCron) {
+    this.populateCacheCron = populateCacheCron;
+  }
 
-	
+  /**
+   * Returns the force populate cache.
+   *
+   * @return the force populate cache
+   */
+  public String getForcePopulateCache() {
+    return forcePopulateCache;
+  }
+
+  /**
+   * Sets the force populate cache.
+   *
+   * @param forcePopulateCache the force populate cache
+   */
+  public void setForcePopulateCache(String forcePopulateCache) {
+    this.forcePopulateCache = forcePopulateCache;
+  }
+
+  /**
+   * Returns the monthly query url.
+   *
+   * @return the monthly query url
+   */
+  public String getMonthlyQueryUrl() {
+    return monthlyQueryUrl;
+  }
+
+  /**
+   * Sets the monthly query url.
+   *
+   * @param monthlyQueryUrl the monthly query url
+   */
+  public void setMonthlyQueryUrl(String monthlyQueryUrl) {
+    this.monthlyQueryUrl = monthlyQueryUrl;
+  }
+
+  /**
+   * Returns the weekly query url.
+   *
+   * @return the weekly query url
+   */
+  public String getWeeklyQueryUrl() {
+    return weeklyQueryUrl;
+  }
+
+  /**
+   * Sets the weekly query url.
+   *
+   * @param weeklyQueryUrl the weekly query url
+   */
+  public void setWeeklyQueryUrl(String weeklyQueryUrl) {
+    this.weeklyQueryUrl = weeklyQueryUrl;
+  }
+
+  /**
+   * Returns the monthly graph name.
+   *
+   * @return the monthly graph name
+   */
+  public String getMonthlyGraphName() {
+    return monthlyGraphName;
+  }
+
+  /**
+   * Sets the monthly graph name.
+   *
+   * @param monthlyGraphName the monthly graph name
+   */
+  public void setMonthlyGraphName(String monthlyGraphName) {
+    this.monthlyGraphName = monthlyGraphName;
+  }
+
+  /**
+   * Returns the weekly graph name.
+   *
+   * @return the weekly graph name
+   */
+  public String getWeeklyGraphName() {
+    return weeklyGraphName;
+  }
+
+  /**
+   * Sets the weekly graph name.
+   *
+   * @param weeklyGraphName the weekly graph name
+   */
+  public void setWeeklyGraphName(String weeklyGraphName) {
+    this.weeklyGraphName = weeklyGraphName;
+  }
+
 }

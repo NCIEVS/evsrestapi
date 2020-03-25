@@ -4,7 +4,7 @@ package gov.nih.nci.evs.api.support;
 /**
  * Represents HomePageData.
  */
-public class HomePageData {
+public class ApplicationVersion {
 
   /** The name. */
   private String name;

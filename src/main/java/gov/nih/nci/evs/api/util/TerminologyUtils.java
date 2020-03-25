@@ -2,10 +2,8 @@
 package gov.nih.nci.evs.api.util;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -15,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.support.ConfigData;
 
 /**
  * Utilities for handling the "include" flag, and converting EVSConcept to

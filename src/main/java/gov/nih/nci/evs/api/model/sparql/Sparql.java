@@ -1,34 +1,39 @@
+
 package gov.nih.nci.evs.api.model.sparql;
 
-public class Sparql
-{
-    private Results results;
+/**
+ * The Class Sparql.
+ */
+public class Sparql {
 
-    private Head head;
+  /** The results. */
+  private Results results;
 
-    public Results getResults ()
-    {
-        return results;
-    }
+  /**
+   * Returns the results.
+   *
+   * @return the results
+   */
+  public Results getResults() {
+    return results;
+  }
 
-    public void setResults (Results results)
-    {
-        this.results = results;
-    }
+  /**
+   * Sets the results.
+   *
+   * @param results the results
+   */
+  public void setResults(Results results) {
+    this.results = results;
+  }
 
-    public Head getHead ()
-    {
-        return head;
-    }
-
-    public void setHead (Head head)
-    {
-        this.head = head;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "ClassPojo [results = "+results+", head = "+head+"]";
-    }
+  /**
+   * To string.
+   *
+   * @return the string
+   */
+  @Override
+  public String toString() {
+    return "Sparql [results = " + results + "]";
+  }
 }

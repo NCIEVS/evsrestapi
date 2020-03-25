@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import com.google.common.base.Predicates;
 
 import gov.nih.nci.evs.api.controller.VersionController;
-import gov.nih.nci.evs.api.support.HomePageData;
+import gov.nih.nci.evs.api.support.ApplicationVersion;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -20,7 +20,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
- * The Class SwaggerConfiguration.
+ * Swagger configuration.
  */
 @Configuration
 @EnableSwagger2
@@ -34,10 +34,8 @@ public class SwaggerConfiguration {
    */
   @Bean
   public Docket api() throws IOException {
-    return new Docket(DocumentationType.SWAGGER_2).select()
-        .apis(RequestHandlerSelectors.any())
-        .paths(Predicates.or(PathSelectors.ant("/api/v1/**"),
-            PathSelectors.ant("/version/**")))
+    return new Docket(DocumentationType.SWAGGER_2).select().apis(RequestHandlerSelectors.any())
+        .paths(Predicates.or(PathSelectors.ant("/api/v1/**"), PathSelectors.ant("/version/**")))
         .build().apiInfo(apiInfo());
 
   }
@@ -49,10 +47,9 @@ public class SwaggerConfiguration {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   ApiInfo apiInfo() throws IOException {
-    final HomePageData data = new VersionController().getApplicationVersion();
-    return new ApiInfoBuilder().title(data.getName())
-        .description(data.getDescription()).license("").licenseUrl("")
-        .termsOfServiceUrl("").version(data.getVersion())
+    final ApplicationVersion data = new VersionController().getApplicationVersion();
+    return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("")
+        .licenseUrl("").termsOfServiceUrl("").version(data.getVersion())
         .contact(new Contact("", "", "")).build();
   }
 

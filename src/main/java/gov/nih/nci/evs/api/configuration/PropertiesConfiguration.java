@@ -17,7 +17,7 @@ import gov.nih.nci.evs.api.properties.SwaggerProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 
 /**
- * The Class PropertiesConfiguration.
+ * Properties configuration.
  */
 @Configuration
 @EnableConfigurationProperties

@@ -1,116 +1,261 @@
+
 package gov.nih.nci.evs.api.model.evs;
 
-import java.time.LocalDateTime;
-
+/**
+ * Metric.
+ */
 public class Metric {
 
-	private Long metricId;
-	private String username;
-	private String remoteIpAddress;
-	private String organization;
-	private String applicationName;
-	private String endPoint;
-	private String className;
-	private String methodName;
-	private String queryParams;
-	private String startTime;
-	private String endTime;
-	private Long duration;
+  /** The metric id. */
+  private Long metricId;
 
-	public Long getMetricId() {
-		return metricId;
-	}
+  /** The username. */
+  private String username;
 
-	public void setMetricId(Long metricId) {
-		this.metricId = metricId;
-	}
+  /** The remote ip address. */
+  private String remoteIpAddress;
 
-	public String getUsername() {
-		return username;
-	}
+  /** The organization. */
+  private String organization;
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  /** The application name. */
+  private String applicationName;
 
-	public String getRemoteIpAddress() {
-		return remoteIpAddress;
-	}
+  /** The end point. */
+  private String endPoint;
 
-	public void setRemoteIpAddress(String remoteIpAddress) {
-		this.remoteIpAddress = remoteIpAddress;
-	}
+  /** The class name. */
+  private String className;
 
-	public String getOrganization() {
-		return organization;
-	}
+  /** The method name. */
+  private String methodName;
 
-	public void setOrganization(String organization) {
-		this.organization = organization;
-	}
+  /** The query params. */
+  private String queryParams;
 
-	public String getApplicationName() {
-		return applicationName;
-	}
+  /** The start time. */
+  private String startTime;
 
-	public void setApplicationName(String applicationName) {
-		this.applicationName = applicationName;
-	}
+  /** The end time. */
+  private String endTime;
 
-	public String getEndPoint() {
-		return endPoint;
-	}
+  /** The duration. */
+  private Long duration;
 
-	public void setEndPoint(String endPoint) {
-		this.endPoint = endPoint;
-	}
+  /**
+   * Returns the metric id.
+   *
+   * @return the metric id
+   */
+  public Long getMetricId() {
+    return metricId;
+  }
 
-	public String getClassName() {
-		return className;
-	}
+  /**
+   * Sets the metric id.
+   *
+   * @param metricId the metric id
+   */
+  public void setMetricId(Long metricId) {
+    this.metricId = metricId;
+  }
 
-	public void setClassName(String className) {
-		this.className = className;
-	}
+  /**
+   * Returns the username.
+   *
+   * @return the username
+   */
+  public String getUsername() {
+    return username;
+  }
 
-	public String getMethodName() {
-		return methodName;
-	}
+  /**
+   * Sets the username.
+   *
+   * @param username the username
+   */
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-	public void setMethodName(String methodName) {
-		this.methodName = methodName;
-	}
+  /**
+   * Returns the remote ip address.
+   *
+   * @return the remote ip address
+   */
+  public String getRemoteIpAddress() {
+    return remoteIpAddress;
+  }
 
-	public String getQueryParams() {
-		return queryParams;
-	}
+  /**
+   * Sets the remote ip address.
+   *
+   * @param remoteIpAddress the remote ip address
+   */
+  public void setRemoteIpAddress(String remoteIpAddress) {
+    this.remoteIpAddress = remoteIpAddress;
+  }
 
-	public void setQueryParams(String queryParams) {
-		this.queryParams = queryParams;
-	}
+  /**
+   * Returns the organization.
+   *
+   * @return the organization
+   */
+  public String getOrganization() {
+    return organization;
+  }
 
-	public String getStartTime() {
-		return startTime;
-	}
+  /**
+   * Sets the organization.
+   *
+   * @param organization the organization
+   */
+  public void setOrganization(String organization) {
+    this.organization = organization;
+  }
 
-	public void setStartTime(String startTime) {
-		this.startTime = startTime;
-	}
+  /**
+   * Returns the application name.
+   *
+   * @return the application name
+   */
+  public String getApplicationName() {
+    return applicationName;
+  }
 
-	public String getEndTime() {
-		return endTime;
-	}
+  /**
+   * Sets the application name.
+   *
+   * @param applicationName the application name
+   */
+  public void setApplicationName(String applicationName) {
+    this.applicationName = applicationName;
+  }
 
-	public void setEndTime(String endTime) {
-		this.endTime = endTime;
-	}
+  /**
+   * Returns the end point.
+   *
+   * @return the end point
+   */
+  public String getEndPoint() {
+    return endPoint;
+  }
 
-	public Long getDuration() {
-		return duration;
-	}
+  /**
+   * Sets the end point.
+   *
+   * @param endPoint the end point
+   */
+  public void setEndPoint(String endPoint) {
+    this.endPoint = endPoint;
+  }
 
-	public void setDuration(Long duration) {
-		this.duration = duration;
-	}
+  /**
+   * Returns the class name.
+   *
+   * @return the class name
+   */
+  public String getClassName() {
+    return className;
+  }
+
+  /**
+   * Sets the class name.
+   *
+   * @param className the class name
+   */
+  public void setClassName(String className) {
+    this.className = className;
+  }
+
+  /**
+   * Returns the method name.
+   *
+   * @return the method name
+   */
+  public String getMethodName() {
+    return methodName;
+  }
+
+  /**
+   * Sets the method name.
+   *
+   * @param methodName the method name
+   */
+  public void setMethodName(String methodName) {
+    this.methodName = methodName;
+  }
+
+  /**
+   * Returns the query params.
+   *
+   * @return the query params
+   */
+  public String getQueryParams() {
+    return queryParams;
+  }
+
+  /**
+   * Sets the query params.
+   *
+   * @param queryParams the query params
+   */
+  public void setQueryParams(String queryParams) {
+    this.queryParams = queryParams;
+  }
+
+  /**
+   * Returns the start time.
+   *
+   * @return the start time
+   */
+  public String getStartTime() {
+    return startTime;
+  }
+
+  /**
+   * Sets the start time.
+   *
+   * @param startTime the start time
+   */
+  public void setStartTime(String startTime) {
+    this.startTime = startTime;
+  }
+
+  /**
+   * Returns the end time.
+   *
+   * @return the end time
+   */
+  public String getEndTime() {
+    return endTime;
+  }
+
+  /**
+   * Sets the end time.
+   *
+   * @param endTime the end time
+   */
+  public void setEndTime(String endTime) {
+    this.endTime = endTime;
+  }
+
+  /**
+   * Returns the duration.
+   *
+   * @return the duration
+   */
+  public Long getDuration() {
+    return duration;
+  }
+
+  /**
+   * Sets the duration.
+   *
+   * @param duration the duration
+   */
+  public void setDuration(Long duration) {
+    this.duration = duration;
+  }
 
 }

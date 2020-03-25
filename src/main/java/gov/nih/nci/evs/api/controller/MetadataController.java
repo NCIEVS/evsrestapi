@@ -2,10 +2,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -23,15 +20,10 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetricDB;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.ConfigData;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.ModelUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -55,9 +47,10 @@ public class MetadataController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The metadata service. */
   @Autowired
   MetadataService metadataService;
-  
+
   /**
    * Returns the application metadata.
    *
@@ -138,7 +131,7 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
-    
+
     return metadataService.getAssociations(terminology, include, list);
   }
 
@@ -182,7 +175,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
-    if (!concept.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+    if (!concept.isPresent())
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
     return concept.get();
   }
@@ -270,7 +264,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     Optional<Concept> concept = metadataService.getRole(terminology, code, include);
-    if (!concept.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+    if (!concept.isPresent())
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
     return concept.get();
   }
@@ -280,6 +275,7 @@ public class MetadataController {
    *
    * @param terminology the terminology
    * @param include the include
+   * @param forDocumentation the for documentation
    * @param list the list
    * @return the properties
    * @throws Exception the exception
@@ -305,17 +301,23 @@ public class MetadataController {
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "forDocumentation",
+          value = "Special param for documentation mode to remove the specially handled properties",
+          required = false, dataType = "string", paramType = "query"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return properties for (or leave blank for all)",
           required = false, dataType = "string", paramType = "query")
+
   })
   @RecordMetricDBFormat
   public @ResponseBody List<Concept> getProperties(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
+    @RequestParam("forDocumentation") final Optional<Boolean> forDocumentation,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    return metadataService.getProperties(terminology, include, list);
+    return metadataService.getProperties(terminology, include, forDocumentation.orElse(false),
+        list);
   }
 
   /**
@@ -386,7 +388,8 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
-    if (!concept.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+    if (!concept.isPresent())
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
 
     return concept.get();
   }
@@ -417,7 +420,8 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
-    if (!result.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    if (!result.isPresent())
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
     return result.get();
   }
@@ -448,7 +452,8 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     Optional<List<String>> result = metadataService.getContributingSources(terminology);
-    if (!result.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    if (!result.isPresent())
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
     return result.get();
   }
@@ -511,7 +516,8 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code) throws Exception {
 
     Optional<List<String>> result = metadataService.getAxiomQualifiersList(terminology, code);
-    if (!result.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    if (!result.isPresent())
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
     return result.get();
   }
