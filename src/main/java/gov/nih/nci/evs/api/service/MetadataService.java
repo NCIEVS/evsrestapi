@@ -38,7 +38,7 @@ public interface MetadataService {
    * @return the list of terminologies
    * @throws IOException
    */
-  List<Terminology> getTerminologies() throws IOException;
+  List<Terminology> getTerminologies() throws Exception;
 
   /**
    * Get list of associations

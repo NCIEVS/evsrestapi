@@ -77,7 +77,7 @@ public class MetadataServiceImpl implements MetadataService {
    */
   @Override
   @Cacheable(value = "metadata", key = "#root.methodName")
-  public List<Terminology> getTerminologies() throws IOException {
+  public List<Terminology> getTerminologies() throws Exception {
     return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
   }
 

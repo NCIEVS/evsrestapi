@@ -68,6 +68,7 @@ nci:
       monthlyGraphName: ${STARDOG_MONTHLY_GRAPH_NAME:http://NCI_T}
       weeklyQueryUrl: ${STARDOG_WEEKLY_QUERY_URL:http://localhost:5820/NCIT2/query}
       weeklyGraphName: ${STARDOG_WEEKLY_GRAPH_NAME:http://NCI_T}
+      queryUrl: ${STARDOG_QUERY_URL:http://localhost:5820/NCIT2/query}
       username: ${STARDOG_USERNAME:REPLACE_WITH_USERNAME}
       password: ${STARDOG_PASSWORD:REPLACE_WITH_PASSWORD}
       readTimeout: ${STARDOG_READ_TIMEOUT:30}

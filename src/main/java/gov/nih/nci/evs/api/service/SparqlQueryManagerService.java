@@ -282,6 +282,17 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
+   * Returns EvsVersion Information objects for all graphs loaded in db
+   * 
+   * @return the list of {@link EvsVersionInfo} objects
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<EvsVersionInfo> getEvsVersionInfoList()
+    throws JsonParseException, JsonMappingException, IOException;
+  
+  /**
    * Returns the evs version info.
    *
    * @param dbType the db type

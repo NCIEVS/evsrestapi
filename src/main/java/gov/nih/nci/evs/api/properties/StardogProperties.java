@@ -27,6 +27,9 @@ public class StardogProperties {
   /** The force populate cache. */
   private String forcePopulateCache;
 
+  /** The query url. */
+  private String queryUrl;
+  
   /** The monthly query url. */
   private String monthlyQueryUrl;
 
@@ -165,6 +168,24 @@ public class StardogProperties {
     this.forcePopulateCache = forcePopulateCache;
   }
 
+  /**
+   * Returns the query url.
+   *
+   * @return the query url
+   */
+  public String getQueryUrl() {
+    return queryUrl;
+  }
+
+  /**
+   * Sets the query url.
+   *
+   * @param queryUrl the query url
+   */
+  public void setQueryUrl(String queryUrl) {
+    this.queryUrl = queryUrl;
+  }
+  
   /**
    * Returns the monthly query url.
    *

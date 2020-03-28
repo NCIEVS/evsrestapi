@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.properties.StardogProperties;
 
+/**
+ * @author Arun
+ *
+ */
 @Service
 @PropertySource("classpath:sparql-queries.properties")
 public class QueryBuilderServiceImpl implements QueryBuilderService {
@@ -61,6 +65,20 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     return query;
   }
 
+  /**
+   * Construct all graph names and corresponding ontology versions (limited to owl ontologies)
+   * 
+   * Properties key is {@code all.graphs.and.versions}
+   * 
+   * @return
+   */
+  public String constructAllGraphsAndVersionsQuery() {
+    String query = env.getProperty("all.graphs.and.versions");
+    
+    log.debug("constructAllGraphsAndVersionsQuery - " + query);
+    return query;
+  }
+  
   /**
    * Return the SPARQL VersionInfo Query
    * 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -298,6 +299,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the query URL.
    *
+   * @return the query URL
+   */
+  public String getQueryURL() {
+    return stardogProperties.getQueryUrl();
+  }
+  
+  /**
+   * Returns the query URL.
+   *
    * @param dbType the db type
    * @return the query URL
    */
@@ -343,6 +353,44 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return graphNames;
   }
 
+  /**
+   * Returns EvsVersion Information objects for all graphs loaded in db
+   * 
+   * @return the list of {@link EvsVersionInfo} objects
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<EvsVersionInfo> getEvsVersionInfoList()
+    throws JsonParseException, JsonMappingException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix();
+    String query = queryBuilderService.constructAllGraphsAndVersionsQuery();
+    String queryURL = getQueryURL();
+    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+
+    log.info("getAllGraphNamesAndVersions response - " + res);
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    List<EvsVersionInfo> evsVersionInfoList = new ArrayList<>();
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+
+    for (Bindings b : bindings) {
+      String graphName = b.getGraphName().getValue();
+      if (graphName == null || graphName.equalsIgnoreCase("")) continue;
+      log.info(String.format("getAllGraphNamesAndVersions: {%s, %s, %s, %s}", 
+          graphName, b.getVersion().getValue(), b.getDate().getValue(), b.getComment().getValue()));
+      EvsVersionInfo evsVersionInfo = new EvsVersionInfo();
+      evsVersionInfo.setVersion(b.getVersion().getValue());
+      evsVersionInfo.setDate(b.getDate().getValue());
+      evsVersionInfo.setComment(b.getComment().getValue());
+      evsVersionInfo.setGraph(graphName);
+      evsVersionInfoList.add(evsVersionInfo);
+    }
+    
+    return evsVersionInfoList;
+  }
+  
   /**
    * Return the EvsVersion Information.
    *
