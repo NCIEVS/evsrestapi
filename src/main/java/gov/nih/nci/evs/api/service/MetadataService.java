@@ -26,7 +26,7 @@ public interface MetadataService {
   /**
    * Get application metadata
    * 
-   * @param terminology the terminology instance
+   * @param terminology the terminology
    * @return the config data
    * @throws IOException
    */

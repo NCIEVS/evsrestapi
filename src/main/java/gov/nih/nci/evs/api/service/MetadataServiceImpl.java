@@ -59,7 +59,7 @@ public class MetadataServiceImpl implements MetadataService {
   /**
    * Returns the application metadata.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the application metadata
    * @throws IOException Signals that an I/O exception has occurred.
    */

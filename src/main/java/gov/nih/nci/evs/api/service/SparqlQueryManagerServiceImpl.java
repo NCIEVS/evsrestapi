@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -96,34 +97,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   
   private Map<String, List<String>> uniqueSourcesMap;
   
-//  /** The class count monthly. */
-//  private Long classCountMonthly;
-//
-//  /** The class count weekly. */
-//  private Long classCountWeekly;
-//
-//  /** The hierarchy monthly. */
-//  private HierarchyUtils hierarchyMonthly = null;
-//
-//  /** The hierarchy weekly. */
-//  private HierarchyUtils hierarchyWeekly = null;
-//
-//  /** The paths monthly. */
-//  private Paths pathsMonthly = null;
-//
-//  /** The paths weekly. */
-//  private Paths pathsWeekly = null;
-//
-//  /** The unique sources monthly. */
-//  private List<String> uniqueSourcesMonthly = null;
-
-  /**
-   * The unique sources weekly.
-   *
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  // private List<String> uniqueSourcesWeekly = null;
-
   /**
    * Post init.
    *
@@ -174,6 +147,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   private void populateCache(List<Terminology> terminologies) throws IOException {
+    if (CollectionUtils.isEmpty(terminologies)) return;
     for(Terminology terminology: terminologies) {
       populateCache(terminology);
     }
@@ -296,7 +270,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the named graph.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the named graph
    */
   public String getNamedGraph(Terminology terminology) {
@@ -313,23 +287,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
   
   /**
-   * Returns the query URL.
-   *
-   * @param dbType the db type
-   * @return the query URL
-   */
-//  public String getQueryURL(String dbType) {
-//    if (dbType.equals("monthly")) {
-//      return stardogProperties.getMonthlyQueryUrl();
-//    } else {
-//      return stardogProperties.getWeeklyQueryUrl();
-//    }
-//  }
-
-  /**
    * Returns the all graph names.
    *
-   * @param dbType the db type
    * @return the all graph names
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
@@ -400,12 +359,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Return the EvsVersion Information.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return EvsVersionInfo instance.
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public EvsVersionInfo getEvsVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
 
@@ -430,7 +390,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the returns the class counts.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the returns the class counts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -457,7 +417,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Check concept exists.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return true, if successful
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -489,7 +449,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs concept label.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs concept label
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -517,7 +477,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs concept by code.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param ip the ip
    * @return the evs concept by code
    * @throws JsonMappingException the json mapping exception
@@ -535,7 +495,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs concept by label properties.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param propertyList the property list
    * @return the evs concept by label properties
    * @throws JsonMappingException the json mapping exception
@@ -554,7 +514,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @param evsConcept the evs concept
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param outputType the output type
    * @param propertyList the property list
    * @return the concept properties
@@ -654,7 +614,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @param evsConcept the evs concept
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param ip the ip
    * @return the concept
    * @throws IOException Signals that an I/O exception has occurred.
@@ -745,7 +705,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs maps to.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs maps to
    * @throws IOException Signals that an I/O exception has occurred.
    */
@@ -758,7 +718,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs property.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param ip the ip
    * @return the evs property
    * @throws JsonMappingException the json mapping exception
@@ -777,7 +737,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @param evsConcept the evs concept
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param ip the ip
    * @return the property
    * @throws IOException Signals that an I/O exception has occurred.
@@ -893,7 +853,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs properties.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs properties
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -940,7 +900,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs properties no restrictions.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs properties no restrictions
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -988,7 +948,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs subconcepts.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param outputType the output type
    * @return the evs subconcepts
    * @throws JsonMappingException the json mapping exception
@@ -1028,7 +988,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs superconcepts.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param outputType the output type
    * @return the evs superconcepts
    * @throws JsonMappingException the json mapping exception
@@ -1068,7 +1028,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs associations.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs associations
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1103,7 +1063,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs inverse associations.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs inverse associations
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1137,7 +1097,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs inverse roles.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs inverse roles
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1171,7 +1131,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs roles.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs roles
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1205,7 +1165,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs disjoint with.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs disjoint with
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1238,7 +1198,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the evs axioms.
    *
    * @param conceptCode the concept code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the evs axioms
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1357,7 +1317,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the hierarchy.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the hierarchy
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1394,7 +1354,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the all properties.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param ip the ip
    * @return the all properties
    * @throws JsonMappingException the json mapping exception
@@ -1431,7 +1391,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the axiom qualifiers list.
    *
    * @param propertyCode the property code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the axiom qualifiers list
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
@@ -1460,7 +1420,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the all associations.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param ip the ip
    * @return the all associations
    * @throws JsonMappingException the json mapping exception
@@ -1497,7 +1457,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the all roles.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param ip the ip
    * @return the all roles
    * @throws JsonMappingException the json mapping exception
@@ -1533,7 +1493,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the root nodes.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the root nodes
    */
   public List<HierarchyNode> getRootNodes(Terminology terminology) {
@@ -1544,7 +1504,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the child nodes.
    *
    * @param parent the parent
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the child nodes
    */
   public List<HierarchyNode> getChildNodes(String parent, Terminology terminology) {
@@ -1556,7 +1516,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @param parent the parent
    * @param maxLevel the max level
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the child nodes
    */
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology) {
@@ -1567,7 +1527,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the all child nodes.
    *
    * @param parent the parent
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the all child nodes
    */
   public List<String> getAllChildNodes(String parent, Terminology terminology) {
@@ -1580,7 +1540,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param code the code
    * @param node the node
    * @param path the path
-   * @param dbType the db type
+   * @param terminology the terminology
    */
   public void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology) {
     if (path.getConcepts().size() == 0) {
@@ -1611,7 +1571,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the path in hierarchy.
    *
    * @param code the code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the path in hierarchy
    */
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology) {
@@ -1631,7 +1591,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the path to root.
    *
    * @param code the code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the path to root
    */
   public Paths getPathToRoot(String code, Terminology terminology) {
@@ -1674,7 +1634,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @param code the code
    * @param parentCode the parent code
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the path to parent
    */
   public Paths getPathToParent(String code, String parentCode, Terminology terminology) {
@@ -1748,7 +1708,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the configuration data.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the configuration data
    * @throws JsonMappingException the json mapping exception
    * @throws JsonProcessingException the json processing exception
@@ -1789,7 +1749,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the unique sources list.
    *
-   * @param dbType the db type
+   * @param terminology the terminology
    * @return the unique sources list
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
