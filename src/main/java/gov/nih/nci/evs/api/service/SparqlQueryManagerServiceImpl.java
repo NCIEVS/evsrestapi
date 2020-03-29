@@ -168,24 +168,26 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (classCountMap == null) classCountMap = new ConcurrentHashMap<String, Long>();
     classCountMap.put(terminology.getTerminologyVersion(), classCount);
     
-    log.info("  get hierarchy = monthly");
+    log.info("  get hierarchy ");
     List<String> parentchild = getHierarchy(terminology);
     
     HierarchyUtils hierarchy = new HierarchyUtils(parentchild);
     if (hierarchyMap == null) hierarchyMap = new ConcurrentHashMap<String, HierarchyUtils>();
     hierarchyMap.put(terminology.getTerminologyVersion(), hierarchy);
     
-    log.info("  find paths = monthly");
+    log.info("  find paths ");
     
     PathFinder pathFinder = new PathFinder(hierarchy);
     if (pathsMap == null) pathsMap = new ConcurrentHashMap<String, Paths>();
     pathsMap.put(terminology.getTerminologyVersion(), pathFinder.findPaths());
     
+    log.info("  get unique sources ");
+    
     List<String> uniqueSources = getUniqueSourcesList(terminology);
     if (uniqueSourcesMap == null) uniqueSourcesMap = new ConcurrentHashMap<String, List<String>>();
     uniqueSourcesMap.put(terminology.getTerminologyVersion(), uniqueSources);
     
-    log.info("Done populating the cache");
+    log.info("Done populating cache - " + terminology.getTerminologyVersion());
   }
 
   // public void genDocumentationFiles() throws IOException {
@@ -333,7 +335,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryURL = getQueryURL();
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
-    log.info("getAllGraphNamesAndVersions response - " + res);
+    if (log.isDebugEnabled()) log.debug("getAllGraphNamesAndVersions response - " + res);
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<EvsVersionInfo> evsVersionInfoList = new ArrayList<>();
@@ -343,12 +345,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Bindings b : bindings) {
       String graphName = b.getGraphName().getValue();
       if (graphName == null || graphName.equalsIgnoreCase("")) continue;
-      log.info(String.format("getAllGraphNamesAndVersions: {%s, %s, %s, %s}", 
-          graphName, b.getVersion().getValue(), b.getDate().getValue(), b.getComment().getValue()));
       EvsVersionInfo evsVersionInfo = new EvsVersionInfo();
       evsVersionInfo.setVersion(b.getVersion().getValue());
-      evsVersionInfo.setDate(b.getDate().getValue());
-      evsVersionInfo.setComment(b.getComment().getValue());
+      evsVersionInfo.setDate((b.getDate()==null)?null:b.getDate().getValue());
+      evsVersionInfo.setComment((b.getComment()==null)?"":b.getComment().getValue());
       evsVersionInfo.setGraph(graphName);
       evsVersionInfoList.add(evsVersionInfo);
     }

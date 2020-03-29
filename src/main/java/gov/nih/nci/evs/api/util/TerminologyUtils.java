@@ -60,28 +60,46 @@ public final class TerminologyUtils {
     Collections.sort(evsVersionInfoList, new Comparator<EvsVersionInfo>() {
       @Override
       public int compare(EvsVersionInfo o1, EvsVersionInfo o2) {
-        try {
-          final Date d1 = fmt.parse(o1.getDate());
-          final Date d2 = fmt.parse(o2.getDate());
-          return -1 * d1.compareTo(d2);//sort in desc order
-        } catch (ParseException e) {
-          logger.error(e.getMessage(), e);
-        }
+        final String v1 = o1.getVersion();
         
-        return 0;
+        String y1 = v1.substring(0, v1.indexOf("."));
+        String m1 = v1.substring(v1.indexOf(".")+1, v1.length() - 1);
+        Character c1 = v1.charAt(v1.length() - 1);
+        
+        final String v2 = o2.getVersion();
+        
+        String y2 = v2.substring(0, v2.indexOf("."));
+        String m2 = v2.substring(v2.indexOf(".")+1, v2.length() - 1);
+        Character c2 = v2.charAt(v2.length() - 1);
+
+        int result = -1 * Integer.valueOf(y1).compareTo(Integer.valueOf(y2));
+        if (result != 0) return result;
+        
+        result = -1 * Integer.valueOf(m1).compareTo(Integer.valueOf(m2));
+        if (result != 0) return result;
+        
+        return -1 * c1.compareTo(c2);
       }});
     
     for(int i=0; i<evsVersionInfoList.size(); i++) {
       final EvsVersionInfo versionInfo = evsVersionInfoList.get(i);
       final Terminology term = getTerminologyForVersionInfo(versionInfo, fmt);
+      
+      logger.debug("Adding terminology - " + term.getTerminologyVersion());
+      
       //set latest tag for the most recent version
       //TODO: check if latest is to be set only for monthly version
       term.setLatest(i==0);
+      
+      logger.debug(" Latest tag - " + term.getLatest());
+      
       //temporary code -- enable date logic in getTerminologyForVersionInfo
       if (i==0) {
         term.getTags().put("monthly", "true");
+        logger.debug(" Monthly tag - true");
       } else {
         term.getTags().put("weekly", "true");
+        logger.debug(" Weekly tag - true");
       }
       
       results.add(term);
