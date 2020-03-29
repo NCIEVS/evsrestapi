@@ -49,11 +49,11 @@ public class MetadataServiceImpl implements MetadataService {
    * Returns the application metadata.
    *
    * @return the application metadata
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception 
    */
   @Override
-  public ConfigData getApplicationMetadata() throws IOException {
-    return getApplicationMetadata("monthly");
+  public ConfigData getApplicationMetadata() throws Exception {
+    return getApplicationMetadata(TerminologyUtils.getLatestTerminology(sparqlQueryManagerService));
   }
 
   /**
@@ -64,9 +64,9 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #dbType}")
-  public ConfigData getApplicationMetadata(String dbType) throws IOException {
-    return sparqlQueryManagerService.getConfigurationData(dbType);
+  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  public ConfigData getApplicationMetadata(Terminology terminology) throws IOException {
+    return sparqlQueryManagerService.getConfigurationData(terminology);
   }
 
   /**
@@ -97,10 +97,9 @@ public class MetadataServiceImpl implements MetadataService {
     Optional<String> list) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(dbType, ip);
+    final List<EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(term, ip);
     return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
   }
 
@@ -118,12 +117,11 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -154,10 +152,9 @@ public class MetadataServiceImpl implements MetadataService {
 
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> roles = sparqlQueryManagerService.getAllRoles(dbType, ip);
+    final List<EvsConcept> roles = sparqlQueryManagerService.getAllRoles(term, ip);
     return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
@@ -175,12 +172,11 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -210,10 +206,9 @@ public class MetadataServiceImpl implements MetadataService {
     boolean forDocumentation, Optional<String> list) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(dbType, ip);
+    final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(term, ip);
 
     // IF "for documentation" mode, remove the "not considered" cases.
     if (forDocumentation) {
@@ -241,12 +236,11 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -259,7 +253,7 @@ public class MetadataServiceImpl implements MetadataService {
         list == null ? 0 : list.size()));
     if (list.size() > 0) {
       final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), dbType, ip));
+          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), term, ip));
       return Optional.of(concept);
     }
     return Optional.empty();
@@ -339,7 +333,6 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
     final IncludeParam ip = new IncludeParam("minimal");
 
     // Like "get properties", if it's "name style", we need to get all and then
@@ -348,7 +341,7 @@ public class MetadataServiceImpl implements MetadataService {
     Concept concept = null;
     if (ModelUtils.isCodeStyle(code)) {
       concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, dbType, ip));
+          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
     }
 
     final List<Concept> list = getProperties(terminology, Optional.ofNullable("minimal"), false,
@@ -362,7 +355,7 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     final List<String> propertyValues =
-        sparqlQueryManagerService.getAxiomQualifiersList(concept.getCode(), dbType);
+        sparqlQueryManagerService.getAxiomQualifiersList(concept.getCode(), term);
     return Optional.of(propertyValues);
   }
 

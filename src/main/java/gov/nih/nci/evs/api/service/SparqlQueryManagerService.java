@@ -281,14 +281,6 @@ public interface SparqlQueryManagerService {
    */
   public List<String> getAllGraphNames()
     throws JsonParseException, JsonMappingException, IOException;
-
-  /**
-   * Returns the terminologies.
-   *
-   * @return the terminologies
-   * @throws Exception Signals that an exception has occurred.
-   */
-  public List<Terminology> getTerminologies() throws Exception;
   
   /**
    * Returns EvsVersion Information objects for all graphs loaded in db

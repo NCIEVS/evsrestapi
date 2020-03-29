@@ -67,7 +67,7 @@ public class MetadataController {
   })
   @RecordMetricDB
   @RequestMapping(method = RequestMethod.GET, value = "/metadata", produces = "application/json")
-  public @ResponseBody ConfigData getApplicationMetadata() throws IOException {
+  public @ResponseBody ConfigData getApplicationMetadata() throws Exception {
     return metadataService.getApplicationMetadata();
   }
 

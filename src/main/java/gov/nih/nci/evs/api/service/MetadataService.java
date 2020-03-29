@@ -19,18 +19,18 @@ public interface MetadataService {
    * Get application metadata
    * 
    * @return the config data
-   * @throws IOException
+   * @throws Exception
    */
-  ConfigData getApplicationMetadata() throws IOException;
+  ConfigData getApplicationMetadata() throws Exception;
 
   /**
-   * Get application metadata for {@code dbType}}
+   * Get application metadata
    * 
-   * @param dbType the db type (monthly, weekly etc)
+   * @param terminology the terminology instance
    * @return the config data
    * @throws IOException
    */
-  ConfigData getApplicationMetadata(String dbType) throws IOException;
+  ConfigData getApplicationMetadata(Terminology terminology) throws IOException;
 
   /**
    * Get list of terminologies

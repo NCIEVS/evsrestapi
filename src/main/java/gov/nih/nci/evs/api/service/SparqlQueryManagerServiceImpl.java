@@ -2,29 +2,21 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -104,26 +96,26 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   
   private Map<String, List<String>> uniqueSourcesMap;
   
-  /** The class count monthly. */
-  private Long classCountMonthly;
-
-  /** The class count weekly. */
-  private Long classCountWeekly;
-
-  /** The hierarchy monthly. */
-  private HierarchyUtils hierarchyMonthly = null;
-
-  /** The hierarchy weekly. */
-  private HierarchyUtils hierarchyWeekly = null;
-
-  /** The paths monthly. */
-  private Paths pathsMonthly = null;
-
-  /** The paths weekly. */
-  private Paths pathsWeekly = null;
-
-  /** The unique sources monthly. */
-  private List<String> uniqueSourcesMonthly = null;
+//  /** The class count monthly. */
+//  private Long classCountMonthly;
+//
+//  /** The class count weekly. */
+//  private Long classCountWeekly;
+//
+//  /** The hierarchy monthly. */
+//  private HierarchyUtils hierarchyMonthly = null;
+//
+//  /** The hierarchy weekly. */
+//  private HierarchyUtils hierarchyWeekly = null;
+//
+//  /** The paths monthly. */
+//  private Paths pathsMonthly = null;
+//
+//  /** The paths weekly. */
+//  private Paths pathsWeekly = null;
+//
+//  /** The unique sources monthly. */
+//  private List<String> uniqueSourcesMonthly = null;
 
   /**
    * The unique sources weekly.
@@ -145,7 +137,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     log.info("  configure elasticsearch");
     elasticSearchService.initSettings();
     
-    populateCache(getTerminologies());
+    populateCache(TerminologyUtils.getTerminologies(this));
     // This file generation was for the "documentation files"
     // this is no longer part of the API, no need to do this
     // if (applicationProperties.getForceFileGeneration()) {
@@ -163,7 +155,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     LocalDateTime currentTime = LocalDateTime.now();
     log.info("callCronJob at " + currentTime);
     
-    List<Terminology> terminologies = getTerminologies();
+    List<Terminology> terminologies = TerminologyUtils.getTerminologies(this);
     
     log.info("ForcePopulateCache " + stardogProperties.getForcePopulateCache());
     boolean forcePopulateCache = stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y");
@@ -199,24 +191,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     
     Long classCount = getGetClassCounts(terminology);
     log.info("  class count  = " + classCount);
-    if (classCountMap == null) classCountMap = new HashMap<String, Long>();
+    if (classCountMap == null) classCountMap = new ConcurrentHashMap<String, Long>();
     classCountMap.put(terminology.getTerminologyVersion(), classCount);
     
     log.info("  get hierarchy = monthly");
     List<String> parentchild = getHierarchy(terminology);
     
     HierarchyUtils hierarchy = new HierarchyUtils(parentchild);
-    if (hierarchyMap == null) hierarchyMap = new HashMap<String, HierarchyUtils>();
+    if (hierarchyMap == null) hierarchyMap = new ConcurrentHashMap<String, HierarchyUtils>();
     hierarchyMap.put(terminology.getTerminologyVersion(), hierarchy);
     
     log.info("  find paths = monthly");
     
     PathFinder pathFinder = new PathFinder(hierarchy);
-    if (pathsMap == null) pathsMap = new HashMap<String, Paths>();
+    if (pathsMap == null) pathsMap = new ConcurrentHashMap<String, Paths>();
     pathsMap.put(terminology.getTerminologyVersion(), pathFinder.findPaths());
     
     List<String> uniqueSources = getUniqueSourcesList(terminology);
-    if (uniqueSourcesMap == null) uniqueSourcesMap = new HashMap<String, List<String>>();
+    if (uniqueSourcesMap == null) uniqueSourcesMap = new ConcurrentHashMap<String, List<String>>();
     uniqueSourcesMap.put(terminology.getTerminologyVersion(), uniqueSources);
     
     log.info("Done populating the cache");
@@ -367,86 +359,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return graphNames;
   }
 
-  /**
-   * Returns the terminologies.
-   *
-   * @return the terminologies
-   * @throws Exception Signals that an exception has occurred.
-   */
-  @Override
-  public List<Terminology> getTerminologies() throws Exception {
-    
-    List<EvsVersionInfo> evsVersionInfoList = getEvsVersionInfoList();
-    
-    if (CollectionUtils.isEmpty(evsVersionInfoList)) return Collections.<Terminology>emptyList();
-    
-    final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
-    final List<Terminology> results = new ArrayList<>();
-    
-    Collections.sort(evsVersionInfoList, new Comparator<EvsVersionInfo>() {
-      @Override
-      public int compare(EvsVersionInfo o1, EvsVersionInfo o2) {
-        try {
-          final Date d1 = fmt.parse(o1.getDate());
-          final Date d2 = fmt.parse(o2.getDate());
-          return -1 * d1.compareTo(d2);//sort in desc order
-        } catch (ParseException e) {
-          log.error(e.getMessage(), e);
-        }
-        
-        return 0;
-      }});
-    
-    for(int i=0; i<evsVersionInfoList.size(); i++) {
-      final EvsVersionInfo versionInfo = evsVersionInfoList.get(i);
-      final Terminology term = getTerminologyForVersionInfo(versionInfo, fmt);
-      //set latest tag for the most recent version
-      //TODO: check if latest is to be set only for monthly version
-      term.setLatest(i==0);
-      //temporary code -- enable date logic in getTerminologyForVersionInfo
-      if (i==0) {
-        term.getTags().put("monthly", "true");
-      } else {
-        term.getTags().put("weekly", "true");
-      }
-      
-      results.add(term);
-    }
-    
-    return results;
-  }
-
-  private Terminology getTerminologyForVersionInfo(final EvsVersionInfo versionInfo, final DateFormat fmt) throws ParseException {
-    final Terminology term = new Terminology(versionInfo);
-//    final Date d = fmt.parse(versionInfo.getDate());
-//    Calendar cal = GregorianCalendar.getInstance();
-//    cal.setTime(d);
-//    int maxWeeks = cal.getActualMaximum(Calendar.WEEK_OF_MONTH);
-//    String version = versionInfo.getVersion();
-//    char weekIndicator = version.charAt(version.length() - 1);
-//    
-//    boolean monthly = false;
-//    
-//    switch (weekIndicator) {
-//      case 'e':
-//        monthly = true;//has to be monthly version
-//        break;
-//      //TODO: revisit monthly logic; is it possible that there are only 4 versions in a month with 5 weeks??
-//      //what if 5th week only has a Sunday
-//      case 'd'://monthly version, if month has 4 weeks only
-//        if (maxWeeks == 4) monthly = true;
-//        break;
-//      default://case a,b,c
-//        break;
-//    }
-//    
-//    //TODO: check if weekly is to be set for all terminology objects
-//    if (monthly) term.getTags().put("monthly", "true");
-//    else term.getTags().put("weekly", "true");
-    
-    return term;
-  }
-  
   /**
    * Returns EvsVersion Information objects for all graphs loaded in db
    * 
@@ -1867,7 +1779,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     String[] sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
     List<String> sourceToBeRemovedList = Arrays.asList(sourceToBeRemoved);
-    List<String> sources = uniqueSourcesMonthly;
+    List<String> sources = uniqueSourcesMap.get(terminology.getTerminologyVersion());
     sources.removeAll(sourceToBeRemovedList);
     configData.setFullSynSources(sources);
 
