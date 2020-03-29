@@ -2,9 +2,15 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,8 +21,10 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.ConceptNode;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsAxiom;
@@ -52,6 +61,7 @@ import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathFinder;
 import gov.nih.nci.evs.api.util.RESTUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Reference implementation of {@link SparqlQueryManagerService}. Includes
@@ -86,6 +96,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The rest utils. */
   private RESTUtils restUtils = null;
 
+  private Map<String, Long> classCountMap;
+  
+  private Map<String, HierarchyUtils> hierarchyMap;
+  
+  private Map<String, Paths> pathsMap;
+  
+  private Map<String, List<String>> uniqueSourcesMap;
+  
   /** The class count monthly. */
   private Long classCountMonthly;
 
@@ -120,10 +138,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @PostConstruct
-  public void postInit() throws IOException {
+  public void postInit() throws Exception {
     restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
         stardogProperties.getReadTimeout(), stardogProperties.getConnectTimeout());
-    populateCache();
+    
+    log.info("  configure elasticsearch");
+    elasticSearchService.initSettings();
+    
+    populateCache(getTerminologies());
     // This file generation was for the "documentation files"
     // this is no longer part of the API, no need to do this
     // if (applicationProperties.getForceFileGeneration()) {
@@ -137,70 +159,67 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
-  public void callCronJob() throws IOException {
+  public void callCronJob() throws Exception {
     LocalDateTime currentTime = LocalDateTime.now();
     log.info("callCronJob at " + currentTime);
-    Long classCountMonthlyNow = getGetClassCounts("monthly");
-    Long classCountWeeklyNow = getGetClassCounts("weekly");
-
-    log.info("Current class monthly count: " + classCountMonthlyNow);
-    log.info("Previous class monthly count: " + classCountMonthly);
-    log.info("Current class weekly count: " + classCountWeeklyNow);
-    log.info("Previous class weekly count: " + classCountWeekly);
-
+    
+    List<Terminology> terminologies = getTerminologies();
+    
     log.info("ForcePopulateCache " + stardogProperties.getForcePopulateCache());
-    if ((classCountMonthlyNow.longValue() != classCountMonthly.longValue())
-        || (classCountWeeklyNow.longValue() != classCountWeekly.longValue())
-        || stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y")) {
-      log.info("****Repopulating cache***");
-      populateCache();
-      // genDocumentationFiles();
-      log.info("****Repopulating cache done***");
+    boolean forcePopulateCache = stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y");
+    
+    for(Terminology terminology: terminologies) {
+      Long classCountNow = getGetClassCounts(terminology);
+
+      if (classCountNow.longValue() != classCountMap.get(terminology.getTerminologyVersion())
+            || forcePopulateCache) {
+        log.info("****Repopulating cache***");
+        populateCache(terminology);
+        // genDocumentationFiles();
+        log.info("****Repopulating cache done***");
+      }      
     }
   }
 
+  private void populateCache(List<Terminology> terminologies) throws IOException {
+    for(Terminology terminology: terminologies) {
+      populateCache(terminology);
+    }
+  }
+  
   /**
    * Populate cache.
    *
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void populateCache() throws IOException {
-    log.info("Start populating cache");
-    log.info("  configure elasticsearch");
-    elasticSearchService.initSettings();
-
-    classCountMonthly = getGetClassCounts("monthly");
-    log.info("  class count monthly = " + classCountMonthly);
-
+  //TODO: populate cache for single terminology; single terminology method will be used by another that will taken
+  //list of terminologies to populate cache
+  private void populateCache(Terminology terminology) throws IOException {
+    log.info("Start populating cache - " + terminology.getTerminologyVersion());
+    
+    Long classCount = getGetClassCounts(terminology);
+    log.info("  class count  = " + classCount);
+    if (classCountMap == null) classCountMap = new HashMap<String, Long>();
+    classCountMap.put(terminology.getTerminologyVersion(), classCount);
+    
     log.info("  get hierarchy = monthly");
-    List<String> parentchildMonthly = getHierarchy("monthly");
-    hierarchyMonthly = new HierarchyUtils(parentchildMonthly);
+    List<String> parentchild = getHierarchy(terminology);
+    
+    HierarchyUtils hierarchy = new HierarchyUtils(parentchild);
+    if (hierarchyMap == null) hierarchyMap = new HashMap<String, HierarchyUtils>();
+    hierarchyMap.put(terminology.getTerminologyVersion(), hierarchy);
+    
     log.info("  find paths = monthly");
-    PathFinder pathFinder = new PathFinder(hierarchyMonthly);
-    pathsMonthly = pathFinder.findPaths();
-    uniqueSourcesMonthly = getUniqueSourcesList("monthly");
-
-    // Weekly
-    if (getNamedGraph("weekly").equals(getNamedGraph("monthly"))) {
-      log.info("  copy weekly to monthly = " + classCountMonthly);
-      classCountWeekly = classCountMonthly;
-      hierarchyWeekly = hierarchyMonthly;
-      pathsWeekly = pathsMonthly;
-      // uniqueSourcesWeekly = uniqueSourcesMonthly;
-    } else {
-      classCountWeekly = getGetClassCounts("weekly");
-      log.info("  class count weekly = " + classCountMonthly);
-      log.info("  get hierarchy = weekly");
-      List<String> parentchildWeekly = getHierarchy("weekly");
-      hierarchyWeekly = new HierarchyUtils(parentchildWeekly);
-      log.info("  find paths = weekly");
-      pathFinder = new PathFinder(hierarchyWeekly);
-      pathsWeekly = pathFinder.findPaths();
-      // uniqueSourcesWeekly = getUniqueSourcesList("weekly");
-    }
-
+    
+    PathFinder pathFinder = new PathFinder(hierarchy);
+    if (pathsMap == null) pathsMap = new HashMap<String, Paths>();
+    pathsMap.put(terminology.getTerminologyVersion(), pathFinder.findPaths());
+    
+    List<String> uniqueSources = getUniqueSourcesList(terminology);
+    if (uniqueSourcesMap == null) uniqueSourcesMap = new HashMap<String, List<String>>();
+    uniqueSourcesMap.put(terminology.getTerminologyVersion(), uniqueSources);
+    
     log.info("Done populating the cache");
-
   }
 
   // public void genDocumentationFiles() throws IOException {
@@ -252,35 +271,35 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the value set hierarchy
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @SuppressWarnings("unused")
-  private List<HierarchyNode> getValueSetHierarchy(EvsConcept parent,
-    List<String> conceptProperties) throws IOException {
-    List<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    for (EvsRelatedConcept child : parent.getSubconcepts()) {
-      EvsConcept childConcept =
-          getEvsConceptByLabelProperties(child.getCode(), "monthly", conceptProperties);
-      HierarchyNode node = new HierarchyNode();
-      node.setCode(childConcept.getCode());
-      node.setLabel(childConcept.getLabel());
-      if (childConcept.getProperties().containsKey("Publish_Value_Set")) {
-        if (childConcept.getProperties().get("Publish_Value_Set").get(0).equals("Yes")) {
-          if (childConcept.getSubconcepts() != null) {
-            List<HierarchyNode> children = getValueSetHierarchy(childConcept, conceptProperties);
-            if (children.size() > 0) {
-              node.setLeaf(false);
-              node.setChildren(children);
-            } else {
-              node.setLeaf(true);
-            }
-          } else {
-            node.setLeaf(true);
-          }
-          nodes.add(node);
-        }
-      }
-    }
-    return nodes;
-  }
+//  @SuppressWarnings("unused")
+//  private List<HierarchyNode> getValueSetHierarchy(EvsConcept parent,
+//    List<String> conceptProperties) throws IOException {
+//    List<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+//    for (EvsRelatedConcept child : parent.getSubconcepts()) {
+//      EvsConcept childConcept =
+//          getEvsConceptByLabelProperties(child.getCode(), "monthly", conceptProperties);
+//      HierarchyNode node = new HierarchyNode();
+//      node.setCode(childConcept.getCode());
+//      node.setLabel(childConcept.getLabel());
+//      if (childConcept.getProperties().containsKey("Publish_Value_Set")) {
+//        if (childConcept.getProperties().get("Publish_Value_Set").get(0).equals("Yes")) {
+//          if (childConcept.getSubconcepts() != null) {
+//            List<HierarchyNode> children = getValueSetHierarchy(childConcept, conceptProperties);
+//            if (children.size() > 0) {
+//              node.setLeaf(false);
+//              node.setChildren(children);
+//            } else {
+//              node.setLeaf(true);
+//            }
+//          } else {
+//            node.setLeaf(true);
+//          }
+//          nodes.add(node);
+//        }
+//      }
+//    }
+//    return nodes;
+//  }
 
   /**
    * Returns the named graph.
@@ -288,12 +307,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the named graph
    */
-  public String getNamedGraph(String dbType) {
-    if (dbType.equals("monthly")) {
-      return stardogProperties.getMonthlyGraphName();
-    } else {
-      return stardogProperties.getWeeklyGraphName();
-    }
+  public String getNamedGraph(Terminology terminology) {
+    return terminology.getGraph();
   }
 
   /**
@@ -311,13 +326,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the query URL
    */
-  public String getQueryURL(String dbType) {
-    if (dbType.equals("monthly")) {
-      return stardogProperties.getMonthlyQueryUrl();
-    } else {
-      return stardogProperties.getWeeklyQueryUrl();
-    }
-  }
+//  public String getQueryURL(String dbType) {
+//    if (dbType.equals("monthly")) {
+//      return stardogProperties.getMonthlyQueryUrl();
+//    } else {
+//      return stardogProperties.getWeeklyQueryUrl();
+//    }
+//  }
 
   /**
    * Returns the all graph names.
@@ -328,13 +343,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<String> getAllGraphNames(String dbType)
+  public List<String> getAllGraphNames()
     throws JsonParseException, JsonMappingException, IOException {
     List<String> graphNames = new ArrayList<String>();
     String queryPrefix = queryBuilderService.contructPrefix();
     String query = queryBuilderService.constructAllGraphNamesQuery();
-    String queryURL = getQueryURL(dbType);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     log.debug("getAllGraphNames response - " + res);
     ObjectMapper mapper = new ObjectMapper();
@@ -353,6 +367,86 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return graphNames;
   }
 
+  /**
+   * Returns the terminologies.
+   *
+   * @return the terminologies
+   * @throws Exception Signals that an exception has occurred.
+   */
+  @Override
+  public List<Terminology> getTerminologies() throws Exception {
+    
+    List<EvsVersionInfo> evsVersionInfoList = getEvsVersionInfoList();
+    
+    if (CollectionUtils.isEmpty(evsVersionInfoList)) return Collections.<Terminology>emptyList();
+    
+    final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
+    final List<Terminology> results = new ArrayList<>();
+    
+    Collections.sort(evsVersionInfoList, new Comparator<EvsVersionInfo>() {
+      @Override
+      public int compare(EvsVersionInfo o1, EvsVersionInfo o2) {
+        try {
+          final Date d1 = fmt.parse(o1.getDate());
+          final Date d2 = fmt.parse(o2.getDate());
+          return -1 * d1.compareTo(d2);//sort in desc order
+        } catch (ParseException e) {
+          log.error(e.getMessage(), e);
+        }
+        
+        return 0;
+      }});
+    
+    for(int i=0; i<evsVersionInfoList.size(); i++) {
+      final EvsVersionInfo versionInfo = evsVersionInfoList.get(i);
+      final Terminology term = getTerminologyForVersionInfo(versionInfo, fmt);
+      //set latest tag for the most recent version
+      //TODO: check if latest is to be set only for monthly version
+      term.setLatest(i==0);
+      //temporary code -- enable date logic in getTerminologyForVersionInfo
+      if (i==0) {
+        term.getTags().put("monthly", "true");
+      } else {
+        term.getTags().put("weekly", "true");
+      }
+      
+      results.add(term);
+    }
+    
+    return results;
+  }
+
+  private Terminology getTerminologyForVersionInfo(final EvsVersionInfo versionInfo, final DateFormat fmt) throws ParseException {
+    final Terminology term = new Terminology(versionInfo);
+//    final Date d = fmt.parse(versionInfo.getDate());
+//    Calendar cal = GregorianCalendar.getInstance();
+//    cal.setTime(d);
+//    int maxWeeks = cal.getActualMaximum(Calendar.WEEK_OF_MONTH);
+//    String version = versionInfo.getVersion();
+//    char weekIndicator = version.charAt(version.length() - 1);
+//    
+//    boolean monthly = false;
+//    
+//    switch (weekIndicator) {
+//      case 'e':
+//        monthly = true;//has to be monthly version
+//        break;
+//      //TODO: revisit monthly logic; is it possible that there are only 4 versions in a month with 5 weeks??
+//      //what if 5th week only has a Sunday
+//      case 'd'://monthly version, if month has 4 weeks only
+//        if (maxWeeks == 4) monthly = true;
+//        break;
+//      default://case a,b,c
+//        break;
+//    }
+//    
+//    //TODO: check if weekly is to be set for all terminology objects
+//    if (monthly) term.getTags().put("monthly", "true");
+//    else term.getTags().put("weekly", "true");
+    
+    return term;
+  }
+  
   /**
    * Returns EvsVersion Information objects for all graphs loaded in db
    * 
@@ -400,14 +494,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsVersionInfo getEvsVersionInfo(String dbType)
+  public EvsVersionInfo getEvsVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructVersionInfoQuery(namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructVersionInfoQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -418,7 +510,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       evsVersionInfo.setVersion(b.getVersion().getValue());
       evsVersionInfo.setDate(b.getDate().getValue());
       evsVersionInfo.setComment(b.getComment().getValue());
-      evsVersionInfo.setGraph(namedGraph);
+      evsVersionInfo.setGraph(terminology.getGraph());
     }
     return evsVersionInfo;
   }
@@ -432,13 +524,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public Long getGetClassCounts(String dbType)
+  public Long getGetClassCounts(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructClassCountsQuery(namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructClassCountsQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -461,13 +551,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public boolean checkConceptExists(String conceptCode, String dbType)
+  public boolean checkConceptExists(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructConceptLabelQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructConceptLabelQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -495,13 +583,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public String getEvsConceptLabel(String conceptCode, String dbType)
+  public String getEvsConceptLabel(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructConceptLabelQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructConceptLabelQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -526,10 +612,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsConcept getEvsConceptByCode(String conceptCode, String dbType, IncludeParam ip)
+  public EvsConcept getEvsConceptByCode(String conceptCode, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByCode evsConcept = new EvsConceptByCode();
-    getConcept(evsConcept, conceptCode, dbType, ip);
+    getConcept(evsConcept, conceptCode, terminology, ip);
     return evsConcept;
   }
 
@@ -544,10 +630,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsConcept getEvsConceptByLabelProperties(String conceptCode, String dbType,
+  public EvsConcept getEvsConceptByLabelProperties(String conceptCode, Terminology terminology,
     List<String> propertyList) throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByLabel evsConcept = new EvsConceptByLabel();
-    getConceptProperties(evsConcept, conceptCode, dbType, "byLabel", propertyList);
+    getConceptProperties(evsConcept, conceptCode, terminology, "byLabel", propertyList);
     return evsConcept;
   }
 
@@ -562,13 +648,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept properties
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void getConceptProperties(EvsConcept evsConcept, String conceptCode, String dbType,
+  public void getConceptProperties(EvsConcept evsConcept, String conceptCode, Terminology terminology,
     String outputType, List<String> propertyList) throws IOException {
     evsConcept.setCode(conceptCode);
 
-    List<EvsProperty> properties = getEvsProperties(conceptCode, dbType);
+    List<EvsProperty> properties = getEvsProperties(conceptCode, terminology);
     if (propertyList.contains("Label") || propertyList.contains("rdfs:label")) {
-      evsConcept.setLabel(getEvsConceptLabel(conceptCode, dbType));
+      evsConcept.setLabel(getEvsConceptLabel(conceptCode, terminology));
     }
     if (propertyList.contains("Code") || propertyList.contains("NCH0")) {
       evsConcept.setCode(EVSUtils.getConceptCode(properties));
@@ -612,7 +698,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
     }
 
-    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
+    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
     if (propertyList.contains("FULL_SYN") || propertyList.contains("P90")) {
       evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
     }
@@ -623,22 +709,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       evsConcept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
     }
     if (propertyList.contains("Subconcept")) {
-      evsConcept.setSubconcepts(getEvsSubconcepts(conceptCode, dbType, outputType));
+      evsConcept.setSubconcepts(getEvsSubconcepts(conceptCode, terminology, outputType));
     }
     if (propertyList.contains("Superconcept")) {
-      evsConcept.setSuperconcepts(getEvsSuperconcepts(conceptCode, dbType, outputType));
+      evsConcept.setSuperconcepts(getEvsSuperconcepts(conceptCode, terminology, outputType));
     }
     if (propertyList.contains("Association")) {
-      evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+      evsConcept.setAssociations(getEvsAssociations(conceptCode, terminology));
     }
     if (propertyList.contains("InverseAssociation")) {
-      evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
+      evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
     }
     if (propertyList.contains("Role")) {
-      evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+      evsConcept.setRoles(getEvsRoles(conceptCode, terminology));
     }
     if (propertyList.contains("InverseRole")) {
-      evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+      evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
     }
     if (propertyList.contains("Maps_To") || propertyList.contains("P375")) {
       evsConcept.setMapsTo(EVSUtils.getMapsTo(axioms, outputType));
@@ -647,7 +733,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
     }
     if (propertyList.contains("DisjointWith")) {
-      evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
+      evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
     }
   }
 
@@ -661,14 +747,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void getConcept(EvsConcept evsConcept, String conceptCode, String dbType, IncludeParam ip)
+  public void getConcept(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
     throws IOException {
     evsConcept.setCode(conceptCode);
 
-    List<EvsProperty> properties = getEvsProperties(conceptCode, dbType);
+    List<EvsProperty> properties = getEvsProperties(conceptCode, terminology);
 
     // minimal, always do these
-    evsConcept.setLabel(getEvsConceptLabel(conceptCode, dbType));
+    evsConcept.setLabel(getEvsConceptLabel(conceptCode, terminology));
     evsConcept.setCode(EVSUtils.getConceptCode(properties));
 
     // This becomes a synonym
@@ -697,7 +783,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String outputType = "byLabel";
 
     if (ip.hasAnyTrue()) {
-      final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
+      final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
       if (ip.isSynonyms()) {
         evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
       }
@@ -707,27 +793,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         evsConcept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
       }
       if (ip.isChildren()) {
-        evsConcept.setSubconcepts(getEvsSubconcepts(conceptCode, dbType, outputType));
+        evsConcept.setSubconcepts(getEvsSubconcepts(conceptCode, terminology, outputType));
       }
 
       if (ip.isParents()) {
-        evsConcept.setSuperconcepts(getEvsSuperconcepts(conceptCode, dbType, outputType));
+        evsConcept.setSuperconcepts(getEvsSuperconcepts(conceptCode, terminology, outputType));
       }
 
       if (ip.isAssociations()) {
-        evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+        evsConcept.setAssociations(getEvsAssociations(conceptCode, terminology));
       }
 
       if (ip.isInverseAssociations()) {
-        evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
+        evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
       }
 
       if (ip.isRoles()) {
-        evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+        evsConcept.setRoles(getEvsRoles(conceptCode, terminology));
       }
 
       if (ip.isInverseRoles()) {
-        evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+        evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
       }
 
       if (ip.isMaps()) {
@@ -738,7 +824,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
 
       if (ip.isDisjointWith()) {
-        evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
+        evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
       }
     }
   }
@@ -751,8 +837,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the evs maps to
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsMapsTo> getEvsMapsTo(String conceptCode, String dbType) throws IOException {
-    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
+  public List<EvsMapsTo> getEvsMapsTo(String conceptCode, Terminology terminology) throws IOException {
+    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
     return EVSUtils.getMapsTo(axioms, "byCode");
   }
 
@@ -767,10 +853,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsConcept getEvsProperty(String conceptCode, String dbType, IncludeParam ip)
+  public EvsConcept getEvsProperty(String conceptCode, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByLabel evsConcept = new EvsConceptByLabel();
-    getProperty(evsConcept, conceptCode, dbType, ip);
+    getProperty(evsConcept, conceptCode, terminology, ip);
     return evsConcept;
   }
 
@@ -784,17 +870,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the property
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void getProperty(EvsConcept evsConcept, String conceptCode, String dbType, IncludeParam ip)
+  public void getProperty(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
     throws IOException {
     evsConcept.setCode(conceptCode);
 
-    List<EvsProperty> properties = getEvsPropertiesNoRestrictions(conceptCode, dbType);
+    List<EvsProperty> properties = getEvsPropertiesNoRestrictions(conceptCode, terminology);
 
     // minimal, always do these
     evsConcept.setCode(EVSUtils.getConceptCode(properties));
 
     final String pn = EVSUtils.getPreferredName(properties);
-    final String conceptLabel = getEvsConceptLabel(conceptCode, dbType);
+    final String conceptLabel = getEvsConceptLabel(conceptCode, terminology);
     // log.info("conceptLabel - " + conceptLabel);
     // If the label has a space and the preferred name doesn't,
     // and they don't match, use the preferred name
@@ -837,7 +923,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String outputType = "byLabel";
 
     if (ip.hasAnyTrue()) {
-      List<EvsAxiom> axioms = getEvsAxioms(conceptCode, dbType);
+      List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
 
       if (ip.isSynonyms()) {
         evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
@@ -857,27 +943,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (ip.isChildren()) {
-        evsConcept.setSubconcepts(getEvsSubconcepts(conceptCode, dbType, outputType));
+        evsConcept.setSubconcepts(getEvsSubconcepts(conceptCode, terminology, outputType));
       }
 
       if (ip.isParents()) {
-        evsConcept.setSuperconcepts(getEvsSuperconcepts(conceptCode, dbType, outputType));
+        evsConcept.setSuperconcepts(getEvsSuperconcepts(conceptCode, terminology, outputType));
       }
 
       if (ip.isAssociations()) {
-        evsConcept.setAssociations(getEvsAssociations(conceptCode, dbType));
+        evsConcept.setAssociations(getEvsAssociations(conceptCode, terminology));
       }
 
       if (ip.isInverseAssociations()) {
-        evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, dbType));
+        evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
       }
 
       if (ip.isRoles()) {
-        evsConcept.setRoles(getEvsRoles(conceptCode, dbType));
+        evsConcept.setRoles(getEvsRoles(conceptCode, terminology));
       }
 
       if (ip.isInverseRoles()) {
-        evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, dbType));
+        evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
       }
 
       if (ip.isMaps()) {
@@ -886,7 +972,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // evsConcept
       // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
       if (ip.isDisjointWith()) {
-        evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, dbType));
+        evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
       }
     }
   }
@@ -901,13 +987,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsProperty> getEvsProperties(String conceptCode, String dbType)
+  public List<EvsProperty> getEvsProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructPropertyQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructPropertyQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -950,15 +1034,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode, String dbType)
+  public List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
     String query =
-        queryBuilderService.constructPropertyNoRestrictionsQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+        queryBuilderService.constructPropertyNoRestrictionsQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1002,13 +1084,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<EvsRelatedConcept> getEvsSubconcepts(String conceptCode, String dbType,
+  public List<EvsRelatedConcept> getEvsSubconcepts(String conceptCode, Terminology terminology,
     String outputType) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructSubconceptQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructSubconceptQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1044,13 +1124,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<EvsRelatedConcept> getEvsSuperconcepts(String conceptCode, String dbType,
+  public List<EvsRelatedConcept> getEvsSuperconcepts(String conceptCode, Terminology terminology,
     String outputType) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructSuperconceptQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructSuperconceptQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1085,13 +1163,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<EvsAssociation> getEvsAssociations(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructAssociationsQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructAssociationsQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1121,13 +1197,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsInverseAssociations(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructInverseAssociationsQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructInverseAssociationsQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1157,13 +1231,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsInverseRoles(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructInverseRolesQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructInverseRolesQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1193,13 +1265,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsRoles(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructRolesQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructRolesQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1229,13 +1299,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsDisjointWith(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsDisjointWith(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructDisjointWithQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructDisjointWithQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1264,13 +1332,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAxiom> getEvsAxioms(String conceptCode, String dbType)
+  public List<EvsAxiom> getEvsAxioms(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructAxiomQuery(conceptCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructAxiomQuery(conceptCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1385,14 +1451,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public ArrayList<String> getHierarchy(String dbType)
+  public ArrayList<String> getHierarchy(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     ArrayList<String> parentchild = new ArrayList<String>();
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructHierarchyQuery(namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructHierarchyQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1425,13 +1489,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsConcept> getAllProperties(String dbType, IncludeParam ip)
+  public List<EvsConcept> getAllProperties(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructAllPropertiesQuery(namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructAllPropertiesQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1446,7 +1508,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     for (String code : evsProperties) {
       EvsConcept concept = null;
-      concept = getEvsProperty(code, dbType, ip);
+      concept = getEvsProperty(code, terminology, ip);
       evsConcepts.add(concept);
     }
 
@@ -1463,13 +1525,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<String> getAxiomQualifiersList(String propertyCode, String dbType)
+  public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructAxiomQualifierQuery(propertyCode, namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructAxiomQualifierQuery(propertyCode, terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1495,13 +1555,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsConcept> getAllAssociations(String dbType, IncludeParam ip)
+  public List<EvsConcept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructAllAssociationsQuery(namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructAllAssociationsQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1516,7 +1574,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     for (String code : evsProperties) {
       EvsConcept concept = null;
-      concept = getEvsProperty(code, dbType, ip);
+      concept = getEvsProperty(code, terminology, ip);
       evsConcepts.add(concept);
 
     }
@@ -1534,13 +1592,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsConcept> getAllRoles(String dbType, IncludeParam ip)
+  public List<EvsConcept> getAllRoles(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructAllRolesQuery(namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructAllRolesQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1555,7 +1611,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     for (String code : evsProperties) {
       EvsConcept concept = null;
-      concept = getEvsProperty(code, dbType, ip);
+      concept = getEvsProperty(code, terminology, ip);
       evsConcepts.add(concept);
     }
 
@@ -1568,12 +1624,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the root nodes
    */
-  public List<HierarchyNode> getRootNodes(String dbType) {
-    if (dbType.equals("monthly")) {
-      return hierarchyMonthly.getRootNodes();
-    } else {
-      return hierarchyWeekly.getRootNodes();
-    }
+  public List<HierarchyNode> getRootNodes(Terminology terminology) {
+    return hierarchyMap.get(terminology.getTerminologyVersion()).getRootNodes();
   }
 
   /**
@@ -1583,12 +1635,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the child nodes
    */
-  public List<HierarchyNode> getChildNodes(String parent, String dbType) {
-    if (dbType.equals("monthly")) {
-      return hierarchyMonthly.getChildNodes(parent, 0);
-    } else {
-      return hierarchyWeekly.getChildNodes(parent, 0);
-    }
+  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology) {
+    return hierarchyMap.get(terminology.getTerminologyVersion()).getChildNodes(parent, 0);
   }
 
   /**
@@ -1599,12 +1647,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the child nodes
    */
-  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, String dbType) {
-    if (dbType.equals("monthly")) {
-      return hierarchyMonthly.getChildNodes(parent, maxLevel);
-    } else {
-      return hierarchyWeekly.getChildNodes(parent, maxLevel);
-    }
+  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology) {
+    return hierarchyMap.get(terminology.getTerminologyVersion()).getChildNodes(parent, maxLevel);
   }
 
   /**
@@ -1614,12 +1658,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the all child nodes
    */
-  public List<String> getAllChildNodes(String parent, String dbType) {
-    if (dbType.equals("monthly")) {
-      return hierarchyMonthly.getAllChildNodes(parent);
-    } else {
-      return hierarchyWeekly.getAllChildNodes(parent);
-    }
+  public List<String> getAllChildNodes(String parent, Terminology terminology) {
+    return hierarchyMap.get(terminology.getTerminologyVersion()).getAllChildNodes(parent);
   }
 
   /**
@@ -1630,18 +1670,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param path the path
    * @param dbType the db type
    */
-  public void checkPathInHierarchy(String code, HierarchyNode node, Path path, String dbType) {
+  public void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology) {
     if (path.getConcepts().size() == 0) {
       return;
     }
     int end = path.getConcepts().size() - 1;
     ConceptNode concept = path.getConcepts().get(end);
-    List<HierarchyNode> children = null;
-    if (dbType.equals("monthly")) {
-      children = hierarchyMonthly.getChildNodes(node.getCode(), 1);
-    } else {
-      children = hierarchyWeekly.getChildNodes(node.getCode(), 1);
-    }
+    List<HierarchyNode> children = getChildNodes(node.getCode(), 1, terminology);
     if (node.getChildren().size() == 0) {
       node.setChildren(children);
     }
@@ -1655,7 +1690,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         path.getConcepts().remove(path.getConcepts().size() - 1);
       }
       for (HierarchyNode childNode : node.getChildren()) {
-        checkPathInHierarchy(code, childNode, path, dbType);
+        checkPathInHierarchy(code, childNode, path, terminology);
       }
     }
   }
@@ -1667,18 +1702,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the path in hierarchy
    */
-  public List<HierarchyNode> getPathInHierarchy(String code, String dbType) {
-    List<HierarchyNode> rootNodes = null;
-    if (dbType.equals("monthly")) {
-      rootNodes = hierarchyMonthly.getRootNodes();
-    } else {
-      rootNodes = hierarchyWeekly.getRootNodes();
-    }
-    Paths paths = getPathToRoot(code, dbType);
+  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology) {
+    List<HierarchyNode> rootNodes = getRootNodes(terminology);
+    Paths paths = getPathToRoot(code, terminology);
 
     for (HierarchyNode rootNode : rootNodes) {
       for (Path path : paths.getPaths()) {
-        checkPathInHierarchy(code, rootNode, path, dbType);
+        checkPathInHierarchy(code, rootNode, path, terminology);
       }
     }
 
@@ -1692,13 +1722,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the path to root
    */
-  public Paths getPathToRoot(String code, String dbType) {
-    List<Path> paths = null;
-    if (dbType.equals("monthly")) {
-      paths = pathsMonthly.getPaths();
-    } else {
-      paths = pathsWeekly.getPaths();
-    }
+  public Paths getPathToRoot(String code, Terminology terminology) {
+    List<Path> paths = pathsMap.get(terminology.getTerminologyVersion()).getPaths();
     Paths conceptPaths = new Paths();
     for (Path path : paths) {
       Boolean sw = false;
@@ -1740,13 +1765,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param dbType the db type
    * @return the path to parent
    */
-  public Paths getPathToParent(String code, String parentCode, String dbType) {
-    List<Path> paths = null;
-    if (dbType.equals("monthly")) {
-      paths = pathsMonthly.getPaths();
-    } else {
-      paths = pathsWeekly.getPaths();
-    }
+  public Paths getPathToParent(String code, String parentCode, Terminology terminology) {
+    List<Path> paths = pathsMap.get(terminology.getTerminologyVersion()).getPaths();
     Paths conceptPaths = new Paths();
     for (Path path : paths) {
       Boolean codeSW = false;
@@ -1822,11 +1842,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonProcessingException the json processing exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public ConfigData getConfigurationData(String dbType)
+  public ConfigData getConfigurationData(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException {
 
     ConfigData configData = new ConfigData();
-    configData.setEvsVersionInfo(this.getEvsVersionInfo("monthly"));
+    configData.setEvsVersionInfo(this.getEvsVersionInfo(terminology));
 
     /*
      * //List<EvsProperty> properties = this.getAllPropertiesList("monthly",
@@ -1863,13 +1883,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<String> getUniqueSourcesList(String dbType)
+  public List<String> getUniqueSourcesList(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String namedGraph = getNamedGraph(dbType);
-    String queryURL = getQueryURL(dbType);
-    String query = queryBuilderService.constructUniqueSourcesQuery(namedGraph);
-    String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
+    String query = queryBuilderService.constructUniqueSourcesQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

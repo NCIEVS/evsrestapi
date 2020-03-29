@@ -241,6 +241,24 @@ public class Terminology extends BaseModel {
     this.tags = tags;
   }
 
+  /**
+   * Gets the db type.
+   * 
+   * @return the db type
+   */
+  public String getDBType() {
+    return "true".equals(getTags().get("weekly")) ? "weekly" : "monthly";
+  }
+  
+  /**
+   * Indicates if db type is monthly.
+   * 
+   * @return boolean indicating if db type is monthtly
+   */
+  public boolean isMonthly() {
+    return !"true".equals(getTags().get("weekly"));
+  }
+  
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -321,5 +339,5 @@ public class Terminology extends BaseModel {
     }
     return true;
   }
-
+  
 }

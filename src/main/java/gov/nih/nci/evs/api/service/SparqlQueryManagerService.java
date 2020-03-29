@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
@@ -33,7 +34,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public boolean checkConceptExists(String conceptCode, String dbType)
+  public boolean checkConceptExists(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -47,7 +48,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsConcept getEvsConceptByCode(String conceptCode, String dbType, IncludeParam ip)
+  public EvsConcept getEvsConceptByCode(String conceptCode, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -60,7 +61,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsConcept> getAllProperties(String dbType, IncludeParam ip)
+  public List<EvsConcept> getAllProperties(Terminology terminology, IncludeParam ip)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -73,7 +74,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<String> getAxiomQualifiersList(String propertyCode, String dbType)
+  public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -86,7 +87,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsConcept> getAllAssociations(String dbType, IncludeParam ip)
+  public List<EvsConcept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -99,7 +100,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsConcept> getAllRoles(String dbType, IncludeParam ip)
+  public List<EvsConcept> getAllRoles(Terminology terminology, IncludeParam ip)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -113,7 +114,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsConcept getEvsProperty(String conceptCode, String dbType, IncludeParam param)
+  public EvsConcept getEvsProperty(String conceptCode, Terminology terminology, IncludeParam param)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -126,7 +127,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsAssociations(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -139,7 +140,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsInverseAssociations(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -152,7 +153,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsRoles(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -165,7 +166,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsAssociation> getEvsInverseRoles(String conceptCode, String dbType)
+  public List<EvsAssociation> getEvsInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -179,7 +180,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsRelatedConcept> getEvsSubconcepts(String conceptCode, String dbType,
+  public List<EvsRelatedConcept> getEvsSubconcepts(String conceptCode, Terminology terminology,
     String outputType) throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -193,7 +194,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsRelatedConcept> getEvsSuperconcepts(String conceptCode, String dbType,
+  public List<EvsRelatedConcept> getEvsSuperconcepts(String conceptCode, Terminology terminology,
     String outputType) throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -204,7 +205,7 @@ public interface SparqlQueryManagerService {
    * @return the evs maps to
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsMapsTo> getEvsMapsTo(String conceptCode, String dbType) throws IOException;
+  public List<EvsMapsTo> getEvsMapsTo(String conceptCode, Terminology terminology) throws IOException;
 
   /**
    * Returns the root nodes.
@@ -212,7 +213,7 @@ public interface SparqlQueryManagerService {
    * @param dbType the db type
    * @return the root nodes
    */
-  public List<HierarchyNode> getRootNodes(String dbType);
+  public List<HierarchyNode> getRootNodes(Terminology terminology);
 
   /**
    * Returns the child nodes.
@@ -221,7 +222,7 @@ public interface SparqlQueryManagerService {
    * @param dbType the db type
    * @return the child nodes
    */
-  public List<HierarchyNode> getChildNodes(String parent, String dbType);
+  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology);
 
   /**
    * Returns the child nodes.
@@ -231,7 +232,7 @@ public interface SparqlQueryManagerService {
    * @param dbType the db type
    * @return the child nodes
    */
-  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, String dbType);
+  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology);
 
   /**
    * Returns the path in hierarchy.
@@ -240,7 +241,7 @@ public interface SparqlQueryManagerService {
    * @param dbType the db type
    * @return the path in hierarchy
    */
-  public List<HierarchyNode> getPathInHierarchy(String code, String dbType);
+  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology);
 
   /**
    * Returns the path to root.
@@ -252,7 +253,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public Paths getPathToRoot(String conceptCode, String dbType)
+  public Paths getPathToRoot(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -266,7 +267,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public Paths getPathToParent(String conceptCode, String parentConceptCode, String dbType)
+  public Paths getPathToParent(String conceptCode, String parentConceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -278,9 +279,17 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<String> getAllGraphNames(String dbType)
+  public List<String> getAllGraphNames()
     throws JsonParseException, JsonMappingException, IOException;
 
+  /**
+   * Returns the terminologies.
+   *
+   * @return the terminologies
+   * @throws Exception Signals that an exception has occurred.
+   */
+  public List<Terminology> getTerminologies() throws Exception;
+  
   /**
    * Returns EvsVersion Information objects for all graphs loaded in db
    * 
@@ -301,8 +310,8 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsVersionInfo getEvsVersionInfo(String dbType)
-    throws JsonParseException, JsonMappingException, IOException;
+//  public EvsVersionInfo getEvsVersionInfo(String dbType)
+//    throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the evs concept by label properties.
@@ -315,7 +324,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsConcept getEvsConceptByLabelProperties(String conceptCode, String dbType,
+  public EvsConcept getEvsConceptByLabelProperties(String conceptCode, Terminology terminology,
     List<String> properties) throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -327,7 +336,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonProcessingException the json processing exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public ConfigData getConfigurationData(String dbType)
+  public ConfigData getConfigurationData(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException;
 
 }
