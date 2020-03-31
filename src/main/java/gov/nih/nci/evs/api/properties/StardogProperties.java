@@ -18,9 +18,6 @@ public class StardogProperties {
   /** The connect timeout. */
   private long connectTimeout;
 
-  /** The owlfile name. */
-  private String owlfileName;
-
   /** The populate cache cron. */
   private String populateCacheCron;
 
@@ -29,18 +26,6 @@ public class StardogProperties {
 
   /** The query url. */
   private String queryUrl;
-  
-  /** The monthly query url. */
-  private String monthlyQueryUrl;
-
-  /** The weekly query url. */
-  private String weeklyQueryUrl;
-
-  /** The monthly graph name. */
-  private String monthlyGraphName;
-
-  /** The weekly graph name. */
-  private String weeklyGraphName;
 
   /**
    * Returns the username.
@@ -115,24 +100,6 @@ public class StardogProperties {
   }
 
   /**
-   * Returns the owlfile name.
-   *
-   * @return the owlfile name
-   */
-  public String getOwlfileName() {
-    return owlfileName;
-  }
-
-  /**
-   * Sets the owlfile name.
-   *
-   * @param owlfileName the owlfile name
-   */
-  public void setOwlfileName(String owlfileName) {
-    this.owlfileName = owlfileName;
-  }
-
-  /**
    * Returns the populate cache cron.
    *
    * @return the populate cache cron
@@ -185,77 +152,7 @@ public class StardogProperties {
   public void setQueryUrl(String queryUrl) {
     this.queryUrl = queryUrl;
   }
-  
-  /**
-   * Returns the monthly query url.
-   *
-   * @return the monthly query url
-   */
-  public String getMonthlyQueryUrl() {
-    return monthlyQueryUrl;
-  }
 
-  /**
-   * Sets the monthly query url.
-   *
-   * @param monthlyQueryUrl the monthly query url
-   */
-  public void setMonthlyQueryUrl(String monthlyQueryUrl) {
-    this.monthlyQueryUrl = monthlyQueryUrl;
-  }
 
-  /**
-   * Returns the weekly query url.
-   *
-   * @return the weekly query url
-   */
-  public String getWeeklyQueryUrl() {
-    return weeklyQueryUrl;
-  }
-
-  /**
-   * Sets the weekly query url.
-   *
-   * @param weeklyQueryUrl the weekly query url
-   */
-  public void setWeeklyQueryUrl(String weeklyQueryUrl) {
-    this.weeklyQueryUrl = weeklyQueryUrl;
-  }
-
-  /**
-   * Returns the monthly graph name.
-   *
-   * @return the monthly graph name
-   */
-  public String getMonthlyGraphName() {
-    return monthlyGraphName;
-  }
-
-  /**
-   * Sets the monthly graph name.
-   *
-   * @param monthlyGraphName the monthly graph name
-   */
-  public void setMonthlyGraphName(String monthlyGraphName) {
-    this.monthlyGraphName = monthlyGraphName;
-  }
-
-  /**
-   * Returns the weekly graph name.
-   *
-   * @return the weekly graph name
-   */
-  public String getWeeklyGraphName() {
-    return weeklyGraphName;
-  }
-
-  /**
-   * Sets the weekly graph name.
-   *
-   * @param weeklyGraphName the weekly graph name
-   */
-  public void setWeeklyGraphName(String weeklyGraphName) {
-    this.weeklyGraphName = weeklyGraphName;
-  }
 
 }

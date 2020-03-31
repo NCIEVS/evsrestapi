@@ -2,7 +2,6 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,7 +14,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -89,31 +87,31 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The rest utils. */
   private RESTUtils restUtils = null;
 
-  /** Cache for class counts **/
+  /** Cache for class counts *. */
   private Map<String, Long> classCountMap;
-  
-  /** Cache for hierarchy nodes **/
+
+  /** Cache for hierarchy nodes *. */
   private Map<String, HierarchyUtils> hierarchyMap;
-  
-  /** Cache for paths **/
+
+  /** Cache for paths *. */
   private Map<String, Paths> pathsMap;
-  
-  /** Cache for unique sources **/
+
+  /** Cache for unique sources *. */
   private Map<String, List<String>> uniqueSourcesMap;
-  
+
   /**
    * Post init.
    *
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @PostConstruct
   public void postInit() throws Exception {
     restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
         stardogProperties.getReadTimeout(), stardogProperties.getConnectTimeout());
-    
+
     log.info("  configure elasticsearch");
     elasticSearchService.initSettings();
-    
+
     populateCache(TerminologyUtils.getTerminologies(this));
     // This file generation was for the "documentation files"
     // this is no longer part of the API, no need to do this
@@ -125,153 +123,125 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Call cron job.
    *
+   * @param terminologies the terminologies
    * @throws IOException Signals that an I/O exception has occurred.
    */
-//  @Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
-//  public void callCronJob() throws Exception {
-//    LocalDateTime currentTime = LocalDateTime.now();
-//    log.info("callCronJob at " + currentTime);
-//    
-//    List<Terminology> terminologies = TerminologyUtils.getTerminologies(this);
-//    
-//    log.info("ForcePopulateCache " + stardogProperties.getForcePopulateCache());
-//    boolean forcePopulateCache = stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y");
-//    
-//    for(Terminology terminology: terminologies) {
-//      Long classCountNow = getGetClassCounts(terminology);
-//
-//      if (classCountNow.longValue() != classCountMap.get(terminology.getTerminologyVersion())
-//            || forcePopulateCache) {
-//        log.info("****Repopulating cache***");
-//        populateCache(terminology);
-//        // genDocumentationFiles();
-//        log.info("****Repopulating cache done***");
-//      }      
-//    }
-//  }
+  // @Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
+  // public void callCronJob() throws Exception {
+  // LocalDateTime currentTime = LocalDateTime.now();
+  // log.info("callCronJob at " + currentTime);
+  //
+  // List<Terminology> terminologies = TerminologyUtils.getTerminologies(this);
+  //
+  // log.info("ForcePopulateCache " +
+  // stardogProperties.getForcePopulateCache());
+  // boolean forcePopulateCache =
+  // stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y");
+  //
+  // for(Terminology terminology: terminologies) {
+  // Long classCountNow = getGetClassCounts(terminology);
+  //
+  // if (classCountNow.longValue() !=
+  // classCountMap.get(terminology.getTerminologyVersion())
+  // || forcePopulateCache) {
+  // log.info("****Repopulating cache***");
+  // populateCache(terminology);
+  // // genDocumentationFiles();
+  // log.info("****Repopulating cache done***");
+  // }
+  // }
+  // }
 
   private void populateCache(List<Terminology> terminologies) throws IOException {
-    if (CollectionUtils.isEmpty(terminologies)) return;
-    for(Terminology terminology: terminologies) {
+    if (CollectionUtils.isEmpty(terminologies))
+      return;
+    for (Terminology terminology : terminologies) {
       populateCache(terminology);
     }
   }
-  
+
   /**
    * Populate cache.
    *
+   * @param terminology the terminology
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  //TODO: populate cache for single terminology; single terminology method will be used by another that will taken
-  //list of terminologies to populate cache
+  // TODO: populate cache for single terminology; single terminology method will
+  // be used by another that will taken
+  // list of terminologies to populate cache
   private void populateCache(Terminology terminology) throws IOException {
     log.info("Start populating cache - " + terminology.getTerminologyVersion());
-    
+
     Long classCount = getGetClassCounts(terminology);
     log.info("  class count  = " + classCount);
-    if (classCountMap == null) classCountMap = new ConcurrentHashMap<String, Long>();
+    if (classCountMap == null)
+      classCountMap = new ConcurrentHashMap<String, Long>();
     classCountMap.put(terminology.getTerminologyVersion(), classCount);
-    
+
     log.info("  get hierarchy ");
     List<String> parentchild = getHierarchy(terminology);
-    
+
     HierarchyUtils hierarchy = new HierarchyUtils(parentchild);
-    if (hierarchyMap == null) hierarchyMap = new ConcurrentHashMap<String, HierarchyUtils>();
+    if (hierarchyMap == null)
+      hierarchyMap = new ConcurrentHashMap<String, HierarchyUtils>();
     hierarchyMap.put(terminology.getTerminologyVersion(), hierarchy);
-    
+
     log.info("  find paths ");
-    
+
     PathFinder pathFinder = new PathFinder(hierarchy);
-    if (pathsMap == null) pathsMap = new ConcurrentHashMap<String, Paths>();
+    if (pathsMap == null)
+      pathsMap = new ConcurrentHashMap<String, Paths>();
     pathsMap.put(terminology.getTerminologyVersion(), pathFinder.findPaths());
-    
+
     log.info("  get unique sources ");
-    
+
     List<String> uniqueSources = getUniqueSourcesList(terminology);
-    if (uniqueSourcesMap == null) uniqueSourcesMap = new ConcurrentHashMap<String, List<String>>();
+    if (uniqueSourcesMap == null)
+      uniqueSourcesMap = new ConcurrentHashMap<String, List<String>>();
     uniqueSourcesMap.put(terminology.getTerminologyVersion(), uniqueSources);
-    
+
     log.info("Done populating cache - " + terminology.getTerminologyVersion());
   }
-
-  // public void genDocumentationFiles() throws IOException {
-  // String baseDirectory = applicationProperties.getGeneratedFilePath();
-  // ObjectMapper mapper = new ObjectMapper();
-  // List<EvsConcept> properties = getAllProperties("weekly", "byLabel");
-  // try {
-  // mapper.writerWithDefaultPrettyPrinter()
-  // .writeValue(new File(baseDirectory + "properties.json"), properties);
-  // } catch (IOException e) {
-  // e.printStackTrace();
-  // }
-  // List<EvsConcept> roles = getAllRoles("weekly", "byLabel");
-  // try {
-  // mapper.writerWithDefaultPrettyPrinter().writeValue(new File(baseDirectory +
-  // "roles.json"),
-  // roles);
-  // } catch (IOException e) {
-  // e.printStackTrace();
-  // }
-  // List<EvsConcept> associations = getAllAssociations("weekly", "byLabel");
-  // try {
-  // mapper.writerWithDefaultPrettyPrinter()
-  // .writeValue(new File(baseDirectory + "associations.json"), associations);
-  // } catch (IOException e) {
-  // e.printStackTrace();
-  // }
-  //
-  // List<String> conceptProperties =
-  // Arrays.asList("Code", "Label", "Subconcept", "Publish_Value_Set");
-  // EvsConcept parent = getEvsConceptByLabelProperties("C54443", "monthly",
-  // conceptProperties);
-  //
-  // List<HierarchyNode> nodes = getValueSetHierarchy(parent,
-  // conceptProperties);
-  // try {
-  // mapper.writerWithDefaultPrettyPrinter()
-  // .writeValue(new File(baseDirectory + "ValueSetHierarchy.json"), nodes);
-  // } catch (IOException e) {
-  // e.printStackTrace();
-  // }
-  // }
 
   /**
    * Returns the value set hierarchy.
    *
-   * @param parent the parent
-   * @param conceptProperties the concept properties
+   * @param terminology the terminology
    * @return the value set hierarchy
-   * @throws IOException Signals that an I/O exception has occurred.
    */
-//  @SuppressWarnings("unused")
-//  private List<HierarchyNode> getValueSetHierarchy(EvsConcept parent,
-//    List<String> conceptProperties) throws IOException {
-//    List<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-//    for (EvsRelatedConcept child : parent.getSubconcepts()) {
-//      EvsConcept childConcept =
-//          getEvsConceptByLabelProperties(child.getCode(), "monthly", conceptProperties);
-//      HierarchyNode node = new HierarchyNode();
-//      node.setCode(childConcept.getCode());
-//      node.setLabel(childConcept.getLabel());
-//      if (childConcept.getProperties().containsKey("Publish_Value_Set")) {
-//        if (childConcept.getProperties().get("Publish_Value_Set").get(0).equals("Yes")) {
-//          if (childConcept.getSubconcepts() != null) {
-//            List<HierarchyNode> children = getValueSetHierarchy(childConcept, conceptProperties);
-//            if (children.size() > 0) {
-//              node.setLeaf(false);
-//              node.setChildren(children);
-//            } else {
-//              node.setLeaf(true);
-//            }
-//          } else {
-//            node.setLeaf(true);
-//          }
-//          nodes.add(node);
-//        }
-//      }
-//    }
-//    return nodes;
-//  }
+  // @SuppressWarnings("unused")
+  // private List<HierarchyNode> getValueSetHierarchy(EvsConcept parent,
+  // List<String> conceptProperties) throws IOException {
+  // List<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+  // for (EvsRelatedConcept child : parent.getSubconcepts()) {
+  // EvsConcept childConcept =
+  // getEvsConceptByLabelProperties(child.getCode(), "monthly",
+  // conceptProperties);
+  // HierarchyNode node = new HierarchyNode();
+  // node.setCode(childConcept.getCode());
+  // node.setLabel(childConcept.getLabel());
+  // if (childConcept.getProperties().containsKey("Publish_Value_Set")) {
+  // if
+  // (childConcept.getProperties().get("Publish_Value_Set").get(0).equals("Yes"))
+  // {
+  // if (childConcept.getSubconcepts() != null) {
+  // List<HierarchyNode> children = getValueSetHierarchy(childConcept,
+  // conceptProperties);
+  // if (children.size() > 0) {
+  // node.setLeaf(false);
+  // node.setChildren(children);
+  // } else {
+  // node.setLeaf(true);
+  // }
+  // } else {
+  // node.setLeaf(true);
+  // }
+  // nodes.add(node);
+  // }
+  // }
+  // }
+  // return nodes;
+  // }
 
   /**
    * Returns the named graph.
@@ -291,7 +261,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
-  
+
   /**
    * Returns the all graph names.
    *
@@ -325,8 +295,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns EvsVersion Information objects for all graphs loaded in db
-   * 
+   * Returns EvsVersion Information objects for all graphs loaded in db.
+   *
    * @return the list of {@link EvsVersionInfo} objects
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
@@ -339,7 +309,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryURL = getQueryURL();
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
-    if (log.isDebugEnabled()) log.debug("getAllGraphNamesAndVersions response - " + res);
+    if (log.isDebugEnabled())
+      log.debug("getAllGraphNamesAndVersions response - " + res);
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<EvsVersionInfo> evsVersionInfoList = new ArrayList<>();
@@ -348,18 +319,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     for (Bindings b : bindings) {
       String graphName = b.getGraphName().getValue();
-      if (graphName == null || graphName.equalsIgnoreCase("")) continue;
+      if (graphName == null || graphName.equalsIgnoreCase(""))
+        continue;
       EvsVersionInfo evsVersionInfo = new EvsVersionInfo();
       evsVersionInfo.setVersion(b.getVersion().getValue());
-      evsVersionInfo.setDate((b.getDate()==null)?null:b.getDate().getValue());
-      evsVersionInfo.setComment((b.getComment()==null)?"":b.getComment().getValue());
+      evsVersionInfo.setDate((b.getDate() == null) ? null : b.getDate().getValue());
+      evsVersionInfo.setComment((b.getComment() == null) ? "" : b.getComment().getValue());
       evsVersionInfo.setGraph(graphName);
       evsVersionInfoList.add(evsVersionInfo);
     }
-    
+
     return evsVersionInfoList;
   }
-  
+
   /**
    * Return the EvsVersion Information.
    *
@@ -430,7 +402,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public boolean checkConceptExists(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructConceptLabelQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructConceptLabelQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -462,7 +435,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public String getEvsConceptLabel(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructConceptLabelQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructConceptLabelQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -488,8 +462,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsConcept getEvsConceptByCode(String conceptCode, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException {
+  public EvsConcept getEvsConceptByCode(String conceptCode, Terminology terminology,
+    IncludeParam ip) throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByCode evsConcept = new EvsConceptByCode();
     getConcept(evsConcept, conceptCode, terminology, ip);
     return evsConcept;
@@ -524,8 +498,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept properties
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void getConceptProperties(EvsConcept evsConcept, String conceptCode, Terminology terminology,
-    String outputType, List<String> propertyList) throws IOException {
+  public void getConceptProperties(EvsConcept evsConcept, String conceptCode,
+    Terminology terminology, String outputType, List<String> propertyList) throws IOException {
     evsConcept.setCode(conceptCode);
 
     List<EvsProperty> properties = getEvsProperties(conceptCode, terminology);
@@ -623,8 +597,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void getConcept(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
-    throws IOException {
+  public void getConcept(EvsConcept evsConcept, String conceptCode, Terminology terminology,
+    IncludeParam ip) throws IOException {
     evsConcept.setCode(conceptCode);
 
     List<EvsProperty> properties = getEvsProperties(conceptCode, terminology);
@@ -713,7 +687,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the evs maps to
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsMapsTo> getEvsMapsTo(String conceptCode, Terminology terminology) throws IOException {
+  public List<EvsMapsTo> getEvsMapsTo(String conceptCode, Terminology terminology)
+    throws IOException {
     List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
     return EVSUtils.getMapsTo(axioms, "byCode");
   }
@@ -746,8 +721,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the property
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public void getProperty(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
-    throws IOException {
+  public void getProperty(EvsConcept evsConcept, String conceptCode, Terminology terminology,
+    IncludeParam ip) throws IOException {
     evsConcept.setCode(conceptCode);
 
     List<EvsProperty> properties = getEvsPropertiesNoRestrictions(conceptCode, terminology);
@@ -910,12 +885,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode, Terminology terminology)
-    throws JsonMappingException, JsonParseException, IOException {
+  public List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode,
+    Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query =
-        queryBuilderService.constructPropertyNoRestrictionsQuery(conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructPropertyNoRestrictionsQuery(conceptCode,
+        terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -963,7 +938,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<EvsRelatedConcept> getEvsSubconcepts(String conceptCode, Terminology terminology,
     String outputType) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructSubconceptQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructSubconceptQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1003,7 +979,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<EvsRelatedConcept> getEvsSuperconcepts(String conceptCode, Terminology terminology,
     String outputType) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructSuperconceptQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructSuperconceptQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1042,7 +1019,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<EvsAssociation> getEvsAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructAssociationsQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructAssociationsQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1076,7 +1054,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<EvsAssociation> getEvsInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructInverseAssociationsQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructInverseAssociationsQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1110,7 +1089,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<EvsAssociation> getEvsInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructInverseRolesQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructInverseRolesQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1178,7 +1158,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<EvsAssociation> getEvsDisjointWith(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructDisjointWithQuery(conceptCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructDisjointWithQuery(conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1404,7 +1385,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix();
-    String query = queryBuilderService.constructAxiomQualifierQuery(propertyCode, terminology.getGraph());
+    String query =
+        queryBuilderService.constructAxiomQualifierQuery(propertyCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1546,7 +1528,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param path the path
    * @param terminology the terminology
    */
-  public void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology) {
+  public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
+    Terminology terminology) {
     if (path.getConcepts().size() == 0) {
       return;
     }
@@ -1723,23 +1706,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ConfigData configData = new ConfigData();
     configData.setEvsVersionInfo(this.getEvsVersionInfo(terminology));
-
-    /*
-     * //List<EvsProperty> properties = this.getAllPropertiesList("monthly",
-     * "byLabel"); //configData.setProperties(properties);
-     * 
-     * List<String> termSources = getAxiomQualifiersList("P384", "monthly");
-     * List<String> subsourceSources = getAxiomQualifiersList("P386",
-     * "monthly"); String[] sourceToBeRemoved =
-     * thesaurusProperties.getSourcesToBeRemoved(); List<String>
-     * sourceToBeRemovedList = Arrays.asList( sourceToBeRemoved );
-     * subsourceSources.removeAll(sourceToBeRemovedList);
-     * termSources.removeAll(sourceToBeRemovedList); List<String> uniqueSources
-     * = Stream.concat(termSources.stream(),subsourceSources.stream()) .map(x ->
-     * x) .distinct() .collect(Collectors.toList());
-     * Collections.sort(uniqueSources);
-     * configData.setFullSynSources(uniqueSources);
-     */
 
     String[] sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
     List<String> sourceToBeRemovedList = Arrays.asList(sourceToBeRemoved);
