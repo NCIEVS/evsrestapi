@@ -89,12 +89,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The rest utils. */
   private RESTUtils restUtils = null;
 
+  /** Cache for class counts **/
   private Map<String, Long> classCountMap;
   
+  /** Cache for hierarchy nodes **/
   private Map<String, HierarchyUtils> hierarchyMap;
   
+  /** Cache for paths **/
   private Map<String, Paths> pathsMap;
   
+  /** Cache for unique sources **/
   private Map<String, List<String>> uniqueSourcesMap;
   
   /**
@@ -123,28 +127,28 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
-  public void callCronJob() throws Exception {
-    LocalDateTime currentTime = LocalDateTime.now();
-    log.info("callCronJob at " + currentTime);
-    
-    List<Terminology> terminologies = TerminologyUtils.getTerminologies(this);
-    
-    log.info("ForcePopulateCache " + stardogProperties.getForcePopulateCache());
-    boolean forcePopulateCache = stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y");
-    
-    for(Terminology terminology: terminologies) {
-      Long classCountNow = getGetClassCounts(terminology);
-
-      if (classCountNow.longValue() != classCountMap.get(terminology.getTerminologyVersion())
-            || forcePopulateCache) {
-        log.info("****Repopulating cache***");
-        populateCache(terminology);
-        // genDocumentationFiles();
-        log.info("****Repopulating cache done***");
-      }      
-    }
-  }
+//  @Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
+//  public void callCronJob() throws Exception {
+//    LocalDateTime currentTime = LocalDateTime.now();
+//    log.info("callCronJob at " + currentTime);
+//    
+//    List<Terminology> terminologies = TerminologyUtils.getTerminologies(this);
+//    
+//    log.info("ForcePopulateCache " + stardogProperties.getForcePopulateCache());
+//    boolean forcePopulateCache = stardogProperties.getForcePopulateCache().equalsIgnoreCase("Y");
+//    
+//    for(Terminology terminology: terminologies) {
+//      Long classCountNow = getGetClassCounts(terminology);
+//
+//      if (classCountNow.longValue() != classCountMap.get(terminology.getTerminologyVersion())
+//            || forcePopulateCache) {
+//        log.info("****Repopulating cache***");
+//        populateCache(terminology);
+//        // genDocumentationFiles();
+//        log.info("****Repopulating cache done***");
+//      }      
+//    }
+//  }
 
   private void populateCache(List<Terminology> terminologies) throws IOException {
     if (CollectionUtils.isEmpty(terminologies)) return;
