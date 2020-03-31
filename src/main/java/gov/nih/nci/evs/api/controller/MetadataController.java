@@ -61,8 +61,6 @@ public class MetadataController {
       response = ConfigData.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDB
@@ -81,8 +79,6 @@ public class MetadataController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDB
@@ -106,8 +102,6 @@ public class MetadataController {
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations",
@@ -148,8 +142,6 @@ public class MetadataController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -195,8 +187,6 @@ public class MetadataController {
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles",
@@ -237,8 +227,6 @@ public class MetadataController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -285,8 +273,6 @@ public class MetadataController {
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
@@ -331,8 +317,6 @@ public class MetadataController {
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
@@ -361,8 +345,6 @@ public class MetadataController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -405,8 +387,6 @@ public class MetadataController {
       response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -437,8 +417,6 @@ public class MetadataController {
       response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -496,8 +474,6 @@ public class MetadataController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({

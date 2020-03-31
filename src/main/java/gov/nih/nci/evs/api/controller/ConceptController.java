@@ -71,8 +71,6 @@ public class ConceptController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}",
@@ -127,8 +125,6 @@ public class ConceptController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -179,8 +175,6 @@ public class ConceptController {
       response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -224,8 +218,6 @@ public class ConceptController {
       response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -270,8 +262,6 @@ public class ConceptController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -315,8 +305,6 @@ public class ConceptController {
       response = Role.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -360,8 +348,6 @@ public class ConceptController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -406,8 +392,6 @@ public class ConceptController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -453,8 +437,6 @@ public class ConceptController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -504,8 +486,6 @@ public class ConceptController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -549,8 +529,6 @@ public class ConceptController {
       response = DisjointWith.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -592,8 +570,6 @@ public class ConceptController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -641,8 +617,6 @@ public class ConceptController {
       response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -692,8 +666,6 @@ public class ConceptController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -727,8 +699,6 @@ public class ConceptController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -763,8 +733,6 @@ public class ConceptController {
       response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -816,8 +784,6 @@ public class ConceptController {
       response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat

@@ -31,8 +31,6 @@ public class VersionController {
   @ApiOperation(value = "Get the application version information", response = ApplicationVersion.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 401, message = "Not authorized to view this resource"),
-      @ApiResponse(code = 403, message = "Access to resource is forbidden"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
