@@ -18,6 +18,9 @@ public class EvsVersionInfo {
   /** The graph. */
   String graph;
 
+  /** The source for graph **/
+  String source;
+  
   /**
    * Returns the version.
    *
@@ -90,4 +93,22 @@ public class EvsVersionInfo {
     this.graph = graph;
   }
 
+  /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source
+   */
+  public void setSource(String source) {
+    this.source = source;
+  }
+  
 }

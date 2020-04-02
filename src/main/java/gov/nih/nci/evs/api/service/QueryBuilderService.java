@@ -69,9 +69,10 @@ public interface QueryBuilderService {
   /**
    * Contruct prefix.
    *
+   * @param source the graph source
    * @return the string
    */
-  public String contructPrefix();
+  public String contructPrefix(String source);
 
   /**
    * Construct property query.

@@ -5,6 +5,7 @@ import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,18 +33,14 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   @Autowired
   Environment env;
   
-  public String contructPrefix() {
-    String prefix = String.join(System.getProperty("line.separator"),
-        "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/"
-            + stardogProperties.getOwlfileName() + "#>",
-        "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/"
-            + stardogProperties.getOwlfileName() + ">",
-        "PREFIX owl:<http://www.w3.org/2002/07/owl#>",
-        "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
-        "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>",
-        "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>",
-        "PREFIX dc:<http://purl.org/dc/elements/1.1/>",
-        "PREFIX xml:<http://www.w3.org/2001/XMLSchema#>");
+  public String contructPrefix(String source) {
+    String prefix = env.getProperty("prefix.common");
+    
+    if (StringUtils.isNotEmpty(source)) {
+      Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+          source);
+      prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator") + prefix;
+    }
 
     log.debug("prefix - " + prefix);
     return prefix;
@@ -52,7 +49,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructClassCountsQuery(String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
-    String query = getResolvedQuery("class.counts", values);
+    String query = getResolvedProperty("class.counts", values);
 
     log.debug("constructGetClassCounts - " + query);
     return query;
@@ -88,7 +85,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructVersionInfoQuery(String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
-    String query = getResolvedQuery("version.info", values);
+    String query = getResolvedProperty("version.info", values);
     
     log.debug("constructVersionInfoQuery - " + query);
     return query;
@@ -113,7 +110,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         propertyCode, namedGraph);
-    String query = getResolvedQuery("axiom.qualifier", values);
+    String query = getResolvedProperty("axiom.qualifier", values);
 
     log.debug("constructAxiomQualiferQuery - " + query);
     return query;
@@ -122,7 +119,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructPropertyQuery(String conceptCode, String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("property", values);
+    String query = getResolvedProperty("property", values);
 
     log.debug("constructPropertyQuery - " + query);
     return query;
@@ -132,7 +129,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("property.no.restrictions", values);
+    String query = getResolvedProperty("property.no.restrictions", values);
     
     log.debug("constructPropertyNoRestrictionsQuery - " + query);
     return query;
@@ -142,7 +139,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("all.property", values);
+    String query = getResolvedProperty("all.property", values);
 
     log.debug("constructPropertyQuery - " + query);
     return query;
@@ -152,7 +149,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("concept.label", values);
+    String query = getResolvedProperty("concept.label", values);
 
     log.debug("constructConceptLabelQuery - " + query);
     return query;
@@ -161,7 +158,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructAxiomQuery(String conceptCode, String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("axiom", values);
+    String query = getResolvedProperty("axiom", values);
 
     log.debug("constructAxiomQuery - " + query);
     return query;
@@ -171,7 +168,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("subconcept", values);
+    String query = getResolvedProperty("subconcept", values);
 
     log.debug("constructSubconceptQuery - " + query);
     return query;
@@ -181,7 +178,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("superconcept", values);
+    String query = getResolvedProperty("superconcept", values);
 
     log.debug("constructSuperconceptQuery - " + query);
     return query;
@@ -191,7 +188,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("associations", values);
+    String query = getResolvedProperty("associations", values);
 
     log.debug("constructAssociationsQuery - " + query);
     return query;
@@ -201,7 +198,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("inverse.associations", values);
+    String query = getResolvedProperty("inverse.associations", values);
 
     log.debug("constructInverseAssociationsQuery - " + query);
     return query;
@@ -211,7 +208,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("inverse.roles", values);
+    String query = getResolvedProperty("inverse.roles", values);
 
     log.debug("constructInverseRolesQuery - " + query);
     return query;
@@ -220,7 +217,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructRolesQuery(String conceptCode, String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("roles", values);
+    String query = getResolvedProperty("roles", values);
     
     log.debug("constructRolesQuery - " + query);
     return query;
@@ -230,7 +227,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         conceptCode, namedGraph);
-    String query = getResolvedQuery("disjoint.with", values);
+    String query = getResolvedProperty("disjoint.with", values);
     
     log.debug("constructDisjointWithQuery - " + query);
     return query;
@@ -239,7 +236,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructHierarchyQuery(String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
-    String query = getResolvedQuery("hierarchy", values);
+    String query = getResolvedProperty("hierarchy", values);
 
     log.debug("constructHierarchyQuery - " + query);
     return query;
@@ -248,7 +245,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructAllPropertiesQuery(String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
-    String query = getResolvedQuery("all.properties", values);
+    String query = getResolvedProperty("all.properties", values);
 
     log.debug("constructAllPropertiesQuery - " + query);
     return query;
@@ -257,7 +254,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructAllAssociationsQuery(String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
-    String query = getResolvedQuery("all.associations", values);
+    String query = getResolvedProperty("all.associations", values);
     
     log.debug("constructAllAssociationsQuery - " + query);
     return query;
@@ -266,7 +263,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructAllRolesQuery(String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
-    String query = getResolvedQuery("all.roles", values);
+    String query = getResolvedProperty("all.roles", values);
 
     log.debug("constructAllRolesQuery - " + query);
     return query;
@@ -275,7 +272,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructUniqueSourcesQuery(String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
-    String query = getResolvedQuery("unique.sources", values);
+    String query = getResolvedProperty("unique.sources", values);
 
     log.debug("constructUniqueSourcesQuery - " + query);
     return query;
@@ -296,7 +293,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     return paramMap;
   }
 
-  private String getResolvedQuery(String queryKey, Map<String, String> values) {
+  private String getResolvedProperty(String queryKey, Map<String, String> values) {
     return StringSubstitutor.replace(env.getProperty(queryKey), values, "#{", "}");
   }
   
