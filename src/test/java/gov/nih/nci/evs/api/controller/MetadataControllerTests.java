@@ -594,8 +594,8 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<String> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();

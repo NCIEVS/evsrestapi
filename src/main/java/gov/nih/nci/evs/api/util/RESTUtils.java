@@ -19,11 +19,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * The Class RESTUtils.
+ * REST call utilities
  */
 public class RESTUtils {
 
   /** The Constant log. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(RESTUtils.class);
 
   /** The username. */

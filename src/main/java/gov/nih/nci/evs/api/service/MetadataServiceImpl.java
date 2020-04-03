@@ -49,7 +49,7 @@ public class MetadataServiceImpl implements MetadataService {
    * Returns the application metadata.
    *
    * @return the application metadata
-   * @throws Exception 
+   * @throws Exception
    */
   @Override
   public ConfigData getApplicationMetadata() throws Exception {
@@ -300,23 +300,20 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
       condition = "#terminology.equals('ncit')")
-  public Optional<List<String>> getContributingSources(String terminology) throws Exception {
+  public List<Concept> getContributingSources(String terminology) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     if (!term.getTerminology().equals("ncit"))
-      return Optional.empty();
+      return new ArrayList<>();
 
-    final List<String> sources = new ArrayList<String>();
     final Map<String, String> contributingSources = thesaurusProperties.getContributingSources();
-    for (String name : contributingSources.keySet()) {
-      // search for value
-      String value = contributingSources.get(name);
-      // String conSource = name + " : " + value;
-      // sources.add(conSource);
-      sources.add(value);
+    final List<Concept> result = new ArrayList<>();
+    for (final String key : contributingSources.keySet().stream().sorted()
+        .collect(Collectors.toList())) {
+      result.add(new Concept(terminology, key, contributingSources.get(key)));
     }
 
-    return Optional.of(sources);
+    return result;
   }
 
   /**

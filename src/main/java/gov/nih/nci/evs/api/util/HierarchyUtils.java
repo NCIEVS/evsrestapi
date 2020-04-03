@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.util;
 
 import java.util.ArrayList;
@@ -9,35 +10,60 @@ import java.util.stream.Collectors;
 
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
 
+/**
+ * Hierarchy utilities.
+ */
 public class HierarchyUtils {
 
+  /** The parent 2 child. */
   private HashMap<String, ArrayList<String>> parent2child =
       new HashMap<String, ArrayList<String>>();
 
+  /** The child 2 parent. */
   private HashMap<String, ArrayList<String>> child2parent =
       new HashMap<String, ArrayList<String>>();
 
+  /** The code 2 label. */
   private HashMap<String, String> code2label = new HashMap<String, String>();
 
+  /** The label 2 code. */
   private HashMap<String, String> label2code = new HashMap<String, String>();
 
+  /** The concepts. */
   private HashSet<String> concepts = new HashSet<String>();
 
+  /** The parents. */
   private HashSet<String> parents = new HashSet<String>();
 
+  /** The children. */
   private HashSet<String> children = new HashSet<String>();
 
+  /** The roots. */
   private HashSet<String> roots = null;
 
+  /** The leaves. */
   private HashSet<String> leaves = null;
 
+  /**
+   * Instantiates an empty {@link HierarchyUtils}.
+   */
   public HierarchyUtils() {
   }
 
+  /**
+   * Instantiates a {@link HierarchyUtils} from the specified parameters.
+   *
+   * @param parentchild the parentchild
+   */
   public HierarchyUtils(List<String> parentchild) {
     initialize(parentchild);
   }
 
+  /**
+   * Initialize.
+   *
+   * @param parentchild the parentchild
+   */
   public void initialize(List<String> parentchild) {
     /*
      * The parentchild string is expected to be in the order of parentCode,
@@ -91,8 +117,16 @@ public class HierarchyUtils {
     // testLoading();
   }
 
-  public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts,
-    String code, Integer level) {
+  /**
+   * Returns the transitive closure.
+   *
+   * @param concepts the concepts
+   * @param code the code
+   * @param level the level
+   * @return the transitive closure
+   */
+  public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts, String code,
+    Integer level) {
     ArrayList<String> children = this.parent2child.get(code);
     if (children == null || children.size() == 0) {
       return concepts;
@@ -102,19 +136,29 @@ public class HierarchyUtils {
       for (int i = 0; i < level; i++) {
         indent = indent + "    ";
       }
-      System.out.println(
-          indent + "Parent: " + code + ": " + code2label.get(code) + "  Child: "
-              + child + ": " + code2label.get(child) + "  Level: " + level);
-      ArrayList<String> newChildren =
-          getTransitiveClosure(concepts, child, level + 1);
+      System.out.println(indent + "Parent: " + code + ": " + code2label.get(code) + "  Child: "
+          + child + ": " + code2label.get(child) + "  Level: " + level);
+      // ArrayList<String> newChildren =
+      getTransitiveClosure(concepts, child, level + 1);
     }
     return concepts;
   }
 
+  /**
+   * Returns the roots.
+   *
+   * @return the roots
+   */
   public ArrayList<String> getRoots() {
     return new ArrayList<String>(this.roots);
   }
 
+  /**
+   * Returns the subclass codes.
+   *
+   * @param code the code
+   * @return the subclass codes
+   */
   public ArrayList<String> getSubclassCodes(String code) {
     if (this.parent2child.containsKey(code)) {
       return parent2child.get(code);
@@ -122,6 +166,12 @@ public class HierarchyUtils {
     return null;
   }
 
+  /**
+   * Returns the superclass codes.
+   *
+   * @param code the code
+   * @return the superclass codes
+   */
   public ArrayList<String> getSuperclassCodes(String code) {
     if (!child2parent.containsKey(code)) {
       return null;
@@ -129,6 +179,12 @@ public class HierarchyUtils {
     return child2parent.get(code);
   }
 
+  /**
+   * Returns the label.
+   *
+   * @param code the code
+   * @return the label
+   */
   public String getLabel(String code) {
     if (this.code2label.containsKey(code)) {
       return code2label.get(code);
@@ -140,6 +196,11 @@ public class HierarchyUtils {
    * This section to support the Hierarchy Browser
    */
 
+  /**
+   * Returns the root nodes.
+   *
+   * @return the root nodes
+   */
   public ArrayList<HierarchyNode> getRootNodes() {
     ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
     for (String code : this.roots) {
@@ -150,6 +211,13 @@ public class HierarchyUtils {
     return nodes;
   }
 
+  /**
+   * Returns the child nodes.
+   *
+   * @param parent the parent
+   * @param maxLevel the max level
+   * @return the child nodes
+   */
   public ArrayList<HierarchyNode> getChildNodes(String parent, int maxLevel) {
     ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
     ArrayList<String> children = this.parent2child.get(parent);
@@ -165,6 +233,14 @@ public class HierarchyUtils {
     return nodes;
   }
 
+  /**
+   * Returns the child nodes level.
+   *
+   * @param node the node
+   * @param maxLevel the max level
+   * @param level the level
+   * @return the child nodes level
+   */
   public void getChildNodesLevel(HierarchyNode node, int maxLevel, int level) {
     List<String> children = this.parent2child.get(node.getCode());
     node.setLevel(level);
@@ -182,8 +258,7 @@ public class HierarchyUtils {
     ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
     level = level + 1;
     for (String code : children) {
-      HierarchyNode newnode =
-          new HierarchyNode(code, code2label.get(code), false);
+      HierarchyNode newnode = new HierarchyNode(code, code2label.get(code), false);
       getChildNodesLevel(newnode, maxLevel, level);
       List<HierarchyNode> sortedChildren = newnode.getChildren();
       // Sort children if they exist
@@ -198,8 +273,14 @@ public class HierarchyUtils {
     node.setChildren(nodes);
   }
 
-  public void getAllChildNodesRecursive(String code,
-    ArrayList<String> childCodes) {
+  /**
+   * Returns the all child nodes recursive.
+   *
+   * @param code the code
+   * @param childCodes the child codes
+   * @return the all child nodes recursive
+   */
+  public void getAllChildNodesRecursive(String code, ArrayList<String> childCodes) {
     List<String> children = this.parent2child.get(code);
     if (children == null || children.size() == 0) {
       return;
@@ -211,6 +292,12 @@ public class HierarchyUtils {
     }
   }
 
+  /**
+   * Returns the all child nodes.
+   *
+   * @param code the code
+   * @return the all child nodes
+   */
   public List<String> getAllChildNodes(String code) {
     ArrayList<String> childCodes = new ArrayList<String>();
 

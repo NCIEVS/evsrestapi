@@ -414,7 +414,7 @@ public class MetadataController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get all contributing sources for the specified terminology",
-      response = String.class, responseContainer = "List")
+      response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 404, message = "Resource not found")
@@ -426,14 +426,10 @@ public class MetadataController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources",
       produces = "application/json")
-  public @ResponseBody List<String> getContributingSources(
+  public @ResponseBody List<Concept> getContributingSources(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
-    Optional<List<String>> result = metadataService.getContributingSources(terminology);
-    if (!result.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-    return result.get();
+    return metadataService.getContributingSources(terminology);
   }
 
   /**

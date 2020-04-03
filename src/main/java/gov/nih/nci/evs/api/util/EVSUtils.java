@@ -21,7 +21,7 @@ import gov.nih.nci.evs.api.model.evs.EvsSynonymByCode;
 import gov.nih.nci.evs.api.model.evs.EvsSynonymByLabel;
 
 /**
- * The Class EVSUtils.
+ * Utilities for handling EVS stuff.
  */
 public class EVSUtils {
 
