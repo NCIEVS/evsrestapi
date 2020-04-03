@@ -36,6 +36,9 @@ public class Terminology extends BaseModel {
 
   /** The graph. */
   private String graph;
+  
+  /** The graph source. */
+  private String source;
 
   /** The terminology version. */
   private String terminologyVersion;
@@ -74,6 +77,7 @@ public class Terminology extends BaseModel {
         + info.getVersion();
     description = info.getComment();
     graph = info.getGraph();
+    source = info.getSource();
     terminology = "ncit";
     terminologyVersion = terminology + "_" + version;
   }
@@ -89,6 +93,7 @@ public class Terminology extends BaseModel {
     name = other.getName();
     description = other.getDescription();
     graph = other.getGraph();
+    source = other.getSource();
     terminologyVersion = other.getTerminologyVersion();
     latest = other.getLatest();
     tags = new HashMap<>(other.getTags());
@@ -185,6 +190,24 @@ public class Terminology extends BaseModel {
   }
 
   /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source
+   */
+  public void setSource(final String source) {
+    this.source = source;
+  }
+  
+  /**
    * Returns the terminology version.
    *
    * @return the terminology version
@@ -248,6 +271,7 @@ public class Terminology extends BaseModel {
     result =
         prime * result + ((description == null) ? 0 : description.hashCode());
     result = prime * result + ((graph == null) ? 0 : graph.hashCode());
+    result = prime * result + ((source == null) ? 0 : source.hashCode());
     result = prime * result + ((latest == null) ? 0 : latest.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result =
@@ -282,6 +306,13 @@ public class Terminology extends BaseModel {
         return false;
       }
     } else if (!graph.equals(other.graph)) {
+      return false;
+    }
+    if (source == null) {
+      if (other.source != null) {
+        return false;
+      }
+    } else if (!source.equals(other.source)) {
       return false;
     }
     if (latest == null) {
@@ -321,5 +352,5 @@ public class Terminology extends BaseModel {
     }
     return true;
   }
-
+  
 }

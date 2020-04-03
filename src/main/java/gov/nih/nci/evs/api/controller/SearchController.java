@@ -269,10 +269,9 @@ public class SearchController {
       final String terminology = searchCriteria.getTerminology().get(0);
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      final String dbType = "true".equals(term.getTags().get("weekly")) ? "weekly" : "monthly";
       final IncludeParam ip = searchCriteria.computeIncludeParam();
 
-      searchCriteria.validate(dbType, metadataService, thesaurusProperties);
+      searchCriteria.validate(term, metadataService, thesaurusProperties);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
@@ -280,7 +279,7 @@ public class SearchController {
       final List<Concept> concepts = new ArrayList<>();
       for (final Concept result : results.getConcepts()) {
         final Concept concept = ConceptUtils.convertConcept(
-            sparqlQueryManagerService.getEvsConceptByCode(result.getCode(), dbType, ip));
+            sparqlQueryManagerService.getEvsConceptByCode(result.getCode(), term, ip));
         ConceptUtils.applyHighlights(concept, result.getHighlights());
         concept.setTerminology(terminology);
         // Clear highlights now that they have been applied

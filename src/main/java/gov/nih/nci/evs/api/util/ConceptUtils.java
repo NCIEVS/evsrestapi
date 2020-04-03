@@ -22,6 +22,7 @@ import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.ConceptNode;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
@@ -349,13 +350,13 @@ public final class ConceptUtils {
    *
    * @param service the service
    * @param ip the ip
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
   public static List<Concept> convertConceptsWithInclude(final SparqlQueryManagerService service,
-    final IncludeParam ip, final String dbType, final List<EvsRelatedConcept> list)
+    final IncludeParam ip, final Terminology terminology, final List<EvsRelatedConcept> list)
     throws Exception {
 
     final List<Concept> concepts = convertConcepts(list);
@@ -364,7 +365,7 @@ public final class ConceptUtils {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
         concept.populateFrom(ConceptUtils
-            .convertConcept(service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
+            .convertConcept(service.getEvsConceptByCode(concept.getCode(), terminology, ip)));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -390,13 +391,13 @@ public final class ConceptUtils {
    *
    * @param service the service
    * @param ip the ip
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
   public static List<Concept> convertConceptsFromHierarchyWithInclude(
-    final SparqlQueryManagerService service, final IncludeParam ip, final String dbType,
+    final SparqlQueryManagerService service, final IncludeParam ip, final Terminology terminology,
     final List<HierarchyNode> list) throws Exception {
 
     final List<Concept> concepts = convertConceptsFromHierarchy(list);
@@ -405,7 +406,7 @@ public final class ConceptUtils {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
         concept.populateFrom(ConceptUtils
-            .convertConcept(service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
+            .convertConcept(service.getEvsConceptByCode(concept.getCode(), terminology, ip)));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -448,14 +449,14 @@ public final class ConceptUtils {
    *
    * @param service the service
    * @param ip the ip
-   * @param dbType the db type
+   * @param terminology the terminology
    * @param paths the paths
    * @param reverse the reverse
    * @return the list
    * @throws Exception the exception
    */
   public static List<List<Concept>> convertPathsWithInclude(final SparqlQueryManagerService service,
-    final IncludeParam ip, final String dbType, final Paths paths, final boolean reverse)
+    final IncludeParam ip, final Terminology terminology, final Paths paths, final boolean reverse)
     throws Exception {
 
     final List<List<Concept>> list = convertPaths(paths, reverse);
@@ -468,7 +469,7 @@ public final class ConceptUtils {
             concept.populateFrom(cache.get(concept.getCode()));
           } else {
             concept.populateFrom(ConceptUtils
-                .convertConcept(service.getEvsConceptByCode(concept.getCode(), dbType, ip)));
+                .convertConcept(service.getEvsConceptByCode(concept.getCode(), terminology, ip)));
             cache.put(concept.getCode(), concept);
           }
           concept.setLevel(level);

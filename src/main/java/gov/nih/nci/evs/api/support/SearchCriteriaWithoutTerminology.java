@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -411,12 +412,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Validate.
    *
-   * @param dbType the db type
+   * @param terminology the terminology instance
    * @param sparqlQueryManagerService the sparql query manager service
    * @param thesaurusProperties the thesaurus properties
    * @throws Exception the exception
    */
-  public void validate(final String dbType,
+  public void validate(final Terminology terminology,
     final MetadataService metadataService,
     final ThesaurusProperties thesaurusProperties) throws Exception {
     if (getTerm() == null) {
@@ -458,7 +459,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid contributing source
     for (final String ss : getSynonymSource()) {
-      if (!metadataService.getApplicationMetadata(dbType)
+      if (!metadataService.getApplicationMetadata(terminology)
           .getFullSynSources().contains(ss)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'synonymSource' has an invalid value = " + ss);

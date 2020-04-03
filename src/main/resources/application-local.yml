@@ -53,20 +53,16 @@ nci:
       forceFileGeneration: false
       metricLogDirectory: ${user.home}/apps/evsrestapi/logs/
     stardog:
-      monthlyQueryUrl: http://localhost:5820/NCIT2/query
-      monthlyGraphName: http://NCI_T
-      weeklyQueryUrl: http://localhost:5820/NCIT2/query
-      weeklyGraphName: http://NCI_T
+      queryUrl: http://localhost:5820/NCIT2/query
       username: admin
       password: admin
       readTimeout: 30
       connectTimeout: 30
-      owlfileName: Thesaurus.owl
       populateCacheCron: 0 0 1 * * *
       forcePopulateCache: N
     elasticsearch:
       server:
-        url: http://localhost:9200/concept/_search
+        url: http://10.1.10.30:9200/concept/_search
       query:
         propertyToQuery: {
                    p108:

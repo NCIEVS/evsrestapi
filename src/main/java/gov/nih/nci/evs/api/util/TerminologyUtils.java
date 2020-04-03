@@ -1,17 +1,28 @@
 
 package gov.nih.nci.evs.api.util;
 
-import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
@@ -35,36 +46,82 @@ public final class TerminologyUtils {
    * Returns the terminologies.
    *
    * @param sparqlQueryManagerService the sparql query manager service
+   *
    * @return the terminologies
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception Signals that an exception has occurred.
    */
-  public static List<Terminology> getTerminologies(
-    final SparqlQueryManagerService sparqlQueryManagerService) throws IOException {
-    // TODO: Next step for this is to use approaches in MetadataUtils
-    // to discover the ontologies loaded into stardog (via sparql).
-    final Terminology monthlyNcit =
-        new Terminology(sparqlQueryManagerService.getEvsVersionInfo("monthly"));
-    monthlyNcit.getTags().put("monthly", "true");
-
-    final Terminology weeklyNcit =
-        new Terminology(sparqlQueryManagerService.getEvsVersionInfo("weekly"));
-
-    // If these are equal, there's only one version, return it
-    if (monthlyNcit.equals(weeklyNcit)) {
-      // Monthly is the latest published version
-      monthlyNcit.setLatest(true);
-      return EVSUtils.asList(monthlyNcit);
+  public static List<Terminology> getTerminologies(final SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
+    
+    List<EvsVersionInfo> evsVersionInfoList = sparqlQueryManagerService.getEvsVersionInfoList();
+    
+    if (CollectionUtils.isEmpty(evsVersionInfoList)) return Collections.<Terminology>emptyList();
+    
+    final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
+    final List<Terminology> results = new ArrayList<>();
+    
+    Collections.sort(evsVersionInfoList, new Comparator<EvsVersionInfo>() {
+      @Override
+      public int compare(EvsVersionInfo o1, EvsVersionInfo o2) {
+        return -1 * o1.getVersion().compareTo(o2.getVersion());
+      }});
+    
+    for(int i=0; i<evsVersionInfoList.size(); i++) {
+      final EvsVersionInfo versionInfo = evsVersionInfoList.get(i);
+      final Terminology term = getTerminologyForVersionInfo(versionInfo, fmt);
+      
+      logger.debug("Adding terminology - " + term.getTerminologyVersion());
+      
+      //set latest tag for the most recent version
+      term.setLatest(i==0);
+      
+      logger.debug("  Latest tag - " + term.getLatest());
+      
+      //temporary code -- enable date logic in getTerminologyForVersionInfo
+      if (i==0) {
+        term.getTags().put("monthly", "true");
+        logger.debug("  Monthly tag - true");
+      } else {
+        term.getTags().put("weekly", "true");
+        logger.debug("  Weekly tag - true");
+      }
+      
+      results.add(term);
     }
-    // Otherwise, there are two versions
-    else {
-      // Monthly is the latest published version
-      monthlyNcit.setLatest(true);
-      weeklyNcit.getTags().put("weekly", "true");
-      weeklyNcit.setLatest(false);
-      return EVSUtils.asList(monthlyNcit, weeklyNcit);
-    }
+    
+    return results;
   }
 
+  private static Terminology getTerminologyForVersionInfo(final EvsVersionInfo versionInfo, final DateFormat fmt) throws ParseException {
+    final Terminology term = new Terminology(versionInfo);
+    final Date d = fmt.parse(versionInfo.getDate());
+    Calendar cal = GregorianCalendar.getInstance();
+    cal.setTime(d);
+
+    //Count days of week; for NCI, this should be max Mondays in month
+    int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
+
+    String version = versionInfo.getVersion();
+    char weekIndicator = version.charAt(version.length() - 1);
+    
+    boolean monthly = false;
+    
+    switch (weekIndicator) {
+      case 'e':
+        monthly = true;//has to be monthly version
+        break;
+      case 'd'://monthly version, if month has only 4 days of week (for ex: Monday) only
+        if (maxDayOfWeek == 4) monthly = true;
+        break;
+      default://case a,b,c
+        break;
+    }
+    
+    if (monthly) term.getTags().put("monthly", "true");
+    else term.getTags().put("weekly", "true");
+    
+    return term;
+  }
+  
   /**
    * Returns the terminology.
    *
@@ -86,6 +143,28 @@ public final class TerminologyUtils {
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, terminology + " not found");
   }
 
+  /**
+   * Returns the latest terminology.
+   *
+   * @param sparqlQueryManagerService the sparql query manager service
+   * @return the terminology
+   * @throws Exception the exception
+   */
+  public static Terminology getLatestTerminology(
+    final SparqlQueryManagerService sparqlQueryManagerService)
+    throws Exception {
+    
+    List<Terminology> terminologies = getTerminologies(sparqlQueryManagerService);
+    if (CollectionUtils.isEmpty(terminologies))
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No terminology found!");
+    
+    Optional<Terminology> latest = terminologies.stream().filter(t -> t.getLatest()).findFirst();
+    if (!latest.isPresent()) 
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No terminology found with latest flag!");
+    
+    return latest.get();
+  }
+  
   /**
    * As set.
    *

@@ -83,6 +83,7 @@ public class TerminologyUnitTest {
     tester.include("name");
     tester.include("description");
     tester.include("graph");
+    tester.include("source");
     tester.include("terminologyVersion");
     tester.include("latest");
 

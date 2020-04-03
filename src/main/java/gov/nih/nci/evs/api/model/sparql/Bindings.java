@@ -99,6 +99,9 @@ public class Bindings {
 
   /** The comment. */
   private Property comment;
+  
+  /** The source. */
+  private Property source;
 
   /**
    * Returns the property value.
@@ -667,5 +670,23 @@ public class Bindings {
    */
   public void setComment(Property comment) {
     this.comment = comment;
+  }
+  
+  /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public Property getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source
+   */
+  public void setSource(Property source) {
+    this.source = source;
   }
 }

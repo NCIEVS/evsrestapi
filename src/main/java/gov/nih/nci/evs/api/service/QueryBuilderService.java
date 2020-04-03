@@ -23,6 +23,15 @@ public interface QueryBuilderService {
   public String constructAllGraphNamesQuery();
 
   /**
+   * Construct all graph names and corresponding ontology versions (limited to owl ontologies)
+   * 
+   * Properties key is {@code all.graphs.and.versions}
+   * 
+   * @return
+   */
+  public String constructAllGraphsAndVersionsQuery();
+  
+  /**
    * Construct axiom query.
    *
    * @param conceptCode the concept code
@@ -60,9 +69,10 @@ public interface QueryBuilderService {
   /**
    * Contruct prefix.
    *
+   * @param source the graph source
    * @return the string
    */
-  public String contructPrefix();
+  public String contructPrefix(String source);
 
   /**
    * Construct property query.
