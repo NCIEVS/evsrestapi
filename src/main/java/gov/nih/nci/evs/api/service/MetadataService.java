@@ -34,14 +34,6 @@ public interface MetadataService {
   ConfigData getApplicationMetadata(Terminology terminology) throws IOException;
 
   /**
-   * Get list of terminologies.
-   *
-   * @return the list of terminologies
-   * @throws Exception the exception
-   */
-  List<Terminology> getTerminologies() throws Exception;
-
-  /**
    * Get list of associations.
    *
    * @param terminology the terminology

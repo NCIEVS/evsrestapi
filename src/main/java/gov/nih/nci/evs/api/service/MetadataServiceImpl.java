@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,9 @@ public class MetadataServiceImpl implements MetadataService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
+  @Resource
+  private MetadataService self;
+  
   /**
    * Returns the application metadata.
    *
@@ -53,7 +58,7 @@ public class MetadataServiceImpl implements MetadataService {
    */
   @Override
   public ConfigData getApplicationMetadata() throws Exception {
-    return getApplicationMetadata(TerminologyUtils.getLatestTerminology(sparqlQueryManagerService));
+    return self.getApplicationMetadata(TerminologyUtils.getLatestTerminology(sparqlQueryManagerService));
   }
 
   /**
@@ -67,18 +72,6 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public ConfigData getApplicationMetadata(Terminology terminology) throws IOException {
     return sparqlQueryManagerService.getConfigurationData(terminology);
-  }
-
-  /**
-   * Returns the terminologies.
-   *
-   * @return the terminologies
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  @Cacheable(value = "metadata", key = "#root.methodName")
-  public List<Terminology> getTerminologies() throws Exception {
-    return TerminologyUtils.getTerminologies(sparqlQueryManagerService);
   }
 
   /**
@@ -127,7 +120,7 @@ public class MetadataServiceImpl implements MetadataService {
       }
       return Optional.of(concept);
     }
-    final List<Concept> list = getAssociations(terminology,
+    final List<Concept> list = self.getAssociations(terminology,
         Optional.ofNullable(include.orElse("summary")), Optional.ofNullable(code));
     if (list.size() > 0) {
       return Optional.of(list.get(0));
@@ -182,7 +175,7 @@ public class MetadataServiceImpl implements MetadataService {
       }
       return Optional.of(concept);
     }
-    final List<Concept> list = getRoles(terminology, Optional.ofNullable(include.orElse("summary")),
+    final List<Concept> list = self.getRoles(terminology, Optional.ofNullable(include.orElse("summary")),
         Optional.ofNullable(code));
     if (list.size() > 0) {
       return Optional.of(list.get(0));
@@ -248,8 +241,8 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     final List<Concept> list =
-        getProperties(terminology, Optional.of("minimal"), false, Optional.ofNullable(code));
-    logger.info(String.format("list from properties [%s] with size [%s]", String.valueOf(list),
+        self.getProperties(terminology, Optional.of("minimal"), false, Optional.ofNullable(code));
+    if (logger.isDebugEnabled()) logger.debug(String.format("list from properties [%s] with size [%s]", String.valueOf(list),
         list == null ? 0 : list.size()));
     if (list.size() > 0) {
       final Concept concept = ConceptUtils.convertConcept(
@@ -341,7 +334,7 @@ public class MetadataServiceImpl implements MetadataService {
           ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
     }
 
-    final List<Concept> list = getProperties(terminology, Optional.ofNullable("minimal"), false,
+    final List<Concept> list = self.getProperties(terminology, Optional.ofNullable("minimal"), false,
         Optional.ofNullable(code));
     if (list.size() > 0) {
       concept = list.get(0);

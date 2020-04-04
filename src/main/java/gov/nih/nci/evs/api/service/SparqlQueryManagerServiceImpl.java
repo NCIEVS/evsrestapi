@@ -7,15 +7,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -86,19 +86,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The rest utils. */
   private RESTUtils restUtils = null;
-
-  /** Cache for class counts *. */
-  private Map<String, Long> classCountMap;
-
-  /** Cache for hierarchy nodes *. */
-  private Map<String, HierarchyUtils> hierarchyMap;
-
-  /** Cache for paths *. */
-  private Map<String, Paths> pathsMap;
-
-  /** Cache for unique sources *. */
-  private Map<String, List<String>> uniqueSourcesMap;
-
+  
+  @Resource
+  private SparqlQueryManagerService self;
+  
   /**
    * Post init.
    *
@@ -112,7 +103,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     log.info("  configure elasticsearch");
     elasticSearchService.initSettings();
 
-    populateCache(TerminologyUtils.getTerminologies(this));
     // This file generation was for the "documentation files"
     // this is no longer part of the API, no need to do this
     // if (applicationProperties.getForceFileGeneration()) {
@@ -124,7 +114,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Call cron job.
    *
    * @param terminologies the terminologies
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception 
    */
   // @Scheduled(cron = "${nci.evs.stardog.populateCacheCron}")
   // public void callCronJob() throws Exception {
@@ -151,57 +141,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   // }
   // }
   // }
-
-  private void populateCache(List<Terminology> terminologies) throws IOException {
-    if (CollectionUtils.isEmpty(terminologies))
-      return;
-    for (Terminology terminology : terminologies) {
-      populateCache(terminology);
-    }
-  }
-
-  /**
-   * Populate cache.
-   *
-   * @param terminology the terminology
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  // TODO: populate cache for single terminology; single terminology method will
-  // be used by another that will taken
-  // list of terminologies to populate cache
-  private void populateCache(Terminology terminology) throws IOException {
-    log.info("Start populating cache - " + terminology.getTerminologyVersion());
-
-    Long classCount = getGetClassCounts(terminology);
-    log.info("  class count  = " + classCount);
-    if (classCountMap == null)
-      classCountMap = new ConcurrentHashMap<String, Long>();
-    classCountMap.put(terminology.getTerminologyVersion(), classCount);
-
-    log.info("  get hierarchy ");
-    List<String> parentchild = getHierarchy(terminology);
-
-    HierarchyUtils hierarchy = new HierarchyUtils(parentchild);
-    if (hierarchyMap == null)
-      hierarchyMap = new ConcurrentHashMap<String, HierarchyUtils>();
-    hierarchyMap.put(terminology.getTerminologyVersion(), hierarchy);
-
-    log.info("  find paths ");
-
-    PathFinder pathFinder = new PathFinder(hierarchy);
-    if (pathsMap == null)
-      pathsMap = new ConcurrentHashMap<String, Paths>();
-    pathsMap.put(terminology.getTerminologyVersion(), pathFinder.findPaths());
-
-    log.info("  get unique sources ");
-
-    List<String> uniqueSources = getUniqueSourcesList(terminology);
-    if (uniqueSourcesMap == null)
-      uniqueSourcesMap = new ConcurrentHashMap<String, List<String>>();
-    uniqueSourcesMap.put(terminology.getTerminologyVersion(), uniqueSources);
-
-    log.info("Done populating cache - " + terminology.getTerminologyVersion());
-  }
 
   /**
    * Returns the value set hierarchy.
@@ -249,6 +188,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param terminology the terminology
    * @return the named graph
    */
+  @Override
   public String getNamedGraph(Terminology terminology) {
     return terminology.getGraph();
   }
@@ -258,6 +198,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @return the query URL
    */
+  @Override
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
@@ -270,6 +211,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
+  @Cacheable(value = "terminology", key = "#root.methodName")
   public List<String> getAllGraphNames()
     throws JsonParseException, JsonMappingException, IOException {
     List<String> graphNames = new ArrayList<String>();
@@ -302,6 +245,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
+  @Cacheable(value = "terminology", key = "#root.methodName")
   public List<EvsVersionInfo> getEvsVersionInfoList()
     throws JsonParseException, JsonMappingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(null);
@@ -310,7 +255,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
     if (log.isDebugEnabled())
-      log.debug("getAllGraphNamesAndVersions response - " + res);
+      log.debug("getEvsVersionInfoList response - " + res);
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<EvsVersionInfo> evsVersionInfoList = new ArrayList<>();
@@ -343,6 +288,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
+  @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public EvsVersionInfo getEvsVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
 
@@ -373,22 +319,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public Long getGetClassCounts(Terminology terminology)
-    throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructClassCountsQuery(terminology.getGraph());
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    String count = "0";
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    if (bindings.length == 1) {
-      count = bindings[0].getCount().getValue();
-    }
-    return Long.parseLong(count);
-  }
+//  public Long getGetClassCounts(Terminology terminology)
+//    throws JsonMappingException, JsonParseException, IOException {
+//    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+//    String query = queryBuilderService.constructClassCountsQuery(terminology.getGraph());
+//    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+//
+//    ObjectMapper mapper = new ObjectMapper();
+//    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+//    String count = "0";
+//    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+//    Bindings[] bindings = sparqlResult.getResults().getBindings();
+//    if (bindings.length == 1) {
+//      count = bindings[0].getCount().getValue();
+//    }
+//    return Long.parseLong(count);
+//  }
 
   /**
    * Check concept exists.
@@ -400,6 +346,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public boolean checkConceptExists(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -433,6 +380,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public String getEvsConceptLabel(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -463,6 +411,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public EvsConcept getEvsConceptByCode(String conceptCode, Terminology terminology,
     IncludeParam ip) throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByCode evsConcept = new EvsConceptByCode();
@@ -481,6 +430,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public EvsConcept getEvsConceptByLabelProperties(String conceptCode, Terminology terminology,
     List<String> propertyList) throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByLabel evsConcept = new EvsConceptByLabel();
@@ -499,6 +449,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept properties
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public void getConceptProperties(EvsConcept evsConcept, String conceptCode,
     Terminology terminology, String outputType, List<String> propertyList) throws IOException {
     evsConcept.setCode(conceptCode);
@@ -598,6 +549,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public void getConcept(EvsConcept evsConcept, String conceptCode, Terminology terminology,
     IncludeParam ip) throws IOException {
     evsConcept.setCode(conceptCode);
@@ -688,6 +640,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the evs maps to
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsMapsTo> getEvsMapsTo(String conceptCode, Terminology terminology)
     throws IOException {
     List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
@@ -705,6 +658,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public EvsConcept getEvsProperty(String conceptCode, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     EvsConceptByLabel evsConcept = new EvsConceptByLabel();
@@ -722,6 +676,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the property
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public void getProperty(EvsConcept evsConcept, String conceptCode, Terminology terminology,
     IncludeParam ip) throws IOException {
     evsConcept.setCode(conceptCode);
@@ -839,6 +794,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsProperty> getEvsProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -886,6 +842,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode,
     Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
 
@@ -1052,6 +1009,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsAssociation> getEvsInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1087,6 +1045,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsAssociation> getEvsInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1122,6 +1081,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsAssociation> getEvsRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1156,6 +1116,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsAssociation> getEvsDisjointWith(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1190,6 +1151,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsAxiom> getEvsAxioms(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1309,6 +1271,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
+  @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public ArrayList<String> getHierarchy(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     ArrayList<String> parentchild = new ArrayList<String>();
@@ -1347,6 +1311,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsConcept> getAllProperties(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1383,6 +1348,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1414,6 +1380,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsConcept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1451,6 +1418,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
   public List<EvsConcept> getAllRoles(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1482,9 +1450,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @param terminology the terminology
    * @return the root nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getRootNodes(Terminology terminology) {
-    return hierarchyMap.get(terminology.getTerminologyVersion()).getRootNodes();
+  @Override
+  public List<HierarchyNode> getRootNodes(Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    return self.getHierarchyUtils(terminology).getRootNodes();
   }
 
   /**
@@ -1493,9 +1465,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param parent the parent
    * @param terminology the terminology
    * @return the child nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology) {
-    return hierarchyMap.get(terminology.getTerminologyVersion()).getChildNodes(parent, 0);
+  @Override
+  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
   }
 
   /**
@@ -1505,9 +1481,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param maxLevel the max level
    * @param terminology the terminology
    * @return the child nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology) {
-    return hierarchyMap.get(terminology.getTerminologyVersion()).getChildNodes(parent, maxLevel);
+  @Override
+  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
   }
 
   /**
@@ -1516,9 +1496,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param parent the parent
    * @param terminology the terminology
    * @return the all child nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<String> getAllChildNodes(String parent, Terminology terminology) {
-    return hierarchyMap.get(terminology.getTerminologyVersion()).getAllChildNodes(parent);
+  @Override
+  public List<String> getAllChildNodes(String parent, Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    return self.getHierarchyUtils(terminology).getAllChildNodes(parent);
   }
 
   /**
@@ -1528,9 +1512,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param node the node
    * @param path the path
    * @param terminology the terminology
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
+  @Override
   public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
-    Terminology terminology) {
+    Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
     if (path.getConcepts().size() == 0) {
       return;
     }
@@ -1561,11 +1549,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param code the code
    * @param terminology the terminology
    * @return the path in hierarchy
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology) {
+  @Override
+  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
     List<HierarchyNode> rootNodes = getRootNodes(terminology);
     Paths paths = getPathToRoot(code, terminology);
-
+    
     for (HierarchyNode rootNode : rootNodes) {
       for (Path path : paths.getPaths()) {
         checkPathInHierarchy(code, rootNode, path, terminology);
@@ -1581,9 +1573,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param code the code
    * @param terminology the terminology
    * @return the path to root
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public Paths getPathToRoot(String code, Terminology terminology) {
-    List<Path> paths = pathsMap.get(terminology.getTerminologyVersion()).getPaths();
+  @Override
+  public Paths getPathToRoot(String code, Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    List<Path> paths = self.getPaths(terminology).getPaths();
     Paths conceptPaths = new Paths();
     for (Path path : paths) {
       Boolean sw = false;
@@ -1624,9 +1620,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param parentCode the parent code
    * @param terminology the terminology
    * @return the path to parent
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public Paths getPathToParent(String code, String parentCode, Terminology terminology) {
-    List<Path> paths = pathsMap.get(terminology.getTerminologyVersion()).getPaths();
+  @Override
+  public Paths getPathToParent(String code, String parentCode, Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    List<Path> paths = self.getPaths(terminology).getPaths();
     Paths conceptPaths = new Paths();
     for (Path path : paths) {
       Boolean codeSW = false;
@@ -1702,15 +1702,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonProcessingException the json processing exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
+  @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")  
   public ConfigData getConfigurationData(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException {
 
     ConfigData configData = new ConfigData();
-    configData.setEvsVersionInfo(this.getEvsVersionInfo(terminology));
+    configData.setEvsVersionInfo(self.getEvsVersionInfo(terminology));
 
     String[] sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
     List<String> sourceToBeRemovedList = Arrays.asList(sourceToBeRemoved);
-    List<String> sources = uniqueSourcesMap.get(terminology.getTerminologyVersion());
+    List<String> sources = self.getUniqueSourcesList(terminology);
     sources.removeAll(sourceToBeRemovedList);
     configData.setFullSynSources(sources);
 
@@ -1726,6 +1728,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @Override
+  @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public List<String> getUniqueSourcesList(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1746,4 +1750,47 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return sources;
   }
 
+  /**
+   * Get hiearchy for a given terminology
+   * 
+   * @param terminology the terminology
+   * @return the hierarchy
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
+   */
+  @Override
+  @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  public HierarchyUtils getHierarchyUtils(Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    List<String> parentchild = self.getHierarchy(terminology);
+    return new HierarchyUtils(parentchild);
+  }
+
+  /**
+   * Get paths
+   * 
+   * @param terminology the terminology
+   * @return paths
+   * @throws JsonParseException
+   * @throws JsonMappingException
+   * @throws IOException
+   */
+  @Override
+  @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  public Paths getPaths(Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    HierarchyUtils hierarchy = self.getHierarchyUtils(terminology);
+    return new PathFinder(hierarchy).findPaths();
+  }
+  
+  /**
+   * Returns the terminologies.
+   *
+   * @return the terminologies
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Override
+  @Cacheable(value = "terminology", key = "#root.methodName")
+  public List<Terminology> getTerminologies() throws Exception {
+    return TerminologyUtils.getTerminologies(this);
+  }
 }
