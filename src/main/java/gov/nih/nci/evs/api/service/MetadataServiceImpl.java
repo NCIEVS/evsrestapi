@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -92,7 +91,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(term, ip);
+    final List<Concept> associations = sparqlQueryManagerService.getAllAssociations(term, ip);
     return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
   }
 
@@ -114,7 +113,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+          sparqlQueryManagerService.getEvsProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -147,7 +146,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> roles = sparqlQueryManagerService.getAllRoles(term, ip);
+    final List<Concept> roles = sparqlQueryManagerService.getAllRoles(term, ip);
     return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
@@ -169,7 +168,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+          sparqlQueryManagerService.getEvsProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -201,7 +200,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> properties = sparqlQueryManagerService.getAllProperties(term, ip);
+    final List<Concept> properties = sparqlQueryManagerService.getAllProperties(term, ip);
 
     // IF "for documentation" mode, remove the "not considered" cases.
     if (forDocumentation) {
@@ -233,7 +232,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+          sparqlQueryManagerService.getEvsProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -245,8 +244,8 @@ public class MetadataServiceImpl implements MetadataService {
     if (logger.isDebugEnabled()) logger.debug(String.format("list from properties [%s] with size [%s]", String.valueOf(list),
         list == null ? 0 : list.size()));
     if (list.size() > 0) {
-      final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), term, ip));
+      final Concept concept = 
+          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), term, ip);
       return Optional.of(concept);
     }
     return Optional.empty();
@@ -330,8 +329,7 @@ public class MetadataServiceImpl implements MetadataService {
     // this one.
     Concept concept = null;
     if (ModelUtils.isCodeStyle(code)) {
-      concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+      concept = sparqlQueryManagerService.getEvsProperty(code, term, ip);
     }
 
     final List<Concept> list = self.getProperties(terminology, Optional.ofNullable("minimal"), false,

@@ -101,8 +101,8 @@ public class ConceptController {
 
     final List<Concept> concepts = new ArrayList<>();
     for (final String code : list.split(",")) {
-      final Concept concept = ConceptUtils
-          .convertConcept(sparqlQueryManagerService.getEvsConceptByCode(code, term, ip));
+      final Concept concept = 
+          sparqlQueryManagerService.getEvsConceptByCode(code, term, ip);
       if (concept != null && concept.getCode() != null) {
         concept.setTerminology(terminology);
         concepts.add(concept);
@@ -151,8 +151,8 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    final Concept concept = ConceptUtils
-        .convertConcept(sparqlQueryManagerService.getEvsConceptByCode(code, term, ip));
+    final Concept concept = 
+        sparqlQueryManagerService.getEvsConceptByCode(code, term, ip);
 
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -191,7 +191,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list = sparqlQueryManagerService.getEvsAssociations(code, term);
+    final List<Association> list = sparqlQueryManagerService.getEvsAssociations(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -200,7 +200,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertAssociations(list);
+    return list;
   }
 
   /**
@@ -233,7 +233,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list =
+    final List<Association> list =
         sparqlQueryManagerService.getEvsInverseAssociations(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
@@ -243,7 +243,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertAssociations(list);
+    return list;
   }
 
   /**
@@ -276,7 +276,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list = sparqlQueryManagerService.getEvsRoles(code, term);
+    final List<Role> list = sparqlQueryManagerService.getEvsRoles(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -285,7 +285,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertRoles(list);
+    return list;
   }
 
   /**
@@ -318,7 +318,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list = sparqlQueryManagerService.getEvsInverseRoles(code, term);
+    final List<Role> list = sparqlQueryManagerService.getEvsInverseRoles(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -327,7 +327,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertRoles(list);
+    return list;
   }
 
   /**
@@ -360,7 +360,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsRelatedConcept> list =
+    final List<Concept> list =
         sparqlQueryManagerService.getEvsSuperconcepts(code, term, "byCode");
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
@@ -370,7 +370,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertConcepts(list);
+    return list;
   }
 
   /**
@@ -403,7 +403,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsRelatedConcept> list =
+    final List<Concept> list =
         sparqlQueryManagerService.getEvsSubconcepts(code, term, "byCode");
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
@@ -413,7 +413,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertConcepts(list);
+    return list;
   }
 
   /**
@@ -495,7 +495,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsMapsTo> list = sparqlQueryManagerService.getEvsMapsTo(code, term);
+    final List<Map> list = sparqlQueryManagerService.getEvsMapsTo(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -504,7 +504,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertMaps(list);
+    return list;
   }
 
   /**
@@ -538,8 +538,8 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam("disjointWith");
 
-    final Concept concept = ConceptUtils
-        .convertConcept(sparqlQueryManagerService.getEvsConceptByCode(code, term, ip));
+    final Concept concept = 
+        sparqlQueryManagerService.getEvsConceptByCode(code, term, ip);
 
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
