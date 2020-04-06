@@ -466,10 +466,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (propertyList.contains("Code") || propertyList.contains("NCH0")) {
       evsConcept.setCode(EVSUtils.getConceptCode(properties));
     }
-    //TODO: model-classes-refactor
-//    if (propertyList.contains("Preferred_Name") || propertyList.contains("P108")) {
-//      evsConcept.setPreferredName(EVSUtils.getPreferredName(properties));
-//    }
+    if (propertyList.contains("Preferred_Name") || propertyList.contains("P108")) {
+      final Synonym pn = new Synonym();
+      pn.setType("Preferred_Name");
+      pn.setName(EVSUtils.getPreferredName(properties));
+      evsConcept.getSynonyms().add(pn);
+    }
 
     /*
      * Load Additional Properties
@@ -513,7 +515,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (propertyList.contains("DEFINITION") || propertyList.contains("P97")) {
       evsConcept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
     }
-    //TODO: model-classes-refactor
+    //TODO: use-new-model-classes
 //    if (propertyList.contains("ALT_DEFINITION") || propertyList.contains("P325")) {
 //      evsConcept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
 //    }
@@ -538,7 +540,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (propertyList.contains("Maps_To") || propertyList.contains("P375")) {
       evsConcept.setMaps(EVSUtils.getMapsTo(axioms, outputType));
     }
-    //TODO: model-classes-refactor
+    //TODO: use-new-model-classes
 //    if (propertyList.contains("GO_Annotation") || propertyList.contains("P211")) {
 //      evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
 //    }
@@ -569,13 +571,28 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     concept.setCode(EVSUtils.getConceptCode(properties));
 
     // This becomes a synonym
-//    if (ip.isSynonyms()) {
-//      concept.setPreferredName(EVSUtils.getPreferredName(properties));
-//    }
+    if (ip.isSynonyms()) {
+      final Synonym pn = new Synonym();
+      pn.setType("Preferred_Name");
+      pn.setName(EVSUtils.getPreferredName(properties));
+      concept.getSynonyms().add(pn);
+    }
 
     // Properties ending in "Name" are rendered as synonyms here.
+//  if (evsConcept.getProperties() != null) {
+//  for (final String key : evsConcept.getProperties().keySet()) {
+//    if (key.endsWith("_Name")) {
+//      for (final String value : evsConcept.getProperties().get(key)) {
+//        final Synonym name = new Synonym();
+//        name.setType(key);
+//        name.setName(value);
+//        concept.getSynonyms().add(name);
+//      }
+//    }
+//  }
+//}
     if (ip.isSynonyms() || ip.isProperties()) {
-      Map<String, List<String>> allProperties = concept.getProperties();
+      List<Property> allProperties = concept.getProperties();
       List<Property> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
       for (Property property : additionalProperties) {
         String label = property.getType();
@@ -601,8 +618,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       if (ip.isDefinitions()) {
         concept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
-        //TODO: model-classes-refactor
-//        concept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
+        //TODO: use-new-model-classes - check if this is right
+        concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms, outputType));
       }
       if (ip.isChildren()) {
         concept.setChildren(getEvsSubconcepts(conceptCode, terminology, outputType));
@@ -711,10 +728,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setName(conceptLabel);
     }
     // Set the preferred name if including synonyms
-    //TODO: check how to set preferred name
-//    if (ip.isSynonyms()) {
-//      evsConcept.setPreferredName(pn);
-//    }
+    if (ip.isSynonyms()) {
+      final Synonym pnSynonym = new Synonym();
+      pnSynonym.setType("Preferred_Name");
+      pnSynonym.setName(EVSUtils.getPreferredName(properties));
+      concept.getSynonyms().add(pnSynonym);
+    }
 
     // Properties ending in "Name" are rendered as synonyms here.
     if (ip.isSynonyms() || ip.isProperties()) {
@@ -756,8 +775,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       if (ip.isDefinitions()) {
         concept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
-        //TODO: model-classes-refactor
-//        concept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
+        //TODO: use-new-model-classes - check if this is right
+        concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms, outputType));
       }
 
       if (ip.isChildren()) {
@@ -825,7 +844,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Bindings b : bindings) {
       if (b.getPropertyCode() == null) {
         Property evsProperty = new Property();
-        //TODO: model-classes-refactor
+        //TODO: use-new-model-classes
 //        evsProperty.setCode("");
         evsProperty.setType(b.getPropertyLabel().getValue());
         evsProperty.setValue(b.getPropertyValue().getValue());
@@ -833,7 +852,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       } else {
         if (!b.getPropertyCode().getValue().startsWith("A")) {
           Property evsProperty = new Property();
-          //TODO: model-classes-refactor
+          //TODO: use-new-model-classes
 //          evsProperty.setCode(b.getPropertyCode().getValue());
           evsProperty.setType(b.getPropertyLabel().getValue());
           evsProperty.setValue(b.getPropertyValue().getValue());
@@ -921,7 +940,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
       Concept evsSubclass = new Concept();
-      //TODO: model-classes-refactor
+      //TODO: use-new-model-classes
 //      evsSubclass.setRelatedConcept(b.getSubclass().getValue());
       evsSubclass.setName(b.getSubclassLabel().getValue());
       evsSubclass.setCode(b.getSubclassCode().getValue());
@@ -958,7 +977,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
       Concept evsSuperclass = new Concept();
-      //TODO: model-classes-refactor
+      //TODO: use-new-model-classes
 //      evsSuperclass.setRelatedConcept(b.getSuperclass().getValue());
       evsSuperclass.setName(b.getSuperclassLabel().getValue());
       evsSuperclass.setCode(b.getSuperclassCode().getValue());
@@ -995,7 +1014,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Bindings b : bindings) {
       Association evsAssociation = new Association();
       evsAssociation.setType(b.getRelationship().getValue());
-      //TODO: model-classes-refactor
+      //TODO: use-new-model-classes
 //      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
       evsAssociation.setRelatedCode(b.getRelatedConceptCode().getValue());
       evsAssociation.setRelatedName(b.getRelatedConceptLabel().getValue());
@@ -1032,7 +1051,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Bindings b : bindings) {
       Association evsAssociation = new Association();
       evsAssociation.setType(b.getRelationship().getValue());
-      //TODO: model-classes-refactor
+      //TODO: use-new-model-classes
 //      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
       evsAssociation.setRelatedCode(b.getRelatedConceptCode().getValue());
       evsAssociation.setRelatedName(b.getRelatedConceptLabel().getValue());
@@ -1069,7 +1088,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Bindings b : bindings) {
       Role evsRole = new Role();
       evsRole.setType(b.getRelationship().getValue());
-      //TODO: model-classes-refactor
+      //TODO: use-new-model-classes
 //      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
       evsRole.setRelatedCode(b.getRelatedConceptCode().getValue());
       evsRole.setRelatedName(b.getRelatedConceptLabel().getValue());
@@ -1108,7 +1127,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 //      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
 //      evsAssociation.setRelatedCode(b.getRelatedConceptCode().getValue());
 //      evsAssociation.setRelatedName(b.getRelatedConceptLabel().getValue());
-      //TODO: model-classes-refactor
+      //TODO: use-new-model-classes
       evsRole.setType(b.getRelationship().getValue());
       evsRole.setRelatedCode(b.getRelatedConceptCode().getValue());
       evsRole.setRelatedName(b.getRelatedConceptLabel().getValue());
