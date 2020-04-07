@@ -4426,16 +4426,62 @@ Subsource Name
 Term Source
 Term Type
 */
+
+
+	public String construct_supported_property_qualifiers(String named_graph) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX protege:<http://protege.stanford.edu/plugins/owl/protege#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX ncicp:<http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("SELECT distinct ?property_name ?p_code ?qualifier_name ?y_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + "> {").append("\n");
+		buf.append("?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("?p rdfs:label ?p_label .").append("\n");
+		buf.append("?p rdfs:label ?property_name .").append("\n");
+		buf.append("?p :NHC0 ?p_code .").append("\n");
+		buf.append("?z_axiom ?y ?z .").append("\n");
+		buf.append("?y rdfs:label ?qualifier_name .").append("\n");
+		buf.append("?y :NHC0 ?y_code .").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getSupportedPropertyQualifierValues(String named_graph) {
+		String query = construct_supported_property_qualifiers(named_graph);
+		Vector v = executeQuery(query);
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         String named_graph = args[1];
+
+        /*
         String queryfile = args[2];
         owlSPARQLUtils.set_named_graph(named_graph);
 
         Vector v = owlSPARQLUtils.getAllConceptProperties(named_graph);
         Utils.saveToFile("all_properties.txt", v);
+        */
+
+        Vector v = owlSPARQLUtils.getSupportedPropertyQualifierValues(named_graph);
+        StringUtils.dumpVector(v);
+
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
     }
