@@ -44,6 +44,9 @@ public final class TerminologyUtils {
 
   /**
    * Returns the terminologies.
+   * 
+   * Note: To be used only once, during initialization. Subsequently calls to get terminologies
+   * should use {@code SparqlQueryManagerService.getTerminologies()}
    *
    * @param sparqlQueryManagerService the sparql query manager service
    *
@@ -133,7 +136,7 @@ public final class TerminologyUtils {
   public static Terminology getTerminology(
     final SparqlQueryManagerService sparqlQueryManagerService, final String terminology)
     throws Exception {
-    for (final Terminology t : getTerminologies(sparqlQueryManagerService)) {
+    for (final Terminology t : sparqlQueryManagerService.getTerminologies()) {
       if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
         return t;
       } else if (t.getTerminologyVersion().equals(terminology)) {
@@ -154,7 +157,7 @@ public final class TerminologyUtils {
     final SparqlQueryManagerService sparqlQueryManagerService)
     throws Exception {
     
-    List<Terminology> terminologies = getTerminologies(sparqlQueryManagerService);
+    List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
     if (CollectionUtils.isEmpty(terminologies))
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No terminology found!");
     

@@ -85,7 +85,7 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws Exception {
-    return metadataService.getTerminologies();
+    return sparqlQueryManagerService.getTerminologies();
   }
 
   /**

@@ -15,4 +15,10 @@
 		</resources>
     </cache>
  
+    <cache alias="terminology">
+		<resources>
+			<heap unit="entries">100</heap>
+		</resources>
+    </cache>
+ 
 </config>

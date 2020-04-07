@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -11,19 +12,23 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
+import gov.nih.nci.evs.api.model.evs.EvsAxiom;
 import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
+import gov.nih.nci.evs.api.model.evs.EvsProperty;
 import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
 import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
 import gov.nih.nci.evs.api.model.evs.HierarchyNode;
+import gov.nih.nci.evs.api.model.evs.Path;
 import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.support.ConfigData;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * Sparql query manager service.
  */
 public interface SparqlQueryManagerService {
-
+  
   /**
    * Check concept exists.
    *
@@ -212,8 +217,11 @@ public interface SparqlQueryManagerService {
    *
    * @param terminology the terminology
    * @return the root nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getRootNodes(Terminology terminology);
+  public List<HierarchyNode> getRootNodes(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the child nodes.
@@ -221,8 +229,11 @@ public interface SparqlQueryManagerService {
    * @param parent the parent
    * @param terminology the terminology
    * @return the child nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology);
+  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the child nodes.
@@ -231,8 +242,11 @@ public interface SparqlQueryManagerService {
    * @param maxLevel the max level
    * @param terminology the terminology
    * @return the child nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology);
+  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the path in hierarchy.
@@ -240,8 +254,11 @@ public interface SparqlQueryManagerService {
    * @param code the code
    * @param terminology the terminology
    * @return the path in hierarchy
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
    */
-  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology);
+  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the path to root.
@@ -331,4 +348,201 @@ public interface SparqlQueryManagerService {
   public ConfigData getConfigurationData(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException;
 
+  /**
+   * Returns the named graph.
+   *
+   * @param terminology the terminology
+   * @return the named graph
+   */
+  String getNamedGraph(Terminology terminology);
+
+  /**
+   * Returns the query URL.
+   *
+   * @return the query URL
+   */
+  String getQueryURL();
+
+  /**
+   * Returns the evs concept label.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the evs concept label
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  String getEvsConceptLabel(String conceptCode, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the concept properties.
+   *
+   * @param evsConcept the evs concept
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param outputType the output type
+   * @param propertyList the property list
+   * @return the concept properties
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  void getConceptProperties(EvsConcept evsConcept, String conceptCode, Terminology terminology, String outputType,
+      List<String> propertyList) throws IOException;
+
+  /**
+   * Returns the concept.
+   *
+   * @param evsConcept the evs concept
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the concept
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  void getConcept(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
+      throws IOException;
+
+  /**
+   * Returns the property.
+   *
+   * @param evsConcept the evs concept
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the property
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  void getProperty(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
+      throws IOException;
+
+  /**
+   * Returns the evs properties.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the evs properties
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<EvsProperty> getEvsProperties(String conceptCode, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the evs properties no restrictions.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the evs properties no restrictions
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the evs disjoint with.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the evs disjoint with
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<EvsAssociation> getEvsDisjointWith(String conceptCode, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the evs axioms.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the evs axioms
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<EvsAxiom> getEvsAxioms(String conceptCode, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the hierarchy.
+   *
+   * @param terminology the terminology
+   * @return the hierarchy
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  ArrayList<String> getHierarchy(Terminology terminology) throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the all child nodes.
+   *
+   * @param parent the parent
+   * @param terminology the terminology
+   * @return the all child nodes
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
+   */
+  List<String> getAllChildNodes(String parent, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Check path in hierarchy.
+   *
+   * @param code the code
+   * @param node the node
+   * @param path the path
+   * @param terminology the terminology
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
+   */
+  void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Returns the unique sources list.
+   *
+   * @param terminology the terminology
+   * @return the unique sources list
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<String> getUniqueSourcesList(Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException;
+  
+  /**
+   * Get hiearchy for a given terminology
+   * 
+   * @param terminology the terminology
+   * @return the hierarchy
+   * @throws IOException 
+   * @throws JsonMappingException 
+   * @throws JsonParseException 
+   */
+  public HierarchyUtils getHierarchyUtils(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Get paths
+   * 
+   * @param terminology the terminology
+   * @return paths
+   * @throws JsonParseException
+   * @throws JsonMappingException
+   * @throws IOException
+   */
+  Paths getPaths(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
+  
+  /**
+   * Get list of terminologies
+   * 
+   * @return the list of terminologies
+   * @throws IOException
+   */
+  List<Terminology> getTerminologies() throws Exception;
 }
