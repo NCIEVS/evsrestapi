@@ -382,7 +382,7 @@ public class MetadataServiceImpl implements MetadataService {
     list.add(new Concept(terminology, "CI", "ISO country code"));
     list.add(new Concept(terminology, "CN", "Drug study code"));
     list.add(new Concept(terminology, "CS", "US State Department country code"));
-    list.add(new Concept(terminology, "DN", "Display n ame"));
+    list.add(new Concept(terminology, "DN", "Display name"));
     list.add(new Concept(terminology, "FB", "Foreign brand name, which may be trademarked"));
     list.add(new Concept(terminology, "LLT", "Lower level term"));
     list.add(
