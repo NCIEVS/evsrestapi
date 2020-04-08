@@ -435,13 +435,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @Override
-  public Concept getEvsConceptByLabelProperties(String conceptCode, Terminology terminology,
-    List<String> propertyList) throws JsonMappingException, JsonParseException, IOException {
-    Concept evsConcept = new Concept();
-    getConceptProperties(evsConcept, conceptCode, terminology, "byLabel", propertyList);
-    return evsConcept;
-  }
+//  public Concept getEvsConceptByLabelProperties(String conceptCode, Terminology terminology,
+//    List<String> propertyList) throws JsonMappingException, JsonParseException, IOException {
+//    Concept evsConcept = new Concept();
+//    getConceptProperties(evsConcept, conceptCode, terminology, "byLabel", propertyList);
+//    return evsConcept;
+//  }
 
   /**
    * Returns the concept properties.
@@ -454,100 +453,99 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept properties
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @Override
-  public void getConceptProperties(Concept evsConcept, String conceptCode,
-    Terminology terminology, String outputType, List<String> propertyList) throws IOException {
-    evsConcept.setCode(conceptCode);
-
-    List<Property> properties = getEvsProperties(conceptCode, terminology);
-    if (propertyList.contains("Label") || propertyList.contains("rdfs:label")) {
-      evsConcept.setName(getEvsConceptLabel(conceptCode, terminology));
-    }
-    if (propertyList.contains("Code") || propertyList.contains("NCH0")) {
-      evsConcept.setCode(EVSUtils.getConceptCode(properties));
-    }
-    if (propertyList.contains("Preferred_Name") || propertyList.contains("P108")) {
-      final Synonym pn = new Synonym();
-      pn.setType("Preferred_Name");
-      pn.setName(EVSUtils.getPreferredName(properties));
-      evsConcept.getSynonyms().add(pn);
-    }
-
-    /*
-     * Load Additional Properties
-     */
-    Map<String, List<String>> allProperties = evsConcept.getProperties();
-    List<Property> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
-    if (outputType.equals("byLabel")) {
-      for (Property property : additionalProperties) {
-        if (propertyList.contains(property.getType())
-            || propertyList.contains(property.getCode())) {
-          String label = property.getType();
-          String value = property.getValue();
-          if (allProperties.containsKey(label)) {
-            allProperties.get(label).add(value);
-          } else {
-            allProperties.put(label, new ArrayList<String>());
-            allProperties.get(label).add(value);
-          }
-        }
-      }
-    } else {
-      for (EvsProperty property : additionalProperties) {
-        if (propertyList.contains(property.getLabel())
-            || propertyList.contains(property.getCode())) {
-          String code = property.getCode();
-          String value = property.getValue();
-          if (allProperties.containsKey(code)) {
-            allProperties.get(code).add(value);
-          } else {
-            allProperties.put(code, new ArrayList<String>());
-            allProperties.get(code).add(value);
-          }
-        }
-      }
-    }
-
-    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
-    if (propertyList.contains("FULL_SYN") || propertyList.contains("P90")) {
-      evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
-    }
-    if (propertyList.contains("DEFINITION") || propertyList.contains("P97")) {
-      evsConcept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
-    }
-    //TODO: use-new-model-classes
-//    if (propertyList.contains("ALT_DEFINITION") || propertyList.contains("P325")) {
-//      evsConcept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
+//  public void getConceptProperties(Concept evsConcept, String conceptCode,
+//    Terminology terminology, String outputType, List<String> propertyList) throws IOException {
+//    evsConcept.setCode(conceptCode);
+//
+//    List<Property> properties = getEvsProperties(conceptCode, terminology);
+//    if (propertyList.contains("Label") || propertyList.contains("rdfs:label")) {
+//      evsConcept.setName(getEvsConceptLabel(conceptCode, terminology));
 //    }
-    if (propertyList.contains("Subconcept")) {
-      evsConcept.setChildren(getEvsSubconcepts(conceptCode, terminology, outputType));
-    }
-    if (propertyList.contains("Superconcept")) {
-      evsConcept.setParents(getEvsSuperconcepts(conceptCode, terminology, outputType));
-    }
-    if (propertyList.contains("Association")) {
-      evsConcept.setAssociations(getEvsAssociations(conceptCode, terminology));
-    }
-    if (propertyList.contains("InverseAssociation")) {
-      evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
-    }
-    if (propertyList.contains("Role")) {
-      evsConcept.setRoles(getEvsRoles(conceptCode, terminology));
-    }
-    if (propertyList.contains("InverseRole")) {
-      evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
-    }
-    if (propertyList.contains("Maps_To") || propertyList.contains("P375")) {
-      evsConcept.setMaps(EVSUtils.getMapsTo(axioms, outputType));
-    }
-    //TODO: use-new-model-classes
-//    if (propertyList.contains("GO_Annotation") || propertyList.contains("P211")) {
-//      evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
+//    if (propertyList.contains("Code") || propertyList.contains("NCH0")) {
+//      evsConcept.setCode(EVSUtils.getConceptCode(properties));
 //    }
-    if (propertyList.contains("DisjointWith")) {
-      evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
-    }
-  }
+//    if (propertyList.contains("Preferred_Name") || propertyList.contains("P108")) {
+//      final Synonym pn = new Synonym();
+//      pn.setType("Preferred_Name");
+//      pn.setName(EVSUtils.getPreferredName(properties));
+//      evsConcept.getSynonyms().add(pn);
+//    }
+//
+//    /*
+//     * Load Additional Properties
+//     */
+//    Map<String, List<String>> allProperties = evsConcept.getProperties();
+//    List<Property> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
+//    if (outputType.equals("byLabel")) {
+//      for (Property property : additionalProperties) {
+//        if (propertyList.contains(property.getType())
+//            || propertyList.contains(property.getCode())) {
+//          String label = property.getType();
+//          String value = property.getValue();
+//          if (allProperties.containsKey(label)) {
+//            allProperties.get(label).add(value);
+//          } else {
+//            allProperties.put(label, new ArrayList<String>());
+//            allProperties.get(label).add(value);
+//          }
+//        }
+//      }
+//    } else {
+//      for (EvsProperty property : additionalProperties) {
+//        if (propertyList.contains(property.getLabel())
+//            || propertyList.contains(property.getCode())) {
+//          String code = property.getCode();
+//          String value = property.getValue();
+//          if (allProperties.containsKey(code)) {
+//            allProperties.get(code).add(value);
+//          } else {
+//            allProperties.put(code, new ArrayList<String>());
+//            allProperties.get(code).add(value);
+//          }
+//        }
+//      }
+//    }
+//
+//    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
+//    if (propertyList.contains("FULL_SYN") || propertyList.contains("P90")) {
+//      evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
+//    }
+//    if (propertyList.contains("DEFINITION") || propertyList.contains("P97")) {
+//      evsConcept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
+//    }
+//    //TODO: use-new-model-classes
+////    if (propertyList.contains("ALT_DEFINITION") || propertyList.contains("P325")) {
+////      evsConcept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
+////    }
+//    if (propertyList.contains("Subconcept")) {
+//      evsConcept.setChildren(getEvsSubconcepts(conceptCode, terminology, outputType));
+//    }
+//    if (propertyList.contains("Superconcept")) {
+//      evsConcept.setParents(getEvsSuperconcepts(conceptCode, terminology, outputType));
+//    }
+//    if (propertyList.contains("Association")) {
+//      evsConcept.setAssociations(getEvsAssociations(conceptCode, terminology));
+//    }
+//    if (propertyList.contains("InverseAssociation")) {
+//      evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
+//    }
+//    if (propertyList.contains("Role")) {
+//      evsConcept.setRoles(getEvsRoles(conceptCode, terminology));
+//    }
+//    if (propertyList.contains("InverseRole")) {
+//      evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
+//    }
+//    if (propertyList.contains("Maps_To") || propertyList.contains("P375")) {
+//      evsConcept.setMaps(EVSUtils.getMapsTo(axioms, outputType));
+//    }
+//    //TODO: use-new-model-classes
+////    if (propertyList.contains("GO_Annotation") || propertyList.contains("P211")) {
+////      evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
+////    }
+//    if (propertyList.contains("DisjointWith")) {
+//      evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
+//    }
+//  }
 
   /**
    * Returns the concept.
@@ -593,40 +591,45 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 //}
     if (ip.isSynonyms() || ip.isProperties()) {
       List<Property> allProperties = concept.getProperties();
+
+      //if label ends with _Name, add as a Synonym -- (label.endsWith("_Name") && ip.isSynonyms())
+      //else add as property -- (!label.endsWith("_Name") && ip.isProperties())
+      
       List<Property> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
       for (Property property : additionalProperties) {
         String label = property.getType();
         if ((label.endsWith("_Name") && ip.isSynonyms())
             || (!label.endsWith("_Name") && ip.isProperties())) {
           String value = property.getValue();
-          if (allProperties.containsKey(label)) {
-            allProperties.get(label).add(value);
-          } else {
-            allProperties.put(label, new ArrayList<String>());
-            allProperties.get(label).add(value);
-          }
+          
+          
+//          if (allProperties.containsKey(label)) {
+//            allProperties.get(label).add(value);
+//          } else {
+//            allProperties.put(label, new ArrayList<String>());
+//            allProperties.get(label).add(value);
+//          }
         }
       }
     }
-    final String outputType = "byLabel";
 
     if (ip.hasAnyTrue()) {
       final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
       if (ip.isSynonyms()) {
-        concept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
+        concept.setSynonyms(EVSUtils.getSynonyms(axioms));
       }
 
       if (ip.isDefinitions()) {
-        concept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
+        concept.setDefinitions(EVSUtils.getDefinitions(axioms));
         //TODO: use-new-model-classes - check if this is right
-        concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms, outputType));
+        concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms));
       }
       if (ip.isChildren()) {
-        concept.setChildren(getEvsSubconcepts(conceptCode, terminology, outputType));
+        concept.setChildren(getEvsSubconcepts(conceptCode, terminology));
       }
 
       if (ip.isParents()) {
-        concept.setParents(getEvsSuperconcepts(conceptCode, terminology, outputType));
+        concept.setParents(getEvsSuperconcepts(conceptCode, terminology));
       }
 
       if (ip.isAssociations()) {
@@ -646,7 +649,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (ip.isMaps()) {
-        concept.setMaps(EVSUtils.getMapsTo(axioms, outputType));
+        concept.setMaps(EVSUtils.getMapsTo(axioms));
       }
 
       // evsConcept
@@ -670,7 +673,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<gov.nih.nci.evs.api.model.Map> getEvsMapsTo(String conceptCode, Terminology terminology)
     throws IOException {
     List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
-    return EVSUtils.getMapsTo(axioms, "byCode");
+    return EVSUtils.getMapsTo(axioms);
   }
 
   /**
@@ -738,20 +741,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // Properties ending in "Name" are rendered as synonyms here.
     if (ip.isSynonyms() || ip.isProperties()) {
 
-      Map<String, List<String>> allProperties = concept.getProperties();
-      List<EvsProperty> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
+      List<Property> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
 
-      for (EvsProperty property : additionalProperties) {
-        String label = property.getLabel();
-        if ((label.endsWith("_Name") && ip.isSynonyms())
-            || (!label.endsWith("_Name") && ip.isProperties())) {
-          String value = property.getValue();
-          if (allProperties.containsKey(label)) {
-            allProperties.get(label).add(value);
-          } else {
-            allProperties.put(label, new ArrayList<String>());
-            allProperties.get(label).add(value);
-          }
+      for (Property property : additionalProperties) {
+        String type = property.getType();
+        
+        if (type.endsWith("_Name") && ip.isSynonyms()) {
+          //add synonym
+          final Synonym synonym = new Synonym();
+          synonym.setType(type);
+          synonym.setName(EVSUtils.getPreferredName(properties));
+          concept.getSynonyms().add(synonym);
+        }
+        
+        if (!type.endsWith("_Name") && ip.isProperties()) {
+          //add property
+          concept.getProperties().add(property);
         }
       }
 
@@ -762,7 +767,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
 
       if (ip.isSynonyms()) {
-        concept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
+        concept.setSynonyms(EVSUtils.getSynonyms(axioms));
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
         if (conceptLabel != null && !conceptLabel.equals(pn) && conceptLabel.contains(" ")) {
@@ -774,17 +779,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (ip.isDefinitions()) {
-        concept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
+        concept.setDefinitions(EVSUtils.getDefinitions(axioms));
         //TODO: use-new-model-classes - check if this is right
-        concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms, outputType));
+        concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms));
       }
 
       if (ip.isChildren()) {
-        concept.setChildren(getEvsSubconcepts(conceptCode, terminology, outputType));
+        concept.setChildren(getEvsSubconcepts(conceptCode, terminology));
       }
 
       if (ip.isParents()) {
-        concept.setParents(getEvsSuperconcepts(conceptCode, terminology, outputType));
+        concept.setParents(getEvsSuperconcepts(conceptCode, terminology));
       }
 
       if (ip.isAssociations()) {
@@ -804,7 +809,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (ip.isMaps()) {
-        concept.setMaps(EVSUtils.getMapsTo(axioms, outputType));
+        concept.setMaps(EVSUtils.getMapsTo(axioms));
       }
       // evsConcept
       // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
@@ -875,7 +880,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode,
+  public List<Property> getEvsPropertiesNoRestrictions(String conceptCode,
     Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -885,7 +890,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<EvsProperty> evsProperties = new ArrayList<EvsProperty>();
+    ArrayList<Property> evsProperties = new ArrayList<Property>();
 
     /*
      * Because the original SPARQL query that filtered out the Annotations was
@@ -894,17 +899,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      EvsProperty evsProperty = new EvsProperty();
+      Property evsProperty = new Property();
       if (b.getPropertyCode() == null) {
-        evsProperty.setCode(b.getProperty().getValue());
+        evsProperty.setType(b.getProperty().getValue());
       } else {
-        evsProperty.setCode(b.getPropertyCode().getValue());
+        evsProperty.setType(b.getPropertyCode().getValue());
       }
-      if (b.getPropertyLabel() == null) {
-        evsProperty.setLabel(b.getProperty().getValue());
-      } else {
-        evsProperty.setLabel(b.getPropertyLabel().getValue());
-      }
+      //TODO: use-new-model-classes - is this required
+//      if (b.getPropertyLabel() == null) {
+//        evsProperty.setType(b.getProperty().getValue());
+//      } else {
+//        evsProperty.setType(b.getPropertyLabel().getValue());
+//      }
       evsProperty.setValue(b.getPropertyValue().getValue());
       evsProperties.add(evsProperty);
 
@@ -918,15 +924,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @param outputType the output type
    * @return the evs subconcepts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Concept> getEvsSubconcepts(String conceptCode, Terminology terminology,
-    String outputType) throws JsonMappingException, JsonParseException, IOException {
+  public List<Concept> getEvsSubconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
         queryBuilderService.constructSubconceptQuery(conceptCode, terminology.getGraph());
@@ -962,8 +966,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Concept> getEvsSuperconcepts(String conceptCode, Terminology terminology,
-    String outputType) throws JsonMappingException, JsonParseException, IOException {
+  public List<Concept> getEvsSuperconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
         queryBuilderService.constructSuperconceptQuery(conceptCode, terminology.getGraph());

@@ -361,7 +361,7 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
     final List<Concept> list =
-        sparqlQueryManagerService.getEvsSuperconcepts(code, term, "byCode");
+        sparqlQueryManagerService.getEvsSuperconcepts(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -404,7 +404,7 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
     final List<Concept> list =
-        sparqlQueryManagerService.getEvsSubconcepts(code, term, "byCode");
+        sparqlQueryManagerService.getEvsSubconcepts(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");

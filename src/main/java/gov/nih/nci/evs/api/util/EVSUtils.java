@@ -109,8 +109,7 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the synonyms
    */
-  public static List<Synonym> getSynonyms(List<EvsAxiom> axioms,
-    String outputType) {
+  public static List<Synonym> getSynonyms(List<EvsAxiom> axioms) {
     ArrayList<Synonym> results = new ArrayList<>();
     for (EvsAxiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P90")) {
@@ -136,8 +135,7 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the definitions
    */
-  public static List<Definition> getDefinitions(List<EvsAxiom> axioms,
-    String outputType) {
+  public static List<Definition> getDefinitions(List<EvsAxiom> axioms) {
     ArrayList<Definition> results = new ArrayList<Definition>();
     for (EvsAxiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P97")) {
@@ -159,8 +157,7 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the alt definitions
    */
-  public static List<Definition> getAltDefinitions(List<EvsAxiom> axioms,
-    String outputType) {
+  public static List<Definition> getAltDefinitions(List<EvsAxiom> axioms) {
     ArrayList<Definition> results = new ArrayList<Definition>();
     for (EvsAxiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P325")) {
@@ -183,8 +180,7 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the maps to
    */
-  public static List<Map> getMapsTo(List<EvsAxiom> axioms,
-    String outputType) {
+  public static List<Map> getMapsTo(List<EvsAxiom> axioms) {
     ArrayList<Map> results = new ArrayList<Map>();
     for (EvsAxiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P375")) {
@@ -207,27 +203,27 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the go annotations
    */
-  public static List<EvsGoAnnotation> getGoAnnotations(List<EvsAxiom> axioms,
-    String outputType) {
-    ArrayList<EvsGoAnnotation> results = new ArrayList<EvsGoAnnotation>();
-    for (EvsAxiom axiom : axioms) {
-      if (axiom.getAnnotatedProperty().equals("P211")) {
-        EvsGoAnnotation go;
-        if (outputType.equals("byLabel")) {
-          go = new EvsGoAnnotationByLabel();
-        } else {
-          go = new EvsGoAnnotationByCode();
-        }
-        go.setGoId(axiom.getGoId());
-        go.setGoTerm(axiom.getAnnotatedTarget());
-        go.setGoEvi(axiom.getGoEvi());
-        go.setGoSource(axiom.getGoSource());
-        go.setSourceDate(axiom.getSourceDate());
-        results.add(go);
-      }
-    }
-    return results;
-  }
+//  public static List<EvsGoAnnotation> getGoAnnotations(List<EvsAxiom> axioms,
+//    String outputType) {
+//    ArrayList<EvsGoAnnotation> results = new ArrayList<EvsGoAnnotation>();
+//    for (EvsAxiom axiom : axioms) {
+//      if (axiom.getAnnotatedProperty().equals("P211")) {
+//        EvsGoAnnotation go;
+//        if (outputType.equals("byLabel")) {
+//          go = new EvsGoAnnotationByLabel();
+//        } else {
+//          go = new EvsGoAnnotationByCode();
+//        }
+//        go.setGoId(axiom.getGoId());
+//        go.setGoTerm(axiom.getAnnotatedTarget());
+//        go.setGoEvi(axiom.getGoEvi());
+//        go.setGoSource(axiom.getGoSource());
+//        go.setSourceDate(axiom.getSourceDate());
+//        results.add(go);
+//      }
+//    }
+//    return results;
+//  }
 
   /**
    * As list.

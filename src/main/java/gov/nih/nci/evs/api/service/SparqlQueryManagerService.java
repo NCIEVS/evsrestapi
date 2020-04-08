@@ -183,28 +183,24 @@ public interface SparqlQueryManagerService {
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @param outputType the output type
    * @return the evs subconcepts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Concept> getEvsSubconcepts(String conceptCode, Terminology terminology,
-    String outputType) throws JsonMappingException, JsonParseException, IOException;
+  public List<Concept> getEvsSubconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the evs superconcepts.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @param outputType the output type
    * @return the evs superconcepts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Concept> getEvsSuperconcepts(String conceptCode, Terminology terminology,
-    String outputType) throws JsonMappingException, JsonParseException, IOException;
+  public List<Concept> getEvsSuperconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the evs maps to.
@@ -325,20 +321,6 @@ public interface SparqlQueryManagerService {
    */
   public EvsVersionInfo getEvsVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
-
-  /**
-   * Returns the evs concept by label properties.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @param properties the properties
-   * @return the evs concept by label properties
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public Concept getEvsConceptByLabelProperties(String conceptCode, Terminology terminology,
-    List<String> properties) throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the configuration data.
