@@ -12,7 +12,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.evs.EvsAssociation;
@@ -363,20 +365,6 @@ public interface SparqlQueryManagerService {
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the concept properties.
-   *
-   * @param evsConcept the evs concept
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @param outputType the output type
-   * @param propertyList the property list
-   * @return the concept properties
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  void getConceptProperties(EvsConcept evsConcept, String conceptCode, Terminology terminology, String outputType,
-      List<String> propertyList) throws IOException;
-
-  /**
    * Returns the concept.
    *
    * @param evsConcept the evs concept
@@ -386,7 +374,7 @@ public interface SparqlQueryManagerService {
    * @return the concept
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  void getConcept(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
+  void getConcept(Concept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
       throws IOException;
 
   /**
@@ -399,7 +387,7 @@ public interface SparqlQueryManagerService {
    * @return the property
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  void getProperty(EvsConcept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
+  void getProperty(Concept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
       throws IOException;
 
   /**
@@ -412,7 +400,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<EvsProperty> getEvsProperties(String conceptCode, Terminology terminology)
+  List<Property> getEvsProperties(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -425,7 +413,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<EvsProperty> getEvsPropertiesNoRestrictions(String conceptCode, Terminology terminology)
+  List<Property> getEvsPropertiesNoRestrictions(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -438,7 +426,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<EvsAssociation> getEvsDisjointWith(String conceptCode, Terminology terminology)
+  List<DisjointWith> getEvsDisjointWith(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
