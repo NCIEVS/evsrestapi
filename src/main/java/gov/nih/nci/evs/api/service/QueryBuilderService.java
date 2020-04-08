@@ -23,14 +23,15 @@ public interface QueryBuilderService {
   public String constructAllGraphNamesQuery();
 
   /**
-   * Construct all graph names and corresponding ontology versions (limited to owl ontologies)
+   * Construct all graph names and corresponding ontology versions (limited to
+   * owl ontologies)
    * 
    * Properties key is {@code all.graphs.and.versions}
-   * 
-   * @return
+   *
+   * @return the string
    */
   public String constructAllGraphsAndVersionsQuery();
-  
+
   /**
    * Construct axiom query.
    *
@@ -170,6 +171,22 @@ public interface QueryBuilderService {
    * @return the string
    */
   public String constructAllPropertiesQuery(String namedGraph);
+
+  /**
+   * Construct all properties never used query.
+   *
+   * @param namedGraph the named graph
+   * @return the string
+   */
+  public String constructAllPropertiesNeverUsedQuery(String namedGraph);
+
+  /**
+   * Construct all qualifiers query.
+   *
+   * @param namedGraph the named graph
+   * @return the string
+   */
+  public String constructAllQualifiersQuery(String namedGraph);
 
   /**
    * Construct all associations query.

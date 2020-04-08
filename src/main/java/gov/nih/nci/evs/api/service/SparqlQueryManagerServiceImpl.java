@@ -1,4 +1,5 @@
 
+
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
@@ -1216,6 +1217,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         case "P396":
           evsAxiom.setTargetTerminology(value);
           break;
+        case "P397":
+          evsAxiom.setTargetTerminologyVersion(value);
+          break;
         case "P381":
           evsAxiom.setAttr(value);
           break;
@@ -1330,6 +1334,70 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     for (String code : evsProperties) {
+      EvsConcept concept = null;
+      concept = getEvsProperty(code, terminology, ip);
+      evsConcepts.add(concept);
+    }
+
+    return evsConcepts;
+  }
+
+  /**
+   * Returns the all properties never used.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the all properties never used
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Override
+  public List<EvsConcept> getAllPropertiesNeverUsed(Terminology terminology, IncludeParam ip)
+      throws JsonParseException, JsonMappingException, IOException {
+      String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+      String query = queryBuilderService.constructAllPropertiesNeverUsedQuery(terminology.getGraph());
+      String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      final List<String> codes = new ArrayList<String>();
+      final List<EvsConcept> evsConcepts = new ArrayList<EvsConcept>();
+
+      Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+      Bindings[] bindings = sparqlResult.getResults().getBindings();
+      for (Bindings b : bindings) {
+        codes.add(b.getPropertyCode().getValue());
+      }
+      log.info("XXX = " + codes);
+      for (String code : codes) {
+        EvsConcept concept = null;
+        concept = getEvsProperty(code, terminology, ip);
+        evsConcepts.add(concept);
+      }
+
+      return evsConcepts;
+    }
+  
+  @Override
+  public List<EvsConcept> getAllQualifiers(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String query = queryBuilderService.constructAllQualifiersQuery(terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final List<String> codes = new ArrayList<String>();
+    final List<EvsConcept> evsConcepts = new ArrayList<EvsConcept>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      codes.add(b.getPropertyCode().getValue());
+    }
+
+    for (String code : codes) {
       EvsConcept concept = null;
       concept = getEvsProperty(code, terminology, ip);
       evsConcepts.add(concept);

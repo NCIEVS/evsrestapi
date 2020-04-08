@@ -220,7 +220,7 @@ public final class ConceptUtils {
     if (evsConcept.getProperties() != null) {
       for (final String key : evsConcept.getProperties().keySet()) {
         // TODO: very ncit specific...deal with that
-        if (!key.endsWith("_Name") && !key.equals("Contributing_Source")) {
+        if (!key.endsWith("_Name")) {
           for (final String value : evsConcept.getProperties().get(key)) {
             final Property property = new Property();
             property.setType(key);
@@ -287,9 +287,6 @@ public final class ConceptUtils {
       }
     }
 
-    // Skip NCI - really this should be better focused on
-    concept.setContributingSources(contributingSources.stream().sorted((a, b) -> a.compareTo(b))
-        .filter(s -> !s.equals("NCI")).collect(Collectors.toList()));
     return concept;
   }
 

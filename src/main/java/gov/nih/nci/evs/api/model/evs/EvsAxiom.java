@@ -11,7 +11,8 @@ public class EvsAxiom {
 	String relationshipToTarget;
 	String targetCode;
 	String targetTermType;
-	String targetTerminology;
+    String targetTerminology;
+    String targetTerminologyVersion;
 	String attr;
 	String defSource;
 	String goEvi;
@@ -77,12 +78,18 @@ public class EvsAxiom {
 	public void setTargetTermType(String targetTermType) {
 		this.targetTermType = targetTermType;
 	}
-	public String getTargetTerminology() {
-		return targetTerminology;
-	}
-	public void setTargetTerminology(String targetTerminology) {
-		this.targetTerminology = targetTerminology;
-	}
+    public String getTargetTerminology() {
+      return targetTerminology;
+  }
+    public void setTargetTerminology(String targetTerminology) {
+        this.targetTerminology = targetTerminology;
+    }
+    public String getTargetTerminologyVersion() {
+      return targetTerminologyVersion;
+    }
+    public void setTargetTerminologyVersion(String targetTerminologyVersion) {
+        this.targetTerminologyVersion = targetTerminologyVersion;
+    }
 	public String getAttr() {
 		return attr;
 	}

@@ -1,6 +1,9 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import gov.nih.nci.evs.api.model.evs.EvsDefinition;
 
 /**
@@ -20,6 +23,9 @@ public class Definition extends BaseModel {
   /** The source. */
   private String source;
 
+  /** The qualifiers. */
+  private List<Qualifier> qualifiers;
+
   /**
    * Instantiates an empty {@link Definition}.
    */
@@ -35,6 +41,9 @@ public class Definition extends BaseModel {
   public Definition(EvsDefinition other) {
     definition = other.getDefinition();
     source = other.getDefSource();
+    if (other.getAttr() != null) {
+      getQualifiers().add(new Qualifier("attr", other.getAttr()));
+    }
   }
 
   /**
@@ -56,6 +65,7 @@ public class Definition extends BaseModel {
     highlight = other.getHighlight();
     type = other.getType();
     source = other.getSource();
+    qualifiers = new ArrayList<>(other.getQualifiers());
   }
 
   /**
@@ -130,18 +140,49 @@ public class Definition extends BaseModel {
     this.source = source;
   }
 
+  /**
+   * Returns the qualifiers.
+   *
+   * @return the qualifiers
+   */
+  public List<Qualifier> getQualifiers() {
+    if (qualifiers == null) {
+      qualifiers = new ArrayList<>();
+    }
+    return qualifiers;
+  }
+
+  /**
+   * Sets the qualifiers.
+   *
+   * @param qualifiers the qualifiers
+   */
+  public void setQualifiers(final List<Qualifier> qualifiers) {
+    this.qualifiers = qualifiers;
+  }
+
+  /**
+   * Hash code.
+   *
+   * @return the int
+   */
   /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result =
-        prime * result + ((definition == null) ? 0 : definition.hashCode());
+    result = prime * result + ((definition == null) ? 0 : definition.hashCode());
     result = prime * result + ((source == null) ? 0 : source.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
 
+  /**
+   * Equals.
+   *
+   * @param obj the obj
+   * @return true, if successful
+   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {

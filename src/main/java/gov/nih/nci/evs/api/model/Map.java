@@ -23,6 +23,9 @@ public class Map extends BaseModel {
   /** The target terminology. */
   private String targetTerminology;
 
+  /** The target terminology version. */
+  private String targetTerminologyVersion;
+
   /**
    * Instantiates an empty {@link Map}.
    */
@@ -63,6 +66,7 @@ public class Map extends BaseModel {
     targetTermGroup = other.getTargetTermGroup();
     targetCode = other.getTargetCode();
     targetTerminology = other.getTargetTerminology();
+    targetTerminologyVersion = other.getTargetTerminologyVersion();
   }
 
   /**
@@ -155,23 +159,50 @@ public class Map extends BaseModel {
     this.targetTerminology = targetTerminology;
   }
 
+  /**
+   * Returns the target terminology version.
+   *
+   * @return the target terminology version
+   */
+  public String getTargetTerminologyVersion() {
+    return targetTerminologyVersion;
+  }
+
+  /**
+   * Sets the target terminology version.
+   *
+   * @param targetTerminologyVersion the target terminology version
+   */
+  public void setTargetTerminologyVersion(final String targetTerminologyVersion) {
+    this.targetTerminologyVersion = targetTerminologyVersion;
+  }
+
+  /**
+   * Hash code.
+   *
+   * @return the int
+   */
   /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result =
-        prime * result + ((targetCode == null) ? 0 : targetCode.hashCode());
-    result =
-        prime * result + ((targetName == null) ? 0 : targetName.hashCode());
+    result = prime * result + ((targetCode == null) ? 0 : targetCode.hashCode());
+    result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
+    result = prime * result + ((targetTermGroup == null) ? 0 : targetTermGroup.hashCode());
+    result = prime * result + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
     result = prime * result
-        + ((targetTermGroup == null) ? 0 : targetTermGroup.hashCode());
-    result = prime * result
-        + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
+        + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
 
+  /**
+   * Equals.
+   *
+   * @param obj the obj
+   * @return true, if successful
+   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {
@@ -211,6 +242,13 @@ public class Map extends BaseModel {
         return false;
       }
     } else if (!targetTerminology.equals(other.targetTerminology)) {
+      return false;
+    }
+    if (targetTerminologyVersion == null) {
+      if (other.targetTerminologyVersion != null) {
+        return false;
+      }
+    } else if (!targetTerminologyVersion.equals(other.targetTerminologyVersion)) {
       return false;
     }
     if (type == null) {

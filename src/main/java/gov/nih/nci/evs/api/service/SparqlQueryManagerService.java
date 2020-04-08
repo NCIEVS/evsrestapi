@@ -1,4 +1,6 @@
 
+
+
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
@@ -67,7 +69,33 @@ public interface SparqlQueryManagerService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public List<EvsConcept> getAllProperties(Terminology terminology, IncludeParam ip)
-    throws JsonParseException, JsonMappingException, IOException;
+      throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Returns the all properties never used.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the all properties never used
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<EvsConcept> getAllPropertiesNeverUsed(Terminology terminology, IncludeParam ip)
+      throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Returns the all qualifiers.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the all qualifiers
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<EvsConcept> getAllQualifiers(Terminology terminology, IncludeParam ip)
+      throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the axiom qualifiers list.

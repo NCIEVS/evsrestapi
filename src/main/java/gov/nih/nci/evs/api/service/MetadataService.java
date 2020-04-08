@@ -95,6 +95,18 @@ public interface MetadataService {
     boolean forDocumentation, final Optional<String> list) throws Exception;
 
   /**
+   * Returns the qualifiers.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the qualifiers
+   * @throws Exception the exception
+   */
+  List<Concept> getQualifiers(final String terminology, final Optional<String> include,
+    final Optional<String> list) throws Exception;
+
+  /**
    * Get property for the given code.
    *
    * @param terminology the terminology

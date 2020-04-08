@@ -32,8 +32,7 @@ import gov.nih.nci.evs.api.model.evs.HierarchyNode;
  *   "properties" : [
  *     { "type": "Neoplastic_Status", "value": "Malignant" },
  *     { "type": "UMLS_CUI", "value": "C0025202" }, ...
- *   ],
- *   "contributingSources" : [ "CTRP", "CTEP", "Cellosaurus", "MedDRA", "CDISC", "NICHD", "CPTAC" ],
+ *   ]
  * }
  * </pre>
  */
@@ -59,9 +58,6 @@ public class Concept extends ConceptMinimal {
 
   /** The properties. */
   private List<Property> properties;
-
-  /** The contributing sources. */
-  private List<String> contributingSources;
 
   /** The children. */
   private List<Concept> children;
@@ -172,7 +168,6 @@ public class Concept extends ConceptMinimal {
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
-    contributingSources = new ArrayList<>(other.getContributingSources());
     children = new ArrayList<>(other.getChildren());
     parents = new ArrayList<>(other.getParents());
     associations = new ArrayList<>(other.getAssociations());
@@ -319,27 +314,6 @@ public class Concept extends ConceptMinimal {
    */
   public void setProperties(final List<Property> properties) {
     this.properties = properties;
-  }
-
-  /**
-   * Returns the contributing sources.
-   *
-   * @return the contributing sources
-   */
-  public List<String> getContributingSources() {
-    if (contributingSources == null) {
-      contributingSources = new ArrayList<>();
-    }
-    return contributingSources;
-  }
-
-  /**
-   * Sets the contributing sources.
-   *
-   * @param contributingSources the contributing sources
-   */
-  public void setContributingSources(final List<String> contributingSources) {
-    this.contributingSources = contributingSources;
   }
 
   /**

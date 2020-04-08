@@ -145,6 +145,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     return query;
   }
 
+
   public String constructConceptLabelQuery(String conceptCode,
     String namedGraph) {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
@@ -246,8 +247,23 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
         namedGraph);
     String query = getResolvedProperty("all.properties", values);
-
     log.debug("constructAllPropertiesQuery - " + query);
+    return query;
+  }
+
+  public String constructAllPropertiesNeverUsedQuery(String namedGraph) {
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedProperty("all.propertiesNeverUsed", values);
+    log.debug("constructAllPropertiesNeverUsedQuery - " + query);
+    return query;
+  }
+
+  public String constructAllQualifiersQuery(String namedGraph) {
+    Map<String, String> values = getParamValueMap(new Object() {}.getClass().getEnclosingMethod(),
+        namedGraph);
+    String query = getResolvedProperty("all.qualifiers", values);
+    log.debug("constructAllQualifiersQuery - " + query);
     return query;
   }
 

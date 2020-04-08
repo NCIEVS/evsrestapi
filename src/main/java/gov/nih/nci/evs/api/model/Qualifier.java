@@ -1,13 +1,11 @@
 
 package gov.nih.nci.evs.api.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Represents a synonym of a concept.
+ * Represents a qualifier on a synonym, definition, property, or role that isn't
+ * explicitly modeled as a first-class attribute.
  */
-public class Property extends BaseModel {
+public class Qualifier extends BaseModel {
 
   /** The type. */
   private String type;
@@ -15,25 +13,30 @@ public class Property extends BaseModel {
   /** The value. */
   private String value;
 
-  /** The highlight. */
-  private String highlight;
-
-  /** The qualifiers. */
-  private List<Qualifier> qualifiers;
-
   /**
-   * Instantiates an empty {@link Property}.
+   * Instantiates an empty {@link Qualifier}.
    */
-  public Property() {
+  public Qualifier() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link Property} from the specified parameters.
+   * Instantiates a {@link Qualifier} from the specified parameters.
+   *
+   * @param type the type
+   * @param value the value
+   */
+  public Qualifier(final String type, final String value) {
+    this.type = type;
+    this.value = value;
+  }
+
+  /**
+   * Instantiates a {@link Qualifier} from the specified parameters.
    *
    * @param other the other
    */
-  public Property(final Property other) {
+  public Qualifier(final Qualifier other) {
     populateFrom(other);
   }
 
@@ -42,11 +45,9 @@ public class Property extends BaseModel {
    *
    * @param other the other
    */
-  public void populateFrom(final Property other) {
+  public void populateFrom(final Qualifier other) {
     type = other.getType();
-    value = other.getValue();
-    highlight = other.getHighlight();
-    qualifiers = new ArrayList<>(other.getQualifiers());
+    value = other.getValue();    
   }
 
   /**
@@ -86,44 +87,10 @@ public class Property extends BaseModel {
   }
 
   /**
-   * Returns the highlight.
+   * Hash code.
    *
-   * @return the highlight
+   * @return the int
    */
-  public String getHighlight() {
-    return highlight;
-  }
-
-  /**
-   * Sets the hightlight.
-   *
-   * @param highlight the hightlight
-   */
-  public void setHighlight(final String highlight) {
-    this.highlight = highlight;
-  }
-
-  /**
-   * Returns the qualifiers.
-   *
-   * @return the qualifiers
-   */
-  public List<Qualifier> getQualifiers() {
-    if (qualifiers == null) {
-      qualifiers = new ArrayList<>();
-    }
-    return qualifiers;
-  }
-
-  /**
-   * Sets the qualifiers.
-   *
-   * @param qualifiers the qualifiers
-   */
-  public void setQualifiers(final List<Qualifier> qualifiers) {
-    this.qualifiers = qualifiers;
-  }
-
   /* see superclass */
   @Override
   public int hashCode() {
@@ -134,6 +101,12 @@ public class Property extends BaseModel {
     return result;
   }
 
+  /**
+   * Equals.
+   *
+   * @param obj the obj
+   * @return true, if successful
+   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {
@@ -146,7 +119,7 @@ public class Property extends BaseModel {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final Property other = (Property) obj;
+    final Qualifier other = (Qualifier) obj;
     if (type == null) {
       if (other.type != null) {
         return false;

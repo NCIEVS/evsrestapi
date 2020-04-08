@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.controller;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,7 +54,7 @@ public class MetadataController {
    * Returns the application metadata.
    *
    * @return the application metadata
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get application metadata for evs-explore application",
       response = ConfigData.class, responseContainer = "List")
@@ -73,7 +72,7 @@ public class MetadataController {
    * Returns the terminologies.
    *
    * @return the terminologies
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get all available terminologies", response = Terminology.class,
       responseContainer = "List")
@@ -304,6 +303,48 @@ public class MetadataController {
 
     return metadataService.getProperties(terminology, include, forDocumentation.orElse(false),
         list);
+  }
+
+  /**
+   * Returns the qualifiers.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the qualifiers
+   * @throws Exception the exception
+   */
+  @ApiOperation(
+      value = "Get all qualifiers (properties on properties) for the specified terminology",
+      response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
+      produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list",
+          value = "List of codes or labels to return qualifiers for (or leave blank for all)",
+          required = false, dataType = "string", paramType = "query")
+
+  })
+  @RecordMetricDBFormat
+  public @ResponseBody List<Concept> getQualifiers(
+    @PathVariable(value = "terminology") final String terminology,
+    @RequestParam("include") final Optional<String> include,
+    @RequestParam("list") final Optional<String> list) throws Exception {
+
+    return metadataService.getQualifiers(terminology, include, list);
   }
 
   /**
