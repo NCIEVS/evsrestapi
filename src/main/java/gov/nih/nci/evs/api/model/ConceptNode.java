@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.model.evs;
+package gov.nih.nci.evs.api.model;
 
 public class ConceptNode {
 	private int idx;

@@ -18,7 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import gov.nih.nci.evs.api.model.evs.Metric;
+import gov.nih.nci.evs.api.model.Metric;
 
 /**
  * Metric advice.

@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import gov.nih.nci.evs.api.model.evs.HierarchyNode;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 
 /**
  * Hierarchy utilities.

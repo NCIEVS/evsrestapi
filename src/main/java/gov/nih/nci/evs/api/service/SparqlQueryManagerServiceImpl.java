@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -24,29 +23,19 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptNode;
 import gov.nih.nci.evs.api.model.DisjointWith;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.ConceptNode;
-import gov.nih.nci.evs.api.model.evs.EvsAssociation;
-import gov.nih.nci.evs.api.model.evs.EvsAxiom;
-import gov.nih.nci.evs.api.model.evs.EvsConceptByCode;
-import gov.nih.nci.evs.api.model.evs.EvsConceptByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
-import gov.nih.nci.evs.api.model.evs.EvsProperty;
-import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
-import gov.nih.nci.evs.api.model.evs.EvsRelatedConceptByCode;
-import gov.nih.nci.evs.api.model.evs.EvsRelatedConceptByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsSynonym;
-import gov.nih.nci.evs.api.model.evs.EvsSynonymByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
-import gov.nih.nci.evs.api.model.evs.HierarchyNode;
-import gov.nih.nci.evs.api.model.evs.Path;
-import gov.nih.nci.evs.api.model.evs.Paths;
+import gov.nih.nci.evs.api.model.VersionInfo;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -245,14 +234,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns EvsVersion Information objects for all graphs loaded in db.
    *
-   * @return the list of {@link EvsVersionInfo} objects
+   * @return the list of {@link VersionInfo} objects
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
   @Cacheable(value = "terminology", key = "#root.methodName")
-  public List<EvsVersionInfo> getEvsVersionInfoList()
+  public List<VersionInfo> getEvsVersionInfoList()
     throws JsonParseException, JsonMappingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(null);
     String query = queryBuilderService.constructAllGraphsAndVersionsQuery();
@@ -263,7 +252,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       log.debug("getEvsVersionInfoList response - " + res);
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    List<EvsVersionInfo> evsVersionInfoList = new ArrayList<>();
+    List<VersionInfo> evsVersionInfoList = new ArrayList<>();
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
 
@@ -271,7 +260,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       String graphName = b.getGraphName().getValue();
       if (graphName == null || graphName.equalsIgnoreCase(""))
         continue;
-      EvsVersionInfo evsVersionInfo = new EvsVersionInfo();
+      VersionInfo evsVersionInfo = new VersionInfo();
       evsVersionInfo.setVersion(b.getVersion().getValue());
       evsVersionInfo.setDate((b.getDate() == null) ? null : b.getDate().getValue());
       evsVersionInfo.setComment((b.getComment() == null) ? "" : b.getComment().getValue());
@@ -294,7 +283,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    */
   @Override
   @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public EvsVersionInfo getEvsVersionInfo(Terminology terminology)
+  public VersionInfo getEvsVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -303,7 +292,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    EvsVersionInfo evsVersionInfo = new EvsVersionInfo();
+    VersionInfo evsVersionInfo = new VersionInfo();
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
@@ -626,7 +615,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     if (ip.hasAnyTrue()) {
-      final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
+      final List<Axiom> axioms = getEvsAxioms(conceptCode, terminology);
       if (ip.isSynonyms()) {
         concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
       }
@@ -684,7 +673,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<gov.nih.nci.evs.api.model.Map> getEvsMapsTo(String conceptCode, Terminology terminology)
     throws IOException {
-    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
+    List<Axiom> axioms = getEvsAxioms(conceptCode, terminology);
     return EVSUtils.getMapsTo(axioms);
   }
 
@@ -775,7 +764,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     if (ip.hasAnyTrue()) {
-      List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
+      List<Axiom> axioms = getEvsAxioms(conceptCode, terminology);
 
       if (ip.isSynonyms()) {
         concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
@@ -1194,7 +1183,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<EvsAxiom> getEvsAxioms(String conceptCode, Terminology terminology)
+  public List<Axiom> getEvsAxioms(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructAxiomQuery(conceptCode, terminology.getGraph());
@@ -1202,14 +1191,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<EvsAxiom> evsAxioms = new ArrayList<EvsAxiom>();
+    ArrayList<Axiom> evsAxioms = new ArrayList<Axiom>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     if (bindings.length == 0) {
       return evsAxioms;
     }
-    EvsAxiom evsAxiom = new EvsAxiom();
+    Axiom evsAxiom = new Axiom();
     Boolean sw = false;
     String oldAxiom = "";
     for (Bindings b : bindings) {
@@ -1222,7 +1211,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       if (sw && !axiom.equals(oldAxiom)) {
         evsAxioms.add(evsAxiom);
-        evsAxiom = new EvsAxiom();
+        evsAxiom = new Axiom();
       }
       sw = true;
       oldAxiom = axiom;

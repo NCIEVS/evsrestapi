@@ -2,24 +2,24 @@ package gov.nih.nci.evs.api.support;
 
 import java.util.List;
 
-import gov.nih.nci.evs.api.model.evs.EvsProperty;
-import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.VersionInfo;
 
 public class ConfigData {
-	private List<EvsProperty> properties;
-	private EvsVersionInfo evsVersionInfo;
+	private List<Property> properties;
+	private VersionInfo evsVersionInfo;
 	private List<String> fullSynSources;
 	
-	public List<EvsProperty> getProperties() {
+	public List<Property> getProperties() {
 		return properties;
 	}
-	public void setProperties(final List<EvsProperty> properties) {
+	public void setProperties(final List<Property> properties) {
 		this.properties = properties;
 	}
-	public EvsVersionInfo getEvsVersionInfo() {
+	public VersionInfo getEvsVersionInfo() {
 		return evsVersionInfo;
 	}
-	public void setEvsVersionInfo(final EvsVersionInfo evsVersionInfo) {
+	public void setEvsVersionInfo(final VersionInfo evsVersionInfo) {
 		this.evsVersionInfo = evsVersionInfo;
 	}
 	public List<String> getFullSynSources() {

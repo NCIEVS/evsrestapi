@@ -1,10 +1,10 @@
 
-package gov.nih.nci.evs.api.model.evs;
+package gov.nih.nci.evs.api.model;
 
 /**
  * The Class EvsVersionInfo.
  */
-public class EvsVersionInfo {
+public class VersionInfo {
 
   /** The version. */
   String version;

@@ -4,29 +4,23 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.DisjointWith;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.EvsAssociation;
-import gov.nih.nci.evs.api.model.evs.EvsAxiom;
-import gov.nih.nci.evs.api.model.evs.EvsConcept;
-import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
-import gov.nih.nci.evs.api.model.evs.EvsProperty;
-import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
-import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
-import gov.nih.nci.evs.api.model.evs.HierarchyNode;
-import gov.nih.nci.evs.api.model.evs.Path;
-import gov.nih.nci.evs.api.model.evs.Paths;
+import gov.nih.nci.evs.api.model.VersionInfo;
 import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
@@ -304,12 +298,12 @@ public interface SparqlQueryManagerService {
   /**
    * Returns EvsVersion Information objects for all graphs loaded in db
    * 
-   * @return the list of {@link EvsVersionInfo} objects
+   * @return the list of {@link VersionInfo} objects
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<EvsVersionInfo> getEvsVersionInfoList()
+  public List<VersionInfo> getEvsVersionInfoList()
     throws JsonParseException, JsonMappingException, IOException;
   
   /**
@@ -321,7 +315,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public EvsVersionInfo getEvsVersionInfo(Terminology terminology)
+  public VersionInfo getEvsVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -439,7 +433,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<EvsAxiom> getEvsAxioms(String conceptCode, Terminology terminology)
+  List<Axiom> getEvsAxioms(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**

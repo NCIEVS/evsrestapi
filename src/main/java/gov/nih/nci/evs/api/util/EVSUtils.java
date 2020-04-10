@@ -5,24 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.evs.EvsAxiom;
-import gov.nih.nci.evs.api.model.evs.EvsDefinition;
-import gov.nih.nci.evs.api.model.evs.EvsDefinitionByCode;
-import gov.nih.nci.evs.api.model.evs.EvsDefinitionByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsGoAnnotation;
-import gov.nih.nci.evs.api.model.evs.EvsGoAnnotationByCode;
-import gov.nih.nci.evs.api.model.evs.EvsGoAnnotationByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
-import gov.nih.nci.evs.api.model.evs.EvsMapsToByCode;
-import gov.nih.nci.evs.api.model.evs.EvsMapsToByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsProperty;
-import gov.nih.nci.evs.api.model.evs.EvsSynonym;
-import gov.nih.nci.evs.api.model.evs.EvsSynonymByCode;
-import gov.nih.nci.evs.api.model.evs.EvsSynonymByLabel;
 
 /**
  * Utilities for handling EVS stuff.
@@ -109,9 +96,9 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the synonyms
    */
-  public static List<Synonym> getSynonyms(List<EvsAxiom> axioms) {
+  public static List<Synonym> getSynonyms(List<Axiom> axioms) {
     ArrayList<Synonym> results = new ArrayList<>();
-    for (EvsAxiom axiom : axioms) {
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P90")) {
         Synonym synonym = new Synonym();
         synonym.setType("FULL_SYN");
@@ -136,9 +123,9 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the definitions
    */
-  public static List<Definition> getDefinitions(List<EvsAxiom> axioms) {
+  public static List<Definition> getDefinitions(List<Axiom> axioms) {
     ArrayList<Definition> results = new ArrayList<Definition>();
-    for (EvsAxiom axiom : axioms) {
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P97")) {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
@@ -158,9 +145,9 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the alt definitions
    */
-  public static List<Definition> getAltDefinitions(List<EvsAxiom> axioms) {
+  public static List<Definition> getAltDefinitions(List<Axiom> axioms) {
     ArrayList<Definition> results = new ArrayList<Definition>();
-    for (EvsAxiom axiom : axioms) {
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P325")) {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
@@ -181,9 +168,9 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the maps to
    */
-  public static List<Map> getMapsTo(List<EvsAxiom> axioms) {
+  public static List<Map> getMapsTo(List<Axiom> axioms) {
     ArrayList<Map> results = new ArrayList<Map>();
-    for (EvsAxiom axiom : axioms) {
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P375")) {
         Map mapsTo = new Map();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());

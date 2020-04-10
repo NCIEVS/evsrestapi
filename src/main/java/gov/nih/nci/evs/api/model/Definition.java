@@ -1,8 +1,6 @@
 
 package gov.nih.nci.evs.api.model;
 
-import gov.nih.nci.evs.api.model.evs.EvsDefinition;
-
 /**
  * Represents a synonym of a concept.
  */
@@ -25,16 +23,6 @@ public class Definition extends BaseModel {
    */
   public Definition() {
     // n/a
-  }
-
-  /**
-   * Instantiates a {@link Definition} from the specified parameters.
-   *
-   * @param other the other
-   */
-  public Definition(EvsDefinition other) {
-    definition = other.getDefinition();
-    source = other.getDefSource();
   }
 
   /**

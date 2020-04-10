@@ -13,15 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptNode;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.ConceptNode;
-import gov.nih.nci.evs.api.model.evs.HierarchyNode;
-import gov.nih.nci.evs.api.model.evs.Path;
-import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**

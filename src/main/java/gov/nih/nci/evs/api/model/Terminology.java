@@ -4,8 +4,6 @@ package gov.nih.nci.evs.api.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
-
 /**
  * Represents a terminology loaded into the EVSAPI.
  * 
@@ -71,7 +69,7 @@ public class Terminology extends BaseModel {
    *
    * @param info the info
    */
-  public Terminology(final EvsVersionInfo info) {
+  public Terminology(final VersionInfo info) {
     version = info.getVersion();
     name = info.getComment().substring(0, info.getComment().indexOf(",")) + " "
         + info.getVersion();

@@ -22,7 +22,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.EvsVersionInfo;
+import gov.nih.nci.evs.api.model.VersionInfo;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
@@ -55,21 +55,21 @@ public final class TerminologyUtils {
    */
   public static List<Terminology> getTerminologies(final SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
     
-    List<EvsVersionInfo> evsVersionInfoList = sparqlQueryManagerService.getEvsVersionInfoList();
+    List<VersionInfo> evsVersionInfoList = sparqlQueryManagerService.getEvsVersionInfoList();
     
     if (CollectionUtils.isEmpty(evsVersionInfoList)) return Collections.<Terminology>emptyList();
     
     final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
     final List<Terminology> results = new ArrayList<>();
     
-    Collections.sort(evsVersionInfoList, new Comparator<EvsVersionInfo>() {
+    Collections.sort(evsVersionInfoList, new Comparator<VersionInfo>() {
       @Override
-      public int compare(EvsVersionInfo o1, EvsVersionInfo o2) {
+      public int compare(VersionInfo o1, VersionInfo o2) {
         return -1 * o1.getVersion().compareTo(o2.getVersion());
       }});
     
     for(int i=0; i<evsVersionInfoList.size(); i++) {
-      final EvsVersionInfo versionInfo = evsVersionInfoList.get(i);
+      final VersionInfo versionInfo = evsVersionInfoList.get(i);
       final Terminology term = getTerminologyForVersionInfo(versionInfo, fmt);
       
       logger.debug("Adding terminology - " + term.getTerminologyVersion());
@@ -94,7 +94,7 @@ public final class TerminologyUtils {
     return results;
   }
 
-  private static Terminology getTerminologyForVersionInfo(final EvsVersionInfo versionInfo, final DateFormat fmt) throws ParseException {
+  private static Terminology getTerminologyForVersionInfo(final VersionInfo versionInfo, final DateFormat fmt) throws ParseException {
     final Terminology term = new Terminology(versionInfo);
     final Date d = fmt.parse(versionInfo.getDate());
     Calendar cal = GregorianCalendar.getInstance();

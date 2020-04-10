@@ -1,8 +1,8 @@
-package gov.nih.nci.evs.api.model.evs;
+package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class EvsAxiom {
+public class Axiom {
 	String annotatedProperty;
 	String annotatedSource;
 	String annotatedTarget;
