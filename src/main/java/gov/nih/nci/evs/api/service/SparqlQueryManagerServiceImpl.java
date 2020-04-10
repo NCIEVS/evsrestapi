@@ -560,24 +560,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public void getConcept(Concept concept, String conceptCode, Terminology terminology,
     IncludeParam ip) throws IOException {
-
-    log.info("ip : " + ip);
-    
     concept.setCode(conceptCode);
 
     List<Property> properties = getEvsProperties(conceptCode, terminology);
 
-    log.info("properties : " + properties);
-    
     // minimal, always do these
-    String c = EVSUtils.getConceptCode(properties);
-    log.info("code : " + c);
     concept.setName(getEvsConceptLabel(conceptCode, terminology));
-    concept.setCode(c);
+    concept.setCode(EVSUtils.getConceptCode(properties));
 
     // This becomes a synonym
     if (ip.isSynonyms()) {
-      log.info("Setting synonym");
       final Synonym pn = new Synonym();
       pn.setType("Preferred_Name");
       pn.setName(EVSUtils.getPreferredName(properties));
@@ -635,7 +627,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     if (ip.hasAnyTrue()) {
       final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
-      log.info("axioms : " + axioms);
       if (ip.isSynonyms()) {
         concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
       }
@@ -755,7 +746,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (ip.isSynonyms()) {
       final Synonym pnSynonym = new Synonym();
       pnSynonym.setType("Preferred_Name");
-      pnSynonym.setName(EVSUtils.getPreferredName(properties));
+      pnSynonym.setName(pn);
       concept.getSynonyms().add(pnSynonym);
     }
 
@@ -771,7 +762,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           //add synonym
           final Synonym synonym = new Synonym();
           synonym.setType(type);
-          synonym.setName(EVSUtils.getPreferredName(properties));
+          synonym.setName(pn);
           concept.getSynonyms().add(synonym);
         }
         
@@ -782,13 +773,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
     }
-    final String outputType = "byLabel";
 
     if (ip.hasAnyTrue()) {
       List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
 
       if (ip.isSynonyms()) {
-        concept.setSynonyms(EVSUtils.getSynonyms(axioms));
+        concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
         if (conceptLabel != null && !conceptLabel.equals(pn) && conceptLabel.contains(" ")) {
@@ -872,7 +862,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         Property evsProperty = new Property();
         //TODO: use-new-model-classes
 //        evsProperty.setCode("");
-        log.info(String.format("label: %s", b.getPropertyLabel().getValue()));
         evsProperty.setType(b.getPropertyLabel().getValue());
         evsProperty.setValue(b.getPropertyValue().getValue());
         evsProperties.add(evsProperty);
@@ -881,7 +870,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           Property evsProperty = new Property();
           //TODO: use-new-model-classes
 //          evsProperty.setCode(b.getPropertyCode().getValue());
-          log.info(String.format("label: %s", b.getPropertyLabel().getValue()));
           evsProperty.setType(b.getPropertyLabel().getValue());
           evsProperty.setValue(b.getPropertyValue().getValue());
           evsProperties.add(evsProperty);
@@ -923,13 +911,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
       Property evsProperty = new Property();
-      evsProperty.setType(b.getPropertyLabel().getValue());
+//      evsProperty.setType(b.getPropertyLabel().getValue());
       //TODO: use-new-model-classes - is this required
-//      if (b.getPropertyLabel() == null) {
-//        evsProperty.setType(b.getProperty().getValue());
-//      } else {
-//        evsProperty.setType(b.getPropertyLabel().getValue());
-//      }
+      if (b.getPropertyLabel() == null) {
+        evsProperty.setType(b.getProperty().getValue());
+      } else {
+        evsProperty.setType(b.getPropertyLabel().getValue());
+      }
       evsProperty.setValue(b.getPropertyValue().getValue());
       evsProperties.add(evsProperty);
 

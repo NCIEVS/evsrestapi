@@ -669,7 +669,7 @@ public class ConceptController {
     @PathVariable(value = "code") final String code) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    logger.info("found terminology, calling for nodes..");
+    logger.debug("found terminology, calling for nodes..");
     final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
     return nodes;
   }
