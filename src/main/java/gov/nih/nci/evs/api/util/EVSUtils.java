@@ -54,7 +54,7 @@ public class EVSUtils {
    * @return the concept code
    */
   public static String getConceptCode(List<Property> properties) {
-    List<String> results = getProperty("NHC0", properties);
+    List<String> results = getProperty("code", properties);
     if (results.size() == 0) {
       return null;
     } else {
@@ -69,7 +69,7 @@ public class EVSUtils {
    * @return the preferred name
    */
   public static String getPreferredName(List<Property> properties) {
-    List<String> results = getProperty("P108", properties);
+    List<String> results = getProperty("Preferred_Name", properties);
     if (results.size() == 0) {
       return null;
     } else {
@@ -114,6 +114,7 @@ public class EVSUtils {
     for (EvsAxiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P90")) {
         Synonym synonym = new Synonym();
+        synonym.setType("FULL_SYN");
         synonym.setCode("P90");
         synonym.setName(axiom.getAnnotatedTarget());
         //TODO: use-new-model-classes

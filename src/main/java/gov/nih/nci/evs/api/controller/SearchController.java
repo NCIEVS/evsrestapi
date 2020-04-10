@@ -271,6 +271,8 @@ public class SearchController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = searchCriteria.computeIncludeParam();
 
+      log.info("ip : " + ip);
+      
       searchCriteria.validate(term, metadataService, thesaurusProperties);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 

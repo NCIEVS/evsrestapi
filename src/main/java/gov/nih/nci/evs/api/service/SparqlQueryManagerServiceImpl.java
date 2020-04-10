@@ -560,16 +560,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public void getConcept(Concept concept, String conceptCode, Terminology terminology,
     IncludeParam ip) throws IOException {
+
+    log.info("ip : " + ip);
+    
     concept.setCode(conceptCode);
 
     List<Property> properties = getEvsProperties(conceptCode, terminology);
 
+    log.info("properties : " + properties);
+    
     // minimal, always do these
+    String c = EVSUtils.getConceptCode(properties);
+    log.info("code : " + c);
     concept.setName(getEvsConceptLabel(conceptCode, terminology));
-    concept.setCode(EVSUtils.getConceptCode(properties));
+    concept.setCode(c);
 
     // This becomes a synonym
     if (ip.isSynonyms()) {
+      log.info("Setting synonym");
       final Synonym pn = new Synonym();
       pn.setType("Preferred_Name");
       pn.setName(EVSUtils.getPreferredName(properties));
@@ -590,33 +598,46 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 //  }
 //}
     if (ip.isSynonyms() || ip.isProperties()) {
-      List<Property> allProperties = concept.getProperties();
-
       //if label ends with _Name, add as a Synonym -- (label.endsWith("_Name") && ip.isSynonyms())
       //else add as property -- (!label.endsWith("_Name") && ip.isProperties())
       
       List<Property> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
       for (Property property : additionalProperties) {
-        String label = property.getType();
-        if ((label.endsWith("_Name") && ip.isSynonyms())
-            || (!label.endsWith("_Name") && ip.isProperties())) {
-          String value = property.getValue();
-          
-          
+        String type = property.getType();
+        
+        if (ip.isSynonyms() && type.endsWith("_Name")) {
+          //add synonym
+          final Synonym synonym = new Synonym();
+          synonym.setType(type);
+          synonym.setName(property.getValue());
+          concept.getSynonyms().add(synonym);
+        }
+        
+        if (ip.isProperties() && !type.endsWith("_Name")) {
+          //add property
+          concept.getProperties().add(property);
+        }
+        
+//        if ((label.endsWith("_Name") && ip.isSynonyms())
+//            || (!label.endsWith("_Name") && ip.isProperties())) {
+//          String value = property.getValue();
+//
+//          
 //          if (allProperties.containsKey(label)) {
 //            allProperties.get(label).add(value);
 //          } else {
 //            allProperties.put(label, new ArrayList<String>());
 //            allProperties.get(label).add(value);
 //          }
-        }
+//        }
       }
     }
 
     if (ip.hasAnyTrue()) {
       final List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
+      log.info("axioms : " + axioms);
       if (ip.isSynonyms()) {
-        concept.setSynonyms(EVSUtils.getSynonyms(axioms));
+        concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
       }
 
       if (ip.isDefinitions()) {
@@ -746,7 +767,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       for (Property property : additionalProperties) {
         String type = property.getType();
         
-        if (type.endsWith("_Name") && ip.isSynonyms()) {
+        if (ip.isSynonyms() && type.endsWith("_Name")) {
           //add synonym
           final Synonym synonym = new Synonym();
           synonym.setType(type);
@@ -754,7 +775,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getSynonyms().add(synonym);
         }
         
-        if (!type.endsWith("_Name") && ip.isProperties()) {
+        if (ip.isProperties() && !type.endsWith("_Name")) {
           //add property
           concept.getProperties().add(property);
         }
@@ -851,6 +872,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         Property evsProperty = new Property();
         //TODO: use-new-model-classes
 //        evsProperty.setCode("");
+        log.info(String.format("label: %s", b.getPropertyLabel().getValue()));
         evsProperty.setType(b.getPropertyLabel().getValue());
         evsProperty.setValue(b.getPropertyValue().getValue());
         evsProperties.add(evsProperty);
@@ -859,6 +881,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           Property evsProperty = new Property();
           //TODO: use-new-model-classes
 //          evsProperty.setCode(b.getPropertyCode().getValue());
+          log.info(String.format("label: %s", b.getPropertyLabel().getValue()));
           evsProperty.setType(b.getPropertyLabel().getValue());
           evsProperty.setValue(b.getPropertyValue().getValue());
           evsProperties.add(evsProperty);
@@ -900,11 +923,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
       Property evsProperty = new Property();
-      if (b.getPropertyCode() == null) {
-        evsProperty.setType(b.getProperty().getValue());
-      } else {
-        evsProperty.setType(b.getPropertyCode().getValue());
-      }
+      evsProperty.setType(b.getPropertyLabel().getValue());
       //TODO: use-new-model-classes - is this required
 //      if (b.getPropertyLabel() == null) {
 //        evsProperty.setType(b.getProperty().getValue());

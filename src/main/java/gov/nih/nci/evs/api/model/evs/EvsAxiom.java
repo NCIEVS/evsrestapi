@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.model.evs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class EvsAxiom {
 	String annotatedProperty;
 	String annotatedSource;
@@ -143,4 +145,13 @@ public class EvsAxiom {
 	public void setTermSource(String termSource) {
 		this.termSource = termSource;
 	}
+  /* see superclass */
+  @Override
+  public String toString() {
+    try {
+      return new ObjectMapper().writeValueAsString(this);
+    } catch (final Exception e) {
+      return e.getMessage();
+    }
+  }
 }
