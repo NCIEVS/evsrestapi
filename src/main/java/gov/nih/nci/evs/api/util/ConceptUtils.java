@@ -346,7 +346,7 @@ public final class ConceptUtils {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(service.getEvsConceptByCode(concept.getCode(), terminology, ip));
+        concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -386,7 +386,7 @@ public final class ConceptUtils {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(service.getEvsConceptByCode(concept.getCode(), terminology, ip));
+        concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
@@ -448,7 +448,7 @@ public final class ConceptUtils {
           if (cache.containsKey(concept.getCode())) {
             concept.populateFrom(cache.get(concept.getCode()));
           } else {
-            concept.populateFrom(service.getEvsConceptByCode(concept.getCode(), terminology, ip));
+            concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
             cache.put(concept.getCode(), concept);
           }
           concept.setLevel(level);

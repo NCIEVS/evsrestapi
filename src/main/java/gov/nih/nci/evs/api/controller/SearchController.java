@@ -279,7 +279,7 @@ public class SearchController {
       final List<Concept> concepts = new ArrayList<>();
       for (final Concept result : results.getConcepts()) {
         final Concept concept = 
-            sparqlQueryManagerService.getEvsConceptByCode(result.getCode(), term, ip);
+            sparqlQueryManagerService.getConcept(result.getCode(), term, ip);
         ConceptUtils.applyHighlights(concept, result.getHighlights());
         concept.setTerminology(terminology);
         // Clear highlights now that they have been applied

@@ -104,8 +104,6 @@ public class EVSUtils {
         synonym.setType("FULL_SYN");
         synonym.setCode("P90");
         synonym.setName(axiom.getAnnotatedTarget());
-        //TODO: use-new-model-classes
-//        synonym.setTermName(axiom.getAnnotatedTarget());
         synonym.setTermGroup(axiom.getTermGroup());
         synonym.setSource(axiom.getTermSource());
         synonym.setCode(axiom.getSourceCode());
@@ -130,8 +128,6 @@ public class EVSUtils {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
         definition.setSource(axiom.getDefSource());
-        //TODO: use-new-model-classes
-//        definition.setAttr(axiom.getAttr());
         results.add(definition);
       }
     }
@@ -152,8 +148,6 @@ public class EVSUtils {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
         definition.setSource(axiom.getDefSource());
-        //TODO: use-new-model-classes - check the following two statements
-//        definition.setAttr(axiom.getAttr());
         definition.setType("ALT_DEFINITION");
         results.add(definition);
       }

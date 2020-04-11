@@ -43,17 +43,17 @@ public interface SparqlQueryManagerService {
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs concept by code.
+   * Returns the concept by code.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
-   * @return the evs concept by code
+   * @return the concept by code
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public Concept getEvsConceptByCode(String conceptCode, Terminology terminology, IncludeParam ip)
+  public Concept getConcept(String conceptCode, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
@@ -109,104 +109,104 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
-   * Returns the evs property.
+   * Returns the property.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param param the param
-   * @return the evs property
+   * @return the property
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public Concept getEvsProperty(String conceptCode, Terminology terminology, IncludeParam param)
+  public Concept getProperty(String conceptCode, Terminology terminology, IncludeParam param)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs associations.
+   * Returns the associations.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs associations
+   * @return the associations
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Association> getEvsAssociations(String conceptCode, Terminology terminology)
+  public List<Association> getAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs inverse associations.
+   * Returns the inverse associations.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs inverse associations
+   * @return the inverse associations
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Association> getEvsInverseAssociations(String conceptCode, Terminology terminology)
+  public List<Association> getInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs roles.
+   * Returns the roles.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs roles
+   * @return the roles
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Role> getEvsRoles(String conceptCode, Terminology terminology)
+  public List<Role> getRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs inverse roles.
+   * Returns the inverse roles.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs inverse roles
+   * @return the inverse roles
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Role> getEvsInverseRoles(String conceptCode, Terminology terminology)
+  public List<Role> getInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs subconcepts.
+   * Returns the subconcepts.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs subconcepts
+   * @return the subconcepts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Concept> getEvsSubconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException;
+  public List<Concept> getSubconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs superconcepts.
+   * Returns the superconcepts.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs superconcepts
+   * @return the superconcepts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<Concept> getEvsSuperconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException;
+  public List<Concept> getSuperconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs maps to.
+   * Returns the maps to.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs maps to
+   * @return the maps to
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<gov.nih.nci.evs.api.model.Map> getEvsMapsTo(String conceptCode, Terminology terminology) throws IOException;
+  public List<gov.nih.nci.evs.api.model.Map> getMapsTo(String conceptCode, Terminology terminology) throws IOException;
 
   /**
    * Returns the root nodes.
@@ -296,26 +296,26 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
   
   /**
-   * Returns EvsVersion Information objects for all graphs loaded in db
+   * Returns Version Information objects for all graphs loaded in db
    * 
    * @return the list of {@link VersionInfo} objects
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<VersionInfo> getEvsVersionInfoList()
+  public List<VersionInfo> getVersionInfoList()
     throws JsonParseException, JsonMappingException, IOException;
   
   /**
-   * Returns the evs version info.
+   * Returns the version info.
    *
    * @param terminology the terminology
-   * @return the evs version info
+   * @return the version info
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public VersionInfo getEvsVersionInfo(Terminology terminology)
+  public VersionInfo getVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -346,94 +346,94 @@ public interface SparqlQueryManagerService {
   String getQueryURL();
 
   /**
-   * Returns the evs concept label.
+   * Returns the concept label.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs concept label
+   * @return the concept label
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  String getEvsConceptLabel(String conceptCode, Terminology terminology)
+  String getConceptLabel(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the concept.
    *
-   * @param evsConcept the evs concept
+   * @param concept the concept
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
    * @return the concept
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  void getConcept(Concept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
+  void getConcept(Concept concept, String conceptCode, Terminology terminology, IncludeParam ip)
       throws IOException;
 
   /**
    * Returns the property.
    *
-   * @param evsConcept the evs concept
+   * @param concept the concept
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
    * @return the property
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  void getProperty(Concept evsConcept, String conceptCode, Terminology terminology, IncludeParam ip)
+  void getProperty(Concept concept, String conceptCode, Terminology terminology, IncludeParam ip)
       throws IOException;
 
   /**
-   * Returns the evs properties.
+   * Returns the properties.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs properties
+   * @return the properties
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<Property> getEvsProperties(String conceptCode, Terminology terminology)
+  List<Property> getProperties(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs properties no restrictions.
+   * Returns the properties no restrictions.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs properties no restrictions
+   * @return the properties no restrictions
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<Property> getEvsPropertiesNoRestrictions(String conceptCode, Terminology terminology)
+  List<Property> getPropertiesNoRestrictions(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs disjoint with.
+   * Returns the disjoint with.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs disjoint with
+   * @return the disjoint with
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<DisjointWith> getEvsDisjointWith(String conceptCode, Terminology terminology)
+  List<DisjointWith> getDisjointWith(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**
-   * Returns the evs axioms.
+   * Returns the axioms.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs axioms
+   * @return the axioms
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<Axiom> getEvsAxioms(String conceptCode, Terminology terminology)
+  List<Axiom> getAxioms(String conceptCode, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException;
 
   /**

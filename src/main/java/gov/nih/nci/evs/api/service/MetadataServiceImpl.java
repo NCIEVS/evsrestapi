@@ -113,7 +113,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          sparqlQueryManagerService.getEvsProperty(code, term, ip);
+          sparqlQueryManagerService.getProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -168,7 +168,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          sparqlQueryManagerService.getEvsProperty(code, term, ip);
+          sparqlQueryManagerService.getProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -232,7 +232,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     if (ModelUtils.isCodeStyle(code)) {
       final Concept concept =
-          sparqlQueryManagerService.getEvsProperty(code, term, ip);
+          sparqlQueryManagerService.getProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -245,7 +245,7 @@ public class MetadataServiceImpl implements MetadataService {
         list == null ? 0 : list.size()));
     if (list.size() > 0) {
       final Concept concept = 
-          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), term, ip);
+          sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip);
       return Optional.of(concept);
     }
     return Optional.empty();
@@ -329,7 +329,7 @@ public class MetadataServiceImpl implements MetadataService {
     // this one.
     Concept concept = null;
     if (ModelUtils.isCodeStyle(code)) {
-      concept = sparqlQueryManagerService.getEvsProperty(code, term, ip);
+      concept = sparqlQueryManagerService.getProperty(code, term, ip);
     }
 
     final List<Concept> list = self.getProperties(terminology, Optional.ofNullable("minimal"), false,

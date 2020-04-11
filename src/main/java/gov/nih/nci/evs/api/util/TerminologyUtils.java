@@ -55,7 +55,7 @@ public final class TerminologyUtils {
    */
   public static List<Terminology> getTerminologies(final SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
     
-    List<VersionInfo> evsVersionInfoList = sparqlQueryManagerService.getEvsVersionInfoList();
+    List<VersionInfo> evsVersionInfoList = sparqlQueryManagerService.getVersionInfoList();
     
     if (CollectionUtils.isEmpty(evsVersionInfoList)) return Collections.<Terminology>emptyList();
     

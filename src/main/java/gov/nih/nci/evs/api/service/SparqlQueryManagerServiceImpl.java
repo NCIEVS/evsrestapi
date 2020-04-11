@@ -232,7 +232,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns EvsVersion Information objects for all graphs loaded in db.
+   * Returns Version Information objects for all graphs loaded in db.
    *
    * @return the list of {@link VersionInfo} objects
    * @throws JsonParseException the json parse exception
@@ -241,7 +241,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    */
   @Override
   @Cacheable(value = "terminology", key = "#root.methodName")
-  public List<VersionInfo> getEvsVersionInfoList()
+  public List<VersionInfo> getVersionInfoList()
     throws JsonParseException, JsonMappingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(null);
     String query = queryBuilderService.constructAllGraphsAndVersionsQuery();
@@ -249,10 +249,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
     if (log.isDebugEnabled())
-      log.debug("getEvsVersionInfoList response - " + res);
+      log.debug("getVersionInfoList response - " + res);
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    List<VersionInfo> evsVersionInfoList = new ArrayList<>();
+    List<VersionInfo> versionInfoList = new ArrayList<>();
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
 
@@ -260,30 +260,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       String graphName = b.getGraphName().getValue();
       if (graphName == null || graphName.equalsIgnoreCase(""))
         continue;
-      VersionInfo evsVersionInfo = new VersionInfo();
-      evsVersionInfo.setVersion(b.getVersion().getValue());
-      evsVersionInfo.setDate((b.getDate() == null) ? null : b.getDate().getValue());
-      evsVersionInfo.setComment((b.getComment() == null) ? "" : b.getComment().getValue());
-      evsVersionInfo.setGraph(graphName);
-      evsVersionInfo.setSource(b.getSource().getValue());
-      evsVersionInfoList.add(evsVersionInfo);
+      VersionInfo versionInfo = new VersionInfo();
+      versionInfo.setVersion(b.getVersion().getValue());
+      versionInfo.setDate((b.getDate() == null) ? null : b.getDate().getValue());
+      versionInfo.setComment((b.getComment() == null) ? "" : b.getComment().getValue());
+      versionInfo.setGraph(graphName);
+      versionInfo.setSource(b.getSource().getValue());
+      versionInfoList.add(versionInfo);
     }
 
-    return evsVersionInfoList;
+    return versionInfoList;
   }
 
   /**
-   * Return the EvsVersion Information.
+   * Return the Version Information.
    *
    * @param terminology the terminology
-   * @return EvsVersionInfo instance.
+   * @return VersionInfo instance.
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
   @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public VersionInfo getEvsVersionInfo(Terminology terminology)
+  public VersionInfo getVersionInfo(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -292,16 +292,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    VersionInfo evsVersionInfo = new VersionInfo();
+    VersionInfo versionInfo = new VersionInfo();
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      evsVersionInfo.setVersion(b.getVersion().getValue());
-      evsVersionInfo.setDate(b.getDate().getValue());
-      evsVersionInfo.setComment(b.getComment().getValue());
-      evsVersionInfo.setGraph(terminology.getGraph());
+      versionInfo.setVersion(b.getVersion().getValue());
+      versionInfo.setDate(b.getDate().getValue());
+      versionInfo.setComment(b.getComment().getValue());
+      versionInfo.setGraph(terminology.getGraph());
     }
-    return evsVersionInfo;
+    return versionInfo;
   }
 
   /**
@@ -365,17 +365,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns the evs concept label.
+   * Returns the concept label.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs concept label
+   * @return the concept label
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public String getEvsConceptLabel(String conceptCode, Terminology terminology)
+  public String getConceptLabel(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
@@ -395,18 +395,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns the evs concept by code.
+   * Returns the concept
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
-   * @return the evs concept by code
+   * @return the concept
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public Concept getEvsConceptByCode(String conceptCode, Terminology terminology,
+  public Concept getConcept(String conceptCode, Terminology terminology,
     IncludeParam ip) throws JsonMappingException, JsonParseException, IOException {
     Concept concept = new Concept();
     getConcept(concept, conceptCode, terminology, ip);
@@ -414,132 +414,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns the evs concept by label properties.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @param propertyList the property list
-   * @return the evs concept by label properties
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-//  public Concept getEvsConceptByLabelProperties(String conceptCode, Terminology terminology,
-//    List<String> propertyList) throws JsonMappingException, JsonParseException, IOException {
-//    Concept evsConcept = new Concept();
-//    getConceptProperties(evsConcept, conceptCode, terminology, "byLabel", propertyList);
-//    return evsConcept;
-//  }
-
-  /**
-   * Returns the concept properties.
-   *
-   * @param evsConcept the evs concept
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @param outputType the output type
-   * @param propertyList the property list
-   * @return the concept properties
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-//  public void getConceptProperties(Concept evsConcept, String conceptCode,
-//    Terminology terminology, String outputType, List<String> propertyList) throws IOException {
-//    evsConcept.setCode(conceptCode);
-//
-//    List<Property> properties = getEvsProperties(conceptCode, terminology);
-//    if (propertyList.contains("Label") || propertyList.contains("rdfs:label")) {
-//      evsConcept.setName(getEvsConceptLabel(conceptCode, terminology));
-//    }
-//    if (propertyList.contains("Code") || propertyList.contains("NCH0")) {
-//      evsConcept.setCode(EVSUtils.getConceptCode(properties));
-//    }
-//    if (propertyList.contains("Preferred_Name") || propertyList.contains("P108")) {
-//      final Synonym pn = new Synonym();
-//      pn.setType("Preferred_Name");
-//      pn.setName(EVSUtils.getPreferredName(properties));
-//      evsConcept.getSynonyms().add(pn);
-//    }
-//
-//    /*
-//     * Load Additional Properties
-//     */
-//    Map<String, List<String>> allProperties = evsConcept.getProperties();
-//    List<Property> additionalProperties = EVSUtils.getAdditionalPropertiesByCode(properties);
-//    if (outputType.equals("byLabel")) {
-//      for (Property property : additionalProperties) {
-//        if (propertyList.contains(property.getType())
-//            || propertyList.contains(property.getCode())) {
-//          String label = property.getType();
-//          String value = property.getValue();
-//          if (allProperties.containsKey(label)) {
-//            allProperties.get(label).add(value);
-//          } else {
-//            allProperties.put(label, new ArrayList<String>());
-//            allProperties.get(label).add(value);
-//          }
-//        }
-//      }
-//    } else {
-//      for (EvsProperty property : additionalProperties) {
-//        if (propertyList.contains(property.getLabel())
-//            || propertyList.contains(property.getCode())) {
-//          String code = property.getCode();
-//          String value = property.getValue();
-//          if (allProperties.containsKey(code)) {
-//            allProperties.get(code).add(value);
-//          } else {
-//            allProperties.put(code, new ArrayList<String>());
-//            allProperties.get(code).add(value);
-//          }
-//        }
-//      }
-//    }
-//
-//    List<EvsAxiom> axioms = getEvsAxioms(conceptCode, terminology);
-//    if (propertyList.contains("FULL_SYN") || propertyList.contains("P90")) {
-//      evsConcept.setSynonyms(EVSUtils.getSynonyms(axioms, outputType));
-//    }
-//    if (propertyList.contains("DEFINITION") || propertyList.contains("P97")) {
-//      evsConcept.setDefinitions(EVSUtils.getDefinitions(axioms, outputType));
-//    }
-//    //TODO: use-new-model-classes
-////    if (propertyList.contains("ALT_DEFINITION") || propertyList.contains("P325")) {
-////      evsConcept.setAltDefinitions(EVSUtils.getAltDefinitions(axioms, outputType));
-////    }
-//    if (propertyList.contains("Subconcept")) {
-//      evsConcept.setChildren(getEvsSubconcepts(conceptCode, terminology, outputType));
-//    }
-//    if (propertyList.contains("Superconcept")) {
-//      evsConcept.setParents(getEvsSuperconcepts(conceptCode, terminology, outputType));
-//    }
-//    if (propertyList.contains("Association")) {
-//      evsConcept.setAssociations(getEvsAssociations(conceptCode, terminology));
-//    }
-//    if (propertyList.contains("InverseAssociation")) {
-//      evsConcept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
-//    }
-//    if (propertyList.contains("Role")) {
-//      evsConcept.setRoles(getEvsRoles(conceptCode, terminology));
-//    }
-//    if (propertyList.contains("InverseRole")) {
-//      evsConcept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
-//    }
-//    if (propertyList.contains("Maps_To") || propertyList.contains("P375")) {
-//      evsConcept.setMaps(EVSUtils.getMapsTo(axioms, outputType));
-//    }
-//    //TODO: use-new-model-classes
-////    if (propertyList.contains("GO_Annotation") || propertyList.contains("P211")) {
-////      evsConcept.setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
-////    }
-//    if (propertyList.contains("DisjointWith")) {
-//      evsConcept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
-//    }
-//  }
-
-  /**
    * Returns the concept.
    *
-   * @param evsConcept the concept
+   * @param concept the concept
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
@@ -551,10 +428,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     IncludeParam ip) throws IOException {
     concept.setCode(conceptCode);
 
-    List<Property> properties = getEvsProperties(conceptCode, terminology);
+    List<Property> properties = getProperties(conceptCode, terminology);
 
     // minimal, always do these
-    concept.setName(getEvsConceptLabel(conceptCode, terminology));
+    concept.setName(getConceptLabel(conceptCode, terminology));
     concept.setCode(EVSUtils.getConceptCode(properties));
 
     // This becomes a synonym
@@ -615,38 +492,37 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     if (ip.hasAnyTrue()) {
-      final List<Axiom> axioms = getEvsAxioms(conceptCode, terminology);
+      final List<Axiom> axioms = getAxioms(conceptCode, terminology);
       if (ip.isSynonyms()) {
         concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
       }
 
       if (ip.isDefinitions()) {
         concept.setDefinitions(EVSUtils.getDefinitions(axioms));
-        //TODO: use-new-model-classes - check if this is right
         concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms));
       }
       if (ip.isChildren()) {
-        concept.setChildren(getEvsSubconcepts(conceptCode, terminology));
+        concept.setChildren(getSubconcepts(conceptCode, terminology));
       }
 
       if (ip.isParents()) {
-        concept.setParents(getEvsSuperconcepts(conceptCode, terminology));
+        concept.setParents(getSuperconcepts(conceptCode, terminology));
       }
 
       if (ip.isAssociations()) {
-        concept.setAssociations(getEvsAssociations(conceptCode, terminology));
+        concept.setAssociations(getAssociations(conceptCode, terminology));
       }
 
       if (ip.isInverseAssociations()) {
-        concept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
+        concept.setInverseAssociations(getInverseAssociations(conceptCode, terminology));
       }
 
       if (ip.isRoles()) {
-        concept.setRoles(getEvsRoles(conceptCode, terminology));
+        concept.setRoles(getRoles(conceptCode, terminology));
       }
 
       if (ip.isInverseRoles()) {
-        concept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
+        concept.setInverseRoles(getInverseRoles(conceptCode, terminology));
       }
 
       if (ip.isMaps()) {
@@ -657,39 +533,39 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
 
       if (ip.isDisjointWith()) {
-        concept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
+        concept.setDisjointWith(getDisjointWith(conceptCode, terminology));
       }
     }
   }
 
   /**
-   * Returns the evs maps to.
+   * Returns the maps to.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs maps to
+   * @return the maps to
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<gov.nih.nci.evs.api.model.Map> getEvsMapsTo(String conceptCode, Terminology terminology)
+  public List<gov.nih.nci.evs.api.model.Map> getMapsTo(String conceptCode, Terminology terminology)
     throws IOException {
-    List<Axiom> axioms = getEvsAxioms(conceptCode, terminology);
+    List<Axiom> axioms = getAxioms(conceptCode, terminology);
     return EVSUtils.getMapsTo(axioms);
   }
 
   /**
-   * Returns the evs property.
+   * Returns the property.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
-   * @return the evs property
+   * @return the property
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public Concept getEvsProperty(String conceptCode, Terminology terminology, IncludeParam ip)
+  public Concept getProperty(String conceptCode, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     Concept concept = new Concept();
     getProperty(concept, conceptCode, terminology, ip);
@@ -699,7 +575,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the property.
    *
-   * @param evsConcept the evs concept
+   * @param concept the concept
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
@@ -711,13 +587,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     IncludeParam ip) throws IOException {
     concept.setCode(conceptCode);
 
-    List<Property> properties = getEvsPropertiesNoRestrictions(conceptCode, terminology);
+    List<Property> properties = getPropertiesNoRestrictions(conceptCode, terminology);
 
     // minimal, always do these
     concept.setCode(EVSUtils.getConceptCode(properties));
 
     final String pn = EVSUtils.getPreferredName(properties);
-    final String conceptLabel = getEvsConceptLabel(conceptCode, terminology);
+    final String conceptLabel = getConceptLabel(conceptCode, terminology);
     // log.info("conceptLabel - " + conceptLabel);
     // If the label has a space and the preferred name doesn't,
     // and they don't match, use the preferred name
@@ -764,7 +640,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     if (ip.hasAnyTrue()) {
-      List<Axiom> axioms = getEvsAxioms(conceptCode, terminology);
+      List<Axiom> axioms = getAxioms(conceptCode, terminology);
 
       if (ip.isSynonyms()) {
         concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
@@ -780,32 +656,31 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       if (ip.isDefinitions()) {
         concept.setDefinitions(EVSUtils.getDefinitions(axioms));
-        //TODO: use-new-model-classes - check if this is right
         concept.getDefinitions().addAll(EVSUtils.getAltDefinitions(axioms));
       }
 
       if (ip.isChildren()) {
-        concept.setChildren(getEvsSubconcepts(conceptCode, terminology));
+        concept.setChildren(getSubconcepts(conceptCode, terminology));
       }
 
       if (ip.isParents()) {
-        concept.setParents(getEvsSuperconcepts(conceptCode, terminology));
+        concept.setParents(getSuperconcepts(conceptCode, terminology));
       }
 
       if (ip.isAssociations()) {
-        concept.setAssociations(getEvsAssociations(conceptCode, terminology));
+        concept.setAssociations(getAssociations(conceptCode, terminology));
       }
 
       if (ip.isInverseAssociations()) {
-        concept.setInverseAssociations(getEvsInverseAssociations(conceptCode, terminology));
+        concept.setInverseAssociations(getInverseAssociations(conceptCode, terminology));
       }
 
       if (ip.isRoles()) {
-        concept.setRoles(getEvsRoles(conceptCode, terminology));
+        concept.setRoles(getRoles(conceptCode, terminology));
       }
 
       if (ip.isInverseRoles()) {
-        concept.setInverseRoles(getEvsInverseRoles(conceptCode, terminology));
+        concept.setInverseRoles(getInverseRoles(conceptCode, terminology));
       }
 
       if (ip.isMaps()) {
@@ -814,23 +689,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // evsConcept
       // .setGoAnnotations(EVSUtils.getGoAnnotations(axioms, outputType));
       if (ip.isDisjointWith()) {
-        concept.setDisjointWith(getEvsDisjointWith(conceptCode, terminology));
+        concept.setDisjointWith(getDisjointWith(conceptCode, terminology));
       }
     }
   }
 
   /**
-   * Returns the evs properties.
+   * Returns the properties.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs properties
+   * @return the properties
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Property> getEvsProperties(String conceptCode, Terminology terminology)
+  public List<Property> getProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructPropertyQuery(conceptCode, terminology.getGraph());
@@ -838,7 +713,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Property> evsProperties = new ArrayList<Property>();
+    ArrayList<Property> properties = new ArrayList<Property>();
 
     /*
      * Because the original SPARQL query that filtered out the Annotations was
@@ -848,39 +723,35 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
       if (b.getPropertyCode() == null) {
-        Property evsProperty = new Property();
-        //TODO: use-new-model-classes
-//        evsProperty.setCode("");
-        evsProperty.setType(b.getPropertyLabel().getValue());
-        evsProperty.setValue(b.getPropertyValue().getValue());
-        evsProperties.add(evsProperty);
+        Property property = new Property();
+        property.setType(b.getPropertyLabel().getValue());
+        property.setValue(b.getPropertyValue().getValue());
+        properties.add(property);
       } else {
         if (!b.getPropertyCode().getValue().startsWith("A")) {
-          Property evsProperty = new Property();
-          //TODO: use-new-model-classes
-//          evsProperty.setCode(b.getPropertyCode().getValue());
-          evsProperty.setType(b.getPropertyLabel().getValue());
-          evsProperty.setValue(b.getPropertyValue().getValue());
-          evsProperties.add(evsProperty);
+          Property property = new Property();
+          property.setType(b.getPropertyLabel().getValue());
+          property.setValue(b.getPropertyValue().getValue());
+          properties.add(property);
         }
       }
     }
 
-    return evsProperties;
+    return properties;
   }
 
   /**
-   * Returns the evs properties no restrictions.
+   * Returns the properties no restrictions.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs properties no restrictions
+   * @return the properties no restrictions
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Property> getEvsPropertiesNoRestrictions(String conceptCode,
+  public List<Property> getPropertiesNoRestrictions(String conceptCode,
     Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -890,7 +761,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Property> evsProperties = new ArrayList<Property>();
+    ArrayList<Property> properties = new ArrayList<Property>();
 
     /*
      * Because the original SPARQL query that filtered out the Annotations was
@@ -899,34 +770,32 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Property evsProperty = new Property();
-//      evsProperty.setType(b.getPropertyLabel().getValue());
-      //TODO: use-new-model-classes - is this required
+      Property property = new Property();
       if (b.getPropertyLabel() == null) {
-        evsProperty.setType(b.getProperty().getValue());
+        property.setType(b.getProperty().getValue());
       } else {
-        evsProperty.setType(b.getPropertyLabel().getValue());
+        property.setType(b.getPropertyLabel().getValue());
       }
-      evsProperty.setValue(b.getPropertyValue().getValue());
-      evsProperties.add(evsProperty);
+      property.setValue(b.getPropertyValue().getValue());
+      properties.add(property);
 
     }
 
-    return evsProperties;
+    return properties;
   }
 
   /**
-   * Returns the evs subconcepts.
+   * Returns the subconcepts.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs subconcepts
+   * @return the subconcepts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Concept> getEvsSubconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
+  public List<Concept> getSubconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
         queryBuilderService.constructSubconceptQuery(conceptCode, terminology.getGraph());
@@ -934,35 +803,33 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Concept> evsSubclasses = new ArrayList<Concept>();
+    ArrayList<Concept> subclasses = new ArrayList<Concept>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Concept evsSubclass = new Concept();
-      //TODO: use-new-model-classes
-//      evsSubclass.setRelatedConcept(b.getSubclass().getValue());
-      evsSubclass.setName(b.getSubclassLabel().getValue());
-      evsSubclass.setCode(b.getSubclassCode().getValue());
-      evsSubclasses.add(evsSubclass);
+      Concept subclass = new Concept();
+      subclass.setName(b.getSubclassLabel().getValue());
+      subclass.setCode(b.getSubclassCode().getValue());
+      subclasses.add(subclass);
     }
 
-    return evsSubclasses;
+    return subclasses;
   }
 
   /**
-   * Returns the evs superconcepts.
+   * Returns the superconcepts.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param outputType the output type
-   * @return the evs superconcepts
+   * @return the superconcepts
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Concept> getEvsSuperconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
+  public List<Concept> getSuperconcepts(String conceptCode, Terminology terminology) throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
         queryBuilderService.constructSuperconceptQuery(conceptCode, terminology.getGraph());
@@ -970,34 +837,32 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Concept> evsSuperclasses = new ArrayList<Concept>();
+    ArrayList<Concept> superclasses = new ArrayList<Concept>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Concept evsSuperclass = new Concept();
-      //TODO: use-new-model-classes
-//      evsSuperclass.setRelatedConcept(b.getSuperclass().getValue());
-      evsSuperclass.setName(b.getSuperclassLabel().getValue());
-      evsSuperclass.setCode(b.getSuperclassCode().getValue());
-      evsSuperclasses.add(evsSuperclass);
+      Concept superclass = new Concept();
+      superclass.setName(b.getSuperclassLabel().getValue());
+      superclass.setCode(b.getSuperclassCode().getValue());
+      superclasses.add(superclass);
     }
 
-    return evsSuperclasses;
+    return superclasses;
   }
 
   /**
-   * Returns the evs associations.
+   * Returns the associations.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs associations
+   * @return the associations
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Association> getEvsAssociations(String conceptCode, Terminology terminology)
+  public List<Association> getAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
@@ -1006,35 +871,33 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Association> evsAssociations = new ArrayList<Association>();
+    ArrayList<Association> associations = new ArrayList<Association>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Association evsAssociation = new Association();
-      evsAssociation.setType(b.getRelationship().getValue());
-      //TODO: use-new-model-classes
-//      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
-      evsAssociation.setRelatedCode(b.getRelatedConceptCode().getValue());
-      evsAssociation.setRelatedName(b.getRelatedConceptLabel().getValue());
-      evsAssociations.add(evsAssociation);
+      Association association = new Association();
+      association.setType(b.getRelationship().getValue());
+      association.setRelatedCode(b.getRelatedConceptCode().getValue());
+      association.setRelatedName(b.getRelatedConceptLabel().getValue());
+      associations.add(association);
     }
 
-    return evsAssociations;
+    return associations;
   }
 
   /**
-   * Returns the evs inverse associations.
+   * Returns the inverse associations.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs inverse associations
+   * @return the inverse associations
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Association> getEvsInverseAssociations(String conceptCode, Terminology terminology)
+  public List<Association> getInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
@@ -1043,35 +906,33 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Association> evsAssociations = new ArrayList<Association>();
+    ArrayList<Association> associations = new ArrayList<Association>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Association evsAssociation = new Association();
-      evsAssociation.setType(b.getRelationship().getValue());
-      //TODO: use-new-model-classes
-//      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
-      evsAssociation.setRelatedCode(b.getRelatedConceptCode().getValue());
-      evsAssociation.setRelatedName(b.getRelatedConceptLabel().getValue());
-      evsAssociations.add(evsAssociation);
+      Association association = new Association();
+      association.setType(b.getRelationship().getValue());
+      association.setRelatedCode(b.getRelatedConceptCode().getValue());
+      association.setRelatedName(b.getRelatedConceptLabel().getValue());
+      associations.add(association);
     }
 
-    return evsAssociations;
+    return associations;
   }
 
   /**
-   * Returns the evs inverse roles.
+   * Returns the inverse roles.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs inverse roles
+   * @return the inverse roles
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Role> getEvsInverseRoles(String conceptCode, Terminology terminology)
+  public List<Role> getInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
@@ -1080,35 +941,33 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Role> evsRoles = new ArrayList<Role>();
+    ArrayList<Role> roles = new ArrayList<Role>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Role evsRole = new Role();
-      evsRole.setType(b.getRelationship().getValue());
-      //TODO: use-new-model-classes
-//      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
-      evsRole.setRelatedCode(b.getRelatedConceptCode().getValue());
-      evsRole.setRelatedName(b.getRelatedConceptLabel().getValue());
-      evsRoles.add(evsRole);
+      Role role = new Role();
+      role.setType(b.getRelationship().getValue());
+      role.setRelatedCode(b.getRelatedConceptCode().getValue());
+      role.setRelatedName(b.getRelatedConceptLabel().getValue());
+      roles.add(role);
     }
 
-    return evsRoles;
+    return roles;
   }
 
   /**
-   * Returns the evs roles.
+   * Returns the roles.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs roles
+   * @return the roles
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Role> getEvsRoles(String conceptCode, Terminology terminology)
+  public List<Role> getRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructRolesQuery(conceptCode, terminology.getGraph());
@@ -1116,39 +975,34 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Role> evsRoles = new ArrayList<Role>();
+    ArrayList<Role> roles = new ArrayList<Role>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Role evsRole = new Role();
-//      evsAssociation.setType(b.getRelationship().getValue());
-//      evsAssociation.setRelationshipCode(b.getRelationshipCode().getValue());
-//      evsAssociation.setRelatedCode(b.getRelatedConceptCode().getValue());
-//      evsAssociation.setRelatedName(b.getRelatedConceptLabel().getValue());
-      //TODO: use-new-model-classes
-      evsRole.setType(b.getRelationship().getValue());
-      evsRole.setRelatedCode(b.getRelatedConceptCode().getValue());
-      evsRole.setRelatedName(b.getRelatedConceptLabel().getValue());
+      Role role = new Role();
+      role.setType(b.getRelationship().getValue());
+      role.setRelatedCode(b.getRelatedConceptCode().getValue());
+      role.setRelatedName(b.getRelatedConceptLabel().getValue());
       
-      evsRoles.add(evsRole);
+      roles.add(role);
     }
 
-    return evsRoles;
+    return roles;
   }
 
   /**
-   * Returns the evs disjoint with.
+   * Returns the disjoint with.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs disjoint with
+   * @return the disjoint with
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<DisjointWith> getEvsDisjointWith(String conceptCode, Terminology terminology)
+  public List<DisjointWith> getDisjointWith(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query =
@@ -1173,17 +1027,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns the evs axioms.
+   * Returns the axioms.
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @return the evs axioms
+   * @return the axioms
    * @throws JsonMappingException the json mapping exception
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Axiom> getEvsAxioms(String conceptCode, Terminology terminology)
+  public List<Axiom> getAxioms(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructAxiomQuery(conceptCode, terminology.getGraph());
@@ -1191,14 +1045,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<Axiom> evsAxioms = new ArrayList<Axiom>();
+    ArrayList<Axiom> axioms = new ArrayList<Axiom>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     if (bindings.length == 0) {
-      return evsAxioms;
+      return axioms;
     }
-    Axiom evsAxiom = new Axiom();
+    Axiom axiomObject = new Axiom();
     Boolean sw = false;
     String oldAxiom = "";
     for (Bindings b : bindings) {
@@ -1210,78 +1064,78 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (sw && !axiom.equals(oldAxiom)) {
-        evsAxioms.add(evsAxiom);
-        evsAxiom = new Axiom();
+        axioms.add(axiomObject);
+        axiomObject = new Axiom();
       }
       sw = true;
       oldAxiom = axiom;
 
       switch (property) {
         case "annotatedSource":
-          evsAxiom.setAnnotatedSource(value);
+          axiomObject.setAnnotatedSource(value);
           break;
         case "annotatedTarget":
-          evsAxiom.setAnnotatedTarget(value);
+          axiomObject.setAnnotatedTarget(value);
           break;
         case "annotatedProperty":
-          evsAxiom.setAnnotatedProperty(value);
+          axiomObject.setAnnotatedProperty(value);
           break;
         case "type":
-          evsAxiom.setType(value);
+          axiomObject.setType(value);
           break;
         case "P380":
-          evsAxiom.setDefinitionReviewDate(value);
+          axiomObject.setDefinitionReviewDate(value);
           break;
         case "P379":
-          evsAxiom.setDefinitionReviewerName(value);
+          axiomObject.setDefinitionReviewerName(value);
           break;
         case "P393":
-          evsAxiom.setRelationshipToTarget(value);
+          axiomObject.setRelationshipToTarget(value);
           break;
         case "P395":
-          evsAxiom.setTargetCode(value);
+          axiomObject.setTargetCode(value);
           break;
         case "P394":
-          evsAxiom.setTargetTermType(value);
+          axiomObject.setTargetTermType(value);
           break;
         case "P396":
-          evsAxiom.setTargetTerminology(value);
+          axiomObject.setTargetTerminology(value);
           break;
         case "P381":
-          evsAxiom.setAttr(value);
+          axiomObject.setAttr(value);
           break;
         case "P378":
-          evsAxiom.setDefSource(value);
+          axiomObject.setDefSource(value);
           break;
         case "P389":
-          evsAxiom.setGoEvi(value);
+          axiomObject.setGoEvi(value);
           break;
         case "P387":
-          evsAxiom.setGoId(value);
+          axiomObject.setGoId(value);
           break;
         case "P390":
-          evsAxiom.setGoSource(value);
+          axiomObject.setGoSource(value);
           break;
         case "P385":
-          evsAxiom.setSourceCode(value);
+          axiomObject.setSourceCode(value);
           break;
         case "P391":
-          evsAxiom.setSourceDate(value);
+          axiomObject.setSourceDate(value);
           break;
         case "P386":
-          evsAxiom.setSubsourceName(value);
+          axiomObject.setSubsourceName(value);
           break;
         case "P383":
-          evsAxiom.setTermGroup(value);
+          axiomObject.setTermGroup(value);
           break;
         case "P384":
-          evsAxiom.setTermSource(value);
+          axiomObject.setTermSource(value);
           break;
         case "term-source":
-          evsAxiom.setTermSource(value);
+          axiomObject.setTermSource(value);
           break;
         case "term-group":
-          evsAxiom.setTermGroup(value);
+          axiomObject.setTermGroup(value);
           break;
         default:
           break;
@@ -1289,8 +1143,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
     }
-    evsAxioms.add(evsAxiom);
-    return evsAxioms;
+    axioms.add(axiomObject);
+    return axioms;
   }
 
   /**
@@ -1351,21 +1205,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> evsProperties = new ArrayList<String>();
-    ArrayList<Concept> evsConcepts = new ArrayList<Concept>();
+    ArrayList<String> properties = new ArrayList<String>();
+    ArrayList<Concept> concepts = new ArrayList<Concept>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      evsProperties.add(b.getPropertyCode().getValue());
+      properties.add(b.getPropertyCode().getValue());
     }
 
-    for (String code : evsProperties) {
-      Concept concept = getEvsProperty(code, terminology, ip);
-      evsConcepts.add(concept);
+    for (String code : properties) {
+      Concept concept = getProperty(code, terminology, ip);
+      concepts.add(concept);
     }
 
-    return evsConcepts;
+    return concepts;
   }
 
   /**
@@ -1419,22 +1273,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> evsProperties = new ArrayList<String>();
-    ArrayList<Concept> evsConcepts = new ArrayList<Concept>();
+    ArrayList<String> properties = new ArrayList<String>();
+    ArrayList<Concept> concepts = new ArrayList<Concept>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      evsProperties.add(b.getPropertyCode().getValue());
+      properties.add(b.getPropertyCode().getValue());
     }
 
-    for (String code : evsProperties) {
-      Concept concept = getEvsProperty(code, terminology, ip);
-      evsConcepts.add(concept);
+    for (String code : properties) {
+      Concept concept = getProperty(code, terminology, ip);
+      concepts.add(concept);
 
     }
 
-    return evsConcepts;
+    return concepts;
   }
 
   /**
@@ -1456,22 +1310,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> evsProperties = new ArrayList<String>();
-    ArrayList<Concept> evsConcepts = new ArrayList<Concept>();
+    ArrayList<String> properties = new ArrayList<String>();
+    ArrayList<Concept> concepts = new ArrayList<Concept>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      evsProperties.add(b.getPropertyCode().getValue());
+      properties.add(b.getPropertyCode().getValue());
     }
 
-    for (String code : evsProperties) {
+    for (String code : properties) {
       Concept concept = null;
-      concept = getEvsProperty(code, terminology, ip);
-      evsConcepts.add(concept);
+      concept = getProperty(code, terminology, ip);
+      concepts.add(concept);
     }
 
-    return evsConcepts;
+    return concepts;
   }
 
   /**
@@ -1737,7 +1591,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonMappingException, JsonProcessingException, IOException {
 
     ConfigData configData = new ConfigData();
-    configData.setEvsVersionInfo(self.getEvsVersionInfo(terminology));
+    configData.setEvsVersionInfo(self.getVersionInfo(terminology));
 
     String[] sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
     List<String> sourceToBeRemovedList = Arrays.asList(sourceToBeRemoved);
