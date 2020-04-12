@@ -451,7 +451,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
 
     for (final String cs : getContributingSource()) {
-      if (!thesaurusProperties.getContributingSources().values().contains(cs)) {
+      if (!thesaurusProperties.getContributingSources().keySet().contains(cs)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'contributingSource' has an invalid value = " + cs);
       }
