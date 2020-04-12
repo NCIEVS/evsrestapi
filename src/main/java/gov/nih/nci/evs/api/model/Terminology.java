@@ -4,6 +4,9 @@ package gov.nih.nci.evs.api.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
+
 /**
  * Represents a terminology loaded into the EVSAPI.
  * 
@@ -26,6 +29,9 @@ public class Terminology extends BaseModel {
   /** The version. */
   private String version;
 
+  /** The date. */
+  private String date;
+  
   /** The name. */
   private String name;
 
@@ -52,6 +58,7 @@ public class Terminology extends BaseModel {
    */
   public Terminology() {
     // n/a
+    this.terminology = "ncit";
   }
 
   /**
@@ -64,23 +71,6 @@ public class Terminology extends BaseModel {
   }
 
   /**
-   * Instantiates a {@link Terminology} from the specified parameters. This is
-   * always an "ncit" terminology.
-   *
-   * @param info the info
-   */
-  public Terminology(final VersionInfo info) {
-    version = info.getVersion();
-    name = info.getComment().substring(0, info.getComment().indexOf(",")) + " "
-        + info.getVersion();
-    description = info.getComment();
-    graph = info.getGraph();
-    source = info.getSource();
-    terminology = "ncit";
-    terminologyVersion = terminology + "_" + version;
-  }
-
-  /**
    * Populate from.
    *
    * @param other the other
@@ -88,6 +78,7 @@ public class Terminology extends BaseModel {
   public void populateFrom(final Terminology other) {
     terminology = other.getTerminology();
     version = other.getVersion();
+    date = other.getDate();
     name = other.getName();
     description = other.getDescription();
     graph = other.getGraph();
@@ -96,7 +87,7 @@ public class Terminology extends BaseModel {
     latest = other.getLatest();
     tags = new HashMap<>(other.getTags());
   }
-
+  
   /**
    * Returns the terminology.
    *
@@ -133,6 +124,24 @@ public class Terminology extends BaseModel {
     this.version = version;
   }
 
+  /**
+   * Returns the date.
+   *
+   * @return the date
+   */
+  public String getDate() {
+    return date;
+  }
+
+  /**
+   * Sets the date.
+   *
+   * @param date the date
+   */
+  public void setDate(String date) {
+    this.date = date;
+  }
+  
   /**
    * Returns the name.
    *
@@ -211,6 +220,9 @@ public class Terminology extends BaseModel {
    * @return the terminology version
    */
   public String getTerminologyVersion() {
+    if (StringUtils.isEmpty(terminologyVersion)) {
+      terminologyVersion = terminology + "_" + version;
+    }
     return terminologyVersion;
   }
 
@@ -277,6 +289,7 @@ public class Terminology extends BaseModel {
     result = prime * result
         + ((terminologyVersion == null) ? 0 : terminologyVersion.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
+    result = prime * result + ((date == null) ? 0 : date.hashCode());
     return result;
   }
 
@@ -346,6 +359,13 @@ public class Terminology extends BaseModel {
         return false;
       }
     } else if (!version.equals(other.version)) {
+      return false;
+    }
+    if (date == null) {
+      if (other.date != null) {
+        return false;
+      }
+    } else if (!date.equals(other.date)) {
       return false;
     }
     return true;

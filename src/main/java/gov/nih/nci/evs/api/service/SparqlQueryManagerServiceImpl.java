@@ -2,8 +2,16 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 
@@ -15,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,7 +44,6 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.VersionInfo;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -232,27 +240,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns Version Information objects for all graphs loaded in db.
+   * Returns terminology objects for all graphs loaded in db.
    *
-   * @return the list of {@link VersionInfo} objects
+   * @return the list of {@link Terminology} objects
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
+   * @throws ParseException 
    */
   @Override
   @Cacheable(value = "terminology", key = "#root.methodName")
-  public List<VersionInfo> getVersionInfoList()
-    throws JsonParseException, JsonMappingException, IOException {
+  public List<Terminology> getTerminologies()
+    throws JsonParseException, JsonMappingException, IOException, ParseException {
     String queryPrefix = queryBuilderService.contructPrefix(null);
     String query = queryBuilderService.constructAllGraphsAndVersionsQuery();
     String queryURL = getQueryURL();
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
-    if (log.isDebugEnabled())
-      log.debug("getVersionInfoList response - " + res);
+    if (log.isDebugEnabled()) log.debug("getTerminologies response - " + res);
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    List<VersionInfo> versionInfoList = new ArrayList<>();
+    List<Terminology> termList = new ArrayList<>();
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
 
@@ -260,18 +268,84 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       String graphName = b.getGraphName().getValue();
       if (graphName == null || graphName.equalsIgnoreCase(""))
         continue;
-      VersionInfo versionInfo = new VersionInfo();
-      versionInfo.setVersion(b.getVersion().getValue());
-      versionInfo.setDate((b.getDate() == null) ? null : b.getDate().getValue());
-      versionInfo.setComment((b.getComment() == null) ? "" : b.getComment().getValue());
-      versionInfo.setGraph(graphName);
-      versionInfo.setSource(b.getSource().getValue());
-      versionInfoList.add(versionInfo);
+      Terminology term = new Terminology();
+      String comment = (b.getComment() == null) ? "" : b.getComment().getValue();
+      String version = b.getVersion().getValue();
+      term.setDescription(comment);
+      term.setVersion(b.getVersion().getValue());
+      term.setName(TerminologyUtils.constructName(comment, version));
+      term.setDate((b.getDate() == null) ? null : b.getDate().getValue());
+      term.setGraph(graphName);
+      term.setSource(b.getSource().getValue());
+      termList.add(term);
     }
 
-    return versionInfoList;
+    if (CollectionUtils.isEmpty(termList)) return Collections.<Terminology>emptyList();
+    
+    final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
+    final List<Terminology> results = new ArrayList<>();
+    
+    Collections.sort(termList, new Comparator<Terminology>() {
+      @Override
+      public int compare(Terminology o1, Terminology o2) {
+        return -1 * o1.getVersion().compareTo(o2.getVersion());
+      }});
+    
+    for(int i=0; i<termList.size(); i++) {
+      final Terminology term = termList.get(i);
+      setTags(term, fmt);
+      
+      //set latest tag for the most recent version
+      term.setLatest(i==0);
+      
+      //temporary code -- enable date logic in getTerminologyForVersionInfo
+      if (i==0) {
+        term.getTags().put("monthly", "true");
+      } else {
+        term.getTags().put("weekly", "true");
+      }
+      
+      results.add(term);
+    }
+    
+    return results;
   }
 
+  /**
+   * Sets monthly/weekly tags based on date on the given terminology object
+   * 
+   * @param terminology the terminology
+   * @param fmt the date format
+   * @throws ParseException
+   */
+  private void setTags(final Terminology terminology, final DateFormat fmt) throws ParseException {
+    final Date d = fmt.parse(terminology.getDate());
+    Calendar cal = GregorianCalendar.getInstance();
+    cal.setTime(d);
+
+    //Count days of week; for NCI, this should be max Mondays in month
+    int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
+
+    String version = terminology.getVersion();
+    char weekIndicator = version.charAt(version.length() - 1);
+    
+    boolean monthly = false;
+    
+    switch (weekIndicator) {
+      case 'e':
+        monthly = true;//has to be monthly version
+        break;
+      case 'd'://monthly version, if month has only 4 days of week (for ex: Monday) only
+        if (maxDayOfWeek == 4) monthly = true;
+        break;
+      default://case a,b,c
+        break;
+    }
+    
+    if (monthly) terminology.getTags().put("monthly", "true");
+    else terminology.getTags().put("weekly", "true");
+  }
+  
   /**
    * Return the Version Information.
    *
@@ -283,7 +357,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    */
   @Override
   @Cacheable(value = "terminology", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public VersionInfo getVersionInfo(Terminology terminology)
+  public Terminology getTerminology(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -292,16 +366,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    VersionInfo versionInfo = new VersionInfo();
+    Terminology term = new Terminology();
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      versionInfo.setVersion(b.getVersion().getValue());
-      versionInfo.setDate(b.getDate().getValue());
-      versionInfo.setComment(b.getComment().getValue());
-      versionInfo.setGraph(terminology.getGraph());
+      String comment = (b.getComment() == null) ? "" : b.getComment().getValue();
+      String version = b.getVersion().getValue();
+      term.setVersion(version);
+      term.setDate(b.getDate().getValue());
+      term.setDescription(comment);
+      term.setGraph(terminology.getGraph());
+      term.setName(TerminologyUtils.constructName(comment, version));
     }
-    return versionInfo;
+    return term;
   }
 
   /**
@@ -1591,7 +1668,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonMappingException, JsonProcessingException, IOException {
 
     ConfigData configData = new ConfigData();
-    configData.setEvsVersionInfo(self.getVersionInfo(terminology));
+    configData.setTerminology(terminology);
 
     String[] sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
     List<String> sourceToBeRemovedList = Arrays.asList(sourceToBeRemoved);
@@ -1663,17 +1740,5 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public Paths getPaths(Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
     HierarchyUtils hierarchy = self.getHierarchyUtils(terminology);
     return new PathFinder(hierarchy).findPaths();
-  }
-  
-  /**
-   * Returns the terminologies.
-   *
-   * @return the terminologies
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  @Cacheable(value = "terminology", key = "#root.methodName")
-  public List<Terminology> getTerminologies() throws Exception {
-    return TerminologyUtils.getTerminologies(this);
   }
 }

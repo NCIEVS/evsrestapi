@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,6 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.VersionInfo;
 import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
@@ -302,9 +302,10 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
+   * @throws ParseException 
    */
-  public List<VersionInfo> getVersionInfoList()
-    throws JsonParseException, JsonMappingException, IOException;
+  public List<Terminology> getTerminologies()
+    throws JsonParseException, JsonMappingException, IOException, ParseException;
   
   /**
    * Returns the version info.
@@ -315,7 +316,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public VersionInfo getVersionInfo(Terminology terminology)
+  public Terminology getTerminology(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -505,12 +506,4 @@ public interface SparqlQueryManagerService {
    * @throws IOException
    */
   Paths getPaths(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
-  
-  /**
-   * Get list of terminologies
-   * 
-   * @return the list of terminologies
-   * @throws IOException
-   */
-  List<Terminology> getTerminologies() throws Exception;
 }

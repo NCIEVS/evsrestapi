@@ -3,11 +3,11 @@ package gov.nih.nci.evs.api.support;
 import java.util.List;
 
 import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.VersionInfo;
+import gov.nih.nci.evs.api.model.Terminology;
 
 public class ConfigData {
 	private List<Property> properties;
-	private VersionInfo evsVersionInfo;
+	private Terminology terminology;
 	private List<String> fullSynSources;
 	
 	public List<Property> getProperties() {
@@ -16,11 +16,11 @@ public class ConfigData {
 	public void setProperties(final List<Property> properties) {
 		this.properties = properties;
 	}
-	public VersionInfo getEvsVersionInfo() {
-		return evsVersionInfo;
+	public Terminology getTerminology() {
+		return terminology;
 	}
-	public void setEvsVersionInfo(final VersionInfo evsVersionInfo) {
-		this.evsVersionInfo = evsVersionInfo;
+	public void setTerminology(final Terminology terminology) {
+		this.terminology = terminology;
 	}
 	public List<String> getFullSynSources() {
 		return fullSynSources;
@@ -28,11 +28,4 @@ public class ConfigData {
 	public void setFullSynSources(final List<String> fullSynSources) {
 		this.fullSynSources = fullSynSources;
 	}
-	
-	
-	
-	
-	
-	
-	
 }

@@ -1,15 +1,6 @@
 
 package gov.nih.nci.evs.api.util;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +13,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.VersionInfo;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
@@ -54,77 +44,9 @@ public final class TerminologyUtils {
    * @throws Exception Signals that an exception has occurred.
    */
   public static List<Terminology> getTerminologies(final SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
-    
-    List<VersionInfo> evsVersionInfoList = sparqlQueryManagerService.getVersionInfoList();
-    
-    if (CollectionUtils.isEmpty(evsVersionInfoList)) return Collections.<Terminology>emptyList();
-    
-    final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
-    final List<Terminology> results = new ArrayList<>();
-    
-    Collections.sort(evsVersionInfoList, new Comparator<VersionInfo>() {
-      @Override
-      public int compare(VersionInfo o1, VersionInfo o2) {
-        return -1 * o1.getVersion().compareTo(o2.getVersion());
-      }});
-    
-    for(int i=0; i<evsVersionInfoList.size(); i++) {
-      final VersionInfo versionInfo = evsVersionInfoList.get(i);
-      final Terminology term = getTerminologyForVersionInfo(versionInfo, fmt);
-      
-      logger.debug("Adding terminology - " + term.getTerminologyVersion());
-      
-      //set latest tag for the most recent version
-      term.setLatest(i==0);
-      
-      logger.debug("  Latest tag - " + term.getLatest());
-      
-      //temporary code -- enable date logic in getTerminologyForVersionInfo
-      if (i==0) {
-        term.getTags().put("monthly", "true");
-        logger.debug("  Monthly tag - true");
-      } else {
-        term.getTags().put("weekly", "true");
-        logger.debug("  Weekly tag - true");
-      }
-      
-      results.add(term);
-    }
-    
-    return results;
+    return sparqlQueryManagerService.getTerminologies();
   }
 
-  private static Terminology getTerminologyForVersionInfo(final VersionInfo versionInfo, final DateFormat fmt) throws ParseException {
-    final Terminology term = new Terminology(versionInfo);
-    final Date d = fmt.parse(versionInfo.getDate());
-    Calendar cal = GregorianCalendar.getInstance();
-    cal.setTime(d);
-
-    //Count days of week; for NCI, this should be max Mondays in month
-    int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
-
-    String version = versionInfo.getVersion();
-    char weekIndicator = version.charAt(version.length() - 1);
-    
-    boolean monthly = false;
-    
-    switch (weekIndicator) {
-      case 'e':
-        monthly = true;//has to be monthly version
-        break;
-      case 'd'://monthly version, if month has only 4 days of week (for ex: Monday) only
-        if (maxDayOfWeek == 4) monthly = true;
-        break;
-      default://case a,b,c
-        break;
-    }
-    
-    if (monthly) term.getTags().put("monthly", "true");
-    else term.getTags().put("weekly", "true");
-    
-    return term;
-  }
-  
   /**
    * Returns the terminology.
    *
@@ -185,4 +107,14 @@ public final class TerminologyUtils {
     return set;
   }
 
+  /**
+   * Construct name for terminology using comment and version
+   * 
+   * @param comment the terminology comment
+   * @param version the terminology version
+   * @return
+   */
+  public static String constructName(String comment, String version) {
+    return comment.substring(0, comment.indexOf(",")) + " " + version;
+  }
 }
