@@ -620,7 +620,7 @@ public class ConceptController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsFromRoot(
+  public @ResponseBody List<ConceptPath> getPathsFromRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -734,7 +734,7 @@ public class ConceptController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToRoot(
+  public @ResponseBody List<ConceptPath> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -788,7 +788,7 @@ public class ConceptController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToAncestor(
+  public @ResponseBody List<ConceptPath> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @PathVariable(value = "ancestorCode") final String ancestorCode,

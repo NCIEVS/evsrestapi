@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptNode;
+import gov.nih.nci.evs.api.model.ConceptPath;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -401,13 +402,13 @@ public final class ConceptUtils {
    * @param reverse the reverse
    * @return the list
    */
-  public static List<List<Concept>> convertPaths(final Paths paths, final boolean reverse) {
-    final List<List<Concept>> list = new ArrayList<>();
+  public static List<ConceptPath> convertPaths(final Paths paths, final boolean reverse) {
+    final List<ConceptPath> list = new ArrayList<>();
     if (paths == null || paths.getPaths() == null || paths.getPaths().isEmpty()) {
       return list;
     }
     for (final Path path : paths.getPaths()) {
-      final List<Concept> concepts = new ArrayList<>();
+      final ConceptPath concepts = new ConceptPath();
       for (final ConceptNode cn : path.getConcepts()) {
         final Concept concept = new Concept(cn);
         concepts.add(concept);
@@ -435,14 +436,14 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<List<Concept>> convertPathsWithInclude(final SparqlQueryManagerService service,
+  public static List<ConceptPath> convertPathsWithInclude(final SparqlQueryManagerService service,
     final IncludeParam ip, final Terminology terminology, final Paths paths, final boolean reverse)
     throws Exception {
 
-    final List<List<Concept>> list = convertPaths(paths, reverse);
+    final List<ConceptPath> list = convertPaths(paths, reverse);
     if (ip.hasAnyTrue()) {
       final java.util.Map<String, Concept> cache = new HashMap<>();
-      for (final List<Concept> concepts : list) {
+      for (final ConceptPath concepts : list) {
         for (final Concept concept : concepts) {
           final int level = concept.getLevel();
           if (cache.containsKey(concept.getCode())) {
