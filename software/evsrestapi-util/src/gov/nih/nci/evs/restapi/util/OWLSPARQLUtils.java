@@ -4543,6 +4543,7 @@ Term Type
 	    String query = generate_find_matched_concepts(named_graph, target);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
+	    v = new SortUtils().quickSort(v);
 	    return v;
 	}
 
@@ -4562,4 +4563,29 @@ Term Type
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
+	public Vector getOWLClasses(String named_graph) {
+	    String query = generate_get_owl_classes(named_graph);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    v = new SortUtils().quickSort(v);
+	    return v;
+	}
+
+	public String generate_get_owl_classes(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x rdfs:label ?x_label . ").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
 }
