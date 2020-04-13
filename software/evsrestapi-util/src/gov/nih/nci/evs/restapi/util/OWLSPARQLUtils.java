@@ -4541,8 +4541,6 @@ Term Type
 
 	public Vector findMatchedConcepts(String named_graph, String target) {
 	    String query = generate_find_matched_concepts(named_graph, target);
-
-	    System.out.println(query);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
