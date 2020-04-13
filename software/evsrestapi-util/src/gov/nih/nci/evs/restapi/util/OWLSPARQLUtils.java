@@ -4539,4 +4539,29 @@ Term Type
 		return buf.toString();
 	}
 
+	public Vector findMatchedConcepts(String named_graph, String target) {
+	    String query = generate_find_matched_concepts(named_graph, target);
+
+	    System.out.println(query);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
+
+	public String generate_find_matched_concepts(String named_graph, String target) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x rdfs:label ?x_label . ").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+        buf.append("FILTER (lcase(str(?x_label)) =  lcase(str(\"" + target + "\")))").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
 }
