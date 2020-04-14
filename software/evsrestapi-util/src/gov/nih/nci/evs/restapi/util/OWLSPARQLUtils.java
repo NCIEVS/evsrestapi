@@ -4588,4 +4588,56 @@ Term Type
 		return buf.toString();
 	}
 
+	public String construct_get_property_qualifier_values_by_code(String named_graph, String code, String prop_label, String qualifier_label) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		//buf.append("SELECT distinct ?z_axiom ?x_label ?x_code ?p_label ?p_code ?z_target ?y_label ?y_code ?z").append("\n");
+		buf.append("SELECT distinct ?x_label ?x_code ?p_label ?p_code ?z_target ?y_label ?y_code ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    { ").append("\n");
+		buf.append("    	{").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("            ?p :NHC0 ?p_code .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+
+		if (prop_label != null) {
+			buf.append("            ?p rdfs:label \"" + prop_label + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?z_axiom ?y ?z . ").append("\n");
+		buf.append("            ?y :NHC0 ?y_code .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+
+		if (qualifier_label != null) {
+			buf.append("            ?y rdfs:label \"" + qualifier_label + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("        }").append("\n");
+		buf.append("     }").append("\n");
+		//buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\")").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getPropertyQualifierValuesByCode(String named_graph, String code, String prop_label, String qualifier_label) {
+		String query = construct_get_property_qualifier_values_by_code(named_graph, code, prop_label, qualifier_label);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		v = new ParserUtils().getResponseValues(v);
+		return v;
+	}
+
 }
