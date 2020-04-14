@@ -1,8 +1,6 @@
 
 package gov.nih.nci.evs.api.model;
 
-import gov.nih.nci.evs.api.model.evs.EvsSynonym;
-
 /**
  * Represents a synonym of a concept.
  */
@@ -34,21 +32,6 @@ public class Synonym extends BaseModel {
    */
   public Synonym() {
     // n/a
-  }
-
-  /**
-   * Instantiates a {@link Synonym} from the specified parameters.
-   *
-   * @param other the other
-   */
-  public Synonym(final EvsSynonym other) {
-    code = other.getSourceCode();
-    name = other.getLabel();
-    source = other.getTermSource();
-    subSource = other.getSubsourceName();
-    termGroup = other.getTermGroup();
-    // other.getLabel() = "Concept_In_Subset", need it to be "FULL_SYN";
-    // other.getCode() = "P90", not used
   }
 
   /**

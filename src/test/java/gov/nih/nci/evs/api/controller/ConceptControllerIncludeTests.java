@@ -199,16 +199,16 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getMaps()).isNotEmpty();
     // Test for Preferred_Name and FULL_SYN
     assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("Preferred_Name")).count())
+        .filter(s -> "Preferred_Name".equals(s.getType())).count())
             .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("Display_Name")).count())
+        .filter(s -> "Display_Name".equals(s.getType())).count())
             .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("FULL_SYN")).count()).isGreaterThan(0);
+        .filter(s -> "FULL_SYN".equals(s.getType())).count()).isGreaterThan(0);
     // Test properties are "by label"
     assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type")).count())
+        .filter(p -> "Semantic_Type".equals(p.getType())).count())
             .isGreaterThan(0);
   }
 

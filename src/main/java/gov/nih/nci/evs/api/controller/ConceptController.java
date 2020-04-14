@@ -23,15 +23,12 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.ConceptPath;
 import gov.nih.nci.evs.api.model.DisjointWith;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.EvsAssociation;
-import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
-import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
-import gov.nih.nci.evs.api.model.evs.HierarchyNode;
-import gov.nih.nci.evs.api.model.evs.Paths;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -101,8 +98,8 @@ public class ConceptController {
 
     final List<Concept> concepts = new ArrayList<>();
     for (final String code : list.split(",")) {
-      final Concept concept = ConceptUtils
-          .convertConcept(sparqlQueryManagerService.getEvsConceptByCode(code, term, ip));
+      final Concept concept = 
+          sparqlQueryManagerService.getConcept(code, term, ip);
       if (concept != null && concept.getCode() != null) {
         concept.setTerminology(terminology);
         concepts.add(concept);
@@ -151,8 +148,8 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    final Concept concept = ConceptUtils
-        .convertConcept(sparqlQueryManagerService.getEvsConceptByCode(code, term, ip));
+    final Concept concept = 
+        sparqlQueryManagerService.getConcept(code, term, ip);
 
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -191,7 +188,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list = sparqlQueryManagerService.getEvsAssociations(code, term);
+    final List<Association> list = sparqlQueryManagerService.getAssociations(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -200,7 +197,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertAssociations(list);
+    return list;
   }
 
   /**
@@ -233,8 +230,8 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list =
-        sparqlQueryManagerService.getEvsInverseAssociations(code, term);
+    final List<Association> list =
+        sparqlQueryManagerService.getInverseAssociations(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -243,7 +240,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertAssociations(list);
+    return list;
   }
 
   /**
@@ -276,7 +273,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list = sparqlQueryManagerService.getEvsRoles(code, term);
+    final List<Role> list = sparqlQueryManagerService.getRoles(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -285,7 +282,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertRoles(list);
+    return list;
   }
 
   /**
@@ -318,7 +315,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsAssociation> list = sparqlQueryManagerService.getEvsInverseRoles(code, term);
+    final List<Role> list = sparqlQueryManagerService.getInverseRoles(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -327,7 +324,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertRoles(list);
+    return list;
   }
 
   /**
@@ -360,8 +357,8 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsRelatedConcept> list =
-        sparqlQueryManagerService.getEvsSuperconcepts(code, term, "byCode");
+    final List<Concept> list =
+        sparqlQueryManagerService.getSuperconcepts(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -370,7 +367,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertConcepts(list);
+    return list;
   }
 
   /**
@@ -403,8 +400,8 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsRelatedConcept> list =
-        sparqlQueryManagerService.getEvsSubconcepts(code, term, "byCode");
+    final List<Concept> list =
+        sparqlQueryManagerService.getSubconcepts(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -413,7 +410,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertConcepts(list);
+    return list;
   }
 
   /**
@@ -495,7 +492,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<EvsMapsTo> list = sparqlQueryManagerService.getEvsMapsTo(code, term);
+    final List<Map> list = sparqlQueryManagerService.getMapsTo(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -504,7 +501,7 @@ public class ConceptController {
       }
     }
 
-    return ConceptUtils.convertMaps(list);
+    return list;
   }
 
   /**
@@ -538,8 +535,8 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam("disjointWith");
 
-    final Concept concept = ConceptUtils
-        .convertConcept(sparqlQueryManagerService.getEvsConceptByCode(code, term, ip));
+    final Concept concept = 
+        sparqlQueryManagerService.getConcept(code, term, ip);
 
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -623,7 +620,7 @@ public class ConceptController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsFromRoot(
+  public @ResponseBody List<ConceptPath> getPathsFromRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -669,7 +666,7 @@ public class ConceptController {
     @PathVariable(value = "code") final String code) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    logger.info("found terminology, calling for nodes..");
+    logger.debug("found terminology, calling for nodes..");
     final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
     return nodes;
   }
@@ -737,7 +734,7 @@ public class ConceptController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToRoot(
+  public @ResponseBody List<ConceptPath> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -791,7 +788,7 @@ public class ConceptController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToAncestor(
+  public @ResponseBody List<ConceptPath> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @PathVariable(value = "ancestorCode") final String ancestorCode,

@@ -80,6 +80,7 @@ public class TerminologyUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("terminology");
     tester.include("version");
+    tester.include("date");
     tester.include("name");
     tester.include("description");
     tester.include("graph");

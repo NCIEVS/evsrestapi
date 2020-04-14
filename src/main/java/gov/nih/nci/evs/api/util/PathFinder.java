@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
-import gov.nih.nci.evs.api.model.evs.ConceptNode;
-import gov.nih.nci.evs.api.model.evs.Path;
-import gov.nih.nci.evs.api.model.evs.Paths;
+import gov.nih.nci.evs.api.model.ConceptNode;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
 
 /**
  * The Class PathFinder.

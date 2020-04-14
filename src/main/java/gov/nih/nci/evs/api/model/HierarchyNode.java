@@ -1,5 +1,5 @@
 
-package gov.nih.nci.evs.api.model.evs;
+package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
