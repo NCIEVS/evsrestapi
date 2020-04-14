@@ -1,9 +1,6 @@
 
 package gov.nih.nci.evs.api.model;
 
-import gov.nih.nci.evs.api.model.evs.ConceptNode;
-import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
-
 /**
  * Represents a concept with a code from a terminology with the smallest amount
  * of information.
@@ -62,16 +59,6 @@ public class ConceptMinimal extends BaseModel {
    */
   public ConceptMinimal(final ConceptMinimal other) {
     populateFrom(other);
-  }
-
-  /**
-   * Instantiates a {@link ConceptMinimal} from the specified parameters.
-   *
-   * @param other the other
-   */
-  public ConceptMinimal(final EvsRelatedConcept other) {
-    code = other.getCode();
-    name = other.getLabel();
   }
 
   /**

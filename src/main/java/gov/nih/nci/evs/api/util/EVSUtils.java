@@ -5,20 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import gov.nih.nci.evs.api.model.evs.EvsAxiom;
-import gov.nih.nci.evs.api.model.evs.EvsDefinition;
-import gov.nih.nci.evs.api.model.evs.EvsDefinitionByCode;
-import gov.nih.nci.evs.api.model.evs.EvsDefinitionByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsGoAnnotation;
-import gov.nih.nci.evs.api.model.evs.EvsGoAnnotationByCode;
-import gov.nih.nci.evs.api.model.evs.EvsGoAnnotationByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
-import gov.nih.nci.evs.api.model.evs.EvsMapsToByCode;
-import gov.nih.nci.evs.api.model.evs.EvsMapsToByLabel;
-import gov.nih.nci.evs.api.model.evs.EvsProperty;
-import gov.nih.nci.evs.api.model.evs.EvsSynonym;
-import gov.nih.nci.evs.api.model.evs.EvsSynonymByCode;
-import gov.nih.nci.evs.api.model.evs.EvsSynonymByLabel;
+import gov.nih.nci.evs.api.model.Axiom;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Synonym;
 
 /**
  * Utilities for handling EVS stuff.
@@ -33,10 +24,10 @@ public class EVSUtils {
    * @return the property
    */
   public static List<String> getProperty(String code,
-    List<EvsProperty> properties) {
+    List<Property> properties) {
     ArrayList<String> results = new ArrayList<String>();
-    for (EvsProperty property : properties) {
-      if (property.getCode().equals(code)) {
+    for (Property property : properties) {
+      if (property.getType().equals(code)) {
         results.add(property.getValue());
       }
     }
@@ -49,8 +40,8 @@ public class EVSUtils {
    * @param properties the properties
    * @return the concept code
    */
-  public static String getConceptCode(List<EvsProperty> properties) {
-    List<String> results = getProperty("NHC0", properties);
+  public static String getConceptCode(List<Property> properties) {
+    List<String> results = getProperty("code", properties);
     if (results.size() == 0) {
       return null;
     } else {
@@ -64,8 +55,8 @@ public class EVSUtils {
    * @param properties the properties
    * @return the preferred name
    */
-  public static String getPreferredName(List<EvsProperty> properties) {
-    List<String> results = getProperty("P108", properties);
+  public static String getPreferredName(List<Property> properties) {
+    List<String> results = getProperty("Preferred_Name", properties);
     if (results.size() == 0) {
       return null;
     } else {
@@ -86,12 +77,12 @@ public class EVSUtils {
    * @return the additional properties by code
    */
   @SuppressWarnings("rawtypes")
-  public static List<EvsProperty> getAdditionalPropertiesByCode(
-    List<EvsProperty> properties) {
-    List<EvsProperty> results = new ArrayList<EvsProperty>();
+  public static List<Property> getAdditionalPropertiesByCode(
+    List<Property> properties) {
+    List<Property> results = new ArrayList<Property>();
     List commonProperties = Arrays.asList(COMMON_PROPERTIES);
-    for (EvsProperty property : properties) {
-      if (!commonProperties.contains(property.getLabel())) {
+    for (Property property : properties) {
+      if (!commonProperties.contains(property.getType())) {
         results.add(property);
       }
     }
@@ -105,25 +96,19 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the synonyms
    */
-  public static List<EvsSynonym> getSynonyms(List<EvsAxiom> axioms,
-    String outputType) {
-    ArrayList<EvsSynonym> results = new ArrayList<EvsSynonym>();
-    for (EvsAxiom axiom : axioms) {
+  public static List<Synonym> getSynonyms(List<Axiom> axioms) {
+    ArrayList<Synonym> results = new ArrayList<>();
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P90")) {
-        EvsSynonym synonym;
-        if (outputType.equals("byLabel")) {
-          synonym = new EvsSynonymByLabel();
-        } else {
-          synonym = new EvsSynonymByCode();
-        }
+        Synonym synonym = new Synonym();
+        synonym.setType("FULL_SYN");
         synonym.setCode("P90");
-        synonym.setLabel(axiom.getAnnotatedTarget());
-        synonym.setTermName(axiom.getAnnotatedTarget());
+        synonym.setName(axiom.getAnnotatedTarget());
         synonym.setTermGroup(axiom.getTermGroup());
-        synonym.setTermSource(axiom.getTermSource());
-        synonym.setSourceCode(axiom.getSourceCode());
-        synonym.setSubsourceName(axiom.getSubsourceName());
-        results.add((EvsSynonym) synonym);
+        synonym.setSource(axiom.getTermSource());
+        synonym.setCode(axiom.getSourceCode());
+        synonym.setSubSource(axiom.getSubsourceName());
+        results.add(synonym);
       }
     }
     return results;
@@ -136,20 +121,13 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the definitions
    */
-  public static List<EvsDefinition> getDefinitions(List<EvsAxiom> axioms,
-    String outputType) {
-    ArrayList<EvsDefinition> results = new ArrayList<EvsDefinition>();
-    for (EvsAxiom axiom : axioms) {
+  public static List<Definition> getDefinitions(List<Axiom> axioms) {
+    ArrayList<Definition> results = new ArrayList<Definition>();
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P97")) {
-        EvsDefinition definition;
-        if (outputType.equals("byLabel")) {
-          definition = new EvsDefinitionByLabel();
-        } else {
-          definition = new EvsDefinitionByCode();
-        }
+        Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
-        definition.setDefSource(axiom.getDefSource());
-        definition.setAttr(axiom.getAttr());
+        definition.setSource(axiom.getDefSource());
         results.add(definition);
       }
     }
@@ -163,20 +141,14 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the alt definitions
    */
-  public static List<EvsDefinition> getAltDefinitions(List<EvsAxiom> axioms,
-    String outputType) {
-    ArrayList<EvsDefinition> results = new ArrayList<EvsDefinition>();
-    for (EvsAxiom axiom : axioms) {
+  public static List<Definition> getAltDefinitions(List<Axiom> axioms) {
+    ArrayList<Definition> results = new ArrayList<Definition>();
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P325")) {
-        EvsDefinition definition;
-        if (outputType.equals("byLabel")) {
-          definition = new EvsDefinitionByLabel();
-        } else {
-          definition = new EvsDefinitionByCode();
-        }
+        Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
-        definition.setDefSource(axiom.getDefSource());
-        definition.setAttr(axiom.getAttr());
+        definition.setSource(axiom.getDefSource());
+        definition.setType("ALT_DEFINITION");
         results.add(definition);
       }
     }
@@ -190,20 +162,14 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the maps to
    */
-  public static List<EvsMapsTo> getMapsTo(List<EvsAxiom> axioms,
-    String outputType) {
-    ArrayList<EvsMapsTo> results = new ArrayList<EvsMapsTo>();
-    for (EvsAxiom axiom : axioms) {
+  public static List<Map> getMapsTo(List<Axiom> axioms) {
+    ArrayList<Map> results = new ArrayList<Map>();
+    for (Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals("P375")) {
-        EvsMapsTo mapsTo;
-        if (outputType.equals("byLabel")) {
-          mapsTo = new EvsMapsToByLabel();
-        } else {
-          mapsTo = new EvsMapsToByCode();
-        }
-        mapsTo.setAnnotatedTarget(axiom.getAnnotatedTarget());
-        mapsTo.setRelationshipToTarget(axiom.getRelationshipToTarget());
-        mapsTo.setTargetTermType(axiom.getTargetTermType());
+        Map mapsTo = new Map();
+        mapsTo.setTargetName(axiom.getAnnotatedTarget());
+        mapsTo.setType(axiom.getRelationshipToTarget());
+        mapsTo.setTargetTermGroup(axiom.getTargetTermType());
         mapsTo.setTargetCode(axiom.getTargetCode());
         mapsTo.setTargetTerminology(axiom.getTargetTerminology());
         results.add(mapsTo);
@@ -219,27 +185,27 @@ public class EVSUtils {
    * @param outputType the output type
    * @return the go annotations
    */
-  public static List<EvsGoAnnotation> getGoAnnotations(List<EvsAxiom> axioms,
-    String outputType) {
-    ArrayList<EvsGoAnnotation> results = new ArrayList<EvsGoAnnotation>();
-    for (EvsAxiom axiom : axioms) {
-      if (axiom.getAnnotatedProperty().equals("P211")) {
-        EvsGoAnnotation go;
-        if (outputType.equals("byLabel")) {
-          go = new EvsGoAnnotationByLabel();
-        } else {
-          go = new EvsGoAnnotationByCode();
-        }
-        go.setGoId(axiom.getGoId());
-        go.setGoTerm(axiom.getAnnotatedTarget());
-        go.setGoEvi(axiom.getGoEvi());
-        go.setGoSource(axiom.getGoSource());
-        go.setSourceDate(axiom.getSourceDate());
-        results.add(go);
-      }
-    }
-    return results;
-  }
+//  public static List<EvsGoAnnotation> getGoAnnotations(List<EvsAxiom> axioms,
+//    String outputType) {
+//    ArrayList<EvsGoAnnotation> results = new ArrayList<EvsGoAnnotation>();
+//    for (EvsAxiom axiom : axioms) {
+//      if (axiom.getAnnotatedProperty().equals("P211")) {
+//        EvsGoAnnotation go;
+//        if (outputType.equals("byLabel")) {
+//          go = new EvsGoAnnotationByLabel();
+//        } else {
+//          go = new EvsGoAnnotationByCode();
+//        }
+//        go.setGoId(axiom.getGoId());
+//        go.setGoTerm(axiom.getAnnotatedTarget());
+//        go.setGoEvi(axiom.getGoEvi());
+//        go.setGoSource(axiom.getGoSource());
+//        go.setSourceDate(axiom.getSourceDate());
+//        results.add(go);
+//      }
+//    }
+//    return results;
+//  }
 
   /**
    * As list.

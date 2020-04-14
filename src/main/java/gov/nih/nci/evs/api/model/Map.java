@@ -1,8 +1,6 @@
 
 package gov.nih.nci.evs.api.model;
 
-import gov.nih.nci.evs.api.model.evs.EvsMapsTo;
-
 /**
  * Represents a map to a concept in another terminology.
  */
@@ -37,19 +35,6 @@ public class Map extends BaseModel {
    */
   public Map(final Map other) {
     populateFrom(other);
-  }
-
-  /**
-   * Instantiates a {@link Map} from the specified parameters.
-   *
-   * @param other the other
-   */
-  public Map(final EvsMapsTo other) {
-    type = other.getRelationshipToTarget();
-    targetName = other.getAnnotatedTarget();
-    targetTermGroup = other.getTargetTermType();
-    targetCode = other.getTargetCode();
-    targetTerminology = other.getTargetTerminology();
   }
 
   /**
