@@ -524,7 +524,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // If loading a qualifier, don't look for additional qualifiers
       final List<Axiom> axioms =
           getAxioms(conceptCode, terminology, !conceptType.equals("qualifier"));
-      log.info("XXX axioms = " + axioms);
 
       if (ip.isSynonyms()) {
         // Set the preferred name if including synonyms
@@ -566,7 +565,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
 
           if (ip.isProperties() && !type.endsWith("_Name")) {
-            log.info("ZZZ HERE = " + property);
             // Add any qualifiers to the property
             property.getQualifiers()
                 .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -1060,8 +1058,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (qualifierFlag) {
             final String name = EVSUtils.getQualifierName(
                 self.getAllQualifiers(terminology, new IncludeParam("minimal")), property);
-            log.info("XXX AXIOM = " + axiomObject.getAnnotatedProperty() + ", " + property + ", "
-                + name + ", " + value);
             axiomObject.getQualifiers().add(new Qualifier(name, value));
           }
           break;
