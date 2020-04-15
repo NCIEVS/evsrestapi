@@ -10,12 +10,13 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
- * Terminology cache loader to load spring cache by making calls to {@code SparqlQueryManagerService}
- * when application is ready
+ * Terminology cache loader to load spring cache by making calls to
+ * {@code SparqlQueryManagerService} when application is ready
  * 
  * 
  * @author Arun
@@ -23,17 +24,17 @@ import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
  */
 @Component
 public class TerminologyCacheLoader implements ApplicationListener<ApplicationReadyEvent> {
-  
+
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(TerminologyCacheLoader.class);
-  
+
   /** The sparql query manager service. */
   @Autowired
-  SparqlQueryManagerService sparqlQueryManagerService; 
-  
+  SparqlQueryManagerService sparqlQueryManagerService;
+
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
-    log.debug("onApplicationEvent()");
+    log.debug("onApplicationEvent() = " + event);
     try {
       List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
       if (CollectionUtils.isEmpty(terminologies))
@@ -41,15 +42,19 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
       for (Terminology terminology : terminologies) {
         log.info("Start populating cache - " + terminology.getTerminologyVersion());
 
-        //results from following calls are auto cached using ehcache managed by spring
+        // results from following calls are auto cached using ehcache managed by
+        // spring
         log.info("  get hierarchy ");
         sparqlQueryManagerService.getHierarchyUtils(terminology);
 
         log.info("  find paths ");
         sparqlQueryManagerService.getPaths(terminology);
-        
+
         log.info("  get unique sources ");
         sparqlQueryManagerService.getUniqueSourcesList(terminology);
+
+        log.info("  get qualifiers ");
+        sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("minimal"));
 
         log.info("Done populating cache - " + terminology.getTerminologyVersion());
       }

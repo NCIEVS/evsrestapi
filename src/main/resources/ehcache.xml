@@ -17,7 +17,7 @@
  
     <cache alias="terminology">
 		<resources>
-			<heap unit="entries">100</heap>
+			<heap unit="entries">1000</heap>
 		</resources>
     </cache>
  

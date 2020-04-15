@@ -5,10 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import gov.nih.nci.evs.api.model.evs.ConceptNode;
-import gov.nih.nci.evs.api.model.evs.EvsRelatedConcept;
-import gov.nih.nci.evs.api.model.evs.HierarchyNode;
-
 /**
  * Represents a concept with a code from a terminology.
  * 
@@ -117,15 +113,6 @@ public class Concept extends ConceptMinimal {
    */
   public Concept(final Concept other) {
     populateFrom(other);
-  }
-
-  /**
-   * Instantiates a {@link Concept} from the specified parameters.
-   *
-   * @param other the other
-   */
-  public Concept(final EvsRelatedConcept other) {
-    super(other);
   }
 
   /**

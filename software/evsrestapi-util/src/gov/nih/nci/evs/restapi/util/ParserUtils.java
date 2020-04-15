@@ -240,9 +240,9 @@ public class ParserUtils {
 			String label = (String) u.elementAt(1);
 			String code = (String) u.elementAt(2);
 			String propertyName = (String) u.elementAt(3);
-			String term_name = (String) u.elementAt(4);
-			String qualifier_name = (String) u.elementAt(5);
-			String qualifier_value = (String) u.elementAt(6);
+			String term_name = (String) u.elementAt(5);
+			String qualifier_name = (String) u.elementAt(6);
+			String qualifier_value = (String) u.elementAt(8);
             Synonym syn = (Synonym) hmap.get(axiom_id);
             if (syn == null) {
 				syn = new Synonym(
@@ -280,12 +280,13 @@ public class ParserUtils {
 		return w2;
 	}
 
+
 	public List getSynonyms(Vector v) {
 		if (v == null) return null;
 		List syn_list = new ArrayList();
 		Vector w = parseSynonymData(v);
-		for (int i=0; i<v.size(); i++) {
-			Synonym syn = (Synonym) v.elementAt(i);
+		for (int i=0; i<w.size(); i++) {
+			Synonym syn = (Synonym) w.elementAt(i);
 			syn_list.add(syn);
 		}
 		return syn_list;

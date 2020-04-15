@@ -1,34 +1,61 @@
+
 package gov.nih.nci.evs.api.model.sparql;
 
-public class Property
-{
-    private String value;
+/**
+ * The Class Property.
+ */
+public class Property {
 
-    private String type;
+  /** The value. */
+  private String value;
 
-    public String getValue ()
-    {
-        return value;
-    }
+  /** The type. */
+  private String type;
 
-    public void setValue (String value)
-    {
-        this.value = value;
-    }
+  /**
+   * Returns the value.
+   *
+   * @return the value
+   */
+  public String getValue() {
+    return value;
+  }
 
-    public String getType ()
-    {
-        return type;
-    }
+  /**
+   * Sets the value.
+   *
+   * @param value the value
+   */
+  public void setValue(String value) {
+    this.value = value;
+  }
 
-    public void setType (String type)
-    {
-        this.type = type;
-    }
+  /**
+   * Returns the type.
+   *
+   * @return the type
+   */
+  public String getType() {
+    return type;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "ClassPojo [value = "+value+", type = "+type+"]";
-    }
+  /**
+   * Sets the type.
+   *
+   * @param type the type
+   */
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  /**
+   * To string.
+   *
+   * @return the string
+   */
+  @Override
+  public String toString() {
+    return "[value = " + value + ", type = " + type + "]";
+  }
+
 }

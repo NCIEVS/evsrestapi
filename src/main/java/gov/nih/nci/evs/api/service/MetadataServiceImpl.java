@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.evs.EvsConcept;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -93,7 +92,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> associations = sparqlQueryManagerService.getAllAssociations(term, ip);
+    final List<Concept> associations = sparqlQueryManagerService.getAllAssociations(term, ip);
     return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
   }
 
@@ -114,8 +113,7 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+      final Concept concept = sparqlQueryManagerService.getProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -148,7 +146,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> roles = sparqlQueryManagerService.getAllRoles(term, ip);
+    final List<Concept> roles = sparqlQueryManagerService.getAllRoles(term, ip);
     return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
@@ -169,8 +167,7 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+      final Concept concept = sparqlQueryManagerService.getProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -204,16 +201,16 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     // TODO: "first-class attribute qualifiers", like 'NCH0'
+    // Need to identify which attributes are associated with "other model
+    // elements"
     final Set<String> neverUsedCodes = sparqlQueryManagerService.getAllPropertiesNeverUsed(term, ip)
         .stream().map(q -> q.getCode()).collect(Collectors.toSet());
     final Set<String> qualifierCodes = sparqlQueryManagerService.getAllQualifiers(term, ip).stream()
         .map(q -> q.getCode()).collect(Collectors.toSet());
     // Remove qualifiers from properties list
-    final List<EvsConcept> properties =
-        sparqlQueryManagerService.getAllProperties(term, ip).stream()
-            .filter(
-                p -> !qualifierCodes.contains(p.getCode()) && !neverUsedCodes.contains(p.getCode()))
-            .collect(Collectors.toList());
+    final List<Concept> properties = sparqlQueryManagerService.getAllProperties(term, ip).stream()
+        .filter(p -> !qualifierCodes.contains(p.getCode()) && !neverUsedCodes.contains(p.getCode()))
+        .collect(Collectors.toList());
 
     if (forDocumentation) {
       final Set<String> notConsideredForDocumentation =
@@ -235,7 +232,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<EvsConcept> qualifiers = sparqlQueryManagerService.getAllQualifiers(term, ip);
+    final List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(term, ip);
 
     // IF "for documentation" mode, remove the "not considered" cases.
     return ConceptUtils.applyIncludeAndList(qualifiers, ip, list.orElse(null));
@@ -258,8 +255,7 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+      final Concept concept = sparqlQueryManagerService.getProperty(code, term, ip);
       if (concept == null || concept.getCode() == null) {
         return Optional.empty();
       }
@@ -272,8 +268,8 @@ public class MetadataServiceImpl implements MetadataService {
       logger.debug(String.format("list from properties [%s] with size [%s]", String.valueOf(list),
           list == null ? 0 : list.size()));
     if (list.size() > 0) {
-      final Concept concept = ConceptUtils.convertConcept(
-          sparqlQueryManagerService.getEvsProperty(list.get(0).getCode(), term, ip));
+      final Concept concept =
+          sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip);
       return Optional.of(concept);
     }
     return Optional.empty();
@@ -357,8 +353,7 @@ public class MetadataServiceImpl implements MetadataService {
     // this one.
     Concept concept = null;
     if (ModelUtils.isCodeStyle(code)) {
-      concept =
-          ConceptUtils.convertConcept(sparqlQueryManagerService.getEvsProperty(code, term, ip));
+      concept = sparqlQueryManagerService.getProperty(code, term, ip);
     }
 
     final List<Concept> list = self.getProperties(terminology, Optional.ofNullable("minimal"),
