@@ -216,4 +216,19 @@ public class QualifierTests {
             .flatMap(p -> p.getQualifiers().stream())
             .filter(q -> q.getType().contentEquals("source-date")).count()).isGreaterThan(0);
   }
+  
+  // TODO: test that /properties doesn't return overlap with /qualifiers (and vice versa)
+  
+  // TODO: test that /property doesn't resolve qualifiers and vice versa.
+ 
+  // TODO: test that /properties doesn't return the propertyNotConsidered (and get rid of it)
+
+  // TODO: test that /properties DOES return the "common" properties  -we'll deal with these later
+  // EVSUtils.getCommonPropertyNames()
+
+  // TODO: test "attribution/P381" with "summary" mode - verify concept name Is "attr"
+  // and synonyms includes an rdfs:label with "attribution"
+  
+  // TODO: for each qualifier returned by getQualifiers, ensure that a callback based on the name resolves properly.
+  
 }

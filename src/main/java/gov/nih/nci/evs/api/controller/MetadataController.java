@@ -298,11 +298,9 @@ public class MetadataController {
   public @ResponseBody List<Concept> getProperties(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
-    @RequestParam("forDocumentation") final Optional<Boolean> forDocumentation,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    return metadataService.getProperties(terminology, include, forDocumentation.orElse(false),
-        list);
+    return metadataService.getProperties(terminology, include, list);
   }
 
   /**
@@ -345,6 +343,41 @@ public class MetadataController {
     @RequestParam("list") final Optional<String> list) throws Exception {
 
     return metadataService.getQualifiers(terminology, include, list);
+  }
+
+  @ApiOperation(value = "Get the qualifier for the specified terminology and code/label",
+      response = Concept.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "codeOrLabel",
+          value = "Qualifier code (or label), e.g. 'P390' or 'go-source'", required = true,
+          dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/metadata/{terminology}/qualifier/{codeOrLabel}", produces = "application/json")
+  public @ResponseBody Concept getQualifier(
+    @PathVariable(value = "terminology") final String terminology,
+    @PathVariable(value = "codeOrLabel") final String code,
+    @RequestParam("include") final Optional<String> include) throws Exception {
+
+    Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
+    if (!concept.isPresent())
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+
+    return concept.get();
   }
 
   /**

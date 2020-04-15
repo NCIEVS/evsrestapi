@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -241,4 +242,21 @@ public final class ConceptUtils {
     return list;
   }
 
+  /**
+   * As map.
+   *
+   * @param values the values
+   * @return the map
+   */
+  public static Map<String, String> asMap(final String... values) {
+    final Map<String, String> map = new HashMap<>();
+    if (values.length % 2 != 0) {
+      throw new RuntimeException("Unexpected odd number of parameters");
+    }
+    for (int i = 0; i < values.length; i += 2) {
+      map.put(values[i], values[i + 1]);
+    }
+    return map;
+
+  }
 }

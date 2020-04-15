@@ -86,13 +86,12 @@ public interface MetadataService {
    *
    * @param terminology the terminology
    * @param include the include
-   * @param forDocumentation the for documentation
    * @param list the list
    * @return the list of properties
    * @throws Exception the exception
    */
   List<Concept> getProperties(final String terminology, final Optional<String> include,
-    boolean forDocumentation, final Optional<String> list) throws Exception;
+    final Optional<String> list) throws Exception;
 
   /**
    * Returns the qualifiers.
@@ -105,6 +104,18 @@ public interface MetadataService {
    */
   List<Concept> getQualifiers(final String terminology, final Optional<String> include,
     final Optional<String> list) throws Exception;
+
+  /**
+   * Returns the qualifier.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the qualifier
+   * @throws Exception the exception
+   */
+  Optional<Concept> getQualifier(final String terminology, final String code,
+    final Optional<String> include) throws Exception;
 
   /**
    * Get property for the given code.

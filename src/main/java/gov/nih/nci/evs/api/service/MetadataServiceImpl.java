@@ -46,6 +46,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The self. */
   @Resource
   private MetadataService self;
 
@@ -53,7 +54,7 @@ public class MetadataServiceImpl implements MetadataService {
    * Returns the application metadata.
    *
    * @return the application metadata
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Override
   public ConfigData getApplicationMetadata() throws Exception {
@@ -186,7 +187,6 @@ public class MetadataServiceImpl implements MetadataService {
    *
    * @param terminology the terminology
    * @param include the include
-   * @param forDocumentation the for documentation
    * @param list the list
    * @return the properties
    * @throws Exception the exception
@@ -195,7 +195,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
       condition = "#list.orElse('').isEmpty()")
   public List<Concept> getProperties(String terminology, Optional<String> include,
-    boolean forDocumentation, Optional<String> list) throws Exception {
+    Optional<String> list) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -212,17 +212,18 @@ public class MetadataServiceImpl implements MetadataService {
         .filter(p -> !qualifierCodes.contains(p.getCode()) && !neverUsedCodes.contains(p.getCode()))
         .collect(Collectors.toList());
 
-    if (forDocumentation) {
-      final Set<String> notConsideredForDocumentation =
-          thesaurusProperties.getPropertyNotConsidered().keySet();
-      return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null)).stream()
-          .filter(c -> !notConsideredForDocumentation.contains(c.getCode()))
-          .collect(Collectors.toList());
-    } else {
-      return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
-    }
+    return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
   }
 
+  /**
+   * Returns the qualifiers.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the qualifiers
+   * @throws Exception the exception
+   */
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
       condition = "#list.orElse('').isEmpty()")
@@ -236,6 +237,43 @@ public class MetadataServiceImpl implements MetadataService {
 
     // IF "for documentation" mode, remove the "not considered" cases.
     return ConceptUtils.applyIncludeAndList(qualifiers, ip, list.orElse(null));
+  }
+
+  /**
+   * Returns the qualifier.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the qualifier
+   * @throws Exception the exception
+   */
+  @Override
+  public Optional<Concept> getQualifier(String terminology, String code, Optional<String> include)
+    throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+
+    if (ModelUtils.isCodeStyle(code)) {
+      final Concept concept = sparqlQueryManagerService.getQualifier(code, term, ip);
+      if (concept == null || concept.getCode() == null) {
+        return Optional.empty();
+      }
+      return Optional.of(concept);
+    }
+
+    final List<Concept> list =
+        self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
+    if (logger.isDebugEnabled())
+      logger.debug(String.format("list from qualifiers [%s] with size [%s]", String.valueOf(list),
+          list == null ? 0 : list.size()));
+    if (list.size() > 0) {
+      final Concept concept =
+          sparqlQueryManagerService.getQualifier(list.get(0).getCode(), term, ip);
+      return Optional.of(concept);
+    }
+    return Optional.empty();
   }
 
   /**
@@ -263,7 +301,7 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     final List<Concept> list =
-        self.getProperties(terminology, Optional.of("minimal"), false, Optional.ofNullable(code));
+        self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
     if (logger.isDebugEnabled())
       logger.debug(String.format("list from properties [%s] with size [%s]", String.valueOf(list),
           list == null ? 0 : list.size()));
@@ -356,8 +394,8 @@ public class MetadataServiceImpl implements MetadataService {
       concept = sparqlQueryManagerService.getProperty(code, term, ip);
     }
 
-    final List<Concept> list = self.getProperties(terminology, Optional.ofNullable("minimal"),
-        false, Optional.ofNullable(code));
+    final List<Concept> list =
+        self.getProperties(terminology, Optional.ofNullable("minimal"), Optional.ofNullable(code));
     if (list.size() > 0) {
       concept = list.get(0);
     }
