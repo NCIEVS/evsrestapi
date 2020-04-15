@@ -127,17 +127,19 @@ public class EVSUtils {
   /**
    * Returns the qualifiers.
    *
+   * @param annotatedProperty the property code
    * @param axioms the axioms
    * @return the qualifiers
    */
-  public static List<Qualifier> getQualifiers(final String type, final List<Axiom> axioms) {
-    final List<Qualifier> results = new ArrayList<>();
+  public static List<Qualifier> getQualifiers(final String annotatedProperty,
+    final String annotatedTarget, final List<Axiom> axioms) {
     for (final Axiom axiom : axioms) {
-      if (type.equals(axiom.getType()) && axiom.getQualifiers().size() > 0) {
-        results.addAll(axiom.getQualifiers());
+      if (axiom.getAnnotatedProperty().equals(annotatedProperty)
+          && axiom.getAnnotatedTarget().equals(annotatedTarget)) {
+        return axiom.getQualifiers();
       }
     }
-    return results;
+    return new ArrayList<>(0);
   }
 
   /**

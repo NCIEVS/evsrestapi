@@ -524,6 +524,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // If loading a qualifier, don't look for additional qualifiers
       final List<Axiom> axioms =
           getAxioms(conceptCode, terminology, !conceptType.equals("qualifier"));
+      log.info("XXX axioms = " + axioms);
 
       if (ip.isSynonyms()) {
         // Set the preferred name if including synonyms
@@ -567,7 +568,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (ip.isProperties() && !type.endsWith("_Name")) {
             log.info("ZZZ HERE = " + property);
             // Add any qualifiers to the property
-            property.getQualifiers().addAll(EVSUtils.getQualifiers(property.getType(), axioms));
+            property.getQualifiers()
+                .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
             // add property
             concept.getProperties().add(property);
           }
@@ -644,12 +646,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Bindings b : bindings) {
       if (b.getPropertyCode() == null) {
         Property property = new Property();
+        if (b.getPropertyCode() != null) {
+          property.setCode(b.getPropertyCode().getValue());
+        }
         property.setType(b.getPropertyLabel().getValue());
         property.setValue(b.getPropertyValue().getValue());
         properties.add(property);
       } else {
         if (!b.getPropertyCode().getValue().startsWith("A")) {
           Property property = new Property();
+          if (b.getPropertyCode() != null) {
+            property.setCode(b.getPropertyCode().getValue());
+          }
           property.setType(b.getPropertyLabel().getValue());
           property.setValue(b.getPropertyValue().getValue());
           properties.add(property);
@@ -691,6 +699,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
       Property property = new Property();
+      if (b.getPropertyCode() != null) {
+        property.setCode(b.getPropertyCode().getValue());
+      }
       if (b.getPropertyLabel() == null) {
         property.setType(b.getProperty().getValue());
       } else {
@@ -1049,7 +1060,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (qualifierFlag) {
             final String name = EVSUtils.getQualifierName(
                 self.getAllQualifiers(terminology, new IncludeParam("minimal")), property);
-            log.info("XXX AXIOM = " + name + ", " + value);
+            log.info("XXX AXIOM = " + axiomObject.getAnnotatedProperty() + ", " + property + ", "
+                + name + ", " + value);
             axiomObject.getQualifiers().add(new Qualifier(name, value));
           }
           break;
