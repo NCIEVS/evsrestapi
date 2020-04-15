@@ -55,6 +55,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
 
         log.info("  get qualifiers ");
         sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("minimal"));
+        log.info("  get properties ");
+        sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("minimal"));
 
         log.info("Done populating cache - " + terminology.getTerminologyVersion());
       }
