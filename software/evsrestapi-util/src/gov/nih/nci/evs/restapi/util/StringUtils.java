@@ -88,6 +88,10 @@ public class StringUtils {
 
     public static Vector<String> parseData(String line, String tab) {
 		if (line == null) return null;
+		if (tab.length() == 1) {
+			char delimiter = tab.charAt(0);
+			return parseData(line, delimiter);
+		}
         Vector data_vec = new Vector();
         StringTokenizer st = new StringTokenizer(line, tab);
         while (st.hasMoreTokens()) {
