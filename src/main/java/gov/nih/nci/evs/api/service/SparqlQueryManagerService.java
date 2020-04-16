@@ -146,10 +146,49 @@ public interface SparqlQueryManagerService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public Concept getProperty(String conceptCode, Terminology terminology, IncludeParam param)
-      throws JsonMappingException, JsonParseException, IOException;
+    throws JsonMappingException, JsonParseException, IOException;
 
+  /**
+   * Returns the qualifier.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param param the param
+   * @return the qualifier
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public Concept getQualifier(String conceptCode, Terminology terminology, IncludeParam param)
-      throws JsonMappingException, JsonParseException, IOException;
+    throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the association.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param param the param
+   * @return the association
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public Concept getAssociation(String conceptCode, Terminology terminology, IncludeParam param)
+    throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the role.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param param the param
+   * @return the role
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public Concept getRole(String conceptCode, Terminology terminology, IncludeParam param)
+    throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the associations.
@@ -417,7 +456,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonParseException the json parse exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<Property> getPropertyProperties(String conceptCode, Terminology terminology)
+  List<Property> getMetadataProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
   /**

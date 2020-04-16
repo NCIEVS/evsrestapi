@@ -5,6 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,10 +23,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
 
 /**
  * Integration tests for ContentController organized around proper handling of
@@ -50,6 +57,9 @@ public class QualifierTests {
   /** The base url. */
   private String baseUrl = "";
 
+  /** The meta base url. */
+  private String metaBaseUrl = "";
+
   /**
    * Sets the up.
    */
@@ -60,6 +70,7 @@ public class QualifierTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
+    metaBaseUrl = "/api/v1/metadata";
   }
 
   /**
@@ -89,8 +100,8 @@ public class QualifierTests {
             .isGreaterThan(0);
     assertThat(concept.getDefinitions().stream()
         .filter(d -> "ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution"))
-        .count()).isGreaterThan(0);
+        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attr")).count())
+            .isGreaterThan(0);
   }
 
   /**
@@ -120,8 +131,8 @@ public class QualifierTests {
             .isGreaterThan(0);
     assertThat(concept.getDefinitions().stream()
         .filter(d -> !"ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution"))
-        .count()).isGreaterThan(0);
+        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attr")).count())
+            .isGreaterThan(0);
   }
 
   /**
@@ -151,6 +162,11 @@ public class QualifierTests {
             .isGreaterThan(0);
   }
 
+  /**
+   * Test mappings.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testMappings() throws Exception {
     String url = null;
@@ -216,19 +232,229 @@ public class QualifierTests {
             .flatMap(p -> p.getQualifiers().stream())
             .filter(q -> q.getType().contentEquals("source-date")).count()).isGreaterThan(0);
   }
-  
-  // TODO: test that /properties doesn't return overlap with /qualifiers (and vice versa)
-  
-  // TODO: test that /property doesn't resolve qualifiers and vice versa.
- 
-  // TODO: test that /properties doesn't return the propertyNotConsidered (and get rid of it)
 
-  // TODO: test that /properties DOES return the "common" properties  -we'll deal with these later
-  // EVSUtils.getCommonPropertyNames()
+  /**
+   * Test no property qualifier overlap.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNoPropertyQualifierOverlap() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-  // TODO: test "attribution/P381" with "summary" mode - verify concept name Is "attr"
-  // and synonyms includes an rdfs:label with "attribution"
-  
-  // TODO: for each qualifier returned by getQualifiers, ensure that a callback based on the name resolves properly.
-  
+    // Get properties
+    url = metaBaseUrl + "/ncit/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final List<Concept> list1 =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list1).isNotEmpty();
+
+    // Get qualifiers
+    url = metaBaseUrl + "/ncit/qualifiers";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final List<Concept> list2 =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list2).isNotEmpty();
+
+    // list1 and list2 should not have any codes in common
+    final Set<String> codes1 = list1.stream().map(c -> c.getCode()).collect(Collectors.toSet());
+    final Set<String> codes2 = list2.stream().map(c -> c.getCode()).collect(Collectors.toSet());
+    assertThat(Sets.intersection(codes1, codes2).size()).isEqualTo(0);
+
+    // list1 and list2 should not have any names in common
+    final Set<String> names1 = list1.stream().map(c -> c.getName()).collect(Collectors.toSet());
+    final Set<String> names2 = list2.stream().map(c -> c.getName()).collect(Collectors.toSet());
+    assertThat(Sets.intersection(names1, names2).size()).isEqualTo(0);
+
+  }
+
+  /**
+   * Test no property qualifier overlap via lookup.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNoPropertyQualifierOverlapViaLookup() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // Get properties
+    url = metaBaseUrl + "/ncit/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final List<Concept> list1 =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list1).isNotEmpty();
+
+    // Get qualifiers
+    url = metaBaseUrl + "/ncit/qualifiers";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final List<Concept> list2 =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list2).isNotEmpty();
+
+    // Take the each property and look it up as a qualifier, expect 404
+    for (final Concept property : list1) {
+      url = metaBaseUrl + "/ncit/qualifier/" + property.getCode();
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+    }
+
+    // Take the each qualifier and look it up as a property, expect 404
+    for (final Concept qualifier : list2) {
+      url = metaBaseUrl + "/ncit/property/" + qualifier.getCode();
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+    }
+  }
+
+  /**
+   * Test property not used.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPropertyNotUsed() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // // Try P167 - expect to not find it as a property
+    // url = metaBaseUrl + "/ncit/property/P167";
+    //    log.info("Testing url - " + url);
+    // result =
+    // mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+
+    // Try P200 - expect to not find it as a property
+    url = metaBaseUrl + "/ncit/property/P200";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+  }
+
+  /**
+   * Test common property used.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCommonPropertyUsed() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    for (final String name : EVSUtils.getCommonPropertyNames(null)) {
+      // skip label
+      if (name.equals("label")) {
+        continue;
+      }
+      // Try P98 - expect to not find it as a property
+      url = metaBaseUrl + "/ncit/property/" + name;
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info(" content = " + content);
+      concept = new ObjectMapper().readValue(content, Concept.class);
+      assertThat(concept).isNotNull();
+    }
+
+  }
+
+  /**
+   * Test qualifier different label pref name.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testQualifierAttr() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // attr
+    url = metaBaseUrl + "/ncit/qualifier/attr";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+
+    // Assert that the "preferred name" synonym does match the concept name
+    assertThat(
+        concept.getSynonyms().stream().filter(c -> c.getType().equals("Preferred_Name")).count())
+            .isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("Preferred_Name"))
+        .findFirst().get().getName()).isEqualTo("attr");
+
+    // Assert that an "rdfs:label" synonym exists and does not match
+    assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("rdfs:label")).count())
+        .isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("rdfs:label"))
+        .findFirst().get().getName()).isEqualTo("attribution");
+
+  }
+
+  /**
+   * Test all qualifiers can be individually resolved.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAllQualifiersCanBeIndividuallyResolved() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // Get qualifiers
+    url = metaBaseUrl + "/ncit/qualifiers";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+
+    // Take the each qualifier and look it up as a qualifier, expect 200
+    for (final Concept qualifier : list) {
+      url = metaBaseUrl + "/ncit/qualifier/" + qualifier.getCode();
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    }
+  }
+
 }

@@ -159,6 +159,7 @@ public class EVSUtils {
         mapsTo.setTargetTermGroup(axiom.getTargetTermType());
         mapsTo.setTargetCode(axiom.getTargetCode());
         mapsTo.setTargetTerminology(axiom.getTargetTerminology());
+        mapsTo.setTargetTerminologyVersion(axiom.getTargetTerminologyVersion());
         results.add(mapsTo);
       }
     }

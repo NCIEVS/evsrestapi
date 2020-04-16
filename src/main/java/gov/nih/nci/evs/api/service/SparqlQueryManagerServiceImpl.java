@@ -484,6 +484,29 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return getConceptByType("qualifier", code, terminology, ip);
   }
 
+  @Override
+  public Concept getAssociation(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    return getConceptByType("association", code, terminology, ip);
+  }
+
+  /**
+   * Returns the qualifier.
+   *
+   * @param code the code
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the qualifier
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Override
+  public Concept getRole(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    return getConceptByType("role", code, terminology, ip);
+  }
+
   /**
    * Returns the concept by type.
    *
@@ -502,7 +525,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Concept concept = new Concept();
     final List<Property> properties =
         conceptType.equals("concept") ? getConceptProperties(conceptCode, terminology)
-            : getPropertyProperties(conceptCode, terminology);
+            : getMetadataProperties(conceptCode, terminology);
 
     // minimal, always do these
     concept.setCode(EVSUtils.getProperty("code", properties));
@@ -680,7 +703,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Property> getPropertyProperties(String conceptCode, Terminology terminology)
+  public List<Property> getMetadataProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1039,9 +1062,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         case "P385":
           axiomObject.setSourceCode(value);
           break;
-        case "P391":
-          axiomObject.setSourceDate(value);
-          break;
         case "P386":
           axiomObject.setSubsourceName(value);
           break;
@@ -1270,6 +1290,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
   public List<Concept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1307,6 +1329,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
   public List<Concept> getAllRoles(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());

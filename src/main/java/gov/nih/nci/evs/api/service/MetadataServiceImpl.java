@@ -109,17 +109,8 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getAssociation(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = sparqlQueryManagerService.getProperty(code, term, ip);
-      if (concept == null || concept.getCode() == null) {
-        return Optional.empty();
-      }
-      return Optional.of(concept);
-    }
+    // Verify that it is an association
     final List<Concept> list = self.getAssociations(terminology,
         Optional.ofNullable(include.orElse("summary")), Optional.ofNullable(code));
     if (list.size() > 0) {
@@ -163,17 +154,8 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getRole(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = sparqlQueryManagerService.getProperty(code, term, ip);
-      if (concept == null || concept.getCode() == null) {
-        return Optional.empty();
-      }
-      return Optional.of(concept);
-    }
+    // Verify that it is a role
     final List<Concept> list = self.getRoles(terminology,
         Optional.ofNullable(include.orElse("summary")), Optional.ofNullable(code));
     if (list.size() > 0) {
@@ -251,27 +233,12 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getQualifier(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = sparqlQueryManagerService.getQualifier(code, term, ip);
-      if (concept == null || concept.getCode() == null) {
-        return Optional.empty();
-      }
-      return Optional.of(concept);
-    }
-
+    // Verify that it is a qualifier
     final List<Concept> list =
-        self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
-    if (logger.isDebugEnabled())
-      logger.debug(String.format("list from qualifiers [%s] with size [%s]", String.valueOf(list),
-          list == null ? 0 : list.size()));
+        self.getQualifiers(terminology, Optional.of("summary"), Optional.ofNullable(code));
     if (list.size() > 0) {
-      final Concept concept =
-          sparqlQueryManagerService.getQualifier(list.get(0).getCode(), term, ip);
-      return Optional.of(concept);
+      return Optional.of(list.get(0));
     }
     return Optional.empty();
   }
@@ -288,27 +255,12 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getProperty(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept = sparqlQueryManagerService.getProperty(code, term, ip);
-      if (concept == null || concept.getCode() == null) {
-        return Optional.empty();
-      }
-      return Optional.of(concept);
-    }
-
+    // Verify that it is a property
     final List<Concept> list =
-        self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
-    if (logger.isDebugEnabled())
-      logger.debug(String.format("list from properties [%s] with size [%s]", String.valueOf(list),
-          list == null ? 0 : list.size()));
+        self.getProperties(terminology, Optional.of("summary"), Optional.ofNullable(code));
     if (list.size() > 0) {
-      final Concept concept =
-          sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip);
-      return Optional.of(concept);
+      return Optional.of(list.get(0));
     }
     return Optional.empty();
   }
