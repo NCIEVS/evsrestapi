@@ -462,6 +462,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
   public Concept getProperty(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("property", code, terminology, ip);
@@ -479,12 +481,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
   public Concept getQualifier(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("qualifier", code, terminology, ip);
   }
 
+  /**
+   * Returns the association.
+   *
+   * @param code the code
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the association
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
   public Concept getAssociation(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("association", code, terminology, ip);
@@ -502,6 +519,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
   public Concept getRole(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("role", code, terminology, ip);
@@ -510,7 +529,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the concept by type.
    *
-   * @param type the type
+   * @param conceptType the concept type
    * @param conceptCode the concept code
    * @param terminology the terminology
    * @param ip the ip
@@ -533,7 +552,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String pn = EVSUtils.getProperty("Preferred_Name", properties);
     final String conceptLabel = getConceptLabel(conceptCode, terminology);
 
-    if (!conceptType.equals("qualifier")) {
+    if (!conceptType.equals("qualifier") && !conceptType.equals("property")) {
       concept.setName(conceptLabel);
     } else {
       // Handle case where preferred name and rdfs:label don't match (only for
@@ -563,9 +582,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
-        if (conceptType.equals("qualifier") && conceptLabel != null && !conceptLabel.equals(pn)) {
+        if ((conceptType.equals("qualifier") || conceptType.equals("property"))
+            && conceptLabel != null && !conceptLabel.equals(pn)) {
           final Synonym rdfsLabel = new Synonym();
-          rdfsLabel.setTermGroup("rdfs:label");
+          rdfsLabel.setType("rdfs:label");
           rdfsLabel.setName(conceptLabel);
           concept.getSynonyms().add(rdfsLabel);
         }

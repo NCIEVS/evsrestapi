@@ -170,7 +170,7 @@ public class ConceptControllerTests {
     log.info("Testing url - " + url);
     mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     // content is blank because of MockMvc
-
+   
   }
 
   /**
@@ -672,6 +672,30 @@ public class ConceptControllerTests {
     url = baseUrl + "/test/C2291/subtree";
     log.info("Testing url - " + url);
     mvc.perform(get(url)).andExpect(status().isNotFound());
+
+    // Test case with bad code
+    url = baseUrl + "/ncit/BADCODE/subtree";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound());
+
+    // Test subtree children (see what it looks like)
+    url = baseUrl + "/ncit/C7058/subtree/children";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    
+    // Test case with bad terminology
+    url = baseUrl + "/test/C2291/subtree/children";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound());
+
+    // Test case with bad code
+    url = baseUrl + "/ncit/BADCODE/subtree/children";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound());
+
   }
 
   /**
@@ -851,15 +875,18 @@ public class ConceptControllerTests {
    * @return boolean true if hierarchy has a leaf node, else false
    */
   private boolean hasLeafNode(List<HierarchyNode> list) {
-    if (CollectionUtils.isEmpty(list)) return false;
-    for(HierarchyNode node: list) {
-      if (node.getLeaf() != null && node.getLeaf()) return true;
+    if (CollectionUtils.isEmpty(list))
+      return false;
+    for (HierarchyNode node : list) {
+      if (node.getLeaf() != null && node.getLeaf())
+        return true;
       if (!CollectionUtils.isEmpty(node.getChildren())) {
-        if (hasLeafNode(node.getChildren())) return true;
+        if (hasLeafNode(node.getChildren()))
+          return true;
       }
     }
-    
+
     return false;
   }
-  
+
 }

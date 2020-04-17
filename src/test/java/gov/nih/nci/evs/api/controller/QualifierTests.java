@@ -344,17 +344,14 @@ public class QualifierTests {
     String url = null;
     MvcResult result = null;
     String content = null;
+    // P379, P377, P388, P365, P382, P392, P380
+    url = metaBaseUrl + "/ncit/property/P379";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
 
-    // // Try P167 - expect to not find it as a property
-    // url = metaBaseUrl + "/ncit/property/P167";
-    //    log.info("Testing url - " + url);
-    // result =
-    // mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-
-    // Try P200 - expect to not find it as a property
-    url = metaBaseUrl + "/ncit/property/P200";
+    url = metaBaseUrl + "/ncit/property/P380";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();

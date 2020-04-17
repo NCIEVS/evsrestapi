@@ -95,19 +95,19 @@ public final class ConceptUtils {
   /**
    * Apply include.
    *
-   * @param evsConcepts the evs concepts
+   * @param concepts the evs concepts
    * @param ip the ip
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyIncludeAndList(final List<Concept> evsConcepts,
+  public static List<Concept> applyIncludeAndList(final List<Concept> concepts,
     final IncludeParam ip, final String list) throws Exception {
     final Set<String> codes = (list == null || list.isEmpty()) ? null
         : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
-    return evsConcepts.stream()
-        .filter(ec -> codes == null || codes.contains(ec.getCode()) || codes.contains(ec.getName()))
+    return concepts.stream()
+        .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
         .collect(Collectors.toList());
   }
 
