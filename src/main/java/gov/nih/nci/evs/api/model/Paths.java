@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
@@ -5,32 +6,64 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class Paths {
-	private List <Path> paths = null;
+/**
+ * Represents a list of paths.
+ */
+public class Paths extends BaseModel {
 
-	public Paths() {
-		paths = new ArrayList <Path>();
-	}
+  /** The paths. */
+  private List<Path> paths = null;
 
-	public Paths(List <Path> paths) {
-			this.paths = paths;
-	}
+  /**
+   * Instantiates an empty {@link Paths}.
+   */
+  public Paths() {
+    paths = new ArrayList<Path>();
+  }
 
-	public void setPath(List <Path>paths) {
-		this.paths = paths;
-	}
+  /**
+   * Instantiates a {@link Paths} from the specified parameters.
+   *
+   * @param paths the paths
+   */
+  public Paths(List<Path> paths) {
+    this.paths = paths;
+  }
 
-	public void add(Path path) {
-		this.paths.add(path);
-	}
+  /**
+   * Sets the path.
+   *
+   * @param paths the path
+   */
+  public void setPath(List<Path> paths) {
+    this.paths = paths;
+  }
 
+  /**
+   * Adds the.
+   *
+   * @param path the path
+   */
+  public void add(Path path) {
+    this.paths.add(path);
+  }
 
-	public List<Path> getPaths() {
-		return this.paths;
-	}
+  /**
+   * Returns the paths.
+   *
+   * @return the paths
+   */
+  public List<Path> getPaths() {
+    return this.paths;
+  }
 
-	@JsonIgnore
-	public int getPathCount() {
-		return this.paths.size();
-	}
+  /**
+   * Returns the path count.
+   *
+   * @return the path count
+   */
+  @JsonIgnore
+  public int getPathCount() {
+    return this.paths.size();
+  }
 }

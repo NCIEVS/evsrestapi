@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,7 @@ import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 public final class ConceptUtils {
 
   /** The Constant logger. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConceptUtils.class);
 
   /**
@@ -93,240 +95,21 @@ public final class ConceptUtils {
   /**
    * Apply include.
    *
-   * @param evsConcepts the evs concepts
+   * @param concepts the evs concepts
    * @param ip the ip
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyIncludeAndList(final List<Concept> evsConcepts,
+  public static List<Concept> applyIncludeAndList(final List<Concept> concepts,
     final IncludeParam ip, final String list) throws Exception {
     final Set<String> codes = (list == null || list.isEmpty()) ? null
         : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
-    return evsConcepts.stream()
-        .filter(
-            ec -> codes == null || codes.contains(ec.getCode()) || codes.contains(ec.getName()))
+    return concepts.stream()
+        .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
         .collect(Collectors.toList());
   }
-
-  /**
-   * Apply include.
-   *
-   * @param evsConcept the evs concept
-   * @return the concept
-   * @throws Exception the exception
-   */
-//  public static Concept convertConcept(final EvsConcept evsConcept) throws Exception {
-//    if (evsConcept == null) {
-//      return null;
-//    }
-//    final Concept concept = new Concept();
-//    final Set<String> contributingSources = new HashSet<>();
-//
-//    // Apply minimal always
-//    concept.setCode(evsConcept.getCode());
-//    // What if label is different than the preferred name?
-//    concept.setName(evsConcept.getLabel());
-//
-//    // Handle preferred name
-//    if (evsConcept.getPreferredName() != null) {
-//      final Synonym pn = new Synonym();
-//      // TODO: NCI-specific, instead get this from somewhere
-//      pn.setType("Preferred_Name");
-//      pn.setName(evsConcept.getPreferredName());
-//      concept.getSynonyms().add(pn);
-//    }
-//
-//    // "Name" based properties
-//    if (evsConcept.getProperties() != null) {
-//      for (final String key : evsConcept.getProperties().keySet()) {
-//        if (key.endsWith("_Name")) {
-//          for (final String value : evsConcept.getProperties().get(key)) {
-//            final Synonym name = new Synonym();
-//            name.setType(key);
-//            name.setName(value);
-//            concept.getSynonyms().add(name);
-//          }
-//        }
-//      }
-//    }
-//
-//    // Synonyms
-//    if (evsConcept.getSynonyms() != null) {
-//      for (final EvsSynonym evsSy : evsConcept.getSynonyms()) {
-//        final Synonym sy = new Synonym(evsSy);
-//        // Handle special case of rdfs:label
-//        if ("rdfs:label".equals(sy.getTermGroup())) {
-//          final Synonym rdfsSy = new Synonym();
-//          rdfsSy.setType("rdfs:label");
-//          rdfsSy.setName(sy.getName());
-//          concept.getSynonyms().add(rdfsSy);
-//        }
-//        // TODO: NCI-specific, instead get this from somewhere
-//        // The evsSy.getCode() will be equal to "P90" in this case
-//        else {
-//          sy.setType("FULL_SYN");
-//          concept.getSynonyms().add(sy);
-//          if (sy.getSource() != null) {
-//            contributingSources.add(sy.getSource());
-//          }
-//        }
-//      }
-//    }
-//
-//    // Add definitions
-//    if (evsConcept.getDefinitions() != null) {
-//
-//      for (final EvsDefinition evsDef : evsConcept.getDefinitions()) {
-//        final Definition def = new Definition(evsDef);
-//        // TODO: NCI-specific, instead get this from somewhere
-//        def.setType("DEFINITION");
-//        concept.getDefinitions().add(def);
-//        if (def.getSource() != null) {
-//          contributingSources.add(def.getSource());
-//        }
-//      }
-//    }
-//    if (evsConcept.getAltDefinitions() != null) {
-//
-//      for (final EvsDefinition evsDef : evsConcept.getAltDefinitions()) {
-//        final Definition def = new Definition(evsDef);
-//        // TODO: NCI-specific, instead get this from somewhere
-//        def.setType("ALT_DEFINITION");
-//        concept.getDefinitions().add(def);
-//      }
-//
-//    }
-//
-//    // Add properties
-//    if (evsConcept.getProperties() != null) {
-//      for (final String key : evsConcept.getProperties().keySet()) {
-//        // TODO: very ncit specific...deal with that
-//        if (!key.endsWith("_Name") && !key.equals("Contributing_Source")) {
-//          for (final String value : evsConcept.getProperties().get(key)) {
-//            final Property property = new Property();
-//            property.setType(key);
-//            property.setValue(value);
-//            concept.getProperties().add(property);
-//          }
-//        }
-//      }
-//    }
-//
-//    // Add children
-//    if (evsConcept.getSubconcepts() != null) {
-//      for (final EvsRelatedConcept ec : evsConcept.getSubconcepts()) {
-//        concept.getChildren().add(new Concept(ec));
-//      }
-//    }
-//
-//    // Add parents
-//    if (evsConcept.getSuperconcepts() != null) {
-//      for (final EvsRelatedConcept ec : evsConcept.getSuperconcepts()) {
-//        concept.getParents().add(new Concept(ec));
-//      }
-//    }
-//
-//    // Add associations
-//    if (evsConcept.getAssociations() != null) {
-//      for (final EvsAssociation ea : evsConcept.getAssociations()) {
-//        concept.getAssociations().add(new Association(ea));
-//      }
-//    }
-//
-//    // Add inverse associations
-//    if (evsConcept.getInverseAssociations() != null) {
-//      for (final EvsAssociation ea : evsConcept.getInverseAssociations()) {
-//        concept.getInverseAssociations().add(new Association(ea));
-//      }
-//    }
-//
-//    // Add roles
-//    if (evsConcept.getRoles() != null) {
-//      for (final EvsAssociation ea : evsConcept.getRoles()) {
-//        concept.getRoles().add(new Role(ea));
-//      }
-//    }
-//
-//    // Add inverse roles
-//    if (evsConcept.getInverseRoles() != null) {
-//      for (final EvsAssociation ea : evsConcept.getInverseRoles()) {
-//        concept.getInverseRoles().add(new Role(ea));
-//      }
-//    }
-//
-//    // Add maps
-//    if (evsConcept.getMapsTo() != null) {
-//      for (final EvsMapsTo em : evsConcept.getMapsTo()) {
-//        concept.getMaps().add(new Map(em));
-//      }
-//    }
-//
-//    // Add disjoint
-//    if (evsConcept.getDisjointWith() != null) {
-//      for (final EvsAssociation ea : evsConcept.getDisjointWith()) {
-//        concept.getDisjointWith().add(new DisjointWith(ea));
-//      }
-//    }
-//
-//    // Skip NCI - really this should be better focused on
-//    concept.setContributingSources(contributingSources.stream().sorted((a, b) -> a.compareTo(b))
-//        .filter(s -> !s.equals("NCI")).collect(Collectors.toList()));
-//    return concept;
-//  }
-
-  /**
-   * Convert associations.
-   *
-   * @param list the list
-   * @return the list
-   */
-//  public static List<Association> convertAssociations(final List<EvsAssociation> list) {
-//    if (list == null || list.isEmpty()) {
-//      return new ArrayList<>();
-//    }
-//    return list.stream().map(ea -> new Association(ea)).collect(Collectors.toList());
-//  }
-
-  /**
-   * Convert roles.
-   *
-   * @param list the list
-   * @return the list
-   */
-//  public static List<Role> convertRoles(final List<EvsAssociation> list) {
-//    if (list == null || list.isEmpty()) {
-//      return new ArrayList<>();
-//    }
-//    return list.stream().map(ea -> new Role(ea)).collect(Collectors.toList());
-//  }
-
-  /**
-   * Convert maps.
-   *
-   * @param list the list
-   * @return the list
-   */
-//  public static List<Map> convertMaps(final List<EvsMapsTo> list) {
-//    if (list == null || list.isEmpty()) {
-//      return new ArrayList<>();
-//    }
-//    return list.stream().map(ea -> new Map(ea)).collect(Collectors.toList());
-//  }
-
-  /**
-   * Convert concepts.
-   *
-   * @param list the list
-   * @return the list
-   */
-//  public static List<Concept> convertConcepts(final List<EvsRelatedConcept> list) {
-//    if (list == null || list.isEmpty()) {
-//      return new ArrayList<>();
-//    }
-//    return list.stream().map(ea -> new Concept(ea)).collect(Collectors.toList());
-//  }
 
   /**
    * Convert concepts fy with include.
@@ -334,7 +117,7 @@ public final class ConceptUtils {
    * @param service the service
    * @param ip the ip
    * @param terminology the terminology
-   * @param list the list
+   * @param concepts the concepts
    * @return the list
    * @throws Exception the exception
    */
@@ -342,7 +125,7 @@ public final class ConceptUtils {
     final IncludeParam ip, final Terminology terminology, final List<Concept> concepts)
     throws Exception {
 
-//    final List<Concept> concepts = convertConcepts(list);
+    // final List<Concept> concepts = convertConcepts(list);
     if (ip.hasAnyTrue()) {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
@@ -459,4 +242,21 @@ public final class ConceptUtils {
     return list;
   }
 
+  /**
+   * As map.
+   *
+   * @param values the values
+   * @return the map
+   */
+  public static Map<String, String> asMap(final String... values) {
+    final Map<String, String> map = new HashMap<>();
+    if (values.length % 2 != 0) {
+      throw new RuntimeException("Unexpected odd number of parameters");
+    }
+    for (int i = 0; i < values.length; i += 2) {
+      map.put(values[i], values[i + 1]);
+    }
+    return map;
+
+  }
 }

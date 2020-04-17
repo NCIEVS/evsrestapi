@@ -23,7 +23,6 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.ModelUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
@@ -36,7 +35,7 @@ public class MetadataServiceImpl implements MetadataService {
 
   /** The Constant logger. */
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(MetadataServiceImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(MetadataServiceImpl.class);
 
   /** The thesaurus properties. */
   @Autowired
@@ -46,18 +45,20 @@ public class MetadataServiceImpl implements MetadataService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The self. */
   @Resource
   private MetadataService self;
-  
+
   /**
    * Returns the application metadata.
    *
    * @return the application metadata
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Override
   public ConfigData getApplicationMetadata() throws Exception {
-    return self.getApplicationMetadata(TerminologyUtils.getLatestTerminology(sparqlQueryManagerService));
+    return self
+        .getApplicationMetadata(TerminologyUtils.getLatestTerminology(sparqlQueryManagerService));
   }
 
   /**
@@ -107,22 +108,15 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getAssociation(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          sparqlQueryManagerService.getProperty(code, term, ip);
-      if (concept == null || concept.getCode() == null) {
-        return Optional.empty();
-      }
-      return Optional.of(concept);
-    }
+    // Verify that it is an association
     final List<Concept> list = self.getAssociations(terminology,
-        Optional.ofNullable(include.orElse("summary")), Optional.ofNullable(code));
+        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() > 0) {
-      return Optional.of(list.get(0));
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      return Optional.of(sparqlQueryManagerService.getAssociation(list.get(0).getCode(), term, ip));
     }
     return Optional.empty();
   }
@@ -162,22 +156,15 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getRole(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          sparqlQueryManagerService.getProperty(code, term, ip);
-      if (concept == null || concept.getCode() == null) {
-        return Optional.empty();
-      }
-      return Optional.of(concept);
-    }
-    final List<Concept> list = self.getRoles(terminology, Optional.ofNullable(include.orElse("summary")),
-        Optional.ofNullable(code));
+    // Verify that it is a role
+    final List<Concept> list = self.getRoles(terminology,
+        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() > 0) {
-      return Optional.of(list.get(0));
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      return Optional.of(sparqlQueryManagerService.getRole(list.get(0).getCode(), term, ip));
     }
     return Optional.empty();
   }
@@ -195,23 +182,73 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
       condition = "#list.orElse('').isEmpty()")
   public List<Concept> getProperties(String terminology, Optional<String> include,
-    boolean forDocumentation, Optional<String> list) throws Exception {
+    Optional<String> list) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<Concept> properties = sparqlQueryManagerService.getAllProperties(term, ip);
+    // TODO: "first-class attribute qualifiers", like 'NCH0'
+    // Need to identify which attributes are associated with "other model
+    // elements"
+    final Set<String> neverUsedCodes = sparqlQueryManagerService.getAllPropertiesNeverUsed(term, ip)
+        .stream().map(q -> q.getCode()).collect(Collectors.toSet());
+    final Set<String> qualifierCodes = sparqlQueryManagerService.getAllQualifiers(term, ip).stream()
+        .map(q -> q.getCode()).collect(Collectors.toSet());
+    // Remove qualifiers from properties list
+    final List<Concept> properties = sparqlQueryManagerService.getAllProperties(term, ip).stream()
+        .filter(p -> !qualifierCodes.contains(p.getCode()) && !neverUsedCodes.contains(p.getCode()))
+        .collect(Collectors.toList());
+
+    return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
+  }
+
+  /**
+   * Returns the qualifiers.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the qualifiers
+   * @throws Exception the exception
+   */
+  @Override
+  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
+      condition = "#list.orElse('').isEmpty()")
+  public List<Concept> getQualifiers(String terminology, Optional<String> include,
+    Optional<String> list) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
+
+    final List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(term, ip);
 
     // IF "for documentation" mode, remove the "not considered" cases.
-    if (forDocumentation) {
-      final Set<String> notConsideredForDocumentation =
-          thesaurusProperties.getPropertyNotConsidered().keySet();
-      return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null)).stream()
-          .filter(c -> !notConsideredForDocumentation.contains(c.getCode()))
-          .collect(Collectors.toList());
-    } else {
-      return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
+    return ConceptUtils.applyIncludeAndList(qualifiers, ip, list.orElse(null));
+  }
+
+  /**
+   * Returns the qualifier.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the qualifier
+   * @throws Exception the exception
+   */
+  @Override
+  public Optional<Concept> getQualifier(String terminology, String code, Optional<String> include)
+    throws Exception {
+    // Verify that it is a qualifier
+    final List<Concept> list =
+        self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
+
+    if (list.size() > 0) {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      return Optional.of(sparqlQueryManagerService.getQualifier(list.get(0).getCode(), term, ip));
     }
+    return Optional.empty();
   }
 
   /**
@@ -226,27 +263,15 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getProperty(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    if (ModelUtils.isCodeStyle(code)) {
-      final Concept concept =
-          sparqlQueryManagerService.getProperty(code, term, ip);
-      if (concept == null || concept.getCode() == null) {
-        return Optional.empty();
-      }
-      return Optional.of(concept);
-    }
-
+    // Verify that it is a property
     final List<Concept> list =
-        self.getProperties(terminology, Optional.of("minimal"), false, Optional.ofNullable(code));
-    if (logger.isDebugEnabled()) logger.debug(String.format("list from properties [%s] with size [%s]", String.valueOf(list),
-        list == null ? 0 : list.size()));
+        self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
     if (list.size() > 0) {
-      final Concept concept = 
-          sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip);
-      return Optional.of(concept);
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      return Optional.of(sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip));
     }
     return Optional.empty();
   }
@@ -322,29 +347,18 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam("minimal");
 
-    // Like "get properties", if it's "name style", we need to get all and then
-    // find
-    // this one.
-    Concept concept = null;
-    if (ModelUtils.isCodeStyle(code)) {
-      concept = sparqlQueryManagerService.getProperty(code, term, ip);
-    }
+    // Verify that it is a qualifier
+    final List<Concept> list =
+        self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
 
-    final List<Concept> list = self.getProperties(terminology, Optional.ofNullable("minimal"), false,
-        Optional.ofNullable(code));
     if (list.size() > 0) {
-      concept = list.get(0);
+      return Optional
+          .of(sparqlQueryManagerService.getAxiomQualifiersList(list.get(0).getCode(), term));
     }
 
-    if (concept == null || concept.getCode() == null) {
-      return Optional.empty();
-    }
+    return Optional.empty();
 
-    final List<String> propertyValues =
-        sparqlQueryManagerService.getAxiomQualifiersList(concept.getCode(), term);
-    return Optional.of(propertyValues);
   }
 
   /**

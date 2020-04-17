@@ -366,15 +366,17 @@ public class MetadataControllerTests {
           // n/a
         });
     assertThat(list).isNotEmpty();
+
+    // BAC: this is not true anymore because we've
     // Assert that no cases involve a concept with a name having a space
-    assertThat(list.stream().filter(c -> c.getName().contains(" ")).count()).isEqualTo(0);
+    // assertThat(list.stream().filter(c -> c.getName().contains("
+    // ")).count()).isEqualTo(0);
+
     // In "minimal" mode (which is default), there shouldn't be any rdfs:labels
     assertThat(list.stream()
         .filter(
             c -> c.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count() > 0)
         .count()).isEqualTo(0);
-
-    // TODO: test that with include=summary that P383 has an rdfs:label
 
   }
 
@@ -407,37 +409,41 @@ public class MetadataControllerTests {
     assertThat(list.get(0).getDefinitions()).isNotEmpty();
 
     // Test with a case having an rdfs:label
-//    url = baseUrl + "/ncit/properties?list=term-group&include=summary";
-//    log.info("Testing url - " + url);
-//
-//    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-//    content = result.getResponse().getContentAsString();
-//    log.info("  content = " + content);
-//    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-//      // n/a
-//    });
-//    assertThat(list).isNotEmpty();
-//    // This should have an rdfs:label synonym
-//    assertThat(
-//        list.get(0).getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
-//            .isEqualTo(1);
+    // url = baseUrl + "/ncit/properties?list=term-group&include=summary";
+    // log.info("Testing url - " + url);
+    //
+    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    // list = new ObjectMapper().readValue(content, new
+    // TypeReference<List<Concept>>() {
+    // // n/a
+    // });
+    // assertThat(list).isNotEmpty();
+    // // This should have an rdfs:label synonym
+    // assertThat(
+    // list.get(0).getSynonyms().stream().filter(s ->
+    // s.getType().equals("rdfs:label")).count())
+    // .isEqualTo(1);
 
     // Test with a case having an rdfs:label but using "minimal" where it
     // shouldn't show up
-//    url = baseUrl + "/ncit/properties?list=P383&include=minimal";
-//    log.info("Testing url - " + url);
-//
-//    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-//    content = result.getResponse().getContentAsString();
-//    log.info("  content = " + content);
-//    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-//      // n/a
-//    });
-//    assertThat(list).isNotEmpty();
-//    // This should have an rdfs:label synonym
-//    assertThat(
-//        list.get(0).getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
-//            .isEqualTo(0);
+    // url = baseUrl + "/ncit/properties?list=P383&include=minimal";
+    // log.info("Testing url - " + url);
+    //
+    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    // list = new ObjectMapper().readValue(content, new
+    // TypeReference<List<Concept>>() {
+    // // n/a
+    // });
+    // assertThat(list).isNotEmpty();
+    // // This should have an rdfs:label synonym
+    // assertThat(
+    // list.get(0).getSynonyms().stream().filter(s ->
+    // s.getType().equals("rdfs:label")).count())
+    // .isEqualTo(0);
 
   }
 
@@ -477,26 +483,28 @@ public class MetadataControllerTests {
 
     // Test with a code that has an rdfs:label synonym (default mode is summary
     // here)
-//    url = baseUrl + "/ncit/property/P383?include=summary";
-//    log.info("Testing url - " + url);
-//    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-//    content = result.getResponse().getContentAsString();
-//    log.info(" content = " + content);
-//    concept = new ObjectMapper().readValue(content, Concept.class);
-//    // This should have an rdfs:label synonym
-//    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
-//        .isEqualTo(1);
+    // url = baseUrl + "/ncit/property/P383?include=summary";
+    // log.info("Testing url - " + url);
+    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    // concept = new ObjectMapper().readValue(content, Concept.class);
+    // // This should have an rdfs:label synonym
+    // assertThat(concept.getSynonyms().stream().filter(s ->
+    // s.getType().equals("rdfs:label")).count())
+    // .isEqualTo(1);
 
     // Test with same code in mimal model where rdfs:label does not show up
-//    url = baseUrl + "/ncit/property/P383?include=minimal";
-//    log.info("Testing url - " + url);
-//    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-//    content = result.getResponse().getContentAsString();
-//    log.info(" content = " + content);
-//    concept = new ObjectMapper().readValue(content, Concept.class);
-//    // This should have an rdfs:label synonym
-//    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("rdfs:label")).count())
-//        .isEqualTo(0);
+    // url = baseUrl + "/ncit/property/P383?include=minimal";
+    // log.info("Testing url - " + url);
+    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    // concept = new ObjectMapper().readValue(content, Concept.class);
+    // // This should have an rdfs:label synonym
+    // assertThat(concept.getSynonyms().stream().filter(s ->
+    // s.getType().equals("rdfs:label")).count())
+    // .isEqualTo(0);
 
   }
 
@@ -532,14 +540,12 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
 
-    // TODO: need to implement this to
-    // // Lookup of an association instead of a property
-    // url = baseUrl + "/ncit/property/A8";
-    // log.info("Testing url - " + url);
-    // result =
-    // mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
+    // Lookup of an association instead of a property
+    url = baseUrl + "/ncit/property/A8";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
 
   }
 

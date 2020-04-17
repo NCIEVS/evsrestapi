@@ -667,7 +667,12 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     logger.debug("found terminology, calling for nodes..");
+
+    if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+    }
     final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
+
     return nodes;
   }
 
@@ -699,6 +704,9 @@ public class ConceptController {
     @PathVariable(value = "code") final String code) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+    }
     final List<HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(code, term);
     return nodes;
   }

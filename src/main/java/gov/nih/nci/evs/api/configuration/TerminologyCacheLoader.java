@@ -1,6 +1,10 @@
 package gov.nih.nci.evs.api.configuration;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,12 +14,14 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
- * Terminology cache loader to load spring cache by making calls to {@code SparqlQueryManagerService}
- * when application is ready
+ * Terminology cache loader to load spring cache by making calls to
+ * {@code SparqlQueryManagerService} when application is ready
  * 
  * 
  * @author Arun
@@ -23,38 +29,104 @@ import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
  */
 @Component
 public class TerminologyCacheLoader implements ApplicationListener<ApplicationReadyEvent> {
-  
+
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(TerminologyCacheLoader.class);
-  
+
+  /** The stardog properties. */
+  @Autowired
+  StardogProperties stardogProperties;
+
   /** The sparql query manager service. */
   @Autowired
-  SparqlQueryManagerService sparqlQueryManagerService; 
-  
+  SparqlQueryManagerService sparqlQueryManagerService;
+
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
-    log.debug("onApplicationEvent()");
+    log.debug("onApplicationEvent() = " + event);
+
+    final ExecutorService executorService = Executors.newFixedThreadPool(4);
+
     try {
-      List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
+      final List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
       if (CollectionUtils.isEmpty(terminologies))
         return;
-      for (Terminology terminology : terminologies) {
+
+      for (final Terminology terminology : terminologies) {
         log.info("Start populating cache - " + terminology.getTerminologyVersion());
 
-        //results from following calls are auto cached using ehcache managed by spring
-        log.info("  get hierarchy ");
-        sparqlQueryManagerService.getHierarchyUtils(terminology);
+        executorService.execute(new Runnable() {
+          public void run() {
+            try {
+              log.info("  get hierarchy ");
+              sparqlQueryManagerService.getHierarchyUtils(terminology);
 
-        log.info("  find paths ");
-        sparqlQueryManagerService.getPaths(terminology);
-        
-        log.info("  get unique sources ");
-        sparqlQueryManagerService.getUniqueSourcesList(terminology);
+              log.info("  find paths ");
+              sparqlQueryManagerService.getPaths(terminology);
 
-        log.info("Done populating cache - " + terminology.getTerminologyVersion());
+              log.info("  get unique sources ");
+              sparqlQueryManagerService.getUniqueSourcesList(terminology);
+
+              log.info("  get qualifiers ");
+              sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("minimal"));
+
+            } catch (IOException e) {
+              log.error("Unexpected error caching = " + terminology, e);
+            }
+
+          }
+        });
+
+        executorService.execute(new Runnable() {
+          public void run() {
+            try {
+
+              log.info("  get properties ");
+              sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("minimal"));
+
+            } catch (IOException e) {
+              log.error("Unexpected error caching2 = " + terminology, e);
+            }
+
+          }
+        });
+
+        executorService.execute(new Runnable() {
+          public void run() {
+            try {
+              log.info("  get associations ");
+              sparqlQueryManagerService.getAllAssociations(terminology,
+                  new IncludeParam("minimal"));
+
+            } catch (IOException e) {
+              log.error("Unexpected error caching3 = " + terminology, e);
+            }
+
+          }
+        });
+
+        executorService.execute(new Runnable() {
+          public void run() {
+            try {
+              log.info("  get roles ");
+              sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("minimal"));
+
+            } catch (IOException e) {
+              log.error("Unexpected error caching = " + terminology, e);
+            }
+
+          }
+        });
+
       }
+
+      executorService.isShutdown();
+//      executorService.awaitTermination(60, TimeUnit.SECONDS);
+//      log.info("Done populating cache");
+
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error("Unexpected error caching data", e);
     }
   }
+
 }

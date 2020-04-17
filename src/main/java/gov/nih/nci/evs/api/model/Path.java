@@ -1,32 +1,69 @@
+
 package gov.nih.nci.evs.api.model;
 
 import java.util.List;
 
-public class Path {
-	private int direction;
-	private List <ConceptNode> concepts;
+/**
+ * Represents a path in a hierarchy (as a list of concepts with a direction flag).
+ */
+public class Path extends BaseModel {
 
-	public Path() {}
+  /** The direction. */
+  private int direction;
 
-	public Path( int direction, List <ConceptNode>concepts) {
-		this.direction = direction;
-		this.concepts = concepts;
-	}
+  /** The concepts. */
+  private List<ConceptNode> concepts;
 
-	public void setDirection(int direction) {
-		this.direction = direction;
-	}
+  /**
+   * Instantiates an empty {@link Path}.
+   */
+  public Path() {
+  }
 
+  /**
+   * Instantiates a {@link Path} from the specified parameters.
+   *
+   * @param direction the direction
+   * @param concepts the concepts
+   */
+  public Path(int direction, List<ConceptNode> concepts) {
+    this.direction = direction;
+    this.concepts = concepts;
+  }
 
-	public void setConcepts(List <ConceptNode> concepts) {
-		this.concepts = concepts;
-	}
-	
-	public int getDirection() {
-		return this.direction;
-	}
+  /**
+   * Sets the direction.
+   *
+   * @param direction the direction
+   */
+  public void setDirection(int direction) {
+    this.direction = direction;
+  }
 
-	public List <ConceptNode> getConcepts() {
-		return this.concepts;
-	}
+  /**
+   * Sets the concepts.
+   *
+   * @param concepts the concepts
+   */
+  public void setConcepts(List<ConceptNode> concepts) {
+    this.concepts = concepts;
+  }
+
+  /**
+   * Returns the direction.
+   *
+   * @return the direction
+   */
+  public int getDirection() {
+    return this.direction;
+  }
+
+  /**
+   * Returns the concepts.
+   *
+   * @return the concepts
+   */
+  public List<ConceptNode> getConcepts() {
+    return this.concepts;
+  }
 }

@@ -1,18 +1,16 @@
 
 package gov.nih.nci.evs.api.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Represents a synonym of a concept.
+ * Represents a qualifier on a synonym, definition, property, or role that isn't
+ * explicitly modeled as a first-class attribute.
  */
 @JsonIgnoreProperties(value = {
     "code"
 })
-public class Property extends BaseModel {
+public class Qualifier extends BaseModel {
 
   /** The code. */
   private String code;
@@ -23,25 +21,30 @@ public class Property extends BaseModel {
   /** The value. */
   private String value;
 
-  /** The highlight. */
-  private String highlight;
-
-  /** The qualifiers. */
-  private List<Qualifier> qualifiers;
-
   /**
-   * Instantiates an empty {@link Property}.
+   * Instantiates an empty {@link Qualifier}.
    */
-  public Property() {
+  public Qualifier() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link Property} from the specified parameters.
+   * Instantiates a {@link Qualifier} from the specified parameters.
+   *
+   * @param type the type
+   * @param value the value
+   */
+  public Qualifier(final String type, final String value) {
+    this.type = type;
+    this.value = value;
+  }
+
+  /**
+   * Instantiates a {@link Qualifier} from the specified parameters.
    *
    * @param other the other
    */
-  public Property(final Property other) {
+  public Qualifier(final Qualifier other) {
     populateFrom(other);
   }
 
@@ -50,16 +53,14 @@ public class Property extends BaseModel {
    *
    * @param other the other
    */
-  public void populateFrom(final Property other) {
+  public void populateFrom(final Qualifier other) {
     code = other.getCode();
     type = other.getType();
     value = other.getValue();
-    highlight = other.getHighlight();
-    qualifiers = new ArrayList<>(other.getQualifiers());
   }
 
   /**
-   * Returns the code.  This is really for internal use for connecting qualifiers to properties.
+   * Returns the code.
    *
    * @return the code
    */
@@ -72,7 +73,7 @@ public class Property extends BaseModel {
    *
    * @param code the code
    */
-  public void setCode(final String code) {
+  public void setCode(String code) {
     this.code = code;
   }
 
@@ -113,45 +114,6 @@ public class Property extends BaseModel {
   }
 
   /**
-   * Returns the highlight.
-   *
-   * @return the highlight
-   */
-  public String getHighlight() {
-    return highlight;
-  }
-
-  /**
-   * Sets the hightlight.
-   *
-   * @param highlight the hightlight
-   */
-  public void setHighlight(final String highlight) {
-    this.highlight = highlight;
-  }
-
-  /**
-   * Returns the qualifiers.
-   *
-   * @return the qualifiers
-   */
-  public List<Qualifier> getQualifiers() {
-    if (qualifiers == null) {
-      qualifiers = new ArrayList<>();
-    }
-    return qualifiers;
-  }
-
-  /**
-   * Sets the qualifiers.
-   *
-   * @param qualifiers the qualifiers
-   */
-  public void setQualifiers(final List<Qualifier> qualifiers) {
-    this.qualifiers = qualifiers;
-  }
-
-  /**
    * Hash code.
    *
    * @return the int
@@ -184,7 +146,7 @@ public class Property extends BaseModel {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final Property other = (Property) obj;
+    final Qualifier other = (Qualifier) obj;
     if (type == null) {
       if (other.type != null) {
         return false;
