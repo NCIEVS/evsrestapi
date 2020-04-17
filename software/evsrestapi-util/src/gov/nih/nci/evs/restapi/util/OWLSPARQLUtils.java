@@ -4508,7 +4508,9 @@ Term Type
 		buf.append("?y rdfs:label ?y_label .").append("\n");
 		buf.append("?y rdfs:label \"" + property_name + "\"^^xsd:string  ").append("\n");
 		buf.append("}").append("\n");
-		buf.append("FILTER (str(?z) = \"" + property_value + "\"^^xsd:string)").append("\n");
+		if (property_value != null) {
+			buf.append("FILTER (str(?z) = \"" + property_value + "\"^^xsd:string)").append("\n");
+	    }
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
