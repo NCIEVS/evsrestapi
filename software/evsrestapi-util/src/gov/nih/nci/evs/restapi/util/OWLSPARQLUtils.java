@@ -4678,7 +4678,9 @@ Term Type
 
 		buf.append("        }").append("\n");
 		buf.append("     }").append("\n");
-		buf.append("    FILTER (str(?z) = \"" + qualifier_value + "\")").append("\n");
+		if (qualifier_value != null) {
+			buf.append("    FILTER (str(?z) = \"" + qualifier_value + "\")").append("\n");
+		}
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
