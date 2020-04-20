@@ -149,7 +149,9 @@ bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_914386|Fluoxymesterone|C507|FULL_SYN|
 */
 
 
-
+    public Vector get_term_source_vec(String source) {
+		return retrieveTermSourceData(source);
+	}
 
     public Vector get_term_source_fda_vec() {
 		if (term_source_fda_vec == null) {
@@ -242,7 +244,6 @@ bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_914386|Fluoxymesterone|C507|FULL_SYN|
 	public Vector retrieveTermSourceData(String qualifier_value) {
 		String prop_label = "FULL_SYN";
 		String qualifier_label = "Term Source";
-		//String qualifier_value = "FDA";
 		Vector v = owlSPARQLUtils.getAxiomsWithQualifierMatching(this.namedGraph, null, prop_label, qualifier_label, qualifier_value);
         return v;
 	}
