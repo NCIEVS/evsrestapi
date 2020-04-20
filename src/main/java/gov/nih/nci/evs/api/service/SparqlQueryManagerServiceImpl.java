@@ -1454,4 +1454,267 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     return sources;
   }
+  
+  /** batch query methods **/
+  
+  /**
+  
+  def getAllConcepts(sparql_endpoint, named_graph):
+    query = es.all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, "")
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:  
+        concepts = []
+        for result in obj['results']['bindings']:
+            concepts.append(result['concept_code']['value'])
+
+    return concepts
+
+def getBulkConcepts(sparql_endpoint, named_graph, in_clause):
+    query = es.all_concepts_batch
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        concepts = {}
+        for result in obj['results']['bindings']:
+            concept = {}
+            concept['Code'] = result['concept_code']['value']
+            concept['Label'] = result['concept_label']['value']
+            concept['properties'] = []
+            concept['axioms'] = []
+            concept['subclasses'] = []
+            concept['superclasses'] = []
+            concept['associations'] = []
+            concept['inverse_associations'] = []
+            concept['roles'] = []
+            concept['inverse_roles'] = []
+            concept['disjoint_with'] = []
+            #r.execute_command('JSON.SET', concept['Code'], '.', json.dumps(concept))
+            #rj.jsonset(concept['Code'], rejson.Path.rootPath(), concept)
+            concepts[concept['Code']] = concept
+
+    return concepts
+
+
+def getAllProperties(sparql_endpoint, named_graph, in_clause):
+    query = es.all_properties_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        properties = []
+        for result in obj['results']['bindings']:
+            property = {}
+            property['concept_code'] = result['concept_code']['value']
+            if "property_code" in result:
+                property['property_code'] = result['property_code']['value']
+            else:
+                property['property_code'] = ""
+            property['property_label'] = result['property_label']['value']
+            property['property_value'] = result['property_value']['value']
+            properties.append(property)
+    return properties
+
+
+def getAllPropertiesFast(sparql_endpoint, named_graph, concepts, in_clause):
+    query = es.all_properties_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        for result in obj['results']['bindings']:
+            property = {}
+            property['concept_code'] = result['concept_code']['value']
+            if property['concept_code'] in concepts:
+                if "property_code" in result:
+                    property['property_code'] = result['property_code']['value']
+                property['property_label'] = result['property_label']['value']
+                property['property_value'] = result['property_value']['value']
+                concepts[property['concept_code']]['properties'].append(property)
+
+
+def getAllAxioms(sparql_endpoint, named_graph, in_clause):
+    query = es.all_axioms_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        sw = False
+        oldAxiom = ""
+        axiom = {}
+        axioms = []
+        for result in obj['results']['bindings']:
+            currentAxiom = result['axiom']['value']
+            if sw and currentAxiom != oldAxiom:
+                axioms.append(axiom)
+                axiom = {}
+
+            sw = True
+            oldAxiom = currentAxiom
+            axiom['concept_code'] = result['concept_code']['value']
+
+            property = result['axiomProperty']['value']
+            if "#" in property:
+                property = property.split("#")[1]
+            if ":" in property:
+                property = property.split(":")[1]
+
+            value = result['axiomValue']['value']
+            if "#" in value:
+                value = value.split("#")[1]
+            
+            axiom[property] = value
+
+        axioms.append(axiom)
+
+    return axioms
+
+
+def getAllSubclasses(sparql_endpoint, named_graph, in_clause):
+    query = es.all_subclasses_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        subclasses = []
+        for result in obj['results']['bindings']:
+            subclass = {}
+            subclass['concept_code'] = result['concept_code']['value']
+            subclass['subclass_label'] = result['subclass_label']['value']
+            subclass['subclass_code'] = result['subclass_code']['value']
+            subclasses.append(subclass)
+    return subclasses
+
+
+def getAllSuperclasses(sparql_endpoint, named_graph, in_clause):
+    query = es.all_superclasses_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        superclasses = []
+        for result in obj['results']['bindings']:
+            superclass = {}
+            superclass['concept_code'] = result['concept_code']['value']
+            superclass['superclass_label'] = result['superclass_label']['value']
+            superclass['superclass_code'] = result['superclass_code']['value']
+            superclasses.append(superclass)
+    return superclasses
+
+
+def getAllAssociations(sparql_endpoint, named_graph, in_clause):
+    query = es.all_associations_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        associations = []
+        for result in obj['results']['bindings']:
+            association = {}
+            association['concept_code'] = result['concept_code']['value']
+            association['relationship'] = result['relationship']['value']
+            association['relationshipCode'] = result['relationshipCode']['value']
+            association['relatedConceptCode'] = result['relatedConceptCode']['value']
+            association['relatedConceptLabel'] = result['relatedConceptLabel']['value']
+            associations.append(association)
+    return associations
+
+
+def getAllInverseAssociations(sparql_endpoint, named_graph, in_clause):
+    query = es.all_inverse_associations_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        associations = []
+        for result in obj['results']['bindings']:
+            association = {}
+            association['concept_code'] = result['concept_code']['value']
+            association['relationship'] = result['relationship']['value']
+            association['relationshipCode'] = result['relationshipCode']['value']
+            association['relatedConceptCode'] = result['relatedConceptCode']['value']
+            association['relatedConceptLabel'] = result['relatedConceptLabel']['value']
+            associations.append(association)
+    return associations
+
+
+def getAllRoles(sparql_endpoint, named_graph, in_clause):
+    query = es.all_roles_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        roles = []
+        for result in obj['results']['bindings']:
+            role = {}
+            role['concept_code'] = result['concept_code']['value']
+            role['relationship'] = result['relationship']['value']
+            role['relationshipCode'] = result['relationshipCode']['value']
+            role['relatedConceptCode'] = result['relatedConceptCode']['value']
+            role['relatedConceptLabel'] = result['relatedConceptLabel']['value']
+            roles.append(role)
+    return roles
+
+
+def getAllInverseRoles(sparql_endpoint, named_graph, in_clause):
+    query = es.all_inverse_roles_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        roles = []
+        for result in obj['results']['bindings']:
+            role = {}
+            role['concept_code'] = result['concept_code']['value']
+            role['relationship'] = result['relationship']['value']
+            role['relationshipCode'] = result['relationshipCode']['value']
+            role['relatedConceptCode'] = result['relatedConceptCode']['value']
+            role['relatedConceptLabel'] = result['relatedConceptLabel']['value']
+            roles.append(role)
+    return roles
+
+def getAllDisjointWith(sparql_endpoint, named_graph, in_clause):
+    query = es.all_disjoint_with_all_concepts
+    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
+
+    if obj is None:
+        print("No Result Returned - Problem with Query")
+        return None
+    else:
+        disjoints = []
+        for result in obj['results']['bindings']:
+            disjoint = {}
+            disjoint['concept_code'] = result['concept_code']['value']
+            disjoint['relationship'] = result['relationship']['value']
+            disjoint['relatedConceptCode'] = result['relatedConceptCode']['value']
+            disjoint['relatedConceptLabel'] = result['relatedConceptLabel']['value']
+            disjoints.append(disjoint)
+    return disjoints
+
+**/
+  
 }
