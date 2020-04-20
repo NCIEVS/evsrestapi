@@ -67,7 +67,7 @@ import org.json.*;
  * @version 1.0
  *
  * Modification history:
- *     Initial implementation kim.ong@ngc.com
+ *     Initial implementation kim.ong@nih.gov
  *
  */
 
@@ -137,15 +137,6 @@ public class UNIIProcessor {
 		metadataUtils.dumpNameVersion2NamedGraphMap();
 		uniiDataRetriever = new UNIIDataRetriever(this.serviceUrl, this.namedGraph);
 
-/*
-		if (!fileExists(FDA_UNII_Subset_Code + ".txt")) {
-			System.out.println("Retrieving supporting data from triple store server ...");
-			uniiDataRetriever = new UNIIDataRetriever(this.serviceUrl, this.namedGraph);
-			uniiDataRetriever.retrieveUNIISupportingData();
-			System.out.println("Completed retrieving supporting data.");
-		}
-*/
-
 		System.out.println("Initialized TermSearchUtils ...");
 		termSearchUtils = new TermSearchUtils(serviceUrl, this.namedGraph);
 
@@ -160,7 +151,7 @@ public class UNIIProcessor {
 	}
 
 	public void initialize() {
-		concepts_in_subset = uniiDataRetriever.get_fda_unii_subset_vec();//Utils.readFile(FDA_UNII_Subset_Code + ".txt");
+		concepts_in_subset = uniiDataRetriever.get_fda_unii_subset_vec();
         ncitcode2labelMap = createNCItCode2LabelMap();
 	}
 
@@ -173,13 +164,7 @@ public class UNIIProcessor {
         System.out.println(unii_data_file + ": " + unii_data.size());
         create_unii_hashmaps(ncit_concepts_with_unii_code_vec);
 	}
-/*
-	public void retrieveConceptsWithUNIICode() {
-		ncit_concepts_with_unii_code_vec = uniiDataRetriver.get_ncit_concepts_with_unii_code_vec();//owlSPARQLUtils.findConceptsWithProperty(this.namedGraph, "FDA_UNII_Code");
-        //Utils.saveToFile(ncit_unii_txt_file, concepts);
-        create_unii_hashmaps(ncit_concepts_with_unii_code_vec);
-	}
-*/
+
 /*
 Name	TYPE	UNII	Display Name
 (R)-2-(5-CYANO-2-(6-(METHOXYCARBONYL)-7-METHYL-3-OXO-8-(3-(TRIFLUOROMETHYL)PHENYL)-2,3,5,8-TETRAHYDRO-(1,2,4)TRIAZOLO(4,3-A)PYRIMIDIN-5-YL)PHENYL)-N,N,N-TRIMETHYLETHANAMINIUM	sys	00174624E2	CHF-6333 CATION
@@ -606,9 +591,6 @@ o	The UNIII terms should have the following attributes:
 		} catch (Exception ex) {
 			System.out.println("Unable to save -- please close your xls application.");
 		}
-
-		//if (test_mode) return;
-
 		// STEP 2:
 
 //UNII	PT	RN	EC	NCIT	RXCUI	PUBCHEM	ITIS	NCBI	PLANTS	GRIN	MPNS	INN_ID	MF	INCHIKEY	SMILES	INGREDIENT_TYPE
@@ -754,11 +736,11 @@ o	The UNIII terms should have the following attributes:
 
     public List loadSynonyms() {
 		Vector v = new Vector();
-		Vector subsource_name_data = uniiDataRetriever.get_term_source_vec();//  Utils.readFile("subsource-name.txt");
+		Vector subsource_name_data = uniiDataRetriever.get_term_source_vec();
 		v.addAll(subsource_name_data);
-		Vector term_source_data = uniiDataRetriever.get_term_source_fda_vec();//  Utils.readFile("term-source-fda.txt");
+		Vector term_source_data = uniiDataRetriever.get_term_source_fda_vec();
 		v.addAll(term_source_data);
-		Vector source_code_data = uniiDataRetriever.get_term_source_code_vec();// Utils.readFile("source-code.txt");
+		Vector source_code_data = uniiDataRetriever.get_term_source_code_vec();
 		v.addAll(source_code_data);
 		v = new SortUtils().quickSort(v);
 		List list = new ParserUtils().getSynonyms(v);

@@ -272,31 +272,7 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 		return hmap;
 	}
 
-/*
-Concept_Status:
-        (1) Cyclophosphamide/Fluoxymesterone/Mitolactol/Prednisone/Tamoxifen|C10000|Concept_Status|Obsolete_Concept
-        (2) Agent Combination Indexed in Open Clinical Trials|C61007|Concept_Status|Obsolete_Concept
-        (3) Cyclophosphamide/Doxorubicin/Fluorouracil/Methotrexate/Prednisone/Vincristine|C10002|Concept_Status|Obsolete_Co
-*/
-
 	public Vector findConceptsWithPropertyMatching(String property_name, String property_value) {
 		return owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
 	}
-
-
-    public static void main(String[] args) {
-		String serviceUrl = args[0];
-		String namedGraph = args[1];
-        TermSearchUtils test = new TermSearchUtils(serviceUrl, namedGraph);
-
-        String datafile = "trimmed_UNII_Names_27Mar2020_04-15-2020.txt";
-        Vector w = Utils.readFile(datafile);
-        for (int i=0; i<w.size(); i++) {
-			String term = (String) w.elementAt(i);
-			String retstr = test.findMatchedConcepts(term);
-			System.out.println(term);
-			System.out.println("\t" + retstr);
-		}
-	}
-
 }
