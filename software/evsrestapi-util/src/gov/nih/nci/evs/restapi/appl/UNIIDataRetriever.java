@@ -239,6 +239,14 @@ bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_914386|Fluoxymesterone|C507|FULL_SYN|
         return v;
 	}
 
+	public Vector retrieveTermSourceData(String qualifier_value) {
+		String prop_label = "FULL_SYN";
+		String qualifier_label = "Term Source";
+		//String qualifier_value = "FDA";
+		Vector v = owlSPARQLUtils.getAxiomsWithQualifierMatching(this.namedGraph, null, prop_label, qualifier_label, qualifier_value);
+        return v;
+	}
+
 /*
 bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_800112|Molecular Abnormality|C3910|FULL_SYN|P90|Molecular Alteration|Subsource Name|P386|caDSR
 bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_800110|Molecular Abnormality|C3910|FULL_SYN|P90|Molecular Abnormality|Subsource Name|P386|caDSR
