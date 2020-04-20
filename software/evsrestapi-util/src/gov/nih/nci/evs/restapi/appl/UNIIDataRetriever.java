@@ -266,6 +266,26 @@ bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_800110|Molecular Abnormality|C3910|FU
 bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_550723|Gene|C16612|FULL_SYN|P90|Gene|Source Code|P385|TCGA
 */
 
+	public Vector get_term_type_data(String term_type) {
+        return retrieveTermTypeData(term_type);
+	}
+
+	public Vector retrieveTermTypeData(String term_type) {
+		String prop_label = "FULL_SYN";
+		String qualifier_label = "Term Type";
+		String qualifier_value = term_type;
+		Vector v = owlSPARQLUtils.getAxiomsWithQualifierMatching(this.namedGraph, null, prop_label, qualifier_label, qualifier_value);
+        return v;
+	}
+
+	public Vector retrieveTermTypeData() {
+		String prop_label = "FULL_SYN";
+		String qualifier_label = "Term Type";
+		String qualifier_value = null;
+		Vector v = owlSPARQLUtils.getAxiomsWithQualifierMatching(this.namedGraph, null, prop_label, qualifier_label, qualifier_value);
+        return v;
+	}
+
 	public Vector retrieveSourceCodeData() {
 		String prop_label = "FULL_SYN";
 		String qualifier_label = "Source Code";
