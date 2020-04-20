@@ -94,23 +94,36 @@ public class TermSearchUtils {
 		this.exclude_retired = exclude_retired;
 	}
 
+	public Vector retrievePropertyData(String propertyName) {
+		Vector v = owlSPARQLUtils.get_property_query(this.namedGraph, propertyName);
+        return v;
+	}
+
+    public Vector get_full_syn_vec() {
+		if (full_syn_vec == null) {
+			full_syn_vec = retrievePropertyData("FULL_SYN");
+		}
+		return full_syn_vec;
+	}
+
+
 	public void initialize() {
 		obsoleteConceptMap = createObsoleteConceptMap();
-		full_syn_vec = Utils.readFile("FULL_SYN.txt");
-		termMap = createTermMap(full_syn_file);
+		full_syn_vec = retrievePropertyData("FULL_SYN");//.get_full_syn_vec();
+		termMap = createTermMap(full_syn_vec);
 	}
 
 	public Vector get_property_query(String propertyName) {
 		return owlSPARQLUtils.get_property_query(this.namedGraph, propertyName);
 	}
 
-	public HashMap createTermMap(String filename) {
+	public HashMap createTermMap(Vector v) {
 		HashMap termMap = new HashMap();
 /*
 Fluorodopa F 18|C95766|FULL_SYN|FLUORODOPA F-18
 Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 */
-        Vector v = Utils.readFile(filename);
+        //Vector v = Utils.readFile(filename);
 		for (int i=1; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, "|");
@@ -222,6 +235,17 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 		return t;
 	}
 
+	public Vector retrieveRetiredConceptData() {
+		String property_name = "Concept_Status";
+		String property_value = "Obsolete_Concept";
+		Vector v = owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
+		property_value = "Retired_Concept";
+		Vector v2 = owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
+		v.addAll(v2);
+        return v;
+	}
+
+
 	public boolean isRetired(String code) {
 		if (obsoleteConceptMap == null) {
 			obsoleteConceptMap = createObsoleteConceptMap();
@@ -235,7 +259,7 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 
 	public HashMap createObsoleteConceptMap() {
 		HashMap hmap = new HashMap();
-		Vector w = Utils.readFile("retired_and_obsolete_concepts.txt");
+		Vector w = retrieveRetiredConceptData();
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');

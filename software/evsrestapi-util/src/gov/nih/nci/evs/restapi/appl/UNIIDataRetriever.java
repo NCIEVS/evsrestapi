@@ -81,6 +81,14 @@ public class UNIIDataRetriever {
 	static String FDA_UNII_Subset = "FDA Established Names and Unique Ingredient Identifier Codes Terminology";
 	static String FDA_UNII_Code = "FDA_UNII_Code";
 
+    public Vector term_source_fda_vec = null;
+    public Vector fda_unii_subset_vec = null;
+    public Vector ncit_concepts_with_unii_code_vec = null;
+    public Vector ncit_retired_concepts_vec = null;
+    public Vector term_source_vec = null;
+    public Vector term_source_code_vec = null;
+    public Vector full_syn_vec = null;
+
     JSONUtils jsonUtils = null;
     HTTPUtils httpUtils = null;
     String named_graph = null;
@@ -140,6 +148,58 @@ bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_826645|Cyclophosphamide|C405|FULL_SYN
 bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_914386|Fluoxymesterone|C507|FULL_SYN|P90|FLUOXYMESTERONE|Term Source|P384|FDA
 */
 
+
+
+
+    public Vector get_term_source_fda_vec() {
+		if (term_source_fda_vec == null) {
+			term_source_fda_vec = retrieveTermSourceFDAdata();
+		}
+		return term_source_fda_vec;
+	}
+
+    public Vector get_fda_unii_subset_vec() {
+		if (fda_unii_subset_vec == null) {
+			fda_unii_subset_vec = retrieveUNIIConceptsInSubsetData();
+		}
+		return fda_unii_subset_vec;
+	}
+
+    public Vector get_ncit_concepts_with_unii_code_vec() {
+		if (ncit_concepts_with_unii_code_vec == null) {
+			ncit_concepts_with_unii_code_vec = retrieveConceptsWithUNIICode();
+		}
+		return ncit_concepts_with_unii_code_vec;
+	}
+
+    public Vector get_ncit_retired_concepts_vec() {
+		if (ncit_retired_concepts_vec == null) {
+			ncit_retired_concepts_vec = retrieveRetiredConceptData();
+		}
+		return ncit_retired_concepts_vec;
+	}
+
+    public Vector get_term_source_vec() {
+		if (term_source_vec == null) {
+			term_source_vec = retrieveTermSourceData();
+		}
+		return term_source_vec;
+	}
+
+    public Vector get_term_source_code_vec() {
+		if (term_source_code_vec == null) {
+			term_source_code_vec = retrieveSourceCodeData();
+		}
+		return term_source_code_vec;
+	}
+
+    public Vector get_full_syn_vec() {
+		if (full_syn_vec == null) {
+			full_syn_vec = retrievePropertyData("FULL_SYN");
+		}
+		return full_syn_vec;
+	}
+
     public void retrieveUNIISupportingData() {
 		Vector v = null;
 		v = retrieveTermSourceFDAdata();
@@ -160,12 +220,13 @@ bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_914386|Fluoxymesterone|C507|FULL_SYN|
 		v = retrieveSourceCodeData();
 		Utils.saveToFile(source_code_file, v);
 
-		v = retrievePropertyData("FULL_SYN");
-		Utils.saveToFile(full_syn_file, v);
+        if (!FileUtils.fileExists(full_syn_file)) {
+			v = retrievePropertyData("FULL_SYN");
+			Utils.saveToFile(full_syn_file, v);
+		}
 	}
 
 	public Vector retrievePropertyData(String propertyName) {
-		String prop_label = "FULL_SYN";
 		Vector v = owlSPARQLUtils.get_property_query(this.namedGraph, propertyName);
         return v;
 	}

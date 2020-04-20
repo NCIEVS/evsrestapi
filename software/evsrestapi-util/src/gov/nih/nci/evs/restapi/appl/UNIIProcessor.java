@@ -115,7 +115,16 @@ public class UNIIProcessor {
     private HashMap code2SynonymMap = null;
     private HashMap ncitcode2labelMap = null;
 
+    private MetadataUtils metadataUtils = null;
     private UNIIDataRetriever uniiDataRetriever = null;
+
+    public Vector term_source_fda_vec = null;
+    public Vector fda_unii_subset_vec = null;
+    public Vector ncit_concepts_with_unii_code_vec = null;
+    public Vector ncit_retired_concepts_vec = null;
+    public Vector term_source_vec = null;
+    public Vector term_source_code_vec = null;
+    public Vector full_syn_vec = null;
 
 	public UNIIProcessor(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
@@ -124,17 +133,22 @@ public class UNIIProcessor {
 		System.out.println("namedGraph: " + this.namedGraph);
 
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-		new MetadataUtils(serviceUrl).dumpNameVersion2NamedGraphMap();
+		metadataUtils = new MetadataUtils(serviceUrl);
+		metadataUtils.dumpNameVersion2NamedGraphMap();
+		uniiDataRetriever = new UNIIDataRetriever(this.serviceUrl, this.namedGraph);
 
+/*
 		if (!fileExists(FDA_UNII_Subset_Code + ".txt")) {
 			System.out.println("Retrieving supporting data from triple store server ...");
 			uniiDataRetriever = new UNIIDataRetriever(this.serviceUrl, this.namedGraph);
 			uniiDataRetriever.retrieveUNIISupportingData();
 			System.out.println("Completed retrieving supporting data.");
 		}
+*/
 
 		System.out.println("Initialized TermSearchUtils ...");
 		termSearchUtils = new TermSearchUtils(serviceUrl, this.namedGraph);
+
 		synonyms = loadSynonyms();
 		code2SynonymMap = createCode2SynonymMap(synonyms);
 		System.out.println("TermSearchUtils initialized.");
@@ -146,7 +160,7 @@ public class UNIIProcessor {
 	}
 
 	public void initialize() {
-		concepts_in_subset = Utils.readFile(FDA_UNII_Subset_Code + ".txt");
+		concepts_in_subset = uniiDataRetriever.get_fda_unii_subset_vec();//Utils.readFile(FDA_UNII_Subset_Code + ".txt");
         ncitcode2labelMap = createNCItCode2LabelMap();
 	}
 
@@ -157,23 +171,24 @@ public class UNIIProcessor {
         System.out.println(unii_link_file + ": " + unii_link.size());
         unii_data = Utils.readFile(unii_data_file);
         System.out.println(unii_data_file + ": " + unii_data.size());
-        create_unii_hashmaps();
+        create_unii_hashmaps(ncit_concepts_with_unii_code_vec);
 	}
-
+/*
 	public void retrieveConceptsWithUNIICode() {
-		Vector concepts = owlSPARQLUtils.findConceptsWithProperty(this.namedGraph, "FDA_UNII_Code");
-        Utils.saveToFile(ncit_unii_txt_file, concepts);
-        create_unii_hashmaps();
+		ncit_concepts_with_unii_code_vec = uniiDataRetriver.get_ncit_concepts_with_unii_code_vec();//owlSPARQLUtils.findConceptsWithProperty(this.namedGraph, "FDA_UNII_Code");
+        //Utils.saveToFile(ncit_unii_txt_file, concepts);
+        create_unii_hashmaps(ncit_concepts_with_unii_code_vec);
 	}
-
+*/
 /*
 Name	TYPE	UNII	Display Name
 (R)-2-(5-CYANO-2-(6-(METHOXYCARBONYL)-7-METHYL-3-OXO-8-(3-(TRIFLUOROMETHYL)PHENYL)-2,3,5,8-TETRAHYDRO-(1,2,4)TRIAZOLO(4,3-A)PYRIMIDIN-5-YL)PHENYL)-N,N,N-TRIMETHYLETHANAMINIUM	sys	00174624E2	CHF-6333 CATION
 (R)-2-(5-CYANO-2-(6-(METHOXYCARBONYL)-7-METHYL-3-OXO-8-(3-(TRIFLUOROMETHYL)PHENYL)-2,3,5,8-TETRAHYDRO-(1,2,4)TRIAZOLO(4,3-A)PYRIMIDIN-5-YL)PHENYL)-N,N,N-TRIMETHYLETHANAMINIUM ION	cn	00174624E2	CHF-6333 CATION
 */
 
-	public void create_unii_hashmaps() {
-		Vector v  = Utils.readFile(ncit_unii_txt_file);
+	public void create_unii_hashmaps(Vector v) {
+		//Vector v  = Utils.readFile(ncit_unii_txt_file);
+		//Vector v  = uniiDataRetriever.get_ncit_concepts_with_unii_code_vec();
         unii2ncitcode_map = new HashMap();
         ncitcode2unii_map = new HashMap();
         ncitcode2pt_map = new HashMap();
@@ -350,11 +365,11 @@ o	The UNIII terms should have the following attributes:
 
 	public HashMap createSynonymHashMap() {
 		Vector v = new Vector();
-		Vector subsource_name_data = Utils.readFile("subsource-name.txt");
+		Vector subsource_name_data = uniiDataRetriever.get_term_source_vec();
 		v.addAll(subsource_name_data);
-		Vector term_source_data = Utils.readFile("term-source-fda.txt");
+		Vector term_source_data = uniiDataRetriever.get_term_source_fda_vec();
 		v.addAll(term_source_data);
-		Vector source_code_data = Utils.readFile("source-code.txt");
+		Vector source_code_data = uniiDataRetriever.get_term_source_code_vec();
 		v.addAll(source_code_data);
 		v = new SortUtils().quickSort(v);
 
@@ -389,9 +404,12 @@ o	The UNIII terms should have the following attributes:
 	}
 
 
-	public void runNCItUNIIQA(String filename) { // = "ncit_unii.txt";) {
+	public void runNCItUNIIQA() { // = "ncit_unii.txt";) {
 		Vector w = new Vector();
-		Vector vs_label_and_code_vec = Utils.readFile("C63923.txt");
+		Vector vs_label_and_code_vec = uniiDataRetriever.get_fda_unii_subset_vec();
+
+		System.out.println("vs_label_and_code_vec: " + vs_label_and_code_vec.size());
+
 		for (int i=0; i<vs_label_and_code_vec.size(); i++) {
 			int j = i+1;
 			String line = (String) vs_label_and_code_vec.elementAt(i);
@@ -407,7 +425,11 @@ o	The UNIII terms should have the following attributes:
 		}
 
 		w.add("\n\n");
-		Vector nci_unii_vec = Utils.readFile(filename);
+		if (ncit_concepts_with_unii_code_vec == null) {
+			ncit_concepts_with_unii_code_vec = uniiDataRetriever.get_ncit_concepts_with_unii_code_vec();
+		}
+		Vector nci_unii_vec = ncit_concepts_with_unii_code_vec;//Utils.readFile(filename);
+
 		for (int i=0; i<nci_unii_vec.size(); i++) {
 			String line = (String) nci_unii_vec.elementAt(i);
 			//System.out.println(line);
@@ -435,9 +457,7 @@ o	The UNIII terms should have the following attributes:
 				}
 			}
 		}
-		int n = filename.lastIndexOf(".");
-
-        String outputfile = filename.substring(0, n) + "_QA_" + StringUtils.getToday() + ".txt";
+        String outputfile = "ncit_unii_QA_" + StringUtils.getToday() + ".txt";
 		Utils.saveToFile(outputfile, w);
 	}
 
@@ -489,6 +509,7 @@ o	The UNIII terms should have the following attributes:
 		if (ncit_code_hset == null) {
 			HashMap hmap = createSynonymHashMap();
 		}
+
 
 		this.unii_link_file = unii_link_file;
 		this.unii_data_file = unii_data_file;
@@ -733,11 +754,11 @@ o	The UNIII terms should have the following attributes:
 
     public List loadSynonyms() {
 		Vector v = new Vector();
-		Vector subsource_name_data = Utils.readFile("subsource-name.txt");
+		Vector subsource_name_data = uniiDataRetriever.get_term_source_vec();//  Utils.readFile("subsource-name.txt");
 		v.addAll(subsource_name_data);
-		Vector term_source_data = Utils.readFile("term-source-fda.txt");
+		Vector term_source_data = uniiDataRetriever.get_term_source_fda_vec();//  Utils.readFile("term-source-fda.txt");
 		v.addAll(term_source_data);
-		Vector source_code_data = Utils.readFile("source-code.txt");
+		Vector source_code_data = uniiDataRetriever.get_term_source_code_vec();// Utils.readFile("source-code.txt");
 		v.addAll(source_code_data);
 		v = new SortUtils().quickSort(v);
 		List list = new ParserUtils().getSynonyms(v);
@@ -785,9 +806,11 @@ o	The UNIII terms should have the following attributes:
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
 		String namedGraph = args[1];
+		System.out.println("UNIIProcessor initialization in prograss -- please wait...");
 		UNIIProcessor processor = new UNIIProcessor(serviceUrl, namedGraph);
+
 		System.out.println("runNCItUNIIQA -- please wait...");
-        processor.runNCItUNIIQA(ncit_unii_txt_file);
+        processor.runNCItUNIIQA();//ncit_unii_txt_file);
 
 		String unii_link_file = "UNII_Names_27Mar2020.txt";
 		String unii_data_file = "UNII_Records_27Mar2020.txt";
@@ -795,11 +818,10 @@ o	The UNIII terms should have the following attributes:
 		if (args.length == 4) {
 			unii_link_file = "UNII_Names_27Mar2020.txt";
 			unii_data_file = "UNII_Records_27Mar2020.txt";
+			System.out.println("runFDASubstanceRegistrationSystemFilesQA -- please wait...");
+			processor.runFDASubstanceRegistrationSystemFilesQA(unii_link_file, unii_data_file);
+			System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		}
-
-		System.out.println("runFDASubstanceRegistrationSystemFilesQA -- please wait...");
-		processor.runFDASubstanceRegistrationSystemFilesQA(unii_link_file, unii_data_file);
-        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }
 
