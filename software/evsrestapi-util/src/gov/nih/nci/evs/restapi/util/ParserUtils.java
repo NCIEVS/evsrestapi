@@ -775,74 +775,60 @@ public class ParserUtils {
 		return complex_properties;
 	}
 
-    public Vector sortMapsToData(Vector v) {
+    public Vector parseMapsToData(Vector axiom_data) {
 		HashMap hmap = new HashMap();
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line);
-			String axiomId = (String) u.elementAt(0);
-			String field_name = (String) u.elementAt(6);
-			String value = (String) u.elementAt(8);
-			String code = (String) u.elementAt(2);
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String axiom_id = (String) u.elementAt(0);
 			String label = (String) u.elementAt(1);
-			String term_name = (String) u.elementAt(5);
+			String code = (String) u.elementAt(2);
+			String propertyName = (String) u.elementAt(3);
 
-			Vector values = new Vector();
-			for (int k=0; k<8; k++) {
-				values.add("");
+//bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_380278|Hepatic Infection, CTCAE|C143541|Maps_To|P375|Hepatic infection|Target_Code|P395|10056522
+
+
+			String propertyCode = (String) u.elementAt(4);
+			String targetName = (String) u.elementAt(5);
+			String qualifier_name = (String) u.elementAt(6);
+			String qualifier_code = (String) u.elementAt(7);
+			String qualifier_value = (String) u.elementAt(8);
+            MapToEntry entry = (MapToEntry) hmap.get(axiom_id);
+            if (entry == null) {
+				entry = new MapToEntry(
+							code,
+							label,
+							null,
+							null,
+							targetName,
+							null,
+							null,
+							null);
 			}
-			if (hmap.containsKey(axiomId)) {
-				values = (Vector) hmap.get(axiomId);
+
+			if (qualifier_name.compareTo("Relationship_to_Target") == 0) {
+				entry.setRelationshipToTarget(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Code") == 0) {
+				entry.setTargetCode(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Term_Type") == 0) {
+				entry.setTargetTermType(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Terminology") == 0) {
+				entry.setTargetTerminology(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Terminology_Version") == 0) {
+				entry.setTargetTerminologyVersion(qualifier_value);
 			}
-			if (field_name.compareTo("Relationship_to_Target") == 0) {
-				values.setElementAt(value, 2);
-			} else if (field_name.compareTo("Target_Code") == 0) {
-				values.setElementAt(value, 3);
-			} else if (field_name.compareTo("Target_Term_Type") == 0) {
-				values.setElementAt(value, 5);
-			} else if (field_name.compareTo("Target_Terminology") == 0) {
-				values.setElementAt(value, 6);
-			} else if (field_name.compareTo("Target_Terminology_Version") == 0) {
-				values.setElementAt(value, 7);
-			}
-			values.setElementAt(code, 0);
-			values.setElementAt(label, 1);
-			values.setElementAt(term_name, 4);
-			hmap.put(axiomId, values);
+			hmap.put(axiom_id, entry);
 		}
+		Vector w2 = new Vector();
 		Iterator it = hmap.keySet().iterator();
 		while (it.hasNext()) {
-			String key = (String) it.next();
-			v = (Vector) hmap.get(key);
-			StringBuffer buf = new StringBuffer();
-			for (int i=0; i<v.size(); i++) {
-				String t = (String) v.elementAt(i);
-				buf.append(t).append("|");
-			}
-			String line = buf.toString();
-			line = line.substring(0, line.length()-1);
-			w.add(line);
+			String axiom_id = (String) it.next();
+			MapToEntry entry = (MapToEntry) hmap.get(axiom_id);
+			w2.add(entry);
 		}
-		return w;
+		return w2;
 	}
 
-    public Vector sortMapsToData(Vector v, String terminology_name, String terminology_version) {
-		Vector w = new Vector();
-		v = new ParserUtils().sortMapsToData(v) ;
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-			if (u.size() == 8) {
-				String name = (String) u.elementAt(6);
-				String version = (String) u.elementAt(7);
-				if (name.compareTo(terminology_name) == 0 && version.compareTo(terminology_version) == 0) {
-					w.add(t);
-				}
-			}
-		}
-		return w;
-	}
 
 	public static void main(String[] args) {
 		String filename = args[0];

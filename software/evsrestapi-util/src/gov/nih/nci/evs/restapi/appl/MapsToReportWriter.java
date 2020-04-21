@@ -47,6 +47,7 @@ public class MapsToReportWriter {
     String namedGraph = null;
 
     Vector raw_maps_to_data = null;
+    Vector<MapToEntry> mapsToEntries = null;
 
     public MapsToReportWriter(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
@@ -56,8 +57,10 @@ public class MapsToReportWriter {
         owlSPARQLUtils.set_named_graph(namedGraph);
         new MetadataUtils(serviceUrl).dumpNameVersion2NamedGraphMap();
         String propertyName = MAPS_TO;
-        System.out.println("Initialization in progress. pelase wait...");
+        System.out.println("Initialization in progress. Please wait...");
 		raw_maps_to_data = retrievePropertyQualifierData(propertyName);
+		mapsToEntries = new ParserUtils().parseMapsToData(raw_maps_to_data);
+
 		System.out.println("Initialization completed.");
 	}
 
@@ -119,10 +122,6 @@ public class MapsToReportWriter {
 		return (String) v.elementAt(0);
 	}
 
-    public Vector sortMapsToData(String terminology_name, String terminology_version) {
-		return new ParserUtils().sortMapsToData(raw_maps_to_data, terminology_name, terminology_version) ;
-	}
-
     public Vector sortByColumn(Vector v, String columnName) {
         Vector headings = StringUtils.parseData(MAPS_TO_HEADING);
         for (int i=0; i<headings.size(); i++) {
@@ -154,8 +153,30 @@ public class MapsToReportWriter {
 		return w;
 	}
 
+
+	public Vector getMapsToData(String terminology_name, String terminology_version) {
+		Vector v = new Vector();
+		for (int i=0; i<mapsToEntries.size(); i++) {
+			MapToEntry entry = (MapToEntry) mapsToEntries.elementAt(i);
+			if ((entry.getTargetTerminology() != null && entry.getTargetTerminology().compareTo(terminology_name) == 0) &&
+		        (entry.getTargetTerminologyVersion() != null && entry.getTargetTerminologyVersion().compareTo(terminology_version) == 0)) {
+				String line = entry.getCode()
+				      + "|" + entry.getPreferredName()
+				      + "|" + entry.getRelationshipToTarget()
+				      + "|" + entry.getTargetCode()
+				      + "|" + entry.getTargetTerm()
+				      + "|" + entry.getTargetTermType()
+				      + "|" + entry.getTargetTerminology()
+				      + "|" + entry.getTargetTerminologyVersion();
+				v.add(line);
+			}
+		}
+		return v;
+	}
+
+
     public Vector generateMapsToReport(String code, String terminology_name, String terminology_version) {
-		Vector v = sortMapsToData(terminology_name, terminology_version);
+		Vector v = getMapsToData(terminology_name, terminology_version);
 		v = sortByColumn(v, "NCIt Preferred Term");
 		String label = getLabelByCode(code);
 		Vector w = new Vector();
@@ -169,7 +190,6 @@ public class MapsToReportWriter {
 		v.addAll(w);
         return v;
 	}
-
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -200,6 +220,7 @@ public class MapsToReportWriter {
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
 }
+
 
 
 
