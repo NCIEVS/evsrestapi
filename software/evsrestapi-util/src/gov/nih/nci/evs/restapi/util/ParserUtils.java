@@ -775,6 +775,59 @@ public class ParserUtils {
 		return complex_properties;
 	}
 
+    public Vector sortMapsToData(Vector v) {
+		HashMap hmap = new HashMap();
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line);
+			String axiomId = (String) u.elementAt(0);
+			String field_name = (String) u.elementAt(6);
+			String value = (String) u.elementAt(8);
+			String code = (String) u.elementAt(2);
+			String label = (String) u.elementAt(1);
+			String term_name = (String) u.elementAt(5);
+
+			Vector values = new Vector();
+			for (int k=0; k<8; k++) {
+				values.add("");
+			}
+			if (hmap.containsKey(axiomId)) {
+				values = (Vector) hmap.get(axiomId);
+			}
+			if (field_name.compareTo("Relationship_to_Target") == 0) {
+				values.setElementAt(value, 2);
+			} else if (field_name.compareTo("Target_Code") == 0) {
+				values.setElementAt(value, 3);
+			} else if (field_name.compareTo("Target_Term_Type") == 0) {
+				values.setElementAt(value, 5);
+			} else if (field_name.compareTo("Target_Terminology") == 0) {
+				values.setElementAt(value, 6);
+			} else if (field_name.compareTo("Target_Terminology_Version") == 0) {
+				values.setElementAt(value, 7);
+			}
+			values.setElementAt(code, 0);
+			values.setElementAt(label, 1);
+			values.setElementAt(term_name, 4);
+			hmap.put(axiomId, values);
+		}
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			v = (Vector) hmap.get(key);
+			StringBuffer buf = new StringBuffer();
+			for (int i=0; i<v.size(); i++) {
+				String t = (String) v.elementAt(i);
+				buf.append(t).append("|");
+			}
+			String line = buf.toString();
+			line = line.substring(0, line.length()-1);
+			w.add(line);
+		}
+		return w;
+	}
+
+
 	public static void main(String[] args) {
 		String filename = args[0];
         filename = "filterPropertyQualifiers.txt";
