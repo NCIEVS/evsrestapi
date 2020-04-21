@@ -827,6 +827,22 @@ public class ParserUtils {
 		return w;
 	}
 
+    public Vector sortMapsToData(Vector v, String terminology_name, String terminology_version) {
+		Vector w = new Vector();
+		v = new ParserUtils().sortMapsToData(v) ;
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			if (u.size() == 8) {
+				String name = (String) u.elementAt(6);
+				String version = (String) u.elementAt(7);
+				if (name.compareTo(terminology_name) == 0 && version.compareTo(terminology_version) == 0) {
+					w.add(t);
+				}
+			}
+		}
+		return w;
+	}
 
 	public static void main(String[] args) {
 		String filename = args[0];
