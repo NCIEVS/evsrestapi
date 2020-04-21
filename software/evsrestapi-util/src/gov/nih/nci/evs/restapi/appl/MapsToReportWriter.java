@@ -180,13 +180,23 @@ public class MapsToReportWriter {
 		String codes_str = args[4];
 		MapsToReportWriter mapsToReportWriter = new MapsToReportWriter(serviceUrl, named_graph);
 		Vector codes = StringUtils.parseData(codes_str, '|');
+		Vector datafile_vec = new Vector();
+		Vector sheetLabel_vec = new Vector();
+
         for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
 			Vector v = mapsToReportWriter.generateMapsToReport(code, terminology_name, terminology_version);
 			String label = mapsToReportWriter.getLabelByCode(code);
 			System.out.println(label + " (" + code + ")");
 			Utils.saveToFile(code + ".txt", v);
+			sheetLabel_vec.add(label);
+			datafile_vec.add(code + ".txt");
 		}
+		char delim = '|';
+		String headerColor = ExcelWriter.RED;
+		String excelfile = "Mapped_" + terminology_name + "_" + terminology_version + "_Terminology_" + StringUtils.getToday() + ".xlsx";
+		new ExcelWriter().writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec, headerColor);
+		System.out.println(excelfile + " generated.");
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
 }
