@@ -4693,4 +4693,63 @@ Term Type
 		v = new ParserUtils().getResponseValues(v);
 		return v;
 	}
+
+	public String construct_get_disjoint(String named_graph, boolean forward) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (forward) {
+			buf.append("SELECT distinct ?y_label ?y_code ").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_label ?x_code ").append("\n");
+		}
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x owl:disjointWith ?y .").append("\n");
+		buf.append("		?y :NHC0 ?y_code .").append("\n");
+		buf.append("		?y rdfs:label ?y_label").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("	    ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getDisjoin(String named_graph, boolean forward) {
+		Vector v = executeQuery(construct_get_disjoint(named_graph, forward));
+		return new ParserUtils().getResponseValues(v);
+	}
+
+
+	public String construct_get_disjoint(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?y_code ").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x owl:disjointWith ?y .").append("\n");
+		buf.append("		?y :NHC0 ?y_code .").append("\n");
+		buf.append("		?y rdfs:label ?y_label").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("	    ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getDisjoin(String named_graph) {
+		Vector v = executeQuery(construct_get_disjoint(named_graph));
+		return new ParserUtils().getResponseValues(v);
+	}
 }
