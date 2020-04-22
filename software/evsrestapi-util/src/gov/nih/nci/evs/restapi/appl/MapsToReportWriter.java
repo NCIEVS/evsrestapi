@@ -145,6 +145,14 @@ public class MapsToReportWriter {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line);
 			String key = (String) u.elementAt(columnNum);
+
+			for (int k=0; k<u.size(); k++) {
+				String value = (String) u.elementAt(k);
+				if (k != columnNum) {
+					key = key + "|" + value;
+				}
+			}
+
 			keys.add(key);
 			hmap.put(key, line);
 		}
@@ -159,8 +167,19 @@ public class MapsToReportWriter {
 	}
 
 
+    public void dumpMapsToEntries() {
+		Vector json_vec = new Vector();
+		for (int i=0; i<mapsToEntries.size(); i++) {
+			MapToEntry entry = (MapToEntry) mapsToEntries.elementAt(i);
+			json_vec.add(entry.toJson());
+		}
+		Utils.saveToFile("MapToEntries_" + StringUtils.getToday() + ".txt", json_vec);
+	}
+
 	public Vector getMapsToData(String terminology_name, String terminology_version) {
 		Vector v = new Vector();
+		HashSet hset = new HashSet();
+
 		for (int i=0; i<mapsToEntries.size(); i++) {
 			MapToEntry entry = (MapToEntry) mapsToEntries.elementAt(i);
 			if ((entry.getTargetTerminology() != null && entry.getTargetTerminology().compareTo(terminology_name) == 0) &&
@@ -173,15 +192,52 @@ public class MapsToReportWriter {
 				      + "|" + entry.getTargetTermType()
 				      + "|" + entry.getTargetTerminology()
 				      + "|" + entry.getTargetTerminologyVersion();
-				v.add(line);
+				if (!hset.contains(line)) {
+					v.add(line);
+					hset.add(line);
+				} else {
+					System.out.println("WARNING: dupicated entry " + line);
+				}
 			}
 		}
 		return v;
 	}
 
 
+	public Vector getMapsToData(String terminology_name, String terminology_version, String sourceCode) {
+		Vector v = new Vector();
+		HashSet hset = new HashSet();
+
+		for (int i=0; i<mapsToEntries.size(); i++) {
+			MapToEntry entry = (MapToEntry) mapsToEntries.elementAt(i);
+			if ((entry.getTargetTerminology() != null && entry.getTargetTerminology().compareTo(terminology_name) == 0) &&
+		        (entry.getTargetTerminologyVersion() != null && entry.getTargetTerminologyVersion().compareTo(terminology_version) == 0)) {
+				if (entry.getCode().compareTo(sourceCode) == 0) {
+					String line = entry.getCode()
+						  + "|" + entry.getPreferredName()
+						  + "|" + entry.getRelationshipToTarget()
+						  + "|" + entry.getTargetCode()
+						  + "|" + entry.getTargetTerm()
+						  + "|" + entry.getTargetTermType()
+						  + "|" + entry.getTargetTerminology()
+						  + "|" + entry.getTargetTerminologyVersion();
+					if (!hset.contains(line)) {
+						v.add(line);
+						hset.add(line);
+					} else {
+						System.out.println("WARNING: dupicated entry " + line);
+					}
+				}
+			}
+		}
+		return v;
+	}
+
+
+
     public Vector generateMapsToReport(String code, String terminology_name, String terminology_version) {
 		Vector v = getMapsToData(terminology_name, terminology_version);
+
 		v = sortByColumn(v, "NCIt Preferred Term");
 		String label = getLabelByCode(code);
 		Vector w = new Vector();
@@ -193,6 +249,7 @@ public class MapsToReportWriter {
 		v = new Vector();
 		v.add(MAPS_TO_HEADING);
 		v.addAll(w);
+
         return v;
 	}
 
@@ -228,6 +285,9 @@ public class MapsToReportWriter {
 		Vector sheetLabel_vec = new Vector();
 		String version = mapsToReportWriter.get_ncit_version();
 		String label0 = null;
+
+		mapsToReportWriter.dumpMapsToEntries();
+
 
         for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
