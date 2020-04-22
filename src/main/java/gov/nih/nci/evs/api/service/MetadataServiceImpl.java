@@ -194,6 +194,7 @@ public class MetadataServiceImpl implements MetadataService {
         .stream().map(q -> q.getCode()).collect(Collectors.toSet());
     final Set<String> qualifierCodes = sparqlQueryManagerService.getAllQualifiers(term, ip).stream()
         .map(q -> q.getCode()).collect(Collectors.toSet());
+
     // Remove qualifiers from properties list
     final List<Concept> properties = sparqlQueryManagerService.getAllProperties(term, ip).stream()
         .filter(p -> !qualifierCodes.contains(p.getCode()) && !neverUsedCodes.contains(p.getCode()))

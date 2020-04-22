@@ -67,9 +67,6 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("  get unique sources ");
               sparqlQueryManagerService.getUniqueSourcesList(terminology);
 
-              log.info("  get qualifiers ");
-              sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("minimal"));
-
             } catch (IOException e) {
               log.error("Unexpected error caching = " + terminology, e);
             }
@@ -77,52 +74,76 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
           }
         });
 
-        executorService.execute(new Runnable() {
-          public void run() {
-            try {
+        // If "force pouplate cache" is set, then cache all the metadata
+        // for both "minimal" and "summary"
+        if ("Y".equals(stardogProperties.getForcePopulateCache())) {
+          executorService.execute(new Runnable() {
+            public void run() {
+              try {
 
-              log.info("  get properties ");
-              sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("minimal"));
+                log.info("  get qualifiers ");
+                sparqlQueryManagerService.getAllQualifiers(terminology,
+                    new IncludeParam("minimal"));
+                sparqlQueryManagerService.getAllQualifiers(terminology,
+                    new IncludeParam("summary"));
 
-            } catch (IOException e) {
-              log.error("Unexpected error caching2 = " + terminology, e);
+              } catch (IOException e) {
+                log.error("Unexpected error caching2 = " + terminology, e);
+              }
+
             }
+          });
 
-          }
-        });
+          executorService.execute(new Runnable() {
+            public void run() {
+              try {
 
-        executorService.execute(new Runnable() {
-          public void run() {
-            try {
-              log.info("  get associations ");
-              sparqlQueryManagerService.getAllAssociations(terminology,
-                  new IncludeParam("minimal"));
+                log.info("  get properties ");
+                sparqlQueryManagerService.getAllProperties(terminology,
+                    new IncludeParam("minimal"));
+                sparqlQueryManagerService.getAllProperties(terminology,
+                    new IncludeParam("summary"));
 
-            } catch (IOException e) {
-              log.error("Unexpected error caching3 = " + terminology, e);
+              } catch (IOException e) {
+                log.error("Unexpected error caching2 = " + terminology, e);
+              }
+
             }
+          });
 
-          }
-        });
+          executorService.execute(new Runnable() {
+            public void run() {
+              try {
+                log.info("  get associations ");
+                sparqlQueryManagerService.getAllAssociations(terminology,
+                    new IncludeParam("minimal"));
 
-        executorService.execute(new Runnable() {
-          public void run() {
-            try {
-              log.info("  get roles ");
-              sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("minimal"));
+              } catch (IOException e) {
+                log.error("Unexpected error caching3 = " + terminology, e);
+              }
 
-            } catch (IOException e) {
-              log.error("Unexpected error caching = " + terminology, e);
             }
+          });
 
-          }
-        });
+          executorService.execute(new Runnable() {
+            public void run() {
+              try {
+                log.info("  get roles ");
+                sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("minimal"));
+                sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
 
+              } catch (IOException e) {
+                log.error("Unexpected error caching = " + terminology, e);
+              }
+
+            }
+          });
+
+        }
       }
-
       executorService.isShutdown();
-//      executorService.awaitTermination(60, TimeUnit.SECONDS);
-//      log.info("Done populating cache");
+      // executorService.awaitTermination(60, TimeUnit.SECONDS);
+      // log.info("Done populating cache");
 
     } catch (Exception e) {
       log.error("Unexpected error caching data", e);
