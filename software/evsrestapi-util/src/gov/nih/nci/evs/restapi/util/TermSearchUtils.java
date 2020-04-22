@@ -20,7 +20,7 @@ import org.json.*;
 
 /**
  * <!-- LICENSE_TEXT_START -->
- * Copyright 2008-2017 NGIS. This software was developed in conjunction
+ * Copyright Copyright 2020 MSC.. This software was developed in conjunction
  * with the National Cancer Institute, and so to the extent government
  * employees are co-authors, any rights in such works shall be subject
  * to Title 17 of the United States Code, section 105.
@@ -35,21 +35,21 @@ import org.json.*;
  *      with the distribution.
  *   2. The end-user documentation included with the redistribution,
  *      if any, must include the following acknowledgment:
- *      "This product includes software developed by NGIS and the National
+ *      "This product includes software developed by MSC and the National
  *      Cancer Institute."   If no such end-user documentation is to be
  *      included, this acknowledgment shall appear in the software itself,
  *      wherever such third-party acknowledgments normally appear.
- *   3. The names "The National Cancer Institute", "NCI" and "NGIS" must
+ *   3. The names "The National Cancer Institute", "NCI" and "MSC" must
  *      not be used to endorse or promote products derived from this software.
  *   4. This license does not authorize the incorporation of this software
  *      into any third party proprietary programs. This license does not
  *      authorize the recipient to use any trademarks owned by either NCI
- *      or NGIS
+ *      or MSC
  *   5. THIS SOFTWARE IS PROVIDED "AS IS," AND ANY EXPRESSED OR IMPLIED
  *      WARRANTIES, (INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  *      OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE) ARE
  *      DISCLAIMED. IN NO EVENT SHALL THE NATIONAL CANCER INSTITUTE,
- *      NGIS, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *      MSC, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
  *      INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  *      BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  *      LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
@@ -94,23 +94,36 @@ public class TermSearchUtils {
 		this.exclude_retired = exclude_retired;
 	}
 
+	public Vector retrievePropertyData(String propertyName) {
+		Vector v = owlSPARQLUtils.get_property_query(this.namedGraph, propertyName);
+        return v;
+	}
+
+    public Vector get_full_syn_vec() {
+		if (full_syn_vec == null) {
+			full_syn_vec = retrievePropertyData("FULL_SYN");
+		}
+		return full_syn_vec;
+	}
+
+
 	public void initialize() {
 		obsoleteConceptMap = createObsoleteConceptMap();
-		full_syn_vec = Utils.readFile("FULL_SYN.txt");
-		termMap = createTermMap(full_syn_file);
+		full_syn_vec = retrievePropertyData("FULL_SYN");//.get_full_syn_vec();
+		termMap = createTermMap(full_syn_vec);
 	}
 
 	public Vector get_property_query(String propertyName) {
 		return owlSPARQLUtils.get_property_query(this.namedGraph, propertyName);
 	}
 
-	public HashMap createTermMap(String filename) {
+	public HashMap createTermMap(Vector v) {
 		HashMap termMap = new HashMap();
 /*
 Fluorodopa F 18|C95766|FULL_SYN|FLUORODOPA F-18
 Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 */
-        Vector v = Utils.readFile(filename);
+        //Vector v = Utils.readFile(filename);
 		for (int i=1; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, "|");
@@ -222,6 +235,17 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 		return t;
 	}
 
+	public Vector retrieveRetiredConceptData() {
+		String property_name = "Concept_Status";
+		String property_value = "Obsolete_Concept";
+		Vector v = owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
+		property_value = "Retired_Concept";
+		Vector v2 = owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
+		v.addAll(v2);
+        return v;
+	}
+
+
 	public boolean isRetired(String code) {
 		if (obsoleteConceptMap == null) {
 			obsoleteConceptMap = createObsoleteConceptMap();
@@ -235,7 +259,7 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 
 	public HashMap createObsoleteConceptMap() {
 		HashMap hmap = new HashMap();
-		Vector w = Utils.readFile("retired_and_obsolete_concepts.txt");
+		Vector w = retrieveRetiredConceptData();
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -248,31 +272,7 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 		return hmap;
 	}
 
-/*
-Concept_Status:
-        (1) Cyclophosphamide/Fluoxymesterone/Mitolactol/Prednisone/Tamoxifen|C10000|Concept_Status|Obsolete_Concept
-        (2) Agent Combination Indexed in Open Clinical Trials|C61007|Concept_Status|Obsolete_Concept
-        (3) Cyclophosphamide/Doxorubicin/Fluorouracil/Methotrexate/Prednisone/Vincristine|C10002|Concept_Status|Obsolete_Co
-*/
-
 	public Vector findConceptsWithPropertyMatching(String property_name, String property_value) {
 		return owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
 	}
-
-
-    public static void main(String[] args) {
-		String serviceUrl = args[0];
-		String namedGraph = args[1];
-        TermSearchUtils test = new TermSearchUtils(serviceUrl, namedGraph);
-
-        String datafile = "trimmed_UNII_Names_27Mar2020_04-15-2020.txt";
-        Vector w = Utils.readFile(datafile);
-        for (int i=0; i<w.size(); i++) {
-			String term = (String) w.elementAt(i);
-			String retstr = test.findMatchedConcepts(term);
-			System.out.println(term);
-			System.out.println("\t" + retstr);
-		}
-	}
-
 }

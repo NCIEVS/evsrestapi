@@ -775,6 +775,61 @@ public class ParserUtils {
 		return complex_properties;
 	}
 
+    public Vector parseMapsToData(Vector axiom_data) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String axiom_id = (String) u.elementAt(0);
+			String label = (String) u.elementAt(1);
+			String code = (String) u.elementAt(2);
+			String propertyName = (String) u.elementAt(3);
+
+//bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_380278|Hepatic Infection, CTCAE|C143541|Maps_To|P375|Hepatic infection|Target_Code|P395|10056522
+
+
+			String propertyCode = (String) u.elementAt(4);
+			String targetName = (String) u.elementAt(5);
+			String qualifier_name = (String) u.elementAt(6);
+			String qualifier_code = (String) u.elementAt(7);
+			String qualifier_value = (String) u.elementAt(8);
+            MapToEntry entry = (MapToEntry) hmap.get(axiom_id);
+            if (entry == null) {
+				entry = new MapToEntry(
+							code,
+							label,
+							null,
+							null,
+							targetName,
+							null,
+							null,
+							null);
+			}
+
+			if (qualifier_name.compareTo("Relationship_to_Target") == 0) {
+				entry.setRelationshipToTarget(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Code") == 0) {
+				entry.setTargetCode(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Term_Type") == 0) {
+				entry.setTargetTermType(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Terminology") == 0) {
+				entry.setTargetTerminology(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Terminology_Version") == 0) {
+				entry.setTargetTerminologyVersion(qualifier_value);
+			}
+			hmap.put(axiom_id, entry);
+		}
+		Vector w2 = new Vector();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String axiom_id = (String) it.next();
+			MapToEntry entry = (MapToEntry) hmap.get(axiom_id);
+			w2.add(entry);
+		}
+		return w2;
+	}
+
+
 	public static void main(String[] args) {
 		String filename = args[0];
         filename = "filterPropertyQualifiers.txt";
