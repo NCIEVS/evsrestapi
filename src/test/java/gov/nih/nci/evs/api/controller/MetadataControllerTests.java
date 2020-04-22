@@ -594,8 +594,70 @@ public class MetadataControllerTests {
     MvcResult result = null;
     String content = null;
 
-    // Bad terminology
+    // NCIt
     url = baseUrl + "/ncit/contributingSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+    // This may change in the future, but it's a way of validating
+    // "contributing sources" as being different than "synonym sources"
+    assertThat(list.size()).isLessThan(40);
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/contributingSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+  }
+
+  @Test
+  public void testSynonymSources() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // NCIt
+    url = baseUrl + "/ncit/synonymSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+    // This may change in the future, but it's a way of validating
+    // "contributing sources" as being different than "synonym sources"
+    assertThat(list.size()).isGreaterThan(40);
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/synonymSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+  }
+
+  @Test
+  public void testTermTypes() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // NCIt
+    url = baseUrl + "/ncit/termTypes";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -607,7 +669,7 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
 
     // Bad terminology
-    url = baseUrl + "/ncitXXX/contributingSources";
+    url = baseUrl + "/ncitXXX/termTypes";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -653,4 +715,5 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
 
   }
+
 }

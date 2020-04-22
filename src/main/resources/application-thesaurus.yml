@@ -1,5 +1,5 @@
 thesaurus:
-       owl:       
+    owl:
         returnFields: { code: 'Code',
                         nhc0: 'Code',                        
                         label: 'Label',                       
@@ -211,6 +211,26 @@ thesaurus:
                             UCUM: 'Unified Code for Units of Measure',
                             Zebrafish: 'Zebrafish Model Organism Database'        
                          }
+        termTypes: {
+                            AB: 'Abbreviation',
+                            AD: 'Adjectival form (and other parts of grammar)',
+                            AQ: '*Antiquated preferred term',
+                            AQS: 'Antiquated term, use when there are antiquated synonyms within a concept',
+                            BR: 'US brand name, which may be trademarked',
+                            CA2: 'ISO 3166 alpha-2 country code',
+                            CA3: 'ISO 3166 alpha-3 country code',
+                            CNU: 'ISO 3166 numeric country code',
+                            CI: 'ISO country code',
+                            CN: 'Drug study code',
+                            CS: 'US State Department country code',
+                            DN: 'Display name',
+                            FB: 'Foreign brand name, which may be trademarked',
+                            LLT: 'Lower level term',
+                            HD: '*Header (groups concepts, but not used for coding data)',
+                            PT: '*Preferred term',
+                            SN: 'Chemical structure name',
+                            SY: 'Synonym',                        
+                         }                         
         sourcesToBeRemoved: ['cadsr', 'CADSR', 'CAdsr','caDSR'
                         ]                 
         associations:  {a1: 'Role_Has_Domain',

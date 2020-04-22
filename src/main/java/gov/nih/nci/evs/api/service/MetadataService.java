@@ -1,13 +1,11 @@
 
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.ConfigData;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 
 /**
  * Service for metadata.
@@ -15,23 +13,6 @@ import gov.nih.nci.evs.api.support.ConfigData;
  * @author Arun
  */
 public interface MetadataService {
-
-  /**
-   * Get application metadata.
-   *
-   * @return the config data
-   * @throws Exception the exception
-   */
-  ConfigData getApplicationMetadata() throws Exception;
-
-  /**
-   * Get application metadata.
-   *
-   * @param terminology the terminology
-   * @return the config data
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  ConfigData getApplicationMetadata(Terminology terminology) throws IOException;
 
   /**
    * Get list of associations.
@@ -145,7 +126,16 @@ public interface MetadataService {
    * @return the contributing sources for the given terminology
    * @throws Exception the exception
    */
-  List<Concept> getContributingSources(final String terminology) throws Exception;
+  List<ConceptMinimal> getContributingSources(final String terminology) throws Exception;
+
+  /**
+   * Returns the synonym sources.
+   *
+   * @param terminology the terminology
+   * @return the synonym sources
+   * @throws Exception the exception
+   */
+  List<ConceptMinimal> getSynonymSources(final String terminology) throws Exception;
 
   /**
    * Get axiom qualifiers.
@@ -165,5 +155,5 @@ public interface MetadataService {
    * @return the list of term types
    * @throws Exception the exception
    */
-  List<Concept> getTermTypes(final String terminology) throws Exception;
+  List<ConceptMinimal> getTermTypes(final String terminology) throws Exception;
 }

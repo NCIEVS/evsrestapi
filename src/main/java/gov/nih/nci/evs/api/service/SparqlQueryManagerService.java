@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -21,7 +22,6 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
@@ -394,15 +394,39 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
-   * Returns the configuration data.
+   * Returns the contributing sources.
    *
    * @param terminology the terminology
-   * @return the configuration data
+   * @return the contributing sources
    * @throws JsonMappingException the json mapping exception
    * @throws JsonProcessingException the json processing exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public ConfigData getConfigurationData(Terminology terminology)
+  public List<ConceptMinimal> getContributingSources(Terminology terminology)
+    throws JsonMappingException, JsonProcessingException, IOException;
+
+  /**
+   * Returns the synonym sources.
+   *
+   * @param terminology the terminology
+   * @return the synonym sources
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<ConceptMinimal> getSynonymSources(Terminology terminology)
+    throws JsonMappingException, JsonProcessingException, IOException;
+
+  /**
+   * Returns the term types.
+   *
+   * @param terminology the terminology
+   * @return the term types
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<ConceptMinimal> getTermTypes(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException;
 
   /**
@@ -525,18 +549,6 @@ public interface SparqlQueryManagerService {
    */
   void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
-
-  /**
-   * Returns the unique sources list.
-   *
-   * @param terminology the terminology
-   * @return the unique sources list
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  List<String> getUniqueSourcesList(Terminology terminology)
-    throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Get hiearchy for a given terminology.

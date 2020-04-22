@@ -19,10 +19,10 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetricDB;
 import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.support.ConfigData;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -49,24 +49,6 @@ public class MetadataController {
   /** The metadata service. */
   @Autowired
   MetadataService metadataService;
-
-  /**
-   * Returns the application metadata.
-   *
-   * @return the application metadata
-   * @throws Exception the exception
-   */
-  @ApiOperation(value = "Get application metadata for evs-explore application",
-      response = ConfigData.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found")
-  })
-  @RecordMetricDB
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata", produces = "application/json")
-  public @ResponseBody ConfigData getApplicationMetadata() throws Exception {
-    return metadataService.getApplicationMetadata();
-  }
 
   /**
    * Returns the terminologies.
@@ -262,7 +244,6 @@ public class MetadataController {
    *
    * @param terminology the terminology
    * @param include the include
-   * @param forDocumentation the for documentation
    * @param list the list
    * @return the properties
    * @throws Exception the exception
@@ -345,6 +326,15 @@ public class MetadataController {
     return metadataService.getQualifiers(terminology, include, list);
   }
 
+  /**
+   * Returns the qualifier.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the qualifier
+   * @throws Exception the exception
+   */
   @ApiOperation(value = "Get the qualifier for the specified terminology and code/label",
       response = Concept.class)
   @ApiResponses(value = {
@@ -388,7 +378,7 @@ public class MetadataController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get all term types for the specified terminology",
-      response = Concept.class, responseContainer = "List")
+      response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 404, message = "Resource not found")
@@ -400,7 +390,7 @@ public class MetadataController {
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetricDBFormat
-  public @ResponseBody List<Concept> getTermTypes(
+  public @ResponseBody List<ConceptMinimal> getTermTypes(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     return metadataService.getTermTypes(terminology);
@@ -488,7 +478,7 @@ public class MetadataController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get all contributing sources for the specified terminology",
-      response = Concept.class, responseContainer = "List")
+      response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 404, message = "Resource not found")
@@ -500,10 +490,36 @@ public class MetadataController {
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources",
       produces = "application/json")
-  public @ResponseBody List<Concept> getContributingSources(
+  public @ResponseBody List<ConceptMinimal> getContributingSources(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     return metadataService.getContributingSources(terminology);
+  }
+
+  /**
+   * Returns the synonym sources.
+   *
+   * @param terminology the terminology
+   * @return the synonym sources
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get all synonym sources for the specified terminology",
+      response = ConceptMinimal.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymSources",
+      produces = "application/json")
+  public @ResponseBody List<ConceptMinimal> getSynonymSources(
+    @PathVariable(value = "terminology") final String terminology) throws Exception {
+
+    return metadataService.getSynonymSources(terminology);
   }
 
   /**

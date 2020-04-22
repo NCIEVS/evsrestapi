@@ -20,6 +20,9 @@ public class ThesaurusProperties {
   /** The contributing sources. */
   private Map<String, String> contributingSources;
 
+  /** The term types. */
+  private Map<String, String> termTypes;
+
   /** The return fields. */
   private Map<String, String> returnFields;
 
@@ -139,6 +142,24 @@ public class ThesaurusProperties {
    */
   public void setContributingSources(Map<String, String> contributingSources) {
     this.contributingSources = contributingSources;
+  }
+
+  /**
+   * Returns the term types.
+   *
+   * @return the term types
+   */
+  public Map<String, String> getTermTypes() {
+    return termTypes;
+  }
+
+  /**
+   * Sets the term types.
+   *
+   * @param termTypesSources the term types sources
+   */
+  public void setTermTypes(Map<String, String> termTypes) {
+    this.termTypes = termTypes;
   }
 
   /**

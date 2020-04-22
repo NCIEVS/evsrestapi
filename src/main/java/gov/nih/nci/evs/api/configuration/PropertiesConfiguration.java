@@ -38,9 +38,6 @@ public class PropertiesConfiguration {
    *
    * @return the server properties
    */
-  /*
-   * Server Properties
-   */
   @Bean
   ServerProperties serverProperties() {
     return new ServerProperties();
@@ -50,9 +47,6 @@ public class PropertiesConfiguration {
    * Stardog properties.
    *
    * @return the stardog properties
-   */
-  /*
-   * Stardog Properties
    */
   @Bean
   @ConfigurationProperties(prefix = "nci.evs.stardog", ignoreUnknownFields = false)
@@ -65,9 +59,6 @@ public class PropertiesConfiguration {
    *
    * @return the application properties
    */
-  /*
-   * Application Properties
-   */
   @Bean
   @ConfigurationProperties(prefix = "nci.evs.application", ignoreUnknownFields = false)
   ApplicationProperties applicationProperties() {
@@ -78,9 +69,6 @@ public class PropertiesConfiguration {
    * Elastic query properties.
    *
    * @return the elastic query properties
-   */
-  /*
-   * Elastic Query Properties
    */
   @Bean
   @ConfigurationProperties(prefix = "nci.evs.elasticsearch.query", ignoreUnknownFields = false)
@@ -93,9 +81,6 @@ public class PropertiesConfiguration {
    *
    * @return the elastic server properties
    */
-  /*
-   * Elastic Query Properties
-   */
   @Bean
   @ConfigurationProperties(prefix = "nci.evs.elasticsearch.server", ignoreUnknownFields = false)
   ElasticServerProperties elasticServerProperties() {
@@ -107,9 +92,6 @@ public class PropertiesConfiguration {
    *
    * @return the thesaurus properties
    */
-  /*
-   * Thesaurus Properties
-   */
   @Bean
   @ConfigurationProperties(prefix = "thesaurus.owl", ignoreUnknownFields = false)
   ThesaurusProperties thesaurusProperties() {
@@ -120,9 +102,6 @@ public class PropertiesConfiguration {
    * Swagger properties.
    *
    * @return the swagger properties
-   */
-  /*
-   * Swagger Properties
    */
   @Bean
   @ConfigurationProperties(prefix = "swagger.documentation", ignoreUnknownFields = false)

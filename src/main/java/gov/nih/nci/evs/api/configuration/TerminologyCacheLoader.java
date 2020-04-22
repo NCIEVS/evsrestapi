@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +63,11 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("  find paths ");
               sparqlQueryManagerService.getPaths(terminology);
 
-              log.info("  get unique sources ");
-              sparqlQueryManagerService.getUniqueSourcesList(terminology);
+              log.info("  get contributing sources ");
+              sparqlQueryManagerService.getContributingSources(terminology);
+
+              log.info("  get synonym sources ");
+              sparqlQueryManagerService.getSynonymSources(terminology);
 
             } catch (IOException e) {
               log.error("Unexpected error caching = " + terminology, e);

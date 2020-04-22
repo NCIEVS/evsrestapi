@@ -6,7 +6,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.ConceptNode;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
@@ -53,7 +53,6 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
-import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -1633,65 +1632,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /**
-   * Returns the configuration data.
-   *
-   * @param terminology the terminology
-   * @return the configuration data
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonProcessingException the json processing exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public ConfigData getConfigurationData(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException, IOException {
-
-    ConfigData configData = new ConfigData();
-    configData.setTerminology(terminology);
-
-    String[] sourceToBeRemoved = thesaurusProperties.getSourcesToBeRemoved();
-    List<String> sourceToBeRemovedList = Arrays.asList(sourceToBeRemoved);
-    List<String> sources = self.getUniqueSourcesList(terminology);
-    sources.removeAll(sourceToBeRemovedList);
-    configData.setFullSynSources(sources);
-
-    return configData;
-  }
-
-  /**
-   * Returns the unique sources list.
-   *
-   * @param terminology the terminology
-   * @return the unique sources list
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public List<String> getUniqueSourcesList(Terminology terminology)
-    throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("unique.sources", terminology.getGraph());
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> sources = new ArrayList<String>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String source = b.getPropertyValue().getValue();
-      sources.add(source);
-    }
-
-    return sources;
-  }
-
-  /**
    * Get hiearchy for a given terminology.
    *
    * @param terminology the terminology
@@ -1725,5 +1665,123 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonParseException, JsonMappingException, IOException {
     HierarchyUtils hierarchy = self.getHierarchyUtils(terminology);
     return new PathFinder(hierarchy).findPaths();
+  }
+
+  /**
+   * Returns the synonym sources.
+   *
+   * @param terminology the terminology
+   * @return the synonym sources
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Override
+  public List<ConceptMinimal> getSynonymSources(Terminology terminology)
+    throws JsonMappingException, JsonProcessingException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    // TODO: CONFIG
+    String query =
+        queryBuilderService.constructQuery("synonym.sources", ":P384", terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    List<ConceptMinimal> sources = new ArrayList<>();
+    final Map<String, String> map = thesaurusProperties.getContributingSources();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      Concept concept = new Concept();
+      concept.setTerminology(terminology.getTerminology());
+      concept.setCode(b.getPropertyValue().getValue());
+      if (map.containsKey(concept.getCode())) {
+        concept.setName(map.get(concept.getCode()));
+      } else if (concept.getCode().contains(" ")
+          && map.containsKey(concept.getCode().substring(0, concept.getCode().indexOf(" ")))) {
+        concept.setName(map.get(concept.getCode().substring(0, concept.getCode().indexOf(" ")))
+            + ", version " + concept.getCode().substring(concept.getCode().indexOf(" ") + 1));
+      }
+
+      sources.add(concept);
+    }
+
+    return sources;
+  }
+
+  @Override
+  public List<ConceptMinimal> getTermTypes(Terminology terminology)
+    throws JsonMappingException, JsonProcessingException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    // TODO: CONFIG
+    String query =
+        queryBuilderService.constructQuery("term.types", ":P383", terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    List<ConceptMinimal> sources = new ArrayList<>();
+    final Map<String, String> map = thesaurusProperties.getTermTypes();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      Concept concept = new Concept();
+      concept.setTerminology(terminology.getTerminology());
+      concept.setCode(b.getPropertyValue().getValue());
+      if (map.containsKey(concept.getCode())) {
+        concept.setName(map.get(concept.getCode()));
+        if (concept.getName().startsWith("*")) {
+          concept.setCode(concept.getCode() + "*");
+          concept.setName(concept.getName().substring(1));
+        }
+      }
+      sources.add(concept);
+    }
+
+    return sources;
+  }
+
+  /**
+   * Returns the contributing sources.
+   *
+   * @param terminology the terminology
+   * @return the contributing sources
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Override
+  public List<ConceptMinimal> getContributingSources(Terminology terminology)
+    throws JsonMappingException, JsonProcessingException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    // TODO: CONFIG
+    String query =
+        queryBuilderService.constructQuery("contributing.sources", ":P322", terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    List<ConceptMinimal> sources = new ArrayList<>();
+    final Map<String, String> map = thesaurusProperties.getContributingSources();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      Concept concept = new Concept();
+      concept.setTerminology(terminology.getTerminology());
+      concept.setCode(b.getPropertyValue().getValue());
+      if (map.containsKey(concept.getCode())) {
+        concept.setName(map.get(concept.getCode()));
+      } else if (concept.getCode().contains(" ")
+          && map.containsKey(concept.getCode().substring(0, concept.getCode().indexOf(" ")))) {
+        concept.setName(map.get(concept.getCode().substring(0, concept.getCode().indexOf(" ")))
+            + ", version " + concept.getCode().substring(concept.getCode().indexOf(" ") + 1));
+      }
+      sources.add(concept);
+    }
+
+    return sources;
   }
 }

@@ -26,7 +26,6 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
@@ -57,10 +56,6 @@ public class SearchController {
   @Autowired
   StardogProperties stardogProperties;
 
-  /** The thesaurus properties. */
-  @Autowired
-  ThesaurusProperties thesaurusProperties;
-
   /** The elastic search service. */
   @Autowired
   ElasticSearchService elasticSearchService;
@@ -72,7 +67,7 @@ public class SearchController {
   /** The metadata service **/
   @Autowired
   MetadataService metadataService;
-  
+
   /**
    * Search within a single terminology.
    *
@@ -271,15 +266,14 @@ public class SearchController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = searchCriteria.computeIncludeParam();
 
-      searchCriteria.validate(term, metadataService, thesaurusProperties);
+      searchCriteria.validate(term, metadataService);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
 
       final List<Concept> concepts = new ArrayList<>();
       for (final Concept result : results.getConcepts()) {
-        final Concept concept = 
-            sparqlQueryManagerService.getConcept(result.getCode(), term, ip);
+        final Concept concept = sparqlQueryManagerService.getConcept(result.getCode(), term, ip);
         ConceptUtils.applyHighlights(concept, result.getHighlights());
         concept.setTerminology(terminology);
         // Clear highlights now that they have been applied

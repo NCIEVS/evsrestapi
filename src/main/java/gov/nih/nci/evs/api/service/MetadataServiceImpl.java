@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,10 +17,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
-import gov.nih.nci.evs.api.support.ConfigData;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -48,31 +47,6 @@ public class MetadataServiceImpl implements MetadataService {
   /** The self. */
   @Resource
   private MetadataService self;
-
-  /**
-   * Returns the application metadata.
-   *
-   * @return the application metadata
-   * @throws Exception the exception
-   */
-  @Override
-  public ConfigData getApplicationMetadata() throws Exception {
-    return self
-        .getApplicationMetadata(TerminologyUtils.getLatestTerminology(sparqlQueryManagerService));
-  }
-
-  /**
-   * Returns the application metadata.
-   *
-   * @param terminology the terminology
-   * @return the application metadata
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public ConfigData getApplicationMetadata(Terminology terminology) throws IOException {
-    return sparqlQueryManagerService.getConfigurationData(terminology);
-  }
 
   /**
    * Returns the associations.
@@ -189,7 +163,8 @@ public class MetadataServiceImpl implements MetadataService {
 
     // TODO: "first-class attribute qualifiers", like 'NCH0'
     // Need to identify which attributes are associated with "other model
-    // elements"
+    // elements" - they should probably be excluded too - have to derive from
+    // properties
     final Set<String> neverUsedCodes = sparqlQueryManagerService.getAllPropertiesNeverUsed(term, ip)
         .stream().map(q -> q.getCode()).collect(Collectors.toSet());
     final Set<String> qualifierCodes = sparqlQueryManagerService.getAllQualifiers(term, ip).stream()
@@ -318,20 +293,34 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
       condition = "#terminology.equals('ncit')")
-  public List<Concept> getContributingSources(String terminology) throws Exception {
+  public List<ConceptMinimal> getContributingSources(String terminology) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     if (!term.getTerminology().equals("ncit"))
       return new ArrayList<>();
 
-    final Map<String, String> contributingSources = thesaurusProperties.getContributingSources();
-    final List<Concept> result = new ArrayList<>();
-    for (final String key : contributingSources.keySet().stream().sorted()
-        .collect(Collectors.toList())) {
-      result.add(new Concept(terminology, key, contributingSources.get(key)));
-    }
+    return sparqlQueryManagerService.getContributingSources(term);
 
-    return result;
+  }
+
+  /**
+   * Returns the synonym sources.
+   *
+   * @param terminology the terminology
+   * @return the synonym sources
+   * @throws Exception the exception
+   */
+  @Override
+  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
+      condition = "#terminology.equals('ncit')")
+  public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (!term.getTerminology().equals("ncit"))
+      return new ArrayList<>();
+
+    return sparqlQueryManagerService.getSynonymSources(term);
+
   }
 
   /**
@@ -371,33 +360,14 @@ public class MetadataServiceImpl implements MetadataService {
    */
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
-  public List<Concept> getTermTypes(String terminology) throws Exception {
-    // Verify terminology setting
-    TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+  public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
 
-    final List<Concept> list = new ArrayList<>();
-    list.add(new Concept(terminology, "AB", "Abbreviation"));
-    list.add(new Concept(terminology, "AD", "Adjectival form (and other parts of grammar)"));
-    list.add(new Concept(terminology, "AQ*", "Antiquated preferred term"));
-    list.add(new Concept(terminology, "AQS",
-        "Antiquated term, use when tehre are antiquated synonyms within a concept"));
-    list.add(new Concept(terminology, "BR", "US brand name, which may be trademarked"));
-    list.add(new Concept(terminology, "CA2", "ISO 3166 alpha-2 country code"));
-    list.add(new Concept(terminology, "CA3", "ISO 3166 alpha-3 country code"));
-    list.add(new Concept(terminology, "CNU", "ISO 3166 numeric country code"));
-    list.add(new Concept(terminology, "CI", "ISO country code"));
-    list.add(new Concept(terminology, "CN", "Drug study code"));
-    list.add(new Concept(terminology, "CS", "US State Department country code"));
-    list.add(new Concept(terminology, "DN", "Display name"));
-    list.add(new Concept(terminology, "FB", "Foreign brand name, which may be trademarked"));
-    list.add(new Concept(terminology, "LLT", "Lower level term"));
-    list.add(
-        new Concept(terminology, "HD*", "Header (groups concepts, but not used for coding data)"));
-    list.add(new Concept(terminology, "PT*", "Preferred term"));
-    list.add(new Concept(terminology, "SN", "Chemical structure name"));
-    list.add(new Concept(terminology, "SY", "Synonym"));
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (!term.getTerminology().equals("ncit"))
+      return new ArrayList<>();
 
-    return list;
+    return sparqlQueryManagerService.getTermTypes(term);
   }
 
 }

@@ -2,7 +2,10 @@
 package gov.nih.nci.evs.api.support;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -23,8 +25,9 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
-  
+  private static final Logger logger =
+      LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
+
   /** The term. */
   private String term;
 
@@ -414,12 +417,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @param terminology the terminology instance
    * @param sparqlQueryManagerService the sparql query manager service
-   * @param thesaurusProperties the thesaurus properties
    * @throws Exception the exception
    */
-  public void validate(final Terminology terminology,
-    final MetadataService metadataService,
-    final ThesaurusProperties thesaurusProperties) throws Exception {
+  public void validate(final Terminology terminology, final MetadataService metadataService)
+    throws Exception {
     if (getTerm() == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'term' is missing");
@@ -443,24 +444,32 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
 
     // Validate concept status
+    final Set<String> conceptStatuses =
+        new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
     for (final String cs : getConceptStatus()) {
-      if (!thesaurusProperties.getConceptStatuses().values().contains(cs)) {
+      if (!conceptStatuses.contains(cs)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'conceptStatus' has an invalid value = " + cs);
       }
     }
 
+    final Set<String> contributingSources =
+        metadataService.getContributingSources(terminology.getTerminology()).stream()
+            .map(c -> c.getCode()).collect(Collectors.toSet());
+    new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
     for (final String cs : getContributingSource()) {
-      if (!thesaurusProperties.getContributingSources().keySet().contains(cs)) {
+      if (!contributingSources.contains(cs)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'contributingSource' has an invalid value = " + cs);
       }
     }
 
-    // Validate synonym source - must be a valid contributing source
+    // Validate synonym source - must be a valid synonym source
+    final Set<String> synonymSources =
+        metadataService.getSynonymSources(terminology.getTerminology()).stream()
+            .map(c -> c.getCode()).collect(Collectors.toSet());
     for (final String ss : getSynonymSource()) {
-      if (!metadataService.getApplicationMetadata(terminology)
-          .getFullSynSources().contains(ss)) {
+      if (!synonymSources.contains(ss)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'synonymSource' has an invalid value = " + ss);
       }
@@ -468,8 +477,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid contributing source
     for (final String ds : getDefinitionSource()) {
-      if (!ds.equals("NCI")
-          && !thesaurusProperties.getContributingSources().values().contains(ds)) {
+      if (!ds.equals("NCI") && !contributingSources.contains(ds)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Parameter 'definitionSource' has an invalid value = " + ds);
       }
