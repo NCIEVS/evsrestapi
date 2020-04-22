@@ -44,10 +44,12 @@ public class MapsToReportWriter {
     int pos_z = 8;
 
     OWLSPARQLUtils owlSPARQLUtils = null;
+    MetadataUtils metadataUtils = null;
     String namedGraph = null;
 
     Vector raw_maps_to_data = null;
     Vector<MapToEntry> mapsToEntries = null;
+    String ncit_version = null;
 
     public MapsToReportWriter(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
@@ -55,7 +57,10 @@ public class MapsToReportWriter {
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         long ms = System.currentTimeMillis();
         owlSPARQLUtils.set_named_graph(namedGraph);
-        new MetadataUtils(serviceUrl).dumpNameVersion2NamedGraphMap();
+        metadataUtils = new MetadataUtils(serviceUrl);
+        ncit_version = get_ncit_version();
+        System.out.println("NCI Thesaurus version: " + ncit_version);
+        //metadataUtils.dumpNameVersion2NamedGraphMap();
         String propertyName = MAPS_TO;
         System.out.println("Initialization in progress. Please wait...");
 		raw_maps_to_data = retrievePropertyQualifierData(propertyName);
@@ -191,6 +196,25 @@ public class MapsToReportWriter {
         return v;
 	}
 
+	public String get_ncit_version() {
+		if(ncit_version == null) {
+			HashMap hmap = metadataUtils.getNameVersion2NamedGraphMap();
+			String version = null;
+			Iterator it = hmap.keySet().iterator();
+			while (it.hasNext()) {
+				String key = (String) it.next();
+				Vector values = (Vector) hmap.get(key);
+				String value = (String) values.elementAt(0);
+				if (value.compareTo(this.namedGraph) == 0) {
+					Vector u = StringUtils.parseData(key, '|');
+					ncit_version = (String) u.elementAt(1);
+					break;
+				}
+			}
+		}
+		return ncit_version;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
@@ -202,6 +226,8 @@ public class MapsToReportWriter {
 		Vector codes = StringUtils.parseData(codes_str, '|');
 		Vector datafile_vec = new Vector();
 		Vector sheetLabel_vec = new Vector();
+		String version = mapsToReportWriter.get_ncit_version();
+		String label0 = null;
 
         for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
@@ -211,10 +237,14 @@ public class MapsToReportWriter {
 			Utils.saveToFile(code + ".txt", v);
 			sheetLabel_vec.add(label);
 			datafile_vec.add(code + ".txt");
+			if (i == 0) {
+				label0 = label;
+			}
 		}
+		label0 = label0.replaceAll(" ", "_");
 		char delim = '|';
 		String headerColor = ExcelWriter.RED;
-		String excelfile = "Mapped_" + terminology_name + "_" + terminology_version + "_Terminology_" + StringUtils.getToday() + ".xlsx";
+		String excelfile = label0 + "_(" + version + ")_" + StringUtils.getToday() + ".xlsx";
 		new ExcelWriter().writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec, headerColor);
 		System.out.println(excelfile + " generated.");
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
