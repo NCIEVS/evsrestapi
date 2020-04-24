@@ -712,4 +712,49 @@ public class StringUtils {
 		return keys;
 	}
 
+    public HashMap constructHashMap(Vector v, int index_key, int index_value) {
+        boolean skip_heading = true;
+        return constructHashMap(v, index_key, index_value, skip_heading);
+	}
+
+    public HashMap constructHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
+        HashMap hmap = new HashMap();
+        int istart = 0;
+        if (skip_heading) istart = 1;
+        for (int i=istart; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String key = (String) u.elementAt(index_key);
+			String value = (String) u.elementAt(index_value);
+			hmap.put(key, value);
+		}
+		return hmap;
+	}
+
+    public HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value) {
+        boolean skip_heading = true;
+        return constructMultiValuedHashMap(v, index_key, index_value, skip_heading);
+	}
+
+    public HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
+		HashMap hmap = new HashMap();
+        int istart = 0;
+        if (skip_heading) istart = 1;
+        for (int i=istart; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String label = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
+			String value = (String) u.elementAt(3);
+			Vector w = new Vector();
+			if (hmap.containsKey(code)) {
+				w = (Vector) hmap.get(code);
+			}
+			if (!w.contains(value)) {
+				w.add(value);
+			}
+			hmap.put(code, w);
+		}
+		return hmap;
+	}
 }
