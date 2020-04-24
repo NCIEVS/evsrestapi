@@ -27,6 +27,12 @@ public class StardogProperties {
   /** The wait populate cache. */
   private String waitPopulateCache;
 
+  /** The host **/
+  private String host;
+  
+  /** The port **/
+  private String port;
+  
   /** The query url. */
   private String queryUrl;
 
@@ -156,6 +162,42 @@ public class StardogProperties {
     this.waitPopulateCache = waitPopulateCache;
   }
 
+  /**
+   * Returns the host
+   * 
+   * @return the host
+   */
+  public String getHost() {
+    return host;
+  }
+
+  /**
+   * Sets the host
+   * 
+   * @param host the host
+   */
+  public void setHost(String host) {
+    this.host = host;
+  }
+
+  /**
+   * Returns the port
+   * 
+   * @return the port
+   */
+  public String getPort() {
+    return port;
+  }
+
+  /**
+   * Set the port
+   * 
+   * @param port the port
+   */
+  public void setPort(String port) {
+    this.port = port;
+  }
+  
   /**
    * Returns the query url.
    *

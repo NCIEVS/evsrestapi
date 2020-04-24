@@ -64,7 +64,9 @@ nci:
       forceFileGeneration: ${NCI_EVS_API_FORCE_FILE_GENERATION:false}
       metricLogDirectory:  ${NCI_EVS_API_METRIC_LOG_PATH:${user.home}/apps/evsrestapi/logs/}
     stardog:
-      queryUrl: ${STARDOG_MONTHLY_QUERY_URL:http://localhost:5820/NCIT2/query}
+      host: ${STARDOG_HOST:localhost}
+      port: ${STARDOG_PORT:5820}
+      queryUrl: ${STARDOG_MONTHLY_QUERY_URL:http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/NCIT2/query}
       username: ${STARDOG_USERNAME:REPLACE_WITH_USERNAME}
       password: ${STARDOG_PASSWORD:REPLACE_WITH_PASSWORD}
       readTimeout: ${STARDOG_READ_TIMEOUT:30}
@@ -74,7 +76,9 @@ nci:
       waitPopulateCache: ${WAIT_POPULATE_CACHE:N}
     elasticsearch:
       server:
-        url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://localhost:9200/concept_flat_full_nested_bylabel/concept/_search}
+        host: ${ES_HOST:localhost}
+        port: ${ES_PORT:9200}
+        url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://${nci.evs.elasticsearch.server.host}:${nci.evs.elasticsearch.server.port}/concept_flat_full_nested_bylabel/concept/_search}
       query:
         propertyToQuery: {
                    p108:

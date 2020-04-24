@@ -1,5 +1,11 @@
 package gov.nih.nci.evs.api.service;
 
+import javax.annotation.PostConstruct;
+
+import org.elasticsearch.client.RestHighLevelClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.support.LoadConfig;
@@ -13,6 +19,17 @@ import gov.nih.nci.evs.api.support.LoadConfig;
 @Service
 public class ElasticSearchLoadServiceImpl implements ElasticSearchLoadService {
 
+  private static final Logger logger = LoggerFactory.getLogger(ElasticSearchLoadServiceImpl.class);
+  
+  /** Elasticsearch client **/
+  @Autowired
+  RestHighLevelClient esClient;
+  
+  @PostConstruct
+  public void init() {
+    logger.info("es client :: " + esClient);
+  }
+  
   @Override
   public void load(LoadConfig config) {
 
