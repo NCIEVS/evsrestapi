@@ -712,12 +712,12 @@ public class StringUtils {
 		return keys;
 	}
 
-    public HashMap constructHashMap(Vector v, int index_key, int index_value) {
+    public static HashMap constructHashMap(Vector v, int index_key, int index_value) {
         boolean skip_heading = true;
         return constructHashMap(v, index_key, index_value, skip_heading);
 	}
 
-    public HashMap constructHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
+    public static HashMap constructHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
         HashMap hmap = new HashMap();
         int istart = 0;
         if (skip_heading) istart = 1;
@@ -731,12 +731,12 @@ public class StringUtils {
 		return hmap;
 	}
 
-    public HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value) {
+    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value) {
         boolean skip_heading = true;
         return constructMultiValuedHashMap(v, index_key, index_value, skip_heading);
 	}
 
-    public HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
+    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
 		HashMap hmap = new HashMap();
         int istart = 0;
         if (skip_heading) istart = 1;
