@@ -17,7 +17,7 @@ import gov.nih.nci.evs.api.model.Role;
  * @author Arun
  *
  */
-public class ElasticSearchLoadUtils {
+public class ElasticLoadUtils {
 
   private static final List<String> IGNORE_PROPERTIES = new ArrayList<>();
   

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import gov.nih.nci.evs.api.service.ElasticSearchLoadService;
+import gov.nih.nci.evs.api.service.ElasticLoadService;
 import gov.nih.nci.evs.api.support.LoadConfig;
 import io.swagger.annotations.Api;
 
@@ -22,15 +22,15 @@ import io.swagger.annotations.Api;
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Api(tags = "ElasticSearch load endpoint")
-public class ElasticSearchLoadController {
+@Api(tags = "Elasticsearch load endpoint")
+public class ElasticLoadController {
   
   @Autowired
-  ElasticSearchLoadService loadService;
+  ElasticLoadService loadService;
   
   @RequestMapping(method = RequestMethod.GET, value = "/load/{terminology}",
       produces = "application/json")
-  public ResponseEntity searchSingleTerminology(
+  public ResponseEntity load(
     @PathVariable(value = "terminology") final String terminology,
     @ModelAttribute LoadConfig config)
     throws IOException {

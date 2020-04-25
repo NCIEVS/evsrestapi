@@ -1,8 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import javax.annotation.PostConstruct;
-
-import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,24 +8,19 @@ import org.springframework.stereotype.Service;
 import gov.nih.nci.evs.api.support.LoadConfig;
 
 /**
- * 
+ * The implementation for {@link ElasticLoadService}
  * 
  * @author Arun
  *
  */
 @Service
-public class ElasticSearchLoadServiceImpl implements ElasticSearchLoadService {
+public class ElasticLoadServiceImpl implements ElasticLoadService {
 
-  private static final Logger logger = LoggerFactory.getLogger(ElasticSearchLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(ElasticLoadServiceImpl.class);
   
-  /** Elasticsearch client **/
+  /** The Elasticsearch operations service instance **/
   @Autowired
-  RestHighLevelClient esClient;
-  
-  @PostConstruct
-  public void init() {
-    logger.info("es client :: " + esClient);
-  }
+  ElasticOperationsService esOperations;
   
   @Override
   public void load(LoadConfig config) {
@@ -421,7 +413,6 @@ def get_concepts_from_directory():
     for concept in concepts_in_dir:
         concepts.append(concept.replace(".json", ""))
     return concepts
-
 
 def prepare_concepts_from_file(concepts, index_name):
     for concept_code in concepts:

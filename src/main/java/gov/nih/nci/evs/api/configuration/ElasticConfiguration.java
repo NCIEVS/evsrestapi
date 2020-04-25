@@ -11,9 +11,9 @@ import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.RestClients;
 
 @Configuration
-public class ElasticsearchConfiguration {
+public class ElasticConfiguration {
   
-  private static final Logger logger = LoggerFactory.getLogger(ElasticsearchConfiguration.class);
+  private static final Logger logger = LoggerFactory.getLogger(ElasticConfiguration.class);
   
   @Autowired
   Environment env;
