@@ -553,7 +553,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concept;
   }
 
-  /* see superclass */
+  @Override
   public List<Concept> getConcepts(List<String> conceptCodes, Terminology terminology) throws IOException {
     if (CollectionUtils.isEmpty(conceptCodes)) return Collections.<Concept>emptyList();
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1979,9 +1979,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   
   */
   
+  @Override
   public List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("unique.sources", terminology.getGraph());
+    log.info("query prefix = {}", queryPrefix);
+    String query = queryBuilderService.constructQuery("all.concepts", terminology.getGraph());
+    log.info("query = {}", query);
+    log.info("query url = {}", getQueryURL());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     
     ObjectMapper mapper = new ObjectMapper();

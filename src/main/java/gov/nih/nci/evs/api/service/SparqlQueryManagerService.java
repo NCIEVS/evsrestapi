@@ -470,6 +470,8 @@ public interface SparqlQueryManagerService {
   String getConceptLabel(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
+  List<Concept> getConcepts(List<String> conceptCodes, Terminology terminology) throws IOException;
+  
   /**
    * Returns the properties.
    *
@@ -586,4 +588,7 @@ public interface SparqlQueryManagerService {
    */
   Paths getPaths(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
+
+  
+  List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException;
 }

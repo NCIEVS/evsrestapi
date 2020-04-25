@@ -30,12 +30,6 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   private static final Logger logger = LoggerFactory.getLogger(ElasticOperationsServiceImpl.class);
   
-  /** The index name in ES for concepts **/
-  public static final String CONCEPT_INDEX = "concept";
-  
-  /** The type in ES for concepts **/
-  public static final String CONCEPT_TYPE = "concept";
-  
   /** Elasticsearch client **/
   @Autowired
   RestHighLevelClient esClient;

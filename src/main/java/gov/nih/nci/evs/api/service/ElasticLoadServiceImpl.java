@@ -1,10 +1,28 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.LoadConfig;
 
 /**
@@ -18,13 +36,42 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
   private static final Logger logger = LoggerFactory.getLogger(ElasticLoadServiceImpl.class);
   
+  private static final String CONCEPTS_OUT_DIR = "C:/Users/Arun/Soft/tmp/concepts/";
+  
+  private static final String LOCK_FILE = "DownloadSuccessfull.lck";
+  
+  private static final int DOWNLOAD_BATCH_SIZE = 100;
+  
+  private static final int LOAD_BATCH_SIZE = 100;
+  
   /** The Elasticsearch operations service instance **/
   @Autowired
   ElasticOperationsService esOperations;
   
+  /** The sparql query manager service. */
+  @Autowired
+  private SparqlQueryManagerService sparqlQueryManagerService;
+  
   @Override
-  public void load(LoadConfig config) {
+  public void load(LoadConfig config, Terminology terminology) throws IOException {
 
+    //TODO: 
+    //get all concepts
+    logger.info("Getting all concepts");
+    List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
+    
+//    logger.info("allConcepts = " + allConcepts);
+    if (allConcepts != null) logger.info("all concepts size is {}", allConcepts.size());
+    
+    //download files from stardog in batches
+    downloadConcepts(allConcepts, terminology);
+    
+    //load concepts to es in batches
+    if (false) {
+      loadConceptsFromFiles();
+    }
+    
+    return;
     /**
     
     parser = ArgumentParser(
@@ -237,150 +284,76 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     
     **/
   }
+
+  //download files from stardog in batches
+  private void downloadConcepts(List<Concept> allConcepts, Terminology terminology) throws IOException {
+    if (CollectionUtils.isEmpty(allConcepts)) return;
+    logger.info("Downloading concepts");
+    int start = 0;
+    int end = DOWNLOAD_BATCH_SIZE;
+    
+    int total = allConcepts.size();
+    logger.info("  Total concepts: {}", total);
+    
+    
+    while(start < total) {
+      if (total - start <= DOWNLOAD_BATCH_SIZE) end = total;
+      
+      logger.info(" Processing {} to {}", start+1, end);
+      
+      List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode()).collect(Collectors.toList());
+      List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology);
+      
+      for(Concept concept: concepts) {
+        String json = concept.toString();
+        String filePath = CONCEPTS_OUT_DIR + concept.getCode() + ".json";
+        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+        writer.write(json);
+        writer.close();
+      }
+      
+      start = end;
+      end = end + DOWNLOAD_BATCH_SIZE;
+      
+      //TODO: remove the following line -- temp code for testing
+      break;
+    }
+    
+    Files.createFile(FileSystems.getDefault().getPath(CONCEPTS_OUT_DIR, LOCK_FILE));
+    logger.info("Download process complete!");
+  }
+  
+  //load concepts to es in batches - from files
+  private void loadConceptsFromFiles() throws IOException {
+    File conceptsDir = new File(CONCEPTS_OUT_DIR);
+    File[] files = conceptsDir.listFiles(new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+            return name.toLowerCase().endsWith(".json");
+        }
+    });
+    
+    if (files == null || files.length == 0) {
+      logger.info("No JSON files found to load!");
+      return;
+    }
+    
+    List<Concept> concepts = new ArrayList<>(files.length);
+    ObjectMapper mapper = new ObjectMapper();
+    for(File file: files) {
+      byte[] data = Files.readAllBytes(Paths.get(file.toURI()));
+      Concept concept = mapper.readValue(data, Concept.class);
+      concepts.add(concept);
+    }
+    
+    esOperations.loadConcepts(concepts, ElasticOperationsService.CONCEPT_INDEX, ElasticOperationsService.CONCEPT_TYPE, true);
+  }
+  
+  //load concepts to es in batches
+  private void loadConcepts(List<Concept> concepts) throws IOException {
+    esOperations.loadConcepts(concepts, ElasticOperationsService.CONCEPT_INDEX, ElasticOperationsService.CONCEPT_TYPE, true);
+  }
   
   /**
-
-def create_index(es, index_name, mapping_file, drop_index):
-    # Reading in the index_mapping file
-    with open(mapping_file, 'r') as infile:
-        body = infile.read()
-    log.debug(body)
-
-    if es.indices.exists(index_name) and not drop_index:
-        print_log("Index already exists, so it will not be recreated")
-    elif es.indices.exists(index_name) and drop_index:
-        print_log("Index already exists, it will be dropped and recreated")
-        es.indices.delete(index=index_name)
-        es.indices.create(index=index_name, body=body)
-    else:
-        print_log("Creating new index")
-        es.indices.create(index=index_name, body=body)
-
-
-def download_concept(conceptCode):
-    url = API_ENDPOINT + conceptCode
-    r = requests.get(url)
-    if r.status_code != 200:
-        msg = "Problem Status Code: " + str(r.status_code) + " Concept: " + conceptCode
-        print_log(msg)
-        sys.stderr.write(msg + "\n")
-        sys.exit(1)
-
-    output_file = open(CONCEPT_OUTPUT_DIR + conceptCode + ".json", "w")
-    print(r.text, file=output_file)
-    output_file.close()
-
-    return r.json()
-
-def download_concept_files_batch(concepts_list, clean):
-    number_of_concepts = len(concepts_list)
-    print("Number of Concepts: " + str(number_of_concepts))
-    if clean:
-        shutil.rmtree(CONCEPT_OUTPUT_DIR)
-        os.makedirs(CONCEPT_OUTPUT_DIR)
-    start = 0
-    end = 1000
-    while (start < number_of_concepts):
-        print("Downloading concepts: " + str(start) + " to " + str(end))
-        in_clause = "'" + "', '".join(concepts_list[start:end]) + "'"
-        start = end
-        end = end + 1000
-        if end > number_of_concepts:
-            end = number_of_concepts
-
-        concepts = eu.getBulkConcepts(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        properties = eu.getAllProperties(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-
-        eu.mergeConceptsAndProperties(concepts, properties)
-        del properties
-
-        axioms = eu.getAllAxioms(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndAxioms(concepts, axioms)
-        del axioms
-
-        subclasses = eu.getAllSubclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndSubclasses(concepts, subclasses)
-        del subclasses
-
-        superclasses = eu.getAllSuperclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndSuperclasses(concepts, superclasses)
-        del superclasses
-
-        associations = eu.getAllAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndAssociations(concepts, associations)
-        del associations
-
-        inverse_associations = eu.getAllInverseAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndInverseAssociations(concepts, inverse_associations)
-        del inverse_associations
-
-        roles = eu.getAllRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndRoles(concepts, roles)
-        del roles
-
-        inverse_roles = eu.getAllInverseRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndInverseRoles(concepts, inverse_roles)
-        del inverse_roles
-
-        disjoint_withs = eu.getAllDisjointWith(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndDisjointWith(concepts, disjoint_withs)
-        del disjoint_withs
-
-        for code, concept in concepts.items():
-            eu.addAdditionalProperties(concept)
-            del concept['properties']
-            eu.addFullSynonyms(concept)
-            eu.addDefinitions(concept)
-            eu.addAltDefinitions(concept)
-            eu.addMapsTo(concept)
-            eu.addGO_Annotation(concept)
-            del concept['axioms']
-            eu.addSubclasses(concept)
-            del concept['subclasses']
-            eu.addSuperclasses(concept)
-            del concept['superclasses']
-            eu.addAssociations(concept)
-            del concept['associations']
-            eu.addInverseAssociations(concept)
-            del concept['inverse_associations']
-            eu.addRoles(concept)
-            del concept['roles']
-            eu.addInverseRoles(concept)
-            del concept['inverse_roles']
-            eu.addDisjointWith(concept)
-            del concept['disjoint_with']
-
-        for code, concept in concepts.items():
-            with open(CONCEPT_OUTPUT_DIR + concept['Code'] + ".json", "w") as output_file:
-                print(json.dumps(concept, indent=2, sort_keys=False), file=output_file)
-                output_file.close()
-
-    os.system('touch {}'.format(CONCEPT_OUTPUT_DIR + "/DownloadSuccessfull.lck"))
-    print_log("Finished Download Process")
-
-
-def download_concept_files(concepts, processors, clean):
-    print_log("Starting Download Process")
-    if clean:
-        shutil.rmtree(CONCEPT_OUTPUT_DIR)
-        os.makedirs(CONCEPT_OUTPUT_DIR)
-    download_using_parallel_processing(concepts, processors)
-    #
-    # Create a semaphore/lock file to indicate download was successfull
-    # We will check for this files existence before attemping to upload
-    # into ElasticSearch
-    os.system('touch {}'.format(CONCEPT_OUTPUT_DIR + "/DownloadSuccessfull.lck"))
-    print_log("Finished Download Process")
-
-
-def download_using_parallel_processing(concepts, processors):
-    pool = Pool(processors)
-    counter = 0;
-    for result in pool.imap_unordered(download_concept, concepts):
-        counter += 1
-        if counter % 100 == 0:
-          print_log("  Count: " + str(counter))
-
 
 def get_concepts_from_es(es, index_name):
     concept_codes = []
@@ -414,31 +387,6 @@ def get_concepts_from_directory():
         concepts.append(concept.replace(".json", ""))
     return concepts
 
-def prepare_concepts_from_file(concepts, index_name):
-    for concept_code in concepts:
-        with open(CONCEPT_INPUT_DIR + concept_code + ".json", 'r') as f:
-            json_concept = json.load(f)
-        yield  {
-            '_op_type': "index",
-            '_index': index_name,
-            '_type': "concept",
-            '_id': concept_code,
-            '_source': json_concept
-        }
-
-
-def prepare_concepts_from_download(concepts, index_name):
-    for concept_code in concepts:
-        json_concept = download_concept(concept_code)
-        yield  {
-            '_op_type': "index",
-            '_index': index_name,
-            '_type': "concept",
-            '_id': concept_code,
-            '_source': json_concept
-        }
-
-
 def load_concept_bulk_file(es, index_name, concepts):
     count = 0
     for ok, result in streaming_bulk(
@@ -455,61 +403,5 @@ def load_concept_bulk_file(es, index_name, concepts):
         count += 1
         if count % 100 == 0:
             print_log("  Bulk Load: " + str(count))
-
-
-def load_concept_real_time(es, index_name, concepts):
-    count = 0
-    bulk_chunks = []
-    for concept_code in concepts:
-        json_concept = download_concept(concept_code)
-        obj = {
-            '_op_type': "index",
-            '_index': index_name,
-            '_type': "concept",
-            '_id': concept_code,
-            '_source': json_concept
-        }
-        bulk_chunks.append(obj)
-        count += 1
-        if count % 100 == 0:
-            for ok, result in streaming_bulk(
-                es,
-                bulk_chunks,
-                request_timeout=120,
-                raise_on_error=False,
-                chunk_size=100
-            ):
-                action, result = result.popitem()
-                doc_id = '/%s/doc/%s' % (index_name, result['_id'])
-                if not ok:
-                    print_log('Failed to %s document %s: %r' % (action, doc_id, result)) 
-
-            bulk_chunks = []
-            print_log("  Real Time Load: " + str(count))
-
-    if len(bulk_chunks) > 0:
-        for ok, result in streaming_bulk(
-            es,
-            bulk_chunks,
-            request_timeout=120,
-            raise_on_error=False,
-            chunk_size=100
-        ):
-            action, result = result.popitem()
-            doc_id = '/%s/doc/%s' % (index_name, result['_id'])
-            if not ok:
-                print_log('Failed to %s document %s: %r' % (action, doc_id, result)) 
-
-        print_log("  Real Time Load: " +str(count))
-
-
-def print_log(msg):
-    global log_file
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(now, ": ", msg, file=sys.stdout, flush=True, sep="")
-    print(now, ": ", msg, file=log_file, flush=True, sep="")
-    log.debug(msg)
-
-
   **/
 }

@@ -1,5 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
+
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.LoadConfig;
 
 /**
@@ -12,6 +15,6 @@ import gov.nih.nci.evs.api.support.LoadConfig;
  */
 public interface ElasticLoadService {
 
-  void load(LoadConfig config);
+  void load(LoadConfig config, Terminology terminology) throws IOException;
 
 }

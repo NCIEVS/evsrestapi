@@ -12,6 +12,12 @@ import gov.nih.nci.evs.api.model.Concept;
  *
  */
 public interface ElasticOperationsService {
+  /** The index name in ES for concepts **/
+  public static final String CONCEPT_INDEX = "concept-test";
+  
+  /** The type in ES for concepts **/
+  public static final String CONCEPT_TYPE = "concept-test";
+  
   void createIndex(String indexName, boolean force) throws IOException;
   void loadConcepts(List<Concept> concepts, String index, String type, boolean async) throws IOException;
 }
