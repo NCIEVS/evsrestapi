@@ -275,7 +275,6 @@ public class SearchController {
       for (final Concept result : results.getConcepts()) {
         final Concept concept = sparqlQueryManagerService.getConcept(result.getCode(), term, ip);
         ConceptUtils.applyHighlights(concept, result.getHighlights());
-        concept.setTerminology(terminology);
         // Clear highlights now that they have been applied
         concept.setHighlights(null);
         concepts.add(concept);

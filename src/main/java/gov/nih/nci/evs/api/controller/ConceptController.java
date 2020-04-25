@@ -101,7 +101,6 @@ public class ConceptController {
       final Concept concept = 
           sparqlQueryManagerService.getConcept(code, term, ip);
       if (concept != null && concept.getCode() != null) {
-        concept.setTerminology(terminology);
         concepts.add(concept);
       }
     }
@@ -154,7 +153,6 @@ public class ConceptController {
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
     }
-    concept.setTerminology(terminology);
     return concept;
   }
 

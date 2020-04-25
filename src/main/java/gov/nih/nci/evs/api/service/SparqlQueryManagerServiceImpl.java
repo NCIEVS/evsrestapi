@@ -541,6 +541,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     final Concept concept = new Concept();
+    concept.setTerminology(terminology.getTerminology());
+    concept.setVersion(terminology.getVersion());
+
     final List<Property> properties =
         conceptType.equals("concept") ? getConceptProperties(conceptCode, terminology)
             : getMetadataProperties(conceptCode, terminology);
