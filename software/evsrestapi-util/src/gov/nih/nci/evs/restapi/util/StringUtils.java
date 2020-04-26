@@ -713,36 +713,48 @@ public class StringUtils {
 	}
 
     public static HashMap constructHashMap(Vector v, int index_key, int index_value) {
-        boolean skip_heading = true;
-        return constructHashMap(v, index_key, index_value, skip_heading);
+		char delim = '|';
+		return constructHashMap(v, index_key, index_value, false, delim);
 	}
 
-    public static HashMap constructHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
+    public static HashMap constructHashMap(Vector v, int index_key, int index_value, char delim) {
+		return constructHashMap(v, index_key, index_value, false, delim);
+	}
+
+    public static HashMap constructHashMap(Vector v, int index_key, int index_value, boolean skip_heading, char delim) {
         HashMap hmap = new HashMap();
         int istart = 0;
         if (skip_heading) istart = 1;
         for (int i=istart; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			String key = (String) u.elementAt(index_key);
-			String value = (String) u.elementAt(index_value);
-			hmap.put(key, value);
+			Vector u = StringUtils.parseData(line, delim);
+
+			if (index_key < u.size() && index_value < u.size()) {
+				String key = (String) u.elementAt(index_key);
+				String value = (String) u.elementAt(index_value);
+				hmap.put(key, value);
+			}
 		}
 		return hmap;
 	}
 
     public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value) {
-        boolean skip_heading = true;
-        return constructMultiValuedHashMap(v, index_key, index_value, skip_heading);
+		char delim = '|';
+		return constructMultiValuedHashMap(v, index_key, index_value, false, delim);
 	}
 
-    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, boolean skip_heading) {
+
+    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, char delim) {
+		return constructMultiValuedHashMap(v, index_key, index_value, false, delim);
+	}
+
+    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, boolean skip_heading, char delim) {
 		HashMap hmap = new HashMap();
         int istart = 0;
         if (skip_heading) istart = 1;
         for (int i=istart; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
+			Vector u = StringUtils.parseData(t, delim);
 			String label = (String) u.elementAt(0);
 			String code = (String) u.elementAt(1);
 			String value = (String) u.elementAt(3);
