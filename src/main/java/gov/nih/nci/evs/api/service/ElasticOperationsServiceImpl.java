@@ -12,10 +12,14 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 
@@ -29,6 +33,8 @@ import gov.nih.nci.evs.api.model.Concept;
 public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   private static final Logger logger = LoggerFactory.getLogger(ElasticOperationsServiceImpl.class);
+  
+  private static final TimeValue DEFAULT_BULK_TIMEOUT = TimeValue.timeValueMinutes(10);
   
   /** Elasticsearch client **/
   @Autowired
@@ -51,11 +57,14 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   }
 
   @Override
-  public void loadConcepts(List<Concept> concepts, String index, String type, boolean async) throws IOException {
+  public void loadConcepts(List<Concept> concepts, String index, String type, boolean async, TimeValue timeout) throws IOException {
     BulkRequest bulkRequest = new BulkRequest(index, type);
+    bulkRequest.timeout(timeout == null ? DEFAULT_BULK_TIMEOUT : timeout);
+    
+    ObjectMapper mapper = new ObjectMapper();
     
     for(Concept concept: concepts) {
-      bulkRequest.add(new IndexRequest().id(concept.getCode()).source(concept));
+      bulkRequest.add( new IndexRequest().id(concept.getCode()).source(mapper.writeValueAsString(concept), XContentType.JSON) );
     }
     
     if (async) {

@@ -63,6 +63,11 @@ nci:
       generatedFilePath: ${NCI_EVS_API_GENERATED_FILE_PATH:${user.home}/apps/evsrestapi/data/}
       forceFileGeneration: ${NCI_EVS_API_FORCE_FILE_GENERATION:false}
       metricLogDirectory:  ${NCI_EVS_API_METRIC_LOG_PATH:${user.home}/apps/evsrestapi/logs/}
+    bulkload:
+      conceptsDir: ${NCI_EVS_BULK_LOAD_CONCEPTS_DIR:/tmp/}
+      lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
+      downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
+      indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}
     stardog:
       host: ${STARDOG_HOST:localhost}
       port: ${STARDOG_PORT:5820}

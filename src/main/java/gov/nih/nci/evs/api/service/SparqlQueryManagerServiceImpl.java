@@ -585,7 +585,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Map<String, List<Association>> associationMap = getAssociations(conceptCodes, terminology);
     Map<String, List<Association>> inverseAssociationMap = getInverseAssociations(conceptCodes, terminology);
     Map<String, List<Role>> roleMap = getRoles(conceptCodes, terminology);
-    Map<String, List<Role>> inverseRoleMap = getInverseRoles(conceptCodes, terminology);
+//    Map<String, List<Role>> inverseRoleMap = getInverseRoles(conceptCodes, terminology);
     Map<String, List<DisjointWith>> disjointWithMap = getDisjointWith(conceptCodes, terminology);
     
     for(Concept concept: concepts) {
@@ -645,7 +645,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setAssociations(associationMap.get(conceptCode));
       concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
       concept.setRoles(roleMap.get(conceptCode));
-      concept.setInverseRoles(inverseRoleMap.get(conceptCode));
+//      concept.setInverseRoles(inverseRoleMap.get(conceptCode));
       concept.setMaps(EVSUtils.getMapsTo(axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
     }
@@ -706,8 +706,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return properties;
   }
 
-  /* see superclass */
-  public Map<String, List<Property>> getProperties(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<Property>> getProperties(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -827,8 +826,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return subclasses;
   }
 
-  /* see superclass */
-  public Map<String, List<Concept>> getSubconcepts(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<Concept>> getSubconcepts(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -892,8 +890,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return superclasses;
   }
 
-  /* see superclass */
-  public Map<String, List<Concept>> getSuperconcepts(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<Concept>> getSuperconcepts(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -958,8 +955,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  /* see superclass */
-  public Map<String, List<Association>> getAssociations(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<Association>> getAssociations(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -1025,8 +1021,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  /* see superclass */
-  public Map<String, List<Association>> getInverseAssociations(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<Association>> getInverseAssociations(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -1092,8 +1087,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  /* see superclass */
-  public Map<String, List<Role>> getInverseRoles(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<Role>> getInverseRoles(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -1159,8 +1153,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  /* see superclass */
-  public Map<String, List<Role>> getRoles(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<Role>> getRoles(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -1226,8 +1219,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return disjointWithList;
   }
 
-  /* see superclass */
-  public Map<String, List<DisjointWith>> getDisjointWith(List<String> conceptCodes, Terminology terminology)
+  private Map<String, List<DisjointWith>> getDisjointWith(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
@@ -1310,7 +1302,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return axioms;
   }
 
-  public Map<String, List<Axiom>> getAxioms(List<String> conceptCodes, Terminology terminology, boolean qualifierFlag)
+  private Map<String, List<Axiom>> getAxioms(List<String> conceptCodes, Terminology terminology, boolean qualifierFlag)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
