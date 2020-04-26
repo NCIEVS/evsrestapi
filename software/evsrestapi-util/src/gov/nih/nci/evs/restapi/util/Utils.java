@@ -90,6 +90,26 @@ public class Utils {
 		System.out.println("\n");
 	}
 
+    public static void dumpVector(String label, Vector v, boolean display_label, boolean display_index) {
+		if (display_label) {
+			System.out.println("\n" + label + ":");
+		}
+		if (v.size() == 0) {
+			System.out.println("\tNone");
+			return;
+		}
+        for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			int j = i+1;
+			if (display_index) {
+				System.out.println("\t(" + j + ") " + t);
+			} else {
+				System.out.println("\t" + t);
+			}
+		}
+		System.out.println("\n");
+	}
+
     public static void dumpArrayList(String label, ArrayList list) {
 		System.out.println("\n" + label + ":");
 		if (list.size() == 0) {
