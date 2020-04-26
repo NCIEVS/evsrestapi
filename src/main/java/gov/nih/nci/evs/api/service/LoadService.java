@@ -13,7 +13,7 @@ import gov.nih.nci.evs.api.support.LoadConfig;
  * @author Arun
  *
  */
-public interface ElasticLoadService {
+public interface LoadService {
 
   void load(LoadConfig config, Terminology terminology) throws IOException;
 

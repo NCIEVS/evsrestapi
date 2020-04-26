@@ -31,15 +31,15 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.LoadConfig;
 
 /**
- * The implementation for {@link ElasticLoadService}
+ * The implementation for {@link LoadService}
  * 
  * @author Arun
  *
  */
 @Service
-public class ElasticLoadServiceImpl implements ElasticLoadService {
+public class LoadServiceImpl implements LoadService {
 
-  private static final Logger logger = LoggerFactory.getLogger(ElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(LoadServiceImpl.class);
   
   @Value("${nci.evs.bulkload.conceptsDir}")
   private String CONCEPTS_OUT_DIR;
