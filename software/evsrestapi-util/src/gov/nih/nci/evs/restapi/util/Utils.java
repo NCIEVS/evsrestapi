@@ -64,6 +64,17 @@ public class Utils {
 		System.out.println("\n" + label + ":");
 		Iterator it = hmap.keySet().iterator();
 		while (it.hasNext()) {
+			String key = (String) it.next();
+			String value = (String) (String) hmap.get(key);
+			System.out.println(key + " --> " + value);
+		}
+		System.out.println("\n");
+	}
+
+    public static void dumpMultiValuedHashMap(String label, HashMap hmap) {
+		System.out.println("\n" + label + ":");
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
 			String nv = (String) it.next();
 			System.out.println("\n");
 
