@@ -22,7 +22,7 @@ import org.json.*;
 
 /**
  * <!-- LICENSE_TEXT_START -->
- * Copyright 2020 MSC. This software was developed in conjunction
+ * Copyright 2008-2017 NGIS. This software was developed in conjunction
  * with the National Cancer Institute, and so to the extent government
  * employees are co-authors, any rights in such works shall be subject
  * to Title 17 of the United States Code, section 105.
@@ -37,21 +37,21 @@ import org.json.*;
  *      with the distribution.
  *   2. The end-user documentation included with the redistribution,
  *      if any, must include the following acknowledgment:
- *      "This product includes software developed by MSC and the National
+ *      "This product includes software developed by NGIS and the National
  *      Cancer Institute."   If no such end-user documentation is to be
  *      included, this acknowledgment shall appear in the software itself,
  *      wherever such third-party acknowledgments normally appear.
- *   3. The names "The National Cancer Institute", "NCI" and "MSC" must
+ *   3. The names "The National Cancer Institute", "NCI" and "NGIS" must
  *      not be used to endorse or promote products derived from this software.
  *   4. This license does not authorize the incorporation of this software
  *      into any third party proprietary programs. This license does not
  *      authorize the recipient to use any trademarks owned by either NCI
- *      or MSC
+ *      or NGIS
  *   5. THIS SOFTWARE IS PROVIDED "AS IS," AND ANY EXPRESSED OR IMPLIED
  *      WARRANTIES, (INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  *      OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE) ARE
  *      DISCLAIMED. IN NO EVENT SHALL THE NATIONAL CANCER INSTITUTE,
- *      MSC, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *      NGIS, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
  *      INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  *      BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  *      LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
@@ -67,36 +67,34 @@ import org.json.*;
  * @version 1.0
  *
  * Modification history:
- *     Initial implementation kim.ong@nih.gov
+ *     Initial implementation kim.ong@ngc.com
  *
  */
 
 
-public class CASProcessor {
+public class PropertyQAProcessor {
     String named_graph = null;
     String serviceUrl = null;
 
     private OWLSPARQLUtils owlSPARQLUtils = null;
-    private Vector unii_link = null;
-	private Vector unii_data = null;
 	private String username = null;
 	private String password = null;
 	private String namedGraph = null;
 	private static String ncit_unii_txt_file = "ncit_unii.txt";
     private HashMap code2LabelMap = null;
-    private HashMap code2CasRegistryMap = null;
-    private HashMap code2UNIIMap = null;
-    private String unii_file = "FDA_UNII_Code.txt";
-    private String case_registry_file = "CAS_Registry.txt";
-    private HashMap ncit_code2CasRegistryMap = null;
-    private HashMap ncit_code2UNIIMap = null;
+    private HashMap code2PropertyMap = null;
+    private String property_file = null;
+    private HashMap ncit_code2PropertyMap = null;
+    private Vector supported_properties = null;
+    private HashMap supported_properties_hmap = null;
+    private String propertyName = null;
 
-	public CASProcessor() {
+	public PropertyQAProcessor() {
 
 	}
 
 
-	public CASProcessor(String serviceUrl, String namedGraph) {
+	public PropertyQAProcessor(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
 		this.namedGraph = namedGraph;
 		System.out.println("serviceUrl: " + this.serviceUrl);
@@ -104,88 +102,44 @@ public class CASProcessor {
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
 		owlSPARQLUtils.set_named_graph(this.namedGraph);
 		new MetadataUtils(serviceUrl).dumpNameVersion2NamedGraphMap();
-
+		supported_properties = owlSPARQLUtils.getSupportedProperties(this.namedGraph);
+		supported_properties_hmap = gov.nih.nci.evs.restapi.util.StringUtils.constructHashMap(supported_properties, 0, 1, '|');
     }
 
-    private void initialize() {
+    private void initialize(String propertyName) {
+        if (!supported_properties_hmap.containsKey(propertyName)) {
+			System.out.println("Unidentifiable property name: " + propertyName + ". Program aborts.");
+			System.exit(1);
+		}
+		this.propertyName = propertyName;
+		property_file = propertyName + ".txt";
 		code2LabelMap = new HashMap();
-        code2CasRegistryMap = new HashMap();
-        code2UNIIMap = new HashMap();
+        code2PropertyMap = new HashMap();
+
         // single valued
         Vector v = null;
-        if (!new File(unii_file).exists()) {
-			System.out.println(unii_file + " does not exist.");
-			Vector w = owlSPARQLUtils.findConceptsWithProperty(this.namedGraph, "FDA_UNII_Code");
-			Utils.saveToFile(unii_file, w);
+        if (!new File(property_file).exists()) {
+			System.out.println(property_file + " does not exist.");
+			Vector w = owlSPARQLUtils.findConceptsWithProperty(this.namedGraph, propertyName);
+			Utils.saveToFile(property_file, w);
 		}
-		v = Utils.readFile(unii_file);
-        System.out.println("Number of records in " + unii_file + ": " + v.size());
-
+		v = Utils.readFile(property_file);
+        System.out.println("Number of records in " + property_file + ": " + v.size());
         code2LabelMap = gov.nih.nci.evs.restapi.util.StringUtils.constructHashMap(v, 1, 0, '|');
-        ncit_code2UNIIMap = gov.nih.nci.evs.restapi.util.StringUtils.constructHashMap(v, 1, 3, '|');
+        // use multiple valued
+        ncit_code2PropertyMap = gov.nih.nci.evs.restapi.util.StringUtils.constructMultiValuedHashMap(v, 1, 3, '|');
 
-        // multiple valued
-
-        if (!new File(case_registry_file).exists()) {
-			System.out.println(case_registry_file + " does not exist.");
-			Vector w = owlSPARQLUtils.findConceptsWithProperty(this.namedGraph, "CAS_Registry");
-			Utils.saveToFile(case_registry_file, w);
-		}
-        v = Utils.readFile(case_registry_file);
-        HashMap hmap = gov.nih.nci.evs.restapi.util.StringUtils.constructHashMap(v, 1, 0, '|');
-        Iterator it = hmap.keySet().iterator();
+        Iterator it = ncit_code2PropertyMap.keySet().iterator();
         while (it.hasNext()) {
 			String key = (String) it.next();
 			if (!code2LabelMap.containsKey(key)) {
-				String value = (String) hmap.get(key);
+				String value = (String) ncit_code2PropertyMap.get(key);
 				code2LabelMap.put(key, value);
 			}
 		}
 
-
-		//String test_label = (String) code2LabelMap.get(test_code);
-		//System.out.println("**********" + test_code + " -> " + test_label);
-
-
-		//Utils.dumpHashMap("code2LabelMap", code2LabelMap);
-
-        System.out.println("Number of records in " + case_registry_file + ": " + v.size());
-        ncit_code2CasRegistryMap = gov.nih.nci.evs.restapi.util.StringUtils.constructMultiValuedHashMap(v, 1, 3, '|');
-
-		System.out.println(unii_file + ": " + ncit_code2UNIIMap.keySet().size());
-		System.out.println(case_registry_file + ": " + ncit_code2CasRegistryMap.keySet().size());
-
-
-	}
-
-
-
-    public void run() {
-		String property_name = "CAS_Registry";
-		String property_value = null;
-		Vector v = owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
-		v = new SortUtils().quickSort(v);
-		Utils.saveToFile(property_name + ".txt", v);
-
-		property_name = "FDA_UNII_Code";
-		property_value = null;
-		v = owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
-		v = new SortUtils().quickSort(v);
-		Utils.saveToFile(property_name + ".txt", v);
-	}
-
-
-/*
-        (1) NCIt Subset Code
-        (2) NCIt Subset Name
-        (3) NCIt Code
-        (4) NCIt PT
-        (5) NCIt Synonyms
-        (6) Definition
-        (7) CAS Registry
-        (8) FDA UNII Code
-*/
-
+        System.out.println("Number of records in " + property_file + ": " + v.size());
+    }
 
 	public static int countDelimiters(String line, char delim) {
 		int knt = 0;
@@ -220,22 +174,16 @@ public class CASProcessor {
         Vector v = ExcelReader.toDelimited(excelfile, delim);
 		String heading = (String) v.elementAt(0);
 		Vector u = StringUtils.parseData(heading, delim);
-		int registry_col_index = -1;
+		int property_col_index = -1;
+		String target = propertyName.replace("_", " ");
 		for (int i=0; i<u.size(); i++) {
 			String t = (String) u.elementAt(i);
-			if (t.indexOf("CAS Registry") != -1) {
-				registry_col_index = i;
+			if (t.indexOf(target) != -1) {
+				property_col_index = i;
 				break;
 			}
 		}
-		int fda_unii_code_col_index = -1;
-		for (int i=0; i<u.size(); i++) {
-			String t = (String) u.elementAt(i);
-			if (t.indexOf("FDA UNII Code") != -1) {
-				fda_unii_code_col_index = i;
-				break;
-			}
-		}
+
 		int ncit_code_col_index = -1;
 		for (int i=0; i<u.size(); i++) {
 			String t = (String) u.elementAt(i);
@@ -245,18 +193,18 @@ public class CASProcessor {
 			}
 		}
 		System.out.println("ncit_code_col_index: " + ncit_code_col_index);
-		System.out.println("registry_col_index: " + registry_col_index);
-		System.out.println("fda_unii_code_col_index: " + fda_unii_code_col_index);
-        HashMap excel_code2CasRegistryMap = gov.nih.nci.evs.restapi.util.StringUtils.constructHashMap(v, ncit_code_col_index, registry_col_index, true, delim);
-        HashMap excel_code2UNIIMap = gov.nih.nci.evs.restapi.util.StringUtils.constructHashMap(v, ncit_code_col_index, fda_unii_code_col_index, true, delim);
-		reviewCode2RegistryMap(excel_code2CasRegistryMap);
-		reviewCode2UNIIMap(code2UNIIMap);
+		System.out.println("property_col_index: " + property_col_index);
+        HashMap excel_code2PropertyMap = gov.nih.nci.evs.restapi.util.StringUtils.constructHashMap(v, ncit_code_col_index, property_col_index, true, delim);
+		Utils.dumpHashMap("excel_code2PropertyMap", excel_code2PropertyMap);
+		reviewCode2PropertyMap(excel_code2PropertyMap);
 	}
 
     public static String scanCharInFile(String filename) {
+		System.out.println("Excel file: " + filename);
 		String delim_str = "|$\t@%#";
 		for (int i=0; i<delim_str.length(); i++) {
 			char ch = delim_str.charAt(i);
+			System.out.println("\tdelimiter: " + ch);
 			Vector v = ExcelReader.toDelimited(filename, ch);
 			String workfile = "tmp.txt";
 			Utils.saveToFile(workfile, v);
@@ -282,14 +230,6 @@ public class CASProcessor {
 		return StringUtils.parseData(t, delimStr);
 	}
 
-
-/*
-    private HashMap code2CasRegistryMap = null;
-    private HashMap code2UNIIMap = null;
- */
-    //CasRegistry is multi-valued
-
-
     public Vector getExcelDataMap(HashMap hmap) {
 		Vector v = new Vector();
 		Iterator it = hmap.keySet().iterator();
@@ -302,35 +242,7 @@ public class CASProcessor {
 		return v;
 	}
 
-	public void reviewCode2UNIIMap(HashMap hmap) {
-		Vector warnings = new Vector();
-		Vector v = getExcelDataMap(hmap);
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			t = t.replace(" || ", "$");
-			Vector u = StringUtils.parseData(t, '|');
-			String ncit_code = (String) u.elementAt(0);
-			String ncit_label = (String) code2LabelMap.get(ncit_code);
-			String value = (String) u.elementAt(2);
-			String ncit_unii_code = (String) ncit_code2UNIIMap.get(ncit_code);
-			if (value == null || value.length() == 0) {
-				warnings.add("WARNING: missing FDA_UNII_Code - " + ncit_label + " (" + ncit_code + ")");
-				warnings.add("\tFDA_UNII_Code: " + ncit_unii_code);
-			} else if (value.compareTo(ncit_unii_code) != 0) {
-				warnings.add("WARNING: miss matched FDA_UNII_Code - " + ncit_label + " (" + ncit_code + ")");
-				warnings.add("\tFDA_UNII_Code: " + ncit_unii_code);
-				warnings.add("\tExcel data: " + value);
-			}
-		}
-		if (warnings.size() == 0) {
-			warnings.add("No FDA UNII Code error is detected.");
-		}
-		Utils.saveToFile("warnings_fda_unii_" + StringUtils.getToday() + ".txt", warnings);
-	}
-
-
-	public void reviewCode2RegistryMap(HashMap hmap) {
-		//Utils.dumpVector("excel_registry.txt", getExcelDataMap(hmap));
+	public void reviewCode2PropertyMap(HashMap hmap) {
 		Vector warnings = new Vector();
 		Vector v = getExcelDataMap(hmap);
 		for (int i=0; i<v.size(); i++) {
@@ -343,7 +255,7 @@ public class CASProcessor {
 			String values = (String) u.elementAt(2);
 			u = StringUtils.parseData(values, '$');
 			u = new SortUtils().quickSort(u);
-			Vector w = getNCItRegistryData(ncit_code);
+			Vector w = getNCItPropertyData(ncit_code);
 			w = new SortUtils().quickSort(w);
 
 			if (u == null && w == null) {
@@ -363,39 +275,43 @@ public class CASProcessor {
 				if (w.size() != u.size()) {
 					System.out.println(ncit_label + " (" + ncit_code + ")");
 					Utils.dumpVector(ncit_label + " (" + ncit_code + ")", u);
-					System.out.println("WARNING: the number of CAS Registry codes is different from what's in the NCIt.");
+					System.out.println("WARNING: the number of " + propertyName + " properties is different from whatg are in the NCIt.");
 					Utils.dumpVector(ncit_label + " (" + ncit_code + ")", w);
 
 					warnings.add(ncit_label + " (" + ncit_code + ")");
-					warnings.add("WARNING: the number of CAS Registry codes is different from what's in the NCIt.");
+					warnings.add("WARNING: the number of " + propertyName + " properties is different from what are in the NCIt.");
 
 				} else {
 					boolean same_result = true;
 					for (int k=0; k<w.size(); k++) {
 						String value_1 = (String) u.elementAt(k);
 						String value_2 = (String) w.elementAt(k);
+
 						if (value_1.compareTo(value_2) != 0) {
-							System.out.println(ncit_label + " (" + ncit_code + ")");
+
+							System.out.println("value_1(" + k + ") " + value_1);
+							System.out.println("value_2(" + k + ") " + value_2);
+
+							//System.out.println(ncit_label + " (" + ncit_code + ")");
 							Utils.dumpVector(ncit_label + " (" + ncit_code + ")", u);
-
-							System.out.println("WARNING: the values of CAS Registry codes are different from what's in the NCIt.");
-							Utils.dumpVector(ncit_label + " (" + ncit_code + ")", w);
-
+							System.out.println("\tWARNING: the values of " + propertyName + " are different from what's in the NCIt.");
 							warnings.add(ncit_label + " (" + ncit_code + ")");
-							warnings.add("WARNING: the values of CAS Registry codes are different from what's in the NCIt.");
+							warnings.add("WARNING: the values of " + propertyName + " are different from what's in the NCIt.");
 						}
 					}
 				}
 			}
 		}
 		if (warnings.size() == 0) {
-			warnings.add("No CAS Registry code error is detected.");
+			warnings.add("No " + propertyName + " error is detected.");
 		}
-		Utils.saveToFile("warnings_cas_registry_" + StringUtils.getToday() + ".txt", warnings);
+
+		String property_name_lc = propertyName.toLowerCase();
+		Utils.saveToFile("warnings_" + property_name_lc + "_" + StringUtils.getToday() + ".txt", warnings);
 	}
 
-    public Vector getNCItRegistryData(String code) {
-		return (Vector) ncit_code2CasRegistryMap.get(code);
+    public Vector getNCItPropertyData(String code) {
+		return (Vector) ncit_code2PropertyMap.get(code);
 	}
 
 	public Vector getSupportedProperties() {
@@ -403,15 +319,21 @@ public class CASProcessor {
 	}
 
     public static void main(String[] args) {
+
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
 		String namedGraph = args[1];
-		String excelfile = args[2];
+		String propertyName = args[2];
+		String excelfile = args[3];
+
 		String filename = "GDC_Therapeutic_Agent_Terminology-Task-499_04-24-2020.txt";
-		CASProcessor processor = new CASProcessor(serviceUrl, namedGraph);
-		processor.initialize();
+		PropertyQAProcessor processor = new PropertyQAProcessor(serviceUrl, namedGraph);
+		processor.initialize(propertyName);
         processor.runQA(excelfile);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
+
 }
 
+//C157712$GDC Therapeutic Agent Terminology$C136987$Anti-HER3 Antibody-drug Conjugate U3 1402$$An antibody-drug conjugate (ADC) composed of patritumab, a monoclonal antibody directed against the human epidermal growth factor receptor HER3 (ErbB3),linked to the topoisomerase I inhibitor DX 8951, a semisynthetic, water-soluble derivative of camptothecin, with potential antineoplastic activity. Upon administration of the anti-HER3 ADC U3 1402, the patritumab moiety targets and binds to HER3. After internalization, DX 8951 inhibits topoisomerase I activity by stabilizing the complex between topoisomerase I and DNA and inhibiting religation of DNA breaks, thereby inhibiting DNA replication and triggering apoptotic cell death. HER3, a member of the epidermal growth factor receptor (EGFR) family of receptor tyrosine kinases, is frequently overexpressed in tumors.$$
+//Patritumab Deruxtecan|C136987|CAS_Registry|2227102-46-5
