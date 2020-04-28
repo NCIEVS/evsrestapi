@@ -63,6 +63,15 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 public class StringUtils {
 
+	public static Vector parseData(String t, String delimStr) {
+		String s = replace(t, delimStr, "|");
+		return StringUtils.parseData(s, '|');
+	}
+
+	public static String replace(String s, String from, String to) {
+		return s.replace(from, to);
+	}
+
     public static Vector parseData(String line, char delimiter) {
 		if(line == null) return null;
 		Vector w = new Vector();
@@ -84,22 +93,6 @@ public class StringUtils {
 		if (line == null) return null;
         String tab = "|";
         return parseData(line, tab);
-    }
-
-
-    public static Vector<String> parseData(String line, String tab) {
-		if (line == null) return null;
-		if (tab.length() == 1) {
-			char delimiter = tab.charAt(0);
-			return parseData(line, delimiter);
-		}
-        Vector data_vec = new Vector();
-        StringTokenizer st = new StringTokenizer(line, tab);
-        while (st.hasMoreTokens()) {
-            String value = st.nextToken();
-            data_vec.add(value);
-        }
-        return data_vec;
     }
 
     public static String encode(String line) {
@@ -712,4 +705,61 @@ public class StringUtils {
 		return keys;
 	}
 
+    public static HashMap constructHashMap(Vector v, int index_key, int index_value) {
+		char delim = '|';
+		return constructHashMap(v, index_key, index_value, false, delim);
+	}
+
+    public static HashMap constructHashMap(Vector v, int index_key, int index_value, char delim) {
+		return constructHashMap(v, index_key, index_value, false, delim);
+	}
+
+    public static HashMap constructHashMap(Vector v, int index_key, int index_value, boolean skip_heading, char delim) {
+        HashMap hmap = new HashMap();
+        int istart = 0;
+        if (skip_heading) istart = 1;
+        for (int i=istart; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, delim);
+
+			if (index_key < u.size() && index_value < u.size()) {
+				String key = (String) u.elementAt(index_key);
+				String value = (String) u.elementAt(index_value);
+				hmap.put(key, value);
+			}
+		}
+		return hmap;
+	}
+
+    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value) {
+		char delim = '|';
+		return constructMultiValuedHashMap(v, index_key, index_value, false, delim);
+	}
+
+
+    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, char delim) {
+		return constructMultiValuedHashMap(v, index_key, index_value, false, delim);
+	}
+
+    public static HashMap constructMultiValuedHashMap(Vector v, int index_key, int index_value, boolean skip_heading, char delim) {
+		HashMap hmap = new HashMap();
+        int istart = 0;
+        if (skip_heading) istart = 1;
+        for (int i=istart; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, delim);
+			String label = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
+			String value = (String) u.elementAt(3);
+			Vector w = new Vector();
+			if (hmap.containsKey(code)) {
+				w = (Vector) hmap.get(code);
+			}
+			if (!w.contains(value)) {
+				w.add(value);
+			}
+			hmap.put(code, w);
+		}
+		return hmap;
+	}
 }
