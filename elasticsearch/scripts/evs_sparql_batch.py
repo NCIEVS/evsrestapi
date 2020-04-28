@@ -1,7 +1,13 @@
 import sys
+import os
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+from dotenv import load_dotenv
+
+load_dotenv(".env")
+STARDOG_USERNAME = os.environ.get("STARDOG_USERNAME")
+STARDOG_PASSWORD = os.environ.get("STARDOG_PASSWORD")
 
 
 def run_sparql_query(endpoint, named_graph, query, in_clause):
@@ -23,7 +29,7 @@ def run_sparql_query(endpoint, named_graph, query, in_clause):
     headers = {'Accept': 'application/sparql-results+json'}
     r = requests.post(endpoint,
                       headers=headers, data={"query": sparql_query},
-                      auth=HTTPBasicAuth("admin", "admin"))
+                      auth=HTTPBasicAuth(STARDOG_USERNAME, STARDOG_PASSWORD))
 
     if r.status_code != 200:
         sys.stderr.write("Problem Status Code: " + str(r.status_code) + "\n")

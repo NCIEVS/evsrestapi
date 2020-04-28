@@ -97,9 +97,16 @@ public class ConceptController {
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
     final List<Concept> concepts = new ArrayList<>();
-    for (final String code : list.split(",")) {
-      final Concept concept = 
-          sparqlQueryManagerService.getConcept(code, term, ip);
+
+    final String[] codes = list.split(",");
+    // Impose a maximum number at a time
+    if (codes.length > 1000) {
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
+          "Maximum number of concepts to request at a time is 1000 = " + codes.length);
+    }
+
+    for (final String code : codes) {
+      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
       if (concept != null && concept.getCode() != null) {
         concepts.add(concept);
       }
@@ -147,8 +154,7 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    final Concept concept = 
-        sparqlQueryManagerService.getConcept(code, term, ip);
+    final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
 
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -228,8 +234,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Association> list =
-        sparqlQueryManagerService.getInverseAssociations(code, term);
+    final List<Association> list = sparqlQueryManagerService.getInverseAssociations(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -355,8 +360,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Concept> list =
-        sparqlQueryManagerService.getSuperconcepts(code, term);
+    final List<Concept> list = sparqlQueryManagerService.getSuperconcepts(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -398,8 +402,7 @@ public class ConceptController {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Concept> list =
-        sparqlQueryManagerService.getSubconcepts(code, term);
+    final List<Concept> list = sparqlQueryManagerService.getSubconcepts(code, term);
     if (list == null || list.isEmpty()) {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -533,8 +536,7 @@ public class ConceptController {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam("disjointWith");
 
-    final Concept concept = 
-        sparqlQueryManagerService.getConcept(code, term, ip);
+    final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
 
     if (concept == null || concept.getCode() == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -583,8 +585,8 @@ public class ConceptController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "No roots for found for terminology = " + terminology);
     }
-    return ConceptUtils.convertConceptsFromHierarchyWithInclude(sparqlQueryManagerService, ip,
-        term, list);
+    return ConceptUtils.convertConceptsFromHierarchyWithInclude(sparqlQueryManagerService, ip, term,
+        list);
   }
 
   /**
@@ -753,8 +755,7 @@ public class ConceptController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
     }
     final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
-        false);
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, false);
 
   }
 
@@ -808,8 +809,7 @@ public class ConceptController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
     }
     final Paths paths = sparqlQueryManagerService.getPathToParent(code, ancestorCode, term);
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
-        false);
+    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, false);
 
   }
 }

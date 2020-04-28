@@ -81,7 +81,7 @@ def run_sparql_query(endpoint, named_graph, query):
     headers = {'Accept': 'application/sparql-results+json'}
     r = requests.post(endpoint,
                   headers=headers, data={"query": sparql_query},
-                  auth=HTTPBasicAuth("admin", "admin"))
+                  auth=HTTPBasicAuth(STARDOG_USERNAME, STARDOG_PASSWORD))
 
     if r.status_code != 200:
         sys.stderr.write("Problem Status Code: " + str(r.status_code) + "\n")
