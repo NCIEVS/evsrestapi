@@ -4752,4 +4752,18 @@ Term Type
 		Vector v = executeQuery(construct_get_disjoint(named_graph));
 		return new ParserUtils().getResponseValues(v);
 	}
+
+    public Vector executeQuery(String restURL, String username, String password, String query) {
+		HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
+		Vector v = null;
+		try {
+			String json = httpUtils.runSPARQL(query);
+			v = new JSONUtils().parseJSON(json);
+			v = new ParserUtils().getResponseValues(v);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
+	}
+
 }
