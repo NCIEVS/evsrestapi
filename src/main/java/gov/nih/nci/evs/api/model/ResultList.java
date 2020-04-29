@@ -1,8 +1,6 @@
 
 package gov.nih.nci.evs.api.model;
 
-import gov.nih.nci.evs.api.support.SearchCriteria;
-
 /**
  * Represents a list of results with paging parameters.
  */

@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
-import gov.nih.nci.evs.api.support.SearchCriteria;
 
 /**
  * Reference implementation of {@link ElasticQueryBuilder}. Includes hibernate

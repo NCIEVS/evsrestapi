@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.support.ConfigData;
 
 /**
  * Integration tests for MetadataController.
@@ -86,24 +85,6 @@ public class MetadataControllerTests {
         });
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
-  }
-
-  /**
-   * Test get application metadata.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testGetApplicationMetadata() throws Exception {
-
-    final String url = baseUrl;
-    log.info("Testing url - " + url);
-
-    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-    final ConfigData config = new ObjectMapper().readValue(content, ConfigData.class);
-    assertThat(config).isNotNull();
   }
 
   /**

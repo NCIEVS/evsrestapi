@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 
-import gov.nih.nci.evs.api.support.SearchCriteria;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 
 /**
  * Represents a builder for elastic search queries.

@@ -26,8 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
-import gov.nih.nci.evs.api.support.SearchCriteria;
 
 /**
  * Reference implementation of {@link ElasticSearchService}. Includes hibernate

@@ -20,7 +20,6 @@ import gov.nih.nci.evs.api.GetterSetterTester;
 import gov.nih.nci.evs.api.ProxyTester;
 import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
-import gov.nih.nci.evs.api.support.SearchCriteria;
 
 /**
  * Unit test for {@link ConceptResultList}.

@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.springframework.web.client.HttpClientErrorException;
 
 import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.support.SearchCriteria;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 
 /**
  * Represents a service that performs a search against an elasticsearch

@@ -4,12 +4,10 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * The Class Axiom.
+ * Represents an OWL Axiom.
  */
-public class Axiom extends BaseModel{
+public class Axiom extends BaseModel {
 
   /** The annotated property. */
   String annotatedProperty;
@@ -350,18 +348,4 @@ public class Axiom extends BaseModel{
     this.termSource = termSource;
   }
 
-  /**
-   * To string.
-   *
-   * @return the string
-   */
-  /* see superclass */
-  @Override
-  public String toString() {
-    try {
-      return new ObjectMapper().writeValueAsString(this);
-    } catch (final Exception e) {
-      return e.getMessage();
-    }
-  }
 }

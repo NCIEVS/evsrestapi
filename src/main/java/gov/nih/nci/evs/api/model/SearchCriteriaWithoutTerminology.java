@@ -1,5 +1,5 @@
 
-package gov.nih.nci.evs.api.support;
+package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,9 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.model.BaseModel;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
