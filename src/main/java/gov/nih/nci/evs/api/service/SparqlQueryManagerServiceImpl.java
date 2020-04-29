@@ -580,13 +580,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     //
     Map<String, List<Property>> propertyMap = getProperties(conceptCodes, terminology);
     Map<String, List<Axiom>> axiomMap = getAxioms(conceptCodes, terminology, true);
-    Map<String, List<Concept>> subConceptMap = getSubconcepts(conceptCodes, terminology);
-    Map<String, List<Concept>> superConceptMap = getSuperconcepts(conceptCodes, terminology);
-    Map<String, List<Association>> associationMap = getAssociations(conceptCodes, terminology);
-    Map<String, List<Association>> inverseAssociationMap = getInverseAssociations(conceptCodes, terminology);
-    Map<String, List<Role>> roleMap = getRoles(conceptCodes, terminology);
+//    Map<String, List<Concept>> subConceptMap = getSubconcepts(conceptCodes, terminology);
+//    Map<String, List<Concept>> superConceptMap = getSuperconcepts(conceptCodes, terminology);
+//    Map<String, List<Association>> associationMap = getAssociations(conceptCodes, terminology);
+//    Map<String, List<Association>> inverseAssociationMap = getInverseAssociations(conceptCodes, terminology);
+//    Map<String, List<Role>> roleMap = getRoles(conceptCodes, terminology);
 //    Map<String, List<Role>> inverseRoleMap = getInverseRoles(conceptCodes, terminology);
-    Map<String, List<DisjointWith>> disjointWithMap = getDisjointWith(conceptCodes, terminology);
+//    Map<String, List<DisjointWith>> disjointWithMap = getDisjointWith(conceptCodes, terminology);
     
     for(Concept concept: concepts) {
       String conceptCode = concept.getCode();
@@ -640,14 +640,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       concept.setDefinitions(EVSUtils.getDefinitions(axioms));
-      concept.setChildren(subConceptMap.get(conceptCode));
-      concept.setParents(superConceptMap.get(conceptCode));
-      concept.setAssociations(associationMap.get(conceptCode));
-      concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
-      concept.setRoles(roleMap.get(conceptCode));
+//      concept.setChildren(subConceptMap.get(conceptCode));
+//      concept.setParents(superConceptMap.get(conceptCode));
+//      concept.setAssociations(associationMap.get(conceptCode));
+//      concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
+//      concept.setRoles(roleMap.get(conceptCode));
 //      concept.setInverseRoles(inverseRoleMap.get(conceptCode));
-      concept.setMaps(EVSUtils.getMapsTo(axioms));
-      concept.setDisjointWith(disjointWithMap.get(conceptCode));
+//      concept.setMaps(EVSUtils.getMapsTo(axioms));
+//      concept.setDisjointWith(disjointWithMap.get(conceptCode));
     }
     
     return concepts;

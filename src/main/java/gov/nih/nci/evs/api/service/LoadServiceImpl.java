@@ -45,7 +45,7 @@ public class LoadServiceImpl implements LoadService {
   private String CONCEPTS_OUT_DIR;
   
   @Value("${nci.evs.bulkload.lockFile}")
-  private String LOCK_FILE = "DownloadSuccessfull.lck";
+  private String LOCK_FILE;
   
   @Value("${nci.evs.bulkload.downloadBatchSize}")
   private int DOWNLOAD_BATCH_SIZE;
@@ -257,9 +257,10 @@ public class LoadServiceImpl implements LoadService {
     @Override
     public Void call() {
       try {
-        esOperations.loadConcepts(concepts, ElasticOperationsService.CONCEPT_INDEX, ElasticOperationsService.CONCEPT_TYPE, false, null);
+        esOperations.loadConcepts(concepts, ElasticOperationsService.CONCEPT_INDEX, ElasticOperationsService.CONCEPT_TYPE, null);
       } catch (IOException e) {
         logger.error("Error loading concepts: {} to {}", startIndex, endIndex);
+        logger.error(e.getMessage(), e);
       } finally {
         latch.countDown();
         logger.info("   latch count: {}", latch.getCount());

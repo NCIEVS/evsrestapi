@@ -21,5 +21,5 @@ public interface ElasticOperationsService {
   public static final String CONCEPT_TYPE = "concept-test";
   
   void createIndex(String indexName, boolean force) throws IOException;
-  void loadConcepts(List<Concept> concepts, String index, String type, boolean async, TimeValue timeout) throws IOException;
+  void loadConcepts(List<Concept> concepts, String index, String type, TimeValue timeout) throws IOException;
 }
