@@ -88,6 +88,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The elastic search service. */
   @Autowired
+  @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl")
   ElasticSearchService elasticSearchService;
 
   /** The rest utils. */

@@ -4,13 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.common.unit.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -31,8 +28,6 @@ import gov.nih.nci.evs.api.model.Concept;
 public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   private static final Logger logger = LoggerFactory.getLogger(ElasticOperationsServiceImpl.class);
-  
-  private static final TimeValue DEFAULT_BULK_TIMEOUT = TimeValue.timeValueMinutes(10);
   
   /** Elasticsearch operations **/
   @Autowired
@@ -55,10 +50,8 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   }
 
   @Override
-  public void loadConcepts(List<Concept> concepts, String index, String type, TimeValue timeout) throws IOException {
+  public void loadConcepts(List<Concept> concepts, String index, String type) throws IOException {
     if (CollectionUtils.isEmpty(concepts)) return;
-    BulkRequest bulkRequest = new BulkRequest(index, type);
-    bulkRequest.timeout();
     
     List<IndexQuery> indexQueries = new ArrayList<>();
     
@@ -71,11 +64,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
         .build());
     }
     
-    BulkOptions options = BulkOptions.builder()
-        .withTimeout(timeout == null ? DEFAULT_BULK_TIMEOUT : timeout)
-        .build();
-    
-    operations.bulkIndex(indexQueries, options);
+    operations.bulkIndex(indexQueries);
   }
   
 }

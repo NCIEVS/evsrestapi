@@ -8,6 +8,9 @@ public class ElasticServerProperties {
   /** The port **/
   private String port;
 	
+  /** The cluster name **/
+  private String clusterName;
+  
   /** The search url **/
   private String url;
 
@@ -47,6 +50,24 @@ public class ElasticServerProperties {
     this.port = port;
   }
 
+  /**
+   * Gets the cluster name
+   * 
+   * @return the cluster name
+   */
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  /**
+   * Sets the cluster name
+   * 
+   * @param clusterName the cluster name
+   */
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }
+  
   /**
    * Returns the search url
    * 

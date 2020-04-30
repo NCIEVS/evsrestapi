@@ -70,8 +70,9 @@ nci:
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
-        port: ${ES_PORT:9200}
-        url: http://${nci.evs.elasticsearch.server.host}:${nci.evs.elasticsearch.server.port}/concept/_search
+        port: ${ES_PORT:9300}
+        clusterName: ${ES_CLUSTER_NAME:docker-cluster}
+        url: http://${nci.evs.elasticsearch.server.host}:9200/concept/_search
       query:
         propertyToQuery: {
                    p108:
