@@ -4752,4 +4752,51 @@ Term Type
 		Vector v = executeQuery(construct_get_disjoint(named_graph));
 		return new ParserUtils().getResponseValues(v);
 	}
+
+    public Vector executeQuery(String restURL, String username, String password, String query) {
+		HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
+		Vector v = null;
+		try {
+			String json = httpUtils.runSPARQL(query);
+			v = new JSONUtils().parseJSON(json);
+			v = new ParserUtils().getResponseValues(v);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
+	}
+
+	public String construct_get_class_identifiers(String named_graph, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT distinct ?x_label ?x_code ").append("\n");
+		} else {
+			buf.append("SELECT distinct ?x_code ").append("\n");
+		}
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    {").append("\n");
+		buf.append("		?x a owl:Class .").append("\n");
+		buf.append("		?x :NHC0 ?x_code .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("	    }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getClassIdentifiers(String named_graph) {
+		boolean codeOnly = false;
+		return getClassIdentifiers(named_graph, codeOnly);
+	}
+
+	public Vector getClassIdentifiers(String named_graph, boolean codeOnly) {
+		Vector v = executeQuery(construct_get_class_identifiers(named_graph, codeOnly));
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
 }

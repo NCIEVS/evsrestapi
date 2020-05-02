@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
 
-
 import java.io.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -16,10 +15,10 @@ import java.util.regex.*;
 import org.apache.commons.codec.binary.Base64;
 import java.nio.charset.Charset;
 
-
+import java.time.Duration;
 /**
  * <!-- LICENSE_TEXT_START -->
- * Copyright 2008-2017 NGIS. This software was developed in conjunction
+ * Copyright 2020 MSC. This software was developed in conjunction
  * with the National Cancer Institute, and so to the extent government
  * employees are co-authors, any rights in such works shall be subject
  * to Title 17 of the United States Code, section 105.
@@ -34,21 +33,21 @@ import java.nio.charset.Charset;
  *      with the distribution.
  *   2. The end-user documentation included with the redistribution,
  *      if any, must include the following acknowledgment:
- *      "This product includes software developed by NGIS and the National
+ *      "This product includes software developed by MSC and the National
  *      Cancer Institute."   If no such end-user documentation is to be
  *      included, this acknowledgment shall appear in the software itself,
  *      wherever such third-party acknowledgments normally appear.
- *   3. The names "The National Cancer Institute", "NCI" and "NGIS" must
+ *   3. The names "The National Cancer Institute", "NCI" and "MSC" must
  *      not be used to endorse or promote products derived from this software.
  *   4. This license does not authorize the incorporation of this software
  *      into any third party proprietary programs. This license does not
  *      authorize the recipient to use any trademarks owned by either NCI
- *      or NGIS
+ *      or MSC
  *   5. THIS SOFTWARE IS PROVIDED "AS IS," AND ANY EXPRESSED OR IMPLIED
  *      WARRANTIES, (INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  *      OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE) ARE
  *      DISCLAIMED. IN NO EVENT SHALL THE NATIONAL CANCER INSTITUTE,
- *      NGIS, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *      MSC, OR THEIR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT,
  *      INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  *      BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  *      LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
@@ -64,7 +63,7 @@ import java.nio.charset.Charset;
  * @version 1.0
  *
  * Modification history:
- *     Initial implementation kim.ong@ngc.com
+ *     Initial implementation kim.ong@nih.gov
  *
  */
 
@@ -77,12 +76,21 @@ public class HTTPUtils {
     private String username = null;
     private String password = null;
 
+	private long readTimeout;
+	private long connectTimeout;
+
+	private Duration readTimeoutDuration;
+	private Duration connectTimeoutDuration;
+
+
+	private String restURL = null;
+
     public HTTPUtils() {
 
 	}
 
     public HTTPUtils(String serviceUrl) {
-		serviceUrl = verifyServiceUrl(serviceUrl);
+		//serviceUrl = verifyServiceUrl(serviceUrl);
 		this.serviceUrl = serviceUrl;
 	}
 
@@ -96,12 +104,43 @@ public class HTTPUtils {
 		return serviceUrl;
 	}
 
-    public HTTPUtils(String serviceUrl, String username, String password) {
-		serviceUrl = verifyServiceUrl(serviceUrl);
+    public HTTPUtils(String restURL, String username, String password) {
+		this.restURL = restURL;
+		this.serviceUrl = verifyServiceUrl(restURL);
 		this.serviceUrl = serviceUrl;
 		this.username = username;
 		this.password = password;
 	}
+
+	public HTTPUtils(String username, String password, long readTimeout, long connectTimeout) {
+		this.username = username;
+		this.password = password;
+
+		this.readTimeout= readTimeout;
+		this.connectTimeout =  connectTimeout;
+
+		this.readTimeoutDuration = Duration.ofSeconds(readTimeout);
+		this.connectTimeoutDuration = Duration.ofSeconds(connectTimeout);
+    }
+
+	public HTTPUtils(String username, String password) {
+		this.username = username;
+		this.password = password;
+		this.readTimeoutDuration = Duration.ofSeconds(600000);
+		this.connectTimeoutDuration =  Duration.ofSeconds(600000);
+    }
+
+	public String runSPARQL(String query) {
+		if (restURL == null) {
+			return null;
+		}
+		return new RESTUtils(username, password, readTimeout, connectTimeout).runSPARQL(query, restURL);
+	}
+
+	public String runSPARQL(String query, String restURL) {
+		return new RESTUtils(username, password, readTimeout, connectTimeout).runSPARQL(query, restURL);
+	}
+
 
 	public void setUsername(String username) {
 		this.username = username;
@@ -119,6 +158,13 @@ public class HTTPUtils {
 		this.serviceUrl = serviceUrl;
 	}
 
+	public String getRestURL() {
+		return this.restURL;
+	}
+
+	public void setRestURL(String restURL) {
+		this.restURL = restURL;
+	}
 
 	public String loadQuery(String filename, boolean encode) {
 	    StringBuffer buf = new StringBuffer();
@@ -230,32 +276,6 @@ public class HTTPUtils {
 	    return executeQuery(url, username, password, acceptFormat);
     }
 
-
-/*
-	public String executeQuery(URL url, String username, String password, String acceptFormat) throws Exception {
-        if (url == null) return null;
-		URLConnection urlConnection = url.openConnection();
-		urlConnection.setRequestProperty("Accept", acceptFormat);
-
-		if (username != null && password != null) {
-			String authenticationStr = username + ":" + password;
-			String encodedAuthenticationStr  = new String(Base64.encodeBase64(authenticationStr.getBytes()));
-			urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuthenticationStr);
-		}
-
-		InputStream in = urlConnection.getInputStream();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-		StringBuilder buff = new StringBuilder();
-		String line = null;
-		while ((line = reader.readLine())!=null) {
-			buff.append(line);
-			buff.append("\n");
-		}
-		return buff.toString();
-	}
-*/
-
-
 	public String executeQuery(URL url, String username, String password, String acceptFormat) throws Exception {
         if (url == null) return null;
 		URLConnection urlConnection = url.openConnection();
@@ -278,6 +298,19 @@ public class HTTPUtils {
 		}
 		reader.close();
 		return responseBuffer.toString();
+	}
+
+    public Vector execute(String restURL, String username, String password, String query) {
+		HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
+		Vector v = null;
+		try {
+			String json = httpUtils.runSPARQL(query);
+			v = new JSONUtils().parseJSON(json);
+			v = new ParserUtils().getResponseValues(v);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
 	}
 
 }
