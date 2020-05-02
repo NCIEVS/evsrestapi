@@ -64,8 +64,16 @@ import org.apache.commons.lang.StringEscapeUtils;
 public class StringUtils {
 
 	public static Vector parseData(String t, String delimStr) {
-		String s = replace(t, delimStr, "|");
-		return StringUtils.parseData(s, '|');
+		String delim_vec = "|$%#&*@^!?<>-+=:;\"";
+		for (int i=0; i<delim_vec.length(); i++) {
+			char c = delim_vec.charAt(i);
+			String ch = "" + c;
+			if (t.indexOf(ch) == -1) {
+				t = replace(t, delimStr, ch);
+				return parseData(t, c);
+			}
+		}
+		return null;
 	}
 
 	public static String replace(String s, String from, String to) {
@@ -91,9 +99,10 @@ public class StringUtils {
 
     public static Vector<String> parseData(String line) {
 		if (line == null) return null;
-        String tab = "|";
-        return parseData(line, tab);
+        String delim = "|";
+        return parseData(line, delim);
     }
+
 
     public static String encode(String line) {
 		line = line.replaceAll("<", "&lt;");

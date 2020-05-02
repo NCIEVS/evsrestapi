@@ -756,11 +756,6 @@ public class OWLSPARQLUtils {
 		//buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
 		return buf.toString();
 	}
-/*
-	public Vector getAxiomsByCode(String named_graph, String code) {
-		return getPropertyQualifiersByCode(named_graph, code);
-	}
-*/
 
 	public Vector getPropertyQualifiersByCode(String named_graph, String code) {
 		Vector v = executeQuery(construct_get_property_qualifiers_by_code(named_graph, code));
@@ -1625,7 +1620,7 @@ public class OWLSPARQLUtils {
 		buf.append(prefixes);
 		buf.append("SELECT ?z_label ?z_code ?x_label ?x_code").append("\n");
 		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("  graph <" + named_graph + ">").append("\n");
 		buf.append("  {").append("\n");
 		buf.append("	  {").append("\n");
 		buf.append("		  {").append("\n");
@@ -1663,28 +1658,6 @@ public class OWLSPARQLUtils {
 	public Vector getHierarchicalRelationships(String named_graph) {
 		return executeQuery(construct_get_hierarchical_relationships(named_graph));
 	}
-
-/*
-	public String construct_get_concepts_in_subset(String named_graph, String subset_code) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT ?x_label ?x_code").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
-		buf.append("    {").append("\n");
-		buf.append("            ?x a owl:Class .").append("\n");
-		buf.append("            ?x rdfs:label ?x_label .").append("\n");
-		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
-		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
-		buf.append("            ?x ?y ?z .").append("\n");
-		buf.append("            ?z " + named_graph_id + " \"" + subset_code + "\"^^xsd:string .").append("\n");
-		buf.append("            ?y rdfs:label " + "\"" + "Concept_In_Subset" + "\"^^xsd:string ").append("\n");
-		buf.append("    }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
-*/
 
 	public Vector get_concepts_in_subset(String named_graph, String code) {
 		Vector v = getConceptsInSubset(named_graph, code, false);
