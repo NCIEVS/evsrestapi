@@ -92,8 +92,11 @@ def run_sparql_query(endpoint, named_graph, query):
 
 def connect_elasticsearch(host="localhost", port=9200):
     es = None
+    port = None
+    print(host,port)
     try: 
-        es = Elasticsearch([{'host': host, 'port': port}])
+        #es = Elasticsearch([{'host': host, 'port': port}])
+        es = Elasticsearch(host)
         if es.ping():
             log.debug("Connection to ElasticSearch Successful")
             return es
@@ -171,25 +174,25 @@ def download_concept_files_batch(concepts_list, clean):
         eu.mergeConceptsAndSuperclasses(concepts, superclasses)
         del superclasses
 
-        associations = eu.getAllAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndAssociations(concepts, associations)
-        del associations
+        #associations = eu.getAllAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        #eu.mergeConceptsAndAssociations(concepts, associations)
+        #del associations
 
-        inverse_associations = eu.getAllInverseAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndInverseAssociations(concepts, inverse_associations)
-        del inverse_associations
+        #inverse_associations = eu.getAllInverseAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        #eu.mergeConceptsAndInverseAssociations(concepts, inverse_associations)
+        #del inverse_associations
 
-        roles = eu.getAllRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndRoles(concepts, roles)
-        del roles
+        #roles = eu.getAllRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        #eu.mergeConceptsAndRoles(concepts, roles)
+        #del roles
 
-        inverse_roles = eu.getAllInverseRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndInverseRoles(concepts, inverse_roles)
-        del inverse_roles
+        #inverse_roles = eu.getAllInverseRoles(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        #eu.mergeConceptsAndInverseRoles(concepts, inverse_roles)
+        #del inverse_roles
 
-        disjoint_withs = eu.getAllDisjointWith(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndDisjointWith(concepts, disjoint_withs)
-        del disjoint_withs
+        #disjoint_withs = eu.getAllDisjointWith(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        #eu.mergeConceptsAndDisjointWith(concepts, disjoint_withs)
+        #del disjoint_withs
 
         for code, concept in concepts.items():
             eu.addAdditionalProperties(concept)
@@ -204,16 +207,16 @@ def download_concept_files_batch(concepts_list, clean):
             del concept['subclasses']
             eu.addSuperclasses(concept)
             del concept['superclasses']
-            eu.addAssociations(concept)
-            del concept['associations']
-            eu.addInverseAssociations(concept)
-            del concept['inverse_associations']
-            eu.addRoles(concept)
-            del concept['roles']
-            eu.addInverseRoles(concept)
-            del concept['inverse_roles']
-            eu.addDisjointWith(concept)
-            del concept['disjoint_with']
+            #eu.addAssociations(concept)
+            #del concept['associations']
+            #eu.addInverseAssociations(concept)
+            #del concept['inverse_associations']
+            #eu.addRoles(concept)
+            #del concept['roles']
+            #eu.addInverseRoles(concept)
+            #del concept['inverse_roles']
+            #eu.addDisjointWith(concept)
+            #del concept['disjoint_with']
 
         for code, concept in concepts.items():
             with open(CONCEPT_OUTPUT_DIR + concept['Code'] + ".json", "w") as output_file:
