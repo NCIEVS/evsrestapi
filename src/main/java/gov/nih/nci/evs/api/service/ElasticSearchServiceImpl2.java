@@ -2,8 +2,14 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 
+import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.common.unit.Fuzziness;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +24,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.repository.ConceptRepository;
 import gov.nih.nci.evs.api.support.SearchCriteria;
 
 @Service(value = "elasticSearchServiceImpl2")
@@ -30,6 +37,9 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
   @Autowired
   ElasticsearchOperations operations;
   
+  @Autowired
+  ConceptRepository conceptRepo;
+  
   @Override
   public void initSettings() throws IOException, HttpClientErrorException {
     // TODO Auto-generated method stub
@@ -41,21 +51,35 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     Pageable pageable = PageRequest.of(page, searchCriteria.getPageSize());
     
-    SearchQuery query = new NativeSearchQueryBuilder()
-        .withQuery(
-            QueryBuilders.multiMatchQuery(searchCriteria.getTerm())
-            .field("code", 2f).field("name", 1.5f)
-            .field("synonyms.name", 1f).field("synonyms.type", 1f).field("synonyms.source", 1f)
-            .field("definitions.definition", 1f).field("definitions.type", 1f).field("definitions.source", 1f)
-            .field("properties.type", 1f).field("properties.value", 1f)
-            .type(MultiMatchQueryBuilder.Type.BEST_FIELDS)
-          )
-        .withIndices(ElasticOperationsService.CONCEPT_INDEX)
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE)
-        .withPageable(pageable)
-        .build();
+    //query_string query
+    logger.info("query string [{}]", searchCriteria.getTerm());
     
+    QueryStringQueryBuilder queryBuilder = QueryBuilders.queryStringQuery(searchCriteria.getTerm())
+        .type(Type.BEST_FIELDS)
+        .defaultOperator(Operator.AND)
+        .analyzeWildcard(true)
+        .fuzziness(Fuzziness.ONE);
+    
+    SearchQuery query = new NativeSearchQueryBuilder()        
+    .withQuery(
+        new BoolQueryBuilder()
+        .should(queryBuilder.boost(5f))
+        .should(QueryBuilders.nestedQuery("properties", queryBuilder, ScoreMode.None))
+        .should(QueryBuilders.nestedQuery("definitions", queryBuilder, ScoreMode.None))
+        .should(QueryBuilders.nestedQuery("synonyms", queryBuilder, ScoreMode.None))
+      )
+    .withIndices(ElasticOperationsService.CONCEPT_INDEX)
+    .withTypes(ElasticOperationsService.CONCEPT_TYPE)
+    .withPageable(pageable)
+    .build();
+    
+    //query on operations
     Page<Concept> resultPage = operations.queryForPage(query, Concept.class);
+
+    logger.info("result count: {}", resultPage.getTotalElements());
+    
+    //query using repo
+//    Page<Concept> resultPage = conceptRepo.search(searchCriteria.getTerm(), pageable);
     
 //    logger.info("results: {}", resultPage.getContent());
     

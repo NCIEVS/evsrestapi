@@ -55,7 +55,7 @@ public class LoadServiceImpl implements LoadService {
 
   /** The Elasticsearch operations service instance **/
   @Autowired
-  ElasticOperationsService esOperations;
+  ElasticOperationsService operationsService;
 
   /** The sparql query manager service. */
   @Autowired
@@ -64,6 +64,11 @@ public class LoadServiceImpl implements LoadService {
   @Override
   public void load(LoadConfig config, Terminology terminology) throws IOException {
 
+    boolean result = operationsService.createIndex(ElasticOperationsService.CONCEPT_INDEX, config.isDeleteIndex());
+    if (result) {
+      operationsService.getElasticsearchOperations().putMapping(Concept.class);
+    }
+    
     if (config.isRealTime()) {
       List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
 
@@ -264,7 +269,7 @@ public class LoadServiceImpl implements LoadService {
     @Override
     public Void call() {
       try {
-        esOperations.loadConcepts(concepts, ElasticOperationsService.CONCEPT_INDEX,
+        operationsService.loadConcepts(concepts, ElasticOperationsService.CONCEPT_INDEX,
             ElasticOperationsService.CONCEPT_TYPE);
       } catch (IOException e) {
         logger.error("Error loading concepts: {} to {}", startIndex, endIndex);

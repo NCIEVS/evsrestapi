@@ -34,19 +34,20 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   ElasticsearchOperations operations;
   
   @Override
-  public void createIndex(String index, boolean force) throws IOException {
+  public boolean createIndex(String index, boolean force) throws IOException {
     boolean indexExists = operations.indexExists(index);
     
     if (indexExists) {
       if (!force) {
         logger.warn("Index {} already exists. Skipping index creation", index);
-        return;
+        return false;
       }
       operations.deleteIndex(index);
     }
     
     //create index
     operations.createIndex(index);
+    return true;
   }
 
   @Override
@@ -67,4 +68,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     operations.bulkIndex(indexQueries);
   }
   
+  public ElasticsearchOperations getElasticsearchOperations() {
+    return operations;
+  }
 }

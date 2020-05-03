@@ -4,7 +4,15 @@ public class LoadConfig {
   private boolean downloadOnly;
   private boolean skipDownload;
   private boolean realTime;
+  private boolean deleteIndex;
 
+  public LoadConfig() {
+    downloadOnly = false;
+    skipDownload = false;
+    realTime = true;
+    deleteIndex = true;
+  }
+  
   public boolean isDownloadOnly() {
     return downloadOnly;
   }
@@ -22,5 +30,11 @@ public class LoadConfig {
   }
   public void setRealTime(boolean realTime) {
     this.realTime = realTime;
+  }
+  public boolean isDeleteIndex() {
+    return deleteIndex;
+  }
+  public void setDeleteIndex(boolean deleteIndex) {
+    this.deleteIndex = deleteIndex;
   }
 }

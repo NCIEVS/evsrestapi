@@ -3,6 +3,8 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+
 import gov.nih.nci.evs.api.model.Concept;
 
 /**
@@ -18,6 +20,7 @@ public interface ElasticOperationsService {
   /** The type in ES for concepts **/
   public static final String CONCEPT_TYPE = "concept-test";
   
-  void createIndex(String indexName, boolean force) throws IOException;
+  boolean createIndex(String indexName, boolean force) throws IOException;
   void loadConcepts(List<Concept> concepts, String index, String type) throws IOException;
+  ElasticsearchOperations getElasticsearchOperations();
 }
