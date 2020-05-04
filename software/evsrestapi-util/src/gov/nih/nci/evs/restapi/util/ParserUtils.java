@@ -240,15 +240,15 @@ public class ParserUtils {
 			String label = (String) u.elementAt(1);
 			String code = (String) u.elementAt(2);
 			String propertyName = (String) u.elementAt(3);
-			String term_name = (String) u.elementAt(5);
-			String qualifier_name = (String) u.elementAt(6);
-			String qualifier_value = (String) u.elementAt(8);
+			String propertyValue = (String) u.elementAt(4);
+			String qualifier_name = (String) u.elementAt(5);
+			String qualifier_value = (String) u.elementAt(6);
             Synonym syn = (Synonym) hmap.get(axiom_id);
             if (syn == null) {
 				syn = new Synonym(
 							code,
 							label,
-							term_name,
+							propertyValue,
 							null, //termGroup,
 							null, //termSource,
 							null, //sourceCode,
