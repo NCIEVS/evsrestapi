@@ -90,6 +90,21 @@ public class LvgApiUtils {
 		return new SortUtils().quickSort(w);
 	}
 
+
+    public HashMap createVariantHashMap(Vector v) {
+		Vector w = runLVG(v);
+		HashMap hmap = new HashMap();
+		for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String key = (String) u.elementAt(0);
+			String values = (String) u.elementAt(1);
+			Vector v2 = StringUtils.parseData(values, '$');
+			hmap.put(key, v2);
+		}
+		return hmap;
+	}
+
     private String result2DelimetedString(Vector<LexItem> result) {
 		Vector v = getGetTargetTerms(result);
 		StringBuffer buf = new StringBuffer();
