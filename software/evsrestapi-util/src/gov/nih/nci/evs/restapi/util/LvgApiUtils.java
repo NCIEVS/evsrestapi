@@ -46,7 +46,7 @@ public class LvgApiUtils {
 	}
 
 	// private methods
-	private Vector<LexItem> Mutate(LexItem in, LvgApi lvg) {
+	public Vector<LexItem> Mutate(LexItem in, LvgApi lvg) {
 		Vector<LexItem> outs = new Vector<LexItem>();
 		Vector<LexItem> out1 = ToLowerCase.Mutate(in, false, false);
 		for(int i = 0 ; i < out1.size(); i++)
@@ -61,7 +61,7 @@ public class LvgApiUtils {
 		return outs;
 	}
 
-	private void PrintResult(Vector<LexItem> result)
+	public void PrintResult(Vector<LexItem> result)
 	{
 		for(int i = 0; i < result.size(); i++)
 		{
@@ -105,7 +105,7 @@ public class LvgApiUtils {
 		return result.elementAt(0).GetOriginalTerm() + "|" + t;
 	}
 
-	private Vector runLVG(Vector v) {
+	public Vector runLVG(Vector v) {
 		Vector w = new Vector();
 		for (int k=0; k<v.size(); k++) {
 			LexItem in = new LexItem((String) v.elementAt(k));
@@ -115,7 +115,7 @@ public class LvgApiUtils {
 		} return w;
 	}
 
-	private Vector tokenize(String t) {
+	public Vector tokenize(String t) {
 		Vector w = new Vector();
 		StringTokenizer st = new StringTokenizer("this is a test");
 		while (st.hasMoreTokens()) {
@@ -123,4 +123,36 @@ public class LvgApiUtils {
 		}
 		return w;
 	}
+
+	 public static void saveToFile(String outputfile, String t) {
+		 Vector v = new Vector();
+		 v.add(t);
+		 saveToFile(outputfile, v);
+	 }
+
+	 public static void saveToFile(String outputfile, Vector v) {
+		if (outputfile == null) return;
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(outputfile, "UTF-8");
+			if (pw != null) {
+				if (v != null && v.size() > 0) {
+					for (int i=0; i<v.size(); i++) {
+						String t = (String) v.elementAt(i);
+						pw.println(t);
+					}
+				}
+			}
+		} catch (Exception ex) {
+
+		} finally {
+			try {
+				if (pw != null) pw.close();
+				System.out.println("Output file " + outputfile + " generated.");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+
 }
