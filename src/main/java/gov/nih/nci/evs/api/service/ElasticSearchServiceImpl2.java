@@ -54,19 +54,21 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     //query_string query
     logger.info("query string [{}]", searchCriteria.getTerm());
     
-    QueryStringQueryBuilder queryBuilder = QueryBuilders.queryStringQuery(searchCriteria.getTerm())
+    QueryStringQueryBuilder queryStringQueryBuilder = QueryBuilders.queryStringQuery(searchCriteria.getTerm())
         .type(Type.BEST_FIELDS)
-        .defaultOperator(Operator.AND)
         .analyzeWildcard(true)
         .fuzziness(Fuzziness.ONE);
+    
+    //TODO: support types and build query accordingly
+    //types to support: contains, startswith, phrase, AND, OR, fuzzy -- match dropped for now 
     
     SearchQuery query = new NativeSearchQueryBuilder()        
     .withQuery(
         new BoolQueryBuilder()
-        .should(queryBuilder.boost(5f))
-        .should(QueryBuilders.nestedQuery("properties", queryBuilder, ScoreMode.None))
-        .should(QueryBuilders.nestedQuery("definitions", queryBuilder, ScoreMode.None))
-        .should(QueryBuilders.nestedQuery("synonyms", queryBuilder, ScoreMode.None))
+        .should(queryStringQueryBuilder.boost(10f))
+        .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Total).boost(2f))
+        .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Total).boost(4f))
+        .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Total).boost(8f))
       )
     .withIndices(ElasticOperationsService.CONCEPT_INDEX)
     .withTypes(ElasticOperationsService.CONCEPT_TYPE)
@@ -76,12 +78,7 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     //query on operations
     Page<Concept> resultPage = operations.queryForPage(query, Concept.class);
 
-    logger.info("result count: {}", resultPage.getTotalElements());
-    
-    //query using repo
-//    Page<Concept> resultPage = conceptRepo.search(searchCriteria.getTerm(), pageable);
-    
-//    logger.info("results: {}", resultPage.getContent());
+    logger.debug("result count: {}", resultPage.getTotalElements());
     
     ConceptResultList result = new ConceptResultList();
     result.setConcepts(resultPage.getContent());
