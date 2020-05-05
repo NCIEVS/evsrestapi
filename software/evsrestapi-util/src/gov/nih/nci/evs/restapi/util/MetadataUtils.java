@@ -69,9 +69,6 @@ import org.json.*;
  *
  */
 
-
-
-
 public class MetadataUtils {
     String serviceUrl = null;
     String sparql_endpoint = null;
@@ -83,6 +80,10 @@ public class MetadataUtils {
 	HashMap namedGraph2IdentfierHashMap = null;
 	HashMap nameGraph2PredicateHashMap = null;
 	HashMap basePrefixUIDHashMap = null;
+
+	String restURL = null;
+    String username = null;
+    String password = null;
 
 
 	public String verify_service_url(String serviceUrl) {
@@ -102,17 +103,28 @@ public class MetadataUtils {
 		initialize();
     }
 
+	public MetadataUtils(String serviceUrl, String username, String password) {
+		this.serviceUrl = serviceUrl;
+		this.restURL = serviceUrl;
+		this.username = username;
+		this.password = password;
+        initialize();
+    }
+
     public HashMap getBasePrefixUIDHashMap() {
 		return basePrefixUIDHashMap;
 	}
 
     public void initialize() {
 		this.sparql_endpoint = this.serviceUrl;
-		if (serviceUrl.indexOf("?") == -1) {
-			sparql_endpoint = serviceUrl + "?query=";
+		if (this.password == null) {
+			if (serviceUrl.indexOf("?") == -1) {
+				sparql_endpoint = serviceUrl + "?query=";
+			}
+			this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
+	    } else {
+			this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint, username, password);
 		}
-		//this.sparql_endpoint = serviceUrl;
-		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
 		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
 		this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
 		this.basePrefixUIDHashMap = createBasePrefixUIDHashMap();
@@ -676,7 +688,7 @@ public class MetadataUtils {
 		return hmap;
 	}
 
-	public static void main(String[] args) {
+	public static void test1(String[] args) {
 		String serviceUrl = args[0];
 		System.out.println(serviceUrl);
 		MetadataUtils test = new MetadataUtils(serviceUrl);
@@ -685,14 +697,38 @@ public class MetadataUtils {
 		String version = test.getLatestVersion(codingScheme);
 		System.out.println(codingScheme);
 		System.out.println(version);
-		String named_graph = test.getNamedGraph(codingScheme);
+		String named_graph = args[1];
 		System.out.println(named_graph);
-
 		test.dumpNameVersion2NamedGraphMap();
+	}
+
+	public static void test2(String[] args) {
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+		System.out.println(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
+		String codingScheme = "NCI_Thesaurus";
+		long ms = System.currentTimeMillis();
+		String version = test.getLatestVersion(codingScheme);
+		System.out.println(codingScheme);
+		System.out.println(version);
+
+		System.out.println(named_graph);
+		test.dumpNameVersion2NamedGraphMap();
+	}
+
+	public static void main(String[] args) {
+		if (args.length == 2) {
+			test1(args);
+		} else {
+			test2(args);
+		}
+
 /*
 		String version_test = MetadataUtils.getLatestVersionOfCodingScheme(serviceUrl, codingScheme);
 		System.out.println("getLatestVersionOfCodingScheme: " + version_test);
-
 		String named_graph_test = MetadataUtils.getNamedGraphOfCodingScheme(serviceUrl, codingScheme, version_test);
 		System.out.println("getNamedGraphOfCodingScheme: " + named_graph_test);
 */
