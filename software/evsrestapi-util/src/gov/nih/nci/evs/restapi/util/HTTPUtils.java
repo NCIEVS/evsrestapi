@@ -106,7 +106,7 @@ public class HTTPUtils {
 
     public HTTPUtils(String restURL, String username, String password) {
 		this.restURL = restURL;
-		this.serviceUrl = verifyServiceUrl(restURL);
+		this.serviceUrl = restURL; //verifyServiceUrl(restURL);
 		this.serviceUrl = serviceUrl;
 		this.username = username;
 		this.password = password;
@@ -301,12 +301,19 @@ public class HTTPUtils {
 	}
 
     public Vector execute(String restURL, String username, String password, String query) {
+		boolean parsevalues = true;
+		return execute(restURL, username, password, query, parsevalues);
+	}
+
+    public Vector execute(String restURL, String username, String password, String query, boolean parsevalues) {
 		HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
 		Vector v = null;
 		try {
 			String json = httpUtils.runSPARQL(query);
 			v = new JSONUtils().parseJSON(json);
-			v = new ParserUtils().getResponseValues(v);
+			if (parsevalues) {
+				v = new ParserUtils().getResponseValues(v);
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

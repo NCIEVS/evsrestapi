@@ -76,6 +76,7 @@ public class OWLSPARQLUtils {
     String named_graph = null;
     String prefixes = null;
     String serviceUrl = null;
+    String restURL = null;
     String named_graph_id = ":NHC0";
     String BASE_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
 
@@ -83,6 +84,8 @@ public class OWLSPARQLUtils {
     HashMap nameVersion2NamedGraphMap = null;
     HashMap ontologyUri2LabelMap = null;
     String version = null;
+    String username = null;
+    String password = null;
 
     public void setServiceUrl(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
@@ -133,7 +136,10 @@ public class OWLSPARQLUtils {
 	}
 
 	public OWLSPARQLUtils(String serviceUrl, String username, String password) {
-		this.serviceUrl = verifyServiceUrl(serviceUrl);
+		this.serviceUrl = serviceUrl;//verifyServiceUrl(serviceUrl);
+		this.restURL = serviceUrl;
+		this.username = username;
+		this.password = password;
 
 		System.out.println(this.serviceUrl);
 		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
@@ -232,9 +238,14 @@ public class OWLSPARQLUtils {
     public Vector executeQuery(String query) {
         Vector v = null;
         try {
-			query = httpUtils.encode(query);
-            String json = httpUtils.executeQuery(query);
-			v = new JSONUtils().parseJSON(json);
+			if (this.password == null) {
+				String json = null;
+				query = httpUtils.encode(query);
+            	json = httpUtils.executeQuery(query);
+            	v = new JSONUtils().parseJSON(json);
+			} else {
+				v = httpUtils.execute(this.serviceUrl, this.username, this.password, query, false); // no parser
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -4438,27 +4449,6 @@ Term Type
 		return v;
 	}
 
-    public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-		String serviceUrl = args[0];
-		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-        String named_graph = args[1];
-
-        /*
-        String queryfile = args[2];
-        owlSPARQLUtils.set_named_graph(named_graph);
-
-        Vector v = owlSPARQLUtils.getAllConceptProperties(named_graph);
-        Utils.saveToFile("all_properties.txt", v);
-        */
-
-        Vector v = owlSPARQLUtils.getSupportedPropertyQualifierValues(named_graph);
-        StringUtils.dumpVector(v);
-
-		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-
-    }
-
 	public Vector findConceptsWithPropertyMatching(String named_graph, String property_name, String property_value) {
 	    String query = generate_find_concepts_with_property_matching(named_graph, property_name, property_value);
 	    Vector v = executeQuery(query);
@@ -4771,5 +4761,63 @@ Term Type
 		v = new ParserUtils().getResponseValues(v);
 		v = new SortUtils().quickSort(v);
 		return v;
+	}
+
+    public static void test1(String[] args) {
+		long ms = System.currentTimeMillis();
+		String serviceUrl = args[0];
+		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+        String named_graph = args[1];
+        String queryfile = args[2];
+        owlSPARQLUtils.set_named_graph(named_graph);
+        Vector v = owlSPARQLUtils.getAllConceptProperties(named_graph);
+        Utils.saveToFile("all_properties.txt", v);
+        v = owlSPARQLUtils.getSupportedPropertyQualifierValues(named_graph);
+        StringUtils.dumpVector(v);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+    }
+
+	public static void test2(String[] args) {
+		long ms = System.currentTimeMillis();
+		String serviceUrl = args[0];
+		System.out.println(serviceUrl);
+		//MetadataUtils metadataUtils = new MetadataUtils(serviceUrl);
+		String codingScheme = "NCI_Thesaurus";
+		//String version = metadataUtils.getLatestVersion(codingScheme);
+		System.out.println(codingScheme);
+		//System.out.println(version);
+		String named_graph = args[1]; //test.getNamedGraph(codingScheme);
+		System.out.println(named_graph);
+		ParserUtils parser = new ParserUtils();
+
+		String username = args[2]; //ConfigurationController.username;
+		String password = args[3]; //ConfigurationController.password;
+
+		System.out.println("username: " + username);
+		System.out.println("password: " + password);
+
+    	OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		String inputfile = args[4];
+		Vector codes = Utils.readFile(inputfile);
+		Utils.dumpVector("codes", codes);
+		for (int i=0; i<codes.size(); i++) {
+			String concept_code = (String) codes.elementAt(i);
+			Vector w = owlSPARQLUtils.getLabelByCode(named_graph, concept_code);
+			w = new ParserUtils().getResponseValues(w);
+			String label = (String) w.elementAt(0);
+			int j = i+1;
+			System.out.println("(" + j + ") " + label + " (" + concept_code + ")");
+			HashMap prop_map = owlSPARQLUtils.getPropertyHashMapByCode(named_graph, concept_code);
+			Utils.dumpMultiValuedHashMap("prop_map", prop_map);
+		}
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
+
+	public static void main(String[] args) {
+		if (args.length == 2) {
+			test1(args);
+		} else {
+			test2(args);
+		}
 	}
 }
