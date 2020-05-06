@@ -2,10 +2,10 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -53,16 +53,25 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     
     //query_string query
     logger.info("query string [{}]", searchCriteria.getTerm());
+
+    QueryStringQueryBuilder queryStringQueryBuilder = 
+        QueryBuilders.queryStringQuery(updateTermForType(searchCriteria.getTerm(), searchCriteria.getType()));
     
-    QueryStringQueryBuilder queryStringQueryBuilder = QueryBuilders.queryStringQuery(searchCriteria.getTerm())
-        .type(Type.BEST_FIELDS)
-        .analyzeWildcard(true)
-        .fuzziness(Fuzziness.ONE);
+    boolean isWildcard = "startswith".equalsIgnoreCase(searchCriteria.getType());
     
-    //TODO: support types and build query accordingly
-    //types to support: contains, startswith, phrase, AND, OR, fuzzy -- match dropped for now 
+    if ("fuzzy".equalsIgnoreCase(searchCriteria.getType())) {
+      queryStringQueryBuilder = queryStringQueryBuilder.fuzziness(Fuzziness.ONE);
+    } else if (isWildcard) {
+      queryStringQueryBuilder = queryStringQueryBuilder.analyzeWildcard(true);
+    }
     
-    SearchQuery query = new NativeSearchQueryBuilder()        
+    if ("AND".equalsIgnoreCase(searchCriteria.getType()) || isWildcard) {
+      queryStringQueryBuilder = queryStringQueryBuilder.defaultOperator(Operator.AND);
+    }
+    
+    queryStringQueryBuilder = queryStringQueryBuilder.type(Type.BEST_FIELDS);
+    
+    SearchQuery query = new NativeSearchQueryBuilder()
     .withQuery(
         new BoolQueryBuilder()
         .should(queryStringQueryBuilder.boost(10f))
@@ -87,4 +96,39 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return result;
   }
 
+  private String updateTermForType(String term, String type) {
+    if (StringUtils.isBlank(term) || StringUtils.isBlank(type)) return term;
+    String result = null;
+    
+    switch (type.toLowerCase()) {
+      case "fuzzy":
+        result = updateTokens(term, '~');
+        break;
+      case "startswith":
+        result = term + "*";
+        break;
+      case "phrase":
+        result = "\"" + term + "\"";
+        break;
+      default:
+        result = term;
+        break;
+    }
+
+    logger.info("updated term - {}", result);
+    
+    return result;
+  }
+  
+  private String updateTokens(String term, Character modifier) {
+    String[] tokens = term.split("\\s+");
+    StringBuilder builder = new StringBuilder();
+    
+    for(String token: tokens) {
+      if (builder.length() > 0) builder.append(" ");
+      builder.append(token).append(modifier);
+    }
+    
+    return builder.toString();
+  } 
 }
