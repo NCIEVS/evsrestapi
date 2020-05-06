@@ -830,6 +830,55 @@ public class ParserUtils {
 	}
 
 
+/*
+bnode_21e4bb1f_2fc9_480b_bbdb_0d116398d610_891449|Thyroid Gland Carcinoma|C4815|DEFINITION|P97|A carcinoma arising from the thyroid gland. It includes the following main subtypes: follicular, papillary, medullary, poorly differentiated, and undifferentiated (anaplastic) carcinoma.|Definition Source|P378|NCI
+*/
+
+
+/*
+	private String description;
+	private String source;
+*/
+
+    public Vector parseDefinitionData(Vector axiom_data, String property_name) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String axiom_id = (String) u.elementAt(0);
+			String label = (String) u.elementAt(1);
+			String code = (String) u.elementAt(2);
+			String propertyName = (String) u.elementAt(3);
+			String propertyCode = (String) u.elementAt(4);
+			String propertyValue = (String) u.elementAt(5);
+			String qualifier_name = (String) u.elementAt(6);
+			String qualifier_code = (String) u.elementAt(7);
+			String qualifier_value = (String) u.elementAt(8);
+            Definition def = (Definition) hmap.get(axiom_id);
+            if (def == null) {
+				def = new Definition(
+							null, //subSourceName,
+		                    null); //subSourceCode
+			}
+			if (propertyName.compareTo(property_name) == 0) {
+				def.setDescription(propertyValue);
+			}
+			if (qualifier_name.compareTo("Definition Source") == 0) {
+				def.setSource(qualifier_value);
+			}
+			hmap.put(axiom_id, def);
+		}
+		Vector w2 = new Vector();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String axiom_id = (String) it.next();
+			Definition def = (Definition) hmap.get(axiom_id);
+			w2.add(def);
+		}
+		return w2;
+	}
+
+
 	public static void main(String[] args) {
 		String filename = args[0];
         filename = "filterPropertyQualifiers.txt";

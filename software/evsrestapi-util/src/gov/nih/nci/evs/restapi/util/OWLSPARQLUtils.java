@@ -4813,6 +4813,14 @@ Term Type
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
+
+    public Vector getDefinitions(String prop_label, String named_graph, String code) {
+        String prop_value = null;
+        Vector v = getPropertyQualifiersByCode(named_graph, code, prop_label);
+        v = new ParserUtils().getResponseValues(v);
+		return new ParserUtils().parseDefinitionData(v, prop_label);
+	}
+
 	public static void main(String[] args) {
 		if (args.length == 2) {
 			test1(args);
