@@ -78,12 +78,20 @@ public class TestRESTUtils {
 			Utils.dumpMultiValuedHashMap("prop_map", prop_map);
 
 			Vector axioms = owlSPARQLUtils.getAxiomsByCode(named_graph, concept_code, "FULL_SYN");
-			Utils.dumpVector("axioms", axioms);
+			//Utils.dumpVector("axioms", axioms);
 
+            System.out.println("\nFULL_SYN");
 			Vector syns = parser.parseSynonymData(axioms);
 			for (int k=0; k<syns.size(); k++) {
 				Synonym syn = (Synonym) syns.get(k);
 				System.out.println(syn.toJson());
+			}
+
+            System.out.println("\nDEFINITION");
+			Vector def_vec = owlSPARQLUtils.getDefinitions(named_graph, concept_code, "DEFINITION");
+			for (int k2=0; k2<def_vec.size(); k2++) {
+				Definition def = (Definition) def_vec.get(k2);
+				System.out.println(def.toJson());
 			}
 
 			Vector superconcept_vec = owlSPARQLUtils.getSuperclassesByCode(named_graph, concept_code);
