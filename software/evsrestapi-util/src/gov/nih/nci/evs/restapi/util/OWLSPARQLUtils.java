@@ -4814,11 +4814,10 @@ Term Type
 	}
 
 
-    public Vector getDefinitions(String prop_label, String named_graph, String code) {
-        String prop_value = null;
+    public Vector getDefinitions(String named_graph, String code, String prop_label) {
         Vector v = getPropertyQualifiersByCode(named_graph, code, prop_label);
-        v = new ParserUtils().getResponseValues(v);
-		return new ParserUtils().parseDefinitionData(v, prop_label);
+        v = parser.getResponseValues(v);
+		return parser.parseDefinitionData(v, prop_label);
 	}
 
 	public static void main(String[] args) {
