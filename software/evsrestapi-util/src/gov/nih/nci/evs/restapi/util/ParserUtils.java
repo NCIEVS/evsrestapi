@@ -255,18 +255,25 @@ public class ParserUtils {
 							null, //subSourceName,
 		                    null); //subSourceCode
 			}
-			if (qualifier_name.compareTo("Term Type") == 0) {
+			if (qualifier_name.compareTo("Term Type") == 0 ||
+			           qualifier_name.compareTo("tem-type") == 0 ||
+			           qualifier_name.compareTo("P383") == 0) {
 				syn.setTermGroup(qualifier_value);
-			} else if (qualifier_name.compareTo("Term Source") == 0) {
+			} else if (qualifier_name.compareTo("Term Source") == 0 ||
+			           qualifier_name.compareTo("tem-source") == 0 ||
+			           qualifier_name.compareTo("P384") == 0) {
 				syn.setTermSource(qualifier_value);
-			} else if (qualifier_name.compareTo("Source Code") == 0) {
+			} else if (qualifier_name.compareTo("Source Code") == 0 ||
+			           qualifier_name.compareTo("source-code") == 0 ||
+			           qualifier_name.compareTo("P385") == 0) {
 				syn.setSourceCode(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Name") == 0) {
+			} else if (qualifier_name.compareTo("Subsource Name") == 0 ||
+			           qualifier_name.compareTo("subsource-name") == 0 ||
+			           qualifier_name.compareTo("P386") == 0) {
 				syn.setSubSourceName(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Code") == 0) {
+			} else if (qualifier_name.compareTo("Subsource Code") == 0 ||
+			           qualifier_name.compareTo("subsource-name") == 0) {
 				syn.setSubSourceCode(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Name") == 0) {
-				syn.setSubSourceName(qualifier_value);
 			}
 			hmap.put(axiom_id, syn);
 		}
