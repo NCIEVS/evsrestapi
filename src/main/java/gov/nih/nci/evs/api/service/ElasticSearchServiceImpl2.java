@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
@@ -27,7 +29,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.repository.ConceptRepository;
 import gov.nih.nci.evs.api.support.SearchCriteria;
 
 @Service(value = "elasticSearchServiceImpl2")
@@ -40,9 +41,6 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
   @Autowired
   ElasticsearchOperations operations;
   
-  @Autowired
-  ConceptRepository conceptRepo;
-  
   @Override
   public void initSettings() throws IOException, HttpClientErrorException {
     // TODO Auto-generated method stub
@@ -52,7 +50,7 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
   @Override
   public ConceptResultList search(SearchCriteria searchCriteria) throws IOException, HttpClientErrorException {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
-    Pageable pageable = PageRequest.of(page, searchCriteria.getPageSize());
+    Pageable pageable = new EVSPageable(page, searchCriteria.getPageSize(), searchCriteria.getFromRecord());//PageRequest.of(page, searchCriteria.getPageSize());
     
     logger.info("query string [{}]", searchCriteria.getTerm());
 
@@ -83,9 +81,11 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Total).boost(4f))
     .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Total).boost(8f));
     
-    QueryBuilder criteriaQuery = prepareCriteriaQueryBuilder(searchCriteria);
-    if (criteriaQuery != null) {
-      boolQuery = boolQuery.must(criteriaQuery);
+    List<QueryBuilder> criteriaQueries = buildCriteriaQueries(searchCriteria);
+    if (!CollectionUtils.isEmpty(criteriaQueries)) {
+      for(QueryBuilder query: criteriaQueries) {
+        boolQuery = boolQuery.must(query);
+      }
     }
     
     SearchQuery query = new NativeSearchQueryBuilder()
@@ -101,6 +101,7 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     logger.debug("result count: {}", resultPage.getTotalElements());
     
     ConceptResultList result = new ConceptResultList();
+    result.setParameters(searchCriteria);
     result.setConcepts(resultPage.getContent());
     result.setTotal(Long.valueOf(resultPage.getTotalElements()).intValue());
     
@@ -143,53 +144,46 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return builder.toString();
   }
   
-  private QueryBuilder prepareCriteriaQueryBuilder(SearchCriteria searchCriteria) {
-    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-    boolean hasCondition = false;
+  private List<QueryBuilder> buildCriteriaQueries(SearchCriteria searchCriteria) {
+    List<QueryBuilder> queries = new ArrayList<>();
     
     //concept status
     QueryBuilder conceptStatusQuery = getPropertyValueQueryBuilder(searchCriteria, "concept_status");
     if (conceptStatusQuery != null) {
-      boolQuery = boolQuery.must(conceptStatusQuery);
-      hasCondition = true;
+      queries.add(conceptStatusQuery);
     }
 
     //contributing source
     QueryBuilder contributingSourceQuery = getPropertyValueQueryBuilder(searchCriteria, "contributing_source");
     if (contributingSourceQuery != null) {
-      boolQuery = boolQuery.must(contributingSourceQuery);
-      hasCondition = true;
+      queries.add(contributingSourceQuery);
     }
 
     //property
     QueryBuilder propertyQuery = getPropertyTypeQueryBuilder(searchCriteria);
     if (propertyQuery != null) {
-      boolQuery = boolQuery.must(propertyQuery);
-      hasCondition = true;
+      queries.add(propertyQuery);
     }
 
     //synonym source
     QueryBuilder synonymSourceQuery = getSynonymSourceQueryBuilder(searchCriteria);
     if (synonymSourceQuery != null) {
-      boolQuery = boolQuery.must(synonymSourceQuery);
-      hasCondition = true;
+      queries.add(synonymSourceQuery);
     }
 
     //definition source
     QueryBuilder definitionSourceQuery = getDefinitionSourceQueryBuilder(searchCriteria);
     if (definitionSourceQuery != null) {
-      boolQuery = boolQuery.must(definitionSourceQuery);
-      hasCondition = true;
+      queries.add(definitionSourceQuery);
     }
     
     //synonym source
     QueryBuilder synonymTermGroupQuery = getSynonymTermGroupQueryBuilder(searchCriteria);
     if (synonymTermGroupQuery != null) {
-      boolQuery = boolQuery.must(synonymTermGroupQuery);
-      hasCondition = true;
+      queries.add(synonymTermGroupQuery);
     }
     
-    return hasCondition ? boolQuery : null;//TODO
+    return queries;
   }
   
   private QueryBuilder getPropertyValueQueryBuilder(SearchCriteria searchCriteria, String type) {
@@ -207,16 +201,16 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     
     if (CollectionUtils.isEmpty(values)) return null;
     
-    //IN query on property.value
+    //IN query on property.type
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
-    for(String value: values) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("value", value));
+    for(String property: searchCriteria.getProperty()) {
+      inQuery = inQuery.should(QueryBuilders.matchQuery("properties.value", property));
     }
     
     //bool query to match property.type and property.value
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.matchQuery("type", type))
+        .must(QueryBuilders.matchQuery("properties.type", type))
         .must(inQuery);
     
     //nested query on properties
@@ -226,11 +220,11 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
   private QueryBuilder getPropertyTypeQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getProperty())) return null;
     
-    //IN query on property.value
+    //IN query on property.type
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
     for(String property: searchCriteria.getProperty()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("type", property));
+      inQuery = inQuery.should(QueryBuilders.matchQuery("properties.type", property));
     }
     
     //bool query to match property.type and property.value
@@ -248,7 +242,7 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
     for(String source: searchCriteria.getSynonymSource()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("source", source));
+      inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.source", source));
     }
     
     //bool query to match property.type and property.value
@@ -266,7 +260,7 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
     for(String source: searchCriteria.getDefinitionSource()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("source", source));
+      inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.source", source));
     }
     
     //bool query to match property.type and property.value
@@ -282,9 +276,21 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     
     //bool query to match property.type and property.value
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.matchQuery("termGroup", searchCriteria.getSynonymTermGroup()));
+        .must(QueryBuilders.matchQuery("synonyms.termGroup", searchCriteria.getSynonymTermGroup()));
     
     //nested query on properties
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
+  }
+  
+  public class EVSPageable extends PageRequest {
+    private int offset;
+    public EVSPageable(int page, int size, int offset){
+        super(page, size, Sort.unsorted());
+        this.offset=offset;
+    }
+    @Override
+    public long getOffset(){
+        return this.offset;
+    }
   }
 }
