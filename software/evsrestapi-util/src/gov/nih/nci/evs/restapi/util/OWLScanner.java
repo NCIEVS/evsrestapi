@@ -80,37 +80,6 @@ public class OWLScanner {
 	static String owlannotatedTarget_close = "</owl:annotatedTarget>";
 	static String pt_code = "P108";
 	static String pt_tag_open = "<P108>";
-    /*
-    Vector disjointwith_classes = null;
-    HashMap subclassOfHashMap = null;
-
-    static String NCIT_NAMESPACE_TARGET = "<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
-    static String OWL_CLS_TARGET = NCIT_NAMESPACE_TARGET + "C"; //"<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C";
-    static String rdfsSubClassOf = "rdfs:subClassOf";
-    static String owlDisjointWith = "owl:disjointWith";
-    static String open_class_tag = "<owl:Class ";
-    //static String close_class_tag = "</owl:Class>";
-
-	static String open_tag = "<owl:Axiom>";
-	static String close_tag = "</owl:Axiom>";
-	static String owlannotatedSource = "owl:annotatedSource";
-	static String owlannotatedProperty = "<owl:annotatedProperty";
-	static String owlannotatedTarget_open = "owl:annotatedTarget";
-	static String owlannotatedTarget_close = "</owl:annotatedTarget>";
-	static String pt_code = "P108";
-	static String pt_tag_open = "<P108>";
-
-	private static String owlequivalentClass_open = "<owl:equivalentClass";
-	private static String owlequivalentClass_close = "</owl:equivalentClass>";
-	private static String owlClass_open = "<owl:Class";
-	private static String owlClass_close = "</owl:Class>";
-	private static String owlRestriction_open = "<owl:Restriction";
-	private static String owlRestriction_close = "</owl:Restriction>";
-	private static String owlunionOf_open = "<owl:unionOf";
-	private static String owlunionOf_close = "</owl:unionOf>";
-	private static String owlintersectionOf_open = "<owl:intersectionOf";
-	private static String owlintersectionOf_close = "</owl:intersectionOf>";
-	*/
 
     public OWLScanner() {
 
@@ -462,34 +431,6 @@ public class OWLScanner {
 			}
 		}
 		return str;
-	}
-
-
-	public void print_restriction_header() {
-		System.out.println("");
-		System.out.println("		String prefixes = getPrefixes();");
-		System.out.println("		StringBuffer buf = new StringBuffer();");
-		System.out.println("		buf.append(prefixes);");
-		System.out.println("		if (codeOnly) {");
-		System.out.println("			buf.append(\"SELECT distinct ?x_code ?p_code ?y_code \").append(\"\\n\");");
-		System.out.println("		} else {");
-		System.out.println("			buf.append(\"SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code \").append(\"\\n\");");
-		System.out.println("		}");
-		System.out.println("		buf.append(\"{\").append(\"\\n\");");
-		System.out.println("		buf.append(\"    graph <\" + named_graph + \">\").append(\"\\n\");");
-		System.out.println("		buf.append(\"    {\").append(\"\\n\");");
-	}
-
-
-	public void print_restriction() {
-		System.out.println("		buf.append(\"		?r a owl:Restriction .\").append(\"\\n\");");
-		System.out.println("		buf.append(\"		?r owl:onProperty ?p .\").append(\"\\n\");");
-		System.out.println("		buf.append(\"		?p rdfs:label ?p_label .\").append(\"\\n\");");
-		System.out.println("		buf.append(\"		?p :NHC0 ?p_code .\").append(\"\\n\");");
-		System.out.println("		buf.append(\"		?r owl:someValuesFrom ?y .\").append(\"\\n\");");
-		System.out.println("		buf.append(\"		?y a owl:Class .\").append(\"\\n\");");
-		System.out.println("		buf.append(\"		?y rdfs:label ?y_label .\").append(\"\\n\");");
-		System.out.println("		buf.append(\"		?y :NHC0 ?y_code\").append(\"\\n\");");
 	}
 
     public String getOpenTag(String str) {
