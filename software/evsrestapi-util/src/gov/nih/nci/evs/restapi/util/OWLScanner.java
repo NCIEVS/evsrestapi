@@ -617,6 +617,114 @@ public class OWLScanner {
 		return v2;
 	}
 
+
+	public void print_restriction_query(String path, int method_index) {
+		Vector v = StringUtils.parseData(path, '|');
+		int z_index = 0;
+		System.out.println("\n");
+		System.out.println("	public String construct_get_roles_" + method_index + "(String named_graph, String code, boolean outbound, boolean codeOnly) {");
+		System.out.println("		String prefixes = getPrefixes();");
+		System.out.println("		StringBuffer buf = new StringBuffer();");
+		System.out.println("		buf.append(prefixes);");
+		System.out.println("		if (codeOnly) {");
+		System.out.println("			buf.append(\"SELECT distinct ?x_code ?p_code ?y_code \").append(\"\\n\");");
+		System.out.println("		} else {");
+		System.out.println("			buf.append(\"SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code \").append(\"\\n\");");
+		System.out.println("		}");
+		System.out.println("		buf.append(\"{ \").append(\"\\n\");");
+
+		System.out.println("		buf.append(\"    graph <\" + named_graph + \">\").append(\"\\n\");");
+		System.out.println("		buf.append(\"    {\").append(\"\\n\");");
+		System.out.println("		buf.append(\"	   {\").append(\"\\n\");");
+		for (int i=0; i<v.size(); i++) {
+			String node = (String) v.elementAt(i);
+			if (node.compareTo("owl:Class") == 0) {
+
+				if (z_index == 0) {
+					System.out.println("		buf.append(\"		?x :NHC0 ?x_code .\").append(\"\\n\");");
+					System.out.println("		buf.append(\"		?x rdfs:label ?x_label .\").append(\"\\n\");");
+				} else {
+					String z2 = "z" + z_index;
+					//z_index++;
+					System.out.println("		buf.append(\"		?" + z2 + " a owl:Class .\").append(\"\\n\");");
+				}
+
+			} else if (node.compareTo("rdfs:subClassOf") == 0) {
+				if (z_index == 0) {
+					z_index++;
+					String z2 = "z" + z_index;
+					System.out.println("		buf.append(\"		?x" + " rdfs:subClassOf ?" + z2 + " .\").append(\"\\n\");");
+				} else {
+					String z1 = "z" + z_index;
+					z_index++;
+					String z2 = "z" + z_index;
+					z_index++;
+					System.out.println("		buf.append(\"		?" + z1 + " rdfs:subClassOf ?" + z2 + " .\").append(\"\\n\");");
+				}
+
+			} else if (node.compareTo("owl:equivalentClass") == 0) {
+				if (z_index == 0) {
+					z_index++;
+					String z2 = "z" + z_index;
+					System.out.println("		buf.append(\"		?x" + " owl:equivalentClass ?" + z2 + " .\").append(\"\\n\");");
+				} else {
+					String z1 = "z" + z_index;
+					z_index++;
+					String z2 = "z" + z_index;
+					z_index++;
+					System.out.println("		buf.append(\"		?" + z1 + " owl:equivalentClass ?" + z2 + " .\").append(\"\\n\");");
+				}
+
+
+			} else if (node.compareTo("owl:intersectionOf") == 0) {
+				String z1 = "z" + z_index;
+				z_index++;
+				String z2 = "z" + z_index;
+				z_index++;
+				String z3 = "z" + z_index;
+
+				System.out.println("		buf.append(\"		?" + z1 + " owl:intersectionOf ?" + z2 + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + z2 + " rdf:rest*/rdf:first ?" + z3 + " .\").append(\"\\n\");");
+
+			} else if (node.compareTo("owl:unionOf") == 0) {
+				String z1 = "z" + z_index;
+				z_index++;
+				String z2 = "z" + z_index;
+				z_index++;
+				String z3 = "z" + z_index;
+
+				System.out.println("		buf.append(\"		?" + z1 + " owl:unionOf ?" + z2 + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + z2 + " rdf:rest*/rdf:first ?" + z3 + " .\").append(\"\\n\");");
+
+			} else if (node.compareTo("owl:Restriction") == 0) {
+
+				String restriction_id = "z" + z_index;
+				String prop_id = "p";
+				String y_id = "y";
+				System.out.println("		buf.append(\"		?" + restriction_id + " a owl:Restriction .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + restriction_id + " owl:onProperty ?" + prop_id + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + prop_id + " rdfs:label ?" + prop_id + "_label .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + prop_id + " :NHC0 ?" + prop_id + "_code .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + restriction_id + " owl:someValuesFrom ?" + y_id + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + y_id + " a owl:Class .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + y_id + " rdfs:label ?" + y_id + "_label .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + y_id + " :NHC0 ?" + y_id + "_code .\").append(\"\\n\");");
+			}
+   	    }
+		System.out.println("		if (code != null && outbound) {");
+		System.out.println("		    buf.append(\"		?x :NHC0 \\" + "\"" + "\"+ code +\"" + "\\\"^^xsd:string\").append(\"\\n\");");
+		System.out.println("		} else {");
+		System.out.println("		    buf.append(\"		?y :NHC0 \\" + "\"" + "\"+ code +\"" + "\\\"^^xsd:string\").append(\"\\n\");");
+		System.out.println("		}");
+
+		System.out.println("		buf.append(\"	    }\").append(\"\\n\");");
+		System.out.println("		buf.append(\"    }\").append(\"\\n\");");
+		System.out.println("		buf.append(\"} \").append(\"\\n\");");
+		System.out.println("		return buf.toString();");
+		System.out.println("	}");
+	}
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
@@ -643,7 +751,7 @@ public class OWLScanner {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		*/
         Vector v = scanner.scanOwlTags();
-        v = scanner.fileterTagData(v, "owl:intersectionOf");
+        v = scanner.fileterTagData(v, "owl:Restriction");
         Utils.dumpVector("fileterTagData", v);
         scanner.printPaths(v);
     }
