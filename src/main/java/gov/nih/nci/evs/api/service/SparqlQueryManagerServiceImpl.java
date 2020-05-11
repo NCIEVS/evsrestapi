@@ -578,16 +578,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concepts.add(c);
     }
 
-    //
     Map<String, List<Property>> propertyMap = getProperties(conceptCodes, terminology);
     Map<String, List<Axiom>> axiomMap = getAxioms(conceptCodes, terminology, true);
-//    Map<String, List<Concept>> subConceptMap = getSubconcepts(conceptCodes, terminology);
-//    Map<String, List<Concept>> superConceptMap = getSuperconcepts(conceptCodes, terminology);
-//    Map<String, List<Association>> associationMap = getAssociations(conceptCodes, terminology);
-//    Map<String, List<Association>> inverseAssociationMap = getInverseAssociations(conceptCodes, terminology);
-//    Map<String, List<Role>> roleMap = getRoles(conceptCodes, terminology);
-//    Map<String, List<Role>> inverseRoleMap = getInverseRoles(conceptCodes, terminology);
-//    Map<String, List<DisjointWith>> disjointWithMap = getDisjointWith(conceptCodes, terminology);
     
     for(Concept concept: concepts) {
       String conceptCode = concept.getCode();
@@ -707,6 +699,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return properties;
   }
 
+  /**
+   * Returns the properties grouped by concept
+   *
+   * @param conceptCodes the concept codes
+   * @param terminology the terminology
+   * @return the properties
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   private Map<String, List<Property>> getProperties(List<String> conceptCodes, Terminology terminology)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -827,36 +829,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return subclasses;
   }
 
-  private Map<String, List<Concept>> getSubconcepts(List<String> conceptCodes, Terminology terminology)
-      throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String inClause = getInClause(conceptCodes);
-    String query =
-        queryBuilderService.constructBatchQuery("subconcepts.batch", terminology.getGraph(), inClause);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Map<String, List<Concept>> resultMap = new HashMap<>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String conceptCode = b.getConceptCode().getValue();
-      
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }
-      
-      Concept subclass = new Concept();
-      subclass.setName(b.getSubclassLabel().getValue());
-      subclass.setCode(b.getSubclassCode().getValue());
-      resultMap.get(conceptCode).add(subclass);
-    }
-
-    return resultMap;
-  }
-  
   /**
    * Returns the superconcepts.
    *
@@ -891,36 +863,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return superclasses;
   }
 
-  private Map<String, List<Concept>> getSuperconcepts(List<String> conceptCodes, Terminology terminology)
-      throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String inClause = getInClause(conceptCodes);
-    String query =
-        queryBuilderService.constructBatchQuery("superconcepts.batch", terminology.getGraph(), inClause);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Map<String, List<Concept>> resultMap = new HashMap<>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String conceptCode = b.getConceptCode().getValue();
-      
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }
-      
-      Concept superclass = new Concept();
-      superclass.setName(b.getSuperclassLabel().getValue());
-      superclass.setCode(b.getSuperclassCode().getValue());
-      resultMap.get(conceptCode).add(superclass);
-    }
-
-    return resultMap;
-  }
-  
   /**
    * Returns the associations.
    *
@@ -956,37 +898,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  private Map<String, List<Association>> getAssociations(List<String> conceptCodes, Terminology terminology)
-      throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String inClause = getInClause(conceptCodes);
-    String query =
-        queryBuilderService.constructBatchQuery("associations.batch", terminology.getGraph(), inClause);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Map<String, List<Association>> resultMap = new HashMap<>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String conceptCode = b.getConceptCode().getValue();
-      
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }
-      
-      Association association = new Association();
-      association.setType(b.getRelationship().getValue());
-      association.setRelatedCode(b.getRelatedConceptCode().getValue());
-      association.setRelatedName(b.getRelatedConceptLabel().getValue());
-      resultMap.get(conceptCode).add(association);
-    }
-
-    return resultMap;
-  }
-  
   /**
    * Returns the inverse associations.
    *
@@ -1022,37 +933,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  private Map<String, List<Association>> getInverseAssociations(List<String> conceptCodes, Terminology terminology)
-      throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String inClause = getInClause(conceptCodes);
-    String query = queryBuilderService.constructBatchQuery("inverse.associations.batch", 
-        terminology.getGraph(), inClause);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Map<String, List<Association>> resultMap = new HashMap<>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String conceptCode = b.getConceptCode().getValue();
-      
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }
-      
-      Association association = new Association();
-      association.setType(b.getRelationship().getValue());
-      association.setRelatedCode(b.getRelatedConceptCode().getValue());
-      association.setRelatedName(b.getRelatedConceptLabel().getValue());
-      resultMap.get(conceptCode).add(association);
-    }
-
-    return resultMap;
-  }
-  
   /**
    * Returns the inverse roles.
    *
@@ -1088,37 +968,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  private Map<String, List<Role>> getInverseRoles(List<String> conceptCodes, Terminology terminology)
-      throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String inClause = getInClause(conceptCodes);
-    String query =
-        queryBuilderService.constructQuery("inverse.roles.batch", terminology.getGraph(), inClause);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Map<String, List<Role>> resultMap = new HashMap<>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String conceptCode = b.getConceptCode().getValue();
-      
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }
-      
-      Role role = new Role();
-      role.setType(b.getRelationship().getValue());
-      role.setRelatedCode(b.getRelatedConceptCode().getValue());
-      role.setRelatedName(b.getRelatedConceptLabel().getValue());
-      resultMap.get(conceptCode).add(role);
-    }
-
-    return resultMap;
-  }
-  
   /**
    * Returns the roles.
    *
@@ -1154,37 +1003,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  private Map<String, List<Role>> getRoles(List<String> conceptCodes, Terminology terminology)
-      throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String inClause = getInClause(conceptCodes);
-    String query = queryBuilderService.constructBatchQuery("roles.batch", terminology.getGraph(), inClause);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Map<String, List<Role>> resultMap = new HashMap<>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String conceptCode = b.getConceptCode().getValue();
-      
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }
-      
-      Role role = new Role();
-      role.setType(b.getRelationship().getValue());
-      role.setRelatedCode(b.getRelatedConceptCode().getValue());
-      role.setRelatedName(b.getRelatedConceptLabel().getValue());
-
-      resultMap.get(conceptCode).add(role);
-    }
-
-    return resultMap;
-  }
-  
   /**
    * Returns the disjoint with.
    *
@@ -1220,37 +1038,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return disjointWithList;
   }
 
-  private Map<String, List<DisjointWith>> getDisjointWith(List<String> conceptCodes, Terminology terminology)
-      throws JsonMappingException, JsonParseException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String inClause = getInClause(conceptCodes);
-    String query =
-        queryBuilderService.constructBatchQuery("disjoint.with.batch", terminology.getGraph(), inClause);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Map<String, List<DisjointWith>> resultMap = new HashMap<>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String conceptCode = b.getConceptCode().getValue();
-      
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }        
-      
-      DisjointWith disjointWith = new DisjointWith();
-      disjointWith.setType(b.getRelationship().getValue());
-      disjointWith.setRelatedCode(b.getRelatedConceptCode().getValue());
-      disjointWith.setRelatedName(b.getRelatedConceptLabel().getValue());
-      resultMap.get(conceptCode).add(disjointWith);
-    }
-
-    return resultMap;
-  }
-  
   /**
    * Returns the axioms.
    *
@@ -1303,6 +1090,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return axioms;
   }
 
+  /**
+   * Returns the axioms grouped by concept
+   *
+   * @param conceptCodes the list of concept codes
+   * @param terminology the terminology
+   * @param qualifierFlag the qualifier flag
+   * @return the axioms
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */  
   private Map<String, List<Axiom>> getAxioms(List<String> conceptCodes, Terminology terminology, boolean qualifierFlag)
       throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1350,6 +1148,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return resultMap;
   }
   
+  /**
+   * sets axiom property
+   * 
+   * @param property the property
+   * @param value the value
+   * @param qualifierFlag the qualifier flag
+   * @param axiomObject the axiom object
+   * @param terminology the terminology
+   * @throws IOException
+   */
   private void setAxiomProperty(String property, String value, boolean qualifierFlag, 
       Axiom axiomObject, Terminology terminology) throws IOException {
     // TODO: CONFIG
@@ -1951,27 +1759,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     return sources;
   }
-  
-  /** batch query methods **/
-  
-  /*
-  
-  def getAllConcepts(sparql_endpoint, named_graph):
-    query = es.all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, "")
 
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:  
-        concepts = []
-        for result in obj['results']['bindings']:
-            concepts.append(result['concept_code']['value'])
-
-    return concepts
-  
-  */
-  
+  /**
+   * gets all concepts (minimal)
+   * 
+   * @param terminology the terminology
+   * @return list of concept objects
+   */
   @Override
   public List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1999,253 +1793,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     
     return concepts;
   }
-  
+
   /**
-  
-def getBulkConcepts(sparql_endpoint, named_graph, in_clause):
-    query = es.all_concepts_batch
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        concepts = {}
-        for result in obj['results']['bindings']:
-            concept = {}
-            concept['Code'] = result['concept_code']['value']
-            concept['Label'] = result['concept_label']['value']
-            concept['properties'] = []
-            concept['axioms'] = []
-            concept['subclasses'] = []
-            concept['superclasses'] = []
-            concept['associations'] = []
-            concept['inverse_associations'] = []
-            concept['roles'] = []
-            concept['inverse_roles'] = []
-            concept['disjoint_with'] = []
-            #r.execute_command('JSON.SET', concept['Code'], '.', json.dumps(concept))
-            #rj.jsonset(concept['Code'], rejson.Path.rootPath(), concept)
-            concepts[concept['Code']] = concept
-
-    return concepts
-
-
-def getAllProperties(sparql_endpoint, named_graph, in_clause):
-    query = es.all_properties_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        properties = []
-        for result in obj['results']['bindings']:
-            property = {}
-            property['concept_code'] = result['concept_code']['value']
-            if "property_code" in result:
-                property['property_code'] = result['property_code']['value']
-            else:
-                property['property_code'] = ""
-            property['property_label'] = result['property_label']['value']
-            property['property_value'] = result['property_value']['value']
-            properties.append(property)
-    return properties
-
-
-def getAllPropertiesFast(sparql_endpoint, named_graph, concepts, in_clause):
-    query = es.all_properties_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        for result in obj['results']['bindings']:
-            property = {}
-            property['concept_code'] = result['concept_code']['value']
-            if property['concept_code'] in concepts:
-                if "property_code" in result:
-                    property['property_code'] = result['property_code']['value']
-                property['property_label'] = result['property_label']['value']
-                property['property_value'] = result['property_value']['value']
-                concepts[property['concept_code']]['properties'].append(property)
-
-
-def getAllAxioms(sparql_endpoint, named_graph, in_clause):
-    query = es.all_axioms_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        sw = False
-        oldAxiom = ""
-        axiom = {}
-        axioms = []
-        for result in obj['results']['bindings']:
-            currentAxiom = result['axiom']['value']
-            if sw and currentAxiom != oldAxiom:
-                axioms.append(axiom)
-                axiom = {}
-
-            sw = True
-            oldAxiom = currentAxiom
-            axiom['concept_code'] = result['concept_code']['value']
-
-            property = result['axiomProperty']['value']
-            if "#" in property:
-                property = property.split("#")[1]
-            if ":" in property:
-                property = property.split(":")[1]
-
-            value = result['axiomValue']['value']
-            if "#" in value:
-                value = value.split("#")[1]
-            
-            axiom[property] = value
-
-        axioms.append(axiom)
-
-    return axioms
-
-
-def getAllSubclasses(sparql_endpoint, named_graph, in_clause):
-    query = es.all_subclasses_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        subclasses = []
-        for result in obj['results']['bindings']:
-            subclass = {}
-            subclass['concept_code'] = result['concept_code']['value']
-            subclass['subclass_label'] = result['subclass_label']['value']
-            subclass['subclass_code'] = result['subclass_code']['value']
-            subclasses.append(subclass)
-    return subclasses
-
-
-def getAllSuperclasses(sparql_endpoint, named_graph, in_clause):
-    query = es.all_superclasses_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        superclasses = []
-        for result in obj['results']['bindings']:
-            superclass = {}
-            superclass['concept_code'] = result['concept_code']['value']
-            superclass['superclass_label'] = result['superclass_label']['value']
-            superclass['superclass_code'] = result['superclass_code']['value']
-            superclasses.append(superclass)
-    return superclasses
-
-
-def getAllAssociations(sparql_endpoint, named_graph, in_clause):
-    query = es.all_associations_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        associations = []
-        for result in obj['results']['bindings']:
-            association = {}
-            association['concept_code'] = result['concept_code']['value']
-            association['relationship'] = result['relationship']['value']
-            association['relationshipCode'] = result['relationshipCode']['value']
-            association['relatedConceptCode'] = result['relatedConceptCode']['value']
-            association['relatedConceptLabel'] = result['relatedConceptLabel']['value']
-            associations.append(association)
-    return associations
-
-
-def getAllInverseAssociations(sparql_endpoint, named_graph, in_clause):
-    query = es.all_inverse_associations_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        associations = []
-        for result in obj['results']['bindings']:
-            association = {}
-            association['concept_code'] = result['concept_code']['value']
-            association['relationship'] = result['relationship']['value']
-            association['relationshipCode'] = result['relationshipCode']['value']
-            association['relatedConceptCode'] = result['relatedConceptCode']['value']
-            association['relatedConceptLabel'] = result['relatedConceptLabel']['value']
-            associations.append(association)
-    return associations
-
-
-def getAllRoles(sparql_endpoint, named_graph, in_clause):
-    query = es.all_roles_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        roles = []
-        for result in obj['results']['bindings']:
-            role = {}
-            role['concept_code'] = result['concept_code']['value']
-            role['relationship'] = result['relationship']['value']
-            role['relationshipCode'] = result['relationshipCode']['value']
-            role['relatedConceptCode'] = result['relatedConceptCode']['value']
-            role['relatedConceptLabel'] = result['relatedConceptLabel']['value']
-            roles.append(role)
-    return roles
-
-
-def getAllInverseRoles(sparql_endpoint, named_graph, in_clause):
-    query = es.all_inverse_roles_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        roles = []
-        for result in obj['results']['bindings']:
-            role = {}
-            role['concept_code'] = result['concept_code']['value']
-            role['relationship'] = result['relationship']['value']
-            role['relationshipCode'] = result['relationshipCode']['value']
-            role['relatedConceptCode'] = result['relatedConceptCode']['value']
-            role['relatedConceptLabel'] = result['relatedConceptLabel']['value']
-            roles.append(role)
-    return roles
-
-def getAllDisjointWith(sparql_endpoint, named_graph, in_clause):
-    query = es.all_disjoint_with_all_concepts
-    obj = es.run_sparql_query(sparql_endpoint, named_graph, query, in_clause)
-
-    if obj is None:
-        print("No Result Returned - Problem with Query")
-        return None
-    else:
-        disjoints = []
-        for result in obj['results']['bindings']:
-            disjoint = {}
-            disjoint['concept_code'] = result['concept_code']['value']
-            disjoint['relationship'] = result['relationship']['value']
-            disjoint['relatedConceptCode'] = result['relatedConceptCode']['value']
-            disjoint['relatedConceptLabel'] = result['relatedConceptLabel']['value']
-            disjoints.append(disjoint)
-    return disjoints
-
-**/
-  
+   * prepares "in" clause to be used sparql queries for given values
+   * 
+   * @param values
+   * @return
+   */
   private String getInClause(List<String> values) {
     return new StringBuilder()
       .append("'")

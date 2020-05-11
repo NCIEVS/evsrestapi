@@ -589,6 +589,11 @@ public interface SparqlQueryManagerService {
   Paths getPaths(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
-  
+  /**
+   * gets all concepts (minimal)
+   * 
+   * @param terminology the terminology
+   * @return list of concept objects
+   */
   List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException;
 }

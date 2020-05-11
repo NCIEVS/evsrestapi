@@ -2,10 +2,14 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
@@ -13,19 +17,29 @@ import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchResultMapper;
+import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
+import org.springframework.data.elasticsearch.core.aggregation.impl.AggregatedPageImpl;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
@@ -43,10 +57,15 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
   
   @Override
   public void initSettings() throws IOException, HttpClientErrorException {
-    // TODO Auto-generated method stub
     
   }
 
+  /**
+   * search for the given search criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the result list with concepts
+   */
   @Override
   public ConceptResultList search(SearchCriteria searchCriteria) throws IOException, HttpClientErrorException {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
@@ -93,11 +112,12 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     .withIndices(ElasticOperationsService.CONCEPT_INDEX)
     .withTypes(ElasticOperationsService.CONCEPT_TYPE)
     .withPageable(pageable)
+    .withHighlightFields(new HighlightBuilder.Field("*"))
     .build();
     
     //query on operations
-    Page<Concept> resultPage = operations.queryForPage(query, Concept.class);
-
+    Page<Concept> resultPage = operations.queryForPage(query, Concept.class, new EVSConceptResultMapper());
+    
     logger.debug("result count: {}", resultPage.getTotalElements());
     
     ConceptResultList result = new ConceptResultList();
@@ -108,6 +128,13 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return result;
   }
 
+  /**
+   * update term based on type of search
+   * 
+   * @param term the term to be updated
+   * @param type the type of search
+   * @return the updated term
+   */
   private String updateTermForType(String term, String type) {
     if (StringUtils.isBlank(term) || StringUtils.isBlank(type)) return term;
     String result = null;
@@ -132,6 +159,13 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return result;
   }
   
+  /**
+   * append each token from a term with given modifier
+   * 
+   * @param term the term or phrase
+   * @param modifier the modifier
+   * @return the modified term or phrase
+   */
   private String updateTokens(String term, Character modifier) {
     String[] tokens = term.split("\\s+");
     StringBuilder builder = new StringBuilder();
@@ -144,6 +178,12 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return builder.toString();
   }
   
+  /**
+   * builds list of queries for field specific criteria from the search criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return list of nested queries
+   */
   private List<QueryBuilder> buildCriteriaQueries(SearchCriteria searchCriteria) {
     List<QueryBuilder> queries = new ArrayList<>();
     
@@ -178,7 +218,7 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     }
     
     //synonym source
-    QueryBuilder synonymTermGroupQuery = getSynonymTermGroupQueryBuilder(searchCriteria);
+    QueryBuilder synonymTermGroupQuery = buildSynonymTermGroupQueryBuilder(searchCriteria);
     if (synonymTermGroupQuery != null) {
       queries.add(synonymTermGroupQuery);
     }
@@ -186,6 +226,12 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return queries;
   }
   
+  /**
+   * builds nested query for property criteria on value field for given types
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
   private QueryBuilder getPropertyValueQueryBuilder(SearchCriteria searchCriteria, String type) {
     List<String> values = null;
     switch (type) {
@@ -217,6 +263,12 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
   }
 
+  /**
+   * builds nested query for property criteria on type field
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
   private QueryBuilder getPropertyTypeQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getProperty())) return null;
     
@@ -235,6 +287,12 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
   }
   
+  /**
+   * builds nested query for synonym source criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
   private QueryBuilder getSynonymSourceQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getSynonymSource())) return null;
     
@@ -253,6 +311,12 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
   }
 
+  /**
+   * builds nested query for definition source criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
   private QueryBuilder getDefinitionSourceQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getDefinitionSource())) return null;
     
@@ -271,7 +335,13 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return QueryBuilders.nestedQuery("definitions", fieldBoolQuery, ScoreMode.Total);
   }
   
-  private QueryBuilder getSynonymTermGroupQueryBuilder(SearchCriteria searchCriteria) {
+  /**
+   * builds nested query for synonym term group criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder buildSynonymTermGroupQueryBuilder(SearchCriteria searchCriteria) {
     if (StringUtils.isEmpty(searchCriteria.getSynonymTermGroup())) return null;
     
     //bool query to match property.type and property.value
@@ -282,7 +352,13 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
   }
   
-  public class EVSPageable extends PageRequest {
+  /**
+   * Custom pageable implementation to support arbitrary offset (work in progress)
+   * 
+   * @author Arun
+   *
+   */
+  private class EVSPageable extends PageRequest {
     private int offset;
     public EVSPageable(int page, int size, int offset){
         super(page, size, Sort.unsorted());
@@ -291,6 +367,60 @@ public class ElasticSearchServiceImpl2 implements ElasticSearchService {
     @Override
     public long getOffset(){
         return this.offset;
+    }
+  }
+  
+  /**
+   * Custom concept result mapper to extract highlights from search hits
+   * 
+   * @author Arun
+   *
+   */
+  private class EVSConceptResultMapper implements SearchResultMapper {
+    
+    private ObjectMapper mapper;
+    
+    public EVSConceptResultMapper() {
+      this.mapper = new ObjectMapper();
+    }
+    
+    @Override
+    public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz, Pageable pageable) {
+      if (response.getHits().getHits().length <= 0) {
+        return new AggregatedPageImpl(Collections.emptyList(), pageable, 0L);
+      }
+      
+      List<Concept> content = new ArrayList<Concept>();
+      for (SearchHit searchHit : response.getHits()) {
+        Concept concept = (Concept) mapSearchHit(searchHit, clazz);
+        content.add(concept);
+      }
+
+      return new AggregatedPageImpl((List<T>) content, pageable, 
+          response.getHits().getTotalHits(), response.getAggregations(), 
+          response.getScrollId(), response.getHits().getMaxScore());
+    }
+
+    @Override
+    public <T> T mapSearchHit(SearchHit searchHit, Class<T> clazz) {
+      Concept concept = null;
+      try {
+        concept = mapper.readValue(searchHit.getSourceAsString(), Concept.class);
+
+        Map<String, HighlightField> highlightMap = searchHit.getHighlightFields();
+        for (String key : highlightMap.keySet()) {
+          HighlightField field = highlightMap.get(key);
+          for (Text text : field.getFragments()) {
+            String highlight = text.string();
+            concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""), highlight);
+          }
+        }
+
+      } catch (JsonProcessingException e) {
+        logger.error(e.getMessage(), e);
+      }
+      
+      return (T) concept;
     }
   }
 }
