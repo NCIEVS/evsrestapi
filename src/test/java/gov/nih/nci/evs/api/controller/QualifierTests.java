@@ -100,7 +100,7 @@ public class QualifierTests {
             .isGreaterThan(0);
     assertThat(concept.getDefinitions().stream()
         .filter(d -> "ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attr")).count())
+        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution")).count())
             .isGreaterThan(0);
   }
 
@@ -131,7 +131,7 @@ public class QualifierTests {
             .isGreaterThan(0);
     assertThat(concept.getDefinitions().stream()
         .filter(d -> !"ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attr")).count())
+        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution")).count())
             .isGreaterThan(0);
   }
 
@@ -400,7 +400,7 @@ public class QualifierTests {
     Concept concept = null;
 
     // attr
-    url = metaBaseUrl + "/ncit/qualifier/attr";
+    url = metaBaseUrl + "/ncit/qualifier/attribution";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -413,7 +413,7 @@ public class QualifierTests {
         concept.getSynonyms().stream().filter(c -> c.getType().equals("Preferred_Name")).count())
             .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("Preferred_Name"))
-        .findFirst().get().getName()).isEqualTo("attr");
+        .findFirst().get().getName()).isEqualTo("attribution");
 
     // Assert that an "rdfs:label" synonym exists and does not match
     assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("rdfs:label")).count())

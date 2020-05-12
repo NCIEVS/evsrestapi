@@ -72,7 +72,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
 
               log.info("  get synonym sources ");
               sparqlQueryManagerService.getSynonymSources(terminology);
-              log.info("   done synonym sources ");
+              log.info("    done synonym sources ");
 
             } catch (IOException e) {
               log.error("Unexpected error caching = " + terminology, e);
@@ -158,12 +158,19 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
 
         }
       }
-      executorService.isShutdown();
+      executorService.shutdown();
 
       // if indicated, wait for cache population to complete
       if ("Y".equals(stardogProperties.getWaitPopulateCache())) {
-        executorService.awaitTermination(600, TimeUnit.SECONDS);
-        log.info("Done populating cache");
+        log.info("  waiting to finish");
+        boolean done = false;
+        int ct = 0;
+        while (!done) {
+          done = executorService.awaitTermination(30, TimeUnit.SECONDS);
+          ct += 30;
+          log.info("    wait time = " + ct);
+        }
+        log.info("  done populating cache");
       }
 
     } catch (Exception e) {
