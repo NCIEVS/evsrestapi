@@ -59,15 +59,19 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
             try {
               log.info("  get hierarchy ");
               sparqlQueryManagerService.getHierarchyUtils(terminology);
+              log.info("    done hierarchy ");
 
               log.info("  find paths ");
               sparqlQueryManagerService.getPaths(terminology);
+              log.info("    done paths ");
 
               log.info("  get contributing sources ");
               sparqlQueryManagerService.getContributingSources(terminology);
+              log.info("    done contributing sources ");
 
               log.info("  get synonym sources ");
               sparqlQueryManagerService.getSynonymSources(terminology);
+              log.info("   done synonym sources ");
 
             } catch (IOException e) {
               log.error("Unexpected error caching = " + terminology, e);
@@ -86,8 +90,10 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 log.info("  get qualifiers ");
                 sparqlQueryManagerService.getAllQualifiers(terminology,
                     new IncludeParam("minimal"));
+                log.info("    done qualifiers minimal");
                 sparqlQueryManagerService.getAllQualifiers(terminology,
                     new IncludeParam("summary"));
+                log.info("    done qualifiers summary");
 
               } catch (IOException e) {
                 log.error("Unexpected error caching2 = " + terminology, e);
@@ -103,8 +109,10 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 log.info("  get properties ");
                 sparqlQueryManagerService.getAllProperties(terminology,
                     new IncludeParam("minimal"));
+                log.info("    done properties minimal");
                 sparqlQueryManagerService.getAllProperties(terminology,
                     new IncludeParam("summary"));
+                log.info("    done properties summary");
 
               } catch (IOException e) {
                 log.error("Unexpected error caching2 = " + terminology, e);
@@ -119,6 +127,10 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 log.info("  get associations ");
                 sparqlQueryManagerService.getAllAssociations(terminology,
                     new IncludeParam("minimal"));
+                log.info("    done associations minimal");
+                sparqlQueryManagerService.getAllAssociations(terminology,
+                    new IncludeParam("summary"));
+                log.info("    done associations summary");
 
               } catch (IOException e) {
                 log.error("Unexpected error caching3 = " + terminology, e);
@@ -132,7 +144,9 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               try {
                 log.info("  get roles ");
                 sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("minimal"));
+                log.info("    done roles minimal");
                 sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
+                log.info("    done roles summary");
 
               } catch (IOException e) {
                 log.error("Unexpected error caching = " + terminology, e);
