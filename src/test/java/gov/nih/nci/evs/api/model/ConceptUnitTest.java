@@ -154,6 +154,7 @@ public class ConceptUnitTest {
     tester.include("name");
     tester.include("code");
     tester.include("terminology");
+    tester.include("version");
 
     tester.proxy("synonyms", 1, s1);
     tester.proxy("synonyms", 2, s2);

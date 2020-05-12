@@ -66,6 +66,7 @@ public class MapUnitTest {
     tester.include("targetCode");
     tester.include("targetTermGroup");
     tester.include("targetTerminology");
+    tester.include("targetTerminologyVersion");
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
