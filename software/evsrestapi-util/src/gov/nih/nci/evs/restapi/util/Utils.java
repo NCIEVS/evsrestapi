@@ -62,9 +62,15 @@ public class Utils {
 
     public static void dumpHashMap(String label, HashMap hmap) {
 		System.out.println("\n" + label + ":");
+		Vector key_vec = new Vector();
 		Iterator it = hmap.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();
+			key_vec.add(key);
+		}
+		key_vec = new SortUtils().quickSort(key_vec);
+		for (int i=0; i<key_vec.size(); i++) {
+			String key = (String) key_vec.elementAt(i);
 			String value = (String) (String) hmap.get(key);
 			System.out.println(key + " --> " + value);
 		}
@@ -73,11 +79,16 @@ public class Utils {
 
     public static void dumpMultiValuedHashMap(String label, HashMap hmap) {
 		System.out.println("\n" + label + ":");
+		Vector key_vec = new Vector();
 		Iterator it = hmap.keySet().iterator();
 		while (it.hasNext()) {
 			String nv = (String) it.next();
+			key_vec.add(nv);
+		}
+		key_vec = new SortUtils().quickSort(key_vec);
+		for (int k=0; k<key_vec.size(); k++) {
+			String nv = (String) key_vec.elementAt(k);
 			System.out.println("\n");
-
 			Vector v = (Vector) hmap.get(nv);
 			for (int i=0; i<v.size(); i++) {
 				String q = (String) v.elementAt(i);

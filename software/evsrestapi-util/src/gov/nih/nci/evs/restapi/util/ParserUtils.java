@@ -240,33 +240,40 @@ public class ParserUtils {
 			String label = (String) u.elementAt(1);
 			String code = (String) u.elementAt(2);
 			String propertyName = (String) u.elementAt(3);
-			String term_name = (String) u.elementAt(5);
-			String qualifier_name = (String) u.elementAt(6);
-			String qualifier_value = (String) u.elementAt(8);
+			String propertyValue = (String) u.elementAt(4);
+			String qualifier_name = (String) u.elementAt(5);
+			String qualifier_value = (String) u.elementAt(6);
             Synonym syn = (Synonym) hmap.get(axiom_id);
             if (syn == null) {
 				syn = new Synonym(
 							code,
 							label,
-							term_name,
+							propertyValue,
 							null, //termGroup,
 							null, //termSource,
 							null, //sourceCode,
 							null, //subSourceName,
 		                    null); //subSourceCode
 			}
-			if (qualifier_name.compareTo("Term Type") == 0) {
+			if (qualifier_name.compareTo("Term Type") == 0 ||
+			           qualifier_name.compareTo("tem-type") == 0 ||
+			           qualifier_name.compareTo("P383") == 0) {
 				syn.setTermGroup(qualifier_value);
-			} else if (qualifier_name.compareTo("Term Source") == 0) {
+			} else if (qualifier_name.compareTo("Term Source") == 0 ||
+			           qualifier_name.compareTo("tem-source") == 0 ||
+			           qualifier_name.compareTo("P384") == 0) {
 				syn.setTermSource(qualifier_value);
-			} else if (qualifier_name.compareTo("Source Code") == 0) {
+			} else if (qualifier_name.compareTo("Source Code") == 0 ||
+			           qualifier_name.compareTo("source-code") == 0 ||
+			           qualifier_name.compareTo("P385") == 0) {
 				syn.setSourceCode(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Name") == 0) {
+			} else if (qualifier_name.compareTo("Subsource Name") == 0 ||
+			           qualifier_name.compareTo("subsource-name") == 0 ||
+			           qualifier_name.compareTo("P386") == 0) {
 				syn.setSubSourceName(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Code") == 0) {
+			} else if (qualifier_name.compareTo("Subsource Code") == 0 ||
+			           qualifier_name.compareTo("subsource-name") == 0) {
 				syn.setSubSourceCode(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Name") == 0) {
-				syn.setSubSourceName(qualifier_value);
 			}
 			hmap.put(axiom_id, syn);
 		}
@@ -825,6 +832,55 @@ public class ParserUtils {
 			String axiom_id = (String) it.next();
 			MapToEntry entry = (MapToEntry) hmap.get(axiom_id);
 			w2.add(entry);
+		}
+		return w2;
+	}
+
+
+/*
+bnode_21e4bb1f_2fc9_480b_bbdb_0d116398d610_891449|Thyroid Gland Carcinoma|C4815|DEFINITION|P97|A carcinoma arising from the thyroid gland. It includes the following main subtypes: follicular, papillary, medullary, poorly differentiated, and undifferentiated (anaplastic) carcinoma.|Definition Source|P378|NCI
+*/
+
+
+/*
+	private String description;
+	private String source;
+*/
+
+    public Vector parseDefinitionData(Vector axiom_data, String property_name) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String axiom_id = (String) u.elementAt(0);
+			String label = (String) u.elementAt(1);
+			String code = (String) u.elementAt(2);
+			String propertyName = (String) u.elementAt(3);
+			String propertyCode = (String) u.elementAt(4);
+			String propertyValue = (String) u.elementAt(5);
+			String qualifier_name = (String) u.elementAt(6);
+			String qualifier_code = (String) u.elementAt(7);
+			String qualifier_value = (String) u.elementAt(8);
+            Definition def = (Definition) hmap.get(axiom_id);
+            if (def == null) {
+				def = new Definition(
+							null, //subSourceName,
+		                    null); //subSourceCode
+			}
+			if (propertyName.compareTo(property_name) == 0) {
+				def.setDescription(propertyValue);
+			}
+			if (qualifier_name.compareTo("Definition Source") == 0) {
+				def.setSource(qualifier_value);
+			}
+			hmap.put(axiom_id, def);
+		}
+		Vector w2 = new Vector();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String axiom_id = (String) it.next();
+			Definition def = (Definition) hmap.get(axiom_id);
+			w2.add(def);
 		}
 		return w2;
 	}
