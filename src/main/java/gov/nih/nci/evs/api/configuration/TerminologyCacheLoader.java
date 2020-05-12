@@ -159,8 +159,12 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
         }
       }
       executorService.isShutdown();
-      executorService.awaitTermination(600, TimeUnit.SECONDS);
-      log.info("Done populating cache");
+
+      // if indicated, wait for cache population to complete
+      if ("Y".equals(stardogProperties.getWaitPopulateCache())) {
+        executorService.awaitTermination(600, TimeUnit.SECONDS);
+        log.info("Done populating cache");
+      }
 
     } catch (Exception e) {
       log.error("Unexpected error caching data", e);

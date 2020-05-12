@@ -71,6 +71,7 @@ nci:
       connectTimeout: ${STARDOG_CONNECT_TIMEOUT:30}
       populateCacheCron: ${POPULATE_CACHE_CRON:0 0 1 * * *}
       forcePopulateCache: ${FORCE_POPULATE_CACHE:Y}
+      waitPopulateCache: ${WAIT_POPULATE_CACHE:N}
     elasticsearch:
       server:
         url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://localhost:9200/concept_flat_full_nested_bylabel/concept/_search}

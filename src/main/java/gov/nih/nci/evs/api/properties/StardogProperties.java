@@ -24,6 +24,9 @@ public class StardogProperties {
   /** The force populate cache. */
   private String forcePopulateCache;
 
+  /** The wait populate cache. */
+  private String waitPopulateCache;
+
   /** The query url. */
   private String queryUrl;
 
@@ -136,6 +139,24 @@ public class StardogProperties {
   }
 
   /**
+   * Returns the wait populate cache.
+   *
+   * @return the wait populate cache
+   */
+  public String getWaitPopulateCache() {
+    return waitPopulateCache;
+  }
+
+  /**
+   * Sets the wait populate cache.
+   *
+   * @param waitPopulateCache the wait populate cache
+   */
+  public void setWaitPopulateCache(String waitPopulateCache) {
+    this.waitPopulateCache = waitPopulateCache;
+  }
+
+  /**
    * Returns the query url.
    *
    * @return the query url
@@ -152,7 +173,5 @@ public class StardogProperties {
   public void setQueryUrl(String queryUrl) {
     this.queryUrl = queryUrl;
   }
-
-
 
 }

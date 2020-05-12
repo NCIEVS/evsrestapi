@@ -3,9 +3,6 @@ package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +14,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
 import gov.nih.nci.evs.api.GetterSetterTester;
-import gov.nih.nci.evs.api.ProxyTester;
 import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 
