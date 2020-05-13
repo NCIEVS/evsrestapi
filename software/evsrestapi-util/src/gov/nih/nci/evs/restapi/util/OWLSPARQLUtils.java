@@ -1665,9 +1665,17 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
-
 	public Vector getHierarchicalRelationships(String named_graph) {
 		return executeQuery(construct_get_hierarchical_relationships(named_graph));
+	}
+
+
+	public Vector getHierarchicalRelationships(String named_graph, boolean raw_data) {
+		Vector v = executeQuery(construct_get_hierarchical_relationships(named_graph));
+		if (raw_data) return v;
+        v = new ParserUtils().getResponseValues(v);
+        v = new SortUtils().quickSort(v);
+        return v;
 	}
 
 	public Vector get_concepts_in_subset(String named_graph, String code) {

@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
 
-import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.bean.*;
 import java.io.*;
 import java.io.BufferedReader;
@@ -451,11 +450,17 @@ public class OWLScanner {
 	}
 
     public Vector scanAxioms() {
+ 		return scanAxioms(owl_vec);
+ 	}
+
+    public Vector scanAxioms(Vector data_vec) {
 		String label = null;
 		String owlannotatedSource_value = null;
 		String owlannotatedProperty_value = null;
 		String owlannotatedTarget_value = null;
 		String qualify_data = null;
+
+		String axiom_open_tag = "<owl:Axiom>";
 
 		Vector w = new Vector();
 		int i = 0;
@@ -463,16 +468,21 @@ public class OWLScanner {
 		boolean istart = false;
 		Vector v = new Vector();
 		String class_line = null;
+
 		StringBuffer buf = new StringBuffer();
 		boolean owlannotatedTarget_start = false;
 
 		int class_knt = 0;
+		int axiom_knt = 0;
 
-		while (i < owl_vec.size()) {
-			String line = (String) owl_vec.elementAt(i);
+		while (i < data_vec.size()) {
+			String line = (String) data_vec.elementAt(i);
 			if (line.indexOf(OWL_CLS_TARGET) != -1 && line.indexOf("enum") == -1) {
 				class_knt++;
+			} else if (line.indexOf(axiom_open_tag) != -1) {
+				axiom_knt++;
 			}
+
 			if (line.indexOf(pt_tag_open) != -1) {
 				label = extractQualifierValue(line);
 			}
@@ -518,7 +528,7 @@ public class OWLScanner {
 					} else {
 						owlannotatedTarget_start = false;
 						qualify_data = line;
-						OWLAxiom owl_Axiom = new OWLAxiom(class_knt,
+						OWLAxiom owl_Axiom = new OWLAxiom(axiom_knt,
 						                         label,
 							                     extractCode(owlannotatedSource_value),
 												 extractCode(owlannotatedProperty_value),
@@ -711,9 +721,9 @@ public class OWLScanner {
 				System.out.println("		buf.append(\"		?" + y_id + " :NHC0 ?" + y_id + "_code .\").append(\"\\n\");");
 			}
    	    }
-		System.out.println("		if (code != null && outbound) {");
+		System.out.println("		if (code != null && code.compareTo(\"null\") != 0 && outbound) {");
 		System.out.println("		    buf.append(\"		?x :NHC0 \\" + "\"" + "\"+ code +\"" + "\\\"^^xsd:string\").append(\"\\n\");");
-		System.out.println("		} else {");
+		System.out.println("		} else if (code != null && code.compareTo(\"null\") != 0 && !outbound) {");
 		System.out.println("		    buf.append(\"		?y :NHC0 \\" + "\"" + "\"+ code +\"" + "\\\"^^xsd:string\").append(\"\\n\");");
 		System.out.println("		}");
 
@@ -722,6 +732,173 @@ public class OWLScanner {
 		System.out.println("		buf.append(\"} \").append(\"\\n\");");
 		System.out.println("		return buf.toString();");
 		System.out.println("	}");
+	}
+
+
+	public void print_superclass_query(String path, int method_index) {
+		Vector v = StringUtils.parseData(path, '|');
+		int z_index = 0;
+		System.out.println("\n");
+		System.out.println("	public String construct_get_superclass_" + method_index + "(String named_graph, String code, boolean outbound, boolean codeOnly) {");
+		System.out.println("		String prefixes = getPrefixes();");
+		System.out.println("		StringBuffer buf = new StringBuffer();");
+		System.out.println("		buf.append(prefixes);");
+		System.out.println("		if (codeOnly) {");
+		System.out.println("			buf.append(\"SELECT distinct ?y_code ?x_code \").append(\"\\n\");");
+		System.out.println("		} else {");
+		System.out.println("			buf.append(\"SELECT distinct ?y_label ?y_code ?x_label ?x_code \").append(\"\\n\");");
+		System.out.println("		}");
+		System.out.println("		buf.append(\"{ \").append(\"\\n\");");
+
+		System.out.println("		buf.append(\"    graph <\" + named_graph + \">\").append(\"\\n\");");
+		System.out.println("		buf.append(\"    {\").append(\"\\n\");");
+		System.out.println("		buf.append(\"	   {\").append(\"\\n\");");
+		for (int i=0; i<v.size(); i++) {
+			String node = (String) v.elementAt(i);
+			if (node.compareTo("owl:Class") == 0) {
+
+				if (z_index == 0) {
+					System.out.println("		buf.append(\"		?x :NHC0 ?x_code .\").append(\"\\n\");");
+					System.out.println("		buf.append(\"		?x rdfs:label ?x_label .\").append(\"\\n\");");
+				} else {
+					String z2 = "z" + z_index;
+					//z_index++;
+					System.out.println("		buf.append(\"		?" + z2 + " a owl:Class .\").append(\"\\n\");");
+				}
+
+			} else if (node.compareTo("rdfs:subClassOf") == 0) {
+				if (z_index == 0) {
+					z_index++;
+					String z2 = "z" + z_index;
+					System.out.println("		buf.append(\"		?x" + " rdfs:subClassOf ?" + z2 + " .\").append(\"\\n\");");
+				} else {
+					String z1 = "z" + z_index;
+					z_index++;
+					String z2 = "z" + z_index;
+					z_index++;
+					System.out.println("		buf.append(\"		?" + z1 + " rdfs:subClassOf ?" + z2 + " .\").append(\"\\n\");");
+				}
+
+			} else if (node.compareTo("owl:equivalentClass") == 0) {
+				if (z_index == 0) {
+					z_index++;
+					String z2 = "z" + z_index;
+					System.out.println("		buf.append(\"		?x" + " owl:equivalentClass ?" + z2 + " .\").append(\"\\n\");");
+				} else {
+					String z1 = "z" + z_index;
+					z_index++;
+					String z2 = "z" + z_index;
+					z_index++;
+					System.out.println("		buf.append(\"		?" + z1 + " owl:equivalentClass ?" + z2 + " .\").append(\"\\n\");");
+				}
+
+
+			} else if (node.compareTo("owl:intersectionOf") == 0) {
+				String z1 = "z" + z_index;
+				z_index++;
+				String z2 = "z" + z_index;
+				z_index++;
+				String z3 = "z" + z_index;
+
+				System.out.println("		buf.append(\"		?" + z1 + " owl:intersectionOf ?" + z2 + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + z2 + " rdf:rest*/rdf:first ?" + z3 + " .\").append(\"\\n\");");
+
+			} else if (node.compareTo("owl:unionOf") == 0) {
+				String z1 = "z" + z_index;
+				z_index++;
+				String z2 = "z" + z_index;
+				z_index++;
+				String z3 = "z" + z_index;
+
+				System.out.println("		buf.append(\"		?" + z1 + " owl:unionOf ?" + z2 + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + z2 + " rdf:rest*/rdf:first ?" + z3 + " .\").append(\"\\n\");");
+
+			} else if (node.compareTo("owl:Restriction") == 0) {
+
+				String restriction_id = "z" + z_index;
+				String prop_id = "p";
+				String y_id = "y";
+				System.out.println("		buf.append(\"		?" + restriction_id + " a owl:Restriction .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + restriction_id + " owl:onProperty ?" + prop_id + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + prop_id + " rdfs:label ?" + prop_id + "_label .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + prop_id + " :NHC0 ?" + prop_id + "_code .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + restriction_id + " owl:someValuesFrom ?" + y_id + " .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + y_id + " a owl:Class .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + y_id + " rdfs:label ?" + y_id + "_label .\").append(\"\\n\");");
+				System.out.println("		buf.append(\"		?" + y_id + " :NHC0 ?" + y_id + "_code .\").append(\"\\n\");");
+			}
+   	    }
+
+  	    String z_final = "z" + z_index;
+
+		System.out.println("		buf.append(\"		?" + z_final + " :NHC0 ?y_code .\").append(\"\\n\");");
+		System.out.println("		buf.append(\"		?" + z_final + " rdfs:label ?y_label .\").append(\"\\n\");");
+
+		System.out.println("		if (code != null && code.compareTo(\"null\") != 0 && outbound) {");
+		System.out.println("		    buf.append(\"		?x :NHC0 \\" + "\"" + "\"+ code +\"" + "\\\"^^xsd:string\").append(\"\\n\");");
+		System.out.println("		} else if (code != null && code.compareTo(\"null\") != 0 && !outbound) {");
+		System.out.println("		    buf.append(\"		?" + z_final + " :NHC0 \\" + "\"" + "\"+ code +\"" + "\\\"^^xsd:string\").append(\"\\n\");");
+		System.out.println("		}");
+
+		System.out.println("		buf.append(\"	    }\").append(\"\\n\");");
+		System.out.println("		buf.append(\"    }\").append(\"\\n\");");
+		System.out.println("		buf.append(\"} \").append(\"\\n\");");
+		System.out.println("		return buf.toString();");
+		System.out.println("	}");
+	}
+
+    public Vector partitionClassData(Vector v) {
+		String label = null;
+		String owlannotatedSource_value = null;
+		String owlannotatedProperty_value = null;
+		String owlannotatedTarget_value = null;
+		String qualify_data = null;
+
+		String axiom_open_tag = "<owl:Axiom>";
+		String axiom_close_tag = "</owl:Axiom>";
+
+		Vector w = new Vector();
+		Vector axiom_data = new Vector();
+		int i = 0;
+		boolean istart = false;
+		String class_line = null;
+		int axiom_knt = 0;
+
+		StringBuffer buf = new StringBuffer();
+		boolean owlannotatedTarget_start = false;
+		while (i < v.size()) {
+			String line = (String) v.elementAt(i);
+	        if (line.indexOf(axiom_open_tag) != -1) {
+				if (axiom_knt == 0) {
+					w.add(axiom_data);
+					axiom_data = new Vector();
+				}
+				istart = true;
+				axiom_data.add(line);
+				axiom_knt++;
+	        } else if (line.indexOf(axiom_close_tag) != -1) {
+				axiom_data.add(line);
+				w.add(axiom_data);
+				axiom_data = new Vector();
+			} else if (istart) {
+				axiom_data.add(line);
+			}
+			if (axiom_knt == 0) {
+				axiom_data.add(line);
+			}
+			i++;
+		}
+		return w;
+	}
+
+	public void dumpClassData(Vector class_data) {
+		Vector v = partitionClassData(class_data);
+		Vector cls_data = (Vector) v.elementAt(0);
+		Utils.dumpVector("class", cls_data);
+		for (int i=1; i<v.size(); i++) {
+			Vector axiom_data = (Vector) v.elementAt(i);
+			Utils.dumpVector("axiom_" + i, axiom_data);
+		}
 	}
 
 
@@ -751,7 +928,7 @@ public class OWLScanner {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		*/
         Vector v = scanner.scanOwlTags();
-        v = scanner.fileterTagData(v, "owl:Restriction");
+        //v = scanner.fileterTagData(v, "owl:Restriction");
         Utils.dumpVector("fileterTagData", v);
         scanner.printPaths(v);
     }
