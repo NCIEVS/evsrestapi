@@ -70,6 +70,19 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
+   * Returns the distinct property values.
+   *
+   * @param terminology the terminology
+   * @param propertyCode the property code
+   * @return the distinct property values
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<String> getDistinctPropertyValues(Terminology terminology, String propertyCode)
+    throws JsonParseException, JsonMappingException, IOException;
+
+  /**
    * Returns the all properties never used.
    *
    * @param terminology the terminology

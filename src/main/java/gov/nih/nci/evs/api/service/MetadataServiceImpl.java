@@ -3,7 +3,6 @@ package gov.nih.nci.evs.api.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,7 +19,6 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.ThesaurusProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -35,10 +33,6 @@ public class MetadataServiceImpl implements MetadataService {
   /** The Constant logger. */
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MetadataServiceImpl.class);
-
-  /** The thesaurus properties. */
-  @Autowired
-  private ThesaurusProperties thesaurusProperties;
 
   /** The sparql query manager service. */
   @Autowired
@@ -268,17 +262,8 @@ public class MetadataServiceImpl implements MetadataService {
     if (!term.getTerminology().equals("ncit"))
       return Optional.empty();
 
-    final Map<String, String> conceptStatuses = thesaurusProperties.getConceptStatuses();
-    List<String> statuses = new ArrayList<String>();
-
-    for (String name : conceptStatuses.keySet()) {
-      // search for value
-      String value = conceptStatuses.get(name);
-      // String conSource = name + " : " + value;
-      // sources.add(conSource);
-      statuses.add(value);
-    }
-
+    // TODO: config (P310)
+    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term, ":P310");
     return Optional.of(statuses);
 
   }

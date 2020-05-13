@@ -1,6 +1,9 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a synonym of a concept.
  */
@@ -26,6 +29,9 @@ public class Synonym extends BaseModel {
 
   /** The sub source. */
   private String subSource;
+
+  /** The qualifiers - not NCIT, but could be other terminologies. */
+  private List<Qualifier> qualifiers;
 
   /**
    * Instantiates an empty {@link Synonym}.
@@ -56,6 +62,7 @@ public class Synonym extends BaseModel {
     source = other.getSource();
     code = other.getCode();
     subSource = other.getSubSource();
+    qualifiers = new ArrayList<>(other.getQualifiers());
   }
 
   /**
@@ -184,6 +191,32 @@ public class Synonym extends BaseModel {
     this.subSource = subSource;
   }
 
+  /**
+   * Returns the qualifiers.
+   *
+   * @return the qualifiers
+   */
+  public List<Qualifier> getQualifiers() {
+    if (qualifiers == null) {
+      qualifiers = new ArrayList<>();
+    }
+    return qualifiers;
+  }
+
+  /**
+   * Sets the qualifiers.
+   *
+   * @param qualifiers the qualifiers
+   */
+  public void setQualifiers(final List<Qualifier> qualifiers) {
+    this.qualifiers = qualifiers;
+  }
+
+  /**
+   * Hash code.
+   *
+   * @return the int
+   */
   /* see superclass */
   @Override
   public int hashCode() {

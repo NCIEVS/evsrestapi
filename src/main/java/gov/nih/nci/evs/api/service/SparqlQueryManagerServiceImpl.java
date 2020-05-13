@@ -119,35 +119,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // }
   }
 
-  /**
-   * Returns the named graph.
-   *
-   * @param terminology the terminology
-   * @return the named graph
-   */
+  /* see superclass */
   @Override
   public String getNamedGraph(Terminology terminology) {
     return terminology.getGraph();
   }
 
-  /**
-   * Returns the query URL.
-   *
-   * @return the query URL
-   */
+  /* see superclass */
   @Override
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
 
-  /**
-   * Returns the all graph names.
-   *
-   * @return the all graph names
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology", key = "#root.methodName")
   public List<String> getAllGraphNames()
@@ -174,15 +158,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return graphNames;
   }
 
-  /**
-   * Returns terminology objects for all graphs loaded in db.
-   *
-   * @return the list of {@link Terminology} objects
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   * @throws ParseException the parse exception
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology", key = "#root.methodName")
   public List<Terminology> getTerminologies()
@@ -288,15 +264,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       terminology.getTags().put("weekly", "true");
   }
 
-  /**
-   * Return the Version Information.
-   *
-   * @param terminology the terminology
-   * @return VersionInfo instance.
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
@@ -353,16 +321,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   // return Long.parseLong(count);
   // }
 
-  /**
-   * Check concept exists.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return true, if successful
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
   @Override
   public boolean checkConceptExists(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -387,16 +345,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return conceptExists;
   }
 
-  /**
-   * Returns the concept label.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the concept label
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public String getConceptLabel(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -417,31 +366,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return conceptLabel;
   }
 
-  /**
-   * Returns the concept.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the concept
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public Concept getConcept(String conceptCode, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("concept", conceptCode, terminology, ip);
   }
 
-  /**
-   * Returns the maps to.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the maps to
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<gov.nih.nci.evs.api.model.Map> getMapsTo(String conceptCode, Terminology terminology)
     throws IOException {
@@ -449,17 +381,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return EVSUtils.getMapsTo(axioms);
   }
 
-  /**
-   * Returns the property.
-   *
-   * @param code the property code
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the property
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -468,17 +390,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return getConceptByType("property", code, terminology, ip);
   }
 
-  /**
-   * Returns the qualifier.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the qualifier
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -487,17 +399,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return getConceptByType("qualifier", code, terminology, ip);
   }
 
-  /**
-   * Returns the association.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the association
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -506,17 +408,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return getConceptByType("association", code, terminology, ip);
   }
 
-  /**
-   * Returns the qualifier.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the qualifier
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -661,16 +553,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concept;
   }
 
-  /**
-   * Returns the properties.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the properties
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Property> getConceptProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -714,16 +597,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return properties;
   }
 
-  /**
-   * Returns the properties no restrictions.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the properties no restrictions
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Property> getMetadataProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -761,16 +635,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return properties;
   }
 
-  /**
-   * Returns the subconcepts.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the subconcepts
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Concept> getSubconcepts(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -795,16 +660,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return subclasses;
   }
 
-  /**
-   * Returns the superconcepts.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the superconcepts
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Concept> getSuperconcepts(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -829,16 +685,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return superclasses;
   }
 
-  /**
-   * Returns the associations.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the associations
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Association> getAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -864,16 +711,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  /**
-   * Returns the inverse associations.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the inverse associations
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Association> getInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -899,16 +737,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  /**
-   * Returns the inverse roles.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the inverse roles
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Role> getInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -934,16 +763,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  /**
-   * Returns the roles.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the roles
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Role> getRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -969,16 +789,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  /**
-   * Returns the disjoint with.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the disjoint with
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<DisjointWith> getDisjointWith(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -1004,17 +815,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return disjointWithList;
   }
 
-  /**
-   * Returns the axioms.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @param qualifierFlag the qualifier flag
-   * @return the axioms
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<Axiom> getAxioms(String conceptCode, Terminology terminology, boolean qualifierFlag)
     throws JsonMappingException, JsonParseException, IOException {
@@ -1114,15 +915,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return axioms;
   }
 
-  /**
-   * Returns the hierarchy.
-   *
-   * @param terminology the terminology
-   * @return the hierarchy
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
@@ -1154,16 +947,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return parentchild;
   }
 
-  /**
-   * Returns the all properties.
-   *
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the all properties
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -1192,16 +976,31 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concepts;
   }
 
-  /**
-   * Returns the all properties never used.
-   *
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the all properties never used
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
+  @Override
+  public List<String> getDistinctPropertyValues(Terminology terminology, String propertyCode)
+    throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    Map<String, String> values =
+        ConceptUtils.asMap("propertyCode", propertyCode, "namedGraph", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("distinct.property.values", values);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ArrayList<String> propertyValues = new ArrayList<String>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String propertyValue = b.getPropertyValue().getValue();
+      propertyValues.add(propertyValue);
+    }
+
+    return propertyValues;
+  }
+
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -1230,16 +1029,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concepts;
   }
 
-  /**
-   * Returns the all qualifiers.
-   *
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the all qualifiers
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -1268,16 +1058,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concepts;
   }
 
-  /**
-   * Returns the axiom qualifiers list.
-   *
-   * @param propertyCode the property code
-   * @param terminology the terminology
-   * @return the axiom qualifiers list
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -1301,16 +1082,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return propertyValues;
   }
 
-  /**
-   * Returns the all associations.
-   *
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the all associations
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -1340,16 +1112,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concepts;
   }
 
-  /**
-   * Returns the all roles.
-   *
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the all roles
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonParseException the json parse exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
@@ -1379,15 +1142,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concepts;
   }
 
-  /**
-   * Returns the root nodes.
-   *
-   * @param terminology the terminology
-   * @return the root nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<HierarchyNode> getRootNodes(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
@@ -1410,50 +1165,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
   }
 
-  /**
-   * Returns the child nodes.
-   *
-   * @param parent the parent
-   * @param maxLevel the max level
-   * @param terminology the terminology
-   * @return the child nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
   }
 
-  /**
-   * Returns the all child nodes.
-   *
-   * @param parent the parent
-   * @param terminology the terminology
-   * @return the all child nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<String> getAllChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     return self.getHierarchyUtils(terminology).getAllChildNodes(parent);
   }
 
-  /**
-   * Check path in hierarchy.
-   *
-   * @param code the code
-   * @param node the node
-   * @param path the path
-   * @param terminology the terminology
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
     Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
@@ -1481,16 +1207,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
   }
 
-  /**
-   * Returns the path in hierarchy.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @return the path in hierarchy
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
@@ -1506,16 +1223,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return rootNodes;
   }
 
-  /**
-   * Returns the path to root.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @return the path to root
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public Paths getPathToRoot(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
@@ -1553,17 +1261,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return conceptPaths;
   }
 
-  /**
-   * Returns the path to parent.
-   *
-   * @param code the code
-   * @param parentCode the parent code
-   * @param terminology the terminology
-   * @return the path to parent
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public Paths getPathToParent(String code, String parentCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
@@ -1634,15 +1332,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return uniquePaths;
   }
 
-  /**
-   * Get hiearchy for a given terminology.
-   *
-   * @param terminology the terminology
-   * @return the hierarchy
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
@@ -1652,15 +1342,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return new HierarchyUtils(parentchild);
   }
 
-  /**
-   * Get paths.
-   *
-   * @param terminology the terminology
-   * @return paths
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
@@ -1670,15 +1352,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return new PathFinder(hierarchy).findPaths();
   }
 
-  /**
-   * Returns the synonym sources.
-   *
-   * @param terminology the terminology
-   * @return the synonym sources
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonProcessingException the json processing exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<ConceptMinimal> getSynonymSources(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException {
@@ -1713,6 +1387,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return sources;
   }
 
+  /* see superclass */
   @Override
   public List<ConceptMinimal> getTermTypes(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException {
@@ -1746,15 +1421,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return sources;
   }
 
-  /**
-   * Returns the contributing sources.
-   *
-   * @param terminology the terminology
-   * @return the contributing sources
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonProcessingException the json processing exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
+  /* see superclass */
   @Override
   public List<ConceptMinimal> getContributingSources(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException {

@@ -3,6 +3,9 @@ package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
 import gov.nih.nci.evs.api.GetterSetterTester;
+import gov.nih.nci.evs.api.ProxyTester;
 import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 
@@ -26,11 +30,16 @@ public class PropertyUnitTest {
 
   /** The logger. */
   @SuppressWarnings("unused")
-  private static final Logger log =
-      LoggerFactory.getLogger(PropertyUnitTest.class);
+  private static final Logger log = LoggerFactory.getLogger(PropertyUnitTest.class);
 
   /** The model object to test. */
   private Property object;
+
+  /** The q 1. */
+  private List<Qualifier> q1;
+
+  /** The q 2. */
+  private List<Qualifier> q2;
 
   /**
    * Setup.
@@ -40,6 +49,12 @@ public class PropertyUnitTest {
   @Before
   public void setup() throws Exception {
     object = new Property();
+    final ProxyTester tester = new ProxyTester(new Qualifier());
+    q1 = new ArrayList<>();
+    q1.add((Qualifier) tester.createObject(1));
+    q2 = new ArrayList<>();
+    q2.add((Qualifier) tester.createObject(2));
+    q2.add((Qualifier) tester.createObject(3));
   }
 
   /**
@@ -50,6 +65,8 @@ public class PropertyUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
+    tester.proxy("qualifiers", 1, q1);
+    tester.proxy("qualifiers", 2, q2);
     tester.test();
   }
 
@@ -63,6 +80,8 @@ public class PropertyUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("type");
     tester.include("value");
+    tester.proxy("qualifiers", 1, q1);
+    tester.proxy("qualifiers", 2, q2);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -80,6 +99,9 @@ public class PropertyUnitTest {
   @Test
   public void testModelCopy() throws Exception {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
+    tester.proxy("qualifiers", 1, q1);
+    tester.proxy("qualifiers", 2, q2);
+
     assertTrue(tester.testCopyConstructor(Property.class));
   }
 
@@ -91,6 +113,8 @@ public class PropertyUnitTest {
   @Test
   public void testModelSerialization() throws Exception {
     final SerializationTester tester = new SerializationTester(object);
+    tester.proxy("qualifiers", 1, q1);
+
     assertTrue(tester.testJsonSerialization());
   }
 }

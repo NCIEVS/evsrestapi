@@ -44,10 +44,6 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   /** The association to query. */
 //  private HashMap<String, String> associationToQuery;
 
-  /** The concept status. */
-  @SuppressWarnings("unused")
-  private HashMap<String, String> conceptStatus;
-
   /** The contributing source. */
   @SuppressWarnings("unused")
   private HashMap<String, String> contributingSource;
@@ -79,7 +75,6 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   @PostConstruct
   public void postInit() throws IOException {
 
-    conceptStatus = (HashMap<String, String>) thesaurusProperties.getConceptStatuses();
     // contributingSource = (HashMap<String, String>)
     // thesaurusProperties.getContributingSources();
     // roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();

@@ -14,9 +14,6 @@ public class ThesaurusProperties {
   /** The associations. */
   private Map<String, String> associations;
 
-  /** The concept statuses. */
-  private Map<String, String> conceptStatuses;
-
   /** The contributing sources. */
   private Map<String, String> contributingSources;
 
@@ -70,24 +67,6 @@ public class ThesaurusProperties {
    */
   public void setAssociations(Map<String, String> associations) {
     this.associations = associations;
-  }
-
-  /**
-   * Returns the concept statuses.
-   *
-   * @return the concept statuses
-   */
-  public Map<String, String> getConceptStatuses() {
-    return conceptStatuses;
-  }
-
-  /**
-   * Sets the concept statuses.
-   *
-   * @param conceptStatuses the concept statuses
-   */
-  public void setConceptStatuses(Map<String, String> conceptStatuses) {
-    this.conceptStatuses = conceptStatuses;
   }
 
   /**

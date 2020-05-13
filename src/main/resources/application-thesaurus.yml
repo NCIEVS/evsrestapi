@@ -165,13 +165,7 @@ thesaurus:
                        P92: 'Subsource',
                        P98: 'DesignNote'
                        }                          
-        conceptStatuses: {concept_pending_approval: 'Concept_Pending_Approval',
-                          deprecated_concept: 'Deprecated_Concept',
-                          header_concept: 'Header_Concept',
-                          obsolete_concept: 'Obsolete_Concept',
-                          provisional_concept: 'Provisional_Concept',
-                          retired_concept: 'Retired_Concept'
-                          }
+
         contributingSources: {
                             ACC: 'American College of Cardiology',
                             BioCarta: 'BioCarta online maps of molecular pathways, adapted for NCI use',

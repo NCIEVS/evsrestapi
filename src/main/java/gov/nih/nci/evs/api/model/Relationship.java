@@ -1,6 +1,9 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a connection between two concepts.
  */
@@ -17,6 +20,10 @@ public class Relationship extends BaseModel {
 
   /** The highlight. */
   private String highlight;
+
+  /** The qualifiers - not NCIT, but could be other terminologies. */
+  private List<Qualifier> qualifiers;
+
 
   /**
    * Instantiates an empty {@link Relationship}.
@@ -44,6 +51,7 @@ public class Relationship extends BaseModel {
     relatedCode = other.getRelatedCode();
     relatedName = other.getRelatedName();
     highlight = other.getHighlight();
+    qualifiers = new ArrayList<>(other.getQualifiers());    
   }
 
   /**
@@ -118,6 +126,26 @@ public class Relationship extends BaseModel {
     this.highlight = highlight;
   }
 
+  /**
+   * Returns the qualifiers.
+   *
+   * @return the qualifiers
+   */
+  public List<Qualifier> getQualifiers() {
+    if (qualifiers == null) {
+      qualifiers = new ArrayList<>();
+    }
+    return qualifiers;
+  }
+
+  /**
+   * Sets the qualifiers.
+   *
+   * @param qualifiers the qualifiers
+   */
+  public void setQualifiers(final List<Qualifier> qualifiers) {
+    this.qualifiers = qualifiers;
+  }
   /* see superclass */
   @Override
   public int hashCode() {
