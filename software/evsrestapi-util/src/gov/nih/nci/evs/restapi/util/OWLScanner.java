@@ -460,22 +460,29 @@ public class OWLScanner {
 		String owlannotatedTarget_value = null;
 		String qualify_data = null;
 
+		String axiom_open_tag = "<owl:Axiom>";
+
 		Vector w = new Vector();
 		int i = 0;
 		String target = open_tag;
 		boolean istart = false;
 		Vector v = new Vector();
 		String class_line = null;
+
 		StringBuffer buf = new StringBuffer();
 		boolean owlannotatedTarget_start = false;
 
 		int class_knt = 0;
+		int axiom_knt = 0;
 
 		while (i < data_vec.size()) {
 			String line = (String) data_vec.elementAt(i);
 			if (line.indexOf(OWL_CLS_TARGET) != -1 && line.indexOf("enum") == -1) {
 				class_knt++;
+			} else if (line.indexOf(axiom_open_tag) != -1) {
+				axiom_knt++;
 			}
+
 			if (line.indexOf(pt_tag_open) != -1) {
 				label = extractQualifierValue(line);
 			}
@@ -521,7 +528,7 @@ public class OWLScanner {
 					} else {
 						owlannotatedTarget_start = false;
 						qualify_data = line;
-						OWLAxiom owl_Axiom = new OWLAxiom(class_knt,
+						OWLAxiom owl_Axiom = new OWLAxiom(axiom_knt,
 						                         label,
 							                     extractCode(owlannotatedSource_value),
 												 extractCode(owlannotatedProperty_value),
