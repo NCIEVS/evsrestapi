@@ -450,6 +450,10 @@ public class OWLScanner {
 	}
 
     public Vector scanAxioms() {
+ 		return scanAxioms(owl_vec);
+ 	}
+
+    public Vector scanAxioms(Vector data_vec) {
 		String label = null;
 		String owlannotatedSource_value = null;
 		String owlannotatedProperty_value = null;
@@ -467,8 +471,8 @@ public class OWLScanner {
 
 		int class_knt = 0;
 
-		while (i < owl_vec.size()) {
-			String line = (String) owl_vec.elementAt(i);
+		while (i < data_vec.size()) {
+			String line = (String) data_vec.elementAt(i);
 			if (line.indexOf(OWL_CLS_TARGET) != -1 && line.indexOf("enum") == -1) {
 				class_knt++;
 			}
