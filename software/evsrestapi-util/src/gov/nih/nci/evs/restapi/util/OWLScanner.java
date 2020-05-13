@@ -847,6 +847,60 @@ public class OWLScanner {
 		System.out.println("	}");
 	}
 
+    public Vector partitionClassData(Vector v) {
+		String label = null;
+		String owlannotatedSource_value = null;
+		String owlannotatedProperty_value = null;
+		String owlannotatedTarget_value = null;
+		String qualify_data = null;
+
+		String axiom_open_tag = "<owl:Axiom>";
+		String axiom_close_tag = "</owl:Axiom>";
+
+		Vector w = new Vector();
+		Vector axiom_data = new Vector();
+		int i = 0;
+		boolean istart = false;
+		String class_line = null;
+		int axiom_knt = 0;
+
+		StringBuffer buf = new StringBuffer();
+		boolean owlannotatedTarget_start = false;
+		while (i < v.size()) {
+			String line = (String) v.elementAt(i);
+	        if (line.indexOf(axiom_open_tag) != -1) {
+				if (axiom_knt == 0) {
+					w.add(axiom_data);
+					axiom_data = new Vector();
+				}
+				istart = true;
+				axiom_data.add(line);
+				axiom_knt++;
+	        } else if (line.indexOf(axiom_close_tag) != -1) {
+				axiom_data.add(line);
+				w.add(axiom_data);
+				axiom_data = new Vector();
+			} else if (istart) {
+				axiom_data.add(line);
+			}
+			if (axiom_knt == 0) {
+				axiom_data.add(line);
+			}
+			i++;
+		}
+		return w;
+	}
+
+	public void dumpClassData(Vector class_data) {
+		Vector v = partitionClassData(class_data);
+		Vector cls_data = (Vector) v.elementAt(0);
+		Utils.dumpVector("class", cls_data);
+		for (int i=1; i<v.size(); i++) {
+			Vector axiom_data = (Vector) v.elementAt(i);
+			Utils.dumpVector("axiom_" + i, axiom_data);
+		}
+	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
