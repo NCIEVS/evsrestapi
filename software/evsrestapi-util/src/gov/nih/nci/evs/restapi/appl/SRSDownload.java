@@ -132,12 +132,8 @@ public class SRSDownload {
         return v;
 	}
 
-    public static void main(String[] args) {
+    public static Vector run(String SRS_URI) {
 		String currentWorkingDirectory = System.getProperty("user.dir");
-        String SRS_URI = "https://fdasis.nlm.nih.gov/srs/download/srs/";
-        if (args.length == 1) {
-			SRS_URI = args[0];
-		}
         String UNII_DATA_FILE = "UNII_Data.zip";
         download(SRS_URI + UNII_DATA_FILE, UNII_DATA_FILE);
 
@@ -151,7 +147,14 @@ public class SRSDownload {
         unzip(zipFilePath, currentWorkingDirectory);
 
         Vector files = listTextFilesInDirectory();
+        return files;
+	}
+
+    public static void main(String[] args) {
+        String SRS_URI = "https://fdasis.nlm.nih.gov/srs/download/srs/";
+        Vector files = run(SRS_URI);
         Utils.dumpVector("listTextFilesInDirectory", files);
 	}
+
 }
 
