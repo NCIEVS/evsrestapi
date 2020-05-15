@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.restapi.appl;
 
+import gov.nih.nci.evs.restapi.util.*;
 import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -109,6 +110,28 @@ public class SRSDownload {
 
     }
 
+    public static Vector listTextFilesInDirectory() {
+		String dirName = null;
+		return listTextFilesInDirectory(dirName);
+	}
+
+
+    public static Vector listTextFilesInDirectory(String dirName) {
+		Vector v = new Vector();
+		if (dirName == null) {
+			dirName = System.getProperty("user.dir");;
+		}
+        File f = new File(dirName);
+        String[] pathnames = f.list();
+        for (String pathname : pathnames) {
+			if (pathname.endsWith(".txt") && pathname.indexOf("READ ME") == -1) {
+                System.out.println(pathname);
+                v.add(pathname);
+		    }
+        }
+        return v;
+	}
+
     public static void main(String[] args) {
 		String currentWorkingDirectory = System.getProperty("user.dir");
         String SRS_URI = "https://fdasis.nlm.nih.gov/srs/download/srs/";
@@ -126,6 +149,9 @@ public class SRSDownload {
 
         zipFilePath = currentWorkingDirectory + "/" + UNIIS_FILE;
         unzip(zipFilePath, currentWorkingDirectory);
+
+        Vector files = listTextFilesInDirectory();
+        Utils.dumpVector("listTextFilesInDirectory", files);
 	}
 }
 
