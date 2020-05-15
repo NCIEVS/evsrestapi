@@ -110,13 +110,13 @@ public class SRSDownload {
 
     }
 
-    public static Vector listTextFilesInDirectory() {
+    public static Vector listUNIITextFilesInDirectory() {
 		String dirName = null;
-		return listTextFilesInDirectory(dirName);
+		return listUNIITextFilesInDirectory(dirName);
 	}
 
 
-    public static Vector listTextFilesInDirectory(String dirName) {
+    public static Vector listUNIITextFilesInDirectory(String dirName) {
 		Vector v = new Vector();
 		if (dirName == null) {
 			dirName = System.getProperty("user.dir");;
@@ -124,10 +124,12 @@ public class SRSDownload {
         File f = new File(dirName);
         String[] pathnames = f.list();
         for (String pathname : pathnames) {
-			if (pathname.endsWith(".txt") && pathname.indexOf("READ ME") == -1) {
-                System.out.println(pathname);
-                v.add(pathname);
-		    }
+			if (pathname.indexOf("UNII") != -1) {
+				if (pathname.endsWith(".txt") && pathname.indexOf("READ ME") == -1) {
+					System.out.println(pathname);
+					v.add(pathname);
+				}
+			}
         }
         return v;
 	}
@@ -146,14 +148,14 @@ public class SRSDownload {
         zipFilePath = currentWorkingDirectory + "/" + UNIIS_FILE;
         unzip(zipFilePath, currentWorkingDirectory);
 
-        Vector files = listTextFilesInDirectory();
+        Vector files = listUNIITextFilesInDirectory();
         return files;
 	}
 
     public static void main(String[] args) {
         String SRS_URI = "https://fdasis.nlm.nih.gov/srs/download/srs/";
         Vector files = run(SRS_URI);
-        Utils.dumpVector("listTextFilesInDirectory", files);
+        Utils.dumpVector("listUNIITextFilesInDirectory", files);
 	}
 
 }

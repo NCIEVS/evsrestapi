@@ -82,9 +82,11 @@ public class TermSearchUtils {
 
 	public TermSearchUtils(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
-		if (!serviceUrl.endsWith("/")) {
-			serviceUrl = serviceUrl + "/";
-		}
+		if (serviceUrl.indexOf("?") == -1) {
+			if (!serviceUrl.endsWith("/")) {
+				this.serviceUrl = serviceUrl + "/";
+			}
+	    }
 		this.namedGraph = namedGraph;
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
 		initialize();
