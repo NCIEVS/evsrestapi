@@ -8,14 +8,12 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 /**
  * Represents a synonym of a concept.
  */
-@JsonIgnoreProperties(value = {
-    "code"
-})
+//@JsonIgnoreProperties(value = {
+//    "code"
+//})
 public class Property extends BaseModel {
 
   /** The code. */

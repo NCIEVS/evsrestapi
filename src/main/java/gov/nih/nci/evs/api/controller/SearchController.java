@@ -59,7 +59,6 @@ public class SearchController {
 
   /** The elastic search service. */
   @Autowired
-  @Qualifier(value = "elasticSearchServiceImpl2")
   ElasticSearchService elasticSearchService;
 
   /** The sparql query manager service. */

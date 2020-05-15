@@ -108,9 +108,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
         stardogProperties.getReadTimeout(), stardogProperties.getConnectTimeout());
 
-    log.info("  configure elasticsearch");
-    elasticSearchService.initSettings();
-
     // NOTE: see TerminologyCacheLoader for other caching.
 
     // This file generation was for the "documentation files"

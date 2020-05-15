@@ -18,13 +18,22 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class ElasticConfiguration {
 
+  /** the logger **/
   private static final Logger logger = LoggerFactory.getLogger(ElasticConfiguration.class);
 
+  /** the environment with properties **/
   @Autowired
   Environment env;
 
   @Bean
   Client client() throws UnknownHostException {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Configuring elasticsearch client");
+      logger.debug("    cluster name : {}", env.getProperty("nci.evs.elasticsearch.server.clusterName"));
+      logger.debug("    server host  : {}", env.getProperty("nci.evs.elasticsearch.server.host"));
+      logger.debug("    server port  : {}", env.getProperty("nci.evs.elasticsearch.server.port"));
+    }
+    
     Settings settings = Settings.builder()
         .put("cluster.name", env.getProperty("nci.evs.elasticsearch.server.clusterName")).build();
     TransportClient client = new PreBuiltTransportClient(settings);
