@@ -28,18 +28,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.LoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 
 /**
- * The implementation for {@link LoadService}
+ * The implementation for {@link ElasticLoadService}
  * 
  * @author Arun
  *
  */
 @Service
-public class LoadServiceImpl implements LoadService {
+public class ElasticLoadServiceImpl implements ElasticLoadService {
 
-  private static final Logger logger = LoggerFactory.getLogger(LoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(ElasticLoadServiceImpl.class);
 
   @Value("${nci.evs.bulkload.conceptsDir}")
   private String CONCEPTS_OUT_DIR;
@@ -62,7 +62,7 @@ public class LoadServiceImpl implements LoadService {
   private SparqlQueryManagerService sparqlQueryManagerService;
 
   @Override
-  public void load(LoadConfig config, Terminology terminology) throws IOException {
+  public void load(ElasticLoadConfig config, Terminology terminology) throws IOException {
 
     boolean result = operationsService.createIndex(ElasticOperationsService.CONCEPT_INDEX, config.isDeleteIndex());
     if (result) {

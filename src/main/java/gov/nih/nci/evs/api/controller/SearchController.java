@@ -8,7 +8,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -247,6 +246,11 @@ public class SearchController {
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
     }
 
+    if (!searchCriteria.checkPagination()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "FromRecord should be the first record of a page!");
+    }
+    
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
     searchCriteria.setTerm(queryTerm);
     log.debug("  Search = " + searchCriteria);

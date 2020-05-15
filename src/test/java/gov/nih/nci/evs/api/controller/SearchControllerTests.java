@@ -283,15 +283,24 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(2);
-    // From 5 with page size of 9 (should match the last 9 records of
-    // pageSize of 14
+    
+    //bad from record - fromRecord should be the first element of page
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=9&fromRecord=5");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&fromRecord=6");
+    
+    result = mvc.perform(
+        get(url).param("terminology", "ncit").param("term", "melanoma").param("fromRecord", "6"))
+        .andExpect(status().isBadRequest()).andReturn();    
+    
+    // From 5 with page size of 5 (should match the last 9 records of
+    // pageSize of 10
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=5&fromRecord=5");
 
     // Test a basic term search
     result = this.mvc
         .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-            .param("pageSize", "9").param("fromRecord", "5"))
+            .param("pageSize", "5").param("fromRecord", "5"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -299,14 +308,14 @@ public class SearchControllerTests {
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
-    assertThat(list.getConcepts().size()).isEqualTo(9);
+    assertThat(list.getConcepts().size()).isEqualTo(5);
     final List<Concept> cl1 = list.getConcepts();
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=14");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=10");
 
     // Test a basic term search
     result = this.mvc
         .perform(
-            get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "14"))
+            get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "10"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -314,8 +323,8 @@ public class SearchControllerTests {
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
-    assertThat(list.getConcepts().size()).isEqualTo(14);
-    assertThat(list.getConcepts().subList(5, 14).toString()).isEqualTo(cl1.toString());
+    assertThat(list.getConcepts().size()).isEqualTo(10);
+    assertThat(list.getConcepts().subList(5, 10).toString()).isEqualTo(cl1.toString());
 
     // Bad page size = -1
     url = baseUrl;

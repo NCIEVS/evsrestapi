@@ -401,6 +401,15 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
+   * Check required fields.
+   *
+   * @return true, if successful
+   */
+  public boolean checkPagination() {
+    return (fromRecord % pageSize == 0);
+  }
+  
+  /**
    * Compute missing required fields.
    *
    * @return the string

@@ -34,7 +34,7 @@ logging:
     level:
         org.springframework: WARN
         gov.nih.nci.evs.api: INFO
-        org.springframework.data.elasticsearch.core: INFO
+        org.springframework.data.elasticsearch.core: DEBUG
 
 #
 # Server Properties
@@ -64,8 +64,8 @@ nci:
       queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/NCIT2/query
       username: admin
       password: admin
-      readTimeout: 30
-      connectTimeout: 30
+      readTimeout: 30000
+      connectTimeout: 30000
       populateCacheCron: 0 0 1 * * *
       forcePopulateCache: N
     elasticsearch:

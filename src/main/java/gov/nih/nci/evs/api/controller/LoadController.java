@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.LoadService;
+import gov.nih.nci.evs.api.service.ElasticLoadService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.support.LoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 
@@ -30,13 +30,13 @@ public class LoadController {
   SparqlQueryManagerService sparqlQueryManagerService;
   
   @Autowired
-  LoadService loadService;
+  ElasticLoadService loadService;
   
   @RequestMapping(method = RequestMethod.PUT, value = "/load/{terminology}",
       produces = "application/json")
   public ResponseEntity load(
     @PathVariable(value = "terminology") final String terminology,
-    @ModelAttribute LoadConfig config)
+    @ModelAttribute ElasticLoadConfig config)
     throws Exception {
     
     final Terminology term =
