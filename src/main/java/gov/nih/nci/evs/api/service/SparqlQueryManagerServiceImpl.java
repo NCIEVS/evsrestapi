@@ -1766,10 +1766,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    log.info("query prefix = {}", queryPrefix);
+    log.debug("query prefix = {}", queryPrefix);
     String query = queryBuilderService.constructQuery("all.concepts", terminology.getGraph());
-    log.info("query = {}", query);
-    log.info("query url = {}", getQueryURL());
+    log.debug("query = {}", query);
+    log.debug("query url = {}", getQueryURL());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     
     ObjectMapper mapper = new ObjectMapper();

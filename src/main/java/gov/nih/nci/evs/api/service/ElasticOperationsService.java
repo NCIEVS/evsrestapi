@@ -15,12 +15,35 @@ import gov.nih.nci.evs.api.model.Concept;
  */
 public interface ElasticOperationsService {
   /** The index name in ES for concepts **/
-  public static final String CONCEPT_INDEX = "concept-test";
+  public static final String CONCEPT_INDEX = "concept";
   
   /** The type in ES for concepts **/
-  public static final String CONCEPT_TYPE = "concept-test";
+  public static final String CONCEPT_TYPE = "concept";
   
+  /**
+   * create index using the given index name
+   * 
+   * @param indexName the index name
+   * @param force whether index is to be deleted, if already present
+   * @return if the index was created
+   * @throws IOException the io exception
+   */
   boolean createIndex(String indexName, boolean force) throws IOException;
+  
+  /**
+   * load concepts
+   * 
+   * @param concepts the list of concepts
+   * @param index the index name
+   * @param type the type name
+   * @throws IOException the io exception
+   */
   void loadConcepts(List<Concept> concepts, String index, String type) throws IOException;
+  
+  /**
+   * get the instance of {@code ElasticsearchOperations}
+   * 
+   * @return the instance of {@code ElasticsearchOperations}
+   */
   ElasticsearchOperations getElasticsearchOperations();
 }

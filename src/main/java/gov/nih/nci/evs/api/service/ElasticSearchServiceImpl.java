@@ -180,8 +180,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     
     BoolQueryBuilder terminologyQuery = QueryBuilders.boolQuery();
     
-    for(String terminology: searchCriteria.getTerminology()) {
-      terminologyQuery = terminologyQuery.should(QueryBuilders.matchQuery("terminology", terminology));
+    if (searchCriteria.getTerminology().size() == 1) {
+      terminologyQuery = terminologyQuery.must(QueryBuilders.matchQuery("terminology", searchCriteria.getTerminology().get(0)));
+    } else {
+      for(String terminology: searchCriteria.getTerminology()) {
+        terminologyQuery = terminologyQuery.should(QueryBuilders.matchQuery("terminology", terminology));
+      }
     }
     
     return terminologyQuery;
@@ -197,13 +201,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     List<QueryBuilder> queries = new ArrayList<>();
     
     //concept status
-    QueryBuilder conceptStatusQuery = getPropertyTypeValueQueryBuilder(searchCriteria, "concept_status");
+    QueryBuilder conceptStatusQuery = getPropertyTypeValueQueryBuilder(searchCriteria, "Concept_Status");
     if (conceptStatusQuery != null) {
       queries.add(conceptStatusQuery);
     }
 
     //contributing source
-    QueryBuilder contributingSourceQuery = getPropertyTypeValueQueryBuilder(searchCriteria, "contributing_source");
+    QueryBuilder contributingSourceQuery = getPropertyTypeValueQueryBuilder(searchCriteria, "Contributing_Source");
     if (contributingSourceQuery != null) {
       queries.add(contributingSourceQuery);
     }
@@ -243,7 +247,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    */
   private QueryBuilder getPropertyTypeValueQueryBuilder(SearchCriteria searchCriteria, String type) {
     List<String> values = null;
-    switch (type) {
+    switch (type.toLowerCase()) {
       case "concept_status":
         values = searchCriteria.getConceptStatus();
         break;
@@ -259,8 +263,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     //IN query on property.type
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
-    for(String property: searchCriteria.getProperty()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("properties.value", property));
+    if (searchCriteria.getProperty().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.matchQuery("properties.value", searchCriteria.getProperty().get(0)));
+    } else {
+      for(String property: searchCriteria.getProperty()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("properties.value", property));
+      }      
     }
     
     //bool query to match property.type and property.value
@@ -273,7 +281,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for property criteria on type field
+   * builds nested query for property criteria on type or code field
    * 
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -281,13 +289,29 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   private QueryBuilder getPropertyTypeCodeQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getProperty())) return null;
     
+    boolean hasTerm = !StringUtils.isBlank(searchCriteria.getTerm());
+    
     //IN query on property.type
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
-    for(String property: searchCriteria.getProperty()) {
-      inQuery = inQuery
-          .should(QueryBuilders.matchQuery("properties.type", property))
-          .should(QueryBuilders.matchQuery("properties.code", property));
+    if (searchCriteria.getProperty().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.boolQuery()
+          .should(QueryBuilders.matchQuery("properties.type", searchCriteria.getProperty().get(0)))
+          .should(QueryBuilders.matchQuery("properties.code", searchCriteria.getProperty().get(0))));
+      
+      if (hasTerm) {
+        inQuery = inQuery.must( QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()) );
+      } 
+    } else {
+      for(String property: searchCriteria.getProperty()) {
+        inQuery = inQuery.should(QueryBuilders.boolQuery()
+            .should(QueryBuilders.matchQuery("properties.type", property))
+            .should(QueryBuilders.matchQuery("properties.code", property)));
+        
+        if (hasTerm) {
+          inQuery = inQuery.should( QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()) );
+        }
+      }
     }
     
     //bool query to match property.type and property.value
@@ -310,8 +334,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     //IN query on synonym.source
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
-    for(String source: searchCriteria.getSynonymSource()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.source", source));
+    if (searchCriteria.getSynonymSource().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.matchQuery("synonyms.source", searchCriteria.getSynonymSource().get(0)));
+    } else {
+      for(String source: searchCriteria.getSynonymSource()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.source", source));
+      }      
     }
     
     //bool query to match property.type and property.value
@@ -334,8 +362,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     //IN query on definition.source
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
-    for(String source: searchCriteria.getDefinitionSource()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.source", source));
+    if (searchCriteria.getDefinitionSource().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.matchQuery("definitions.source", searchCriteria.getDefinitionSource().get(0)));
+    } else {
+      for(String source: searchCriteria.getDefinitionSource()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.source", source));
+      }
     }
     
     //bool query to match property.type and property.value

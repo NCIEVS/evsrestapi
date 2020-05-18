@@ -390,7 +390,7 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
-    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().size()).isEqualTo(1);
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
     assertThat(list.getConcepts().get(0).getProperties().stream()
         .filter(p -> p.getType().equals("FDA_UNII_Code")).count()).isGreaterThan(0);
@@ -427,7 +427,7 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
-    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().size()).isEqualTo(1);
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
     assertThat(list.getConcepts().get(0).getProperties().stream()
         .filter(p -> p.getType().equals("FDA_UNII_Code")).count()).isGreaterThan(0);
