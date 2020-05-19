@@ -22,11 +22,11 @@ if __name__ == '__main__':
     number_of_concepts = len(concepts_list)
     print("Number of Concepts: " + str(len(concepts_list)))
     start = 0
-    end = 100
+    end = 1000
     while (start < number_of_concepts):
         in_clause = "'" + "', '".join(concepts_list[start:end]) + "'"
         start = end
-        end = end + 100
+        end = end + 1000
         if end > number_of_concepts:
             end = number_of_concepts
 

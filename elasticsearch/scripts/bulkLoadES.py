@@ -166,13 +166,13 @@ def download_concept_files_batch(concepts_list, clean):
         eu.mergeConceptsAndAxioms(concepts, axioms)
         del axioms
 
-        subclasses = eu.getAllSubclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndSubclasses(concepts, subclasses)
-        del subclasses
+        #subclasses = eu.getAllSubclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        #eu.mergeConceptsAndSubclasses(concepts, subclasses)
+        #del subclasses
 
-        superclasses = eu.getAllSuperclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
-        eu.mergeConceptsAndSuperclasses(concepts, superclasses)
-        del superclasses
+        #superclasses = eu.getAllSuperclasses(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
+        #eu.mergeConceptsAndSuperclasses(concepts, superclasses)
+        #del superclasses
 
         #associations = eu.getAllAssociations(SPARQL_ENDPOINT, NAMED_GRAPH, in_clause)
         #eu.mergeConceptsAndAssociations(concepts, associations)
@@ -203,10 +203,10 @@ def download_concept_files_batch(concepts_list, clean):
             eu.addMapsTo(concept)
             eu.addGO_Annotation(concept)
             del concept['axioms']
-            eu.addSubclasses(concept)
-            del concept['subclasses']
-            eu.addSuperclasses(concept)
-            del concept['superclasses']
+            #eu.addSubclasses(concept)
+            #del concept['subclasses']
+            #eu.addSuperclasses(concept)
+            #del concept['superclasses']
             #eu.addAssociations(concept)
             #del concept['associations']
             #eu.addInverseAssociations(concept)
