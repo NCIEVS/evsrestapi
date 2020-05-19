@@ -263,7 +263,7 @@ public class MetadataServiceImpl implements MetadataService {
       return Optional.empty();
 
     // TODO: config (P310)
-    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term, ":P310");
+    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term, "P310");
     return Optional.of(statuses);
 
   }
