@@ -135,19 +135,14 @@ public class UNIIDataRetriever {
 
     public UNIIDataRetriever(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
-		if (!this.serviceUrl.endsWith("/")) {
-			this.serviceUrl = this.serviceUrl + "/";
-		}
+		if (serviceUrl.indexOf("?") == -1) {
+			if (!serviceUrl.endsWith("/")) {
+				this.serviceUrl = serviceUrl + "/";
+			}
+	    }
 		this.namedGraph = namedGraph;
-		System.out.println(this.serviceUrl);
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
     }
-
-/*
-bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_826645|Cyclophosphamide|C405|FULL_SYN|P90|CYCLOPHOSPHAMIDE|Term Source|P384|FDA
-bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_914386|Fluoxymesterone|C507|FULL_SYN|P90|FLUOXYMESTERONE|Term Source|P384|FDA
-*/
-
 
     public Vector get_term_source_vec(String source) {
 		return retrieveTermSourceData(source);

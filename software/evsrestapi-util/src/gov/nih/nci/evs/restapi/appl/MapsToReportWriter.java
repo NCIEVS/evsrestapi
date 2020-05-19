@@ -272,27 +272,40 @@ public class MapsToReportWriter {
 		return ncit_version;
 	}
 
-    public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-		String serviceUrl = args[0];
-		String named_graph = args[1];
-		String terminology_name = args[2];
-		String terminology_version = args[3];
-		String codes_str = args[4];
-		MapsToReportWriter mapsToReportWriter = new MapsToReportWriter(serviceUrl, named_graph);
-		Vector codes = StringUtils.parseData(codes_str, '|');
+    public Vector getRootCodes(String version) {
+		Vector w = new Vector();
+        System.out.println("ICDO version: " + version);
+        String label = "Mapped ICDO" + version + " Terminology";
+        Vector v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
+		v = new ParserUtils().getResponseValues(v);
+		w.add((String) v.elementAt(0));
+        label = "Mapped ICDO" + version + " Morphology Terminology";
+        v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
+        v = new ParserUtils().getResponseValues(v);
+        w.add((String) v.elementAt(0));
+        label = "Mapped ICDO" + version + " Morphology PT Terminology";
+        v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
+        v = new ParserUtils().getResponseValues(v);
+        w.add((String) v.elementAt(0));
+        StringUtils.dumpVector("codes", w);
+        return w;
+	}
+
+    public void run(String terminology_name, String terminology_version) {
+		Vector codes = getRootCodes(terminology_version);
+		run(terminology_name, terminology_version, codes);
+	}
+
+    public void run(String terminology_name, String terminology_version, Vector codes) {
 		Vector datafile_vec = new Vector();
 		Vector sheetLabel_vec = new Vector();
-		String version = mapsToReportWriter.get_ncit_version();
+		String version = get_ncit_version();
 		String label0 = null;
-
-		mapsToReportWriter.dumpMapsToEntries();
-
-
+		dumpMapsToEntries();
         for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
-			Vector v = mapsToReportWriter.generateMapsToReport(code, terminology_name, terminology_version);
-			String label = mapsToReportWriter.getLabelByCode(code);
+			Vector v = generateMapsToReport(code, terminology_name, terminology_version);
+			String label = getLabelByCode(code);
 			System.out.println(label + " (" + code + ")");
 			Utils.saveToFile(code + ".txt", v);
 			sheetLabel_vec.add(label);
@@ -307,6 +320,16 @@ public class MapsToReportWriter {
 		String excelfile = label0 + "_(" + version + ")_" + StringUtils.getToday() + ".xlsx";
 		new ExcelWriter().writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec, headerColor);
 		System.out.println(excelfile + " generated.");
+	}
+
+    public static void main(String[] args) {
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String terminology_name = args[2];
+		String terminology_version = args[3];
+		long ms = System.currentTimeMillis();
+		MapsToReportWriter mapsToReportWriter = new MapsToReportWriter(serviceUrl, named_graph);
+		mapsToReportWriter.run(terminology_name, terminology_version);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
 }

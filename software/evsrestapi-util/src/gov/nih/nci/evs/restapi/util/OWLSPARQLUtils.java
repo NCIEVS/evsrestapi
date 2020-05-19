@@ -4828,6 +4828,26 @@ Term Type
 		return parser.parseDefinitionData(v, prop_label);
 	}
 
+	public String construct_get_code_by_label(String named_graph, String label) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select ?x_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    ?x a owl:Class . ").append("\n");
+		buf.append("	    ?x :NHC0 ?x_code .  ").append("\n");
+		buf.append("	    ?x rdfs:label \"" + label + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getCodeByLabel(String named_graph, String label) {
+		return executeQuery(construct_get_code_by_label(named_graph, label));
+	}
+
 	public static void main(String[] args) {
 		if (args.length == 2) {
 			test1(args);

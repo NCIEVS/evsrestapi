@@ -159,9 +159,11 @@ public class UNIIProcessor {
 		this.unii_link_file = unii_link_file;
 		this.unii_data_file = unii_data_file;
         unii_link = Utils.readFile(unii_link_file);
-        System.out.println(unii_link_file + ": " + unii_link.size());
         unii_data = Utils.readFile(unii_data_file);
-        System.out.println(unii_data_file + ": " + unii_data.size());
+        if (ncit_concepts_with_unii_code_vec == null) {
+			ncit_concepts_with_unii_code_vec = uniiDataRetriever.get_ncit_concepts_with_unii_code_vec();
+		}
+
         create_unii_hashmaps(ncit_concepts_with_unii_code_vec);
 	}
 
@@ -172,12 +174,9 @@ Name	TYPE	UNII	Display Name
 */
 
 	public void create_unii_hashmaps(Vector v) {
-		//Vector v  = Utils.readFile(ncit_unii_txt_file);
-		//Vector v  = uniiDataRetriever.get_ncit_concepts_with_unii_code_vec();
         unii2ncitcode_map = new HashMap();
         ncitcode2unii_map = new HashMap();
         ncitcode2pt_map = new HashMap();
-//	//Sulfaclozine|C72849|FDA_UNII_Code|69YP7Z48CW
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, '|');
@@ -357,19 +356,16 @@ o	The UNIII terms should have the following attributes:
 		Vector source_code_data = uniiDataRetriever.get_term_source_code_vec();
 		v.addAll(source_code_data);
 		v = new SortUtils().quickSort(v);
-
 		List list = new ParserUtils().getSynonyms(v);
-
 /*
-(81138) {
-  "code": "C3113",
-  "label": "Hyperplasia",
-  "termName": "Hyperplasia",
-  "termSource": "FDA",
-  "sourceCode": "1906",
-  "subSourceName": "CDRH"
-}
+		Vector syn_vec = new Vector();
+		for (int i=0; i<list.size(); i++) {
+			Synonym t = (Synonym) list.get(i);
+			syn_vec.add(t.toJson());
+		}
+		Utils.saveToFile("syn_vec.txt", syn_vec);
 */
+
 
         HashMap hmap = new HashMap();
         ncit_code_hset = new HashSet();
@@ -392,9 +388,6 @@ o	The UNIII terms should have the following attributes:
 	public void runNCItUNIIQA() { // = "ncit_unii.txt";) {
 		Vector w = new Vector();
 		Vector vs_label_and_code_vec = uniiDataRetriever.get_fda_unii_subset_vec();
-
-		System.out.println("vs_label_and_code_vec: " + vs_label_and_code_vec.size());
-
 		for (int i=0; i<vs_label_and_code_vec.size(); i++) {
 			int j = i+1;
 			String line = (String) vs_label_and_code_vec.elementAt(i);
@@ -413,11 +406,10 @@ o	The UNIII terms should have the following attributes:
 		if (ncit_concepts_with_unii_code_vec == null) {
 			ncit_concepts_with_unii_code_vec = uniiDataRetriever.get_ncit_concepts_with_unii_code_vec();
 		}
-		Vector nci_unii_vec = ncit_concepts_with_unii_code_vec;//Utils.readFile(filename);
+		Vector nci_unii_vec = ncit_concepts_with_unii_code_vec;
 
 		for (int i=0; i<nci_unii_vec.size(); i++) {
 			String line = (String) nci_unii_vec.elementAt(i);
-			//System.out.println(line);
 
             //Cyclophosphamide|C405|FDA_UNII_Code|8N3DW7272P
 			Vector u = StringUtils.parseData(line, '|');
@@ -495,13 +487,9 @@ o	The UNIII terms should have the following attributes:
 			HashMap hmap = createSynonymHashMap();
 		}
 
-
 		this.unii_link_file = unii_link_file;
 		this.unii_data_file = unii_data_file;
 		loadSRSData(unii_link_file, unii_data_file);
-
-		System.out.println("Processing " + unii_link_file + " ...");
-
         initialize();
         char demiliter = '|';
         char comma = ',';
@@ -509,7 +497,6 @@ o	The UNIII terms should have the following attributes:
         // STEP 1: Name	TYPE	UNII	Display Name
         String unii_link_file_heading = null;
         String line = (String) unii_link.elementAt(0);
-        //System.out.println(line);
 		Vector u = StringUtils.parseData(line, '\t');
 		String name = (String) u.elementAt(0);
 		String unii = (String) u.elementAt(2);
@@ -577,7 +564,6 @@ o	The UNIII terms should have the following attributes:
 			}
 
 		}
-
 		System.out.println("" + w.size() + " processed.");
 		//w = FormatHelper.toCSVLines(w);
 		int n = unii_link_file.lastIndexOf(".");
@@ -763,11 +749,6 @@ o	The UNIII terms should have the following attributes:
 	}
 
     public Synonym searchSynonym(String code) {
-		if (code2SynonymMap == null) {
-			System.out.println("code2SynonymMap == NULL???");
-			return null;
-		}
-
 		if (!code2SynonymMap.containsKey(code)) {
 			return null;
 		}
@@ -788,22 +769,44 @@ o	The UNIII terms should have the following attributes:
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
 		String namedGraph = args[1];
+		String SRS_URI = "https://fdasis.nlm.nih.gov/srs/download/srs/";
 		System.out.println("UNIIProcessor initialization in prograss -- please wait...");
 		UNIIProcessor processor = new UNIIProcessor(serviceUrl, namedGraph);
 
-		System.out.println("runNCItUNIIQA -- please wait...");
-        processor.runNCItUNIIQA();//ncit_unii_txt_file);
+		String unii_link_file = null;
+		String unii_data_file = null;
 
-		String unii_link_file = "UNII_Names_27Mar2020.txt";
-		String unii_data_file = "UNII_Records_27Mar2020.txt";
+		if (args.length == 2) {
+			System.out.println("Download data file from SRS site -- please wait...");
+			SRSDownload.run(SRS_URI);
 
-		if (args.length == 4) {
+			Vector files = SRSDownload.listUNIITextFilesInDirectory();
+			unii_link_file = (String) files.elementAt(0);
+			unii_data_file = (String) files.elementAt(1);
+
+			System.out.println("runFDASubstanceRegistrationSystemFilesQA -- please wait...");
+			processor.runFDASubstanceRegistrationSystemFilesQA(unii_link_file, unii_data_file);
+			System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
+		} else if (args.length == 4) {
 			unii_link_file = "UNII_Names_27Mar2020.txt";
 			unii_data_file = "UNII_Records_27Mar2020.txt";
 			System.out.println("runFDASubstanceRegistrationSystemFilesQA -- please wait...");
 			processor.runFDASubstanceRegistrationSystemFilesQA(unii_link_file, unii_data_file);
 			System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		}
+
+		System.out.println("runNCItUNIIQA -- please wait...");
+        processor.runNCItUNIIQA();
 	}
 }
 
+/*
+Processing source_code_data.txt ...
+heading: bnode_21e4bb1f_2fc9_480b_bbdb_0d116398d610_2963361|Molecular Abnormality|C3910|FULL_SYN|P90|Molecular Abnormality|Source Code|P385|TCGA
+Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: 2 >= 1
+        at java.util.Vector.elementAt(Vector.java:474)
+        at UNIIProcessor.runFDASubstanceRegistrationSystemFilesQA(UNIIProcessor.java:554)
+        at UNIIProcessor.main(UNIIProcessor.java:862)
+
+*/
