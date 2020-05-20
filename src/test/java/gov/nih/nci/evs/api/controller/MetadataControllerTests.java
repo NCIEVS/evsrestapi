@@ -172,6 +172,20 @@ public class MetadataControllerTests {
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();
 
+    // Test with comma separated list
+    url = baseUrl + "/ncit/association/A15,A12";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Test with comma separated list
+    url = baseUrl + "/ncit/association/A15,Concept_In_Subset";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
   }
 
   /**
@@ -199,8 +213,22 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
 
+    // Bad lookup (code style)
+    url = baseUrl + "/ncit/association/A";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
     // Bad lookup (label style)
     url = baseUrl + "/ncit/association/Concept_Out_Of_Subset";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Bad lookup (not an association)
+    url = baseUrl + "/ncit/association/P90";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -292,6 +320,20 @@ public class MetadataControllerTests {
     assertThat(concept.getCode()).isEqualTo("R27");
     assertThat(concept.getSynonyms()).isNotEmpty();
 
+    // Test with comma separated list
+    url = baseUrl + "/ncit/role/R27,R100";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Test with comma separated list
+    url = baseUrl + "/ncit/role/R100,Conceptual_Part_Of";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    
   }
 
   /**
@@ -319,8 +361,22 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
 
+    // Bad lookup (code style)
+    url = baseUrl + "/ncit/role/R";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
     // Bad lookup (label style)
     url = baseUrl + "/ncit/role/Not_A_Role";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Bad lookup (not a role)
+    url = baseUrl + "/ncit/role/P90";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -462,6 +518,21 @@ public class MetadataControllerTests {
     assertThat(concept.getCode()).isEqualTo("P350");
     assertThat(concept.getSynonyms()).isNotEmpty();
 
+    // Test with comma separated list
+    url = baseUrl + "/ncit/property/P350,P106";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Test with comma separated list
+    url = baseUrl + "/ncit/property/P350,OMIM_Number";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    
+    // BAC: removed because this data condition went away
     // Test with a code that has an rdfs:label synonym (default mode is summary
     // here)
     // url = baseUrl + "/ncit/property/P383?include=summary";
@@ -509,6 +580,13 @@ public class MetadataControllerTests {
 
     // Bad lookup (code style)
     url = baseUrl + "/ncit/property/R123456";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Bad lookup (code style)
+    url = baseUrl + "/ncit/property/P";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();

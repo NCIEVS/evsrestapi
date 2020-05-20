@@ -149,7 +149,7 @@ public class MetadataController {
 
     Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
     if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + code + " not found");
 
     return concept.get();
   }
@@ -234,7 +234,7 @@ public class MetadataController {
 
     Optional<Concept> concept = metadataService.getRole(terminology, code, include);
     if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found");
 
     return concept.get();
   }
@@ -361,7 +361,7 @@ public class MetadataController {
 
     Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
     if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
 
     return concept.get();
   }
@@ -431,7 +431,7 @@ public class MetadataController {
 
     Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
     if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
 
     return concept.get();
   }
