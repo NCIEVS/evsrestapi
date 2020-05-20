@@ -267,13 +267,9 @@ public class MetadataController {
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "forDocumentation",
-          value = "Special param for documentation mode to remove the specially handled properties",
-          required = false, dataType = "string", paramType = "query"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return properties for (or leave blank for all)",
           required = false, dataType = "string", paramType = "query")
-
   })
   @RecordMetricDBFormat
   public @ResponseBody List<Concept> getProperties(
