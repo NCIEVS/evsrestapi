@@ -121,7 +121,7 @@ public class SearchController {
           value = "Comma-separated list of synonym sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Comma-separated list of synonym term groups to restrict search results to. Use with \"synonymSource\".",
+          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -201,7 +201,7 @@ public class SearchController {
           value = "Comma-separated list of synonym sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Comma-separated list of synonym term groups to restrict search results to. Use with \"synonymSource\".",
+          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
