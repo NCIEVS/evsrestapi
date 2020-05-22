@@ -128,6 +128,8 @@ public interface MetadataService {
    */
   List<ConceptMinimal> getContributingSources(final String terminology) throws Exception;
 
+  List<ConceptMinimal> getDefinitionSources(final String terminology) throws Exception;
+
   /**
    * Returns the synonym sources.
    *

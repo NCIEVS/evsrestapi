@@ -88,7 +88,8 @@ public class MetadataServiceImpl implements MetadataService {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return Optional.of(sparqlQueryManagerService.getAssociation(list.get(0).getCode(), term, ip));
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Association " + code + " not found (2)");
     }
     return Optional.empty();
   }
@@ -218,13 +219,14 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> list =
         self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
 
-    if (list.size() ==1) {
+    if (list.size() == 1) {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return Optional.of(sparqlQueryManagerService.getQualifier(list.get(0).getCode(), term, ip));
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Qualifier " + code + " not found (2)");
     }
     return Optional.empty();
   }
@@ -245,13 +247,14 @@ public class MetadataServiceImpl implements MetadataService {
     // Verify that it is a property
     final List<Concept> list =
         self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
-    if (list.size() ==1) {
+    if (list.size() == 1) {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return Optional.of(sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip));
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Property " + code + " not found (2)");
     }
     return Optional.empty();
   }
@@ -295,6 +298,20 @@ public class MetadataServiceImpl implements MetadataService {
       return new ArrayList<>();
 
     return sparqlQueryManagerService.getContributingSources(term);
+
+  }
+
+  /* see superclass */
+  @Override
+  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
+      condition = "#terminology.equals('ncit')")
+  public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
+    final Terminology term =
+        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    if (!term.getTerminology().equals("ncit"))
+      return new ArrayList<>();
+
+    return sparqlQueryManagerService.getDefinitionSources(term);
 
   }
 

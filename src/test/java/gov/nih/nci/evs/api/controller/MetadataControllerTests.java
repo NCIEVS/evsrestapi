@@ -333,7 +333,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    
+
   }
 
   /**
@@ -531,7 +531,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    
+
     // BAC: removed because this data condition went away
     // Test with a code that has an rdfs:label synonym (default mode is summary
     // here)
@@ -677,6 +677,11 @@ public class MetadataControllerTests {
 
   }
 
+  /**
+   * Test synonym sources.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testSynonymSources() throws Exception {
 
@@ -708,6 +713,47 @@ public class MetadataControllerTests {
 
   }
 
+  /**
+   * Test definition sources.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testDefinitionSources() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // NCIt
+    url = baseUrl + "/ncit/definitionSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+    // This may change in the future, but it's a way of validating
+    // "definition sources" as being different than "synonym sources"
+    assertThat(list.size()).isLessThan(50);
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/definitionSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+  }
+
+  /**
+   * Test term types.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testTermTypes() throws Exception {
 

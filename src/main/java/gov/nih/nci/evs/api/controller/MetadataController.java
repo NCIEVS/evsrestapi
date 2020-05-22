@@ -545,6 +545,29 @@ public class MetadataController extends BaseController {
     }
   }
 
+  @ApiOperation(value = "Get all definition sources for the specified terminology",
+      response = ConceptMinimal.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit")
+  })
+  @RecordMetricDBFormat
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionSources",
+      produces = "application/json")
+  public @ResponseBody List<ConceptMinimal> getDefinitionSources(
+    @PathVariable(value = "terminology") final String terminology) throws Exception {
+    try {
+      return metadataService.getDefinitionSources(terminology);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
   /**
    * Returns the synonym sources.
    *
