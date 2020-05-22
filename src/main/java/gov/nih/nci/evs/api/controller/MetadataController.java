@@ -616,7 +616,7 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrLabel",
-          value = "Property code (or label), e.g. 'P383' or 'term-group'", required = true,
+          value = "Qualifier code (or label), e.g. 'P383' or 'term-group'", required = true,
           dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
