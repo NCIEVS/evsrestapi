@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -105,6 +107,13 @@ public class ConceptControllerTests {
   public void testBadGetConcept() throws Exception {
     String url = null;
 
+    // Test lookup of >500 codes
+    url = baseUrl + "/ncit?list="
+        + IntStream.range(1, 502).mapToObj(String::valueOf).collect(Collectors.joining(","));
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
     // Bad terminology
     url = baseUrl + "/ncitXXX/C3224";
     log.info("Testing url - " + url);
@@ -170,7 +179,7 @@ public class ConceptControllerTests {
     log.info("Testing url - " + url);
     mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     // content is blank because of MockMvc
-   
+
   }
 
   /**
@@ -685,7 +694,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    
+
     // Test case with bad terminology
     url = baseUrl + "/test/C2291/subtree/children";
     log.info("Testing url - " + url);

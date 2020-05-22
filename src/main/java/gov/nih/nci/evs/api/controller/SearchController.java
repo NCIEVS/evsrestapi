@@ -81,8 +81,7 @@ public class SearchController extends BaseController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 404, message = "Resource not found"),
-      @ApiResponse(code = 413, message = "Payload too large, likely page size is > 100")
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
@@ -163,8 +162,7 @@ public class SearchController extends BaseController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 404, message = "Resource not found"),
-      @ApiResponse(code = 413, message = "Payload too large, likely page size is > 100")
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
@@ -247,10 +245,6 @@ public class SearchController extends BaseController {
     if (!searchCriteria.checkRequiredFields()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
-    }
-    // Check page size
-    if (searchCriteria.getPageSize() != null && searchCriteria.getPageSize() > 100) {
-      throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Maximum pageSize = 100");
     }
 
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());

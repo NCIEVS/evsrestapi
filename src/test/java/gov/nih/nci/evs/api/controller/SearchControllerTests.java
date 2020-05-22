@@ -210,14 +210,21 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&term=blood&pageSize=101");
     mvc.perform(
         get(url).param("terminology", "ncit").param("term", "blood").param("pageSize", "101"))
-        .andExpect(status().isPayloadTooLarge()).andReturn();
+        .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
     // Page size too big - 2
     url = baseUrl;
     log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
     mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "101"))
-        .andExpect(status().isPayloadTooLarge()).andReturn();
+        .andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
+    // Page size too small
+    url = baseUrl;
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
+    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "0"))
+        .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
   }

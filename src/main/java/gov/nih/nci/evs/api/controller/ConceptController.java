@@ -68,8 +68,8 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found"), @ApiResponse(code = 413,
-          message = "Payload too large, likely list of codes is > 1000 entries"),
+      @ApiResponse(code = 404, message = "Resource not found"),
+      @ApiResponse(code = 400, message = "Bad request")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}",
       produces = "application/json")
@@ -101,9 +101,9 @@ public class ConceptController extends BaseController {
 
       final String[] codes = list.split(",");
       // Impose a maximum number at a time
-      if (codes.length > 1000) {
-        throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
-            "Maximum number of concepts to request at a time is 1000 = " + codes.length);
+      if (codes.length > 500) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "Maximum number of concepts to request at a time is 500 = " + codes.length);
       }
 
       for (final String code : codes) {

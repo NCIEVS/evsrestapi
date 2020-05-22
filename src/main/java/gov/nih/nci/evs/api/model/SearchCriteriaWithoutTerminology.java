@@ -435,9 +435,14 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
-    if (pageSize < 0 || pageSize > 1000) {
+    if (pageSize < 1) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 0 and 1000 = " + pageSize);
+          "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
+    }
+
+    if (pageSize > 100) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
     }
 
     // Validate concept status
