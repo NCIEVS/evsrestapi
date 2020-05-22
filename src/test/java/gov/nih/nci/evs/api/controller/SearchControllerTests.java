@@ -205,6 +205,14 @@ public class SearchControllerTests {
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
+    // Page size too big
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=blood&pageSize=101");
+    mvc.perform(
+        get(url).param("terminology", "ncit").param("term", "blood").param("pageSize", "101"))
+        .andExpect(status().isPayloadTooLarge()).andReturn();
+    // content is blank because of MockMvc
+
   }
 
   /**

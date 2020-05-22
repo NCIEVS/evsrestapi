@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.controller;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.aop.RecordMetricSearch;
@@ -47,10 +45,10 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
 @Api(tags = "Search endpoint")
-public class SearchController {
+public class SearchController extends BaseController {
 
   /** The Constant log. */
-  private static final Logger log = LoggerFactory.getLogger(SearchController.class);
+  private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
 
   /** The stardog properties. */
   @Autowired
@@ -64,7 +62,7 @@ public class SearchController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The metadata service **/
+  /** The metadata service *. */
   @Autowired
   MetadataService metadataService;
 
@@ -75,14 +73,15 @@ public class SearchController {
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
    * @return the string
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get concept search results for a specified terminology",
       response = ConceptResultList.class,
       notes = "Use cases for search range from very simple term searches, use of paging parameters, additional filters, searches properties, roles, and associations, and so on.  To further explore the range of search options, take a look at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>Github client SDK library created for the NCI EVS Rest API</a>.")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 404, message = "Resource not found"),
+      @ApiResponse(code = 413, message = "Payload too large, likely page size is > 100")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
@@ -120,7 +119,7 @@ public class SearchController {
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "synonymTermGroup",
+      @ApiImplicitParam(name = "93489034",
           value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
@@ -146,7 +145,7 @@ public class SearchController {
   public @ResponseBody ConceptResultList searchSingleTerminology(
     @PathVariable(value = "terminology") final String terminology,
     @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult)
-    throws IOException {
+    throws Exception {
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult);
   }
 
@@ -156,13 +155,14 @@ public class SearchController {
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
    * @return the string
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get concept search results", response = ConceptResultList.class,
       notes = "Use cases for search range from very simple term searches, use of paging parameters, additional filters, searches properties, roles, and associations, and so on.  To further explore the range of search options, take a look at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>Github client SDK library created for the NCI EVS Rest API</a>.")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 404, message = "Resource not found"),
+      @ApiResponse(code = 413, message = "Payload too large, likely page size is > 100")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
@@ -224,7 +224,7 @@ public class SearchController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList search(@ModelAttribute SearchCriteria searchCriteria,
-    BindingResult bindingResult) throws IOException {
+    BindingResult bindingResult) throws Exception {
 
     // Check whether or not parameter binding was successful
     if (bindingResult.hasErrors()) {
@@ -233,7 +233,7 @@ public class SearchController {
       for (final FieldError error : errors) {
         final String errorMessage = "ERROR " + bindingResult.getObjectName() + " = "
             + error.getField() + ", " + error.getCode();
-        log.error(errorMessage);
+        logger.error(errorMessage);
         errorMessages.add(errorMessage);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("\n ", errorMessages));
@@ -241,14 +241,19 @@ public class SearchController {
 
     final long startDate = System.currentTimeMillis();
 
+    // Check search criteria for required fields
     if (!searchCriteria.checkRequiredFields()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
     }
+    // Check page size
+    if (searchCriteria.getPageSize() != null && searchCriteria.getPageSize() > 100) {
+      throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Maximum pageSize = 100");
+    }
 
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
     searchCriteria.setTerm(queryTerm);
-    log.debug("  Search = " + searchCriteria);
+    logger.debug("  Search = " + searchCriteria);
 
     if (searchCriteria.getTerminology().size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -282,23 +287,9 @@ public class SearchController {
       results.setConcepts(concepts);
       results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
-    } catch (ResponseStatusException rse) {
-      throw rse;
-    } catch (IOException e) {
-      log.error("Unexpected IO error", e);
-      String errorMessage = e.getMessage();
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
-
-    } catch (HttpClientErrorException e2) {
-      log.error("Unexpected HTTP error", e2);
-      final String errorMessage = e2.getMessage();
-      throw new ResponseStatusException(e2.getStatusCode(), errorMessage);
-
-    } catch (Exception e3) {
-      log.error("Unexpected error", e3);
-      final String errorMessage =
-          "An error occurred in the system. Please contact the NCI help desk.";
-      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
 
   }
