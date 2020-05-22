@@ -91,7 +91,7 @@ public class SearchController extends BaseController {
           value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true,
           dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type",
-          value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.",
+          value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
           required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -172,7 +172,7 @@ public class SearchController extends BaseController {
           value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true,
           dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type",
-          value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.",
+          value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
           required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
