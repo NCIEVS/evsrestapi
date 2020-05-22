@@ -110,11 +110,11 @@ public class SearchControllerTests {
     result =
         this.mvc.perform(get(url).param("term", "melanoma")).andExpect(status().isOk()).andReturn();
     String content2 = result.getResponse().getContentAsString();
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
   }
@@ -158,11 +158,11 @@ public class SearchControllerTests {
     result = this.mvc.perform(get(url).param("term", "melanoma").param("include", "highlights"))
         .andExpect(status().isOk()).andReturn();
     String content2 = result.getResponse().getContentAsString();
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
   }
@@ -213,6 +213,13 @@ public class SearchControllerTests {
         .andExpect(status().isPayloadTooLarge()).andReturn();
     // content is blank because of MockMvc
 
+    // Page size too big - 2
+    url = baseUrl;
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
+    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "101"))
+        .andExpect(status().isPayloadTooLarge()).andReturn();
+    // content is blank because of MockMvc
+
   }
 
   /**
@@ -255,11 +262,11 @@ public class SearchControllerTests {
     result = this.mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
         .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
     String content2 = result.getResponse().getContentAsString();
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
   }
@@ -405,11 +412,11 @@ public class SearchControllerTests {
         .param("property", "fda_unii_code")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
     // With property code also - P319
@@ -442,11 +449,11 @@ public class SearchControllerTests {
         .param("property", "P319")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
     // BAD property type
@@ -756,7 +763,13 @@ public class SearchControllerTests {
     log.info("Done Testing testDefinitionSource ");
 
   }
-  
+
+  /**
+   * Removes the time taken.
+   *
+   * @param response the response
+   * @return the string
+   */
   private String removeTimeTaken(String response) {
     return response.replaceAll("\"timeTaken\"\\s*:\\s*\\d+\\s*,", "");
   }
