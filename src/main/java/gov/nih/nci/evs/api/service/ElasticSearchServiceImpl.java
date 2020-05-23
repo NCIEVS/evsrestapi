@@ -230,7 +230,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       queries.add(definitionSourceQuery);
     }
     
-    //synonym source
+    //synonym termGroup
     QueryBuilder synonymTermGroupQuery = buildSynonymTermGroupQueryBuilder(searchCriteria);
     if (synonymTermGroupQuery != null) {
       queries.add(synonymTermGroupQuery);
@@ -260,7 +260,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     
     if (CollectionUtils.isEmpty(values)) return null;
     
-    //IN query on property.type
+    //IN query on property.value
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
     if (searchCriteria.getProperty().size() == 1) {
@@ -291,7 +291,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     
     boolean hasTerm = !StringUtils.isBlank(searchCriteria.getTerm());
     
-    //IN query on property.type
+    //IN query on property.type or property.code
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
     if (searchCriteria.getProperty().size() == 1) {
@@ -314,7 +314,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
     }
     
-    //bool query to match property.type and property.value
+    //bool query to match (property.type or property.code) and property.value
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
         .must(inQuery);
     
@@ -342,7 +342,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }      
     }
     
-    //bool query to match property.type and property.value
+    //bool query to match synonym.source
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
         .must(inQuery);
     
@@ -370,7 +370,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
     }
     
-    //bool query to match property.type and property.value
+    //bool query to match definition.source
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
         .must(inQuery);
     
@@ -385,11 +385,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the nested query
    */
   private QueryBuilder buildSynonymTermGroupQueryBuilder(SearchCriteria searchCriteria) {
-    if (StringUtils.isEmpty(searchCriteria.getSynonymTermGroup())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup())) return null;
+
+    //IN query on synonym.termGroup
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
     
-    //bool query to match property.type and property.value
+    if (searchCriteria.getSynonymTermGroup().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.matchQuery("synonyms.termGroup", searchCriteria.getSynonymTermGroup().get(0)));
+    } else {
+      for(String source: searchCriteria.getSynonymTermGroup()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termGroup", source));
+      }
+    }
+    
+    //bool query to match synonym.termGroup
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.matchQuery("synonyms.termGroup", searchCriteria.getSynonymTermGroup()));
+        .must(inQuery);
     
     //nested query on properties
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);

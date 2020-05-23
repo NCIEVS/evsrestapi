@@ -684,7 +684,7 @@ public class SearchControllerTests {
 
     // Test synonymSource+SynonymTermGroup
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=dsDNA&synonymSource=NCI&synonymTermGroup=PT");
+        + "?terminology=ncit&term=dsDNA&synonymSource=NCI&synonymTermGroup=SY");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
         .param("synonymSource", "NCI").param("synonymTermGroup", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
@@ -714,6 +714,71 @@ public class SearchControllerTests {
 
   }
 
+  /**
+   * Test synonym termGroup.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSynonymTermGroup() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Test single SynonymTermGroup
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=dsDNA&synonymTermGroup=SY");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+        .param("synonymTermGroup", "SY").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    boolean found = false;
+    for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
+      if (syn.getName().contains("dsDNA") && syn.getTermGroup().equals("SY")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+    // Test multiple SynonymTermGroup
+    log.info("Testing url - " + url
+        + "?terminology=ncit&term=DNA&synonymTermGroup=SY,PT&");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "DNA")
+        .param("synonymTermGroup", "SY,PT").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    found = false;
+    boolean found1= false;
+    for(final Concept concept: list.getConcepts()) {
+      for (final Synonym syn : concept.getSynonyms()) {
+        if (syn.getName().contains("DNA")) {
+          if (!found) found = "SY".equals(syn.getTermGroup());
+          if (!found1) found1 = "PT".equals(syn.getTermGroup());
+          if (found && found1) break;
+        }
+      }      
+    }
+
+    log.info("found = {}, found1 = {}", found, found1);
+    assertThat(found && found1).isTrue();
+
+    log.info("Done Testing testSynonymTermGroup");
+
+  }
+  
   /**
    * Test definition source.
    *

@@ -15,10 +15,10 @@ import gov.nih.nci.evs.api.model.Concept;
  */
 public interface ElasticOperationsService {
   /** The index name in ES for concepts **/
-  public static final String CONCEPT_INDEX = "concept";
+  public static final String CONCEPT_INDEX = "concept-test";
   
   /** The type in ES for concepts **/
-  public static final String CONCEPT_TYPE = "concept";
+  public static final String CONCEPT_TYPE = "concept-test";
   
   /**
    * create index using the given index name

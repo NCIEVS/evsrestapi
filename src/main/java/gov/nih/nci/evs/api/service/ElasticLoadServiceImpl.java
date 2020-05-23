@@ -366,25 +366,25 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       printHelp(options);
       return;
     }
-    
-    ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
-    ElasticLoadServiceImpl loadService = app.getBean(ElasticLoadServiceImpl.class);//get the bean by type
-    ElasticLoadConfig config = buildConfig(cmd, loadService.CONCEPTS_OUT_DIR);
-    
-    if (StringUtils.isBlank(config.getTerminology())) {
-      logger.error("Terminology (-t or --terminology) is required! Try -h or --help to learn more about command line options available.");
-      return;
-    }
 
+    ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
+    
     try {
+      ElasticLoadServiceImpl loadService = app.getBean(ElasticLoadServiceImpl.class);//get the bean by type
+      ElasticLoadConfig config = buildConfig(cmd, loadService.CONCEPTS_OUT_DIR);
+      
+      if (StringUtils.isBlank(config.getTerminology())) {
+        logger.error("Terminology (-t or --terminology) is required! Try -h or --help to learn more about command line options available.");
+        return;
+      }
+
       Terminology term = TerminologyUtils.getTerminology(loadService.sparqlQueryManagerService, config.getTerminology());
-//      logger.info("Hello, world!");
       loadService.load(config, term);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
+    } finally {
+      SpringApplication.exit(app);
     }
-    
-    SpringApplication.exit(app);
   }
   
   /**
