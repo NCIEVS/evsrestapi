@@ -14,8 +14,6 @@ import gov.nih.nci.evs.api.model.Concept;
  *
  */
 public interface ElasticOperationsService {
-  /** The index name in ES for concepts **/
-  public static final String CONCEPT_INDEX = "concept";
   
   /** The type in ES for concepts **/
   public static final String CONCEPT_TYPE = "concept";

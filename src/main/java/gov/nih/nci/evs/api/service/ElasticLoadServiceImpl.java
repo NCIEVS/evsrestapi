@@ -90,9 +90,12 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    */
   public void load(ElasticLoadConfig config, Terminology terminology) throws IOException {
 
-    boolean result = operationsService.createIndex(ElasticOperationsService.CONCEPT_INDEX, config.isForceDeleteIndex());
+    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName(), 
+        ElasticOperationsService.CONCEPT_TYPE);
+    
+    boolean result = operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
-      operationsService.getElasticsearchOperations().putMapping(Concept.class);
+      operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE, Concept.class);
     }
     
     if (config.isRealTime()) {
@@ -126,7 +129,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     // load concepts to es in batches
     try {
       logger.info("Loading concepts from files");
-      loadConceptsFromFiles(config.getLocation());
+      loadConceptsFromFiles(config.getLocation(), terminology);
     } catch (InterruptedException e) {
       logger.error(e.getMessage(), e);
     }
@@ -183,10 +186,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    * load concepts from files in batches
    * 
    * @param location the location where files are to be read from
+   * @param terminology the terminology
    * @throws IOException the io exception
    * @throws InterruptedException the interruped exception
    */
-  private void loadConceptsFromFiles(String location) throws IOException, InterruptedException {
+  private void loadConceptsFromFiles(String location, Terminology terminology) throws IOException, InterruptedException {
     logger.debug("Loading concepts from files");
     File conceptsDir = new File(location);
     File lockFile = new File(location + LOCK_FILE);
@@ -237,7 +241,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         concepts.add(concept);
       }
 
-      executor.submit(new LoadTask(concepts, start, end, latch, taskSize.intValue()));
+      executor.submit(new LoadTask(concepts, start, end, terminology.getIndexName(), latch, taskSize.intValue()));
 
       start = end;
       end = end + INDEX_BATCH_SIZE;
@@ -284,12 +288,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         end = total.intValue();
 
       logger.debug("   processing {} to {}", start, end);
-
       List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
           .collect(Collectors.toList());
       List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology);
 
-      executor.submit(new LoadTask(concepts, start, end, latch, taskSize.intValue()));
+      executor.submit(new LoadTask(concepts, start, end, terminology.getIndexName(), latch, taskSize.intValue()));
 
       start = end;
       end = end + INDEX_BATCH_SIZE;
@@ -319,16 +322,20 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     /** end index for the task **/
     private int endIndex;
     
+    /** the index name **/
+    private String indexName;
+    
     /**  the count down latch **/
     private CountDownLatch latch;
     
     /** the task size **/
     private int taskSize;
 
-    public LoadTask(List<Concept> concepts, int start, int end, CountDownLatch latch, int taskSize) {
+    public LoadTask(List<Concept> concepts, int start, int end, String indexName, CountDownLatch latch, int taskSize) {
       this.concepts = concepts;
       this.startIndex = start;
       this.endIndex = end;
+      this.indexName = indexName;
       this.latch = latch;
       this.taskSize = taskSize;
     }
@@ -336,15 +343,14 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     @Override
     public Void call() {
       try {
-        operationsService.loadConcepts(concepts, ElasticOperationsService.CONCEPT_INDEX,
-            ElasticOperationsService.CONCEPT_TYPE);
+        operationsService.loadConcepts(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE);
+        int progress = (int)Math.floor((1.0 - 1.0*latch.getCount()/taskSize)*100);
+        taskLogger.info("   loaded concepts: {} to {} ({}% complete)", startIndex, endIndex, progress);
       } catch (IOException e) {
         taskLogger.error("   error loading concepts: {} to {}", startIndex, endIndex);
         taskLogger.error(e.getMessage(), e);
       } finally {
         latch.countDown();
-        int progress = (int)Math.floor((1.0 - 1.0*latch.getCount()/taskSize)*100);
-        taskLogger.info("   loaded concepts: {} to {} ({}% complete)", startIndex, endIndex, progress);
       }
 
       return null;

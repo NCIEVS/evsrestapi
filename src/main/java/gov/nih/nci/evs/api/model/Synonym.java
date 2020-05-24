@@ -41,6 +41,7 @@ public class Synonym extends BaseModel {
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
+  @Transient
   private List<Qualifier> qualifiers;
 
   /**

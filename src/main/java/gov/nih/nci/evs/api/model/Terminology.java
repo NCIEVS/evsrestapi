@@ -53,6 +53,9 @@ public class Terminology extends BaseModel {
   /** The tags. */
   private Map<String, String> tags;
 
+  /** The index name. */
+  private String indexName;
+  
   /**
    * Instantiates an empty {@link Terminology}.
    */
@@ -274,6 +277,27 @@ public class Terminology extends BaseModel {
     this.tags = tags;
   }
 
+  /**
+   * Returns the index name.
+   * 
+   * @return the index name
+   */
+  public String getIndexName() {
+    if (StringUtils.isEmpty(indexName)) {
+      indexName = "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+    }
+    return indexName;
+  }
+
+  /**
+   * Sets the index name.
+   * 
+   * @param indexName the index name
+   */
+  public void setIndexName(String indexName) {
+    this.indexName = indexName;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -290,6 +314,7 @@ public class Terminology extends BaseModel {
         + ((terminologyVersion == null) ? 0 : terminologyVersion.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
     result = prime * result + ((date == null) ? 0 : date.hashCode());
+    result = prime * result + ((indexName == null) ? 0 : indexName.hashCode());
     return result;
   }
 
@@ -366,6 +391,13 @@ public class Terminology extends BaseModel {
         return false;
       }
     } else if (!date.equals(other.date)) {
+      return false;
+    }
+    if (indexName == null) {
+      if (other.indexName != null) {
+        return false;
+      }
+    } else if (!indexName.equals(other.indexName)) {
       return false;
     }
     return true;

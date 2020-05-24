@@ -21,7 +21,8 @@ public interface ElasticSearchService {
    * @return the string
    * @throws IOException Signals that an I/O exception has occurred.
    * @throws HttpClientErrorException the http client error exception
+   * @throws Exception 
    */
   public ConceptResultList search(SearchCriteria searchCriteria)
-    throws IOException, HttpClientErrorException;
+    throws Exception;
 }

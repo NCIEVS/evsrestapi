@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,13 +23,13 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.HttpClientErrorException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 @Service
 public class ElasticSearchServiceImpl implements ElasticSearchService {
@@ -41,18 +41,23 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   @Autowired
   ElasticsearchOperations operations;
 
+  /** The sparql query manager service. */
+  @Autowired
+  SparqlQueryManagerService sparqlQueryManagerService;
+  
   /**
    * search for the given search criteria
    * 
    * @param searchCriteria the search criteria
    * @return the result list with concepts
+   * @throws Exception 
    */
   @Override
-  public ConceptResultList search(SearchCriteria searchCriteria) throws IOException, HttpClientErrorException {
+  public ConceptResultList search(SearchCriteria searchCriteria) throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     Pageable pageable = new EVSPageable(page, searchCriteria.getPageSize(), searchCriteria.getFromRecord());//PageRequest.of(page, searchCriteria.getPageSize());
     
-    logger.info("query string [{}]", searchCriteria.getTerm());
+    logger.debug("query string [{}]", searchCriteria.getTerm());
 
     //prepare query_string query builder
     QueryStringQueryBuilder queryStringQueryBuilder = 
@@ -98,7 +103,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     //build final search query
     NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder()
       .withQuery(boolQuery)
-      .withIndices(ElasticOperationsService.CONCEPT_INDEX)
+      .withIndices(buildIndicesArray(searchCriteria))
       .withTypes(ElasticOperationsService.CONCEPT_TYPE)
       .withPageable(pageable);
     
@@ -145,7 +150,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         break;
     }
 
-    logger.info("updated term - {}", result);
+    logger.debug("updated term: {}", result);
     
     return result;
   }
@@ -405,4 +410,27 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     //nested query on properties
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
   }
+  
+  /**
+   * build array of index names
+   * 
+   * @param searchCriteria the search criteria
+   * @return the array of index names
+   * @throws Exception the exception
+   */
+  private String[] buildIndicesArray(SearchCriteria searchCriteria) throws Exception {
+    List<String> terminologies = searchCriteria.getTerminology();
+
+    if (CollectionUtils.isEmpty(searchCriteria.getTerminology())) {
+      return new String[] {"_all"};
+    }
+    
+    String[] indices = new String[terminologies.size()];
+    for(int i=0; i<terminologies.size(); i++) {
+      indices[i] = TerminologyUtils.getTerminology(sparqlQueryManagerService, terminologies.get(i)).getIndexName();
+    }
+    logger.info("indices array: " + Arrays.asList(indices));
+    return indices;
+  }
+  
 }

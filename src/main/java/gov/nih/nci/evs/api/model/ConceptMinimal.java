@@ -32,6 +32,7 @@ public class ConceptMinimal extends BaseModel {
   private String terminology;
 
   /** The version. */
+  @Field(type = FieldType.Text)
   private String version;
 
   /**

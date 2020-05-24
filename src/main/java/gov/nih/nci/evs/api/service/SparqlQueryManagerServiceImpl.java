@@ -630,14 +630,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       concept.setDefinitions(EVSUtils.getDefinitions(axioms));
-//      concept.setChildren(subConceptMap.get(conceptCode));
-//      concept.setParents(superConceptMap.get(conceptCode));
-//      concept.setAssociations(associationMap.get(conceptCode));
-//      concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
-//      concept.setRoles(roleMap.get(conceptCode));
-//      concept.setInverseRoles(inverseRoleMap.get(conceptCode));
-//      concept.setMaps(EVSUtils.getMapsTo(axioms));
-//      concept.setDisjointWith(disjointWithMap.get(conceptCode));
     }
     
     return concepts;
