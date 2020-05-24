@@ -750,9 +750,9 @@ public class SearchControllerTests {
 
     // Test multiple SynonymTermGroup
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=DNA&synonymTermGroup=SY,PT&");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "DNA")
-        .param("synonymTermGroup", "SY,PT").param("include", "synonyms"))
+        + "?terminology=ncit&term=dsDNA&synonymTermGroup=DN,SY&");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+        .param("synonymTermGroup", "DN,SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);

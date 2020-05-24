@@ -429,7 +429,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     for(int i=0; i<terminologies.size(); i++) {
       indices[i] = TerminologyUtils.getTerminology(sparqlQueryManagerService, terminologies.get(i)).getIndexName();
     }
-    logger.info("indices array: " + Arrays.asList(indices));
+    logger.debug("indices array: " + Arrays.asList(indices));
     return indices;
   }
   
