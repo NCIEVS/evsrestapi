@@ -45,6 +45,7 @@ import java.util.Properties;
  * @version v0.2, 2010/07/22 (July) -- bug fix
  * @version v0.1, 2003/12/04 (December) -- first release
  * @author  Laszlo Szathmary (<a href="jabba.laci@gmail.com">jabba.laci@gmail.com</a>)
+ * modified by KLO
  */
 public class GraphViz
 {
@@ -59,26 +60,16 @@ public class GraphViz
 		return workingDir + "/" + "config.properties";
 	}
 
-
-    public static String toAbsoluteURI(String filename) {
-		String workingDir = System.getProperty("user.dir");
-		String uri = "file:///" + workingDir + "/" + filename;
-		uri = replace(uri);
-		return uri;
-	}
-
-    public static String replace(String t) {
-		StringBuffer buf = new StringBuffer();
-		for (int i=0; i<t.length(); i++) {
-			char c = t.charAt(i);
-			if (c == '\\') {
-				c = '/';
-			}
-			buf.append(c);
-		}
-		return buf.toString();
-	}
-
+/*
+Sample config.properties:
+##############################################################
+#                   Windows Configurations                   #
+##############################################################
+# The dir. where temporary files will be created.
+tempDirForWindows = c:/temp
+# Where is your dot program located? It will be called externally.
+dotForWindows="C:/graphviz-2.38/bin/dot.exe"
+*/
 
     /**
      * Detects the client's operating system.
@@ -88,7 +79,7 @@ public class GraphViz
     /**
      * Load the config.properties file.
      */
-    private final static String cfgProp = getConfigurationFile();//"D:/utility/Visualization/graphviz-java-api/TEST/config.properties";
+    private final static String cfgProp = getConfigurationFile();
 
 
     private final static Properties configFile = new Properties() {
@@ -158,12 +149,8 @@ public class GraphViz
      * a graph.
      */
     public GraphViz() {
-		System.out.println("************** DOT: " + DOT);
-
 		String os = System.getProperty("os.name");
 		System.out.println(os);
-
-
     }
 
     /**

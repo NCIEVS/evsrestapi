@@ -14,12 +14,61 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 
-
 public class GraphGenerator {
-
-	static Vector COLORS = null;
+	static Vector COLORS = new Vector();
 	static {
-		COLORS = Utils.readFile("colors.txt");
+		COLORS.add("black");
+		COLORS.add("blue");
+		COLORS.add("blueviolet");
+		COLORS.add("brown");
+		COLORS.add("brown4");
+		COLORS.add("burlywood");
+		COLORS.add("cadetblue4");
+		COLORS.add("chocolate4");
+		COLORS.add("coral3");
+		COLORS.add("cyan4");
+		COLORS.add("crimson");
+		COLORS.add("darkgreen");
+		COLORS.add("darkolivegreen");
+		COLORS.add("darkgoldenrod");
+		COLORS.add("darkorchid");
+		COLORS.add("darklategray");
+		COLORS.add("darkviolet");
+		COLORS.add("deeppink3");
+		COLORS.add("firebrick2");
+		COLORS.add("forestgreen");
+		COLORS.add("gold");
+		COLORS.add("grey6");
+		COLORS.add("green3");
+		COLORS.add("green4");
+		COLORS.add("lawngreen");
+		COLORS.add("lightblue");
+		COLORS.add("lightslateblue");
+		COLORS.add("limegreen");
+		COLORS.add("maroon");
+		COLORS.add("magenta");
+		COLORS.add("maroon");
+		COLORS.add("midnightblue");
+		COLORS.add("navyblue");
+		COLORS.add("orange");
+		COLORS.add("orangered");
+		COLORS.add("orangered4");
+		COLORS.add("orchid");
+		COLORS.add("palevioletred");
+		COLORS.add("pink");
+		COLORS.add("purple");
+		COLORS.add("red");
+		COLORS.add("saddlebrown");
+		COLORS.add("sienna");
+		COLORS.add("slateblue");
+		COLORS.add("snow");
+		COLORS.add("springgreen");
+		COLORS.add("tan");
+		COLORS.add("turquoise3");
+		COLORS.add("tomato");
+		COLORS.add("violet");
+		COLORS.add("theat");
+		COLORS.add("yellowgreen");
 	}
 
     public GraphGenerator() {
