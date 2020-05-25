@@ -345,36 +345,15 @@ public class GraphGenerator {
 	public static void main(String[] args) throws Exception {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
-
-		System.out.println("serviceUrl: " + serviceUrl);
-		System.out.println("named_graph: " + named_graph);
-
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-        //String queryfile = args[2];
         owlSPARQLUtils.set_named_graph(named_graph);
-
-		String format = args[2];
-		String subgraphfile = null;
-		if (args.length > 3) {
-			subgraphfile = args[3];
-		}
-
-		System.out.println(serviceUrl);
-		System.out.println(named_graph);
-		System.out.println(format);
-		System.out.println(subgraphfile);
-
         Vector v = owlSPARQLUtils.getDomainAndRangeData(named_graph);
-        Utils.saveToFile("domain_range.txt", v);
-
-		Vector nodes = getNodes(v);
-		Vector edges = getEdges(v);
-		Vector selected_nodes = Utils.readFile(subgraphfile);
-
-		String datafile = "graphvizDataFile.txt";
-
-		run(nodes, edges, selected_nodes, datafile, format, (float) 1.0, (float) 1.5);
-
+        Vector data_vec = DelimitedDataExtractor.extract(v, "2|0|4", '|');
+        float ranksep = (float) 1.0;
+        float nodesep = (float) 1.5;
+		String format = args[2];
+		String filename = args[3];
+	    GraphData gd = GraphGenerator.createGraphData(data_vec, ranksep, nodesep, format, filename);
+	    GraphGenerator.run(gd);
 	}
-
 }
