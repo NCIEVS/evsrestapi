@@ -33,6 +33,7 @@ public class GraphViz
 	}
 
     private final static String osName = "Windows";//System.getProperty("os.name").replaceAll("\\s","");
+    //private final static String osName = System.getProperty("os.name").replaceAll("\\s","");
 
     private final static String cfgProp = getConfigurationFile();
 
@@ -105,7 +106,27 @@ public class GraphViz
         byte[] img_stream = null;
 
         try {
+			System.out.println("writeDotSourceToFile..." + dot_source);
             dot = writeDotSourceToFile(dot_source);
+            if (dot != null)
+            {
+                img_stream = get_img_stream(dot, type);
+                if (dot.delete() == false)
+                    System.err.println("Warning: " + dot.getAbsolutePath() + " could not be deleted!");
+                return img_stream;
+            }
+            return null;
+        } catch (java.io.IOException ioe) { return null; }
+    }
+
+
+    public byte[] getGraph(String dot_source, String type, String dotsourcefile) {
+        File dot;
+        byte[] img_stream = null;
+
+        try {
+			System.out.println("writeDotSourceToFile..." + dot_source);
+            dot = writeDotSourceToFile(dot_source, dotsourcefile);
             if (dot != null)
             {
                 img_stream = get_img_stream(dot, type);
@@ -163,11 +184,33 @@ public class GraphViz
         return img_stream;
     }
 
+    private File writeDotSourceToFile(String str, String dotfilename) throws java.io.IOException
+    {
+        File temp;
+        try {
+            temp = File.createTempFile("dorrr",".dot", new File(GraphViz.TEMP_DIR));
+            System.out.println(temp.getName());
+            FileWriter fout = new FileWriter(temp);
+            fout.write(str);
+                       BufferedWriter br=new BufferedWriter(new FileWriter(dotfilename));
+                       br.write(str);
+                       br.flush();
+                       br.close();
+            fout.close();
+        }
+        catch (Exception e) {
+            System.err.println("Error: I/O error while writing the dot source to temp file!");
+            return null;
+        }
+        return temp;
+    }
+
     private File writeDotSourceToFile(String str) throws java.io.IOException
     {
         File temp;
         try {
             temp = File.createTempFile("dorrr",".dot", new File(GraphViz.TEMP_DIR));
+            System.out.println(temp.getName());
             FileWriter fout = new FileWriter(temp);
             fout.write(str);
                        BufferedWriter br=new BufferedWriter(new FileWriter("dotsource.dot"));

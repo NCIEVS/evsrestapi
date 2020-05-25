@@ -94,7 +94,20 @@ public class GraphGenerator {
 	    gv.decreaseDpi();
 	    String fName = fileName+"."+ type;
 	    File out = new File(fName);
-	    gv.writeGraphToFile( gv.getGraph( gv.getDotSource(), type ), out );
+	    gv.writeGraphToFile( gv.getGraph( gv.getDotSource(), type), out);
+	}
+
+	public static void createDotGraph(String dotFormat, String fileName, String type, String dotfilename)
+	{
+	    GraphViz gv=new GraphViz();
+	    gv.addln(gv.start_graph());
+	    gv.add(dotFormat);
+	    gv.addln(gv.end_graph());
+	    gv.decreaseDpi();
+	    gv.decreaseDpi();
+	    String fName = fileName+"."+ type;
+	    File out = new File(fName);
+	    gv.writeGraphToFile( gv.getGraph( gv.getDotSource(), type, dotfilename), out);
 	}
 
 	public static String toString(Vector v) {
@@ -335,6 +348,8 @@ public class GraphGenerator {
 	public static void main(String[] args) throws Exception {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
+		System.out.println("serviceUrl: " + serviceUrl);
+		System.out.println("named_graph: " + named_graph);
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         owlSPARQLUtils.set_named_graph(named_graph);
         Vector v = owlSPARQLUtils.getDomainAndRangeData(named_graph);
@@ -346,4 +361,6 @@ public class GraphGenerator {
 	    GraphData gd = GraphGenerator.createGraphData(data_vec, ranksep, nodesep, format, filename);
 	    GraphGenerator.run(gd);
 	}
+
 }
+//https://stackoverflow.com/questions/19280229/graphviz-putting-a-caption-on-a-node-in-addition-to-a-label
