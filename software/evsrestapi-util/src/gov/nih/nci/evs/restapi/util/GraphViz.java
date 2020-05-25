@@ -105,7 +105,6 @@ public class GraphViz
         byte[] img_stream = null;
 
         try {
-			System.out.println("writeDotSourceToFile..." + dot_source);
             dot = writeDotSourceToFile(dot_source);
             if (dot != null)
             {
@@ -169,7 +168,6 @@ public class GraphViz
         File temp;
         try {
             temp = File.createTempFile("dorrr",".dot", new File(GraphViz.TEMP_DIR));
-            System.out.println(temp.getName());
             FileWriter fout = new FileWriter(temp);
             fout.write(str);
                        BufferedWriter br=new BufferedWriter(new FileWriter("dotsource.dot"));

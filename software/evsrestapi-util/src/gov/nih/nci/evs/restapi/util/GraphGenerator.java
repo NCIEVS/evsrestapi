@@ -93,7 +93,6 @@ public class GraphGenerator {
 	    gv.decreaseDpi();
 	    gv.decreaseDpi();
 	    String fName = fileName+"."+ type;
-	    System.out.println("fName: " + fName);
 	    File out = new File(fName);
 	    gv.writeGraphToFile( gv.getGraph( gv.getDotSource(), type ), out );
 	}
@@ -226,17 +225,9 @@ public class GraphGenerator {
 				pw.println(domain_id + " -> " + range_id
 				   + " [label=" + "\"" + role + "\"" + " fontcolor=" + color + ", color=" + color + "];");
 			} else {
-
-				System.out.println("domain_label: " + domain_label + "  range_label: " + range_label);
-
 				if (selected_nodes.contains(domain_label) && selected_nodes.contains(range_label)) {
 					pw.println(domain_id + " -> " + range_id
 					   + " [label=" + "\"" + role + "\"" + " fontcolor=" + color + ", color=" + color + "];");
-
-					System.out.println("***************** selected.");
-
-				} else {
-					System.out.println("not selected.");
 				}
 			}
 		}
@@ -337,7 +328,6 @@ public class GraphGenerator {
         if (n != -1) {
         	outputfile = outputfile.substring(0, n);
 		}
-		System.out.println(dotFormat);
 		createDotGraph(dotFormat, outputfile, format);
 	}
 
