@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.test.*;
 
 import java.io.*;
@@ -15,6 +16,9 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 
 public class GraphGenerator {
+	static float default_ranksep = (float) 1.0;
+	static float default_nodesep = (float) 1.5;
+
 	static Vector COLORS = new Vector();
 	static {
 		COLORS.add("black");
@@ -249,8 +253,6 @@ public class GraphGenerator {
          PrintWriter pw = null;
          try {
  			pw = new PrintWriter(outputfile, "UTF-8");
-//ranksep = 1;
-//nodesep=1.5;
 			pw.println("ranksep = \"" + ranksep + "\";");
 			pw.println("nodesep = \"" + nodesep + "\";");
 			pw.println("ratio=fill;");
@@ -262,8 +264,6 @@ public class GraphGenerator {
 			pw.println("node [style=filled,color=lightblue,shape=box];");
 			pw.println("style=filled;");
 			pw.println("color=lightgrey;");
-			pw.println("nodesep=1.0;");
-
             generateGraph(pw, nodes, edges, selected_nodes);
 
  		} catch (Exception ex) {
@@ -278,6 +278,58 @@ public class GraphGenerator {
 		}
 	}
 
+
+
+	public static GraphData createGraphData(String inputfile, String format) { //source|edge label|target
+	    Vector data_vec = Utils.readFile(inputfile);
+	    float ranksep = default_ranksep;
+	    float nodesep = default_nodesep;
+	    String filename = "graph_" + inputfile;
+	    return createGraphData(data_vec, ranksep, nodesep, format, filename);
+	}
+
+	public static GraphData createGraphData(Vector data_vec, float ranksep, float nodesep, String format, String filename) { //source|edge label|target
+		GraphData gd = new GraphData();
+        Vector nodes = new Vector();
+        Vector edges = new Vector();
+        for (int i=0; i<data_vec.size(); i++) {
+			String t = (String) data_vec.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String source = (String) u.elementAt(0);
+			String edge = (String) u.elementAt(1);
+			String target = (String) u.elementAt(2);
+			if (!nodes.contains(source)) {
+				nodes.add(source);
+			}
+			if (!nodes.contains(target)) {
+				nodes.add(target);
+			}
+			String link = edge + "|" + source + "|" + target;
+			if (!edges.contains(link)) {
+				edges.add(link);
+			}
+		}
+		Vector selectedNodes = nodes;
+	    return new GraphData(
+			nodes,
+			edges,
+			selectedNodes,
+			format,
+			ranksep,
+			nodesep,
+			filename);
+	}
+
+    public static void run(GraphData gd) {
+		run(gd.getNodes(),
+			gd.getEdges(),
+			gd.getSelectedNodes(),
+			gd.getFilename(),
+			gd.getFormat(),
+			gd.getRanksep(),
+			gd.getNodesep());
+	}
+
     public static void run(Vector nodes, Vector edges, Vector selected_nodes, String outputfile, String format, float ranksep, float nodesep) {
 		generateGraphvizDataFile(nodes, edges, selected_nodes, outputfile, ranksep, nodesep);
 		String dotFormat = toString(Utils.readFile(outputfile));
@@ -288,7 +340,6 @@ public class GraphGenerator {
 		System.out.println(dotFormat);
 		createDotGraph(dotFormat, outputfile, format);
 	}
-
 
 //gif, svg, png
 	public static void main(String[] args) throws Exception {
