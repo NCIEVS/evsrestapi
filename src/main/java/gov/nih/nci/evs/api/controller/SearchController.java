@@ -246,6 +246,11 @@ public class SearchController {
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
     }
 
+    if (!searchCriteria.checkPagination()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "FromRecord should be the first record of a page!");
+    }
+    
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
     searchCriteria.setTerm(queryTerm);
     log.debug("  Search = " + searchCriteria);

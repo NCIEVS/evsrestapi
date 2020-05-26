@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.service;
 
 import java.util.Map;
@@ -19,7 +18,6 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
  * Reference implementation of {@link QueryBuilderService}. Includes hibernate
  * tags for MEME database.
  *
- * @author Arun
  */
 @Service
 @PropertySource("classpath:sparql-queries.properties")
@@ -42,6 +40,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @param source the source
    * @return the string
    */
+  @Override
   public String contructPrefix(String source) {
     String prefix = env.getProperty("prefix.common");
 
@@ -62,6 +61,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @param namedGraph the named graph
    * @return the string
    */
+  @Override
   public String constructQuery(String queryProp, String namedGraph) {
     Map<String, String> values = ConceptUtils.asMap("namedGraph", namedGraph);
     String query = getResolvedProperty(queryProp, values);
@@ -77,6 +77,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @param namedGraph the named graph
    * @return the string
    */
+  @Override
   public String constructQuery(String queryProp, String conceptCode, String namedGraph) {
     Map<String, String> values =
         ConceptUtils.asMap("conceptCode", conceptCode, "namedGraph", namedGraph);
@@ -86,12 +87,30 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   }
 
   /**
+   * Construct batch query.
+   *
+   * @param queryProp the query prop
+   * @param namedGraph the named graph
+   * @param inClause the in clause
+   * @return the string
+   */  
+  @Override
+  public String constructBatchQuery(String queryProp, String namedGraph, String inClause) {
+    Map<String, String> values =
+        ConceptUtils.asMap("namedGraph", namedGraph, "inClause", inClause);
+    String query = getResolvedProperty(queryProp, values);
+    log.debug("construct " + queryProp + " - " + query);
+    return query;
+  }
+  
+  /**
    * Construct query.
    *
    * @param queryProp the query prop
    * @param values the values
    * @return the string
    */
+  @Override
   public String constructQuery(String queryProp, Map<String, String> values) {
     String query = getResolvedProperty(queryProp, values);
     log.debug("construct " + queryProp + " - " + query);

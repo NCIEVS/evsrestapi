@@ -5,6 +5,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
+
 /**
  * Represents a concept with a code from a terminology.
  * 
@@ -32,51 +39,67 @@ import java.util.List;
  * }
  * </pre>
  */
+@Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
 public class Concept extends ConceptMinimal {
 
   /** The highlight. */
+  @Transient
   private String highlight;
 
   /** The highlights. */
+  @Transient
   private java.util.Map<String, String> highlights;
 
   /** The level. */
+  @Transient
   private Integer level;
 
   /** The leaf. */
+  @Transient
   private Boolean leaf;
 
   /** The synonyms. */
+  @Field(type = FieldType.Nested)
   private List<Synonym> synonyms;
 
   /** The definitions. */
+  @Field(type = FieldType.Nested)
   private List<Definition> definitions;
 
   /** The properties. */
+  @Field(type = FieldType.Nested)
   private List<Property> properties;
 
   /** The children. */
+  @Transient
   private List<Concept> children;
 
   /** The parents. */
+  @Transient
   private List<Concept> parents;
 
   /** The associations. */
+  @Transient
   private List<Association> associations;
 
   /** The inverse associations. */
+  @Transient
   private List<Association> inverseAssociations;
 
   /** The roles. */
+  @Transient
   private List<Role> roles;
 
   /** The disjoint with. */
+  @Transient
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
+  @Transient
   private List<Role> inverseRoles;
 
   /** The maps. */
+  @Transient
   private List<Map> maps;
 
   /**

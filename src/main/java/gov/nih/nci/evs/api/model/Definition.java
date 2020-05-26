@@ -4,24 +4,33 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 /**
  * Represents a synonym of a concept.
  */
 public class Definition extends BaseModel {
 
   /** The definition. */
+  @Field(type = FieldType.Text)
   private String definition;
 
   /** The highlight. */
+  @Transient
   private String highlight;
 
   /** The type. */
+  @Field(type = FieldType.Text)
   private String type;
 
   /** The source. */
+  @Field(type = FieldType.Text)
   private String source;
 
   /** The qualifiers. */
+  @Transient
   private List<Qualifier> qualifiers;
 
   /**

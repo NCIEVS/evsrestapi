@@ -15,22 +15,14 @@ import gov.nih.nci.evs.api.model.SearchCriteria;
 public interface ElasticSearchService {
 
   /**
-   * Inits the settings.
-   *
-   * @throws IOException Signals that an I/O exception has occurred.
-   * @throws HttpClientErrorException the http client error exception
-   */
-  public void initSettings() throws IOException, HttpClientErrorException;
-
-  /**
    * Search.
    *
    * @param searchCriteria the search criteria
    * @return the string
    * @throws IOException Signals that an I/O exception has occurred.
    * @throws HttpClientErrorException the http client error exception
+   * @throws Exception 
    */
   public ConceptResultList search(SearchCriteria searchCriteria)
-    throws IOException, HttpClientErrorException;
-
+    throws Exception;
 }

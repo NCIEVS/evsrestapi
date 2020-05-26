@@ -1,6 +1,10 @@
 
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 /**
  * Represents a concept with a code from a terminology with the smallest amount
  * of information.
@@ -15,15 +19,20 @@ package gov.nih.nci.evs.api.model;
 public class ConceptMinimal extends BaseModel {
 
   /** The code. */
+  @Id
+  @Field(type = FieldType.Text)
   private String code;
 
   /** The name. */
+  @Field(type = FieldType.Text)
   private String name;
 
   /** The terminology. */
+  @Field(type = FieldType.Text)
   private String terminology;
 
   /** The version. */
+  @Field(type = FieldType.Text)
   private String version;
 
   /**

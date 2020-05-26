@@ -88,6 +88,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The elastic search service. */
   @Autowired
+  @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl")
   ElasticSearchService elasticSearchService;
 
   /** The rest utils. */
@@ -106,9 +107,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public void postInit() throws Exception {
     restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
         stardogProperties.getReadTimeout(), stardogProperties.getConnectTimeout());
-
-    log.info("  configure elasticsearch");
-    elasticSearchService.initSettings();
 
     // NOTE: see TerminologyCacheLoader for other caching.
 
@@ -439,7 +437,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Property> properties =
         conceptType.equals("concept") ? getConceptProperties(conceptCode, terminology)
             : getMetadataProperties(conceptCode, terminology);
-
+    
     // minimal, always do these
     concept.setCode(EVSUtils.getProperty("code", properties));
     // TODO: CONFIG
@@ -462,7 +460,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // If loading a qualifier, don't look for additional qualifiers
       final List<Axiom> axioms =
-          getAxioms(conceptCode, terminology, !conceptType.equals("qualifier"));
+          getAxioms(concept.getCode(), terminology, !conceptType.equals("qualifier"));
 
       if (ip.isSynonyms()) {
         // Set the preferred name if including synonyms
@@ -549,11 +547,104 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setDisjointWith(getDisjointWith(conceptCode, terminology));
       }
     }
-
+    
     return concept;
   }
 
-  /* see superclass */
+  @Override
+  public List<Concept> getConcepts(List<String> conceptCodes, Terminology terminology) throws IOException {
+    if (CollectionUtils.isEmpty(conceptCodes)) return Collections.<Concept>emptyList();
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query = queryBuilderService.constructBatchQuery("concepts.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+
+    List<Concept> concepts = new ArrayList<>();
+    for(Bindings b: bindings) {
+      if (b.getConceptCode() == null) continue; 
+      Concept c = new Concept();
+      c.setCode(b.getConceptCode().getValue());
+      c.setTerminology(terminology.getTerminology());
+      c.setName(b.getConceptLabel().getValue());
+      concepts.add(c);
+    }
+
+    Map<String, List<Property>> propertyMap = getProperties(conceptCodes, terminology);
+    Map<String, List<Axiom>> axiomMap = getAxioms(conceptCodes, terminology, true);
+    
+    for(Concept concept: concepts) {
+      String conceptCode = concept.getCode();
+      List<Property> properties = propertyMap.get(conceptCode);
+      
+      // minimal, always do these
+      concept.setCode(EVSUtils.getProperty("code", properties));
+      // TODO: CONFIG
+      final String pn = EVSUtils.getProperty("Preferred_Name", properties);
+      final String conceptLabel = getConceptLabel(conceptCode, terminology);
+      concept.setName(conceptLabel);
+
+      // If loading a qualifier, don't look for additional qualifiers
+      final List<Axiom> axioms = axiomMap.get(conceptCode);
+
+      // Set the preferred name if including synonyms
+      final Synonym pnSynonym = new Synonym();
+      // TODO: CONFIG
+      
+      //adding preferred name synonym
+      pnSynonym.setType("Preferred_Name");
+      pnSynonym.setName(pn);
+      concept.getSynonyms().add(pnSynonym);
+
+      //adding all synonyms
+      concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
+
+      // Properties ending in "Name" are rendered as synonyms here.
+      final Set<String> commonProperties = EVSUtils.getCommonPropertyNames(terminology);
+      for (Property property : properties) {
+        final String type = property.getType();
+        if (commonProperties.contains(type)) {
+          continue;
+        }
+
+        if (type.endsWith("_Name")) {
+          // add synonym
+          final Synonym synonym = new Synonym();
+          synonym.setType(type);
+          synonym.setName(pn);
+          concept.getSynonyms().add(synonym);
+        }
+
+        if (!type.endsWith("_Name")) {
+          // Add any qualifiers to the property
+          property.getQualifiers()
+              .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
+          // add property
+          concept.getProperties().add(property);
+        }
+      }
+
+      concept.setDefinitions(EVSUtils.getDefinitions(axioms));
+    }
+    
+    return concepts;
+  }
+  
+  /**
+   * Returns the properties.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the properties
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Property> getConceptProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -597,7 +688,74 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return properties;
   }
 
-  /* see superclass */
+  /**
+   * Returns the properties grouped by concept
+   *
+   * @param conceptCodes the concept codes
+   * @param terminology the terminology
+   * @return the properties
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  private Map<String, List<Property>> getProperties(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query =
+        queryBuilderService.constructBatchQuery("properties.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Property>> resultMap = new HashMap<>();
+
+    /*
+     * Because the original SPARQL query that filtered out the Annotations was
+     * too slow, we will be filtering them out in the post processing.
+     */
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<Property>());
+      }
+      
+      if (b.getPropertyCode() == null) {
+        Property property = new Property();
+        if (b.getPropertyCode() != null) {
+          property.setCode(b.getPropertyCode().getValue());
+        }
+        property.setType(b.getPropertyLabel().getValue());
+        property.setValue(b.getPropertyValue().getValue());
+        resultMap.get(conceptCode).add(property);
+      } else {
+        if (!b.getPropertyCode().getValue().startsWith("A")) {
+          Property property = new Property();
+          if (b.getPropertyCode() != null) {
+            property.setCode(b.getPropertyCode().getValue());
+          }
+          property.setType(b.getPropertyLabel().getValue());
+          property.setValue(b.getPropertyValue().getValue());
+          resultMap.get(conceptCode).add(property);
+        }
+      }
+    }
+
+    return resultMap;
+  }
+  
+  /**
+   * Returns the properties no restrictions.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the properties no restrictions
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Property> getMetadataProperties(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -660,7 +818,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return subclasses;
   }
 
-  /* see superclass */
+  /**
+   * Returns the superconcepts.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the superconcepts
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Concept> getSuperconcepts(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -685,7 +852,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return superclasses;
   }
 
-  /* see superclass */
+  /**
+   * Returns the associations.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the associations
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Association> getAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -711,7 +887,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  /* see superclass */
+  /**
+   * Returns the inverse associations.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the inverse associations
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Association> getInverseAssociations(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -737,7 +922,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
-  /* see superclass */
+  /**
+   * Returns the inverse roles.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the inverse roles
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Role> getInverseRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -763,7 +957,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  /* see superclass */
+  /**
+   * Returns the roles.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the roles
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Role> getRoles(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -789,7 +992,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
-  /* see superclass */
+  /**
+   * Returns the disjoint with.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @return the disjoint with
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<DisjointWith> getDisjointWith(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
@@ -815,7 +1027,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return disjointWithList;
   }
 
-  /* see superclass */
+  /**
+   * Returns the axioms.
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param qualifierFlag the qualifier flag
+   * @return the axioms
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @Override
   public List<Axiom> getAxioms(String conceptCode, Terminology terminology, boolean qualifierFlag)
     throws JsonMappingException, JsonParseException, IOException {
@@ -850,69 +1072,141 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       sw = true;
       oldAxiom = axiom;
 
-      // TODO: CONFIG
-      switch (property) {
-        case "annotatedSource":
-          axiomObject.setAnnotatedSource(value);
-          break;
-        case "annotatedTarget":
-          axiomObject.setAnnotatedTarget(value);
-          break;
-        case "annotatedProperty":
-          axiomObject.setAnnotatedProperty(value);
-          break;
-        case "type":
-          axiomObject.setType(value);
-          break;
-        case "P393":
-          axiomObject.setRelationshipToTarget(value);
-          break;
-        case "P395":
-          axiomObject.setTargetCode(value);
-          break;
-        case "P394":
-          axiomObject.setTargetTermType(value);
-          break;
-        case "P396":
-          axiomObject.setTargetTerminology(value);
-          break;
-        case "P397":
-          axiomObject.setTargetTerminologyVersion(value);
-          break;
-        case "P378":
-          axiomObject.setDefSource(value);
-          break;
-        case "P385":
-          axiomObject.setSourceCode(value);
-          break;
-        case "P386":
-          axiomObject.setSubsourceName(value);
-          break;
-        case "P383":
-          axiomObject.setTermGroup(value);
-          break;
-        case "P384":
-          axiomObject.setTermSource(value);
-          break;
-        case "term-source":
-          axiomObject.setTermSource(value);
-          break;
-        case "term-group":
-          axiomObject.setTermGroup(value);
-          break;
-        default:
-          if (qualifierFlag) {
-            final String name = EVSUtils.getQualifierName(
-                self.getAllQualifiers(terminology, new IncludeParam("minimal")), property);
-            axiomObject.getQualifiers().add(new Qualifier(name, value));
-          }
-          break;
-
-      }
-
+      //TODO: call new function
+      setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
     }
     axioms.add(axiomObject);
     return axioms;
+  }
+
+  /**
+   * Returns the axioms grouped by concept
+   *
+   * @param conceptCodes the list of concept codes
+   * @param terminology the terminology
+   * @param qualifierFlag the qualifier flag
+   * @return the axioms
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */  
+  private Map<String, List<Axiom>> getAxioms(List<String> conceptCodes, Terminology terminology, boolean qualifierFlag)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query = queryBuilderService.constructBatchQuery("axioms.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Axiom>> resultMap = new HashMap<>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    if (bindings.length == 0) {
+      return Collections.<String, List<Axiom>>emptyMap();
+    }
+    Axiom axiomObject = new Axiom();
+    Boolean sw = false;
+    String oldAxiom = "";
+    String conceptCode = "";
+    for (Bindings b : bindings) {
+      conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<Axiom>());
+      }
+      
+      String axiom = b.getAxiom().getValue();
+      String property = b.getAxiomProperty().getValue().split("#")[1];
+      String value = b.getAxiomValue().getValue();
+      if (value.contains("#")) {
+        value = value.split("#")[1];
+      }
+
+      if (sw && !axiom.equals(oldAxiom)) {
+        resultMap.get(conceptCode).add(axiomObject);
+        axiomObject = new Axiom();
+      }
+      sw = true;
+      oldAxiom = axiom;
+
+      setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
+    }
+    resultMap.get(conceptCode).add(axiomObject);
+    return resultMap;
+  }
+  
+  /**
+   * sets axiom property
+   * 
+   * @param property the property
+   * @param value the value
+   * @param qualifierFlag the qualifier flag
+   * @param axiomObject the axiom object
+   * @param terminology the terminology
+   * @throws IOException
+   */
+  private void setAxiomProperty(String property, String value, boolean qualifierFlag, 
+      Axiom axiomObject, Terminology terminology) throws IOException {
+    // TODO: CONFIG
+    switch (property) {
+      case "annotatedSource":
+        axiomObject.setAnnotatedSource(value);
+        break;
+      case "annotatedTarget":
+        axiomObject.setAnnotatedTarget(value);
+        break;
+      case "annotatedProperty":
+        axiomObject.setAnnotatedProperty(value);
+        break;
+      case "type":
+        axiomObject.setType(value);
+        break;
+      case "P393":
+        axiomObject.setRelationshipToTarget(value);
+        break;
+      case "P395":
+        axiomObject.setTargetCode(value);
+        break;
+      case "P394":
+        axiomObject.setTargetTermType(value);
+        break;
+      case "P396":
+        axiomObject.setTargetTerminology(value);
+        break;
+      case "P397":
+        axiomObject.setTargetTerminologyVersion(value);
+        break;
+      case "P378":
+        axiomObject.setDefSource(value);
+        break;
+      case "P385":
+        axiomObject.setSourceCode(value);
+        break;
+      case "P386":
+        axiomObject.setSubsourceName(value);
+        break;
+      case "P383":
+        axiomObject.setTermGroup(value);
+        break;
+      case "P384":
+        axiomObject.setTermSource(value);
+        break;
+      case "term-source":
+        axiomObject.setTermSource(value);
+        break;
+      case "term-group":
+        axiomObject.setTermGroup(value);
+        break;
+      default:
+        if (qualifierFlag) {
+          final String name = EVSUtils.getQualifierName(
+              self.getAllQualifiers(terminology, new IncludeParam("minimal")), property);
+          axiomObject.getQualifiers().add(new Qualifier(name, value));
+        }
+        break;
+    }
   }
 
   /* see superclass */
@@ -1454,4 +1748,53 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     return sources;
   }
+
+  /**
+   * gets all concepts (minimal)
+   * 
+   * @param terminology the terminology
+   * @return list of concept objects
+   */
+  @Override
+  public List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    log.debug("query prefix = {}", queryPrefix);
+    String query = queryBuilderService.constructQuery("all.concepts", terminology.getGraph());
+    log.debug("query = {}", query);
+    log.debug("query url = {}", getQueryURL());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+
+    List<Concept> concepts = new ArrayList<>();
+    for(Bindings b: bindings) {
+      if (b.getConceptCode() == null) continue; 
+      Concept c = new Concept();
+      c.setCode(b.getConceptCode().getValue());
+      c.setTerminology(terminology.getTerminology());
+      c.setName(b.getConceptLabel().getValue());
+      concepts.add(c);
+    }
+    
+    return concepts;
+  }
+
+  /**
+   * prepares "in" clause to be used sparql queries for given values
+   * 
+   * @param values
+   * @return
+   */
+  private String getInClause(List<String> values) {
+    return new StringBuilder()
+      .append("'")
+      .append(String.join("', '", values))
+      .append("'")
+      .toString();
+  }
+  
 }

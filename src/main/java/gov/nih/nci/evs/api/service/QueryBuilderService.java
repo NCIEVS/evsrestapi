@@ -29,6 +29,16 @@ public interface QueryBuilderService {
   public String constructQuery(String queryProp, String conceptCode, String namedGraph);
 
   /**
+   * Construct batch query.
+   *
+   * @param queryProp the query prop
+   * @param namedGraph the named graph
+   * @param inClause the in clause
+   * @return the string
+   */  
+  public String constructBatchQuery(String queryProp, String namedGraph, String inClause);
+  
+  /**
    * Construct query.
    *
    * @param queryProp the query prop

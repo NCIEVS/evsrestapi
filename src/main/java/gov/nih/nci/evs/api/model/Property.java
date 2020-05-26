@@ -4,29 +4,36 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * Represents a synonym of a concept.
  */
-@JsonIgnoreProperties(value = {
-    "code"
-})
+//@JsonIgnoreProperties(value = {
+//    "code"
+//})
 public class Property extends BaseModel {
 
   /** The code. */
+  @Field(type = FieldType.Text)
   private String code;
 
   /** The type. */
+  @Field(type = FieldType.Text)
   private String type;
 
   /** The value. */
+  @Field(type = FieldType.Text)
   private String value;
 
   /** The highlight. */
+  @Transient
   private String highlight;
 
   /** The qualifiers. */
+  @Transient
   private List<Qualifier> qualifiers;
 
   /**

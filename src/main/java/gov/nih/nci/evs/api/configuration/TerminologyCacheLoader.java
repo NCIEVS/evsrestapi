@@ -73,7 +73,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("  get synonym sources ");
               sparqlQueryManagerService.getSynonymSources(terminology);
               log.info("    done synonym sources ");
-
+              
             } catch (IOException e) {
               log.error("Unexpected error caching = " + terminology, e);
             }

@@ -3,6 +3,9 @@ package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * Represents a synonym of a concept.
@@ -10,27 +13,35 @@ import java.util.List;
 public class Synonym extends BaseModel {
 
   /** The name. */
+  @Field(type = FieldType.Text)
   private String name;
 
   /** The highlight. */
+  @Transient
   private String highlight;
 
   /** The term group. */
+  @Field(type = FieldType.Text)
   private String termGroup;
 
   /** The type. */
+  @Field(type = FieldType.Text)
   private String type;
 
   /** The source. */
+  @Field(type = FieldType.Text)
   private String source;
 
   /** The code. */
+  @Field(type = FieldType.Text)
   private String code;
 
   /** The sub source. */
+  @Field(type = FieldType.Text)
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
+  @Transient
   private List<Qualifier> qualifiers;
 
   /**

@@ -22,8 +22,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   @SuppressWarnings("unused")
-  private static final Logger logger =
-      LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
+  private static final Logger logger = LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
 
   /** The term. */
   private String term;
@@ -56,7 +55,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   private List<String> definitionSource;
 
   /** The synonym term group. */
-  private String synonymTermGroup;
+  private List<String> synonymTermGroup;
 
   /** The inverse. */
   // private Boolean inverse = null;
@@ -101,7 +100,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     property = new ArrayList<>(other.getProperty());
     // role = new ArrayList<>(other.getRole());
     synonymSource = new ArrayList<>(other.getSynonymSource());
-    synonymTermGroup = other.getSynonymTermGroup();
+    synonymTermGroup = new ArrayList<>(other.getSynonymTermGroup());
     term = other.getTerm();
     type = other.getType();
   }
@@ -306,7 +305,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the synonym term group
    */
-  public String getSynonymTermGroup() {
+  public List<String> getSynonymTermGroup() {
+    if (synonymTermGroup == null) {
+      synonymTermGroup = new ArrayList<>();
+    }
     return synonymTermGroup;
   }
 
@@ -315,7 +317,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @param synonymTermGroup the synonym term group
    */
-  public void setSynonymTermGroup(final String synonymTermGroup) {
+  public void setSynonymTermGroup(final List<String> synonymTermGroup) {
     this.synonymTermGroup = synonymTermGroup;
   }
 
@@ -401,6 +403,15 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
+   * Check required fields.
+   *
+   * @return true, if successful
+   */
+  public boolean checkPagination() {
+    return (fromRecord % pageSize == 0);
+  }
+
+  /**
    * Compute missing required fields.
    *
    * @return the string
@@ -412,27 +423,23 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Validate.
    *
-   * @param terminology the terminology instance
+   * @param terminology               the terminology instance
    * @param sparqlQueryManagerService the sparql query manager service
    * @throws Exception the exception
    */
-  public void validate(final Terminology terminology, final MetadataService metadataService)
-    throws Exception {
+  public void validate(final Terminology terminology, final MetadataService metadataService) throws Exception {
     if (getTerm() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Required parameter 'term' is missing");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Required parameter 'term' is missing");
     }
 
-    if (!TerminologyUtils
-        .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
+    if (!TerminologyUtils.asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
         .contains(getType())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'type' has an invalid value = " + type);
     }
 
     if (fromRecord < 0) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
     if (pageSize < 0 || pageSize > 1000) {
@@ -441,8 +448,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
 
     // Validate concept status
-    final Set<String> conceptStatuses =
-        new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
+    final Set<String> conceptStatuses = new HashSet<>(
+        metadataService.getConceptStatuses(terminology.getTerminology()).get());
     for (final String cs : getConceptStatus()) {
       if (!conceptStatuses.contains(cs)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -450,9 +457,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
       }
     }
 
-    final Set<String> contributingSources =
-        metadataService.getContributingSources(terminology.getTerminology()).stream()
-            .map(c -> c.getCode()).collect(Collectors.toSet());
+    final Set<String> contributingSources = metadataService.getContributingSources(terminology.getTerminology())
+        .stream().map(c -> c.getCode()).collect(Collectors.toSet());
     new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
     for (final String cs : getContributingSource()) {
       if (!contributingSources.contains(cs)) {
@@ -462,9 +468,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
 
     // Validate synonym source - must be a valid synonym source
-    final Set<String> synonymSources =
-        metadataService.getSynonymSources(terminology.getTerminology()).stream()
-            .map(c -> c.getCode()).collect(Collectors.toSet());
+    final Set<String> synonymSources = metadataService.getSynonymSources(terminology.getTerminology()).stream()
+        .map(c -> c.getCode()).collect(Collectors.toSet());
     for (final String ss : getSynonymSource()) {
       if (!synonymSources.contains(ss)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
