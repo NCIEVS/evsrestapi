@@ -41,9 +41,7 @@ public class GraphViz
     private final static Properties configFile = new Properties() {
         private final static long serialVersionUID = 1L; {
             try {
-				System.out.println("loading config.properties...");
                 load(new FileInputStream(cfgProp));
-                System.out.println("Done loading config.properties...");
             } catch (Exception e) {}
         }
     };
@@ -76,8 +74,8 @@ public class GraphViz
     private StringBuilder graph = new StringBuilder();
 
     public GraphViz() {
-		String os = System.getProperty("os.name");
-		System.out.println(os);
+		//String os = System.getProperty("os.name");
+		//System.out.println(os);
     }
 
     public String getDotSource() {
@@ -106,7 +104,6 @@ public class GraphViz
         byte[] img_stream = null;
 
         try {
-			System.out.println("writeDotSourceToFile..." + dot_source);
             dot = writeDotSourceToFile(dot_source);
             if (dot != null)
             {
@@ -125,7 +122,6 @@ public class GraphViz
         byte[] img_stream = null;
 
         try {
-			System.out.println("writeDotSourceToFile..." + dot_source);
             dot = writeDotSourceToFile(dot_source, dotsourcefile);
             if (dot != null)
             {
@@ -189,7 +185,6 @@ public class GraphViz
         File temp;
         try {
             temp = File.createTempFile("dorrr",".dot", new File(GraphViz.TEMP_DIR));
-            System.out.println(temp.getName());
             FileWriter fout = new FileWriter(temp);
             fout.write(str);
                        BufferedWriter br=new BufferedWriter(new FileWriter(dotfilename));
@@ -210,7 +205,6 @@ public class GraphViz
         File temp;
         try {
             temp = File.createTempFile("dorrr",".dot", new File(GraphViz.TEMP_DIR));
-            System.out.println(temp.getName());
             FileWriter fout = new FileWriter(temp);
             fout.write(str);
                        BufferedWriter br=new BufferedWriter(new FileWriter("dotsource.dot"));

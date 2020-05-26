@@ -95,28 +95,15 @@ public class GraphGenerator {
 		return s;
 	}
 
-	public static void createDotGraph(String dotFormat, String fileName, String type) {
+	public static void createDotGraph(String dotFormat, String type, String dotfilename) {
 	    GraphViz gv=new GraphViz();
 	    gv.addln(gv.start_graph());
 	    gv.add(dotFormat);
 	    gv.addln(gv.end_graph());
 	    gv.decreaseDpi();
 	    gv.decreaseDpi();
-	    String fName = fileName+"."+ type;
-	    File out = new File(fName);
-	    gv.writeGraphToFile( gv.getGraph(gv.getDotSource(), type), out);
-	}
-
-	public static void createDotGraph(String dotFormat, String fileName, String type, String dotfilename) {
-	    GraphViz gv=new GraphViz();
-	    gv.addln(gv.start_graph());
-	    gv.add(dotFormat);
-	    gv.addln(gv.end_graph());
-	    gv.decreaseDpi();
-	    gv.decreaseDpi();
-	    String fName = fileName+"."+ type;
-	    File out = new File(fName);
-	    gv.writeGraphToFile( gv.getGraph(gv.getDotSource(), type, dotfilename), out);
+	    File out = new File(dotfilename);
+	    gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), type, dotfilename), out);
 	}
 
 	public static void createDotGraph(Vector data_vec, String filename, String type, String dotfilename) {
@@ -131,21 +118,14 @@ public class GraphGenerator {
 	}
 
 	public static void text2Dot(String filename, String type, String dotfilename) {
-		if (filename.indexOf(".") == -1) {
-			filename = filename + ".txt";
-		}
 		String dotFormat = toString(Utils.readFile(filename));
-		createDotGraph(dotFormat, filename, type, dotfilename);
+		createDotGraph(dotFormat, type, dotfilename);
 	}
 
 	public static void text2Dot(String filename, String type) {
-		if (filename.indexOf(".") == -1) {
-			filename = filename + ".txt";
-		}
 		int n = filename.lastIndexOf(".");
 		String dotfilename = filename.substring(0, n) + ".dot";
-		String dotFormat = toString(Utils.readFile(filename));
-		createDotGraph(dotFormat, filename, type, dotfilename);
+		text2Dot(filename, type, dotfilename);
 	}
 
 	public static Vector getNodes(Vector v) {
@@ -379,10 +359,11 @@ public class GraphGenerator {
 		generateGraphvizDataFile(nodes, edges, selected_nodes, outputfile, ranksep, nodesep);
 		String dotFormat = toString(Utils.readFile(outputfile));
         int n = outputfile.lastIndexOf(".");
+        String dotfilename = null;
         if (n != -1) {
-        	outputfile = outputfile.substring(0, n);
+        	dotfilename = outputfile.substring(0, n) + "." + format;
 		}
-		createDotGraph(dotFormat, outputfile, format);
+		createDotGraph(dotFormat, format, dotfilename);
 	}
 
 
