@@ -71,7 +71,7 @@ public class GraphGenerator {
 		COLORS.add("turquoise3");
 		COLORS.add("tomato");
 		COLORS.add("violet");
-		COLORS.add("theat");
+		COLORS.add("wheat");
 		COLORS.add("yellowgreen");
 	}
 
@@ -123,16 +123,23 @@ public class GraphGenerator {
 
 
 //Allele_Has_Activity|R159|Gene|C16612|Property or Attribute|C20189
+
 	public static Vector getNodes(Vector v) {
+		int src_index = 0;
+		int target_idx = 2;
+		return getNodes(v, src_index, target_idx);
+	}
+
+	public static Vector getNodes(Vector v, int src_index, int target_idx) {
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
-			String node = (String) u.elementAt(2);
+			String node = (String) u.elementAt(src_index);
             if (!w.contains(node)) {
 				w.add(node);
 			}
-			node = (String) u.elementAt(4);
+			node = (String) u.elementAt(target_idx);
             if (!w.contains(node)) {
 				w.add(node);
 			}
@@ -142,11 +149,16 @@ public class GraphGenerator {
 	}
 
 	public static Vector getEdgeLabels(Vector v) {
+        int edge_idx = 1;
+        return getEdgeLabels(v, edge_idx);
+	}
+
+	public static Vector getEdgeLabels(Vector v, int edge_idx) {
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
-			String edge = (String) u.elementAt(0);
+			String edge = (String) u.elementAt(edge_idx);
             if (!w.contains(edge)) {
 				w.add(edge);
 			}
@@ -156,6 +168,13 @@ public class GraphGenerator {
 	}
 
 	public static Vector getEdges(Vector v) {
+        int src_idx = 0;
+        int edge_idx = 1;
+        int target_idx = 2;
+        return getEdges(v, src_idx, edge_idx, target_idx);
+	}
+
+	public static Vector getEdges(Vector v, int src_idx, int edge_idx, int target_idx) {
 		//graviz_tbox_data.txt
 		Vector w = new Vector();
 		String role = null;
@@ -164,9 +183,9 @@ public class GraphGenerator {
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
-			role = (String) u.elementAt(0);
-			domain = (String) u.elementAt(2);
-			range = (String) u.elementAt(4);
+			role = (String) u.elementAt(src_idx);
+			domain = (String) u.elementAt(edge_idx);
+			range = (String) u.elementAt(target_idx);
 			w.add(role + "|" + domain + "|" + range);
 		}
 		w = new SortUtils().quickSort(w);
