@@ -130,23 +130,23 @@ public class GraphGenerator {
 		return getNodes(v, src_index, target_idx);
 	}
 
-	public static Vector getNodes(Vector v, int src_index, int target_idx) {
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
+	public static Vector getNodes(Vector data_vec, int src_index, int target_idx) {
+        Vector nodes = new Vector();
+        for (int i=0; i<data_vec.size(); i++) {
+			String t = (String) data_vec.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
-			String node = (String) u.elementAt(src_index);
-            if (!w.contains(node)) {
-				w.add(node);
+			String source = (String) u.elementAt(src_index);
+			String target = (String) u.elementAt(target_idx);
+			if (!nodes.contains(source)) {
+				nodes.add(source);
 			}
-			node = (String) u.elementAt(target_idx);
-            if (!w.contains(node)) {
-				w.add(node);
+			if (!nodes.contains(target)) {
+				nodes.add(target);
 			}
 		}
-		w = new SortUtils().quickSort(w);
-		return w;
-	}
+		nodes = new SortUtils().quickSort(nodes);
+		return nodes;
+    }
 
 	public static Vector getEdgeLabels(Vector v) {
         int edge_idx = 1;
@@ -174,22 +174,20 @@ public class GraphGenerator {
         return getEdges(v, src_idx, edge_idx, target_idx);
 	}
 
-	public static Vector getEdges(Vector v, int src_idx, int edge_idx, int target_idx) {
-		//graviz_tbox_data.txt
-		Vector w = new Vector();
-		String role = null;
-		String domain = null;
-		String range = null;
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
+	public static Vector getEdges(Vector data_vec, int src_idx, int edge_idx, int target_idx) {
+        Vector edges = new Vector();
+        for (int i=0; i<data_vec.size(); i++) {
+			String t = (String) data_vec.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
-			role = (String) u.elementAt(src_idx);
-			domain = (String) u.elementAt(edge_idx);
-			range = (String) u.elementAt(target_idx);
-			w.add(role + "|" + domain + "|" + range);
+			String source = (String) u.elementAt(src_idx);
+			String edge = (String) u.elementAt(edge_idx);
+			String target = (String) u.elementAt(target_idx);
+			String link = edge + "|" + source + "|" + target;
+			if (!edges.contains(link)) {
+				edges.add(link);
+			}
 		}
-		w = new SortUtils().quickSort(w);
-		return w;
+		return edges;
 	}
 
     public static void generateGraph(PrintWriter pw, Vector nodes, Vector edges, Vector selected_nodes) {
