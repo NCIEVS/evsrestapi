@@ -120,14 +120,12 @@ public interface MetadataService {
   Optional<List<String>> getConceptStatuses(final String terminology) throws Exception;
 
   /**
-   * Get contributing sources.
+   * Returns the definition sources.
    *
    * @param terminology the terminology
-   * @return the contributing sources for the given terminology
+   * @return the definition sources
    * @throws Exception the exception
    */
-  List<ConceptMinimal> getContributingSources(final String terminology) throws Exception;
-
   List<ConceptMinimal> getDefinitionSources(final String terminology) throws Exception;
 
   /**

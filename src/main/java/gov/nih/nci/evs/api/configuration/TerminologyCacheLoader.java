@@ -66,10 +66,6 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               sparqlQueryManagerService.getPaths(terminology);
               log.info("    done paths ");
 
-              log.info("  get contributing sources ");
-              sparqlQueryManagerService.getContributingSources(terminology);
-              log.info("    done contributing sources ");
-
               log.info("  get synonym sources ");
               sparqlQueryManagerService.getSynonymSources(terminology);
               log.info("    done synonym sources ");

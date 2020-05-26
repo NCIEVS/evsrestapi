@@ -407,18 +407,6 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
-   * Returns the contributing sources.
-   *
-   * @param terminology the terminology
-   * @return the contributing sources
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonProcessingException the json processing exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public List<ConceptMinimal> getContributingSources(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException, IOException;
-
-  /**
    * Returns the definition sources.
    *
    * @param terminology the terminology

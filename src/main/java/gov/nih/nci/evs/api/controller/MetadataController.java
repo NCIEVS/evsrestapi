@@ -516,35 +516,12 @@ public class MetadataController extends BaseController {
   }
 
   /**
-   * Returns the contributing sources.
+   * Returns the definition sources.
    *
    * @param terminology the terminology
-   * @return the contributing sources
+   * @return the definition sources
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all contributing sources for the specified terminology",
-      response = ConceptMinimal.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found")
-  })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit")
-  })
-  @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources",
-      produces = "application/json")
-  public @ResponseBody List<ConceptMinimal> getContributingSources(
-    @PathVariable(value = "terminology") final String terminology) throws Exception {
-    try {
-      return metadataService.getContributingSources(terminology);
-    } catch (Exception e) {
-      handleException(e);
-      return null;
-    }
-  }
-
   @ApiOperation(value = "Get all definition sources for the specified terminology",
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {

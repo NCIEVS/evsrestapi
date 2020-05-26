@@ -21,6 +21,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  */
 public class SearchCriteriaWithoutTerminology extends BaseModel {
 
+  /** The Constant logger. */
   @SuppressWarnings("unused")
   private static final Logger logger =
       LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
@@ -45,9 +46,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The property. */
   private List<String> property;
-
-  /** The contributing source. */
-  private List<String> contributingSource;
 
   /** The synonym source. */
   private List<String> synonymSource;
@@ -92,7 +90,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   public void populateFrom(final SearchCriteriaWithoutTerminology other) {
     // association = new ArrayList<>(other.getAssociation());
     conceptStatus = new ArrayList<>(other.getConceptStatus());
-    contributingSource = new ArrayList<>(other.getContributingSource());
     definitionSource = new ArrayList<>(other.getDefinitionSource());
     fromRecord = other.getFromRecord();
     include = other.getInclude();
@@ -236,27 +233,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void setProperty(final List<String> property) {
     this.property = property;
-  }
-
-  /**
-   * Returns the contributing source.
-   *
-   * @return the contributing source
-   */
-  public List<String> getContributingSource() {
-    if (contributingSource == null) {
-      contributingSource = new ArrayList<>();
-    }
-    return contributingSource;
-  }
-
-  /**
-   * Sets the contributing source.
-   *
-   * @param contributingSource the contributing source
-   */
-  public void setContributingSource(final List<String> contributingSource) {
-    this.contributingSource = contributingSource;
   }
 
   /**
@@ -413,7 +389,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * Validate.
    *
    * @param terminology the terminology instance
-   * @param sparqlQueryManagerService the sparql query manager service
+   * @param metadataService the metadata service
    * @throws Exception the exception
    */
   public void validate(final Terminology terminology, final MetadataService metadataService)
@@ -446,44 +422,43 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
 
     // Validate concept status
-    final Set<String> conceptStatuses =
-        new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
-    for (final String cs : getConceptStatus()) {
-      if (!conceptStatuses.contains(cs)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            "Parameter 'conceptStatus' has an invalid value = " + cs);
-      }
-    }
-
-    final Set<String> contributingSources =
-        metadataService.getContributingSources(terminology.getTerminology()).stream()
-            .map(c -> c.getCode()).collect(Collectors.toSet());
-    new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
-    for (final String cs : getContributingSource()) {
-      if (!contributingSources.contains(cs)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            "Parameter 'contributingSource' has an invalid value = " + cs);
+    if (getConceptStatus().size() > 0) {
+      final Set<String> conceptStatuses =
+          new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
+      for (final String cs : getConceptStatus()) {
+        if (!conceptStatuses.contains(cs)) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "Parameter 'conceptStatus' has an invalid value = " + cs);
+        }
       }
     }
 
     // Validate synonym source - must be a valid synonym source
-    final Set<String> synonymSources =
-        metadataService.getSynonymSources(terminology.getTerminology()).stream()
-            .map(c -> c.getCode()).collect(Collectors.toSet());
-    for (final String ss : getSynonymSource()) {
-      if (!synonymSources.contains(ss)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            "Parameter 'synonymSource' has an invalid value = " + ss);
+    if (getSynonymSource().size() > 0) {
+      final Set<String> synonymSources =
+          metadataService.getSynonymSources(terminology.getTerminology()).stream()
+              .map(c -> c.getCode()).collect(Collectors.toSet());
+      for (final String ss : getSynonymSource()) {
+        if (!synonymSources.contains(ss)) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "Parameter 'synonymSource' has an invalid value = " + ss);
+        }
       }
     }
 
-    // Validate synonym source - must be a valid contributing source
-    for (final String ds : getDefinitionSource()) {
-      if (!ds.equals("NCI") && !contributingSources.contains(ds)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            "Parameter 'definitionSource' has an invalid value = " + ds);
+    // Validate definition source - must be a valid definition source
+    if (getDefinitionSource().size() > 0) {
+      final Set<String> definitionSources =
+          metadataService.getDefinitionSources(terminology.getTerminology()).stream()
+              .map(c -> c.getCode()).collect(Collectors.toSet());
+      for (final String ss : getDefinitionSource()) {
+        if (!definitionSources.contains(ss)) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "Parameter 'definitionSource' has an invalid value = " + ss);
+        }
       }
     }
+
   }
 
   /**
@@ -500,7 +475,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // prime * result + ((association == null) ? 0 :
     // association.hashCode());
     result = prime * result + ((conceptStatus == null) ? 0 : conceptStatus.hashCode());
-    result = prime * result + ((contributingSource == null) ? 0 : contributingSource.hashCode());
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
     result = prime * result + ((fromRecord == null) ? 0 : fromRecord.hashCode());
     result = prime * result + ((include == null) ? 0 : include.hashCode());
@@ -546,13 +520,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!conceptStatus.equals(other.conceptStatus)) {
-      return false;
-    }
-    if (contributingSource == null) {
-      if (other.contributingSource != null) {
-        return false;
-      }
-    } else if (!contributingSource.equals(other.contributingSource)) {
       return false;
     }
     if (definitionSource == null) {
