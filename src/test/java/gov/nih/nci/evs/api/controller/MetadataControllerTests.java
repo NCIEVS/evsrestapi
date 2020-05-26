@@ -642,42 +642,6 @@ public class MetadataControllerTests {
   }
 
   /**
-   * Test contributing sources.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testContributingSources() throws Exception {
-
-    String url = null;
-    MvcResult result = null;
-    String content = null;
-
-    // NCIt
-    url = baseUrl + "/ncit/contributingSources";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-    final List<Concept> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
-    assertThat(list).isNotEmpty();
-    // This may change in the future, but it's a way of validating
-    // "contributing sources" as being different than "synonym sources"
-    assertThat(list.size()).isLessThan(40);
-
-    // Bad terminology
-    url = baseUrl + "/ncitXXX/contributingSources";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-
-  }
-
-  /**
    * Test synonym sources.
    *
    * @throws Exception the exception
@@ -700,8 +664,7 @@ public class MetadataControllerTests {
           // n/a
         });
     assertThat(list).isNotEmpty();
-    // This may change in the future, but it's a way of validating
-    // "contributing sources" as being different than "synonym sources"
+    // NOTE: This may change in the future
     assertThat(list.size()).isGreaterThan(40);
 
     // Bad terminology

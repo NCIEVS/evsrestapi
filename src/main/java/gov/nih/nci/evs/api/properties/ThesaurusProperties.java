@@ -14,8 +14,8 @@ public class ThesaurusProperties {
   /** The associations. */
   private Map<String, String> associations;
 
-  /** The contributing sources. */
-  private Map<String, String> contributingSources;
+  /** The sources. */
+  private Map<String, String> sources;
 
   /** The term types. */
   private Map<String, String> termTypes;
@@ -106,21 +106,21 @@ public class ThesaurusProperties {
   }
 
   /**
-   * Returns the contributing sources.
+   * Returns the sources.
    *
-   * @return the contributing sources
+   * @return the sources
    */
-  public Map<String, String> getContributingSources() {
-    return contributingSources;
+  public Map<String, String> getSources() {
+    return sources;
   }
 
   /**
-   * Sets the contributing sources.
+   * Sets the sources.
    *
-   * @param contributingSources the contributing sources
+   * @param sources the sources
    */
-  public void setContributingSources(Map<String, String> contributingSources) {
-    this.contributingSources = contributingSources;
+  public void setsources(Map<String, String> sources) {
+    this.sources = sources;
   }
 
   /**

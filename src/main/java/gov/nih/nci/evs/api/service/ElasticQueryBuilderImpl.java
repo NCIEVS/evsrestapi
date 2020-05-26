@@ -42,11 +42,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   private HashMap<String, String> propertyToQueryContains;
 
   /** The association to query. */
-//  private HashMap<String, String> associationToQuery;
-
-  /** The contributing source. */
-  @SuppressWarnings("unused")
-  private HashMap<String, String> contributingSource;
+  // private HashMap<String, String> associationToQuery;
 
   /** The role to query. */
   // private HashMap<String, String> roleToQuery;
@@ -75,10 +71,9 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
   @PostConstruct
   public void postInit() throws IOException {
 
-    // contributingSource = (HashMap<String, String>)
-    // thesaurusProperties.getContributingSources();
     // roleToQuery = (HashMap<String, String>) thesaurusProperties.getRoles();
-    // associationToQuery = (HashMap<String, String>) thesaurusProperties.getAssociations();
+    // associationToQuery = (HashMap<String, String>)
+    // thesaurusProperties.getAssociations();
     returnFieldMap = (HashMap<String, String>) thesaurusProperties.getReturnFields();
     propertyToQuery = (HashMap<String, String>) elasticQueryProperties.getPropertyToQuery();
     propertyToQueryExact =
@@ -162,30 +157,6 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     }
 
     return definitionSourceStr;
-
-  }
-
-  /**
-   * Construct contributing source.
-   *
-   * @param contributingSources the contributing sources
-   * @return the string
-   */
-  private String constructContributingSource(List<String> contributingSources) {
-    String contributingSourceStr = "";
-
-    if (contributingSources != null && contributingSources.size() > 0) {
-
-      contributingSourceStr = contributingSourceStr + ",{\"terms\":{\"Contributing_Source\": [";
-      for (String definitionSource : contributingSources) {
-        contributingSourceStr = contributingSourceStr + "\"" + definitionSource + "\",";
-      }
-      contributingSourceStr =
-          contributingSourceStr.substring(0, contributingSourceStr.length() - 1);
-      contributingSourceStr = contributingSourceStr + "]}}";
-    }
-
-    return contributingSourceStr;
 
   }
 
@@ -351,6 +322,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
    * @param highlightFlag the highlight flag
    * @return the main nested with non nested query
    */
+  @SuppressWarnings("unused")
   private String getMainNestedWithNonNestedQuery(final boolean highlightFlag) {
     if (highlightFlag) {
       return elasticQueryProperties.getMainNestedWithNonNestedQuery();
@@ -518,7 +490,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
             }
             if (value == null) {
               throw new IOException(
-                  "Invalid Parameter value for property field. Rejected value - " + property);
+                  "Parameter 'property' has an invalid value = " + property);
 
             } else
               fields = fields + value;
@@ -615,11 +587,6 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
 
       valuesMap.put("searchFilter", synonymSourceStr);
       valuesMap.put("nestedPath", "FULL_SYN");
-      if (searchCriteria.getContributingSource().size() > 0) {
-        String contributingSourceStr =
-            constructContributingSource(searchCriteria.getContributingSource());
-        valuesMap.put("nonNestedQuery", contributingSourceStr);
-      }
 
     }
 
@@ -639,7 +606,7 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     // || searchCriteria.getRole().size() > 0
     )) {
       String filter = this.constructFilterQuery(searchCriteria.getConceptStatus(),
-          searchCriteria.getContributingSource());
+          searchCriteria.getSynonymSource());
       valuesMap.put("filter", filter);
     }
 
@@ -648,9 +615,6 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
     final boolean highlightFlag = searchCriteria.computeIncludeParam().isHighlights();
     if (searchCriteria.getDefinitionSource().size() > 0) {
       templateString = getMainMultipleNestedQuery(highlightFlag);
-    } else if (searchCriteria.getSynonymSource().size() > 0
-        && searchCriteria.getContributingSource().size() > 0) {
-      templateString = getMainNestedWithNonNestedQuery(highlightFlag);
     } else if (searchCriteria.getSynonymSource().size() > 0
     // || searchCriteria.getAssociation().size() > 0
     // || searchCriteria.getRole().size() > 0

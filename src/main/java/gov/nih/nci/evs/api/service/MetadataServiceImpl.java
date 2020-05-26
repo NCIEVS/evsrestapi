@@ -281,26 +281,6 @@ public class MetadataServiceImpl implements MetadataService {
 
   }
 
-  /**
-   * Returns the contributing sources.
-   *
-   * @param terminology the terminology
-   * @return the contributing sources
-   * @throws Exception the exception
-   */
-  @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
-      condition = "#terminology.equals('ncit')")
-  public List<ConceptMinimal> getContributingSources(String terminology) throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    if (!term.getTerminology().equals("ncit"))
-      return new ArrayList<>();
-
-    return sparqlQueryManagerService.getContributingSources(term);
-
-  }
-
   /* see superclass */
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",

@@ -338,7 +338,7 @@ public class SearchControllerTests {
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(14);
     assertThat(list.getConcepts().subList(5, 14).toString()).isEqualTo(cl1.toString());
-
+ 
     // Bad page size = -1
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=-1");
@@ -466,7 +466,6 @@ public class SearchControllerTests {
     // BAD property type
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=ncit&term=XAV05295I5&property=P999999");
-
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "XAV05295I5")
         .param("property", "P999999")).andExpect(status().isBadRequest()).andReturn();
 
@@ -619,43 +618,6 @@ public class SearchControllerTests {
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
         .param("conceptStatus", "Bad_Value")).andExpect(status().isBadRequest()).andReturn();
-
-    log.info("Done Testing testSearchType");
-
-  }
-
-  /**
-   * Test contributing source.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testContributingSource() throws Exception {
-
-    String url = baseUrl;
-    MvcResult result = null;
-    String content = null;
-    ConceptResultList list = null;
-
-    // Retired_Concept
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&contributingSource=CDISC");
-
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-        .param("contributingSource", "CDISC")).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-    assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assertThat(list.getConcepts().size()).isGreaterThan(0);
-
-    // Bad value
-    log.info(
-        "Testing url - " + url + "?terminology=ncit&term=melanoma&ContributingSource=Bad_Value");
-
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-            .param("contributingSource", "Bad_Value"))
-        .andExpect(status().isBadRequest()).andReturn();
 
     log.info("Done Testing testSearchType");
 

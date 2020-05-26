@@ -110,16 +110,13 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "property",
           value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "contributingSource",
-          value = "Comma-separated list of contributing sources to restrict search results to. <a href='api/v1/metadata/ncit/contributingSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "93489034",
+      @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
@@ -190,9 +187,6 @@ public class SearchController extends BaseController {
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
           value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "contributingSource",
-          value = "Comma-separated list of contributing sources to restrict search results to. <a href='api/v1/metadata/ncit/contributingSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
@@ -284,6 +278,10 @@ public class SearchController extends BaseController {
       results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
     } catch (Exception e) {
+      // TODO: remove this once updated elasticsearch is in place.
+      if (e.getMessage().contains("invalid value")) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+      }
       handleException(e);
       return null;
     }
