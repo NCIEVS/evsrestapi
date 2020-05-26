@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.controller;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.aop.RecordMetricSearch;
@@ -47,10 +45,10 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
 @Api(tags = "Search endpoint")
-public class SearchController {
+public class SearchController extends BaseController {
 
   /** The Constant log. */
-  private static final Logger log = LoggerFactory.getLogger(SearchController.class);
+  private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
 
   /** The stardog properties. */
   @Autowired
@@ -64,7 +62,7 @@ public class SearchController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The metadata service **/
+  /** The metadata service *. */
   @Autowired
   MetadataService metadataService;
 
@@ -75,13 +73,14 @@ public class SearchController {
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
    * @return the string
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get concept search results for a specified terminology",
       response = ConceptResultList.class,
       notes = "Use cases for search range from very simple term searches, use of paging parameters, additional filters, searches properties, roles, and associations, and so on.  To further explore the range of search options, take a look at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>Github client SDK library created for the NCI EVS Rest API</a>.")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -92,7 +91,7 @@ public class SearchController {
           value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true,
           dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type",
-          value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.",
+          value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
           required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -111,9 +110,6 @@ public class SearchController {
       @ApiImplicitParam(name = "property",
           value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "contributingSource",
-          value = "Comma-separated list of contributing sources to restrict search results to. <a href='api/v1/metadata/ncit/contributingSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
@@ -121,7 +117,7 @@ public class SearchController {
           value = "Comma-separated list of synonym sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Comma-separated list of synonym term groups to restrict search results to. Use with \"synonymSource\".",
+          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -146,7 +142,7 @@ public class SearchController {
   public @ResponseBody ConceptResultList searchSingleTerminology(
     @PathVariable(value = "terminology") final String terminology,
     @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult)
-    throws IOException {
+    throws Exception {
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult);
   }
 
@@ -156,12 +152,13 @@ public class SearchController {
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
    * @return the string
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @ApiOperation(value = "Get concept search results", response = ConceptResultList.class,
       notes = "Use cases for search range from very simple term searches, use of paging parameters, additional filters, searches properties, roles, and associations, and so on.  To further explore the range of search options, take a look at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>Github client SDK library created for the NCI EVS Rest API</a>.")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -172,7 +169,7 @@ public class SearchController {
           value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true,
           dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type",
-          value = "The match type, one of: contains, match, startswith, phrase, AND, OR, fuzzy.",
+          value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
           required = false, dataType = "string", paramType = "query", defaultValue = "contains"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -191,9 +188,6 @@ public class SearchController {
       @ApiImplicitParam(name = "property",
           value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "contributingSource",
-          value = "Comma-separated list of contributing sources to restrict search results to. <a href='api/v1/metadata/ncit/contributingSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
@@ -201,7 +195,7 @@ public class SearchController {
           value = "Comma-separated list of synonym sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Comma-separated list of synonym term groups to restrict search results to. Use with \"synonymSource\".",
+          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -224,7 +218,7 @@ public class SearchController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList search(@ModelAttribute SearchCriteria searchCriteria,
-    BindingResult bindingResult) throws IOException {
+    BindingResult bindingResult) throws Exception {
 
     // Check whether or not parameter binding was successful
     if (bindingResult.hasErrors()) {
@@ -233,7 +227,7 @@ public class SearchController {
       for (final FieldError error : errors) {
         final String errorMessage = "ERROR " + bindingResult.getObjectName() + " = "
             + error.getField() + ", " + error.getCode();
-        log.error(errorMessage);
+        logger.error(errorMessage);
         errorMessages.add(errorMessage);
       }
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join("\n ", errorMessages));
@@ -241,6 +235,7 @@ public class SearchController {
 
     final long startDate = System.currentTimeMillis();
 
+    // Check search criteria for required fields
     if (!searchCriteria.checkRequiredFields()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
@@ -253,7 +248,7 @@ public class SearchController {
     
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
     searchCriteria.setTerm(queryTerm);
-    log.debug("  Search = " + searchCriteria);
+    logger.debug("  Search = " + searchCriteria);
 
     if (searchCriteria.getTerminology().size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -287,23 +282,13 @@ public class SearchController {
       results.setConcepts(concepts);
       results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
-    } catch (ResponseStatusException rse) {
-      throw rse;
-    } catch (IOException e) {
-      log.error("Unexpected IO error", e);
-      String errorMessage = e.getMessage();
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
-
-    } catch (HttpClientErrorException e2) {
-      log.error("Unexpected HTTP error", e2);
-      final String errorMessage = e2.getMessage();
-      throw new ResponseStatusException(e2.getStatusCode(), errorMessage);
-
-    } catch (Exception e3) {
-      log.error("Unexpected error", e3);
-      final String errorMessage =
-          "An error occurred in the system. Please contact the NCI help desk.";
-      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
+    } catch (Exception e) {
+      // TODO: remove this once updated elasticsearch is in place.
+      if (e.getMessage().contains("invalid value")) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+      }
+      handleException(e);
+      return null;
     }
 
   }

@@ -13,7 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -80,11 +82,14 @@ public class MetadataServiceImpl implements MetadataService {
     // Verify that it is an association
     final List<Concept> list = self.getAssociations(terminology,
         Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
-    if (list.size() > 0) {
+    if (list.size() == 1) {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return Optional.of(sparqlQueryManagerService.getAssociation(list.get(0).getCode(), term, ip));
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Association " + code + " not found (2)");
     }
     return Optional.empty();
   }
@@ -128,11 +133,13 @@ public class MetadataServiceImpl implements MetadataService {
     // Verify that it is a role
     final List<Concept> list = self.getRoles(terminology,
         Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
-    if (list.size() > 0) {
+    if (list.size() == 1) {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return Optional.of(sparqlQueryManagerService.getRole(list.get(0).getCode(), term, ip));
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found (2)");
     }
     return Optional.empty();
   }
@@ -212,11 +219,14 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> list =
         self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
 
-    if (list.size() > 0) {
+    if (list.size() == 1) {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return Optional.of(sparqlQueryManagerService.getQualifier(list.get(0).getCode(), term, ip));
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Qualifier " + code + " not found (2)");
     }
     return Optional.empty();
   }
@@ -237,11 +247,14 @@ public class MetadataServiceImpl implements MetadataService {
     // Verify that it is a property
     final List<Concept> list =
         self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
-    if (list.size() > 0) {
+    if (list.size() == 1) {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return Optional.of(sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip));
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Property " + code + " not found (2)");
     }
     return Optional.empty();
   }
@@ -263,28 +276,22 @@ public class MetadataServiceImpl implements MetadataService {
       return Optional.empty();
 
     // TODO: config (P310)
-    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term, ":P310");
+    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term, "P310");
     return Optional.of(statuses);
 
   }
 
-  /**
-   * Returns the contributing sources.
-   *
-   * @param terminology the terminology
-   * @return the contributing sources
-   * @throws Exception the exception
-   */
+  /* see superclass */
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
       condition = "#terminology.equals('ncit')")
-  public List<ConceptMinimal> getContributingSources(String terminology) throws Exception {
+  public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     if (!term.getTerminology().equals("ncit"))
       return new ArrayList<>();
 
-    return sparqlQueryManagerService.getContributingSources(term);
+    return sparqlQueryManagerService.getDefinitionSources(term);
 
   }
 

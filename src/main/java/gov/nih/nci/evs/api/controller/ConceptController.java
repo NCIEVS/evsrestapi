@@ -45,7 +45,7 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
 @Api(tags = "Concept endpoints")
-public class ConceptController {
+public class ConceptController extends BaseController {
 
   /** Logger. */
   @SuppressWarnings("unused")
@@ -68,7 +68,8 @@ public class ConceptController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 404, message = "Resource not found"),
+      @ApiResponse(code = 400, message = "Bad request")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}",
       produces = "application/json")
@@ -91,27 +92,31 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final String list) throws Exception {
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      final List<Concept> concepts = new ArrayList<>();
 
-    final List<Concept> concepts = new ArrayList<>();
-
-    final String[] codes = list.split(",");
-    // Impose a maximum number at a time
-    if (codes.length > 1000) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Maximum number of concepts to request at a time is 1000 = " + codes.length);
-    }
-
-    for (final String code : codes) {
-      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
-      if (concept != null && concept.getCode() != null) {
-        concepts.add(concept);
+      final String[] codes = list.split(",");
+      // Impose a maximum number at a time
+      if (codes.length > 500) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            "Maximum number of concepts to request at a time is 500 = " + codes.length);
       }
+
+      for (final String code : codes) {
+        final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
+        if (concept != null && concept.getCode() != null) {
+          concepts.add(concept);
+        }
+      }
+      return concepts;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    return concepts;
   }
 
   /**
@@ -149,17 +154,22 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
 
-    final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
-
-    if (concept == null || concept.getCode() == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      if (concept == null || concept.getCode() == null) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+      return concept;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    return concept;
+
   }
 
   /**
@@ -189,19 +199,24 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Association> list = sparqlQueryManagerService.getAssociations(code, term);
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      final List<Association> list = sparqlQueryManagerService.getAssociations(code, term);
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
-    }
 
-    return list;
+      return list;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -230,20 +245,25 @@ public class ConceptController {
   public @ResponseBody List<Association> getInverseAssociations(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-
-    final List<Association> list = sparqlQueryManagerService.getInverseAssociations(code, term);
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      final List<Association> list = sparqlQueryManagerService.getInverseAssociations(code, term);
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
+
+      return list;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
 
-    return list;
   }
 
   /**
@@ -273,19 +293,25 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Role> list = sparqlQueryManagerService.getRoles(code, term);
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      final List<Role> list = sparqlQueryManagerService.getRoles(code, term);
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
+
+      return list;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
 
-    return list;
   }
 
   /**
@@ -315,19 +341,24 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Role> list = sparqlQueryManagerService.getInverseRoles(code, term);
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      final List<Role> list = sparqlQueryManagerService.getInverseRoles(code, term);
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
-    }
 
-    return list;
+      return list;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -357,19 +388,24 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Concept> list = sparqlQueryManagerService.getSuperconcepts(code, term);
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      final List<Concept> list = sparqlQueryManagerService.getSuperconcepts(code, term);
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
-    }
 
-    return list;
+      return list;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -399,19 +435,24 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Concept> list = sparqlQueryManagerService.getSubconcepts(code, term);
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      final List<Concept> list = sparqlQueryManagerService.getSubconcepts(code, term);
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
-    }
 
-    return list;
+      return list;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -445,22 +486,26 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final List<HierarchyNode> list =
+          sparqlQueryManagerService.getChildNodes(code, maxLevel.orElse(0), term);
 
-    final List<HierarchyNode> list =
-        sparqlQueryManagerService.getChildNodes(code, maxLevel.orElse(0), term);
-
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
-    }
 
-    return ConceptUtils.convertConceptsFromHierarchy(list);
+      return ConceptUtils.convertConceptsFromHierarchy(list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -490,19 +535,25 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-    final List<Map> list = sparqlQueryManagerService.getMapsTo(code, term);
-    if (list == null || list.isEmpty()) {
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-      } else {
-        return new ArrayList<>();
+      final List<Map> list = sparqlQueryManagerService.getMapsTo(code, term);
+      if (list == null || list.isEmpty()) {
+        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        } else {
+          return new ArrayList<>();
+        }
       }
+
+      return list;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
 
-    return list;
   }
 
   /**
@@ -531,17 +582,21 @@ public class ConceptController {
   public @ResponseBody List<DisjointWith> getDisjointWith(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam("disjointWith");
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam("disjointWith");
+      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
 
-    final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
-
-    if (concept == null || concept.getCode() == null) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      if (concept == null || concept.getCode() == null) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+      return concept.getDisjointWith();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    return concept.getDisjointWith();
   }
 
   /**
@@ -576,17 +631,22 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<HierarchyNode> list = sparqlQueryManagerService.getRootNodes(term);
-    if (list == null || list.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          "No roots for found for terminology = " + terminology);
+      final List<HierarchyNode> list = sparqlQueryManagerService.getRootNodes(term);
+      if (list == null || list.isEmpty()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "No roots for found for terminology = " + terminology);
+      }
+      return ConceptUtils.convertConceptsFromHierarchyWithInclude(sparqlQueryManagerService, ip,
+          term, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    return ConceptUtils.convertConceptsFromHierarchyWithInclude(sparqlQueryManagerService, ip, term,
-        list);
   }
 
   /**
@@ -625,16 +685,21 @@ public class ConceptController {
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
+
+      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, true);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
-
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, true);
 
   }
 
@@ -664,16 +729,21 @@ public class ConceptController {
   public @ResponseBody List<HierarchyNode> getSubtree(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    logger.debug("found terminology, calling for nodes..");
 
-    if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+
+      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
+
+      return nodes;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
-
-    return nodes;
   }
 
   /**
@@ -702,13 +772,19 @@ public class ConceptController {
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      final List<HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(code, term);
+      return nodes;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    final List<HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(code, term);
-    return nodes;
+
   }
 
   /**
@@ -746,17 +822,21 @@ public class ConceptController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
-
-    if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
+      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
+          false);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, false);
-
   }
 
   /**
@@ -800,16 +880,22 @@ public class ConceptController {
     @PathVariable(value = "code") final String code,
     @PathVariable(value = "ancestorCode") final String ancestorCode,
     @RequestParam("include") final Optional<String> include) throws Exception {
+    try {
+      final Terminology term =
+          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final Terminology term =
-        TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
+      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      final Paths paths = sparqlQueryManagerService.getPathToParent(code, ancestorCode, term);
+      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
+          false);
 
-    if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
-    final Paths paths = sparqlQueryManagerService.getPathToParent(code, ancestorCode, term);
-    return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, false);
-
   }
+
 }

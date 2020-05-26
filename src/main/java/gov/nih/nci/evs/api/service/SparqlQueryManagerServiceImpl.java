@@ -1652,15 +1652,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonMappingException, JsonProcessingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     // TODO: CONFIG
-    String query =
-        queryBuilderService.constructQuery("synonym.sources", ":P384", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("axiom.qualifier.values", "P384",
+        terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<ConceptMinimal> sources = new ArrayList<>();
-    final Map<String, String> map = thesaurusProperties.getContributingSources();
-
+    final Map<String, String> map = thesaurusProperties.getSources();
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
@@ -1687,8 +1686,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonMappingException, JsonProcessingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     // TODO: CONFIG
-    String query =
-        queryBuilderService.constructQuery("term.types", ":P383", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("axiom.qualifier.values", "P383",
+        terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1715,20 +1714,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return sources;
   }
 
+ 
+
   /* see superclass */
   @Override
-  public List<ConceptMinimal> getContributingSources(Terminology terminology)
+  public List<ConceptMinimal> getDefinitionSources(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     // TODO: CONFIG
-    String query =
-        queryBuilderService.constructQuery("contributing.sources", ":P322", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("axiom.qualifier.values", "P378",
+        terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<ConceptMinimal> sources = new ArrayList<>();
-    final Map<String, String> map = thesaurusProperties.getContributingSources();
+    // Documentation on source definitions
+    final Map<String, String> map = thesaurusProperties.getSources();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();

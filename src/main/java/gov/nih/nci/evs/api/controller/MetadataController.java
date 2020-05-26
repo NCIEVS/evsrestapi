@@ -36,7 +36,7 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
 @Api(tags = "Metadata endpoints")
-public class MetadataController {
+public class MetadataController extends BaseController {
 
   /** The Constant log. */
   @SuppressWarnings("unused")
@@ -66,7 +66,12 @@ public class MetadataController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws Exception {
-    return sparqlQueryManagerService.getTerminologies();
+    try {
+      return sparqlQueryManagerService.getTerminologies();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -106,8 +111,12 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
-
-    return metadataService.getAssociations(terminology, include, list);
+    try {
+      return metadataService.getAssociations(terminology, include, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -146,12 +155,17 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
+    try {
+      Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
+      if (!concept.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Association " + code + " not found");
 
-    Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
-    if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-
-    return concept.get();
+      return concept.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -191,8 +205,12 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
-
-    return metadataService.getRoles(terminology, include, list);
+    try {
+      return metadataService.getRoles(terminology, include, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -231,12 +249,16 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
+    try {
+      Optional<Concept> concept = metadataService.getRole(terminology, code, include);
+      if (!concept.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found");
 
-    Optional<Concept> concept = metadataService.getRole(terminology, code, include);
-    if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-
-    return concept.get();
+      return concept.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -267,13 +289,9 @@ public class MetadataController {
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "forDocumentation",
-          value = "Special param for documentation mode to remove the specially handled properties",
-          required = false, dataType = "string", paramType = "query"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return properties for (or leave blank for all)",
           required = false, dataType = "string", paramType = "query")
-
   })
   @RecordMetricDBFormat
   public @ResponseBody List<Concept> getProperties(
@@ -281,7 +299,12 @@ public class MetadataController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
 
-    return metadataService.getProperties(terminology, include, list);
+    try {
+      return metadataService.getProperties(terminology, include, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -322,8 +345,12 @@ public class MetadataController {
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final Optional<String> list) throws Exception {
-
-    return metadataService.getQualifiers(terminology, include, list);
+    try {
+      return metadataService.getQualifiers(terminology, include, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -363,11 +390,16 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
-    if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+    try {
+      Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
+      if (!concept.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
 
-    return concept.get();
+      return concept.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -392,8 +424,12 @@ public class MetadataController {
   @RecordMetricDBFormat
   public @ResponseBody List<ConceptMinimal> getTermTypes(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
-
-    return metadataService.getTermTypes(terminology);
+    try {
+      return metadataService.getTermTypes(terminology);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -433,11 +469,16 @@ public class MetadataController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
-    Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
-    if (!concept.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+    try {
+      Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
+      if (!concept.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
 
-    return concept.get();
+      return concept.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -462,22 +503,26 @@ public class MetadataController {
       produces = "application/json")
   public @ResponseBody List<String> getConceptStatuses(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
+    try {
+      Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
+      if (!result.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-    Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
-    if (!result.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-    return result.get();
+      return result.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
-   * Returns the contributing sources.
+   * Returns the definition sources.
    *
    * @param terminology the terminology
-   * @return the contributing sources
+   * @return the definition sources
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all contributing sources for the specified terminology",
+  @ApiOperation(value = "Get all definition sources for the specified terminology",
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -488,12 +533,16 @@ public class MetadataController {
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetricDBFormat
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/contributingSources",
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionSources",
       produces = "application/json")
-  public @ResponseBody List<ConceptMinimal> getContributingSources(
+  public @ResponseBody List<ConceptMinimal> getDefinitionSources(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
-
-    return metadataService.getContributingSources(terminology);
+    try {
+      return metadataService.getDefinitionSources(terminology);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -518,8 +567,12 @@ public class MetadataController {
       produces = "application/json")
   public @ResponseBody List<ConceptMinimal> getSynonymSources(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
-
-    return metadataService.getSynonymSources(terminology);
+    try {
+      return metadataService.getSynonymSources(terminology);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 
   /**
@@ -540,7 +593,7 @@ public class MetadataController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrLabel",
-          value = "Property code (or label), e.g. 'P383' or 'term-group'", required = true,
+          value = "Qualifier code (or label), e.g. 'P383' or 'term-group'", required = true,
           dataType = "string", paramType = "path")
   })
   @RecordMetricDBFormat
@@ -550,11 +603,15 @@ public class MetadataController {
   public @ResponseBody List<String> getAxiomQualifiersList(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code) throws Exception {
+    try {
+      Optional<List<String>> result = metadataService.getAxiomQualifiersList(terminology, code);
+      if (!result.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-    Optional<List<String>> result = metadataService.getAxiomQualifiersList(terminology, code);
-    if (!result.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-    return result.get();
+      return result.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
   }
 }

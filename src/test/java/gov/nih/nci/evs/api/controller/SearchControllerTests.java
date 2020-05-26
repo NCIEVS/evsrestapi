@@ -110,11 +110,11 @@ public class SearchControllerTests {
     result =
         this.mvc.perform(get(url).param("term", "melanoma")).andExpect(status().isOk()).andReturn();
     String content2 = result.getResponse().getContentAsString();
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
   }
@@ -158,11 +158,11 @@ public class SearchControllerTests {
     result = this.mvc.perform(get(url).param("term", "melanoma").param("include", "highlights"))
         .andExpect(status().isOk()).andReturn();
     String content2 = result.getResponse().getContentAsString();
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
   }
@@ -202,6 +202,28 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&include=XXX");
     mvc.perform(
         get(url).param("terminology", "ncit").param("term", "melanoma").param("include", "XXX"))
+        .andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
+    // Page size too big
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=blood&pageSize=101");
+    mvc.perform(
+        get(url).param("terminology", "ncit").param("term", "blood").param("pageSize", "101"))
+        .andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
+    // Page size too big - 2
+    url = baseUrl;
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
+    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "101"))
+        .andExpect(status().isBadRequest()).andReturn();
+    // content is blank because of MockMvc
+
+    // Page size too small
+    url = baseUrl;
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
+    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "0"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
@@ -247,11 +269,11 @@ public class SearchControllerTests {
     result = this.mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
         .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
     String content2 = result.getResponse().getContentAsString();
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
   }
@@ -325,7 +347,7 @@ public class SearchControllerTests {
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
     assertThat(list.getConcepts().subList(5, 10).toString()).isEqualTo(cl1.toString());
-
+ 
     // Bad page size = -1
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=-1");
@@ -406,11 +428,11 @@ public class SearchControllerTests {
         .param("property", "fda_unii_code")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
     // With property code also - P319
@@ -443,11 +465,11 @@ public class SearchControllerTests {
         .param("property", "P319")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
-    
-    //removing timeTaken key from json before comparison
+
+    // removing timeTaken key from json before comparison
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
-    
+
     assertThat(content).isEqualTo(content2);
 
     // BAD property type
@@ -463,7 +485,6 @@ public class SearchControllerTests {
 //
 //    result = this.mvc.perform(get(url).param("term", "XAV05295I5").param("property", "P999999"))
 //        .andExpect(status().isBadRequest()).andReturn();
-
     log.info("Done Testing testSearchProperty ");
   }
 
@@ -606,43 +627,6 @@ public class SearchControllerTests {
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
         .param("conceptStatus", "Bad_Value")).andExpect(status().isBadRequest()).andReturn();
-
-    log.info("Done Testing testSearchType");
-
-  }
-
-  /**
-   * Test contributing source.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testContributingSource() throws Exception {
-
-    String url = baseUrl;
-    MvcResult result = null;
-    String content = null;
-    ConceptResultList list = null;
-
-    // Retired_Concept
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&contributingSource=CDISC");
-
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-        .param("contributingSource", "CDISC")).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-    assertThat(content).isNotNull();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assertThat(list.getConcepts().size()).isGreaterThan(0);
-
-    // Bad value
-    log.info(
-        "Testing url - " + url + "?terminology=ncit&term=melanoma&ContributingSource=Bad_Value");
-
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-            .param("contributingSource", "Bad_Value"))
-        .andExpect(status().isBadRequest()).andReturn();
 
     log.info("Done Testing testSearchType");
 
@@ -822,7 +806,13 @@ public class SearchControllerTests {
     log.info("Done Testing testDefinitionSource ");
 
   }
-  
+
+  /**
+   * Removes the time taken.
+   *
+   * @param response the response
+   * @return the string
+   */
   private String removeTimeTaken(String response) {
     return response.replaceAll("\"timeTaken\"\\s*:\\s*\\d+\\s*,", "");
   }

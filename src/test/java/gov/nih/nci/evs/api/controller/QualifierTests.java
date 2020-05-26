@@ -415,12 +415,6 @@ public class QualifierTests {
     assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("Preferred_Name"))
         .findFirst().get().getName()).isEqualTo("attribution");
 
-    // Assert that an "rdfs:label" synonym exists and does not match
-    assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("rdfs:label")).count())
-        .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("rdfs:label"))
-        .findFirst().get().getName()).isEqualTo("attribution");
-
   }
 
   /**
