@@ -919,13 +919,11 @@ public class OWLScanner {
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
-				System.out.println(t);
 				istart = true;
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
 				classId = t.substring(1, n);
-				System.out.println("extractOWLRestrictions: " + classId);
 				r = null;
 			}
 			if (istart) {
