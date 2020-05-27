@@ -89,6 +89,10 @@ public class OWLScanner {
         this.owl_vec = readFile(owlfile);
     }
 
+    public Vector get_owl_vec() {
+		return this.owl_vec;
+	}
+
 	public static String getToday() {
 		return getToday("MM-dd-yyyy");
 	}
