@@ -919,12 +919,18 @@ public class OWLScanner {
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
-				istart = true;
+				//System.out.println(t);
+
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
 				classId = t.substring(1, n);
+				System.out.println("extractOWLRestrictions: " + classId);
 				r = null;
+				//istart = false;
+
+				istart = true;
+
 			}
 			if (istart) {
 				t = t.trim();
@@ -961,6 +967,79 @@ public class OWLScanner {
 		return w;
 	}
 
+/*
+C4910|<A8 rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C165258"/>
+C4910|<NHC0>C4910</NHC0>
+*/
+    public String parseProperty(String t) {
+		t = t.trim();
+		if (t.indexOf("rdf:resource") != -1) {
+			int n = t.indexOf("rdf:resource");
+			String propertyCode = t.substring(1, n-1);
+		    int m = t.lastIndexOf("#");
+			String s = t.substring(m, t.length());
+			m = s.indexOf("\"");
+			String target = s.substring(1, m);
+			return propertyCode + "|" + target;
+		} else {
+			int n = t.indexOf(">");
+			String propertyCode = t.substring(1, n);
+
+			String end_tag = "</" + propertyCode + ">";
+			if(!t.endsWith(end_tag)) {
+				return("ERROR parsing " + t);
+			}
+			String s = t.substring(n, t.length());
+			int m = s.lastIndexOf("<");
+			String propertyValue = s.substring(1, m);
+        	return propertyCode + "|" + propertyValue;
+		}
+	}
+
+
+    public Vector extractProperties(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						String s = t.substring(1, n-1);
+						w.add(classId + "|" + parseProperty(t));
+					}
+				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
+				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						String s = t.substring(1, n-1);
+						w.add(classId + "|" + parseProperty(t));
+					}
+				}
+		    }
+		}
+		return w;
+	}
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -994,11 +1073,11 @@ public class OWLScanner {
         //Utils.dumpVector("fileterTagData", v);
         //scanner.printPaths(v);
 
-        Vector class_vec = Utils.readFile("C4910.owl");
-        Vector w = new OWLScanner().extractOWLRestrictions(class_vec);
+        Vector class_vec = Utils.readFile("ThesaurusInferred_forTS.owl");
+        Vector w = new OWLScanner().extractProperties(class_vec);
         for (int i=0; i<w.size(); i++) {
-			OWLRestriction r = (OWLRestriction) w.elementAt(i);
-			System.out.println(r.toString());
+			String p = (String) w.elementAt(i);
+			System.out.println(p);
 		}
 
 
