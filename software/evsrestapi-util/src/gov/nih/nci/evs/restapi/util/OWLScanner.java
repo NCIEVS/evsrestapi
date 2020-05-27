@@ -902,12 +902,72 @@ public class OWLScanner {
 	}
 
 
+    public Vector extractOWLRestrictions(Vector class_vec) {
+//    <!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C4910 -->
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean restriction_starg = false;
+        String classId = null;
+        OWLRestriction r = null;
+        String onProperty = null;
+        String someValueFrom = null;
+        HashSet hset = new HashSet();
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				System.out.println(t);
+				istart = true;
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				System.out.println("extractOWLRestrictions: " + classId);
+				r = null;
+			}
+			if (istart) {
+				t = t.trim();
+				if (t.indexOf("<owl:Restriction>") != -1) {
+					restriction_starg = true;
+					r = new OWLRestriction();
+					r.setClassId(classId);
+				} else if (r != null) {
+					t = t.trim();
+					if (t.startsWith("<owl:onProperty")) {
+						//<owl:onProperty rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#R101"/>
+						int n = t.lastIndexOf("#");
+						t = t.substring(n, t.length());
+						n = t.lastIndexOf("\"");
+						onProperty = t.substring(1, n);
+						r.setOnProperty(onProperty);
+					}
+					if (t.startsWith("<owl:someValuesFrom")) {
+						// <owl:someValuesFrom rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12382"/>
+						int n = t.lastIndexOf("#");
+						t = t.substring(n, t.length());
+						n = t.lastIndexOf("\"");
+						someValueFrom = t.substring(1, n);
+						r.setSomeValuesFrom(someValueFrom);
+						if (!hset.contains(r.toString())) {
+							hset.add(r.toString());
+							w.add(r);
+						}
+						r = null;
+					}
+				}
+		    }
+		}
+		return w;
+	}
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
+		/*
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
 		int n = owlfile.lastIndexOf(".");
 		String outputfile = owlfile.substring(0, n) + "_" + getToday() + ".owl";
+		*/
 		/*
 		Vector w = scanner.scanAxioms();
 		Vector v = new Vector();
@@ -927,10 +987,20 @@ public class OWLScanner {
 		Utils.saveToFile(syn_file, v);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		*/
-        Vector v = scanner.scanOwlTags();
+        //Vector v = scanner.scanOwlTags();
         //v = scanner.fileterTagData(v, "owl:Restriction");
-        Utils.dumpVector("fileterTagData", v);
-        scanner.printPaths(v);
+        //Utils.dumpVector("fileterTagData", v);
+        //scanner.printPaths(v);
+
+        Vector class_vec = Utils.readFile("C4910.owl");
+        Vector w = new OWLScanner().extractOWLRestrictions(class_vec);
+        for (int i=0; i<w.size(); i++) {
+			OWLRestriction r = (OWLRestriction) w.elementAt(i);
+			System.out.println(r.toString());
+		}
+
+
+
     }
 }
 
