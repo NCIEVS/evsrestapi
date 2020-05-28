@@ -1123,6 +1123,31 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+	public static Vector hashSet2Vector(HashSet hset) {
+		Vector w = new Vector();
+		Iterator it = hset.iterator();
+		while (it.hasNext()) {
+			String t = (String) it.next();
+			w.add(t);
+		}
+		return w;
+	}
+
+    public Vector getRootCodes() {
+		Vector w = extractSuperclasses(this.owl_vec);
+        HashSet child_codes = new HashSet();
+        HashSet parent_codes = new HashSet();
+        for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String child_code = (String) u.elementAt(0);
+			String parent_code = (String) u.elementAt(1);
+			child_codes.add(child_code);
+			parent_codes.add(parent_code);
+		}
+		parent_codes.removeAll(child_codes);
+		return hashSet2Vector(parent_codes);
+	}
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
