@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
 
 /**
  * The service to load concepts to Elasticsearch
@@ -15,6 +16,7 @@ import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
  */
 public interface ElasticLoadService {
 
-  void load(ElasticLoadConfig config, Terminology terminology) throws IOException;
-
+  //TODO
+  void loadObject(ElasticObject object, Terminology terminology) throws IOException;
+  void loadConcepts(ElasticLoadConfig config, Terminology terminology) throws IOException;
 }

@@ -53,8 +53,11 @@ public class Terminology extends BaseModel {
   /** The tags. */
   private Map<String, String> tags;
 
-  /** The index name. */
+  /** The index name for concepts. */
   private String indexName;
+
+  /** The index name for generic objects. */
+  private String objectIndexName;
   
   /**
    * Instantiates an empty {@link Terminology}.
@@ -278,7 +281,7 @@ public class Terminology extends BaseModel {
   }
 
   /**
-   * Returns the index name.
+   * Returns the index name for concepts belonging to this terminology.
    * 
    * @return the index name
    */
@@ -290,7 +293,7 @@ public class Terminology extends BaseModel {
   }
 
   /**
-   * Sets the index name.
+   * Sets the index name for concepts belonging to this terminology.
    * 
    * @param indexName the index name
    */
@@ -298,6 +301,27 @@ public class Terminology extends BaseModel {
     this.indexName = indexName;
   }
 
+ /**
+  * Returns the index name for objects.
+  * 
+  * @return the object index name
+  */
+ public String getObjectIndexName() {
+   if (StringUtils.isEmpty(objectIndexName)) {
+     objectIndexName = "object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+   }
+   return objectIndexName;
+ }
+
+ /**
+  * Sets the index name for objects.
+  * 
+  * @param objectIndexName the object index name
+  */
+ public void setObjectIndexName(String objectIndexName) {
+   this.objectIndexName = objectIndexName;
+ }
+  
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -315,6 +339,7 @@ public class Terminology extends BaseModel {
     result = prime * result + ((version == null) ? 0 : version.hashCode());
     result = prime * result + ((date == null) ? 0 : date.hashCode());
     result = prime * result + ((indexName == null) ? 0 : indexName.hashCode());
+    result = prime * result + ((objectIndexName == null) ? 0 : objectIndexName.hashCode());
     return result;
   }
 
@@ -398,6 +423,13 @@ public class Terminology extends BaseModel {
         return false;
       }
     } else if (!indexName.equals(other.indexName)) {
+      return false;
+    }
+    if (objectIndexName == null) {
+      if (other.objectIndexName != null) {
+        return false;
+      }
+    } else if (!objectIndexName.equals(other.objectIndexName)) {
       return false;
     }
     return true;

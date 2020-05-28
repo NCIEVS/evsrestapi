@@ -39,6 +39,7 @@ import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
@@ -81,6 +82,16 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   private SparqlQueryManagerService sparqlQueryManagerService;
 
   @Override
+  public void loadObject(ElasticObject object, Terminology terminology) throws IOException {
+    String indexName = terminology.getObjectIndexName();
+    logger.info("object index name: {}", indexName);
+    boolean result = operationsService.createIndex(indexName, true);
+    if (result) {
+      operationsService.getElasticsearchOperations().putMapping(indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    }
+    
+    operationsService.index(object, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+  }
   
   /**
    * load elasticsearch index based on config options
@@ -88,7 +99,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    * @param config the config object with options
    * @param terminology the terminology object
    */
-  public void load(ElasticLoadConfig config, Terminology terminology) throws IOException {
+  @Override
+  public void loadConcepts(ElasticLoadConfig config, Terminology terminology) throws IOException {
 
     logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName(), 
         ElasticOperationsService.CONCEPT_TYPE);
@@ -314,7 +326,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     private final Logger taskLogger = LoggerFactory.getLogger(LoadTask.class);
     
     /** the concepts **/
-    private List<Concept> concepts;
+    private List concepts;
     
     /** start index for the task **/
     private int startIndex;
@@ -331,7 +343,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     /** the task size **/
     private int taskSize;
 
-    public LoadTask(List<Concept> concepts, int start, int end, String indexName, CountDownLatch latch, int taskSize) {
+    public LoadTask(List concepts, int start, int end, String indexName, CountDownLatch latch, int taskSize) {
       this.concepts = concepts;
       this.startIndex = start;
       this.endIndex = end;
@@ -343,7 +355,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     @Override
     public Void call() {
       try {
-        operationsService.loadConcepts(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE);
+        operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE, Concept.class);
         int progress = (int)Math.floor((1.0 - 1.0*latch.getCount()/taskSize)*100);
         taskLogger.info("   loaded concepts: {} to {} ({}% complete)", startIndex, endIndex, progress);
       } catch (IOException e) {
@@ -385,7 +397,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       }
 
       Terminology term = TerminologyUtils.getTerminology(loadService.sparqlQueryManagerService, config.getTerminology());
-      loadService.load(config, term);
+      loadService.loadConcepts(config, term);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {
