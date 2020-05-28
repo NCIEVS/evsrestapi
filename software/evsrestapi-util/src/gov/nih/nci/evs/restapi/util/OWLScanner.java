@@ -1087,6 +1087,42 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public Vector extractRDFSLabels(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			//<rdfs:label>LEC-5 Standard Version - Unwanted Sex Experience: Happened</rdfs:label>
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
+					int n = t.lastIndexOf("</rdfs:label>");
+				    t = t.substring("<rdfs:label>".length(), n);
+					w.add(classId + "|" + t);
+				}
+		    }
+		}
+		return w;
+	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
