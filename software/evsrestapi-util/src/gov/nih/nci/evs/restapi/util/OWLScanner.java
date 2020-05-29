@@ -1238,6 +1238,19 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public Vector getAssociationSources(Vector assoc_vec, String targetCode) {
+		Vector v = new Vector();
+		for (int i=0; i<assoc_vec.size(); i++) {
+			String t = (String) assoc_vec.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String s = (String) u.elementAt(2);
+			if (s.compareTo(targetCode) == 0) {
+				v.add((String) u.elementAt(0) + "|" + targetCode);
+			}
+		}
+		return v;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
