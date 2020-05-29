@@ -89,6 +89,10 @@ public class OWLScanner {
         this.owl_vec = readFile(owlfile);
     }
 
+    public Vector get_owl_vec() {
+		return this.owl_vec;
+	}
+
 	public static String getToday() {
 		return getToday("MM-dd-yyyy");
 	}
@@ -902,12 +906,359 @@ public class OWLScanner {
 	}
 
 
+    public Vector extractOWLRestrictions(Vector class_vec) {
+//    <!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C4910 -->
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean restriction_starg = false;
+        String classId = null;
+        OWLRestriction r = null;
+        String onProperty = null;
+        String someValueFrom = null;
+        HashSet hset = new HashSet();
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				//System.out.println(t);
+
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				System.out.println("extractOWLRestrictions: " + classId);
+				r = null;
+				//istart = false;
+
+				istart = true;
+
+			}
+			if (istart) {
+				t = t.trim();
+				if (t.indexOf("<owl:Restriction>") != -1) {
+					restriction_starg = true;
+					r = new OWLRestriction();
+					r.setClassId(classId);
+				} else if (r != null) {
+					t = t.trim();
+					if (t.startsWith("<owl:onProperty")) {
+						//<owl:onProperty rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#R101"/>
+						int n = t.lastIndexOf("#");
+						t = t.substring(n, t.length());
+						n = t.lastIndexOf("\"");
+						onProperty = t.substring(1, n);
+						r.setOnProperty(onProperty);
+					}
+					if (t.startsWith("<owl:someValuesFrom")) {
+						// <owl:someValuesFrom rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12382"/>
+						int n = t.lastIndexOf("#");
+						t = t.substring(n, t.length());
+						n = t.lastIndexOf("\"");
+						someValueFrom = t.substring(1, n);
+						r.setSomeValuesFrom(someValueFrom);
+						if (!hset.contains(r.toString())) {
+							hset.add(r.toString());
+							w.add(r);
+						}
+						r = null;
+					}
+				}
+		    }
+		}
+		return w;
+	}
+
+/*
+C4910|<A8 rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C165258"/>
+C4910|<NHC0>C4910</NHC0>
+*/
+    public String parseProperty(String t) {
+		t = t.trim();
+		if (t.indexOf("rdf:resource") != -1) {
+			int n = t.indexOf("rdf:resource");
+			String propertyCode = t.substring(1, n-1);
+		    int m = t.lastIndexOf("#");
+			String s = t.substring(m, t.length());
+			m = s.indexOf("\"");
+			String target = s.substring(1, m);
+			return propertyCode + "|" + target;
+		} else {
+			int n = t.indexOf(">");
+			String propertyCode = t.substring(1, n);
+
+			String end_tag = "</" + propertyCode + ">";
+			if(!t.endsWith(end_tag)) {
+				return("ERROR parsing " + t);
+			}
+			String s = t.substring(n, t.length());
+			int m = s.lastIndexOf("<");
+			String propertyValue = s.substring(1, m);
+        	return propertyCode + "|" + propertyValue;
+		}
+	}
+
+
+    public Vector extractProperties(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						String s = t.substring(1, n-1);
+						w.add(classId + "|" + parseProperty(t));
+					}
+				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
+				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						String s = t.substring(1, n-1);
+						w.add(classId + "|" + parseProperty(t));
+					}
+				}
+		    }
+		}
+		return w;
+	}
+
+
+    public Vector extractSuperclasses(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			//<rdfs:subClassOf rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C35844"/>
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<rdfs:subClassOf rdf:resource=") && t.endsWith("/>")) {
+					int n = t.lastIndexOf("#");
+				    t = t.substring(n, t.length());
+					n = t.indexOf("\"");
+					t = t.substring(1, n);
+					w.add(classId + "|" + t);
+				//<rdf:Description rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3161"/>
+				} else if (t.startsWith("<rdf:Description rdf:about=") && t.endsWith("/>")) {
+					int n = t.lastIndexOf("#");
+				    t = t.substring(n, t.length());
+					n = t.indexOf("\"");
+					t = t.substring(1, n);
+					w.add(classId + "|" + t);
+				}
+		    }
+		}
+		return w;
+	}
+
+    public Vector extractRDFSLabels(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			//<rdfs:label>LEC-5 Standard Version - Unwanted Sex Experience: Happened</rdfs:label>
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
+					int n = t.lastIndexOf("</rdfs:label>");
+				    t = t.substring("<rdfs:label>".length(), n);
+					w.add(classId + "|" + t);
+				}
+		    }
+		}
+		return w;
+	}
+
+	public static Vector hashSet2Vector(HashSet hset) {
+		Vector w = new Vector();
+		Iterator it = hset.iterator();
+		while (it.hasNext()) {
+			String t = (String) it.next();
+			w.add(t);
+		}
+		return w;
+	}
+
+    public Vector getRootCodes() {
+		Vector w = extractSuperclasses(this.owl_vec);
+        HashSet child_codes = new HashSet();
+        HashSet parent_codes = new HashSet();
+        for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String child_code = (String) u.elementAt(0);
+			String parent_code = (String) u.elementAt(1);
+			child_codes.add(child_code);
+			parent_codes.add(parent_code);
+		}
+		parent_codes.removeAll(child_codes);
+		return hashSet2Vector(parent_codes);
+	}
+
+    public Vector extractAnnotationProperties(Vector owl_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+        String code = null;
+        String label = null;
+        String p108 = null;
+
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("// Annotation properties") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+            } else {
+				t = t.trim();
+				if (t.startsWith("<owl:AnnotationProperty rdf:about=")) {
+                    istart = true;
+				}
+				if (istart) {
+					if (t.startsWith("<NHC0>") && t.endsWith("</NHC0>")) {
+						int n = t.lastIndexOf("</NHC0>");
+						code = t.substring("<NHC0>".length(), n);
+					}
+					if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
+						int n = t.lastIndexOf("</rdfs:label>");
+						label = t.substring("<rdfs:label>".length(), n);
+					}
+					if (t.startsWith("<P108>") && t.endsWith("</P108>")) {
+						int n = t.lastIndexOf("</P108>");
+						p108 = t.substring("<P108>".length(), n);
+					}
+				}
+				if (t.compareTo("</owl:AnnotationProperty>") == 0 && code != null) {
+					w.add(code + "|" + label + "|" + p108);
+					code = null;
+					label = null;
+					p108 = null;
+					istart = false;
+				}
+
+			}
+		}
+		return new SortUtils().quickSort(w);
+	}
+
+    public Vector extractAssociations(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			if (istart) {
+				String s = t.trim();
+				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
+					int n = s.indexOf(" ");
+					String a = s.substring(1, n);
+					w.add(classId + "|" + a + "|" + extractCode(s));
+				}
+		    }
+		}
+		return w;
+	}
+
+    public Vector getAssociationSources(Vector assoc_vec, String targetCode) {
+		Vector v = new Vector();
+		for (int i=0; i<assoc_vec.size(); i++) {
+			String t = (String) assoc_vec.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String s = (String) u.elementAt(2);
+			if (s.compareTo(targetCode) == 0) {
+				v.add((String) u.elementAt(0) + "|" + targetCode);
+			}
+		}
+		return v;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
+		/*
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
 		int n = owlfile.lastIndexOf(".");
 		String outputfile = owlfile.substring(0, n) + "_" + getToday() + ".owl";
+		*/
 		/*
 		Vector w = scanner.scanAxioms();
 		Vector v = new Vector();
@@ -927,10 +1278,20 @@ public class OWLScanner {
 		Utils.saveToFile(syn_file, v);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		*/
-        Vector v = scanner.scanOwlTags();
+        //Vector v = scanner.scanOwlTags();
         //v = scanner.fileterTagData(v, "owl:Restriction");
-        Utils.dumpVector("fileterTagData", v);
-        scanner.printPaths(v);
+        //Utils.dumpVector("fileterTagData", v);
+        //scanner.printPaths(v);
+
+        Vector class_vec = Utils.readFile("ThesaurusInferred_forTS.owl");
+        Vector w = new OWLScanner().extractProperties(class_vec);
+        for (int i=0; i<w.size(); i++) {
+			String p = (String) w.elementAt(i);
+			System.out.println(p);
+		}
+
+
+
     }
 }
 
