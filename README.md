@@ -26,38 +26,57 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
 
 * Load/Compute Indexes - Run from the “elasticsearch/scripts” folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
 
-      # From the root of cloned https://github.com/NCIEVS/evsrestapi
-      cd elasticsearch/scripts
-      
-      # Configure .env file
-      # NOTE: host.docker.internal refers to "localhost" of the environment running docker, 
-      #       an easy way to avoid having to network containers together.
-      cat > .env << EOF
-      API_ENDPOINT=http://host.docker.internal:8080/api/v1/concept/
-      CONCEPT_OUTPUT_DIR=/tmp/
-      CONCEPT_INPUT_DIR=/tmp/
-      ES_HOST=host.docker.internal
-      ES_PORT=9200
-      INDEX_MAPPING_FILE=../Mapping/concept_flat_full_nested_bylabel.json
-      LOG_DIRECTORY=/tmp/
-      MULTI_PROCESSING_POOL=2
-      NAMED_GRAPH=http://NCI_T
-      SPARQL_ENDPOINT=http://host.docker.internal:5820/NCIT2/query
-      STARDOG_USERNAME=admin
-      STARDOG_PASSWORD=admin
-      EOF
+      # Check properties in application-local.yml (local profile) or application.yml (otherwise)
+      # and make sure the following properties are properly configured 
+      → nci.evs.stardog.host (the stardog host; default is localhost) 
+      → nci.evs.elasticsearch.server.host (the elasticsearch host; default is localhost)
+      → nci.evs.bulkload.conceptsDir (the directory used to store downloaded concept files; default is /tmp/; ignored for real-time index load)
+      → nci.evs.bulkload.downloadBatchSize (the batch size for download from stardog; default is 1000)
+      → nci.evs.bulkload.indexBatchSize (the batch size for upload to Elasticsearch; default is 1000)
 
-* Run the python load script in the docker container (from the “elasticsearch” directory of the cloned project)
-
-      # From the root of cloned https://github.com/NCIEVS/evsrestapi
-      cd elasticsearch
+      # Build the project - From the root of cloned https://github.com/NCIEVS/evsrestapi
+      gradlew clean build -x test
       
-      docker build -t evsrestapi:elasticsearch .
-      docker run -it evsrestapi:elasticsearch
-      (base) root@b63d5d1f4038:/elasticsearch# cd scripts/
-      (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --download_only
-      (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --no_download --delete_document
-      (base) root@b63d5d1f4038:/elasticsearch# exit
+      ** Usage
+      
+        usage: java -jar $DIR/evsrestapi-1.1.1.RELEASE.jar
+        -d,--downloadOnly        Download concepts and skip elasticsearch load.
+        -f,--forceDeleteIndex    Force delete index if index already exists.
+        -h,--help                Show this help information and exit.
+        -l,--location <arg>      The folder location (ex: /tmp/) to use for
+                                  download. Overrides the configuration in
+                                  application.yml file. Will be used only if
+                                  download is required.
+        -r,--realTime            Load elasticsearch in real-time by fetching
+                                  concepts from stardog. Skips downloading to
+                                  folder. Ignores --location (-l), --downloadOnly
+                                  (-d), --skipDownload (-s) options.
+        -s,--skipDownload        Load elasticsearch from folder without download.
+        -t,--terminology <arg>   The terminology (ex: ncit_20.02d) to load.
+
+        # To print help information
+        java -jar <path/to/spring-boot-fat-jar> --help 
+        
+        example: java -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --help
+      
+      *** To load indexes by downloading concepts to local disk:
+      
+        # In this mode, index loading happens internally in two steps
+        # step 1: download concepts to a local folder in batches of size 1000. The default folder is /tmp/.
+        # step 2: upload concepts from the local folder to Elasticsearch in batches of size 1000
+        # Single command will trigger both the steps internally, in a sequential manner
+        
+        # To initiate index load process
+        java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --forceDeleteIndex
+        
+        example: java -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --terminology ncit_20.02d --forceDeleteIndex
+      
+      *** To skip download step and load indexes to Elasticsearch from Stardog directly: 
+      
+        # In this mode, index loading happens in real-time (meaning, in a single step)
+        java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --realTime --forceDeleteIndex
+        
+        example: java -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --terminology ncit_20.02d --realTime --forceDeleteIndex
 
 
 ### Steps for Building and Running EVSRESTAPI locally
