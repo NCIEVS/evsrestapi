@@ -308,7 +308,7 @@ public class Terminology extends BaseModel {
   */
  public String getObjectIndexName() {
    if (StringUtils.isEmpty(objectIndexName)) {
-     objectIndexName = "object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+     objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
    }
    return objectIndexName;
  }

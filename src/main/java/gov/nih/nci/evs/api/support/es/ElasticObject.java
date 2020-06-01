@@ -13,15 +13,14 @@ public class ElasticObject {
   @Id
   private String name;
   
-  @Field(type = FieldType.Object)
-  private Object object;
+  @Field(type = FieldType.Byte)
+  private byte[] data;
 
-  public ElasticObject(String name, Object object) {
+  public ElasticObject(String name, byte[] data) {
     this.name = name;
-    this.object = object;
+    this.data = data;
   }
 
-  //TODO: comments
   public String getName() {
     return name;
   }
@@ -30,11 +29,11 @@ public class ElasticObject {
     this.name = name;
   }
   
-  public Object getObject() {
-    return object;
+  public byte[] getData() {
+    return data;
   }
 
-  public void setObject(Object object) {
-    this.object = object;
+  public void setData(byte[] data) {
+    this.data = data;
   }
 }

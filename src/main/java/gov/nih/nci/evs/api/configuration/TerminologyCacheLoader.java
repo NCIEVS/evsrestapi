@@ -22,6 +22,8 @@ import gov.nih.nci.evs.api.service.ElasticLoadService;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.ElasticObjectUtils;
 
 /**
  * Terminology cache loader to load spring cache by making calls to
@@ -74,7 +76,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("    done paths ");
 
               log.info("  get synonym sources ");
-              sparqlQueryManagerService.getSynonymSources(terminology);
+              List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
+              loadService.loadObject(new ElasticObject("synonym_sources", ElasticObjectUtils.serialize(synonymSources)), terminology);
               log.info("    done synonym sources ");
               
             } catch (IOException e) {

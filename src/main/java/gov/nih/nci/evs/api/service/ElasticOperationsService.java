@@ -21,7 +21,7 @@ public interface ElasticOperationsService {
   public static final String CONCEPT_TYPE = "concept";
 
   /** The type in ES for cached objects **/
-  public static final String OBJECT_TYPE = "object";
+  public static final String OBJECT_TYPE = "evs_object";
   
   /**
    * create index using the given index name

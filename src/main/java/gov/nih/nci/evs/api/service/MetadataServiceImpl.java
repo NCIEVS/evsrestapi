@@ -40,6 +40,9 @@ public class MetadataServiceImpl implements MetadataService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
+  @Autowired
+  private ElasticObjectService elasticObjectService;
+  
   /** The self. */
   @Resource
   private MetadataService self;
@@ -292,7 +295,6 @@ public class MetadataServiceImpl implements MetadataService {
       return new ArrayList<>();
 
     return sparqlQueryManagerService.getDefinitionSources(term);
-
   }
 
   /**
@@ -311,8 +313,7 @@ public class MetadataServiceImpl implements MetadataService {
     if (!term.getTerminology().equals("ncit"))
       return new ArrayList<>();
 
-    return sparqlQueryManagerService.getSynonymSources(term);
-
+    return elasticObjectService.getSynonymSources(term);
   }
 
   /**
