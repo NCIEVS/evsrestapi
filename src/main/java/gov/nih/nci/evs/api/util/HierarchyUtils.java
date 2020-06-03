@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.elasticsearch.annotations.Field;
+
 import gov.nih.nci.evs.api.model.HierarchyNode;
 
 /**
@@ -16,32 +18,41 @@ import gov.nih.nci.evs.api.model.HierarchyNode;
 public class HierarchyUtils {
 
   /** The parent 2 child. */
+  @Field
   private HashMap<String, ArrayList<String>> parent2child =
       new HashMap<String, ArrayList<String>>();
 
   /** The child 2 parent. */
+  @Field
   private HashMap<String, ArrayList<String>> child2parent =
       new HashMap<String, ArrayList<String>>();
 
   /** The code 2 label. */
+  @Field
   private HashMap<String, String> code2label = new HashMap<String, String>();
 
   /** The label 2 code. */
+  @Field
   private HashMap<String, String> label2code = new HashMap<String, String>();
 
   /** The concepts. */
+  @Field
   private HashSet<String> concepts = new HashSet<String>();
 
   /** The parents. */
+  @Field
   private HashSet<String> parents = new HashSet<String>();
 
   /** The children. */
+  @Field
   private HashSet<String> children = new HashSet<String>();
 
   /** The roots. */
+  @Field
   private HashSet<String> roots = null;
 
   /** The leaves. */
+  @Field
   private HashSet<String> leaves = null;
 
   /**

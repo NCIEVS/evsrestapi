@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.support.es;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -8,17 +10,19 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
 @Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
-public class ElasticObject {
+public class ElasticObject<T> {
   
   @Id
   private String name;
-  
-  @Field(type = FieldType.Byte)
-  private byte[] data;
 
-  public ElasticObject(String name, byte[] data) {
+  @Field(type = FieldType.Object)
+  private T object;
+  
+  @Field(type = FieldType.Nested)
+  private List<T> objects;
+
+  public ElasticObject(String name) {
     this.name = name;
-    this.data = data;
   }
 
   public String getName() {
@@ -29,11 +33,19 @@ public class ElasticObject {
     this.name = name;
   }
   
-  public byte[] getData() {
-    return data;
+  public T getObject() {
+    return object;
   }
 
-  public void setData(byte[] data) {
-    this.data = data;
+  public void setObject(T object) {
+    this.object = object;
+  }
+  
+  public List<T> getObjects() {
+    return objects;
+  }
+
+  public void setObjects(List<T> objects) {
+    this.objects = objects;
   }
 }

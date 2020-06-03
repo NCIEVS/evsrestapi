@@ -45,8 +45,6 @@ public class ElasticObjectServiceImpl implements ElasticObjectService {
       return Collections.<ConceptMinimal>emptyList();
     }
 
-    byte[] data = objects.get(0).getData();
-
-    return ElasticObjectUtils.deserializeConceptMinimalList(data);
+    return (List<ConceptMinimal>)objects.get(0).getObjects();
   }
 }

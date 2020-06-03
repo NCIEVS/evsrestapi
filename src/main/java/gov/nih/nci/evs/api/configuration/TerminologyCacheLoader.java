@@ -77,7 +77,9 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
 
               log.info("  get synonym sources ");
               List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
-              loadService.loadObject(new ElasticObject("synonym_sources", ElasticObjectUtils.serialize(synonymSources)), terminology);
+              ElasticObject<ConceptMinimal> ssObject = new ElasticObject<>("synonym_sources");
+              ssObject.setObjects(synonymSources);
+              loadService.loadObject(ssObject, terminology);
               log.info("    done synonym sources ");
               
             } catch (IOException e) {
