@@ -15,7 +15,6 @@ import org.springframework.util.CollectionUtils;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
-import gov.nih.nci.evs.api.util.ElasticObjectUtils;
 
 @Service
 public class ElasticObjectServiceImpl implements ElasticObjectService {
@@ -45,6 +44,6 @@ public class ElasticObjectServiceImpl implements ElasticObjectService {
       return Collections.<ConceptMinimal>emptyList();
     }
 
-    return (List<ConceptMinimal>)objects.get(0).getObjects();
+    return objects.get(0).getConceptMinimals();
   }
 }

@@ -85,7 +85,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   public void loadObject(ElasticObject object, Terminology terminology) throws IOException {
     String indexName = terminology.getObjectIndexName();
     logger.info("object index name: {}", indexName);
-    boolean result = operationsService.createIndex(indexName, true);
+    boolean result = operationsService.createIndex(indexName, false);
+    logger.info("index result: {}", result);
     if (result) {
       operationsService.getElasticsearchOperations().putMapping(indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     }
