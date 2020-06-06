@@ -76,9 +76,9 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
 
               log.info("  find paths ");
               Paths paths = sparqlQueryManagerService.getPaths(terminology);
-              ElasticObject pathsObject = new ElasticObject("paths");
-              pathsObject.setPaths(paths);
-              loadService.loadObject(pathsObject, terminology);
+//              ElasticObject pathsObject = new ElasticObject("paths");
+//              pathsObject.setPaths(paths);
+//              loadService.loadObject(pathsObject, terminology);
               log.info("    done paths ");
 
               log.info("  get synonym sources ");

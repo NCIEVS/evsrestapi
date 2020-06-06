@@ -68,7 +68,7 @@ public class PathFinder {
    * @return the roots
    */
   public ArrayList<String> getRoots() {
-    ArrayList<String> roots = this.hierarchy.getRoots();
+    ArrayList<String> roots = this.hierarchy.getHierarchyRoots();
     for (String root : roots) {
       System.out.println(root);
     }
@@ -104,7 +104,7 @@ public class PathFinder {
   public Paths findPaths() {
     Paths paths = new Paths();
     Deque<String> stack = new ArrayDeque<String>();
-    ArrayList<String> roots = this.hierarchy.getRoots();
+    ArrayList<String> roots = this.hierarchy.getHierarchyRoots();
     for (String root : roots) {
       stack.push(root);
     }

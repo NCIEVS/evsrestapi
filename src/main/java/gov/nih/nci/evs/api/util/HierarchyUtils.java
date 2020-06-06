@@ -50,7 +50,7 @@ public class HierarchyUtils {
 
   /** The roots. */
   @Field(type = FieldType.Object)
-  private HashSet<String> roots = null;
+  private HashSet<String> hierarchyRoots = null;
 
   /** The leaves. */
   @Field(type = FieldType.Object)
@@ -121,8 +121,8 @@ public class HierarchyUtils {
       concepts.add(values[2]);
     }
 
-    roots = new HashSet<String>(parents);
-    roots.removeAll(children);
+    hierarchyRoots = new HashSet<String>(parents);
+    hierarchyRoots.removeAll(children);
 
     leaves = new HashSet<String>(children);
     leaves.removeAll(parents);
@@ -161,8 +161,8 @@ public class HierarchyUtils {
    *
    * @return the roots
    */
-  public ArrayList<String> getRoots() {
-    return new ArrayList<String>(this.roots);
+  public ArrayList<String> getHierarchyRoots() {
+    return new ArrayList<String>(this.hierarchyRoots);
   }
 
   /**
@@ -215,7 +215,7 @@ public class HierarchyUtils {
    */
   public ArrayList<HierarchyNode> getRootNodes() {
     ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    for (String code : this.roots) {
+    for (String code : this.hierarchyRoots) {
       HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
       nodes.add(node);
     }

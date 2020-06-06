@@ -67,7 +67,7 @@ nci:
       readTimeout: 30000
       connectTimeout: 30000
       populateCacheCron: 0 0 1 * * *
-      forcePopulateCache: N
+      forcePopulateCache: Y
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
