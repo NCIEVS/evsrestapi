@@ -80,6 +80,8 @@ public class OWLScanner {
 	static String pt_code = "P108";
 	static String pt_tag_open = "<P108>";
 
+	public HashMap code2LabelMap = null;
+
     public OWLScanner() {
 
     }
@@ -87,7 +89,20 @@ public class OWLScanner {
     public OWLScanner(String owlfile) {
         this.owlfile = owlfile;
         this.owl_vec = readFile(owlfile);
+        Vector label_data = extractRDFSLabels(owl_vec);
+        code2LabelMap = new HashMap();
+        for (int i=0; i<label_data.size(); i++) {
+			String t = (String) label_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String code = (String) u.elementAt(0);
+			String label = (String) u.elementAt(1);
+			code2LabelMap.put(code, label);
+		}
     }
+
+    public String getLabel(String code) {
+		return (String) code2LabelMap.get(code);
+	}
 
     public Vector get_owl_vec() {
 		return this.owl_vec;
@@ -1249,6 +1264,95 @@ C4910|<NHC0>C4910</NHC0>
 			}
 		}
 		return v;
+	}
+
+    public HashMap tallyProperties(Vector v) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			t = t.trim();
+			int n = t.lastIndexOf("/");
+			if (n != -1) {
+				String s = t.substring(n+1, t.length()-1);
+				if (s.length() > 0 && s.indexOf("owl") == -1 && s.indexOf("rdfs:subClassOf") == -1) {
+					if (t.startsWith("<" + s + ">")) {
+						System.out.println(s);
+						Integer int_obj = new Integer(0);
+						if (hmap.containsKey(s)) {
+							int_obj = (Integer) hmap.get(s);
+						}
+						int knt = Integer.valueOf(int_obj);
+						int_obj = new Integer(knt+1);
+						hmap.put(s, int_obj);
+					}
+				}
+			}
+		}
+		return hmap;
+	}
+
+    public HashMap tallyAssociations(Vector v) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			t = t.trim();
+			if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+				int n = t.indexOf(">");
+				if (n != -1) {
+					String s = t.substring(1, n-1);
+					String str = parseProperty(t);
+					Vector u = StringUtils.parseData(str, '|');
+					s = (String) u.elementAt(0);
+					Integer int_obj = new Integer(0);
+					if (hmap.containsKey(s)) {
+						int_obj = (Integer) hmap.get(s);
+					}
+					int knt = Integer.valueOf(int_obj);
+					int_obj = new Integer(knt+1);
+					hmap.put(s, int_obj);
+				}
+			}
+		}
+		return hmap;
+	}
+
+    public Vector extractOWLDisjointWith(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+
+				System.out.println(classId);
+				//if (istart0) {
+					istart = true;
+				//}
+			}
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<") && t.indexOf("owl:disjointWith") != -1) {
+					int n = t.lastIndexOf("#");
+					t = t.substring(n, t.length());
+					n = t.lastIndexOf("\"");
+					String id = t.substring(1, n);
+					w.add(classId + "|" + id);
+				}
+		    }
+		}
+		return w;
 	}
 
     public static void main(String[] args) {
