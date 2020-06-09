@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
+import gov.nih.nci.evs.api.properties.MetadataProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.properties.SwaggerProperties;
 import gov.nih.nci.evs.api.properties.ThesaurusProperties;
@@ -96,6 +97,17 @@ public class PropertiesConfiguration {
   @ConfigurationProperties(prefix = "thesaurus.owl", ignoreUnknownFields = false)
   ThesaurusProperties thesaurusProperties() {
     return new ThesaurusProperties();
+  }
+
+  /**
+   * Metadata properties.
+   * 
+   * @return the metadata properties
+   */
+  @Bean
+  @ConfigurationProperties(prefix = "thesaurus.metadata", ignoreUnknownFields = false)
+  MetadataProperties metadataProperties() {
+    return new MetadataProperties();
   }
 
   /**

@@ -1,4 +1,18 @@
 thesaurus:
+    metadata:
+        code: 'NHC0'
+        preferredName: 'P108'
+        synonyms: [ 'P90' ]
+        synonymTermType: 'P383'
+        synonymSource: 'P384'
+        synonymCode: 'P385'
+        synonymSubSource: 'P386'
+        definitionSource: 'P378'
+        mapRelation: 'P393'
+        mapTarget: 'P395'
+        mapTargetTermType: 'P394'
+        mapTargetTerminology: 'P396'
+        mapTargetTerminologyVersion: 'P397'
     owl:
         returnFields: { code: 'Code',
                         nhc0: 'Code',                        
@@ -195,7 +209,7 @@ thesaurus:
                             GENC: 'Geopolitical Entities, Names, and Codes Terminology',
                             HGNC: 'HUGO Gene Nomenclature Committee',
                             HL7: 'Health Level Seven International',
-                            ICDC: 'International Cancer Genome Consortium',
+                            ICDC: 'Integrated Canine Data Commons',
                             ICH: 'International Conference on Harmonization',
                             INC: 'International Neonatal Consortium',
                             IMDRF: 'International Medical Device Regulators Forum',
