@@ -163,9 +163,9 @@ public class MetadataController extends BaseController {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Association " + code + " not found");        
+            "Association " + code + " not found");
       }
-      
+
       Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
       if (!concept.isPresent())
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -263,8 +263,7 @@ public class MetadataController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Role " + code + " not found");        
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found");
       }
 
       Optional<Concept> concept = metadataService.getRole(terminology, code, include);
@@ -413,8 +412,7 @@ public class MetadataController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Qualifier " + code + " not found");        
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
       }
 
       Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
@@ -500,8 +498,7 @@ public class MetadataController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Property " + code + " not found");        
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
       }
 
       Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
@@ -620,8 +617,8 @@ public class MetadataController extends BaseController {
    * @return the axiom qualifiers list
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get qualifier values for the specified terminology and code/label", response = String.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get qualifier values for the specified terminology and code/label",
+      response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
@@ -644,8 +641,7 @@ public class MetadataController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Qualifier " + code + " not found");        
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
       }
 
       Optional<List<String>> result = metadataService.getQualifierValues(terminology, code);
