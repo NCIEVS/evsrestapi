@@ -159,6 +159,13 @@ public class MetadataController extends BaseController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
     try {
+
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Association " + code + " not found");        
+      }
+      
       Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
       if (!concept.isPresent())
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -254,6 +261,12 @@ public class MetadataController extends BaseController {
     @PathVariable(value = "codeOrLabel") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
     try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Role " + code + " not found");        
+      }
+
       Optional<Concept> concept = metadataService.getRole(terminology, code, include);
       if (!concept.isPresent())
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found");
@@ -398,6 +411,12 @@ public class MetadataController extends BaseController {
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Qualifier " + code + " not found");        
+      }
+
       Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
       if (!concept.isPresent())
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
@@ -479,6 +498,12 @@ public class MetadataController extends BaseController {
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Property " + code + " not found");        
+      }
+
       Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
       if (!concept.isPresent())
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
@@ -595,7 +620,7 @@ public class MetadataController extends BaseController {
    * @return the axiom qualifiers list
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get axiom qualifiers for the specified property", response = String.class,
+  @ApiOperation(value = "Get qualifier values for the specified terminology and code/label", response = String.class,
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -611,13 +636,19 @@ public class MetadataController extends BaseController {
   })
   @RecordMetricDBFormat
   @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/property/{codeOrLabel}/axiomQualifiers",
+      value = "/metadata/{terminology}/qualifier/{codeOrLabel}/values",
       produces = "application/json")
-  public @ResponseBody List<String> getAxiomQualifiersList(
+  public @ResponseBody List<String> getQualifierValues(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "codeOrLabel") final String code) throws Exception {
     try {
-      Optional<List<String>> result = metadataService.getAxiomQualifiersList(terminology, code);
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Qualifier " + code + " not found");        
+      }
+
+      Optional<List<String>> result = metadataService.getQualifierValues(terminology, code);
       if (!result.isPresent())
         throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 

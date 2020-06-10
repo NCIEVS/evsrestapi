@@ -1060,7 +1060,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
+  public List<String> getQualifierValues(String propertyCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     Map<String, String> values =
