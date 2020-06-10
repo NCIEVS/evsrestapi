@@ -16,6 +16,7 @@ Information on downloading and using stardog with EVSRESTAPI.
       [root@0b9fbb0b90ba bin]# cd /opt/stardog/bin
       [root@0b9fbb0b90ba bin]# ./stardog-admin server start
       ... answer questions, provide email - bcarlsen+stardog@westcoastinformatics.com ...
+      [root@0b9fbb0b90ba bin]# exit
 
     * At this point, the license should be in docker volume "stardog-home" and be properly remounted with the license intact
     * NOTE: this step only needs to be run once (until license expires)

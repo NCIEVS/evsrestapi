@@ -4,13 +4,13 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ### Prerequisites
 
-* Install Docker and ensure it is configured to allow
+* Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
     * Memory = 6G
     * Swap = 1G
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
 * Choose a local directory $dir (e.g. c:/evsrestapi)
-* Make directories $dir/elasticsearch/data
-* Download an NCI Thesaurus file as "Thesaurus.owl" to $dir/ (see [https://evs.nci.nih.gov/evs-download/thesaurus-downloads](https://evs.nci.nih.gov/evs-download/thesaurus-downloads))
+* mkdir -p $dir/elasticsearch/data
+* Download latest ThesaurusInf_*OWL.zip, unpack to $dir/ThesaurusInferred.owl (see [https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/](https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/))
 
 ### Steps for Loading Data and Indexes Locally
 
@@ -18,10 +18,10 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Launch Elasticsearch docker container 
 In a terminal/Cygwin window, run the following to have an elasticsearch instance running. Keep this window open to keep the server running.
 
-      docker pull docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+      docker pull docker.elastic.co/elasticsearch/elasticsearch:6.7.0
       # Choose a directory for your elasticsearch data to live
       dir=c:/evsrestapi/elasticsearch/data
-      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
 
 * Load/Compute Indexes - Run from the “elasticsearch/scripts” folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
