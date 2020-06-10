@@ -60,6 +60,7 @@ public class MetadataController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDB
@@ -88,6 +89,7 @@ public class MetadataController extends BaseController {
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations",
@@ -132,6 +134,7 @@ public class MetadataController extends BaseController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -226,6 +229,7 @@ public class MetadataController extends BaseController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -275,6 +279,7 @@ public class MetadataController extends BaseController {
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
@@ -321,6 +326,7 @@ public class MetadataController extends BaseController {
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
@@ -366,6 +372,7 @@ public class MetadataController extends BaseController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -413,6 +420,7 @@ public class MetadataController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
@@ -445,6 +453,7 @@ public class MetadataController extends BaseController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -492,6 +501,7 @@ public class MetadataController extends BaseController {
       response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -526,6 +536,7 @@ public class MetadataController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -556,6 +567,7 @@ public class MetadataController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -587,6 +599,7 @@ public class MetadataController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({

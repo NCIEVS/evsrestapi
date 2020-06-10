@@ -68,8 +68,8 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found"),
-      @ApiResponse(code = 400, message = "Bad request")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}",
       produces = "application/json")
@@ -132,6 +132,7 @@ public class ConceptController extends BaseController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -184,6 +185,7 @@ public class ConceptController extends BaseController {
       response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -231,6 +233,7 @@ public class ConceptController extends BaseController {
       response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -278,6 +281,7 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -326,6 +330,7 @@ public class ConceptController extends BaseController {
       response = Role.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -373,6 +378,7 @@ public class ConceptController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -420,6 +426,7 @@ public class ConceptController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -468,6 +475,7 @@ public class ConceptController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -520,6 +528,7 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -568,6 +577,7 @@ public class ConceptController extends BaseController {
       response = DisjointWith.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -611,6 +621,7 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -662,6 +673,7 @@ public class ConceptController extends BaseController {
       response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -715,6 +727,7 @@ public class ConceptController extends BaseController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -758,6 +771,7 @@ public class ConceptController extends BaseController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -800,6 +814,7 @@ public class ConceptController extends BaseController {
       response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
@@ -853,6 +868,7 @@ public class ConceptController extends BaseController {
       response = ConceptPath.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat

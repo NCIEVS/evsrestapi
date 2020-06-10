@@ -31,6 +31,7 @@ public class VersionController {
   @ApiOperation(value = "Get the application version information", response = ApplicationVersion.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetricDBFormat
