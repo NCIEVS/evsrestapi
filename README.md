@@ -24,7 +24,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
 
-* Load/Compute Indexes - Run from the â€œelasticsearch/scriptsâ€� folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
+* Load/Compute Indexes - Run from the "elasticsearch/scripts" folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
 
       # From the root of cloned https://github.com/NCIEVS/evsrestapi
       cd elasticsearch/scripts
@@ -47,7 +47,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       STARDOG_PASSWORD=admin
       EOF
 
-* Run the python load script in the docker container (from the â€œelasticsearchâ€� directory of the cloned project)
+* Run the python load script in the docker container (from the "elasticsearch" directory of the cloned project)
 
       # Before cloning the repo, make sure that the command "git config core.autocrlf" returns FALSE. Change it to FALSE using "git config --global core.autocrlf false" if necessary
 		
@@ -69,19 +69,19 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
     * NOTE: both services must be loaded and running for the application tests to run properly
 * Configure application
     * see `src/main/resources/application-local.yml` file for local setup (these settings should be suitable for local deployment)
-* Build the application (MUST DO BEFORE RUNNING if using â€œexternal tools configurationâ€�)
+* Build the application (MUST DO BEFORE RUNNING if using "external tools configuration")
     * `SPRING_PROFILES_ACTIVE=local ./gradlew clean build`
     * Executable war file present in build/libs
 
 * Run application in Eclipse (SpringBoot)
-    * Click "Run" â†’ "External Tools" â†’ "External Tools Configurations"
-    * Create a new entry under â€œProgramâ€� and configure it as follows:
-        * location = <path to java executable, e.g. `C:/Program Files/Java/jdk1.8.0_191/bin/java.exe`>
-        * working dir = <path to project, e.g. `C:/Users/bcarl/Desktop/workspace/evsrestapi`>
+    * Click "Run" -> "External Tools" -> "External Tools Configurations"
+    * Create a new entry under "Program" and configure it as follows:
+        * location = <path to java executable, e.g. 'C:/Program Files/Java/jdk1.8.0_191/bin/java.exe'>
+        * working dir = <path to project, e.g. 'C:/Users/bcarl/Desktop/workspace/evsrestapi'>
         * Arguments = command line args
-            * `-Xmx4096M` - ensure enough memory usage
-            * `-Dspring.profiles.active=local` - make sure to use application-local.yml
-            * `-jar *.war` - point to the war file
+            * '-Xmx4096M' - ensure enough memory usage
+            * '-Dspring.profiles.active=local' - make sure to use application-local.yml
+            * '-jar *.war' - point to the war file
 
     * Test that it's up by looking for swagger docs: [http://localhost:8080/swagger-ui.html#/](http://localhost:8080/swagger-ui.html#/)
 
