@@ -1375,6 +1375,28 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
 
+    public Vector extractAllDisjointClasses(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("<owl:AllDisjointClasses") != -1) {
+				istart = true;
+			}
+
+			if (istart) {
+				w.add(t);
+			}
+
+		    if (istart && t.indexOf("</owl:AllDisjointClasses>") != -1) {
+				break;
+			}
+		}
+		return w;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
