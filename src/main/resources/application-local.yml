@@ -62,7 +62,7 @@ nci:
       forcePopulateCache: N
     elasticsearch:
       server:
-        url: http://10.1.10.30:9200/concept/_search
+        url: http://localhost:9200/concept/_search
       query:
         propertyToQuery: {
                    p108:
