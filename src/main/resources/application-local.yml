@@ -53,7 +53,7 @@ nci:
       forceFileGeneration: false
       metricLogDirectory: ${user.home}/apps/evsrestapi/logs/
     stardog:
-      queryUrl: http://localhost:5820/NCIT2/query
+      queryUrl: http://10.1.10.30:5820/NCIT2/query
       username: admin
       password: admin
       readTimeout: 30
