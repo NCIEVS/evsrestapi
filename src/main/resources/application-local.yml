@@ -53,7 +53,7 @@ nci:
       forceFileGeneration: false
       metricLogDirectory: ${user.home}/apps/evsrestapi/logs/
     stardog:
-      queryUrl: http://localhost:5820/NCIT2/query
+      queryUrl: http://10.1.10.30:5820/NCIT2/query
       username: admin
       password: admin
       readTimeout: 30
@@ -62,7 +62,7 @@ nci:
       forcePopulateCache: N
     elasticsearch:
       server:
-        url: http://10.1.10.30:9200/concept/_search
+        url: http://localhost:9200/concept/_search
       query:
         propertyToQuery: {
                    p108:

@@ -195,6 +195,7 @@ thesaurus:
                             GENC: 'Geopolitical Entities, Names, and Codes Terminology',
                             HGNC: 'HUGO Gene Nomenclature Committee',
                             HL7: 'Health Level Seven International',
+                            ICDO3: 'International Classification of Diseases for Oncology, 3rd edition',
                             ICDC: 'International Cancer Genome Consortium',
                             ICH: 'International Conference on Harmonization',
                             INC: 'International Neonatal Consortium',
@@ -213,9 +214,12 @@ thesaurus:
                             NICHD: 'National Institute of Child Health and Human Development',
                             PI-RADS: 'Prostate Imaging-Reporting and Data System',
                             PID: 'NCI Nature Pathway Interaction Database',
+                            PQCMC: 'Pharmaceutical Quality/Chemistry, Manufacturing, and Controls',
                             RENI: 'Registry Nomenclature Information System',
                             SEER: 'Surveillance, Epidemiology, and End Results Program',
                             UCUM: 'Unified Code for Units of Measure',
+                            UMD2001: 'Universal Medical Device Nomenclature System, Version 2001',
+                            UWDA142: 'University of Washington Digital Anatomist, Version 1.4.2',
                             Zebrafish: 'Zebrafish Model Organism Database',
                             'ZFin': 'Zebrafish Information Network'        
                          }
