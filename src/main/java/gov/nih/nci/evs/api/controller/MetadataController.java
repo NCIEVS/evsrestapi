@@ -537,9 +537,10 @@ public class MetadataController extends BaseController {
     @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
       Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
-      if (!result.isPresent())
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
+      if (!result.isPresent()) {
+        // this should never happen
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+      }
       return result.get();
     } catch (Exception e) {
       handleException(e);
@@ -646,7 +647,7 @@ public class MetadataController extends BaseController {
 
       Optional<List<String>> result = metadataService.getQualifierValues(terminology, code);
       if (!result.isPresent())
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
 
       return result.get();
     } catch (Exception e) {

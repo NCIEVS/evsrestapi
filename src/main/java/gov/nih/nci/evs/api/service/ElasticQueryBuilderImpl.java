@@ -489,11 +489,14 @@ public class ElasticQueryBuilderImpl implements ElasticQueryBuilder {
               value = this.propertyToQuery.get(property.toLowerCase());
             }
             if (value == null) {
-              throw new IOException(
-                  "Parameter 'property' has an invalid value = " + property);
+              // INstead of throwing an exception here, just add a worthless
+              // clause
+              // throw new IOException(
+              // "Parameter 'property' has an invalid value = " + property);
+              value = "\"" + property.toLowerCase() + "^10\",";
+            }
 
-            } else
-              fields = fields + value;
+            fields = fields + value;
           }
           fields = fields.substring(0, fields.length() - 1);
           fields = fields + "]\n";
