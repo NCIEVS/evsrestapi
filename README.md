@@ -5,9 +5,11 @@ Information on the build and deployment process for the EVSRESTAPI project
 ### Prerequisites
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
-    * Memory = 6G
+    * Memory = 7G
     * Swap = 1G
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
+    * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
+
 * Choose a local directory $dir (e.g. c:/evsrestapi)
 * mkdir -p $dir/elasticsearch/data
 * Download latest ThesaurusInf_*OWL.zip, unpack to $dir/ThesaurusInferred.owl (see [https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/](https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/))
@@ -21,7 +23,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       docker pull docker.elastic.co/elasticsearch/elasticsearch:6.7.0
       # Choose a directory for your elasticsearch data to live
       dir=c:/evsrestapi/elasticsearch/data
-      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
+      docker run -d -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms2g -Xmx3g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
 
 * Load/Compute Indexes - Run from the "elasticsearch/scripts" folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
@@ -48,14 +50,12 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       EOF
 
 * Run the python load script in the docker container (from the "elasticsearch" directory of the cloned project)
-
-      # Before cloning the repo, make sure that the command "git config core.autocrlf" returns FALSE. Change it to FALSE using "git config --global core.autocrlf false" if necessary
 		
       # From the root of cloned https://github.com/NCIEVS/evsrestapi
       cd elasticsearch
       
-      docker build -t evsrestapi:elasticsearch .
-      docker run -it evsrestapi:elasticsearch
+      docker build -t evsrestapi:indexes .
+      docker run -it evsrestapi:indexes
       (base) root@b63d5d1f4038:/elasticsearch# cd scripts/
       (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --download_only
       (base) root@b63d5d1f4038:/elasticsearch# ./bulkLoadES.py --index_name concept --no_download --delete_document
