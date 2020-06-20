@@ -71,37 +71,41 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /** The children. */
-  @Transient
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children"})
   private List<Concept> children;
 
   /** The parents. */
-  @Transient
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children"})
   private List<Concept> parents;
 
   /** The associations. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Association> associations;
 
   /** The inverse associations. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Association> inverseAssociations;
 
   /** The roles. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Role> roles;
 
   /** The disjoint with. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Role> inverseRoles;
 
   /** The maps. */
   @Transient
   private List<Map> maps;
 
+//  @Field(type = FieldType.Keyword)
+  @Transient
+  private String paths;
+  
   /**
    * Instantiates an empty {@link Concept}.
    */
@@ -494,4 +498,11 @@ public class Concept extends ConceptMinimal {
     this.maps = maps;
   }
 
+  public String getPaths() {
+    return paths;
+  }
+
+  public void setPaths(String paths) {
+    this.paths = paths;
+  }
 }

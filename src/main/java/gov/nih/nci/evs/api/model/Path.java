@@ -3,20 +3,15 @@ package gov.nih.nci.evs.api.model;
 
 import java.util.List;
 
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
-
 /**
  * Represents a path in a hierarchy (as a list of concepts with a direction flag).
  */
 public class Path extends BaseModel {
 
   /** The direction. */
-  @Field(type = FieldType.Integer)
   private int direction;
 
   /** The concepts. */
-  @Field(type = FieldType.Nested)
   private List<ConceptNode> concepts;
 
   /**

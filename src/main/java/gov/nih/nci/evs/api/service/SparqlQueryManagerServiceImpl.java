@@ -86,8 +86,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Autowired
   ApplicationProperties applicationProperties;
 
-  @Autowired
-  ElasticObjectService esObjectService;
+//  @Autowired
+//  ElasticObjectService esObjectService;
   
   /** The elastic search service. */
   @Autowired
@@ -648,6 +648,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setInverseRoles(inverseRoleMap.get(conceptCode));
       concept.setMaps(EVSUtils.getMapsTo(axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
+//      Paths paths = getPathToRoot(conceptCode, terminology);
+//      concept.setPaths(new ObjectMapper().writeValueAsString(paths));
     }
     
     return concepts;
@@ -1107,9 +1109,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String inClause = getInClause(conceptCodes);
     String query =
-        queryBuilderService.constructQuery("inverse.roles.batch", terminology.getGraph(), inClause);
+        queryBuilderService.constructBatchQuery("inverse.roles.batch", terminology.getGraph(), inClause);
+    if (log.isDebugEnabled()) log.debug("query: " + query);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
+    
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     Map<String, List<Role>> resultMap = new HashMap<>();
@@ -1680,7 +1683,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<HierarchyNode> getRootNodes(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return esObjectService.getHierarchy(terminology).getRootNodes();
+    return self.getHierarchyUtils(terminology).getRootNodes();
   }
 
   /**
@@ -1696,21 +1699,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return esObjectService.getHierarchy(terminology).getChildNodes(parent, 0);
+    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
   }
 
   /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return esObjectService.getHierarchy(terminology).getChildNodes(parent, maxLevel);
+    return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
   }
 
   /* see superclass */
   @Override
   public List<String> getAllChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return esObjectService.getHierarchy(terminology).getAllChildNodes(parent);
+    return self.getHierarchyUtils(terminology).getAllChildNodes(parent);
   }
 
   /* see superclass */
@@ -1893,7 +1896,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public HierarchyUtils getHierarchyUtils(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     List<String> parentchild = self.getHierarchy(terminology);
-    log.info("parentchild : " + parentchild);
     return new HierarchyUtils(parentchild);
   }
 
@@ -1903,7 +1905,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public Paths getPaths(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    HierarchyUtils hierarchy = esObjectService.getHierarchy(terminology);
+    HierarchyUtils hierarchy = self.getHierarchyUtils(terminology);
     return new PathFinder(hierarchy).findPaths();
   }
 
