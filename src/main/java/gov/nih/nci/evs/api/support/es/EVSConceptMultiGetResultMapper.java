@@ -1,0 +1,53 @@
+package gov.nih.nci.evs.api.support.es;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.elasticsearch.action.get.MultiGetItemResponse;
+import org.elasticsearch.action.get.MultiGetResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.elasticsearch.core.MultiGetResultMapper;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+
+public class EVSConceptMultiGetResultMapper extends BaseResultMapper implements MultiGetResultMapper {
+
+  /** The Constant log. */
+  private static final Logger logger = LoggerFactory.getLogger(EVSConceptMultiGetResultMapper.class);
+  
+  private IncludeParam ip;
+  
+  public EVSConceptMultiGetResultMapper(IncludeParam ip) {
+    this.ip = ip;
+  }
+  
+  @Override
+  public <T> List<T> mapResults(MultiGetResponse responses, Class<T> clazz) {
+    List<Concept> concepts = new ArrayList<>();
+    ObjectMapper mapper = new ObjectMapper();
+    for(MultiGetItemResponse response: responses) {
+      if (!response.getResponse().isExists() || response.getResponse().isSourceEmpty()) continue;
+      Concept concept = null;
+      if (ip == null) {
+        try {
+          concept = mapper.readValue(response.getResponse().getSourceAsString(), Concept.class);
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException("Error while processing multiGet results: " + e.getMessage());
+        }
+      } else {
+        Map<String, Object> sourceMap = response.getResponse().getSource();
+        applyIncludeParam(sourceMap, ip);
+        concept = mapper.convertValue(sourceMap, Concept.class);
+      }
+      concepts.add(concept);
+    }
+    
+    return (List<T>)concepts;
+  }
+}

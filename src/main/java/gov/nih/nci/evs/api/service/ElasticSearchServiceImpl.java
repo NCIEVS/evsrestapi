@@ -113,12 +113,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (searchCriteria.getInclude().toLowerCase().contains("highlights")) {
       searchQuery = searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
     }
-
-    // logger.info(" = " + searchQuery.build().getQuery());
-    // query on operations
-    Page<Concept> resultPage =
-        operations.queryForPage(searchQuery.build(), Concept.class, new EVSConceptResultMapper());
-
+    
+    //query on operations
+    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class, new EVSConceptResultMapper(null));
+    
     logger.debug("result count: {}", resultPage.getTotalElements());
 
     ConceptResultList result = new ConceptResultList();

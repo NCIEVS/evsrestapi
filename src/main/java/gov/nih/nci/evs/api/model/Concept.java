@@ -103,8 +103,8 @@ public class Concept extends ConceptMinimal {
   private List<Map> maps;
 
 //  @Field(type = FieldType.Keyword)
-  @Transient
-  private String paths;
+//  @Transient
+//  private String paths;
   
   /**
    * Instantiates an empty {@link Concept}.
@@ -498,11 +498,11 @@ public class Concept extends ConceptMinimal {
     this.maps = maps;
   }
 
-  public String getPaths() {
-    return paths;
-  }
-
-  public void setPaths(String paths) {
-    this.paths = paths;
-  }
+//  public String getPaths() {
+//    return paths;
+//  }
+//
+//  public void setPaths(String paths) {
+//    this.paths = paths;
+//  }
 }

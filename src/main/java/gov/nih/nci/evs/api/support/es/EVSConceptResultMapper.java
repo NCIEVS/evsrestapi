@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
 
 /**
  * Custom concept result mapper to extract highlights from search hits
@@ -28,15 +29,18 @@ import gov.nih.nci.evs.api.model.Concept;
  * @author Arun
  *
  */
-public class EVSConceptResultMapper implements SearchResultMapper {
-
+public class EVSConceptResultMapper extends BaseResultMapper implements SearchResultMapper {
+  
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(EVSConceptResultMapper.class);
 
   /** the object mapper **/
   private ObjectMapper mapper;
-
-  public EVSConceptResultMapper() {
+  
+  private IncludeParam ip;
+  
+  public EVSConceptResultMapper(IncludeParam ip) {
+    this.ip = ip;
     this.mapper = new ObjectMapper();
   }
 
@@ -66,9 +70,14 @@ public class EVSConceptResultMapper implements SearchResultMapper {
   public <T> T mapSearchHit(SearchHit searchHit, Class<T> clazz) {
     Concept concept = null;
     try {
-      // logger.info(" = " + searchHit.getSourceAsString());
-      concept = mapper.readValue(searchHit.getSourceAsString(), Concept.class);
-
+      if (ip == null) {
+        concept = mapper.readValue(searchHit.getSourceAsString(), Concept.class);
+      } else {
+        Map<String, Object> sourceMap = searchHit.getSourceAsMap();
+        applyIncludeParam(sourceMap, ip);
+        concept = mapper.convertValue(sourceMap, Concept.class);
+      }
+      
       Map<String, HighlightField> highlightMap = searchHit.getHighlightFields();
       for (String key : highlightMap.keySet()) {
         HighlightField field = highlightMap.get(key);

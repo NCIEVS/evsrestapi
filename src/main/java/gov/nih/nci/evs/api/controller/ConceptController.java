@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -55,6 +57,9 @@ public class ConceptController extends BaseController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  @Autowired
+  ElasticQueryService elasticQueryService;
+  
   /**
    * Returns the associations.
    *
@@ -97,8 +102,6 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      final List<Concept> concepts = new ArrayList<>();
-
       final String[] codes = list.split(",");
       // Impose a maximum number at a time
       if (codes.length > 500) {
@@ -106,12 +109,7 @@ public class ConceptController extends BaseController {
             "Maximum number of concepts to request at a time is 500 = " + codes.length);
       }
 
-      for (final String code : codes) {
-        final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
-        if (concept != null && concept.getCode() != null) {
-          concepts.add(concept);
-        }
-      }
+      final List<Concept> concepts = elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
       return concepts;
     } catch (Exception e) {
       handleException(e);
@@ -160,12 +158,12 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
+      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
 
-      if (concept == null || concept.getCode() == null) {
+      if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      return concept;
+      return concept.get();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -597,12 +595,12 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam("disjointWith");
 
-      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
+      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
 
-      if (concept == null || concept.getCode() == null) {
+      if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      return concept.getDisjointWith();
+      return concept.get().getDisjointWith();
     } catch (Exception e) {
       handleException(e);
       return null;

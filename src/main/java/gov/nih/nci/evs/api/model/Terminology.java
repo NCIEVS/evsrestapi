@@ -92,6 +92,8 @@ public class Terminology extends BaseModel {
     terminologyVersion = other.getTerminologyVersion();
     latest = other.getLatest();
     tags = new HashMap<>(other.getTags());
+    indexName = other.getIndexName();
+    objectIndexName = other.getObjectIndexName();
   }
   
   /**
