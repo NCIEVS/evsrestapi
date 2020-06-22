@@ -14,6 +14,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -56,6 +58,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
 
     final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
+    final ObjectMapper mapper = new ObjectMapper();
+    
     try {
       final List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
       if (CollectionUtils.isEmpty(terminologies))
@@ -70,7 +74,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("  get hierarchy ");
               HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(terminology);
               ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-              hierarchyObject.setHierarchy(hierarchy);
+              hierarchyObject.setData(mapper.writeValueAsString(hierarchy));
               loadService.loadObject(hierarchyObject, terminology);
               log.info("    done hierarchy ");
 
@@ -84,7 +88,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("  get synonym sources ");
               List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
               ElasticObject ssObject = new ElasticObject("synonym_sources");
-              ssObject.setConceptMinimals(synonymSources);
+              ssObject.setData(mapper.writeValueAsString(synonymSources));
               loadService.loadObject(ssObject, terminology);
               log.info("    done synonym sources ");
               
@@ -109,7 +113,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology,
                     new IncludeParam("summary"));
                 ElasticObject conceptsObject = new ElasticObject("qualifiers");
-                conceptsObject.setConcepts(qualifiers);
+                conceptsObject.setData(mapper.writeValueAsString(qualifiers));
                 loadService.loadObject(conceptsObject, terminology);
                 log.info("    done qualifiers summary");
 
@@ -131,7 +135,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology,
                     new IncludeParam("summary"));
                 ElasticObject propertiesObject = new ElasticObject("properties");
-                propertiesObject.setConcepts(properties);
+                propertiesObject.setData(mapper.writeValueAsString(properties));
                 loadService.loadObject(propertiesObject, terminology);
                 log.info("    done properties summary");
 
@@ -152,7 +156,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology,
                     new IncludeParam("summary"));
                 ElasticObject associationsObject = new ElasticObject("associations");
-                associationsObject.setConcepts(associations);
+                associationsObject.setData(mapper.writeValueAsString(associations));
                 loadService.loadObject(associationsObject, terminology);
                 log.info("    done associations summary");
 
@@ -171,7 +175,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
 //                log.info("    done roles minimal");
                 List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
                 ElasticObject rolesObject = new ElasticObject("roles");
-                rolesObject.setConcepts(roles);
+                rolesObject.setData(mapper.writeValueAsString(roles));
                 loadService.loadObject(rolesObject, terminology);
                 log.info("    done roles summary");
 

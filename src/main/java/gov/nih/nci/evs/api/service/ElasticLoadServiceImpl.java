@@ -87,9 +87,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     logger.info("object index name: {}", indexName);
     boolean result = operationsService.createIndex(indexName, false);
     logger.info("index result: {}", result);
-    if (result) {
-      operationsService.getElasticsearchOperations().putMapping(indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
-    }
+//    if (result) {
+//      operationsService.getElasticsearchOperations().putMapping(indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+//    }
     
     operationsService.index(object, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
   }

@@ -480,7 +480,7 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
       final List<HierarchyNode> list =
-          sparqlQueryManagerService.getChildNodes(code, maxLevel.orElse(0), term);
+          elasticQueryService.getChildNodes(code, maxLevel.orElse(0), term);
 
       if (list == null || list.isEmpty()) {
         if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
@@ -628,7 +628,7 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      final List<HierarchyNode> list = sparqlQueryManagerService.getRootNodes(term);
+      final List<HierarchyNode> list = elasticQueryService.getRootNodes(term);
       if (list == null || list.isEmpty()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
@@ -773,7 +773,7 @@ public class ConceptController extends BaseController {
       if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(code, term);
+      final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, term);
       return nodes;
     } catch (Exception e) {
       handleException(e);

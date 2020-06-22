@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -18,6 +20,8 @@ import gov.nih.nci.evs.api.model.HierarchyNode;
  */
 public class HierarchyUtils {
 
+  private static final Logger logger = LoggerFactory.getLogger(HierarchyUtils.class);
+  
   /** The parent 2 child. */
   @Field(type = FieldType.Object)
   private HashMap<String, ArrayList<String>> parent2child =
@@ -100,15 +104,27 @@ public class HierarchyUtils {
       }
 
       if (!code2label.containsKey(values[0])) {
+        if ("10p12".equals(values[0])) {
+          logger.info("value = " + values[1]);
+        }
         code2label.put(values[0], values[1]);
       }
       if (!code2label.containsKey(values[2])) {
+        if ("10p12".equals(values[2])) {
+          logger.info("value = " + values[3]);
+        }
         code2label.put(values[2], values[3]);
       }
       if (!label2code.containsKey(values[1])) {
+        if ("10p12".equals(values[1])) {
+          logger.info("value = " + values[0]);
+        }
         code2label.put(values[1], values[0]);
       }
       if (!label2code.containsKey(values[3])) {
+        if ("10p12".equals(values[3])) {
+          logger.info("value = " + values[2]);
+        }
         code2label.put(values[3], values[2]);
       }
 
@@ -326,4 +342,73 @@ public class HierarchyUtils {
     return childCodes.stream().distinct().collect(Collectors.toList());
     // return childCodes;
   }
+
+  public HashMap<String, ArrayList<String>> getParent2child() {
+    return parent2child;
+  }
+
+  public void setParent2child(HashMap<String, ArrayList<String>> parent2child) {
+    this.parent2child = parent2child;
+  }
+
+  public HashMap<String, ArrayList<String>> getChild2parent() {
+    return child2parent;
+  }
+
+  public void setChild2parent(HashMap<String, ArrayList<String>> child2parent) {
+    this.child2parent = child2parent;
+  }
+
+  public HashMap<String, String> getCode2label() {
+    return code2label;
+  }
+
+  public void setCode2label(HashMap<String, String> code2label) {
+    this.code2label = code2label;
+  }
+
+  public HashMap<String, String> getLabel2code() {
+    return label2code;
+  }
+
+  public void setLabel2code(HashMap<String, String> label2code) {
+    this.label2code = label2code;
+  }
+
+  public HashSet<String> getConcepts() {
+    return concepts;
+  }
+
+  public void setConcepts(HashSet<String> concepts) {
+    this.concepts = concepts;
+  }
+
+  public HashSet<String> getParents() {
+    return parents;
+  }
+
+  public void setParents(HashSet<String> parents) {
+    this.parents = parents;
+  }
+
+  public HashSet<String> getChildren() {
+    return children;
+  }
+
+  public void setChildren(HashSet<String> children) {
+    this.children = children;
+  }
+
+  public HashSet<String> getLeaves() {
+    return leaves;
+  }
+
+  public void setLeaves(HashSet<String> leaves) {
+    this.leaves = leaves;
+  }
+
+  public void setHierarchyRoots(HashSet<String> hierarchyRoots) {
+    this.hierarchyRoots = hierarchyRoots;
+  }
+  
 }
