@@ -38,5 +38,8 @@ public class BaseResultMapper {
     if (!ip.isDisjointWith()) {
       sourceMap.put("disjointWith", null);
     }
+    if (!ip.isMaps()) {
+      sourceMap.put("maps", null);
+    }
   }
 }

@@ -99,7 +99,7 @@ public class Concept extends ConceptMinimal {
   private List<Role> inverseRoles;
 
   /** The maps. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Map> maps;
 
 //  @Field(type = FieldType.Keyword)

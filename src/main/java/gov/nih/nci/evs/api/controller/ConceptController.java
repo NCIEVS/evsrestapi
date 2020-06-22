@@ -529,16 +529,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Map> list = sparqlQueryManagerService.getMapsTo(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
+      
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-
-      return list;
+      
+      return concept.get().getMaps();
     } catch (Exception e) {
       handleException(e);
       return null;
