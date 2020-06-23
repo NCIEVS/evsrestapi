@@ -1205,6 +1205,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         checkPathInHierarchy(code, childNode, path, terminology);
       }
     }
+    else {
+    	node.setChildren(null);
+    }
+    	
   }
 
   /* see superclass */
