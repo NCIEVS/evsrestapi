@@ -1183,30 +1183,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
     Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
-    if (path.getConcepts().size() == 0) {
+    if (path.getConcepts().size() == 0) { // check for empty path
       return;
     }
-    int end = path.getConcepts().size() - 1;
-    ConceptNode concept = path.getConcepts().get(end);
+    int end = path.getConcepts().size() - 1; // get path length
+    ConceptNode concept = path.getConcepts().get(end); // find the end (in this case top) of the path
     List<HierarchyNode> children = getChildNodes(node.getCode(), 1, terminology);
-    if (node.getChildren().size() == 0) {
+    if (node.getChildren().size() == 0) { // attach children to node if necessary
       node.setChildren(children);
     }
-    if (concept.getCode().equals(node.getCode())) {
-      if (node.getCode().equals(code)) {
+    if (concept.getCode().equals(node.getCode())) { // is this the top level node containing the term in question
+      if (node.getCode().equals(code)) { // is this the term itself
         node.setHighlight(true);
         return;
       }
       node.setExpanded(true);
-      if (path.getConcepts() != null && !path.getConcepts().isEmpty()) {
+      if (path.getConcepts() != null && !path.getConcepts().isEmpty()) { 
         path.getConcepts().remove(path.getConcepts().size() - 1);
       }
-      for (HierarchyNode childNode : node.getChildren()) {
+      for (HierarchyNode childNode : node.getChildren()) { // recursively check its children until we find the term
         checkPathInHierarchy(code, childNode, path, terminology);
       }
     }
-    else {
-    	node.setChildren(null);
+    else { // this node does not contain the term
+    	node.setChildren(null); // we don't care about its children
     }
     	
   }
