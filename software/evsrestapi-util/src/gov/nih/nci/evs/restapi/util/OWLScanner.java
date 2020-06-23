@@ -1397,6 +1397,20 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public String extractClassId(String line) {
+        String t = line;
+        String classId = null;
+		if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			int n = t.lastIndexOf("#");
+			t = t.substring(n, t.length());
+			n = t.lastIndexOf(" ");
+			classId = t.substring(1, n);
+		}
+		return classId;
+	}
+
+
     public String getOWLClassHashCode(Vector v) {
 		String classId = null;
 		String label = null;
@@ -1408,15 +1422,12 @@ C4910|<NHC0>C4910</NHC0>
 				hashcode = hashcode + line.hashCode();
 			}
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
+				classId = extractClassId(t);
 			}
-			t = t.trim();
-			if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
-				int n = t.lastIndexOf("</rdfs:label>");
-				label = t.substring("<rdfs:label>".length(), n);
+			String t3 = t.trim();
+			if (t3.startsWith("<rdfs:label>") && t3.endsWith("</rdfs:label>")) {
+				int n = t3.lastIndexOf("</rdfs:label>");
+				label = t3.substring("<rdfs:label>".length(), n);
 		    }
 		}
 		return label + "|" + classId + "|" + hashcode;
@@ -1434,8 +1445,11 @@ C4910|<NHC0>C4910</NHC0>
         Vector v = new Vector();
         String label = null;
 
+        boolean startPrint = false;
+
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+			String t_save = t;
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1444,7 +1458,9 @@ C4910|<NHC0>C4910</NHC0>
 			}
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
 				if (istart0 && v.size() > 0) {
-					w.add(getOWLClassHashCode(v));
+					String hc = getOWLClassHashCode(v);
+					//System.out.println(hc);
+					w.add(hc);
 					v = new Vector();
 				}
 				if (istart0) {
@@ -1455,13 +1471,19 @@ C4910|<NHC0>C4910</NHC0>
 				v.add(t);
 		    }
 		}
-		return new SortUtils().quickSort(w);
+		if (v.size() > 0) {
+			String hc = getOWLClassHashCode(v);
+			//System.out.println(hc);
+			w.add(hc);
+		}
+		return w;//new SortUtils().quickSort(w);
 	}
 
 	public void clear() {
 		this.code2LabelMap.clear();
 		this.owl_vec.clear();
 	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
