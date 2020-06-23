@@ -1397,6 +1397,72 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public String getOWLClassHashCode(Vector v) {
+		String classId = null;
+		String label = null;
+		int hashcode = 0;
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			String line = t.trim();
+			if (line.length() > 0) {
+				hashcode = hashcode + line.hashCode();
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+			}
+			t = t.trim();
+			if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
+				int n = t.lastIndexOf("</rdfs:label>");
+				label = t.substring("<rdfs:label>".length(), n);
+		    }
+		}
+		return label + "|" + classId + "|" + hashcode;
+	}
+
+    public Vector getAllOWLClassHashCode() {
+        return getAllOWLClassHashCode(this.owl_vec);
+    }
+
+    public Vector getAllOWLClassHashCode(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+        Vector v = new Vector();
+        String label = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				if (istart0 && v.size() > 0) {
+					w.add(getOWLClassHashCode(v));
+					v = new Vector();
+				}
+				if (istart0) {
+					istart = true;
+				}
+			}
+			if (istart) {
+				v.add(t);
+		    }
+		}
+		return new SortUtils().quickSort(w);
+	}
+
+	public void clear() {
+		this.code2LabelMap.clear();
+		this.owl_vec.clear();
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
