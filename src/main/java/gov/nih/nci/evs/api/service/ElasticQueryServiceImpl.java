@@ -3,8 +3,11 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +77,49 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     List<Concept> concepts = operations.multiGet(
         query, Concept.class, new EVSConceptMultiGetResultMapper(ip));
     return concepts;
+  }
+
+  @Override
+  public List<String> getSubclassCodes(String code, Terminology terminology) {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("children"));
+    if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getChildren())) {
+      return Collections.emptyList();
+    }
+    
+    List<Concept> children = concept.get().getChildren();
+    List<String> results = children.stream().map(c -> c.getName()).collect(Collectors.toList());
+    return results;
+  }
+
+  @Override
+  public List<String> getSuperclassCodes(String code, Terminology terminology) {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("parents"));
+    if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getParents())) {
+      return Collections.emptyList();
+    }
+    
+    List<Concept> parents = concept.get().getParents();
+    List<String> results = parents.stream().map(p -> p.getName()).collect(Collectors.toList());
+    return results;
+  }
+  
+  @Override
+  public Optional<String> getLabel(String code, Terminology terminology) {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("minimal"));
+    if (!concept.isPresent() || concept.get().getName() == null) return Optional.empty();
+    return Optional.of(concept.get().getName());
+  }
+  
+  @Override
+  public Map<String, String> getCodeLabelMap(List<String> codes, Terminology terminology) {
+    List<Concept> concepts = getConcepts(codes, terminology, new IncludeParam("minimal"));
+    if (CollectionUtils.isEmpty(concepts)) {
+      return Collections.emptyMap();
+    }
+    
+    final Map<String, String> result = new HashMap<>();
+    concepts.stream().forEach(c -> result.put(c.getCode(), c.getName()));
+    return result;
   }
   
   @Override

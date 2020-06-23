@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -21,6 +22,10 @@ public interface ElasticQueryService {
   boolean checkConceptExists(String code, Terminology terminology);
   Optional<Concept> getConcept(String code, Terminology terminology, IncludeParam ip);
   List<Concept> getConcepts(List<String> codes, Terminology terminology, IncludeParam ip);
+  Map<String, String> getCodeLabelMap(List<String> codes, Terminology terminology);
+  List<String> getSubclassCodes(String code, Terminology terminology);
+  List<String> getSuperclassCodes(String code, Terminology terminology);
+  Optional<String> getLabel(String code, Terminology terminology);
   List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
       throws JsonParseException, JsonMappingException, IOException;
   List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology) 

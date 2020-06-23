@@ -10,10 +10,12 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.Terminology;
 
 /**
  * Hierarchy utilities.
@@ -37,19 +39,19 @@ public class HierarchyUtils {
   private HashMap<String, String> code2label = new HashMap<String, String>();
 
   /** The label 2 code. */
-  @Field(type = FieldType.Text)
+  @Transient
   private HashMap<String, String> label2code = new HashMap<String, String>();
 
   /** The concepts. */
-  @Field(type = FieldType.Object)
+  @Transient
   private HashSet<String> concepts = new HashSet<String>();
 
   /** The parents. */
-  @Field(type = FieldType.Object)
+  @Transient
   private HashSet<String> parents = new HashSet<String>();
 
   /** The children. */
-  @Field(type = FieldType.Object)
+  @Transient
   private HashSet<String> children = new HashSet<String>();
 
   /** The roots. */
@@ -153,24 +155,24 @@ public class HierarchyUtils {
    * @param level the level
    * @return the transitive closure
    */
-  public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts, String code,
-    Integer level) {
-    ArrayList<String> children = this.parent2child.get(code);
-    if (children == null || children.size() == 0) {
-      return concepts;
-    }
-    for (String child : children) {
-      String indent = "";
-      for (int i = 0; i < level; i++) {
-        indent = indent + "    ";
-      }
-      System.out.println(indent + "Parent: " + code + ": " + code2label.get(code) + "  Child: "
-          + child + ": " + code2label.get(child) + "  Level: " + level);
-      // ArrayList<String> newChildren =
-      getTransitiveClosure(concepts, child, level + 1);
-    }
-    return concepts;
-  }
+//  public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts, String code,
+//    Integer level) {
+//    ArrayList<String> children = this.parent2child.get(code);
+//    if (children == null || children.size() == 0) {
+//      return concepts;
+//    }
+//    for (String child : children) {
+//      String indent = "";
+//      for (int i = 0; i < level; i++) {
+//        indent = indent + "    ";
+//      }
+//      System.out.println(indent + "Parent: " + code + ": " + code2label.get(code) + "  Child: "
+//          + child + ": " + code2label.get(child) + "  Level: " + level);
+//      // ArrayList<String> newChildren =
+//      getTransitiveClosure(concepts, child, level + 1);
+//    }
+//    return concepts;
+//  }
 
   /**
    * Returns the roots.
@@ -341,74 +343,6 @@ public class HierarchyUtils {
 
     return childCodes.stream().distinct().collect(Collectors.toList());
     // return childCodes;
-  }
-
-  public HashMap<String, ArrayList<String>> getParent2child() {
-    return parent2child;
-  }
-
-  public void setParent2child(HashMap<String, ArrayList<String>> parent2child) {
-    this.parent2child = parent2child;
-  }
-
-  public HashMap<String, ArrayList<String>> getChild2parent() {
-    return child2parent;
-  }
-
-  public void setChild2parent(HashMap<String, ArrayList<String>> child2parent) {
-    this.child2parent = child2parent;
-  }
-
-  public HashMap<String, String> getCode2label() {
-    return code2label;
-  }
-
-  public void setCode2label(HashMap<String, String> code2label) {
-    this.code2label = code2label;
-  }
-
-  public HashMap<String, String> getLabel2code() {
-    return label2code;
-  }
-
-  public void setLabel2code(HashMap<String, String> label2code) {
-    this.label2code = label2code;
-  }
-
-  public HashSet<String> getConcepts() {
-    return concepts;
-  }
-
-  public void setConcepts(HashSet<String> concepts) {
-    this.concepts = concepts;
-  }
-
-  public HashSet<String> getParents() {
-    return parents;
-  }
-
-  public void setParents(HashSet<String> parents) {
-    this.parents = parents;
-  }
-
-  public HashSet<String> getChildren() {
-    return children;
-  }
-
-  public void setChildren(HashSet<String> children) {
-    this.children = children;
-  }
-
-  public HashSet<String> getLeaves() {
-    return leaves;
-  }
-
-  public void setLeaves(HashSet<String> leaves) {
-    this.leaves = leaves;
-  }
-
-  public void setHierarchyRoots(HashSet<String> hierarchyRoots) {
-    this.hierarchyRoots = hierarchyRoots;
   }
   
 }
