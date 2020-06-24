@@ -14,6 +14,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
@@ -22,16 +23,18 @@ public interface ElasticQueryService {
   boolean checkConceptExists(String code, Terminology terminology);
   Optional<Concept> getConcept(String code, Terminology terminology, IncludeParam ip);
   List<Concept> getConcepts(List<String> codes, Terminology terminology, IncludeParam ip);
-  Map<String, String> getCodeLabelMap(List<String> codes, Terminology terminology);
-  List<String> getSubclassCodes(String code, Terminology terminology);
-  List<String> getSuperclassCodes(String code, Terminology terminology);
+//  Map<String, String> getCodeLabelMap(List<String> codes, Terminology terminology);
+  List<Concept> getSubclasses(String code, Terminology terminology);
+  List<Concept> getSuperclasses(String code, Terminology terminology);
   Optional<String> getLabel(String code, Terminology terminology);
+  List<HierarchyNode> getRootNodes(Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException;
   List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
       throws JsonParseException, JsonMappingException, IOException;
   List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology) 
       throws JsonParseException, JsonMappingException, IOException;  
-  List<HierarchyNode> getRootNodes(Terminology terminology)
-      throws JsonParseException, JsonMappingException, IOException;
+  List<String> getAllChildNodes(String code, Terminology terminology);
+//  Paths findPaths(Terminology terminology) throws JsonMappingException, JsonProcessingException;
   Optional<HierarchyUtils> getHierarchy(Terminology terminology) throws JsonMappingException, JsonProcessingException;
   List<Concept> getQualifiers(Terminology terminology) throws JsonMappingException, JsonProcessingException;
   List<Concept> getProperties(Terminology terminology) throws JsonMappingException, JsonProcessingException;

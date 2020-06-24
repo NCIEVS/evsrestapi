@@ -125,43 +125,43 @@ public class PathFinder {
 
     return paths;
   }
-
-  /**
-   * Find paths to roots.
-   *
-   * @param code the code
-   * @param hset the hset
-   * @return the paths
-   */
-  public Paths findPathsToRoots(String code, HashSet<String> hset) {
-    Paths paths = new Paths();
-    Stack<String> stack = new Stack<>();
-    stack.push(code);
-    while (!stack.isEmpty()) {
-      String path = (String) stack.pop();
-      Vector<String> u = parseData(path, '|');
-      String last_code = (String) u.elementAt(u.size() - 1);
-      List<String> sups = hierarchy.getSuperclassCodes(last_code);
-      if (sups == null) {
-        paths.add(createPath(path));
-      } else {
-        Vector<String> w = new Vector<>();
-        for (int i = 0; i < sups.size(); i++) {
-          String sup = (String) sups.get(i);
-          if (!hset.contains(sup)) {
-            w.add(sup);
-          }
-        }
-        if (w.size() == 0) {
-          paths.add(createPath(path));
-        } else {
-          for (int k = 0; k < w.size(); k++) {
-            String s = (String) w.elementAt(k);
-            stack.push(path + "|" + s);
-          }
-        }
-      }
-    }
-    return paths;
-  }
+//
+//  /**
+//   * Find paths to roots.
+//   *
+//   * @param code the code
+//   * @param hset the hset
+//   * @return the paths
+//   */
+//  public Paths findPathsToRoots(String code, HashSet<String> hset) {
+//    Paths paths = new Paths();
+//    Stack<String> stack = new Stack<>();
+//    stack.push(code);
+//    while (!stack.isEmpty()) {
+//      String path = (String) stack.pop();
+//      Vector<String> u = parseData(path, '|');
+//      String last_code = (String) u.elementAt(u.size() - 1);
+//      List<String> sups = hierarchy.getSuperclassCodes(last_code);
+//      if (sups == null) {
+//        paths.add(createPath(path));
+//      } else {
+//        Vector<String> w = new Vector<>();
+//        for (int i = 0; i < sups.size(); i++) {
+//          String sup = (String) sups.get(i);
+//          if (!hset.contains(sup)) {
+//            w.add(sup);
+//          }
+//        }
+//        if (w.size() == 0) {
+//          paths.add(createPath(path));
+//        } else {
+//          for (int k = 0; k < w.size(); k++) {
+//            String s = (String) w.elementAt(k);
+//            stack.push(path + "|" + s);
+//          }
+//        }
+//      }
+//    }
+//    return paths;
+//  }
 }

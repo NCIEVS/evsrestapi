@@ -101,6 +101,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Resource
   private SparqlQueryManagerService self;
 
+  @Autowired
+  ElasticQueryService esQueryService;
+  
   /**
    * Post init.
    *
@@ -1699,21 +1702,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
+    return esQueryService.getChildNodes(parent, 0, terminology);
   }
 
   /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
+    return esQueryService.getChildNodes(parent, maxLevel, terminology);
   }
 
   /* see superclass */
   @Override
   public List<String> getAllChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getAllChildNodes(parent);
+    return esQueryService.getAllChildNodes(parent, terminology);
   }
 
   /* see superclass */
