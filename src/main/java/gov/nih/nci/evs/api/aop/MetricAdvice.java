@@ -1,9 +1,9 @@
 
 package gov.nih.nci.evs.api.aop;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -30,54 +30,6 @@ public class MetricAdvice {
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(MetricAdvice.class);
 
-  /** The Constant EVSRESTAPI_APPLICATION. */
-  private static final String EVSRESTAPI_APPLICATION = "evsrestapi";
-
-  /**
-   * Record metric DB.
-   *
-   * @param pjp the pjp
-   * @param recordMetricDB the record metric DB
-   * @return the object
-   * @throws Throwable the throwable
-   */
-  @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetricDB)")
-  private Object recordMetricDB(ProceedingJoinPoint pjp, RecordMetricDB recordMetricDB)
-    throws Throwable {
-    log.debug("log method having db as parameter");
-
-    // get the request
-    HttpServletRequest request =
-        ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-    String filterParams = request.getParameter("db");
-
-    return recordMetric(pjp, request, filterParams);
-
-  }
-
-  /**
-   * Record metric DB format.
-   *
-   * @param pjp the pjp
-   * @param recordMetricDBFormat the record metric DB format
-   * @return the object
-   * @throws Throwable the throwable
-   */
-  @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetricDBFormat)")
-  private Object recordMetricDBFormat(ProceedingJoinPoint pjp,
-    RecordMetricDBFormat recordMetricDBFormat) throws Throwable {
-    log.debug("log method having db and format as parameter");
-
-    // get the request
-    HttpServletRequest request =
-        ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-    String filterParams = "{\"db\":\"" + request.getParameter("db") + "\",\"fmt\":\""
-        + request.getParameter("fmt") + "\"}";
-
-    return recordMetric(pjp, request, filterParams);
-
-  }
-
   /**
    * Record metric.
    *
@@ -87,7 +39,23 @@ public class MetricAdvice {
    * @return the object
    * @throws Throwable the throwable
    */
-  public Object recordMetric(ProceedingJoinPoint pjp, HttpServletRequest request, String params)
+
+  @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetric)")
+  private Object recordMetric(ProceedingJoinPoint pjp, RecordMetric recordMetric)
+    throws Throwable {
+    log.info("log method having db as parameter");
+
+    // get the request
+    HttpServletRequest request =
+        ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+
+    Map<String, String[]> filterParams = request.getParameterMap();
+
+    return recordMetricHelper(pjp, request, filterParams);
+
+  }
+
+  public Object recordMetricHelper(ProceedingJoinPoint pjp, HttpServletRequest request, Map<String, String[]> params)
     throws Throwable {
 
     // get the start time
@@ -97,34 +65,39 @@ public class MetricAdvice {
     long endTime = System.currentTimeMillis();
     long duration = endTime - startTime;
     Date endDate = new Date();
-    log.debug("durtaion = " + String.valueOf(duration));
+    Metric metric = new Metric();
+
+    log.info("duration = " + String.valueOf(duration));
+    metric.setDuration(duration);
 
     // get the ip address of the remote user
     ServletRequestAttributes attr =
         (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    String userIpAddress = attr.getRequest().getRemoteAddr();
-    log.debug("userIpAddress" + userIpAddress);
 
-    String applicationName = EVSRESTAPI_APPLICATION;
-    log.debug("applicationName - " + applicationName);
-    Metric metric = new Metric();
-    metric.setApplicationName(applicationName);
-    metric.setEndPoint(request.getRequestURL().toString());
-    log.debug("url -" + request.getRequestURL().toString());
-    metric.setQueryParams(params);
-    log.debug("params - " + params);
-    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-    metric.setStartTime(dateFormat.format(startDate));
-    metric.setEndTime(dateFormat.format(endDate));
-    metric.setUsername("anonymousUser");
-    log.debug("username -" + metric.getUsername());
-    metric.setDuration(duration);
+    String userIpAddress = attr.getRequest().getRemoteAddr();
     metric.setRemoteIpAddress(userIpAddress);
+    log.info("userIpAddress = " + userIpAddress);
+
+    String hostName = attr.getRequest().getRemoteHost();
+    metric.setHostName(hostName);
+    log.info("hostName = " + hostName);
+
+    String url = request.getRequestURL().toString();
+    metric.setEndPoint(url);
+    log.info("url = " + url);
+    
+    metric.setQueryParams(params);
+    log.info("params = " + params);
+    
+
+    metric.setStartTime(startDate);
+    metric.setEndTime(endDate);
 
     // get the parameters
     ObjectMapper mapper = new ObjectMapper();
+    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
     String metricStr = mapper.writeValueAsString(metric);
-    log.debug("metric -" + metricStr);
+    log.info("metric = " + metricStr);
 
     return retVal;
   }

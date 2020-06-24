@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.aop.RecordMetricDB;
-import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
+import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -63,7 +62,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDB
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws Exception {
@@ -108,7 +107,7 @@ public class MetadataController extends BaseController {
           value = "List of codes or labels to return associations for (or leave blank for all)",
           required = false, dataType = "string", paramType = "query")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   public @ResponseBody List<Concept> getAssociations(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
@@ -151,7 +150,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/association/{codeOrLabel}", produces = "application/json")
   public @ResponseBody Concept getAssociation(
@@ -210,7 +209,7 @@ public class MetadataController extends BaseController {
           value = "List of codes or labels to return roles for (or leave blank for all)",
           required = false, dataType = "string", paramType = "query")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   public @ResponseBody List<Concept> getRoles(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
@@ -253,7 +252,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrLabel}",
       produces = "application/json")
   public @ResponseBody Concept getRole(
@@ -310,7 +309,7 @@ public class MetadataController extends BaseController {
           value = "List of codes or labels to return properties for (or leave blank for all)",
           required = false, dataType = "string", paramType = "query")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   public @ResponseBody List<Concept> getProperties(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
@@ -358,7 +357,7 @@ public class MetadataController extends BaseController {
           required = false, dataType = "string", paramType = "query")
 
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   public @ResponseBody List<Concept> getQualifiers(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
@@ -401,7 +400,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/qualifier/{codeOrLabel}", produces = "application/json")
   public @ResponseBody Concept getQualifier(
@@ -446,7 +445,7 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   public @ResponseBody List<ConceptMinimal> getTermTypes(
     @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
@@ -487,7 +486,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/property/{codeOrLabel}", produces = "application/json")
   public @ResponseBody Concept getProperty(
@@ -530,7 +529,7 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses",
       produces = "application/json")
   public @ResponseBody List<String> getConceptStatuses(
@@ -566,7 +565,7 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionSources",
       produces = "application/json")
   public @ResponseBody List<ConceptMinimal> getDefinitionSources(
@@ -597,7 +596,7 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymSources",
       produces = "application/json")
   public @ResponseBody List<ConceptMinimal> getSynonymSources(
@@ -632,7 +631,7 @@ public class MetadataController extends BaseController {
           value = "Qualifier code (or label), e.g. 'P383' or 'term-group'", required = true,
           dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/qualifier/{codeOrLabel}/values",
       produces = "application/json")
