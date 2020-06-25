@@ -11,39 +11,33 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class GoAnnotation
+public class AltDefinition
 {
 
 // Variable declaration
 	private String code;
 	private String label;
-	private String annotation;
-	private String goEvi;
-	private String goId;
-	private String goSource;
-	private String sourceDate;
+	private String description;
+	private String attribution;
+	private String source;
 
 // Default constructor
-	public GoAnnotation() {
+	public AltDefinition() {
 	}
 
 // Constructor
-	public GoAnnotation(
+	public AltDefinition(
 		String code,
 		String label,
-		String annotation,
-		String goEvi,
-		String goId,
-		String goSource,
-		String sourceDate) {
+		String description,
+		String attribution,
+		String source) {
 
 		this.code = code;
 		this.label = label;
-		this.annotation = annotation;
-		this.goEvi = goEvi;
-		this.goId = goId;
-		this.goSource = goSource;
-		this.sourceDate = sourceDate;
+		this.description = description;
+		this.attribution = attribution;
+		this.source = source;
 	}
 
 // Set methods
@@ -55,24 +49,16 @@ public class GoAnnotation
 		this.label = label;
 	}
 
-	public void setAnnotation(String annotation) {
-		this.annotation = annotation;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
-	public void setGoEvi(String goEvi) {
-		this.goEvi = goEvi;
+	public void setAttribution(String attribution) {
+		this.attribution = attribution;
 	}
 
-	public void setGoId(String goId) {
-		this.goId = goId;
-	}
-
-	public void setGoSource(String goSource) {
-		this.goSource = goSource;
-	}
-
-	public void setSourceDate(String sourceDate) {
-		this.sourceDate = sourceDate;
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 
@@ -85,24 +71,16 @@ public class GoAnnotation
 		return this.label;
 	}
 
-	public String getAnnotation() {
-		return this.annotation;
+	public String getDescription() {
+		return this.description;
 	}
 
-	public String getGoEvi() {
-		return this.goEvi;
+	public String getAttribution() {
+		return this.attribution;
 	}
 
-	public String getGoId() {
-		return this.goId;
-	}
-
-	public String getGoSource() {
-		return this.goSource;
-	}
-
-	public String getSourceDate() {
-		return this.sourceDate;
+	public String getSource() {
+		return this.source;
 	}
 
 	public String toXML() {
@@ -136,17 +114,14 @@ public class GoAnnotation
 	}
 
 	public String toString() {
-		return this.code + "|"
-		     + this.label + "|"
-		     + "P211|"
-		     + this.annotation + "|"
-		     + "P389|"
-		     + this.goEvi + "|"
-		     + "P387|"
-		     + this.goId + "|"
-		     + "P390|"
-		     + this.goSource + "|"
-		     + "P391|"
-		     + this.sourceDate;
+        return this.code
+        + "|" + this.label + "|"
+        + "P325|"
+        + this.description + "|"
+        + "P381|"
+        + this.attribution + "|"
+        + "P378|"
+        + this.source;
 	}
+
 }

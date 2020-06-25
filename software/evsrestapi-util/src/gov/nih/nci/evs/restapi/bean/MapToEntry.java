@@ -145,4 +145,21 @@ public class MapToEntry
 		}
 		return buf.toString();
 	}
+
+	public String toString() {
+		return this.code + "|"
+		     + this.preferredName + "|"
+		     + "P375|"
+		     + this.targetTerm + "|"
+		     + "P393|"
+		     + this.relationshipToTarget + "|"
+		     + "P395|"
+		     + this.targetCode + "|"
+		     + "P394|"
+		     + this.targetTermType + "|"
+		     + "P397|"
+		     + this.targetTerminology + "|"
+		     + "P396|"
+		     + this.targetTerminologyVersion;
+	}
 }

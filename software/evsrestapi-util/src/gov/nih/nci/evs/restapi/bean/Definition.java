@@ -125,7 +125,14 @@ public class Definition
 	}
 
 	public String toString() {
-        return this.code + "|" + this.label + "|" + this.description + "|" + this.attribution + "|" + this.source;
+        return this.code
+        + "|" + this.label + "|"
+        + "P97|"
+        + this.description + "|"
+        + "P381|"
+        + this.attribution + "|"
+        + "P378|"
+        + this.source;
 	}
 
 }

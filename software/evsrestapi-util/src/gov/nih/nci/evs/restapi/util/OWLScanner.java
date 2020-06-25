@@ -1830,6 +1830,218 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public static Vector axiomDataToStrings(Vector v) {
+		Vector u = new Vector();
+		Vector w = convertAxiomData(v);
+		for (int i=0; i<w.size(); i++) {
+			Object obj = w.elementAt(i);
+			if (obj instanceof Synonym) {
+				Synonym syn = (Synonym) obj;
+				u.add(syn.toString());
+			} else if (obj instanceof Definition) {
+				Definition def = (Definition) obj;
+				u.add(def.toString());
+			} else if (obj instanceof AltDefinition) {
+				AltDefinition def = (AltDefinition) obj;
+				u.add(def.toString());
+			} else if (obj instanceof GoAnnotation) {
+				GoAnnotation go = (GoAnnotation) obj;
+				u.add(go.toString());
+			} else if (obj instanceof MapToEntry) {
+				MapToEntry entry = (MapToEntry) obj;
+				u.add(entry.toString());
+			}
+		}
+		return u;
+	}
+
+    public static Vector convertAxiomData(Vector v) {
+		HashMap hmap = new HashMap();
+		Vector prop_vec = new Vector();
+		OWLScanner owlScanner = new OWLScanner();
+        Vector w = owlScanner.extract_axioms(v);
+        for (int i=0; i<w.size(); i++) {
+            OWLAxiom axiom = (OWLAxiom) w.elementAt(i);
+            System.out.println(axiom.toJson());
+            System.out.println(axiom.toString());
+            String key = "" + axiom.getAxiomId();
+
+            String annotatedSource = axiom.getAnnotatedSource();
+            System.out.println("annotatedSource: " + annotatedSource);
+
+			String qualifierName = axiom.getQualifierName();
+			if (qualifierName == null) {
+				qualifierName = "null";
+			}
+			String qualifierValue = axiom.getQualifierValue();
+
+            String annotatedPropertyCode = axiom.getAnnotatedProperty();
+            System.out.println("annotatedPropertyCode: " + annotatedPropertyCode);
+            Object obj = hmap.get(key);
+			if (obj == null) {
+				if (annotatedPropertyCode.compareTo("P90") == 0) { // FULL_SYN
+					Synonym syn = new Synonym();
+					syn.setCode(annotatedSource);
+					syn.setLabel(axiom.getLabel());
+					syn.setTermName(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P383") == 0) {
+						syn.setTermGroup(qualifierValue);
+					} else if (qualifierName.compareTo("P384") == 0) {
+						syn.setTermSource(qualifierValue);
+					} else if (qualifierName.compareTo("P385") == 0) {
+						syn.setSourceCode(qualifierValue);
+					} else if (qualifierName.compareTo("P386") == 0) {
+						syn.setSubSourceName(qualifierValue);
+					}
+					hmap.put(key, syn);
+
+				} else if (annotatedPropertyCode.compareTo("P375") == 0) { // Maps_To
+					MapToEntry entry = new MapToEntry();
+					entry.setCode(annotatedSource);
+					entry.setPreferredName(axiom.getLabel());
+					entry.setTargetTerm(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P393") == 0) {
+						entry.setRelationshipToTarget(qualifierValue);
+					} else if (qualifierName.compareTo("P395") == 0) {
+						entry.setTargetCode(qualifierValue);
+					} else if (qualifierName.compareTo("P394") == 0) {
+						entry.setTargetTermType(qualifierValue);
+					} else if (qualifierName.compareTo("P397") == 0) {
+						entry.setTargetTerminology(qualifierValue);
+					} else if (qualifierName.compareTo("P396") == 0) {
+						entry.setTargetTerminologyVersion(qualifierValue);
+					}
+					hmap.put(key, entry);
+
+				} else if (annotatedPropertyCode.compareTo("P211") == 0) { // GO_Annotation
+					GoAnnotation go = new GoAnnotation();
+					go.setCode(annotatedSource);
+					go.setLabel(axiom.getLabel());
+					go.setAnnotation(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P389") == 0) {
+						go.setGoEvi(qualifierValue);
+					} else if (qualifierName.compareTo("P387") == 0) {
+						go.setGoId(qualifierValue);
+					} else if (qualifierName.compareTo("P390") == 0) {
+						go.setGoSource(qualifierValue);
+					} else if (qualifierName.compareTo("P391") == 0) {
+						go.setSourceDate(qualifierValue);
+					}
+					hmap.put(key, go);
+
+				} else if (annotatedPropertyCode.compareTo("P97") == 0) { // DEFINITION
+					Definition def = new Definition();
+					def.setCode(annotatedSource);
+					def.setLabel(axiom.getLabel());
+					def.setDescription(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P381") == 0) {
+						def.setAttribution(qualifierValue);
+					} else if (qualifierName.compareTo("P378") == 0) {
+						def.setSource(qualifierValue);
+					}
+				    hmap.put(key, def);
+				} else if (annotatedPropertyCode.compareTo("P325") == 0) { // ALT_DEFINITION
+					AltDefinition def = new AltDefinition();
+					def.setCode(annotatedSource);
+					def.setLabel(axiom.getLabel());
+					def.setDescription(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P381") == 0) {
+						def.setAttribution(qualifierValue);
+					} else if (qualifierName.compareTo("P378") == 0) {
+						def.setSource(qualifierValue);
+					}
+				    hmap.put(key, def);
+				}
+			} else {
+				if (obj instanceof Synonym) {
+                    Synonym syn = (Synonym) obj;
+					//syn.setCode(annotatedSource);
+					//syn.setLabel(axiom.getLabel());
+					syn.setTermName(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P383") == 0) {
+						syn.setTermGroup(qualifierValue);
+					} else if (qualifierName.compareTo("P384") == 0) {
+						syn.setTermSource(qualifierValue);
+					} else if (qualifierName.compareTo("P385") == 0) {
+						syn.setSourceCode(qualifierValue);
+					} else if (qualifierName.compareTo("P386") == 0) {
+						syn.setSubSourceName(qualifierValue);
+					}
+					hmap.put(key, syn);
+
+				} else if (obj instanceof MapToEntry)  { // Maps_To
+					MapToEntry entry = (MapToEntry) obj;
+					//entry.setCode(annotatedSource);
+					//entry.setPreferredName(axiom.getLabel());
+					entry.setTargetTerm(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P393") == 0) {
+						entry.setRelationshipToTarget(qualifierValue);
+					} else if (qualifierName.compareTo("P395") == 0) {
+						entry.setTargetCode(qualifierValue);
+					} else if (qualifierName.compareTo("P394") == 0) {
+						entry.setTargetTermType(qualifierValue);
+					} else if (qualifierName.compareTo("P397") == 0) {
+						entry.setTargetTerminology(qualifierValue);
+					} else if (qualifierName.compareTo("P396") == 0) {
+						entry.setTargetTerminologyVersion(qualifierValue);
+					}
+					hmap.put(key, entry);
+
+				} else if (obj instanceof GoAnnotation) { // GO_Annotation
+					GoAnnotation go = (GoAnnotation) obj;
+					//go.setCode(annotatedSource);
+					//go.setLabel(axiom.getLabel());
+					go.setAnnotation(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P389") == 0) {
+						go.setGoEvi(qualifierValue);
+					} else if (qualifierName.compareTo("P387") == 0) {
+						go.setGoId(qualifierValue);
+					} else if (qualifierName.compareTo("P390") == 0) {
+						go.setGoSource(qualifierValue);
+					} else if (qualifierName.compareTo("P391") == 0) {
+						go.setSourceDate(qualifierValue);
+					}
+					hmap.put(key, go);
+
+				} else if (obj instanceof Definition) { // DEFINITION
+					Definition def = (Definition) obj;
+					def.setCode(annotatedSource);
+					def.setLabel(axiom.getLabel());
+					def.setDescription(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P381") == 0) {
+						def.setAttribution(qualifierValue);
+					} else if (qualifierName.compareTo("P378") == 0) {
+						def.setSource(qualifierValue);
+					}
+				    hmap.put(key, def);
+				} else if (obj instanceof AltDefinition) { // ALT_DEFINITION
+					AltDefinition def = (AltDefinition) obj;
+					def.setCode(annotatedSource);
+					def.setLabel(axiom.getLabel());
+					def.setDescription(axiom.getAnnotatedTarget());
+					if (qualifierName.compareTo("P381") == 0) {
+						def.setAttribution(qualifierValue);
+					} else if (qualifierName.compareTo("P378") == 0) {
+						def.setSource(qualifierValue);
+					}
+				    hmap.put(key, def);
+				}
+			}
+		}
+		Iterator it = hmap.keySet().iterator();
+		Vector key_vec = new Vector();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			key_vec.add(key);
+		}
+		key_vec = new SortUtils().quickSort(key_vec);
+		for (int i=0; i<key_vec.size(); i++) {
+			String key = (String) key_vec.elementAt(i);
+			prop_vec.add(hmap.get(key));
+		}
+		return prop_vec;
+	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
