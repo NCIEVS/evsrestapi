@@ -1183,17 +1183,29 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
     Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
-    if (path.getConcepts().size() == 0) { // check for empty path
+
+    // check for empty path
+    if (path.getConcepts().size() == 0) {
       return;
     }
-    int end = path.getConcepts().size() - 1; // get path length
-    ConceptNode concept = path.getConcepts().get(end); // find the end (in this case top) of the path
+    
+    // get path length
+    int end = path.getConcepts().size() - 1;
+
+    // find the end (in this case top) of the path
+    ConceptNode concept = path.getConcepts().get(end);
     List<HierarchyNode> children = getChildNodes(node.getCode(), 1, terminology);
-    if (node.getChildren().size() == 0) { // attach children to node if necessary
+
+    // attach children to node if necessary
+    if (node.getChildren().size() == 0) {
       node.setChildren(children);
     }
-    if (concept.getCode().equals(node.getCode())) { // is this the top level node containing the term in question
-      if (node.getCode().equals(code)) { // is this the term itself
+
+    // is this the top level node containing the term in question
+    if (concept.getCode().equals(node.getCode())) {
+
+      // is this the term itself
+      if (node.getCode().equals(code)) {
         node.setHighlight(true);
         return;
       }
@@ -1201,11 +1213,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (path.getConcepts() != null && !path.getConcepts().isEmpty()) { 
         path.getConcepts().remove(path.getConcepts().size() - 1);
       }
-      for (HierarchyNode childNode : node.getChildren()) { // recursively check its children until we find the term
+
+      // recursively check its children until we find the term
+      for (HierarchyNode childNode : node.getChildren()) { 
         checkPathInHierarchy(code, childNode, path, terminology);
       }
     }
-    else { // this node does not contain the term
+
+    // this node does not contain the term
+    else {
     	node.setChildren(null); // we don't care about its children
     }
     	
