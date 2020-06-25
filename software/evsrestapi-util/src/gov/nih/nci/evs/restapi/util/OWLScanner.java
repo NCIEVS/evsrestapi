@@ -100,6 +100,10 @@ public class OWLScanner {
 		}
     }
 
+    public HashMap getCode2LabelMap() {
+		return this.code2LabelMap;
+	}
+
     public String getLabel(String code) {
 		return (String) code2LabelMap.get(code);
 	}
@@ -1542,12 +1546,16 @@ C4910|<NHC0>C4910</NHC0>
 				}
 				classId = extractClassId(t);
 				v = new Vector();
+				v.add(t);
+			} else if (classId != null) {
+				v.add(t);
 			}
 		}
 		hmap.put(classId, v);
 		System.out.println("knt: " + knt);
 		return hmap;
 	}
+
 
     public Vector extract_properties(Vector class_vec) {
         Vector w = new Vector();
@@ -1800,6 +1808,29 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public Vector extract_associations(Vector class_vec) {
+        Vector w = new Vector();
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+			}
+			String s = t.trim();
+			if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
+				int n = s.indexOf(" ");
+				String a = s.substring(1, n);
+				w.add(classId + "|" + a + "|" + extractCode(s));
+			}
+		}
+		return w;
+	}
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
@@ -1831,16 +1862,14 @@ C4910|<NHC0>C4910</NHC0>
         //v = scanner.fileterTagData(v, "owl:Restriction");
         //Utils.dumpVector("fileterTagData", v);
         //scanner.printPaths(v);
-
+        /*
         Vector class_vec = Utils.readFile("ThesaurusInferred_forTS.owl");
         Vector w = new OWLScanner().extractProperties(class_vec);
         for (int i=0; i<w.size(); i++) {
 			String p = (String) w.elementAt(i);
 			System.out.println(p);
 		}
-
-
-
+		*/
     }
 }
 
