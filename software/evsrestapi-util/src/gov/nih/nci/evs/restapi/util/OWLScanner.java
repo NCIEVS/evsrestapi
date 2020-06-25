@@ -1830,53 +1830,20 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public static Vector axiomDataToStrings(Vector v) {
-		Vector u = new Vector();
-		Vector w = convertAxiomData(v);
-		for (int i=0; i<w.size(); i++) {
-			Object obj = w.elementAt(i);
-			if (obj instanceof Synonym) {
-				Synonym syn = (Synonym) obj;
-				u.add(syn.toString());
-			} else if (obj instanceof Definition) {
-				Definition def = (Definition) obj;
-				u.add(def.toString());
-			} else if (obj instanceof AltDefinition) {
-				AltDefinition def = (AltDefinition) obj;
-				u.add(def.toString());
-			} else if (obj instanceof GoAnnotation) {
-				GoAnnotation go = (GoAnnotation) obj;
-				u.add(go.toString());
-			} else if (obj instanceof MapToEntry) {
-				MapToEntry entry = (MapToEntry) obj;
-				u.add(entry.toString());
-			}
-		}
-		return u;
-	}
-
-    public static Vector convertAxiomData(Vector v) {
+    public Vector extractPropertiesWithQualifiers(Vector v) {
 		HashMap hmap = new HashMap();
 		Vector prop_vec = new Vector();
-		OWLScanner owlScanner = new OWLScanner();
-        Vector w = owlScanner.extract_axioms(v);
+        Vector w = extract_axioms(v);
         for (int i=0; i<w.size(); i++) {
             OWLAxiom axiom = (OWLAxiom) w.elementAt(i);
-            System.out.println(axiom.toJson());
-            System.out.println(axiom.toString());
             String key = "" + axiom.getAxiomId();
-
             String annotatedSource = axiom.getAnnotatedSource();
-            System.out.println("annotatedSource: " + annotatedSource);
-
 			String qualifierName = axiom.getQualifierName();
 			if (qualifierName == null) {
 				qualifierName = "null";
 			}
 			String qualifierValue = axiom.getQualifierValue();
-
             String annotatedPropertyCode = axiom.getAnnotatedProperty();
-            System.out.println("annotatedPropertyCode: " + annotatedPropertyCode);
             Object obj = hmap.get(key);
 			if (obj == null) {
 				if (annotatedPropertyCode.compareTo("P90") == 0) { // FULL_SYN
@@ -1955,8 +1922,6 @@ C4910|<NHC0>C4910</NHC0>
 			} else {
 				if (obj instanceof Synonym) {
                     Synonym syn = (Synonym) obj;
-					//syn.setCode(annotatedSource);
-					//syn.setLabel(axiom.getLabel());
 					syn.setTermName(axiom.getAnnotatedTarget());
 					if (qualifierName.compareTo("P383") == 0) {
 						syn.setTermGroup(qualifierValue);
@@ -1971,8 +1936,6 @@ C4910|<NHC0>C4910</NHC0>
 
 				} else if (obj instanceof MapToEntry)  { // Maps_To
 					MapToEntry entry = (MapToEntry) obj;
-					//entry.setCode(annotatedSource);
-					//entry.setPreferredName(axiom.getLabel());
 					entry.setTargetTerm(axiom.getAnnotatedTarget());
 					if (qualifierName.compareTo("P393") == 0) {
 						entry.setRelationshipToTarget(qualifierValue);
@@ -1989,8 +1952,6 @@ C4910|<NHC0>C4910</NHC0>
 
 				} else if (obj instanceof GoAnnotation) { // GO_Annotation
 					GoAnnotation go = (GoAnnotation) obj;
-					//go.setCode(annotatedSource);
-					//go.setLabel(axiom.getLabel());
 					go.setAnnotation(axiom.getAnnotatedTarget());
 					if (qualifierName.compareTo("P389") == 0) {
 						go.setGoEvi(qualifierValue);
@@ -2040,6 +2001,31 @@ C4910|<NHC0>C4910</NHC0>
 			prop_vec.add(hmap.get(key));
 		}
 		return prop_vec;
+	}
+
+
+    public Vector axioms2Strings(Vector v) {
+		Vector u = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			Object obj = v.elementAt(i);
+			if (obj instanceof Synonym) {
+				Synonym syn = (Synonym) obj;
+				u.add(syn.toString());
+			} else if (obj instanceof Definition) {
+				Definition def = (Definition) obj;
+				u.add(def.toString());
+			} else if (obj instanceof AltDefinition) {
+				AltDefinition def = (AltDefinition) obj;
+				u.add(def.toString());
+			} else if (obj instanceof GoAnnotation) {
+				GoAnnotation go = (GoAnnotation) obj;
+				u.add(go.toString());
+			} else if (obj instanceof MapToEntry) {
+				MapToEntry entry = (MapToEntry) obj;
+				u.add(entry.toString());
+			}
+		}
+		return u;
 	}
 
 
