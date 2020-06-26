@@ -11,7 +11,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class Definition
+public class AltDefinition
 {
 
 // Variable declaration
@@ -22,22 +22,11 @@ public class Definition
 	private String source;
 
 // Default constructor
-	public Definition() {
+	public AltDefinition() {
 	}
 
 // Constructor
-	public Definition(
-		String description,
-		String source) {
-
-		this.code = null;
-		this.label = null;
-		this.description = description;
-		this.attribution = null;
-		this.source = source;
-	}
-
-	public Definition(
+	public AltDefinition(
 		String code,
 		String label,
 		String description,
@@ -127,7 +116,7 @@ public class Definition
 	public String toString() {
         return this.code
         + "|" + this.label + "|"
-        + "P97|"
+        + "P325|"
         + this.description + "|"
         + "P381|"
         + this.attribution + "|"
