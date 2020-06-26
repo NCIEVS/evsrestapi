@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.util;
-
 import gov.nih.nci.evs.restapi.bean.*;
 import java.io.*;
 import java.io.BufferedReader;
@@ -1560,9 +1559,12 @@ C4910|<NHC0>C4910</NHC0>
     public Vector extract_properties(Vector class_vec) {
         Vector w = new Vector();
         String classId = null;
+        boolean start = false;
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("</owl:Class>") != -1) break;
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				start = true;
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");

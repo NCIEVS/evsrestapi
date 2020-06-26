@@ -248,16 +248,18 @@ public class OWLDiffUtils {
 		id2DataHashMap2.clear();
     }
 
-
 	public static void dumpVector(String type, Vector v) {
+		String property = null;
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			if (type.indexOf("|axiom") != -1) {
 				String s = getPropertyType(t);
 				Vector u = StringUtils.parseData(type, '|');
-				type = (String) u.elementAt(0) + "|" + s;
+				property = (String) u.elementAt(0) + "|" + s;
+			} else {
+				property = type;
 			}
-			pw.println(type + "|" + t);
+			pw.println(property + "|" + t);
 		}
 	}
 
@@ -279,7 +281,7 @@ public class OWLDiffUtils {
 				v1_minus_v2.add(t);
 			}
 		}
-		dumpVector("deleted" + "|" + type, v1_minus_v2);
+		dumpVector("added" + "|" + type, v1_minus_v2);
 
 		Vector v2_minus_v1 = new Vector();
 		for (int i=0; i<vec1.size(); i++) {
@@ -288,25 +290,48 @@ public class OWLDiffUtils {
 				v2_minus_v1.add(t);
 			}
 		}
-		dumpVector("added" + "|" + type, v2_minus_v1);
+		dumpVector("deleted" + "|" + type, v2_minus_v1);
 	}
 
+    public static Vector set_difference(Vector vec1, Vector vec2) {
+		HashSet hset1 = new HashSet();
+		for (int i=0; i<vec1.size(); i++) {
+			String t = (String) vec1.elementAt(i);
+			hset1.add(t);
+		}
+		HashSet hset2 = new HashSet();
+		for (int i=0; i<vec2.size(); i++) {
+			String t = (String) vec2.elementAt(i);
+			hset2.add(t);
+		}
+		Vector v1_minus_v2 = new Vector();
+		for (int i=0; i<vec2.size(); i++) {
+			String t = (String) vec2.elementAt(i);
+			if (!hset1.contains(t)) {
+				v1_minus_v2.add(t);
+			}
+		}
+		return v1_minus_v2;
+	}
+
+
 	public static String getPropertyType(String tabDimitedAxiomData) {
-		if (tabDimitedAxiomData.indexOf("|P90|") != -1) {
+		Vector u = StringUtils.parseData(tabDimitedAxiomData);
+		String property_code = (String) u.elementAt(2);
+		if (property_code.compareTo("P90") == 0) {
 			return "FULL_SYN";
-		} else if (tabDimitedAxiomData.indexOf("|P375|") != -1) {
+		} else if (property_code.compareTo("P375") == 0) {
 			return "Maps_To";
-		} else if (tabDimitedAxiomData.indexOf("|P211|") != -1) {
+		} else if (property_code.compareTo("P211") == 0) {
 			return "GO_Annotation";
-		} else if (tabDimitedAxiomData.indexOf("|P97|") != -1) {
+		} else if (property_code.compareTo("P97") == 0) {
 			return "DEFINITION";
-		} else if (tabDimitedAxiomData.indexOf("|P325|") != -1) {
+		} else if (property_code.compareTo("P325") == 0) {
 			return "ALT_DEFINITION";
 		} else {
 			return "axiom";
 		}
 	}
-
 
     public static void compareClass(Vector v1, Vector v2) {
 		OWLScanner owlScanner = new OWLScanner();
@@ -345,7 +370,12 @@ public class OWLDiffUtils {
 
         w3 = owlScanner.axioms2Strings(w3);
         w4 = owlScanner.axioms2Strings(w4);
-        compareVector("axiom", w3, w4);
+
+        Vector w5 = set_difference(w3, w4);
+        dumpVector("added|axiom", w5);
+
+        w5 = set_difference(w4, w3);
+        dumpVector("deleted|axiom", w5);
 	}
 
 	public static void run(String owlfile1, String owlfile2) {
