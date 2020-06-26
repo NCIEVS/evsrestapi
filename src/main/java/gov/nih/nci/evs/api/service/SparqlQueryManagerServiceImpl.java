@@ -1528,7 +1528,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Map<String, String> values =
         ConceptUtils.asMap("propertyCode", propertyCode, "namedGraph", terminology.getGraph());
     String query = queryBuilderService.constructQuery("distinct.property.values", values);
-    log.info("query: " + query);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();

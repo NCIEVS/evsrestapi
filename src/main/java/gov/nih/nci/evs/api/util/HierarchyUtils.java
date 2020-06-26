@@ -109,27 +109,15 @@ public class HierarchyUtils {
       }
 
       if (!code2label.containsKey(values[0])) {
-        if ("10p12".equals(values[0])) {
-          logger.info("value = " + values[1]);
-        }
         code2label.put(values[0], values[1]);
       }
       if (!code2label.containsKey(values[2])) {
-        if ("10p12".equals(values[2])) {
-          logger.info("value = " + values[3]);
-        }
         code2label.put(values[2], values[3]);
       }
       if (!label2code.containsKey(values[1])) {
-        if ("10p12".equals(values[1])) {
-          logger.info("value = " + values[0]);
-        }
         code2label.put(values[1], values[0]);
       }
       if (!label2code.containsKey(values[3])) {
-        if ("10p12".equals(values[3])) {
-          logger.info("value = " + values[2]);
-        }
         code2label.put(values[3], values[2]);
       }
 

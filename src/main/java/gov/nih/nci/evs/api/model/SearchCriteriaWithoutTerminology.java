@@ -385,7 +385,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @return true, if successful
    */
   public boolean checkPagination() {
-    return (fromRecord % pageSize == 0);
+    return (pageSize > 0 && fromRecord % pageSize == 0);
   }
 
   /**
