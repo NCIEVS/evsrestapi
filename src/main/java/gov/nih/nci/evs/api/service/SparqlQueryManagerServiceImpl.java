@@ -57,6 +57,7 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathFinder;
+import gov.nih.nci.evs.api.util.PathUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -590,6 +591,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Map<String, List<Role>> roleMap = getRoles(conceptCodes, terminology);
     Map<String, List<Role>> inverseRoleMap = getInverseRoles(conceptCodes, terminology);
     Map<String, List<DisjointWith>> disjointWithMap = getDisjointWith(conceptCodes, terminology);
+    Map<String, Paths> pathsMap = getPathToRoot(conceptCodes, terminology);
     
     for(Concept concept: concepts) {
       String conceptCode = concept.getCode();
@@ -652,7 +654,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setMaps(EVSUtils.getMapsTo(axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
 //      Paths paths = getPathToRoot(conceptCode, terminology);
-//      concept.setPaths(new ObjectMapper().writeValueAsString(paths));
+      if (pathsMap.containsKey(conceptCode)) {
+        concept.setPaths(new ObjectMapper().writeValueAsString(pathsMap.get(conceptCode)));
+      }
     }
     
     return concepts;
@@ -1524,6 +1528,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Map<String, String> values =
         ConceptUtils.asMap("propertyCode", propertyCode, "namedGraph", terminology.getGraph());
     String query = queryBuilderService.constructQuery("distinct.property.values", values);
+    log.info("query: " + query);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1817,10 +1822,58 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         conceptPaths.add(new Path(1, trimed_concepts));
       }
     }
-    conceptPaths = removeDuplicatePaths(conceptPaths);
+    conceptPaths = PathUtils.removeDuplicatePaths(conceptPaths);
     return conceptPaths;
   }
 
+  private Map<String, Paths> getPathToRoot(List<String> codes, Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException {
+    List<Path> paths = self.getPaths(terminology).getPaths();
+    Map<String, Paths> conceptPaths = new HashMap<>();
+    Map<String, Boolean> codeMap = new HashMap<>();
+    codes.stream().forEach(c -> codeMap.put(c, true));
+    for (Path path : paths) {
+      Boolean sw = false;
+      Map<String, Integer> idxMap = new HashMap<>();
+      List<ConceptNode> concepts = path.getConcepts();
+      for (int i = 0; i < concepts.size(); i++) {
+        ConceptNode concept = concepts.get(i);
+        if (codeMap.containsKey(concept.getCode())) {
+          sw = true;
+          idxMap.put(concept.getCode(), concept.getIdx());
+        }
+      }
+      if (sw) {
+        for(String codeKey: idxMap.keySet()) {
+          int idx = idxMap.get(codeKey);
+          List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
+          if (idx == -1) {
+            idx = concepts.size() - 1;
+          }
+          int j = 0;
+          for (int i = idx; i >= 0; i--) {
+            ConceptNode c = new ConceptNode();
+            c.setCode(concepts.get(i).getCode());
+            c.setLabel(concepts.get(i).getLabel());
+            c.setIdx(j);
+            j++;
+            trimed_concepts.add(c);
+          }
+          conceptPaths.putIfAbsent(codeKey, new Paths());
+          conceptPaths.get(codeKey).add(new Path(1, trimed_concepts));            
+        }
+      }
+    }
+    
+    for(String code: conceptPaths.keySet()) {
+      Paths cPaths = conceptPaths.get(code);
+      cPaths = PathUtils.removeDuplicatePaths(cPaths);
+      conceptPaths.put(code, cPaths);
+    }
+    
+    return conceptPaths;
+  }
+  
   /* see superclass */
   @Override
   public Paths getPathToParent(String code, String parentCode, Terminology terminology)
@@ -1863,33 +1916,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         conceptPaths.add(new Path(1, trimed_concepts));
       }
     }
-    conceptPaths = removeDuplicatePaths(conceptPaths);
+    conceptPaths = PathUtils.removeDuplicatePaths(conceptPaths);
     return conceptPaths;
-  }
-
-  /**
-   * Removes the duplicate paths.
-   *
-   * @param paths the paths
-   * @return the paths
-   */
-  private Paths removeDuplicatePaths(Paths paths) {
-    Paths uniquePaths = new Paths();
-    HashSet<String> seenPaths = new HashSet<String>();
-    for (Path path : paths.getPaths()) {
-      StringBuffer strPath = new StringBuffer();
-      for (ConceptNode concept : path.getConcepts()) {
-        strPath.append(concept.getCode());
-        strPath.append("|");
-      }
-      String pathString = strPath.toString();
-      if (!seenPaths.contains(pathString)) {
-        seenPaths.add(pathString);
-        uniquePaths.add(path);
-      }
-    }
-
-    return uniquePaths;
   }
 
   /* see superclass */

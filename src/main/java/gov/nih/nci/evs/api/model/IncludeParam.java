@@ -45,6 +45,9 @@ public class IncludeParam extends BaseModel {
   /** The highlights. */
   private boolean highlights;
 
+  /** The paths. */
+  private boolean paths;
+  
   /**
    * Instantiates an empty {@link IncludeParam}.
    */
@@ -93,6 +96,8 @@ public class IncludeParam extends BaseModel {
           highlights = true;
         } else if (part.equals("disjointWith")) {
           disjointWith = true;
+        } else if (part.equals("paths")) {
+          paths = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "Invalid includes value = " + part
@@ -129,6 +134,7 @@ public class IncludeParam extends BaseModel {
     maps = other.isMaps();
     highlights = other.isHighlights();
     disjointWith = other.isDisjointWith();
+    paths = other.isPaths();
 
   }
 
@@ -165,6 +171,7 @@ public class IncludeParam extends BaseModel {
     maps = true;
     highlights = true;
     disjointWith = true;
+    paths = true;
   }
 
   /**
@@ -175,7 +182,7 @@ public class IncludeParam extends BaseModel {
   public boolean hasAnyTrue() {
     return synonyms || definitions || properties || children || parents
         || associations || inverseAssociations || roles || inverseRoles || maps
-        || disjointWith;
+        || disjointWith || paths;
   }
 
   /**
@@ -394,4 +401,21 @@ public class IncludeParam extends BaseModel {
     this.disjointWith = disjoint;
   }
 
+  /**
+   * Indicates whether or not paths is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isPaths() {
+    return paths;
+  }
+
+  /**
+   * Sets the disjoint.
+   *
+   * @param disjoint the disjoint
+   */
+  public void setPaths(boolean paths) {
+    this.paths = paths;
+  }
 }

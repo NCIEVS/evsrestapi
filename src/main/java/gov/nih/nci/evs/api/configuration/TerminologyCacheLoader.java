@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticLoadService;
@@ -56,6 +55,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
   public void onApplicationEvent(ApplicationReadyEvent event) {
     log.debug("onApplicationEvent() = " + event);
 
+//    if (true) return;
+    
     boolean esLoad = false;
     
     final ExecutorService executorService = Executors.newFixedThreadPool(4);
@@ -83,10 +84,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("    done hierarchy ");
 
               log.info("  find paths ");
-              Paths paths = sparqlQueryManagerService.getPaths(terminology);
-//              ElasticObject pathsObject = new ElasticObject("paths");
-//              pathsObject.setPaths(paths);
-//              loadService.loadObject(pathsObject, terminology);
+              sparqlQueryManagerService.getPaths(terminology);
               log.info("    done paths ");
 
               log.info("  get synonym sources ");
@@ -113,9 +111,9 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               try {
 
                 log.info("  get qualifiers ");
-//                sparqlQueryManagerService.getAllQualifiers(terminology,
-//                    new IncludeParam("minimal"));
-//                log.info("    done qualifiers minimal");
+                sparqlQueryManagerService.getAllQualifiers(terminology,
+                    new IncludeParam("minimal"));
+                log.info("    done qualifiers minimal");
                 List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology,
                     new IncludeParam("summary"));
                 if (esLoad) {
@@ -137,9 +135,9 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               try {
 
                 log.info("  get properties ");
-//                sparqlQueryManagerService.getAllProperties(terminology,
-//                    new IncludeParam("minimal"));
-//                log.info("    done properties minimal");
+                sparqlQueryManagerService.getAllProperties(terminology,
+                    new IncludeParam("minimal"));
+                log.info("    done properties minimal");
                 List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology,
                     new IncludeParam("summary"));
                 if (esLoad) {
@@ -160,9 +158,9 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
             public void run() {
               try {
                 log.info("  get associations ");
-//                sparqlQueryManagerService.getAllAssociations(terminology,
-//                    new IncludeParam("minimal"));
-//                log.info("    done associations minimal");
+                sparqlQueryManagerService.getAllAssociations(terminology,
+                    new IncludeParam("minimal"));
+                log.info("    done associations minimal");
                 List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology,
                     new IncludeParam("summary"));
                 if (esLoad) {
@@ -183,8 +181,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
             public void run() {
               try {
                 log.info("  get roles ");
-//                sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("minimal"));
-//                log.info("    done roles minimal");
+                sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("minimal"));
+                log.info("    done roles minimal");
                 List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
                 if (esLoad) {
                   ElasticObject rolesObject = new ElasticObject("roles");

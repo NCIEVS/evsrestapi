@@ -483,7 +483,7 @@ public class ConceptController extends BaseController {
           elasticQueryService.getChildNodes(code, maxLevel.orElse(0), term);
 
       if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+        if (!elasticQueryService.checkConceptExists(code, term)) {
           throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
         } else {
           return new ArrayList<>();
@@ -630,7 +630,7 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
       }
-      return ConceptUtils.convertConceptsFromHierarchyWithInclude(sparqlQueryManagerService, ip,
+      return ConceptUtils.convertConceptsFromHierarchyWithInclude(elasticQueryService, ip,
           term, list);
     } catch (Exception e) {
       handleException(e);
@@ -680,12 +680,13 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
+      final Paths paths = elasticQueryService.getPathToRoot(code, term);
 
-      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, true);
+      //TODO: update this method to use es query service
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -725,10 +726,10 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
+      final List<HierarchyNode> nodes = elasticQueryService.getPathInHierarchy(code, term);
 
       return nodes;
     } catch (Exception e) {
@@ -767,7 +768,7 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, term);
@@ -820,11 +821,11 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
-      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
+      final Paths paths = elasticQueryService.getPathToRoot(code, term);
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths,
           false);
     } catch (Exception e) {
       handleException(e);
@@ -879,11 +880,11 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = sparqlQueryManagerService.getPathToParent(code, ancestorCode, term);
-      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
+      final Paths paths = elasticQueryService.getPathToParent(code, ancestorCode, term);
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths,
           false);
 
     } catch (Exception e) {

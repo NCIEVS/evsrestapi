@@ -24,6 +24,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
@@ -154,7 +155,7 @@ public final class ConceptUtils {
   /**
    * Convert concepts from hierarchy with include.
    *
-   * @param service the service
+   * @param service the elastic query service
    * @param ip the ip
    * @param terminology the terminology
    * @param list the list
@@ -162,22 +163,24 @@ public final class ConceptUtils {
    * @throws Exception the exception
    */
   public static List<Concept> convertConceptsFromHierarchyWithInclude(
-    final SparqlQueryManagerService service, final IncludeParam ip, final Terminology terminology,
+    final ElasticQueryService service, final IncludeParam ip, final Terminology terminology,
     final List<HierarchyNode> list) throws Exception {
 
     final List<Concept> concepts = convertConceptsFromHierarchy(list);
+    final List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+    final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
     if (ip.hasAnyTrue()) {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
+        concept.populateFrom(conceptMap.get(concept.getCode()));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
     }
     return concepts;
   }
-
+  
   /**
    * Convert paths.
    *
@@ -219,22 +222,24 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<ConceptPath> convertPathsWithInclude(final SparqlQueryManagerService service,
+  public static List<ConceptPath> convertPathsWithInclude(final ElasticQueryService service,
     final IncludeParam ip, final Terminology terminology, final Paths paths, final boolean reverse)
     throws Exception {
 
     final List<ConceptPath> list = convertPaths(paths, reverse);
     if (ip.hasAnyTrue()) {
-      final java.util.Map<String, Concept> cache = new HashMap<>();
+//      final java.util.Map<String, Concept> cache = new HashMap<>();
       for (final ConceptPath concepts : list) {
+        List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+        Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
         for (final Concept concept : concepts) {
           final int level = concept.getLevel();
-          if (cache.containsKey(concept.getCode())) {
-            concept.populateFrom(cache.get(concept.getCode()));
-          } else {
-            concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
-            cache.put(concept.getCode(), concept);
-          }
+//          if (cache.containsKey(concept.getCode())) {
+//            concept.populateFrom(cache.get(concept.getCode()));
+//          } else {
+            concept.populateFrom(conceptMap.get(concept.getCode()));
+//            cache.put(concept.getCode(), concept);
+//          }
           concept.setLevel(level);
         }
       }

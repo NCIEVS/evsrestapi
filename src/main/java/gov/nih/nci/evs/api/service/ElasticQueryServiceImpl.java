@@ -5,10 +5,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +24,20 @@ import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.ConceptNode;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptMultiGetResultMapper;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.PathUtils;
 
 @Service
 public class ElasticQueryServiceImpl implements ElasticQueryService {
@@ -42,15 +50,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public boolean checkConceptExists(String code, Terminology terminology) {
     logger.debug(String.format("checkConceptExists(%s)", code));
-    NativeSearchQuery query = new NativeSearchQueryBuilder()
-        .withIds(Arrays.asList(code))
-        .withIndices(terminology.getIndexName())
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE)
-        .build();
-
-    long count = operations.count(query, Concept.class);
-    logger.info("count: " + count);
-    return (count > 0);
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("minimal"));
+    return concept.isPresent();
   }
   
   @Override
@@ -77,6 +78,15 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     return concepts;
   }
 
+  @Override
+  public Map<String, Concept> getConceptsAsMap(List<String> codes, Terminology terminology, IncludeParam ip) {
+    List<Concept> concepts = getConcepts(codes, terminology, ip);
+    if (CollectionUtils.isEmpty(concepts)) return Collections.emptyMap();
+    Map<String, Concept> result = new HashMap<>();
+    concepts.stream().forEach(c -> result.put(c.getCode(), c));
+    return result;
+  }
+  
   @Override
   public List<Concept> getSubclasses(String code, Terminology terminology) {
     Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("children"));
@@ -216,101 +226,107 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     }
   }
   
-  /**
-   * Find paths.
-   *
-   * @return the paths
-   * @throws JsonProcessingException 
-   * @throws JsonMappingException 
-   */
-//  @Override
-//  public Paths findPaths(Terminology terminology) throws JsonMappingException, JsonProcessingException {
-//    Paths paths = new Paths();
-//    Deque<String> stack = new ArrayDeque<String>();
-//    Optional<HierarchyUtils> hierarchy = getHierarchy(terminology);
-//    if (!hierarchy.isPresent()) return null;
-//    ArrayList<String> roots = hierarchy.get().getHierarchyRoots();
-//    for (String root : roots) {
-//      stack.push(root);
-//    }
-//    while (!stack.isEmpty()) {
-//      String path = stack.pop();
-//      String[] values = path.trim().split("\\|");
-//      List<String> elements = Arrays.asList(values);
-//      String lastCode = elements.get(elements.size() - 1);
-//      List<Concept> subclasses = getSubclasses(lastCode, terminology);
-//      if (subclasses == null || CollectionUtils.isEmpty(subclasses)) {
-//        paths.add(createPath(path, terminology));
-//      } else {
-//        for (Concept subclass : subclasses) {
-//          stack.push(path + "|" + subclass.getCode());
-//        }
-//      }
-//    }
-//
-//    return paths;
-//  }
-//
-//  /**
-//   * Creates the path.
-//   *
-//   * @param path the path
-//   * @return the path
-//   */
-//  private Path createPath(String path, Terminology terminology) {
-//    Path p = new Path();
-//    List<ConceptNode> conceptNodes = new ArrayList<ConceptNode>();
-//    String[] codes = path.split("\\|");
-//    List<String> codeList = Arrays.asList(codes);
-//    List<Concept> concepts = getConcepts(codeList, terminology, new IncludeParam("minimal"));
-//    for (int i = 0; i < concepts.size(); i++) {
-//      ConceptNode concept = new ConceptNode(i, concepts.get(i).getName(), concepts.get(i).getCode());
-//      conceptNodes.add(concept);
-//    }
-//
-//    p.setDirection(1);
-//    p.setConcepts(conceptNodes);
-//    return p;
-//  }
+  @Override
+  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    List<HierarchyNode> rootNodes = getRootNodes(terminology);
+    Paths paths = getPathToRoot(code, terminology);
+
+    for (HierarchyNode rootNode : rootNodes) {
+      for (Path path : paths.getPaths()) {
+        checkPathInHierarchy(code, rootNode, path, terminology);
+      }
+    }
+
+    return rootNodes;
+  }
+
+  @Override
+  public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
+      Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
+    if (path.getConcepts().size() == 0) {
+      return;
+    }
+    int end = path.getConcepts().size() - 1;
+    ConceptNode concept = path.getConcepts().get(end);
+    List<HierarchyNode> children = getChildNodes(node.getCode(), 1, terminology);
+    if (node.getChildren().size() == 0) {
+      node.setChildren(children);
+    }
+    if (concept.getCode().equals(node.getCode())) {
+      if (node.getCode().equals(code)) {
+        node.setHighlight(true);
+        return;
+      }
+      node.setExpanded(true);
+      if (path.getConcepts() != null && !path.getConcepts().isEmpty()) {
+        path.getConcepts().remove(path.getConcepts().size() - 1);
+      }
+      for (HierarchyNode childNode : node.getChildren()) {
+        checkPathInHierarchy(code, childNode, path, terminology);
+      }
+    }
+  }
   
-  /**
-   * Find paths to roots.
-   *
-   * @param code the code
-   * @param hset the hset
-   * @return the paths
-   */
-//  public Paths findPathsToRoots(String code, HashSet<String> hset, Terminology terminology) {
-//    Paths paths = new Paths();
-//    Stack<String> stack = new Stack<>();
-//    stack.push(code);
-//    while (!stack.isEmpty()) {
-//      String path = (String) stack.pop();
-//      Vector<String> u = PathFinder.parseData(path, '|');
-//      String lastCode = (String) u.elementAt(u.size() - 1);
-//      List<Concept> sups = getSuperclasses(lastCode, terminology);
-//      if (sups == null) {
-//        paths.add(createPath(path, terminology));
-//      } else {
-//        Vector<String> w = new Vector<>();
-//        for (int i = 0; i < sups.size(); i++) {
-//          String sup = sups.get(i).getCode();
-//          if (!hset.contains(sup)) {
-//            w.add(sup);
-//          }
-//        }
-//        if (w.size() == 0) {
-//          paths.add(createPath(path, terminology));
-//        } else {
-//          for (int k = 0; k < w.size(); k++) {
-//            String s = (String) w.elementAt(k);
-//            stack.push(path + "|" + s);
-//          }
-//        }
-//      }
-//    }
-//    return paths;
-//  }
+  @Override
+  public Paths getPathToRoot(String code, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("full"));
+    if (!concept.isPresent() || StringUtils.isEmpty(concept.get().getPaths())) return new Paths();
+    return new ObjectMapper().readValue(concept.get().getPaths(), Paths.class);
+  }
+  
+  @Override
+  public Paths getPathToParent(String code, String parentCode, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    logger.info(String.format("getPathToParent(%s, %s)", code, parentCode));
+    Paths paths = getPathToRoot(code, terminology);
+    logger.info("paths: " + paths);
+    Paths conceptPaths = new Paths();
+    for (Path path : paths.getPaths()) {
+      logger.info("checking path: " + path);
+      Boolean codeSW = false;
+      Boolean parentSW = false;
+      int idx = -1;
+      List<ConceptNode> concepts = path.getConcepts();
+      for (int i = 0; i < concepts.size(); i++) {
+        ConceptNode concept = concepts.get(i);
+        if (concept.getCode().equals(code)) {
+          codeSW = true;
+        }
+        if (concept.getCode().equals(parentCode)) {
+          parentSW = true;
+          idx = concept.getIdx();
+        }
+      }
+      if (codeSW && parentSW) {
+        logger.info("both codeSW and parentSW are TRUE");
+        List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
+        if (idx == -1) {
+          idx = concepts.size() - 1;
+        }
+        logger.info("idx: " + idx);
+//        int j = 0;
+        for (int i = 0; i <= idx; i++) {
+          ConceptNode c = new ConceptNode();
+          c.setCode(concepts.get(i).getCode());
+          c.setLabel(concepts.get(i).getLabel());
+          c.setIdx(i);
+          logger.info("adding concept: " + c.getCode());
+          trimed_concepts.add(c);
+          if (c.getCode().equals(parentCode)) {
+            break;
+          }
+        }
+        logger.info("trimmed concepts: " + trimed_concepts);
+        conceptPaths.add(new Path(1, trimed_concepts));
+      }
+    }
+    logger.info("concept paths: " + conceptPaths);
+    conceptPaths = PathUtils.removeDuplicatePaths(conceptPaths);
+    logger.info("concept paths after de-dupe: " + conceptPaths);
+    return conceptPaths;
+  }
   
   @Override
   public Optional<HierarchyUtils> getHierarchy(Terminology terminology) throws JsonMappingException, JsonProcessingException {

@@ -14,6 +14,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -23,6 +24,7 @@ public interface ElasticQueryService {
   boolean checkConceptExists(String code, Terminology terminology);
   Optional<Concept> getConcept(String code, Terminology terminology, IncludeParam ip);
   List<Concept> getConcepts(List<String> codes, Terminology terminology, IncludeParam ip);
+  Map<String, Concept> getConceptsAsMap(List<String> codes, Terminology terminology, IncludeParam ip);
 //  Map<String, String> getCodeLabelMap(List<String> codes, Terminology terminology);
   List<Concept> getSubclasses(String code, Terminology terminology);
   List<Concept> getSuperclasses(String code, Terminology terminology);
@@ -35,6 +37,16 @@ public interface ElasticQueryService {
       throws JsonParseException, JsonMappingException, IOException;  
   List<String> getAllChildNodes(String code, Terminology terminology);
 //  Paths findPaths(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+  
+  List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException;
+  void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException;
+  Paths getPathToRoot(String code, Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException;
+  Paths getPathToParent(String code, String parentCode, Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException;
+  
   Optional<HierarchyUtils> getHierarchy(Terminology terminology) throws JsonMappingException, JsonProcessingException;
   List<Concept> getQualifiers(Terminology terminology) throws JsonMappingException, JsonProcessingException;
   List<Concept> getProperties(Terminology terminology) throws JsonMappingException, JsonProcessingException;
@@ -42,4 +54,6 @@ public interface ElasticQueryService {
   List<Concept> getRoles(Terminology terminology) throws JsonMappingException, JsonProcessingException;
   List<ConceptMinimal> getSynonymSources(Terminology terminology) throws ClassNotFoundException, IOException;  
   List<ConceptMinimal> getContributingSources(Terminology terminology) throws ClassNotFoundException, IOException;
+  
+  
 }

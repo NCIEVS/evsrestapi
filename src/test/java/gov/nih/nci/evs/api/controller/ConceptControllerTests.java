@@ -844,6 +844,7 @@ public class ConceptControllerTests {
       // n/a
     });
     log.info("  list = " + list.size());
+    log.info("  list values = " + list);
 
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();

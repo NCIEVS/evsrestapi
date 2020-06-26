@@ -41,5 +41,8 @@ public class BaseResultMapper {
     if (!ip.isMaps()) {
       sourceMap.put("maps", null);
     }
+    if (!ip.isPaths()) {
+      sourceMap.put("paths", null);
+    }
   }
 }

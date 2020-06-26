@@ -102,9 +102,9 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Nested)
   private List<Map> maps;
 
-//  @Field(type = FieldType.Keyword)
+  @Field(type = FieldType.Keyword)
 //  @Transient
-//  private String paths;
+  private String paths;
   
   /**
    * Instantiates an empty {@link Concept}.
@@ -190,6 +190,9 @@ public class Concept extends ConceptMinimal {
     inverseRoles = new ArrayList<>(other.getInverseRoles());
     disjointWith = new ArrayList<>(other.getDisjointWith());
     maps = new ArrayList<>(other.getMaps());
+    if (other.getPaths() != null) {
+      paths = other.getPaths();
+    }
   }
 
   /**
@@ -498,11 +501,11 @@ public class Concept extends ConceptMinimal {
     this.maps = maps;
   }
 
-//  public String getPaths() {
-//    return paths;
-//  }
-//
-//  public void setPaths(String paths) {
-//    this.paths = paths;
-//  }
+  public String getPaths() {
+    return paths;
+  }
+
+  public void setPaths(String paths) {
+    this.paths = paths;
+  }
 }
