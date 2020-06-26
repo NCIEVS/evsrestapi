@@ -279,12 +279,12 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public Paths getPathToParent(String code, String parentCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    logger.info(String.format("getPathToParent(%s, %s)", code, parentCode));
+    logger.debug(String.format("getPathToParent(%s, %s)", code, parentCode));
     Paths paths = getPathToRoot(code, terminology);
-    logger.info("paths: " + paths);
+    logger.debug("paths: " + paths);
     Paths conceptPaths = new Paths();
     for (Path path : paths.getPaths()) {
-      logger.info("checking path: " + path);
+      logger.debug("checking path: " + path);
       Boolean codeSW = false;
       Boolean parentSW = false;
       int idx = -1;
@@ -300,31 +300,31 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
         }
       }
       if (codeSW && parentSW) {
-        logger.info("both codeSW and parentSW are TRUE");
+        logger.debug("both codeSW and parentSW are TRUE");
         List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
         if (idx == -1) {
           idx = concepts.size() - 1;
         }
-        logger.info("idx: " + idx);
+        logger.debug("idx: " + idx);
 //        int j = 0;
         for (int i = 0; i <= idx; i++) {
           ConceptNode c = new ConceptNode();
           c.setCode(concepts.get(i).getCode());
           c.setLabel(concepts.get(i).getLabel());
           c.setIdx(i);
-          logger.info("adding concept: " + c.getCode());
+          logger.debug("adding concept: " + c.getCode());
           trimed_concepts.add(c);
           if (c.getCode().equals(parentCode)) {
             break;
           }
         }
-        logger.info("trimmed concepts: " + trimed_concepts);
+        logger.debug("trimmed concepts: " + trimed_concepts);
         conceptPaths.add(new Path(1, trimed_concepts));
       }
     }
-    logger.info("concept paths: " + conceptPaths);
+    logger.debug("concept paths: " + conceptPaths);
     conceptPaths = PathUtils.removeDuplicatePaths(conceptPaths);
-    logger.info("concept paths after de-dupe: " + conceptPaths);
+    logger.debug("concept paths after de-dupe: " + conceptPaths);
     return conceptPaths;
   }
   

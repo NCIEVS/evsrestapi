@@ -75,8 +75,6 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   
   @Override
   public void index(Object object, String index, String type, Class clazz) throws IOException {
-    logger.info("index()");
-    
     IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object))
         .withIndexName(index).withType(type)
         .build();

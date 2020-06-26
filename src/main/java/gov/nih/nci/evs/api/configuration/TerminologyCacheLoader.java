@@ -14,17 +14,11 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticLoadService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * Terminology cache loader to load spring cache by making calls to
@@ -55,14 +49,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
   public void onApplicationEvent(ApplicationReadyEvent event) {
     log.debug("onApplicationEvent() = " + event);
 
-//    if (true) return;
-    
-    boolean esLoad = false;
-    
     final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-    final ObjectMapper mapper = new ObjectMapper();
-    
     try {
       final List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
       if (CollectionUtils.isEmpty(terminologies))
@@ -75,12 +63,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
           public void run() {
             try {
               log.info("  get hierarchy ");
-              HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(terminology);
-              if (esLoad) {
-                ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-                hierarchyObject.setHierarchy(hierarchy);
-                loadService.loadObject(hierarchyObject, terminology);
-              }
+              sparqlQueryManagerService.getHierarchyUtils(terminology);
               log.info("    done hierarchy ");
 
               log.info("  find paths ");
@@ -88,12 +71,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
               log.info("    done paths ");
 
               log.info("  get synonym sources ");
-              List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
-              if (esLoad) {
-                ElasticObject ssObject = new ElasticObject("synonym_sources");
-                ssObject.setConceptMinimals(synonymSources);
-                loadService.loadObject(ssObject, terminology);
-              }
+              sparqlQueryManagerService.getSynonymSources(terminology);
               log.info("    done synonym sources ");
               
             } catch (IOException e) {
@@ -114,13 +92,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 sparqlQueryManagerService.getAllQualifiers(terminology,
                     new IncludeParam("minimal"));
                 log.info("    done qualifiers minimal");
-                List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology,
+                sparqlQueryManagerService.getAllQualifiers(terminology,
                     new IncludeParam("summary"));
-                if (esLoad) {
-                  ElasticObject conceptsObject = new ElasticObject("qualifiers");
-                  conceptsObject.setConcepts(qualifiers);
-                  loadService.loadObject(conceptsObject, terminology);
-                }
                 log.info("    done qualifiers summary");
 
               } catch (IOException e) {
@@ -138,13 +111,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 sparqlQueryManagerService.getAllProperties(terminology,
                     new IncludeParam("minimal"));
                 log.info("    done properties minimal");
-                List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology,
+                sparqlQueryManagerService.getAllProperties(terminology,
                     new IncludeParam("summary"));
-                if (esLoad) {
-                  ElasticObject propertiesObject = new ElasticObject("properties");
-                  propertiesObject.setConcepts(properties);
-                  loadService.loadObject(propertiesObject, terminology);
-                }
                 log.info("    done properties summary");
 
               } catch (IOException e) {
@@ -161,13 +129,8 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 sparqlQueryManagerService.getAllAssociations(terminology,
                     new IncludeParam("minimal"));
                 log.info("    done associations minimal");
-                List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology,
+                sparqlQueryManagerService.getAllAssociations(terminology,
                     new IncludeParam("summary"));
-                if (esLoad) {
-                  ElasticObject associationsObject = new ElasticObject("associations");
-                  associationsObject.setConcepts(associations);
-                  loadService.loadObject(associationsObject, terminology);
-                }
                 log.info("    done associations summary");
 
               } catch (IOException e) {
@@ -183,12 +146,7 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
                 log.info("  get roles ");
                 sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("minimal"));
                 log.info("    done roles minimal");
-                List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
-                if (esLoad) {
-                  ElasticObject rolesObject = new ElasticObject("roles");
-                  rolesObject.setConcepts(roles);
-                  loadService.loadObject(rolesObject, terminology);
-                }
+                sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
                 log.info("    done roles summary");
 
               } catch (IOException e) {
