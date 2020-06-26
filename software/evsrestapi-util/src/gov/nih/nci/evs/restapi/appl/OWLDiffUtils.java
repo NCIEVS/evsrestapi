@@ -338,8 +338,12 @@ public class OWLDiffUtils {
         String t1 = owlScanner.get_owl_class_hashcode(v1);
         String t2 = owlScanner.get_owl_class_hashcode(v2);
 
-        Vector w1 = owlScanner.extract_properties(v1);
-        Vector w2 = owlScanner.extract_properties(v2);
+        Vector w1 = owlScanner.removeObjectValuedProperties(owlScanner.extract_properties(v1));
+        Vector w2 = owlScanner.removeObjectValuedProperties(owlScanner.extract_properties(v2));
+
+        //Vector w1 = owlScanner.extract_properties(v1);
+        //Vector w2 = owlScanner.extract_properties(v2);
+
         compareVector("property", w1, w2);
 
         w1 = owlScanner.extract_superclasses(v1);
@@ -364,6 +368,7 @@ public class OWLDiffUtils {
         w1 = owlScanner.extract_associations(v1);
         w2 = owlScanner.extract_associations(v2);
         compareVector("association", w1, w2);
+
 
         w3 = owlScanner.extractPropertiesWithQualifiers(v1);
         w4 = owlScanner.extractPropertiesWithQualifiers(v2);

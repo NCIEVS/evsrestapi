@@ -2030,6 +2030,18 @@ C4910|<NHC0>C4910</NHC0>
 		return u;
 	}
 
+	public static Vector removeObjectValuedProperties(Vector v) {
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String property = (String) u.elementAt(1);
+			if (!property.startsWith("A")) {
+				w.add(t);
+			}
+		}
+		return w;
+	}
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
