@@ -37,16 +37,16 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
   /** the object mapper **/
   private ObjectMapper mapper;
   
+  /** the include param **/
   private IncludeParam ip;
   
   public EVSConceptResultMapper(IncludeParam ip) {
     this.ip = ip;
     this.mapper = new ObjectMapper();
   }
-
-  @SuppressWarnings({
-      "rawtypes", "unchecked"
-  })
+  
+  /** see superclass **/
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz,
     Pageable pageable) {
@@ -64,7 +64,7 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
         response.getAggregations(), response.getScrollId(), response.getHits().getMaxScore());
   }
 
-  /* see superclass */
+  /** see superclass **/
   @SuppressWarnings("unchecked")
   @Override
   public <T> T mapSearchHit(SearchHit searchHit, Class<T> clazz) {

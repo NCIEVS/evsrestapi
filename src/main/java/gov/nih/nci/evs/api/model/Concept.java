@@ -10,6 +10,9 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
 /**
@@ -40,6 +43,7 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
  * </pre>
  */
 @Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
+@JsonInclude(content = Include.NON_EMPTY)
 public class Concept extends ConceptMinimal {
 
   /** The highlight. */
@@ -102,9 +106,9 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Nested)
   private List<Map> maps;
 
-  @Field(type = FieldType.Keyword)
-//  @Transient
-  private String paths;
+  /** The paths to root. */
+  @Field(type = FieldType.Object)
+  private Paths paths;
   
   /**
    * Instantiates an empty {@link Concept}.
@@ -501,11 +505,21 @@ public class Concept extends ConceptMinimal {
     this.maps = maps;
   }
 
-  public String getPaths() {
+  /**
+   * Returns the paths.
+   * 
+   * @return
+   */
+  public Paths getPaths() {
     return paths;
   }
 
-  public void setPaths(String paths) {
+  /**
+   * Sets the paths.
+   * 
+   * @param paths the paths to root
+   */
+  public void setPaths(Paths paths) {
     this.paths = paths;
   }
 }

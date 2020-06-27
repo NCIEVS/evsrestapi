@@ -7,21 +7,28 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
+/**
+ * The elasticsearch wrapper object for cached objects
+ * 
+ * @author Arun
+ *
+ */
 @Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
+@JsonInclude(content = Include.NON_EMPTY)
 public class ElasticObject {
   
   @Id
   private String name;
 
-//  @Field(type = FieldType.Keyword)
-//  private String data;
-  
   @Field(type = FieldType.Object)
   private HierarchyUtils hierarchy;
 
@@ -49,14 +56,6 @@ public class ElasticObject {
     this.name = name;
   }
 
-//  public String getData() {
-//    return data;
-//  }
-//
-//  public void setData(String data) {
-//    this.data = data;
-//  }
-  
   public HierarchyUtils getHierarchy() {
     return hierarchy;
   }

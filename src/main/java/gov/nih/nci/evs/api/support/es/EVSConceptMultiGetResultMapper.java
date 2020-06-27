@@ -16,17 +16,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 
+/**
+ * The multiGet elasticsearch result mapper
+ * 
+ * @author Arun
+ *
+ */
 public class EVSConceptMultiGetResultMapper extends BaseResultMapper implements MultiGetResultMapper {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(EVSConceptMultiGetResultMapper.class);
   
+  /** the include param **/
   private IncludeParam ip;
   
   public EVSConceptMultiGetResultMapper(IncludeParam ip) {
     this.ip = ip;
   }
   
+  /** see superclass **/
   @Override
   public <T> List<T> mapResults(MultiGetResponse responses, Class<T> clazz) {
     List<Concept> concepts = new ArrayList<>();

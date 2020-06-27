@@ -4,7 +4,13 @@ import java.util.Map;
 
 import gov.nih.nci.evs.api.model.IncludeParam;
 
-public class BaseResultMapper {
+/**
+ * The base elasticsearch result mapper class with common helper methods
+ * 
+ * @author Arun
+ *
+ */
+public abstract class BaseResultMapper {
   void applyIncludeParam(final Map<String, Object> sourceMap, IncludeParam ip) {
     if (ip == null) return;
     

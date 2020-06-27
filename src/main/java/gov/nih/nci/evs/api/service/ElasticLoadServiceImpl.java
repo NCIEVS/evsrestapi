@@ -56,6 +56,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 @Service
 public class ElasticLoadServiceImpl implements ElasticLoadService {
 
+  /** the logger **/
   private static final Logger logger = LoggerFactory.getLogger(ElasticLoadServiceImpl.class);
 
   /** the concepts download location **/
@@ -86,12 +87,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /**
-   * load elasticsearch index based on config options
-   * 
-   * @param config the config object with options
-   * @param terminology the terminology object
-   */
+  /* see superclass */
   @Override
   public void loadConcepts(ElasticLoadConfig config, Terminology terminology) throws IOException {
 
@@ -312,6 +308,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     logger.debug("Done loading concepts!");
   }
 
+  /* see superclass */
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology) throws IOException {
     String indexName = terminology.getObjectIndexName();

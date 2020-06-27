@@ -647,7 +647,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setMaps(EVSUtils.getMapsTo(axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
       if (pathsMap.containsKey(conceptCode)) {
-        concept.setPaths(new ObjectMapper().writeValueAsString(pathsMap.get(conceptCode)));
+        concept.setPaths(pathsMap.get(conceptCode));
       }
     }
     
