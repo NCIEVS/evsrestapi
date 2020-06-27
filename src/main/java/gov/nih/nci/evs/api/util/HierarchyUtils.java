@@ -239,20 +239,20 @@ public class HierarchyUtils {
    * @param maxLevel the max level
    * @return the child nodes
    */
-//  public ArrayList<HierarchyNode> getChildNodes(String parent, int maxLevel) {
-//    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-//    ArrayList<String> children = this.parent2child.get(parent);
-//    if (children == null) {
-//      return nodes;
-//    }
-//    for (String code : children) {
-//      HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
-//      getChildNodesLevel(node, maxLevel, 0);
-//      nodes.add(node);
-//    }
-//    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
-//    return nodes;
-//  }
+  public ArrayList<HierarchyNode> getChildNodes(String parent, int maxLevel) {
+    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+    ArrayList<String> children = this.parent2child.get(parent);
+    if (children == null) {
+      return nodes;
+    }
+    for (String code : children) {
+      HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
+      getChildNodesLevel(node, maxLevel, 0);
+      nodes.add(node);
+    }
+    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
+    return nodes;
+  }
 
   /**
    * Returns the child nodes level.
@@ -262,37 +262,37 @@ public class HierarchyUtils {
    * @param level the level
    * @return the child nodes level
    */
-//  public void getChildNodesLevel(HierarchyNode node, int maxLevel, int level) {
-//    List<String> children = this.parent2child.get(node.getCode());
-//    node.setLevel(level);
-//
-//    if (children == null || children.size() == 0) {
-//      node.setLeaf(true);
-//      return;
-//    } else {
-//      node.setLeaf(false);
-//    }
-//    if (level >= maxLevel) {
-//      return;
-//    }
-//
-//    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-//    level = level + 1;
-//    for (String code : children) {
-//      HierarchyNode newnode = new HierarchyNode(code, code2label.get(code), false);
-//      getChildNodesLevel(newnode, maxLevel, level);
-//      List<HierarchyNode> sortedChildren = newnode.getChildren();
-//      // Sort children if they exist
-//      if (sortedChildren != null && sortedChildren.size() > 0) {
-//        sortedChildren.sort(Comparator.comparing(HierarchyNode::getLabel));
-//      }
-//
-//      newnode.setChildren(sortedChildren);
-//      nodes.add(newnode);
-//    }
-//    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
-//    node.setChildren(nodes);
-//  }
+  public void getChildNodesLevel(HierarchyNode node, int maxLevel, int level) {
+    List<String> children = this.parent2child.get(node.getCode());
+    node.setLevel(level);
+
+    if (children == null || children.size() == 0) {
+      node.setLeaf(true);
+      return;
+    } else {
+      node.setLeaf(false);
+    }
+    if (level >= maxLevel) {
+      return;
+    }
+
+    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+    level = level + 1;
+    for (String code : children) {
+      HierarchyNode newnode = new HierarchyNode(code, code2label.get(code), false);
+      getChildNodesLevel(newnode, maxLevel, level);
+      List<HierarchyNode> sortedChildren = newnode.getChildren();
+      // Sort children if they exist
+      if (sortedChildren != null && sortedChildren.size() > 0) {
+        sortedChildren.sort(Comparator.comparing(HierarchyNode::getLabel));
+      }
+
+      newnode.setChildren(sortedChildren);
+      nodes.add(newnode);
+    }
+    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
+    node.setChildren(nodes);
+  }
 
   /**
    * Returns the all child nodes recursive.
@@ -301,17 +301,17 @@ public class HierarchyUtils {
    * @param childCodes the child codes
    * @return the all child nodes recursive
    */
-//  public void getAllChildNodesRecursive(String code, ArrayList<String> childCodes) {
-//    List<String> children = this.parent2child.get(code);
-//    if (children == null || children.size() == 0) {
-//      return;
-//    } else {
-//      for (String childCode : children) {
-//        childCodes.add(childCode);
-//        getAllChildNodesRecursive(childCode, childCodes);
-//      }
-//    }
-//  }
+  public void getAllChildNodesRecursive(String code, ArrayList<String> childCodes) {
+    List<String> children = this.parent2child.get(code);
+    if (children == null || children.size() == 0) {
+      return;
+    } else {
+      for (String childCode : children) {
+        childCodes.add(childCode);
+        getAllChildNodesRecursive(childCode, childCodes);
+      }
+    }
+  }
 
   /**
    * Returns the all child nodes.
@@ -319,21 +319,21 @@ public class HierarchyUtils {
    * @param code the code
    * @return the all child nodes
    */
-//  public List<String> getAllChildNodes(String code) {
-//    ArrayList<String> childCodes = new ArrayList<String>();
-//
-//    List<String> children = this.parent2child.get(code);
-//    if (children == null || children.size() == 0) {
-//      return childCodes;
-//    }
-//
-//    for (String childCode : children) {
-//      childCodes.add(childCode);
-//      getAllChildNodesRecursive(childCode, childCodes);
-//    }
-//
-//    return childCodes.stream().distinct().collect(Collectors.toList());
-//    // return childCodes;
-//  }
+  public List<String> getAllChildNodes(String code) {
+    ArrayList<String> childCodes = new ArrayList<String>();
+
+    List<String> children = this.parent2child.get(code);
+    if (children == null || children.size() == 0) {
+      return childCodes;
+    }
+
+    for (String childCode : children) {
+      childCodes.add(childCode);
+      getAllChildNodesRecursive(childCode, childCodes);
+    }
+
+    return childCodes.stream().distinct().collect(Collectors.toList());
+    // return childCodes;
+  }
   
 }

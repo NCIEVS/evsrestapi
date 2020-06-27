@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,9 +85,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The application properties. */
   @Autowired
   ApplicationProperties applicationProperties;
-
-//  @Autowired
-//  ElasticObjectService esObjectService;
   
   /** The elastic search service. */
   @Autowired
@@ -101,9 +97,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The self. */
   @Resource
   private SparqlQueryManagerService self;
-
-  @Autowired
-  ElasticQueryService esQueryService;
   
   /**
    * Post init.
@@ -653,7 +646,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setInverseRoles(inverseRoleMap.get(conceptCode));
       concept.setMaps(EVSUtils.getMapsTo(axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
-//      Paths paths = getPathToRoot(conceptCode, terminology);
       if (pathsMap.containsKey(conceptCode)) {
         concept.setPaths(new ObjectMapper().writeValueAsString(pathsMap.get(conceptCode)));
       }
@@ -1706,21 +1698,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return esQueryService.getChildNodes(parent, 0, terminology);
+    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
   }
 
   /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return esQueryService.getChildNodes(parent, maxLevel, terminology);
+    return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
   }
 
   /* see superclass */
   @Override
   public List<String> getAllChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    return esQueryService.getAllChildNodes(parent, terminology);
+    return self.getHierarchyUtils(terminology).getAllChildNodes(parent);
   }
 
   /* see superclass */

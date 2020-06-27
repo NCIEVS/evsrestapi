@@ -2,9 +2,11 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -84,19 +86,6 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
-  @Override
-  public void loadObject(ElasticObject object, Terminology terminology) throws IOException {
-    String indexName = terminology.getObjectIndexName();
-    logger.debug("object index name: {}", indexName);
-    boolean result = operationsService.createIndex(indexName, true);
-    logger.debug("index result: {}", result);
-//    if (result) {
-//      operationsService.getElasticsearchOperations().putMapping(indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
-//    }
-    
-    operationsService.index(object, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
-  }
-  
   /**
    * load elasticsearch index based on config options
    * 
@@ -170,7 +159,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     int end = DOWNLOAD_BATCH_SIZE;
 
     int total = allConcepts.size();
-    logger.info("   total concepts to download: {}", total);
+    logger.info("   Total concepts to download: {}", total);
 
     while (start < total) {
       if (total - start <= DOWNLOAD_BATCH_SIZE)
@@ -185,7 +174,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       for (Concept concept : concepts) {
         String json = concept.toString();
         String filePath = location + concept.getCode() + ".json";
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8));
         writer.write(json);
         writer.close();
       }
@@ -227,16 +216,16 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       return;
     }
 
-    logger.info("   total concepts to load: {}", jsonFiles.length);
+    logger.info("   Total concepts to load: {}", jsonFiles.length);
     
     Double total = (double) jsonFiles.length;
 
     int start = 0;
     int end = INDEX_BATCH_SIZE;
 
-    Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE) + 1;
+    Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
 
-    logger.debug("   task size: {}", taskSize.intValue());
+    logger.debug("   Task size: {}", taskSize.intValue());
 
     CountDownLatch latch = new CountDownLatch(taskSize.intValue());
     ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -245,14 +234,14 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       if (total - start <= INDEX_BATCH_SIZE)
         end = total.intValue();
 
-      logger.debug("   processing {} to {}", start, end);
+      logger.debug("   Processing {} to {}", start, end);
 
       File[] files = Arrays.copyOfRange(jsonFiles, start, end);
       List<Concept> concepts = new ArrayList<>(files.length);
       ObjectMapper mapper = new ObjectMapper();
       for (File file : files) {
         byte[] data = Files.readAllBytes(Paths.get(file.toURI()));
-        String strData = new String(data, "Windows-1252");
+        String strData = new String(data, "UTF-8");
         Concept concept = mapper.readValue(strData.getBytes("UTF-8"), Concept.class);
         concepts.add(concept);
       }
@@ -263,11 +252,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       end = end + INDEX_BATCH_SIZE;
     }
 
-    executor.submit(new ElasticObjectLoadTask(terminology, latch));
-    
     latch.await();
 
     executor.shutdown();
+
+    logger.debug("Done loading concepts!");
   }
 
   /**
@@ -280,23 +269,23 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    */
   private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology)
       throws IOException, InterruptedException {
-    logger.debug("loading concepts real time");
+    logger.debug("Loading concepts real time");
 
     if (CollectionUtils.isEmpty(allConcepts)) {
       logger.warn("Unable to load. No concepts found!");
       return;
     }
 
-    logger.info("   total concepts to load: {}", allConcepts.size());
+    logger.info("   Total concepts to load: {}", allConcepts.size());
     
     Double total = (double) allConcepts.size();
 
     int start = 0;
     int end = INDEX_BATCH_SIZE;
 
-    Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE) + 1;
+    Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
 
-    logger.debug("   task size: {}", taskSize.intValue());
+    logger.debug("   Task size: {}", taskSize.intValue());
 
     CountDownLatch latch = new CountDownLatch(taskSize.intValue());
     ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -305,7 +294,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       if (total - start <= INDEX_BATCH_SIZE)
         end = total.intValue();
 
-      logger.debug("   processing {} to {}", start, end);
+      logger.debug("   Processing {} to {}", start, end);
       List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
           .collect(Collectors.toList());
       List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology);
@@ -316,11 +305,85 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       end = end + INDEX_BATCH_SIZE;
     }
 
-    executor.submit(new ElasticObjectLoadTask(terminology, latch));
-    
     latch.await();
 
     executor.shutdown();
+
+    logger.debug("Done loading concepts!");
+  }
+
+  @Override
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology) throws IOException {
+    String indexName = terminology.getObjectIndexName();
+    logger.info("Loading Elastic Objects");
+    logger.debug("object index name: {}", indexName);
+    boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
+    logger.debug("index result: {}", result);
+    
+    try {
+      HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(terminology);
+      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      hierarchyObject.setHierarchy(hierarchy);
+      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      logger.info("   Hierarchy loaded");
+    } catch (IOException e) {
+      logger.error("   Error loading Elastic Object: Hierarchy");
+    }
+
+    try {
+      List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
+      ElasticObject ssObject = new ElasticObject("synonym_sources");
+      ssObject.setConceptMinimals(synonymSources);
+      operationsService.index(ssObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      logger.info("   Synonym Sources loaded");
+    } catch (IOException e) {
+      logger.error("   Error loading Elastic Object: Synonym Sources");
+    }
+
+    try {
+      List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology,
+          new IncludeParam("summary"));
+      ElasticObject conceptsObject = new ElasticObject("qualifiers");
+      conceptsObject.setConcepts(qualifiers);
+      operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      logger.info("   Qualifiers loaded");
+    } catch (IOException e) {
+      logger.error("   Error loading Elastic Object: Qualifiers");
+    }
+
+    try {
+      List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology,
+          new IncludeParam("summary"));
+      ElasticObject propertiesObject = new ElasticObject("properties");
+      propertiesObject.setConcepts(properties);
+      operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      logger.info("   Properties loaded");
+    } catch (IOException e) {
+      logger.error("   Error loading Elastic Object: Properties");
+    }
+
+    try {
+      List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology,
+          new IncludeParam("summary"));
+      ElasticObject associationsObject = new ElasticObject("associations");
+      associationsObject.setConcepts(associations);
+      operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      logger.info("   Associations loaded");
+    } catch (IOException e) {
+      logger.error("   Error loading Elastic Object: Associations");
+    }
+
+    try {
+      List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
+      ElasticObject rolesObject = new ElasticObject("roles");
+      rolesObject.setConcepts(roles);
+      operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      logger.info("   Roles loaded");
+    } catch (IOException e) {
+      logger.error("   Error loading Elastic Object: Roles");
+    }
+
+    logger.info("Done loading Elastic Objects!");
   }
 
   /**
@@ -365,100 +428,15 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       try {
         operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE, Concept.class);
         int progress = (int)Math.floor((1.0 - 1.0*latch.getCount()/taskSize)*100);
-        taskLogger.info("   loaded concepts: {} to {} ({}% complete)", startIndex, endIndex, progress);
+        taskLogger.info("   Loaded concepts: {} to {} ({}% complete)", startIndex, endIndex, progress);
       } catch (IOException e) {
-        taskLogger.error("   error loading concepts: {} to {}", startIndex, endIndex);
+        taskLogger.error("   Error loading concepts: {} to {}", startIndex, endIndex);
         taskLogger.error(e.getMessage(), e);
       } finally {
         latch.countDown();
       }
 
       return null;
-    }
-  }
-
-  private class ElasticObjectLoadTask implements Callable<Void> {
-    
-    private final Logger taskLogger = LoggerFactory.getLogger(ElasticObjectLoadTask.class);
-        
-    private Terminology terminology;
-    
-    /**  the count down latch **/
-    private CountDownLatch latch;
-    
-    public ElasticObjectLoadTask(Terminology terminology, CountDownLatch latch) {
-      this.terminology = terminology;
-      this.latch = latch;
-    }
-    
-    @Override
-    public Void call() {
-      taskLogger.info("Loading Elastic Objects");
-      
-      try {
-        try {
-          HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(terminology);
-          ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-          hierarchyObject.setHierarchy(hierarchy);
-          loadObject(hierarchyObject, terminology);
-        } catch (IOException e) {
-          taskLogger.error("Error loading Elastic Object: Hierarchy");
-        }
-
-        try {
-          List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
-          ElasticObject ssObject = new ElasticObject("synonym_sources");
-          ssObject.setConceptMinimals(synonymSources);
-          loadObject(ssObject, terminology);
-        } catch (IOException e) {
-          taskLogger.error("Error loading Elastic Object: Synonym Sources");
-        }
-
-        try {
-          List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology,
-              new IncludeParam("summary"));
-          ElasticObject conceptsObject = new ElasticObject("qualifiers");
-          conceptsObject.setConcepts(qualifiers);
-          loadObject(conceptsObject, terminology);
-        } catch (IOException e) {
-          taskLogger.error("Error loading Elastic Object: Qualifiers");
-        }
-
-        try {
-          List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology,
-              new IncludeParam("summary"));
-          ElasticObject propertiesObject = new ElasticObject("properties");
-          propertiesObject.setConcepts(properties);
-          loadObject(propertiesObject, terminology);
-        } catch (IOException e) {
-          taskLogger.error("Error loading Elastic Object: Properties");
-        }
-
-        try {
-          List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology,
-              new IncludeParam("summary"));
-          ElasticObject associationsObject = new ElasticObject("associations");
-          associationsObject.setConcepts(associations);
-          loadObject(associationsObject, terminology);
-        } catch (IOException e) {
-          taskLogger.error("Error loading Elastic Object: Associations");
-        }
-
-        try {
-          List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
-          ElasticObject rolesObject = new ElasticObject("roles");
-          rolesObject.setConcepts(roles);
-          loadObject(rolesObject, terminology);
-        } catch (IOException e) {
-          taskLogger.error("Error loading Elastic Object: Roles");
-        }
-
-        taskLogger.info("Done loading Elastic Objects!");
-
-        return null;
-      } finally {
-        latch.countDown();
-      }
     }
   }
   
@@ -490,7 +468,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       }
 
       Terminology term = TerminologyUtils.getTerminology(loadService.sparqlQueryManagerService, config.getTerminology());
-      loadService.loadConcepts(config, term);
+       loadService.loadConcepts(config, term);
+      loadService.loadObjects(config, term);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {

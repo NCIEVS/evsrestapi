@@ -15,8 +15,7 @@ import gov.nih.nci.evs.api.support.es.ElasticObject;
  *
  */
 public interface ElasticLoadService {
-
-  //TODO
-  void loadObject(ElasticObject object, Terminology terminology) throws IOException;
+  //TODO: comments
+  void loadObjects(ElasticLoadConfig config, Terminology terminology) throws IOException;
   void loadConcepts(ElasticLoadConfig config, Terminology terminology) throws IOException;
 }
