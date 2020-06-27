@@ -78,6 +78,7 @@ dependencies {
     compile 'org.ehcache:ehcache:3.8.1'
     compile 'org.springframework.data:spring-data-elasticsearch:3.2.0.RELEASE'
     compile 'commons-cli:commons-cli:1.4'
+    compile 'cglib:cglib:2.2.2'
 
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 

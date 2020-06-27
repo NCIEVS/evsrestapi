@@ -161,7 +161,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       if (total - start <= DOWNLOAD_BATCH_SIZE)
         end = total;
 
-      logger.info("  Processing {} to {}", start + 1, end);
+      logger.info("   Processing {} to {}", start + 1, end);
 
       List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
           .collect(Collectors.toList());
