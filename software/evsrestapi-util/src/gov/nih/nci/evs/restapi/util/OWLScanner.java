@@ -1555,14 +1555,13 @@ C4910|<NHC0>C4910</NHC0>
 		return hmap;
 	}
 
-
     public Vector extract_properties(Vector class_vec) {
+        int m = 0;
         Vector w = new Vector();
         String classId = null;
         boolean start = false;
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("</owl:Class>") != -1) break;
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
 				start = true;
 				int n = t.lastIndexOf("#");
@@ -1570,18 +1569,24 @@ C4910|<NHC0>C4910</NHC0>
 				n = t.lastIndexOf(" ");
 				classId = t.substring(1, n);
 			}
+
 			t = t.trim();
+			if (t.startsWith("<owl:Class")) {
+				m = m + 1;
+			} else if (t.startsWith("</owl:Class")) {
+				m = m - 1;
+				if (m == 0) break;
+			}
+
 			if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
 				int n = t.indexOf(">");
 				if (n != -1) {
-					String s = t.substring(1, n-1);
 					w.add(classId + "|" + parseProperty(t));
 				}
 			} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
 				&& t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
 				int n = t.indexOf(">");
 				if (n != -1) {
-					String s = t.substring(1, n-1);
 					w.add(classId + "|" + parseProperty(t));
 				}
 			}
