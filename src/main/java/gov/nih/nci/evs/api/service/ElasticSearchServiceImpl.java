@@ -211,12 +211,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       queries.add(conceptStatusQuery);
     }
 
-    //contributing source
-    QueryBuilder contributingSourceQuery = getPropertyTypeValueQueryBuilder(searchCriteria, "Contributing_Source");
-    if (contributingSourceQuery != null) {
-      queries.add(contributingSourceQuery);
-    }
-
     //property
     QueryBuilder propertyQuery = getPropertyTypeCodeQueryBuilder(searchCriteria);
     if (propertyQuery != null) {
@@ -255,9 +249,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     switch (type.toLowerCase()) {
       case "concept_status":
         values = searchCriteria.getConceptStatus();
-        break;
-      case "contributing_source":
-        values = searchCriteria.getContributingSource();
         break;
       default:
         break;

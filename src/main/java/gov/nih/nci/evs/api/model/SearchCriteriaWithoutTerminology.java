@@ -23,7 +23,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The Constant logger. */
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
 
   /** The term. */
   private String term;
@@ -399,23 +400,27 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Validate.
    *
-   * @param terminology               the terminology instance
+   * @param terminology the terminology instance
    * @param metadataService the metadata service
    * @throws Exception the exception
    */
-  public void validate(final Terminology terminology, final MetadataService metadataService) throws Exception {
+  public void validate(final Terminology terminology, final MetadataService metadataService)
+    throws Exception {
     if (getTerm() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Required parameter 'term' is missing");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Required parameter 'term' is missing");
     }
 
-    if (!TerminologyUtils.asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
+    if (!TerminologyUtils
+        .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
         .contains(getType())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'type' has an invalid value = " + type);
     }
 
     if (fromRecord < 0) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
     if (pageSize < 1) {
@@ -423,14 +428,6 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
     }
 
-    // Validate concept status
-    final Set<String> conceptStatuses = new HashSet<>(
-        metadataService.getConceptStatuses(terminology.getTerminology()).get());
-    for (final String cs : getConceptStatus()) {
-      if (!conceptStatuses.contains(cs)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            "Parameter 'conceptStatus' has an invalid value = " + cs);
-      }
     if (pageSize > 100) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
