@@ -52,6 +52,7 @@ nci:
       generatedFilePath: ${user.home}/apps/evsrestapi/data/
       forceFileGeneration: false
       metricLogDirectory: ${user.home}/apps/evsrestapi/logs/
+      metricsEnabled:   ${METRICS_ENABLED:false}
     stardog:
       queryUrl: http://10.1.10.30:5820/NCIT2/query
       username: admin

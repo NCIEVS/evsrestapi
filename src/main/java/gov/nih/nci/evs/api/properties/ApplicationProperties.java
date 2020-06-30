@@ -18,6 +18,9 @@ public class ApplicationProperties {
   /** The metric log directory. */
   private String metricLogDirectory;
 
+  /** The metric log switch. */
+  private Boolean metricsEnabled;
+
   /**
    * Returns the context path.
    *
@@ -88,6 +91,24 @@ public class ApplicationProperties {
    */
   public void setMetricLogDirectory(String metricLogDirectory) {
     this.metricLogDirectory = metricLogDirectory;
+  }
+
+  /**
+   * Returns the metric log switch.
+   *
+   * @return the metric log switch
+   */
+  public Boolean getMetricsEnabled() {
+    return metricsEnabled;
+  }
+
+  /**
+   * Sets the metric log directory.
+   *
+   * @param metricsEnabled the metric log directory
+   */
+  public void setMetricsEnabled(Boolean metricsEnabled) {
+    this.metricsEnabled = metricsEnabled;
   }
 
 }
