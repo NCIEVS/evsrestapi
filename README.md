@@ -18,10 +18,10 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Launch Elasticsearch docker container 
 In a terminal/Cygwin window, run the following to have an elasticsearch instance running. Keep this window open to keep the server running.
 
-      docker pull docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+      docker pull docker.elastic.co/elasticsearch/elasticsearch:6.7.0
       # Choose a directory for your elasticsearch data to live
       dir=c:/evsrestapi/elasticsearch/data
-      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+      docker run -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
 
 * Load/Compute Indexes - Run from the “elasticsearch/scripts” folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
