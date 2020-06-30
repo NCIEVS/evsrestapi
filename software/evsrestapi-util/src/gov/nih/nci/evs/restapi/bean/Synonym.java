@@ -214,7 +214,7 @@ public class Synonym
 		return buf.toString();
 	}
 
-	public String toString() {
+	public String print() {
 		StringBuffer buf = new StringBuffer();
 		//buf.append("code: ").append(code).append("\n");
 		//buf.append("label: ").append(label).append("\n");
@@ -225,5 +225,21 @@ public class Synonym
 		buf.append("\t").append("subSourceName: ").append(subSourceName).append("\n");
 		buf.append("\t").append("subSourceCode: ").append(subSourceCode);
         return buf.toString() + "\n";
-	}
+ 	}
+
+	public String toString() {
+	    return this.code + "|" +
+	           this.label + "|" +
+	           "P90|" +
+	           this.termName + "|" +
+	           "P383|" +
+	           this.termGroup + "|" +
+	           "P384|" +
+	           this.termSource + "|" +
+	           "P385|" +
+	           this.sourceCode + "|" +
+	           "P386|" +
+	           this.subSourceName;
+ 	}
+
 }

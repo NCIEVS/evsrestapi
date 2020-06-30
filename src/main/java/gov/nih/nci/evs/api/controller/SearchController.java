@@ -282,6 +282,8 @@ public class SearchController extends BaseController {
       results.setConcepts(concepts);
       results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
+    } catch (ResponseStatusException rse) {
+      throw rse;
     } catch (Exception e) {
       // TODO: remove this once updated elasticsearch is in place.
       if (e.getMessage().contains("invalid value")) {

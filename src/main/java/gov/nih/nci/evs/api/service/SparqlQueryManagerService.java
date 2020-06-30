@@ -118,7 +118,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
+  public List<String> getQualifierValues(String propertyCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**

@@ -325,7 +325,7 @@ public class MetadataServiceImpl implements MetadataService {
    */
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology, #code}")
-  public Optional<List<String>> getAxiomQualifiersList(String terminology, String code)
+  public Optional<List<String>> getQualifierValues(String terminology, String code)
     throws Exception {
     final Terminology term =
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -334,9 +334,12 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> list =
         self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
 
-    if (list.size() > 0) {
+    if (list.size() == 1) {
       return Optional
-          .of(sparqlQueryManagerService.getAxiomQualifiersList(list.get(0).getCode(), term));
+          .of(sparqlQueryManagerService.getQualifierValues(list.get(0).getCode(), term));
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Qualifier " + code + " not found (2)");
     }
 
     return Optional.empty();

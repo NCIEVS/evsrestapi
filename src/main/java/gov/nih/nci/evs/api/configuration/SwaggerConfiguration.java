@@ -34,7 +34,11 @@ public class SwaggerConfiguration {
    */
   @Bean
   public Docket api() throws IOException {
-    return new Docket(DocumentationType.SWAGGER_2).select().apis(RequestHandlerSelectors.any())
+    return new Docket(DocumentationType.SWAGGER_2)
+        // Disable default responses (e.g. 401, 403)
+        .useDefaultResponseMessages(false)
+
+        .select().apis(RequestHandlerSelectors.any())
         .paths(Predicates.or(PathSelectors.ant("/api/v1/**"), PathSelectors.ant("/version/**")))
         .build().apiInfo(apiInfo());
 

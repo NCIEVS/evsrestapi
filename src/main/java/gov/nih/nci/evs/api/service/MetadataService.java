@@ -145,7 +145,7 @@ public interface MetadataService {
    * @return the list of axiom qualifiers
    * @throws Exception the exception
    */
-  Optional<List<String>> getAxiomQualifiersList(final String terminology, final String code)
+  Optional<List<String>> getQualifierValues(final String terminology, final String code)
     throws Exception;
 
   /**
