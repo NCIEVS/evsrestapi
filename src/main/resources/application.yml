@@ -85,7 +85,6 @@ nci:
         host: ${ES_HOST:localhost}
         port: ${ES_PORT:9300}
         clusterName: ${ES_CLUSTER_NAME:docker-cluster}
-        url: ${EVS_ELASTIC_SEARCH_SERVER_URL:http://${nci.evs.elasticsearch.server.host}:9200/concept_flat_full_nested_bylabel/concept/_search}
 
 swagger:
    documentation:

@@ -23,7 +23,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       docker pull docker.elastic.co/elasticsearch/elasticsearch:6.7.0
       # Choose a directory for your elasticsearch data to live
       dir=c:/evsrestapi/elasticsearch/data
-      docker run -d -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
+      docker run -d -p 9200:9200 -p 9300:9300 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
 
 * Load/Compute Indexes - Run from the "elasticsearch/scripts" folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
@@ -78,7 +78,14 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         # In this mode, index loading happens in real-time (meaning, in a single step)
         java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --realTime --forceDeleteIndex
         
-        example: java -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --terminology ncit_20.02d --realTime --forceDeleteIndex
+        example: java -jar build/libs/evsrestapi-*.jar --terminology ncit_20.04d --realTime --forceDeleteIndex
+
+      *** To run and build indexes against a docker stardog/elasticsearch:
+
+        version=ncit_20.04d
+        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=100
+        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
+        java -Dspring.profiles.active=local -Xmx4G -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --terminology $version --realTime --forceDeleteIndex
 
 
 ### Steps for Building and Running EVSRESTAPI locally
@@ -89,7 +96,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
 * Configure application
     * see `src/main/resources/application-local.yml` file for local setup (these settings should be suitable for local deployment)
 * Build the application (MUST DO BEFORE RUNNING if using "external tools configuration")
-    * `SPRING_PROFILES_ACTIVE=local ./gradlew clean build`
+    * ./gradlew clean build -x tests
     * Executable war file present in build/libs
 
 * Run application in Eclipse (SpringBoot)

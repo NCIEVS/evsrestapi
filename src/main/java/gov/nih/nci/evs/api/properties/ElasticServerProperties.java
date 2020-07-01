@@ -1,33 +1,30 @@
 package gov.nih.nci.evs.api.properties;
 
 public class ElasticServerProperties {
-	
+
   /** The host **/
   private String host;
-  
+
   /** The port **/
   private String port;
-	
+
   /** The cluster name **/
   private String clusterName;
-  
-  /** The search url **/
-  private String url;
 
   /**
    * Returns the host
    * 
    * @return the host
    */
-	public String getHost() {
+  public String getHost() {
     return host;
   }
 
-	/**
-	 * Sets the host
-	 * 
-	 * @param host the host
-	 */
+  /**
+   * Sets the host
+   * 
+   * @param host the host
+   */
   public void setHost(String host) {
     this.host = host;
   }
@@ -67,24 +64,5 @@ public class ElasticServerProperties {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-  
-  /**
-   * Returns the search url
-   * 
-   * @return
-   */
-  public String getUrl() {
-		return url;
-	}
-
-  /**
-   * Sets the search url
-   * 
-   * @param url the search url
-   */
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
 
 }
