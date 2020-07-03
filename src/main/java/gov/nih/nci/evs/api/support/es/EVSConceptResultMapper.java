@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.support.es;
 
 import java.util.ArrayList;
@@ -28,40 +29,44 @@ import gov.nih.nci.evs.api.model.Concept;
  *
  */
 public class EVSConceptResultMapper implements SearchResultMapper {
-  
+
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(EVSConceptResultMapper.class);
-  
+
   /** the object mapper **/
   private ObjectMapper mapper;
-  
+
   public EVSConceptResultMapper() {
     this.mapper = new ObjectMapper();
   }
-  
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+
+  @SuppressWarnings({
+      "rawtypes", "unchecked"
+  })
   @Override
-  public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz, Pageable pageable) {
+  public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz,
+    Pageable pageable) {
     if (response.getHits().getHits().length <= 0) {
       return new AggregatedPageImpl(Collections.emptyList(), pageable, 0L);
     }
-    
+
     List<Concept> content = new ArrayList<Concept>();
     for (SearchHit searchHit : response.getHits()) {
       Concept concept = (Concept) mapSearchHit(searchHit, clazz);
       content.add(concept);
     }
 
-    return new AggregatedPageImpl((List<T>) content, pageable, 
-        response.getHits().getTotalHits(), response.getAggregations(), 
-        response.getScrollId(), response.getHits().getMaxScore());
+    return new AggregatedPageImpl((List<T>) content, pageable, response.getHits().getTotalHits(),
+        response.getAggregations(), response.getScrollId(), response.getHits().getMaxScore());
   }
 
+  /* see superclass */
   @SuppressWarnings("unchecked")
   @Override
   public <T> T mapSearchHit(SearchHit searchHit, Class<T> clazz) {
     Concept concept = null;
     try {
+      // logger.info(" = " + searchHit.getSourceAsString());
       concept = mapper.readValue(searchHit.getSourceAsString(), Concept.class);
 
       Map<String, HighlightField> highlightMap = searchHit.getHighlightFields();
@@ -69,14 +74,15 @@ public class EVSConceptResultMapper implements SearchResultMapper {
         HighlightField field = highlightMap.get(key);
         for (Text text : field.getFragments()) {
           String highlight = text.string();
-          concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""), highlight);
+          concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
+              highlight);
         }
       }
 
     } catch (JsonProcessingException e) {
       logger.error(e.getMessage(), e);
     }
-    
+
     return (T) concept;
   }
 }
