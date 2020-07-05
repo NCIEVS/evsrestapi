@@ -649,6 +649,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (pathsMap.containsKey(conceptCode)) {
         concept.setPaths(pathsMap.get(conceptCode));
       }
+      concept.setLeaf(concept.getChildren().isEmpty());
     }
     
     return concepts;

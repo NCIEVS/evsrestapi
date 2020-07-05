@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,12 +10,10 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
-import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -54,7 +53,7 @@ public interface ElasticQueryService {
    * @param ip the include param
    * @return the list of concepts found
    */
-  List<Concept> getConcepts(List<String> codes, Terminology terminology, IncludeParam ip);
+  List<Concept> getConcepts(Collection<String> codes, Terminology terminology, IncludeParam ip);
   
   /**
    * Returns concepts mapped by code
@@ -64,7 +63,7 @@ public interface ElasticQueryService {
    * @param ip the include param
    * @return concepts mapped by code
    */
-  Map<String, Concept> getConceptsAsMap(List<String> codes, Terminology terminology, IncludeParam ip);
+  Map<String, Concept> getConceptsAsMap(Collection<String> codes, Terminology terminology, IncludeParam ip);
   
   /**
    * Returns child concepts
@@ -149,19 +148,6 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
-  
-  /**
-   * Check path in hierarchy.
-   *
-   * @param code the code
-   * @param node the node
-   * @param path the path
-   * @param terminology the terminology
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
   
   /**
    * Returns the path to root.

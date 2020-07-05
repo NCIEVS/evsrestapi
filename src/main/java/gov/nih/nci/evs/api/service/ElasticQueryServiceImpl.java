@@ -3,12 +3,15 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -75,7 +78,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   
   /** see superclass **/
   @Override
-  public List<Concept> getConcepts(List<String> codes, Terminology terminology, IncludeParam ip) {
+  public List<Concept> getConcepts(Collection<String> codes, Terminology terminology, IncludeParam ip) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withIds(codes)
         .withIndices(terminology.getIndexName())
@@ -89,7 +92,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
   /** see superclass **/
   @Override
-  public Map<String, Concept> getConceptsAsMap(List<String> codes, Terminology terminology, IncludeParam ip) {
+  public Map<String, Concept> getConceptsAsMap(Collection<String> codes, Terminology terminology, IncludeParam ip) {
     List<Concept> concepts = getConcepts(codes, terminology, ip);
     if (CollectionUtils.isEmpty(concepts)) return Collections.emptyMap();
     Map<String, Concept> result = new HashMap<>();
@@ -248,46 +251,88 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   
   /** see superclass **/
   @Override
-  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    List<HierarchyNode> rootNodes = getRootNodes(terminology);
-    Paths paths = getPathToRoot(code, terminology);
+  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology) 
+      throws JsonParseException, JsonMappingException, IOException {
+      List<HierarchyNode> rootNodes = getRootNodes(terminology);
+      Paths paths = getPathToRoot(code, terminology);
+      
+      //root hierarchy node map for quick look up
+      Map<String, HierarchyNode> rootNodeMap = new HashMap<>(); 
+      rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
+          
+      //concepts map for all concepts in the paths
+      Map<String, Concept> conceptMap = getConceptsInPaths(code, paths, terminology);
+      
+      //known hierarchy nodes map
+      Map<String, HierarchyNode> knownNodeMap = new HashMap<>();
+      
+      for(Path path: paths.getPaths()) {
+        List<ConceptNode> cNodes = path.getConcepts();
+        if (CollectionUtils.isEmpty(cNodes) || cNodes.size() < 2) continue;
+        ConceptNode rootConceptNode = cNodes.get(cNodes.size() - 1);
 
-    for (HierarchyNode rootNode : rootNodes) {
-      for (Path path : paths.getPaths()) {
-        checkPathInHierarchy(code, rootNode, path, terminology);
+        HierarchyNode root = rootNodeMap.get(rootConceptNode.getCode());
+        HierarchyNode previous = root;
+        for(int j=cNodes.size()-2; j>=0; j--) {
+          ConceptNode cNode = cNodes.get(j);
+          Concept c = conceptMap.get(cNode.getCode());
+          HierarchyNode current = getHierarchyNode(c, knownNodeMap);
+          if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(current.getCode()))) {
+            previous.getChildren().add(current);
+          }
+          previous = current;
+        }
       }
-    }
-
-    return rootNodes;
+      
+      //set children for the concept
+      Concept concept = conceptMap.get(code);
+      HierarchyNode hNode = knownNodeMap.get(code);
+      hNode.setHighlight(true);
+      hNode.setLeaf(concept.getLeaf());
+      List<Concept> children = concept.getChildren();
+      for(Concept child: children) {
+        //leaf property is not set as part of children; hence using concept from concept map for leaf property
+        hNode.getChildren().add(new HierarchyNode(child.getCode(), child.getName(), conceptMap.get(child.getCode()).getLeaf()));
+      }
+      
+      return rootNodes;
   }
+  
+  /**
+   * Gets all concepts part of the paths including children for the given code
+   * 
+   * @param code
+   * @param paths
+   * @param terminology
+   * @return
+   */
+  private Map<String, Concept> getConceptsInPaths(String code, Paths paths, Terminology terminology) {
+    final Set<String> codes = new HashSet<>();
+    for(Path path: paths.getPaths()) {
+      for(int i=0; i<path.getConcepts().size(); i++) {
+        ConceptNode node = path.getConcepts().get(i);
+        codes.add(node.getCode());
+      }
+    }
 
-  /** see superclass **/
-  @Override
-  public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
-      Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
-    if (path.getConcepts().size() == 0) {
-      return;
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("children"));
+    if (concept.isPresent() && !concept.get().getLeaf()) {
+      concept.get().getChildren().stream().forEach(c -> codes.add(c.getCode()));
     }
-    int end = path.getConcepts().size() - 1;
-    ConceptNode concept = path.getConcepts().get(end);
-    List<HierarchyNode> children = getChildNodes(node.getCode(), 1, terminology);
-    if (node.getChildren().size() == 0) {
-      node.setChildren(children);
+    
+    return getConceptsAsMap(codes, terminology, new IncludeParam("children"));
+  }
+  
+  private HierarchyNode getHierarchyNode(Concept concept, Map<String, HierarchyNode> knownNodeMap) {
+    HierarchyNode hNode = null;
+    if (knownNodeMap.containsKey(concept.getCode())) {
+      hNode = knownNodeMap.get(concept.getCode());
+    } else {
+      hNode = new HierarchyNode(concept.getCode(), concept.getName(), concept.getLeaf());
+      knownNodeMap.put(concept.getCode(), hNode);
     }
-    if (concept.getCode().equals(node.getCode())) {
-      if (node.getCode().equals(code)) {
-        node.setHighlight(true);
-        return;
-      }
-      node.setExpanded(true);
-      if (path.getConcepts() != null && !path.getConcepts().isEmpty()) {
-        path.getConcepts().remove(path.getConcepts().size() - 1);
-      }
-      for (HierarchyNode childNode : node.getChildren()) {
-        checkPathInHierarchy(code, childNode, path, terminology);
-      }
-    }
+    
+    return hNode;
   }
   
   /** see superclass **/

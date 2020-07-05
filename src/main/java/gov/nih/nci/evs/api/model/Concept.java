@@ -59,7 +59,7 @@ public class Concept extends ConceptMinimal {
   private Integer level;
 
   /** The leaf. */
-  @Transient
+  @Field(type = FieldType.Boolean)
   private Boolean leaf;
 
   /** The synonyms. */
@@ -75,11 +75,11 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /** The children. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children"})
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> children;
 
   /** The parents. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children"})
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> parents;
 
   /** The associations. */

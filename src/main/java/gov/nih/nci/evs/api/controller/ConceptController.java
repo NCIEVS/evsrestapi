@@ -729,7 +729,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
+      final List<HierarchyNode> nodes = elasticQueryService.getPathInHierarchy(code, term);
 
       return nodes;
     } catch (Exception e) {
