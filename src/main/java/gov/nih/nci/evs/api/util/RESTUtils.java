@@ -13,6 +13,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -73,7 +74,9 @@ public class RESTUtils {
    */
   public String runSPARQL(String query, String restURL) {
 
-    RestTemplate restTemplate = builder.build();
+    RestTemplate restTemplate = new RestTemplate();
+    restTemplate.getInterceptors().add(
+        new BasicAuthenticationInterceptor(username, password));
     restTemplate.getMessageConverters().add(0,
         new StringHttpMessageConverter(Charset.forName("UTF-8")));
     MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
