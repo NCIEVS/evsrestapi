@@ -29,7 +29,7 @@ import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 
 /**
- * Metric advice.
+ * Handle record metric annotations via AOP.
  */
 @Component
 @Aspect
@@ -37,8 +37,9 @@ import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 public class MetricAdvice {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(MetricAdvice.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
+  /** The elastic server properties. */
   @Autowired
   ElasticServerProperties elasticServerProperties;
 
@@ -46,75 +47,77 @@ public class MetricAdvice {
    * Record metric.
    *
    * @param pjp the pjp
-   * @param request the request
-   * @param params the params
+   * @param recordMetric the record metric
    * @return the object
    * @throws Throwable the throwable
    */
 
   @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetric)")
-  private Object recordMetric(ProceedingJoinPoint pjp, RecordMetric recordMetric)
+  private void recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric)
     throws Throwable {
 
     // get the request
-    HttpServletRequest request =
+    final HttpServletRequest request =
         ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-
-    Map<String, String[]> filterParams = request.getParameterMap();
-
-    return recordMetricHelper(pjp, request, filterParams);
+    recordMetricHelper(pjp, request, request.getParameterMap());
 
   }
 
-  // unchecked conversion doesn't matter unless 6.7 somehow changes the format of the response
+  /**
+   * Record metric helper.
+   *
+   * @param pjp the pjp
+   * @param request the request
+   * @param params the params
+   * @return the object
+   * @throws Throwable the throwable
+   */
   @SuppressWarnings("unchecked")
-  public Object recordMetricHelper(ProceedingJoinPoint pjp, HttpServletRequest request, Map<String, String[]> params)
-    throws Throwable {
+  public void recordMetricHelper(final ProceedingJoinPoint pjp, final HttpServletRequest request,
+    final Map<String, String[]> params) throws Throwable {
 
     // get the start time
-    long startTime = System.currentTimeMillis();
-    Date startDate = new Date();
-    Object retVal = pjp.proceed();
-    long endTime = System.currentTimeMillis();
-    long duration = endTime - startTime;
-    Date endDate = new Date();
-    Metric metric = new Metric();
+    final long startTime = System.currentTimeMillis();
+    final Date startDate = new Date();
+    final long endTime = System.currentTimeMillis();
+    final long duration = endTime - startTime;
+    final Date endDate = new Date();
+    final Metric metric = new Metric();
 
     metric.setDuration(duration);
 
     // get the ip address of the remote user
-    ServletRequestAttributes attr =
+    final ServletRequestAttributes attr =
         (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
 
-    String userIpAddress = attr.getRequest().getRemoteAddr();
+    final String userIpAddress = attr.getRequest().getRemoteAddr();
     metric.setRemoteIpAddress(userIpAddress);
 
-    String hostName = attr.getRequest().getRemoteHost();
+    final String hostName = attr.getRequest().getRemoteHost();
     metric.setHostName(hostName);
 
-    String url = request.getRequestURL().toString();
+    final String url = request.getRequestURL().toString();
     metric.setEndPoint(url);
-    
+
     metric.setQueryParams(params);
     metric.setStartTime(startDate);
     metric.setEndTime(endDate);
 
     // get the parameters
-    ObjectMapper mapper = new ObjectMapper();
-    RestTemplate restTemplate = new RestTemplate();
+    final ObjectMapper mapper = new ObjectMapper();
+    final RestTemplate restTemplate = new RestTemplate();
     mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-    String metricStr = mapper.writeValueAsString(metric);
+    final String metricStr = mapper.writeValueAsString(metric);
 
-    HttpHeaders headers = new HttpHeaders();
+    final HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<String> metricData = new HttpEntity<String>(metricStr, headers);
-    String elasticSearchUrl = elasticServerProperties.getUrl();
-    String response = restTemplate.postForObject(elasticSearchUrl.replace("concept/_search","metrics/_doc/"), metricData, String.class);
-    Map<String, Object> map=new HashMap<String, Object>();
-    map = mapper.readValue(response, HashMap.class);
-    log.info("metrics object id = " + map.get("_id"));
-    log.info(restTemplate.getForObject(elasticSearchUrl.replace("concept/_search","metrics/_doc/") + map.get("_id"), String.class));
-    return retVal;
+    final HttpEntity<String> metricData = new HttpEntity<String>(metricStr, headers);
+    String response = restTemplate.postForObject(
+        elasticServerProperties.getUrl().replace("concept/_search", "metrics/_doc/"), metricData,
+        String.class);
+    final Map<String, Object> map = mapper.readValue(response, HashMap.class);
+    logger.debug("metrics object id = " + map.get("_id"));
+
   }
 
 }
