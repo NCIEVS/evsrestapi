@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptNode;
@@ -93,6 +94,69 @@ public final class ConceptUtils {
 
   }
 
+  /**
+   * Apply include
+   * 
+   * @param concepts the list of concepts
+   * @param ip the include param
+   * @return the result concepts
+   */
+  public static List<Concept> applyInclude(final List<Concept> concepts, final IncludeParam ip) {
+    if (CollectionUtils.isEmpty(concepts)) return Collections.emptyList();
+    
+    final List<Concept> result = new ArrayList<>(concepts.size());
+    
+    for(Concept concept: concepts) {
+      Concept newConcept = new Concept();
+      newConcept.setCode(concept.getCode());
+      newConcept.setName(concept.getName());
+      newConcept.setTerminology(concept.getTerminology());
+      newConcept.setVersion(concept.getVersion());
+      newConcept.setLeaf(concept.getLeaf());
+      
+      if (ip.isSynonyms()) {
+        newConcept.setSynonyms(concept.getSynonyms());
+      }
+      if (ip.isDefinitions()) {
+        newConcept.setDefinitions(concept.getDefinitions());
+      }
+      if (ip.isProperties()) {
+        newConcept.setProperties(concept.getProperties());
+      }
+      if (ip.isChildren()) {
+        newConcept.setChildren(concept.getChildren());
+      }
+      if (ip.isParents()) {
+        newConcept.setParents(concept.getParents());
+      }
+      if (ip.isAssociations()) {
+        newConcept.setAssociations(concept.getAssociations());
+      }
+      if (ip.isInverseAssociations()) {
+        newConcept.setInverseAssociations(concept.getInverseAssociations());
+      }
+      if (ip.isRoles()) {
+        newConcept.setRoles(concept.getRoles());
+      }
+      if (ip.isInverseRoles()) {
+        newConcept.setInverseRoles(concept.getInverseRoles());
+      }
+      if (ip.isDisjointWith()) {
+        newConcept.setDisjointWith(concept.getDisjointWith());
+      }
+      if (ip.isMaps()) {
+        newConcept.setMaps(concept.getMaps());
+      }
+      if (ip.isPaths()) {
+        newConcept.setPaths(concept.getPaths());
+      }
+      
+      result.add(newConcept);
+    }
+    
+    return result;
+  }
+  
   /**
    * Apply include.
    *

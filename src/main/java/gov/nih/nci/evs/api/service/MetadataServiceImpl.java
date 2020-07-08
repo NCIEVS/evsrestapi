@@ -40,8 +40,9 @@ public class MetadataServiceImpl implements MetadataService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
-//  @Autowired
-//  private ElasticObjectService elasticObjectService;
+  /** The elastic query service **/
+  @Autowired
+  private ElasticQueryService esQueryService;
   
   /** The self. */
   @Resource
@@ -65,7 +66,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<Concept> associations = sparqlQueryManagerService.getAllAssociations(term, ip);
+    final List<Concept> associations = esQueryService.getAssociations(term, ip);
     return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
   }
 
@@ -89,7 +90,7 @@ public class MetadataServiceImpl implements MetadataService {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
-      return Optional.of(sparqlQueryManagerService.getAssociation(list.get(0).getCode(), term, ip));
+      return esQueryService.getAssociation(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Association " + code + " not found (2)");
@@ -116,7 +117,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<Concept> roles = sparqlQueryManagerService.getAllRoles(term, ip);
+    final List<Concept> roles = esQueryService.getRoles(term, ip);
     return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
   }
 
@@ -140,7 +141,7 @@ public class MetadataServiceImpl implements MetadataService {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
-      return Optional.of(sparqlQueryManagerService.getRole(list.get(0).getCode(), term, ip));
+      return esQueryService.getRole(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found (2)");
     }
@@ -171,11 +172,11 @@ public class MetadataServiceImpl implements MetadataService {
     // properties
     final Set<String> neverUsedCodes = sparqlQueryManagerService.getAllPropertiesNeverUsed(term, ip)
         .stream().map(q -> q.getCode()).collect(Collectors.toSet());
-    final Set<String> qualifierCodes = sparqlQueryManagerService.getAllQualifiers(term, ip).stream()
+    final Set<String> qualifierCodes = esQueryService.getQualifiers(term, ip).stream()
         .map(q -> q.getCode()).collect(Collectors.toSet());
 
     // Remove qualifiers from properties list
-    final List<Concept> properties = sparqlQueryManagerService.getAllProperties(term, ip).stream()
+    final List<Concept> properties = esQueryService.getProperties(term, ip).stream()
         .filter(p -> !qualifierCodes.contains(p.getCode()) && !neverUsedCodes.contains(p.getCode()))
         .collect(Collectors.toList());
 
@@ -200,7 +201,7 @@ public class MetadataServiceImpl implements MetadataService {
         TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    final List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(term, ip);
+    final List<Concept> qualifiers = esQueryService.getQualifiers(term, ip);
 
     // IF "for documentation" mode, remove the "not considered" cases.
     return ConceptUtils.applyIncludeAndList(qualifiers, ip, list.orElse(null));
@@ -226,7 +227,7 @@ public class MetadataServiceImpl implements MetadataService {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
-      return Optional.of(sparqlQueryManagerService.getQualifier(list.get(0).getCode(), term, ip));
+      return esQueryService.getQualifier(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Qualifier " + code + " not found (2)");
@@ -254,7 +255,7 @@ public class MetadataServiceImpl implements MetadataService {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
-      return Optional.of(sparqlQueryManagerService.getProperty(list.get(0).getCode(), term, ip));
+      return esQueryService.getProperty(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Property " + code + " not found (2)");
@@ -313,7 +314,7 @@ public class MetadataServiceImpl implements MetadataService {
     if (!term.getTerminology().equals("ncit"))
       return new ArrayList<>();
 
-    return sparqlQueryManagerService.getSynonymSources(term);
+    return esQueryService.getSynonymSources(term);
   }
 
   /**

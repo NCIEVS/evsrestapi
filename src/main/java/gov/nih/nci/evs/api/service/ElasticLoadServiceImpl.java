@@ -339,7 +339,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     try {
       List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology,
-          new IncludeParam("summary"));
+          new IncludeParam("full"));
       ElasticObject conceptsObject = new ElasticObject("qualifiers");
       conceptsObject.setConcepts(qualifiers);
       operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
@@ -350,7 +350,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     try {
       List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology,
-          new IncludeParam("summary"));
+          new IncludeParam("full"));
       ElasticObject propertiesObject = new ElasticObject("properties");
       propertiesObject.setConcepts(properties);
       operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
@@ -361,7 +361,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     try {
       List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology,
-          new IncludeParam("summary"));
+          new IncludeParam("full"));
       ElasticObject associationsObject = new ElasticObject("associations");
       associationsObject.setConcepts(associations);
       operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
@@ -371,7 +371,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     }
 
     try {
-      List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("summary"));
+      List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
       ElasticObject rolesObject = new ElasticObject("roles");
       rolesObject.setConcepts(roles);
       operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
@@ -465,7 +465,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       }
 
       Terminology term = TerminologyUtils.getTerminology(loadService.sparqlQueryManagerService, config.getTerminology());
-       loadService.loadConcepts(config, term);
+      loadService.loadConcepts(config, term);
       loadService.loadObjects(config, term);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);

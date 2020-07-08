@@ -189,41 +189,101 @@ public interface ElasticQueryService {
    * Returns qualifiers
    * 
    * @param terminology the terminology
+   * @param ip the include param
    * @return the list of qualifier concepts
    * @throws JsonMappingException
    * @throws JsonProcessingException
    */
-  List<Concept> getQualifiers(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+  List<Concept> getQualifiers(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException;
   
+  /**
+   * Get qualifier
+   * 
+   * @param code the code
+   * @param terminology the terminology
+   * @param ip the include param
+   * @return the qualifier
+   * @throws JsonMappingException
+   * @throws JsonParseException
+   * @throws IOException
+   */
+  Optional<Concept> getQualifier(String code, Terminology terminology, IncludeParam ip)
+      throws JsonMappingException, JsonParseException, IOException;
+
   /**
    * Returns properties
    * 
    * @param terminology the terminology
+   * @param ip the include param
    * @return the list of property concepts
    * @throws JsonMappingException
    * @throws JsonProcessingException
    */
-  List<Concept> getProperties(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+  List<Concept> getProperties(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException;
+
+  /**
+   * Get property
+   * 
+   * @param code the code
+   * @param terminology the terminology
+   * @param ip the include param
+   * @return the property
+   * @throws JsonMappingException
+   * @throws JsonParseException
+   * @throws IOException
+   */
+  Optional<Concept> getProperty(String code, Terminology terminology, IncludeParam ip)
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns associations
    * 
    * @param terminology the terminology
+   * @param ip the include param
    * @return the list of association concepts
    * @throws JsonMappingException
    * @throws JsonProcessingException
    */
-  List<Concept> getAssociations(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+  List<Concept> getAssociations(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException;
+
+  /**
+   * Get association
+   * 
+   * @param code the code
+   * @param terminology the terminology
+   * @param ip the include param
+   * @return the association
+   * @throws JsonMappingException
+   * @throws JsonParseException
+   * @throws IOException
+   */
+  Optional<Concept> getAssociation(String code, Terminology terminology, IncludeParam ip)
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns roles
    * 
    * @param terminology the terminology
+   * @param ip the include param
    * @return the list of role concepts
    * @throws JsonMappingException
    * @throws JsonProcessingException
    */
-  List<Concept> getRoles(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+  List<Concept> getRoles(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException;
+
+  /**
+   * Get role
+   * 
+   * @param code the code
+   * @param terminology the terminology
+   * @param ip the include param
+   * @return the role
+   * @throws JsonMappingException
+   * @throws JsonParseException
+   * @throws IOException
+   */
+  Optional<Concept> getRole(String code, Terminology terminology, IncludeParam ip)
+      throws JsonMappingException, JsonParseException, IOException;
   
   /**
    * Returns synonym sources

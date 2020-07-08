@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptMultiGetResultMapper;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathUtils;
 
@@ -55,7 +57,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /** the elasticsearch operations **/
   @Autowired
   ElasticsearchOperations operations;
-  
+
   /** see superclass **/
   @Override
   public boolean checkConceptExists(String code, Terminology terminology) {
@@ -395,7 +397,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     logger.debug("concept paths after de-dupe: " + conceptPaths);
     return conceptPaths;
   }
-  
+
   /** see superclass **/
   @Override
   public Optional<HierarchyUtils> getHierarchy(Terminology terminology) throws JsonMappingException, JsonProcessingException {
@@ -407,30 +409,61 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   
   /** see superclass **/
   @Override
-  public List<Concept> getQualifiers(Terminology terminology) throws JsonMappingException, JsonProcessingException {
-    return getConceptList("qualifiers", terminology);
+  public List<Concept> getQualifiers(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException {
+    return getConceptList("qualifiers", terminology, ip);
   }
   
   /** see superclass **/
   @Override
-  public List<Concept> getProperties(Terminology terminology) throws JsonMappingException, JsonProcessingException {
-    return getConceptList("properties", terminology);
+  public Optional<Concept> getQualifier(String code, Terminology terminology, IncludeParam ip)
+      throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> qualifiers = getQualifiers(terminology, ip);
+    return qualifiers.stream().filter(q -> q.getCode().equals(code)).findFirst();
+  }
+  
+  /** see superclass **/
+  @Override
+  public List<Concept> getProperties(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException {
+    return getConceptList("properties", terminology, ip);
   }
 
   /** see superclass **/
   @Override
-  public List<Concept> getAssociations(Terminology terminology) throws JsonMappingException, JsonProcessingException {
-    return getConceptList("associations", terminology);
+  public Optional<Concept> getProperty(String code, Terminology terminology, IncludeParam ip)
+      throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> properties = getProperties(terminology, ip);
+    return properties.stream().filter(p -> p.getCode().equals(code)).findFirst();
   }
   
   /** see superclass **/
   @Override
-  public List<Concept> getRoles(Terminology terminology) throws JsonMappingException, JsonProcessingException {
-    return getConceptList("roles", terminology);
+  public List<Concept> getAssociations(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException {
+    return getConceptList("associations", terminology, ip);
+  }
+  
+  /** see superclass **/
+  @Override
+  public Optional<Concept> getAssociation(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> associations = getAssociations(terminology, ip);
+    return associations.stream().filter(a -> a.getCode().equals(code)).findFirst();
+  }
+  
+  /** see superclass **/
+  @Override
+  public List<Concept> getRoles(Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException {
+    return getConceptList("roles", terminology, ip);
   }  
   
   /** see superclass **/
-  @SuppressWarnings("unchecked")
+  @Override
+  public Optional<Concept> getRole(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> roles = getRoles(terminology, ip);
+    return roles.stream().filter(r -> r.getCode().equals(code)).findFirst();
+  }
+  
+  /** see superclass **/
   @Override
   public List<ConceptMinimal> getContributingSources(Terminology terminology) throws JsonMappingException, JsonProcessingException {
     return getConceptMinimalList("contributing_sources", terminology);
@@ -451,13 +484,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws JsonMappingException
    * @throws JsonProcessingException
    */
-  private List<Concept> getConceptList(String id, Terminology terminology) throws JsonMappingException, JsonProcessingException {
+  private List<Concept> getConceptList(String id, Terminology terminology, IncludeParam ip) throws JsonMappingException, JsonProcessingException {
     Optional<ElasticObject> esObject = getElasticObject(id, terminology);
     if (!esObject.isPresent()) {
       return Collections.<Concept>emptyList();
     }
     
-    return esObject.get().getConcepts();
+    List<Concept> concepts = esObject.get().getConcepts();
+    return ConceptUtils.applyInclude(concepts, ip);
   }
   
   /**
@@ -486,9 +520,12 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the optional of elasticsearch object
    */
   private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withIds(Arrays.asList(id))
-        .withIndices(terminology.getObjectIndexName()).withTypes(ElasticOperationsService.OBJECT_TYPE).build();
-
+    logger.info("getElasticObject({}, {})", id, terminology.getTerminology());
+    NativeSearchQuery query = new NativeSearchQueryBuilder()
+        .withFilter(QueryBuilders.termQuery("_id", id))
+        .withIndices(terminology.getObjectIndexName())
+        .withTypes(ElasticOperationsService.OBJECT_TYPE).build();
+    
     List<ElasticObject> objects = operations.queryForList(query, ElasticObject.class);
     
     if (CollectionUtils.isEmpty(objects)) {
