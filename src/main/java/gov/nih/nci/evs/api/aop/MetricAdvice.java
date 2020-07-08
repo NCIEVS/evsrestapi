@@ -66,13 +66,13 @@ public class MetricAdvice {
    */
 
   @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetric)")
-  private void recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric)
+  private Object recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric)
     throws Throwable {
 
     // get the request
     final HttpServletRequest request =
         ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-    recordMetricHelper(pjp, request, request.getParameterMap());
+    return recordMetricHelper(pjp, request, request.getParameterMap());
 
   }
 
@@ -85,7 +85,7 @@ public class MetricAdvice {
    * @return the object
    * @throws Throwable the throwable
    */
-  public void recordMetricHelper(final ProceedingJoinPoint pjp, final HttpServletRequest request,
+  public Object recordMetricHelper(final ProceedingJoinPoint pjp, final HttpServletRequest request,
     final Map<String, String[]> params) throws Throwable {
 
     // get the start time
@@ -124,6 +124,7 @@ public class MetricAdvice {
     final HttpEntity<String> metricData = new HttpEntity<String>(metricStr, headers);
     restTemplate.postForObject(elasticServerProperties.getUrl(), metricData, String.class);
     logger.debug("metric = " + metric);
+    return pjp.proceed();
   }
 
 }
