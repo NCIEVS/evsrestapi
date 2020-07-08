@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
+import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -87,7 +87,7 @@ public class ConceptController extends BaseController {
           value = "List (comma-separated) of codes to return concepts for, e.g. C2291,C3224.",
           required = true, dataType = "string", paramType = "query")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   public @ResponseBody List<Concept> getConcepts(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
@@ -135,7 +135,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}",
       produces = "application/json")
   @ApiImplicitParams({
@@ -194,7 +194,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations",
       produces = "application/json")
   public @ResponseBody List<Association> getAssociations(
@@ -242,7 +242,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
   public @ResponseBody List<Association> getInverseAssociations(
@@ -290,7 +290,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles",
       produces = "application/json")
   public @ResponseBody List<Role> getRoles(
@@ -339,7 +339,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles",
       produces = "application/json")
   public @ResponseBody List<Role> getInverseRoles(
@@ -387,7 +387,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents",
       produces = "application/json")
   public @ResponseBody List<Concept> getParents(
@@ -435,7 +435,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children",
       produces = "application/json")
   public @ResponseBody List<Concept> getChildren(
@@ -478,7 +478,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants",
       produces = "application/json")
   @ApiImplicitParams({
@@ -537,7 +537,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
       produces = "application/json")
   public @ResponseBody List<Map> getMaps(
@@ -586,7 +586,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3910'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith",
       produces = "application/json")
   public @ResponseBody List<DisjointWith> getDisjointWith(
@@ -624,7 +624,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots",
       produces = "application/json")
   @ApiImplicitParams({
@@ -676,7 +676,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot",
       produces = "application/json")
   @ApiImplicitParams({
@@ -730,7 +730,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree",
       produces = "application/json")
   @ApiImplicitParams({
@@ -774,7 +774,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/concept/{terminology}/{code}/subtree/children", produces = "application/json")
   @ApiImplicitParams({
@@ -817,7 +817,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot",
       produces = "application/json")
   @ApiImplicitParams({
@@ -871,7 +871,7 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}",
       produces = "application/json")

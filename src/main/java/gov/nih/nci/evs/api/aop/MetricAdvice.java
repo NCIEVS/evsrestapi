@@ -1,9 +1,10 @@
 
 package gov.nih.nci.evs.api.aop;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -12,74 +13,58 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 
 /**
- * Metric advice.
+ * Handle record metric annotations via AOP.
  */
 @Component
 @Aspect
+@ConditionalOnProperty(name = "nci.evs.application.metricsEnabled")
 public class MetricAdvice {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(MetricAdvice.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
-  /** The Constant EVSRESTAPI_APPLICATION. */
-  private static final String EVSRESTAPI_APPLICATION = "evsrestapi";
-
-  /**
-   * Record metric DB.
-   *
-   * @param pjp the pjp
-   * @param recordMetricDB the record metric DB
-   * @return the object
-   * @throws Throwable the throwable
-   */
-  @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetricDB)")
-  private Object recordMetricDB(ProceedingJoinPoint pjp, RecordMetricDB recordMetricDB)
-    throws Throwable {
-    log.debug("log method having db as parameter");
-
-    // get the request
-    HttpServletRequest request =
-        ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-    String filterParams = request.getParameter("db");
-
-    return recordMetric(pjp, request, filterParams);
-
-  }
-
-  /**
-   * Record metric DB format.
-   *
-   * @param pjp the pjp
-   * @param recordMetricDBFormat the record metric DB format
-   * @return the object
-   * @throws Throwable the throwable
-   */
-  @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetricDBFormat)")
-  private Object recordMetricDBFormat(ProceedingJoinPoint pjp,
-    RecordMetricDBFormat recordMetricDBFormat) throws Throwable {
-    log.debug("log method having db and format as parameter");
-
-    // get the request
-    HttpServletRequest request =
-        ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-    String filterParams = "{\"db\":\"" + request.getParameter("db") + "\",\"fmt\":\""
-        + request.getParameter("fmt") + "\"}";
-
-    return recordMetric(pjp, request, filterParams);
-
-  }
+  /** The elastic server properties. */
+  @Autowired
+  ElasticServerProperties elasticServerProperties;
 
   /**
    * Record metric.
+   *
+   * @param pjp the pjp
+   * @param recordMetric the record metric
+   * @return the object
+   * @throws Throwable the throwable
+   */
+
+  @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetric)")
+  private void recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric)
+    throws Throwable {
+
+    // get the request
+    final HttpServletRequest request =
+        ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+    recordMetricHelper(pjp, request, request.getParameterMap());
+
+  }
+
+  /**
+   * Record metric helper.
    *
    * @param pjp the pjp
    * @param request the request
@@ -87,46 +72,52 @@ public class MetricAdvice {
    * @return the object
    * @throws Throwable the throwable
    */
-  public Object recordMetric(ProceedingJoinPoint pjp, HttpServletRequest request, String params)
-    throws Throwable {
+  @SuppressWarnings("unchecked")
+  public void recordMetricHelper(final ProceedingJoinPoint pjp, final HttpServletRequest request,
+    final Map<String, String[]> params) throws Throwable {
 
     // get the start time
-    long startTime = System.currentTimeMillis();
-    Date startDate = new Date();
-    Object retVal = pjp.proceed();
-    long endTime = System.currentTimeMillis();
-    long duration = endTime - startTime;
-    Date endDate = new Date();
-    log.debug("durtaion = " + String.valueOf(duration));
+    final long startTime = System.currentTimeMillis();
+    final Date startDate = new Date();
+    final long endTime = System.currentTimeMillis();
+    final long duration = endTime - startTime;
+    final Date endDate = new Date();
+    final Metric metric = new Metric();
+
+    metric.setDuration(duration);
 
     // get the ip address of the remote user
-    ServletRequestAttributes attr =
+    final ServletRequestAttributes attr =
         (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    String userIpAddress = attr.getRequest().getRemoteAddr();
-    log.debug("userIpAddress" + userIpAddress);
 
-    String applicationName = EVSRESTAPI_APPLICATION;
-    log.debug("applicationName - " + applicationName);
-    Metric metric = new Metric();
-    metric.setApplicationName(applicationName);
-    metric.setEndPoint(request.getRequestURL().toString());
-    log.debug("url -" + request.getRequestURL().toString());
-    metric.setQueryParams(params);
-    log.debug("params - " + params);
-    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-    metric.setStartTime(dateFormat.format(startDate));
-    metric.setEndTime(dateFormat.format(endDate));
-    metric.setUsername("anonymousUser");
-    log.debug("username -" + metric.getUsername());
-    metric.setDuration(duration);
+    final String userIpAddress = attr.getRequest().getRemoteAddr();
     metric.setRemoteIpAddress(userIpAddress);
 
-    // get the parameters
-    ObjectMapper mapper = new ObjectMapper();
-    String metricStr = mapper.writeValueAsString(metric);
-    log.debug("metric -" + metricStr);
+    final String hostName = attr.getRequest().getRemoteHost();
+    metric.setHostName(hostName);
 
-    return retVal;
+    final String url = request.getRequestURL().toString();
+    metric.setEndPoint(url);
+
+    metric.setQueryParams(params);
+    metric.setStartTime(startDate);
+    metric.setEndTime(endDate);
+
+    // get the parameters
+    final ObjectMapper mapper = new ObjectMapper();
+    final RestTemplate restTemplate = new RestTemplate();
+    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+    final String metricStr = mapper.writeValueAsString(metric);
+
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    final HttpEntity<String> metricData = new HttpEntity<String>(metricStr, headers);
+    String response = restTemplate.postForObject(
+        elasticServerProperties.getUrl().replace("concept/_search", "metrics/_doc/"), metricData,
+        String.class);
+    final Map<String, Object> map = mapper.readValue(response, HashMap.class);
+    logger.debug("metrics object id = " + map.get("_id"));
+
   }
 
 }

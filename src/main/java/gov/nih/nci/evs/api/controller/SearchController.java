@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.aop.RecordMetricSearch;
+import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -136,7 +136,7 @@ public class SearchController extends BaseController {
       // roles can be specified as code or label", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
-  @RecordMetricSearch
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
@@ -214,7 +214,7 @@ public class SearchController extends BaseController {
       // roles can be specified as code or label", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
-  @RecordMetricSearch
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList search(@ModelAttribute SearchCriteria searchCriteria,

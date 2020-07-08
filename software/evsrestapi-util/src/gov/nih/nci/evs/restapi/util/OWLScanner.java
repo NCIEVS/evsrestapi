@@ -2048,6 +2048,62 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public Vector extractObjectProperties(Vector owl_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+        String code = null;
+        String label = null;
+        String p108 = null;
+
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("// Object Properties") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("// Classes") != -1) {
+				break;
+			}
+
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+            } else {
+				t = t.trim();
+				if (t.startsWith("<owl:ObjectProperty rdf:about=")) {
+                    istart = true;
+				}
+				if (istart) {
+					if (t.startsWith("<NHC0>") && t.endsWith("</NHC0>")) {
+						int n = t.lastIndexOf("</NHC0>");
+						code = t.substring("<NHC0>".length(), n);
+					}
+					if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
+						int n = t.lastIndexOf("</rdfs:label>");
+						label = t.substring("<rdfs:label>".length(), n);
+					}
+					if (t.startsWith("<P108>") && t.endsWith("</P108>")) {
+						int n = t.lastIndexOf("</P108>");
+						p108 = t.substring("<P108>".length(), n);
+					}
+				}
+				if (t.compareTo("</owl:ObjectProperty>") == 0 && code != null) {
+					w.add(code + "|" + label + "|" + p108);
+					code = null;
+					label = null;
+					p108 = null;
+					istart = false;
+				}
+
+			}
+		}
+		return new SortUtils().quickSort(w);
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*

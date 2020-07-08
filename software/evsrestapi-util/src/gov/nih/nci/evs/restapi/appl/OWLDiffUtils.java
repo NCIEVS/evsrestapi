@@ -16,12 +16,12 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
-import org.apache.commons.codec.binary.Base64;
-import org.json.*;
+//import org.apache.commons.codec.binary.Base64;
+//import org.json.*;
 
 /**
  * <!-- LICENSE_TEXT_START -->
- * Copyright 2008-2017 NGIS. This software was developed in conjunction
+ * Copyright 2020, MSC. This software was developed in conjunction
  * with the National Cancer Institute, and so to the extent government
  * employees are co-authors, any rights in such works shall be subject
  * to Title 17 of the United States Code, section 105.
@@ -36,11 +36,11 @@ import org.json.*;
  *      with the distribution.
  *   2. The end-user documentation included with the redistribution,
  *      if any, must include the following acknowledgment:
- *      "This product includes software developed by NGIS and the National
+ *      "This product includes software developed by MSC and the National
  *      Cancer Institute."   If no such end-user documentation is to be
  *      included, this acknowledgment shall appear in the software itself,
  *      wherever such third-party acknowledgments normally appear.
- *   3. The names "The National Cancer Institute", "NCI" and "NGIS" must
+ *   3. The names "The National Cancer Institute", "NCI" and "MSC" must
  *      not be used to endorse or promote products derived from this software.
  *   4. This license does not authorize the incorporation of this software
  *      into any third party proprietary programs. This license does not
@@ -66,15 +66,15 @@ import org.json.*;
  * @version 1.0
  *
  * Modification history:
- *     Initial implementation kim.ong@ngc.com
+ *     Initial implementation kim.ong@nih.gov
  *
  */
 
 
 public class OWLDiffUtils {
-    OWLSPARQLUtils owlSPARQLUtils = null;
-    String serviceUrl = null;
-    String namedGraph = null;
+    //OWLSPARQLUtils owlSPARQLUtils = null;
+    //String serviceUrl = null;
+    //String namedGraph = null;
     Vector properties = null;
     Vector qualifiers = null;
     HashMap qualifierMap = null;
@@ -383,7 +383,7 @@ public class OWLDiffUtils {
         dumpVector("deleted|axiom", w5);
 	}
 
-	public static void run(String owlfile1, String owlfile2) {
+	public static String run(String owlfile1, String owlfile2) {
 		int n1 = owlfile1.lastIndexOf(".");
 		int n2 = owlfile2.lastIndexOf(".");
 		String outputfile = owlfile1.substring(0, n1) + "_vs_" + owlfile2.substring(0, n2) + "_" + StringUtils.getToday() + ".txt";
@@ -407,7 +407,9 @@ public class OWLDiffUtils {
 				ex.printStackTrace();
 			}
 		}
+		return outputfile;
 	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
