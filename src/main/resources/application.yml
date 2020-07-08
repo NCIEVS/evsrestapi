@@ -85,6 +85,7 @@ nci:
         host: ${ES_HOST:localhost}
         port: ${ES_PORT:9300}
         clusterName: ${ES_CLUSTER_NAME:docker-cluster}
+        url: ${ES_METRICS_URL:http://localhost:9200/metrics/_doc}
 
 swagger:
    documentation:

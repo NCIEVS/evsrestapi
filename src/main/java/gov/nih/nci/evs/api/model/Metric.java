@@ -4,6 +4,8 @@ package gov.nih.nci.evs.api.model;
 import java.util.Date;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Metric.
  */
@@ -154,6 +156,16 @@ public class Metric {
    */
   public void setHostName(String hostName) {
     this.hostName = hostName;
+  }
+
+  /* see superclass */
+  @Override
+  public String toString() {
+    try {
+      return new ObjectMapper().writeValueAsString(this);
+    } catch (final Exception e) {
+      return e.getMessage();
+    }
   }
 
 }

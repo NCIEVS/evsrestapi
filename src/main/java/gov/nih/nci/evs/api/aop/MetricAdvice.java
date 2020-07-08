@@ -3,7 +3,6 @@ package gov.nih.nci.evs.api.aop;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +42,20 @@ public class MetricAdvice {
   @Autowired
   ElasticServerProperties elasticServerProperties;
 
+  /** The mapper. */
+  private static ObjectMapper mapper = initMapper();
+
+  /**
+   * Inits the mapper.
+   *
+   * @return the object mapper
+   */
+  private static ObjectMapper initMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+    return mapper;
+  }
+
   /**
    * Record metric.
    *
@@ -72,7 +85,6 @@ public class MetricAdvice {
    * @return the object
    * @throws Throwable the throwable
    */
-  @SuppressWarnings("unchecked")
   public void recordMetricHelper(final ProceedingJoinPoint pjp, final HttpServletRequest request,
     final Map<String, String[]> params) throws Throwable {
 
@@ -104,20 +116,14 @@ public class MetricAdvice {
     metric.setEndTime(endDate);
 
     // get the parameters
-    final ObjectMapper mapper = new ObjectMapper();
     final RestTemplate restTemplate = new RestTemplate();
-    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
     final String metricStr = mapper.writeValueAsString(metric);
 
     final HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     final HttpEntity<String> metricData = new HttpEntity<String>(metricStr, headers);
-    String response = restTemplate.postForObject(
-        elasticServerProperties.getUrl().replace("concept/_search", "metrics/_doc/"), metricData,
-        String.class);
-    final Map<String, Object> map = mapper.readValue(response, HashMap.class);
-    logger.debug("metrics object id = " + map.get("_id"));
-
+    restTemplate.postForObject(elasticServerProperties.getUrl(), metricData, String.class);
+    logger.debug("metric = " + metric);
   }
 
 }
