@@ -340,10 +340,6 @@ public class OWLDiffUtils {
 
         Vector w1 = owlScanner.removeObjectValuedProperties(owlScanner.extract_properties(v1));
         Vector w2 = owlScanner.removeObjectValuedProperties(owlScanner.extract_properties(v2));
-
-        //Vector w1 = owlScanner.extract_properties(v1);
-        //Vector w2 = owlScanner.extract_properties(v2);
-
         compareVector("property", w1, w2);
 
         w1 = owlScanner.extract_superclasses(v1);
@@ -383,6 +379,7 @@ public class OWLDiffUtils {
         dumpVector("deleted|axiom", w5);
 	}
 
+
 	public static String run(String owlfile1, String owlfile2) {
 		int n1 = owlfile1.lastIndexOf(".");
 		int n2 = owlfile2.lastIndexOf(".");
@@ -410,12 +407,79 @@ public class OWLDiffUtils {
 		return outputfile;
 	}
 
+    public static void testCompareClass(Vector v1, Vector v2, String outputfile) {
+		try {
+			pw = new PrintWriter(outputfile, "UTF-8");
+			OWLScanner owlScanner = new OWLScanner();
+			String t1 = owlScanner.get_owl_class_hashcode(v1);
+			String t2 = owlScanner.get_owl_class_hashcode(v2);
+
+			Vector w1 = owlScanner.removeObjectValuedProperties(owlScanner.extract_properties(v1));
+			Vector w2 = owlScanner.removeObjectValuedProperties(owlScanner.extract_properties(v2));
+
+			compareVector("property", w1, w2);
+
+			w1 = owlScanner.extract_superclasses(v1);
+			w2 = owlScanner.extract_superclasses(v2);
+			compareVector("superclass", w1, w2);
+
+			w1 = new Vector();
+			w2 = new Vector();
+			Vector w3 = owlScanner.extract_owlrestrictions(v1);
+			Vector w4 = owlScanner.extract_owlrestrictions(v2);
+
+			for (int i=0; i<w3.size(); i++) {
+				OWLRestriction r = (OWLRestriction) w3.elementAt(i);
+				w1.add(r.toString());
+			}
+			for (int i=0; i<w4.size(); i++) {
+				OWLRestriction r = (OWLRestriction) w4.elementAt(i);
+				w2.add(r.toString());
+			}
+			compareVector("role", w1, w2);
+
+			w1 = owlScanner.extract_associations(v1);
+			w2 = owlScanner.extract_associations(v2);
+			compareVector("association", w1, w2);
+
+			w3 = owlScanner.extractPropertiesWithQualifiers(v1);
+			w4 = owlScanner.extractPropertiesWithQualifiers(v2);
+
+			w3 = owlScanner.axioms2Strings(w3);
+			w4 = owlScanner.axioms2Strings(w4);
+
+			Vector w5 = set_difference(w3, w4);
+			dumpVector("added|axiom", w5);
+
+			w5 = set_difference(w4, w3);
+			dumpVector("deleted|axiom", w5);
+
+		} catch (Exception ex) {
+            ex.printStackTrace();
+		} finally {
+			try {
+				pw.close();
+				System.out.println("Output file " + outputfile + " generated.");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
-		String owlfile1 = args[0];
-		String owlfile2 = args[1];
-		run(owlfile1, owlfile2);
+		//String owlfile1 = args[0];
+		//String owlfile2 = args[1];
+		//run(owlfile1, owlfile2);
+
+		Vector v1 = Utils.readFile("C40074_v20.04d.owl");
+		Vector v2 = Utils.readFile("C40074_v20.05d.owl");
+
+		System.out.println("v1: " + v1.size());
+		System.out.println("v2: " + v2.size());
+
+		testCompareClass(v1, v2, "test.txt");
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }

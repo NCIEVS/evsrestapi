@@ -69,7 +69,7 @@ import java.util.regex.*;
  */
 
 
-public class HistoryUtils {
+public class HistoryUtilsExt {
 	String owlfile = null;
 	String diff_file = null;
     Vector edit_vec = null;
@@ -78,58 +78,11 @@ public class HistoryUtils {
     OWLScanner owlScanner = null;
     HashSet codes = null;
     Vector edited_concept_codes = null;
-    PrintWriter pw = null;
 
-    public HistoryUtils() {
-
+    public HistoryUtilsExt() {
+        this.owlScanner = new OWLScanner();
+        edit_vec = new Vector();
     }
-
-    public HistoryUtils(String owlfile, String diff_file) { //ThesaurusInferred_20.04d_vs_ThesaurusInferred_20.05d_06-25-2020.txt
-        this.owlfile = owlfile;
-        this.diff_file = diff_file;
-        initialize();
-	}
-
-	public void initialize() {
-        long ms = System.currentTimeMillis();
-        codes = new HashSet();
-        owlScanner = new OWLScanner(owlfile);
-		code2LabelMap = (HashMap) owlScanner.getCode2LabelMap().clone();
-        //owlScanner.clear();
-		edit_vec = Utils.readFile(diff_file);
-		System.out.println("edit_vec: " + edit_vec.size());
-		System.out.println("code2LabelMap: " + code2LabelMap.keySet().size());
-
-        Vector w = new Vector();
-		editAction_vec = new Vector();
-		for (int i=0; i<edit_vec.size(); i++) {
-			String t = (String) edit_vec.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-	        String action = (String) u.elementAt(0);
-	        String type = (String) u.elementAt(1);
-	        String code = (String) u.elementAt(2);
-	        codes.add(code);
-	        String label = (String) code2LabelMap.get(code);
-	        if (!w.contains(label + "|" + code)) {
-				w.add(label + "|" + code);
-			}
-	        String value = t.substring(action.length()+1+type.length()+1, t.length());
-	        EditAction editAction = new EditAction(label, code, action, type, value);
-	        editAction_vec.add(editAction);
-		}
-
-		w = new SortUtils().quickSort(w);
-		edited_concept_codes = new Vector();
-		for (int j=0; j<w.size(); j++) {
-			String t = (String) w.elementAt(j);
-			Vector u = StringUtils.parseData(t, '|');
-			edited_concept_codes.add((String) u.elementAt(1));
-		}
-
-		System.out.println("editAction_vec: " + editAction_vec.size());
-		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
-	}
-
 
 	public void dumpVector(String label, Vector v) {
 		System.out.println(label);
@@ -138,28 +91,6 @@ public class HistoryUtils {
 			System.out.println(obj.toString());
 		}
 	}
-
-    public Vector set_difference(Vector vec1, Vector vec2) {
-		HashSet hset1 = new HashSet();
-		for (int i=0; i<vec1.size(); i++) {
-			String t = (String) vec1.elementAt(i);
-			hset1.add(t);
-		}
-		HashSet hset2 = new HashSet();
-		for (int i=0; i<vec2.size(); i++) {
-			String t = (String) vec2.elementAt(i);
-			hset2.add(t);
-		}
-		Vector v1_minus_v2 = new Vector();
-		for (int i=0; i<vec2.size(); i++) {
-			String t = (String) vec2.elementAt(i);
-			if (!hset1.contains(t)) {
-				v1_minus_v2.add(t);
-			}
-		}
-		return v1_minus_v2;
-	}
-
 
 	public String getPropertyType(String tabDimitedAxiomData) {
 		Vector u = StringUtils.parseData(tabDimitedAxiomData);
@@ -179,15 +110,6 @@ public class HistoryUtils {
 		}
 	}
 
-	public void output_vector(String label, Vector v) {
-		System.out.println(label);
-		for (int i=0; i<v.size(); i++) {
-			Object t = (Object) v.elementAt(i);
-			System.out.println(t.toString());
-		}
-	}
-
-
 	public void dump_vector(String type, Vector v) {
 		String property = null;
 		for (int i=0; i<v.size(); i++) {
@@ -199,7 +121,7 @@ public class HistoryUtils {
 			} else {
 				property = type;
 			}
-			System.out.println(property + "|" + t);
+			edit_vec.add(property + "|" + t);
 		}
 	}
 
@@ -291,16 +213,6 @@ public class HistoryUtils {
         dump_vector("deleted|axiom", w5);
 	}
 
-    public void test() {
-		String file1 = "C50683_old.owl";
-		String file2 = "C50683_new.txt";
-		Vector v1 = Utils.readFile(file1);
-		dumpVector(file1, v1);
-		Vector v2 = Utils.readFile(file2);
-		dumpVector(file2, v2);
-		compareClass(v1, v2);
-	}
-
 	public Object delimitedString2Object(String str) {
 		Vector u = StringUtils.parseData(str, '|');
 		String code = (String) u.elementAt(0);
@@ -350,200 +262,11 @@ public class HistoryUtils {
 		return null;
 	}
 
-	public String toString(EditAction e) {
-		String action = e.getAction();//(String) u.elementAt(0);
-		String type = e.getType();//(String) u.elementAt(1);
-		String code = e.getCode();//(String) u.elementAt(2);
-
-		String label = e.getLabel();//(String) u.elementAt(3);
-        String str = e.getValue();
-        String retstr = null;
-
-		Vector u = StringUtils.parseData(str, '|');
-		if (type.compareTo("concept") == 0) {
-			retstr = action + " " + type + ": " + label + " (" + code + ")";
-
-            if (action.compareTo("added") == 0) {
-				dumpNewConcept(code);
-			}
-
-
-		} else if (type.compareTo("property") == 0) {
-			if (isComplexProperty((String) u.elementAt(1))) return "";
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\tproperty code: " + (String) u.elementAt(1) + "\n" +
-							"\t\tproperty value: " + (String) u.elementAt(2);
-		} else if (type.compareTo("association") == 0) {
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\tassociation code: " + (String) u.elementAt(1) + "\n" +
-							"\t\tassociated concept code: " + (String) u.elementAt(2);
-		} else if (type.compareTo("role") == 0) {
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\trole code: " + (String) u.elementAt(1) + "\n" +
-							"\t\ttarget concept code: " + (String) u.elementAt(2);
-		} else if (type.compareTo("superclass") == 0) {
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\tsuperconcept code: " + (String) u.elementAt(1);
-
-	    } else {
-
-			Object obj = delimitedString2Object(e.getValue());
-			if (obj instanceof Synonym) {
-				Synonym syn0 = (Synonym) obj;
-				Synonym2 syn = transform(syn0);
-				retstr = action + " " + type + ": " + "\n" + indentJson(syn.toJson());
-			} else if (obj instanceof MapToEntry) {
-				MapToEntry entry0 = (MapToEntry) obj;
-				MapToEntry2 entry = transform(entry0);
-
-				retstr = action + " " + type + ": " + "\n" + indentJson(entry.toJson());
-			} else if (obj instanceof Definition) {
-				Definition def0 = (Definition) obj;
-				Definition2 def = transform(def0);
-				retstr = action + " " + type + ": " + "\n" + indentJson(def.toJson());
-			} else if (obj instanceof AltDefinition) {
-				AltDefinition altdef0 = (AltDefinition) obj;
-				AltDefinition2 altdef = transform(altdef0);
-
-				retstr = action + " " + type + ": " + "\n" + indentJson(altdef.toJson());
-			} else if (obj instanceof GoAnnotation) {
-				GoAnnotation go0 = (GoAnnotation) obj;
-				GoAnnotation2 go = transform(go0);
-				retstr = action + " " + type + ": " + "\n" + indentJson(go.toJson());
-		    }
-
-
-		}
-		if (retstr == null) retstr = "WARNING: " + e.getValue();
-		return "\t" + retstr;
-	}
-
-
-	public String to_string(EditAction e) {
-		String action = e.getAction();//(String) u.elementAt(0);
-		String type = e.getType();//(String) u.elementAt(1);
-		String code = e.getCode();//(String) u.elementAt(2);
-
-		String label = e.getLabel();//(String) u.elementAt(3);
-        String str = e.getValue();
-        String retstr = null;
-
-		Vector u = StringUtils.parseData(str, '|');
-		if (type.compareTo("concept") == 0) {
-			retstr = "";//action + " " + type + ": " + label + " (" + code + ")";
-
-		} else if (type.compareTo("property") == 0) {
-			if (isComplexProperty((String) u.elementAt(1))) return "";
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\tproperty code: " + (String) u.elementAt(1) + "\n" +
-							"\t\tproperty value: " + (String) u.elementAt(2);
-		} else if (type.compareTo("association") == 0) {
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\tassociation code: " + (String) u.elementAt(1) + "\n" +
-							"\t\tassociated concept code: " + (String) u.elementAt(2);
-		} else if (type.compareTo("role") == 0) {
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\trole code: " + (String) u.elementAt(1) + "\n" +
-							"\t\ttarget concept code: " + (String) u.elementAt(2);
-		} else if (type.compareTo("superclass") == 0) {
-			retstr = action + " " + type + ": " + "\n" +
-							"\t\tsuperconcept code: " + (String) u.elementAt(1);
-
-	    } else {
-
-			Object obj = delimitedString2Object(e.getValue());
-			if (obj instanceof Synonym) {
-				Synonym syn0 = (Synonym) obj;
-				Synonym2 syn = transform(syn0);
-				retstr = action + " " + type + ": " + "\n" + indentJson(syn.toJson());
-			} else if (obj instanceof MapToEntry) {
-				MapToEntry entry0 = (MapToEntry) obj;
-				MapToEntry2 entry = transform(entry0);
-
-				retstr = action + " " + type + ": " + "\n" + indentJson(entry.toJson());
-			} else if (obj instanceof Definition) {
-				Definition def0 = (Definition) obj;
-				Definition2 def = transform(def0);
-				retstr = action + " " + type + ": " + "\n" + indentJson(def.toJson());
-			} else if (obj instanceof AltDefinition) {
-				AltDefinition altdef0 = (AltDefinition) obj;
-				AltDefinition2 altdef = transform(altdef0);
-
-				retstr = action + " " + type + ": " + "\n" + indentJson(altdef.toJson());
-			} else if (obj instanceof GoAnnotation) {
-				GoAnnotation go0 = (GoAnnotation) obj;
-				GoAnnotation2 go = transform(go0);
-				retstr = action + " " + type + ": " + "\n" + indentJson(go.toJson());
-		    }
-
-
-		}
-		if (retstr == null) retstr = "WARNING: " + e.getValue();
-		return "\t" + retstr;
-	}
-
-
-
-	public Vector search(String code) {
-		Vector w = new Vector();
-		for (int i=0; i<editAction_vec.size(); i++) {
-			EditAction e = (EditAction) editAction_vec.elementAt(i);
-			if (e.getCode().compareTo(code) == 0) {
-				w.add(e);
-			}
-		}
-		return w;
-	}
-
-	public void run() {
-        long ms = System.currentTimeMillis();
-        String outputfile = null;
-        int n = owlfile.lastIndexOf(".");
-        outputfile = "edit_" + owlfile.substring(0, n) + ".txt";
-		pw = null;
-		int lcv = 0;
-		try {
-			pw = new PrintWriter(outputfile, "UTF-8");
-			for (int i=0; i<edited_concept_codes.size(); i++) {
-				lcv++;
-				String code = (String) edited_concept_codes.elementAt(i);
-				String label = (String) code2LabelMap.get(code);
-				pw.println("\n(" + lcv + ") " + label + " (" + code + ")");
-				Vector e_vec = search(code);
-				for (int j=0; j<e_vec.size(); j++) {
-					EditAction e = (EditAction) e_vec.elementAt(j);
-					String str = toString(e);
-					if (str.length() > 0) {
-						pw.println(toString(e));
-					}
-				}
-			}
-		} catch (Exception ex) {
-            ex.printStackTrace();
-		} finally {
-			try {
-				pw.close();
-				System.out.println("Output file " + outputfile + " generated.");
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-	}
 
 	public String indentJson(String json) {
 		String t = json;
 		t = t.replace("\n", "\n\t");
 		return "\t" + t;
-	}
-
-	public boolean isComplexProperty(String prop_code) {
-		if (prop_code.compareTo("P90") == 0 ||
-		    prop_code.compareTo("P375") == 0 ||
-		    prop_code.compareTo("P211") == 0 ||
-		    prop_code.compareTo("P97") == 0 ||
-		    prop_code.compareTo("P325") == 0) return true;
-		return false;
 	}
 
     public Synonym2 transform(Synonym syn) {
@@ -609,26 +332,98 @@ public class HistoryUtils {
 			entry.getTargetTerminologyVersion());
 	}
 
-	public void dumpNewConcept(String code) {
-		HashSet hset = new HashSet();
-        HistoryUtilsExt hist = new HistoryUtilsExt();
-		Vector v = owlScanner.getOWLClassDataByCode(code);
-		Vector e_vec = hist.get_edit_vec(v);
-		e_vec = hist.construct_editaction_vec(e_vec);
-		for (int j=0; j<e_vec.size(); j++) {
-			EditAction e = (EditAction) e_vec.elementAt(j);
-			String str = to_string(e);
-			if (str.length() > 0) {
-				if (!hset.contains(str)) {
-					hset.add(str);
-					pw.println(str);
-				}
-			}
-		}
+	public boolean isComplexProperty(String prop_code) {
+		if (prop_code.compareTo("P90") == 0 ||
+		    prop_code.compareTo("P375") == 0 ||
+		    prop_code.compareTo("P211") == 0 ||
+		    prop_code.compareTo("P97") == 0 ||
+		    prop_code.compareTo("P325") == 0) return true;
+		return false;
 	}
 
-/*
+
+	public Vector get_edit_vec(Vector v1) {
+		try {
+			edit_vec = new Vector();
+			//Vector v1 = owlScanner.getOWLClassDataByCode(code);
+			//System.out.println("new code: " + code + " " + v1.size());
+			Vector w1 = removeObjectValuedProperties(owlScanner.extract_properties(v1));
+
+			Vector w2 = new Vector();
+			compareVector("property", w2, w1);
+
+			w1 = owlScanner.extract_superclasses(v1);
+			w2 = new Vector();
+			compareVector("superclass", w2, w1);
+
+			w1 = new Vector();
+			w2 = new Vector();
+			Vector w3 = owlScanner.extract_owlrestrictions(v1);
+			w2 = new Vector();
+
+			for (int i=0; i<w3.size(); i++) {
+				OWLRestriction r = (OWLRestriction) w3.elementAt(i);
+				w1.add(r.toString());
+			}
+			compareVector("role",  w2, w1);
+
+			w1 = owlScanner.extract_associations(v1);
+			w2 = new Vector();
+			compareVector("association",  w2, w1);
+
+			w3 = owlScanner.extractPropertiesWithQualifiers(v1);
+			Vector w4 = new Vector();
+
+			w3 = owlScanner.axioms2Strings(w3);
+			w4 = new Vector();
+
+			Vector w5 = set_difference(w4, w3);
+
+			dump_vector("added|axiom", w5);
+
+	    } catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return edit_vec;
+	}
+
+    public Vector set_difference(Vector vec1, Vector vec2) {
+		HashSet hset1 = new HashSet();
+		for (int i=0; i<vec1.size(); i++) {
+			String t = (String) vec1.elementAt(i);
+			hset1.add(t);
+		}
+		HashSet hset2 = new HashSet();
+		for (int i=0; i<vec2.size(); i++) {
+			String t = (String) vec2.elementAt(i);
+			hset2.add(t);
+		}
+		Vector v1_minus_v2 = new Vector();
+		for (int i=0; i<vec2.size(); i++) {
+			String t = (String) vec2.elementAt(i);
+			if (!hset1.contains(t)) {
+				v1_minus_v2.add(t);
+			}
+		}
+		return v1_minus_v2;
+	}
+
+
+//added|property|C40074|rdfs:label|25-Hydroxyvitamin D-1 Alpha-Hydroxylase, Mitochondrial
+    public String find_rdfs_label(Vector edit_vec) {
+		for (int i=0; i<edit_vec.size(); i++) {
+			String t = (String) edit_vec.elementAt(i);
+			if (t.indexOf("|rdfs:label|") != -1) {
+				Vector u = StringUtils.parseData(t, '|');
+			    return (String) u.elementAt(4);
+			}
+		}
+		return null;
+	}
+
     public Vector construct_editaction_vec(Vector edit_vec) {
+		String label = find_rdfs_label(edit_vec);
 		Vector editAction_vec = new Vector();
 		for (int i=0; i<edit_vec.size(); i++) {
 			String t = (String) edit_vec.elementAt(i);
@@ -636,20 +431,84 @@ public class HistoryUtils {
 	        String action = (String) u.elementAt(0);
 	        String type = (String) u.elementAt(1);
 	        String code = (String) u.elementAt(2);
-	        String label = (String) code2LabelMap.get(code);
 	        String value = t.substring(action.length()+1+type.length()+1, t.length());
 	        EditAction editAction = new EditAction(label, code, action, type, value);
 	        editAction_vec.add(editAction);
 		}
 		return editAction_vec;
 	}
-*/
+
 
 	public static void main(String[] args) {
-		String owlfile2 = args[0];
-		String diff_file = args[1];
-		HistoryUtils hist = new HistoryUtils(owlfile2, diff_file);
-		hist.run();
+        long ms = System.currentTimeMillis();
+        String owlfile = args[0];
+        HistoryUtilsExt hist = new HistoryUtilsExt();
+
+		Vector v = Utils.readFile(owlfile);
+		Vector edit_vec = hist.get_edit_vec(v);
+		Utils.saveToFile("edit_vec_" + owlfile, edit_vec);
+
+        Vector editaction_vec = hist.construct_editaction_vec(edit_vec);
+        Vector w = new Vector();
+		for (int i=0; i<editaction_vec.size(); i++) {
+			EditAction t = (EditAction) editaction_vec.elementAt(i);
+			w.add(t.toJson());
+		}
+
+        Utils.saveToFile("editaction_" + owlfile, w);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
