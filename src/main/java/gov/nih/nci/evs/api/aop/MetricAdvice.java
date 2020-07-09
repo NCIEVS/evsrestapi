@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.aop;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
@@ -14,11 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -26,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
 /**
  * Handle record metric annotations via AOP.
@@ -41,6 +39,9 @@ public class MetricAdvice {
   /** The elastic server properties. */
   @Autowired
   ElasticServerProperties elasticServerProperties;
+
+  @Autowired
+  ElasticOperationsService operationsService;
 
   /** The mapper. */
   private static ObjectMapper mapper = initMapper();
@@ -89,11 +90,12 @@ public class MetricAdvice {
     final Map<String, String[]> params) throws Throwable {
 
     // get the start time
-    final long startTime = System.currentTimeMillis();
     final Date startDate = new Date();
-    final long endTime = System.currentTimeMillis();
-    final long duration = endTime - startTime;
+    Object retval = pjp.proceed();
+
+    
     final Date endDate = new Date();
+    final long duration = endDate.getTime() - startDate.getTime();
     final Metric metric = new Metric();
 
     metric.setDuration(duration);
@@ -116,15 +118,11 @@ public class MetricAdvice {
     metric.setEndTime(endDate);
 
     // get the parameters
-    final RestTemplate restTemplate = new RestTemplate();
-    final String metricStr = mapper.writeValueAsString(metric);
+    operationsService.loadMetric(metric, "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+                                          + "-" + String.valueOf(Calendar.getInstance().get(Calendar.MONTH)));
 
-    final HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    final HttpEntity<String> metricData = new HttpEntity<String>(metricStr, headers);
-    restTemplate.postForObject(elasticServerProperties.getUrl(), metricData, String.class);
     logger.debug("metric = " + metric);
-    return pjp.proceed();
+    return retval;
   }
 
 }

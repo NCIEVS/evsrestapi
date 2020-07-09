@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Metric;
 
 /**
  * The service for performing index related operations on Elasticsearch
@@ -39,9 +40,19 @@ public interface ElasticOperationsService {
   void loadConcepts(List<Concept> concepts, String index, String type) throws IOException;
   
   /**
+   * load metrics
+   * 
+   * @param metric the metric to load
+   * @param index the index name
+   * @throws IOException the io exception
+   */
+  void loadMetric(Metric metric, String index) throws IOException;
+
+  /**
    * get the instance of {@code ElasticsearchOperations}
    * 
    * @return the instance of {@code ElasticsearchOperations}
    */
   ElasticsearchOperations getElasticsearchOperations();
+
 }

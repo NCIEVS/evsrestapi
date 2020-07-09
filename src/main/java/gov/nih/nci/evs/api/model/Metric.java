@@ -4,32 +4,49 @@ package gov.nih.nci.evs.api.model;
 import java.util.Date;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.data.elasticsearch.annotations.DateFormat;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 
 /**
  * Metric.
  */
+@Document(indexName = "default", type = "_doc")
 public class Metric {
 
   /** The remote ip address. */
+  @Field(type = FieldType.Text)
   private String remoteIpAddress;
 
   /** The end point. */
+  @Field(type = FieldType.Text)
   private String endPoint;
 
   /** The query params. */
+  @Field(type = FieldType.Object)
   private Map<String, String[]> queryParams;
 
   /** The start time. */
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date startTime;
 
   /** The end time. */
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date endTime;
 
   /** The duration. */
+  @Field(type = FieldType.Long)
   private Long duration;
 
   /** The hostname */
+  @Field(type = FieldType.Text)
   private String hostName;
 
   /**

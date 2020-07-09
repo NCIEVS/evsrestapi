@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Metric;
 
 /**
  * The implementation for {@link ElasticOperationsService}
@@ -66,6 +67,13 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     }
     
     operations.bulkIndex(indexQueries);
+  }
+
+  public void loadMetric(Metric metric, String index) throws IOException {
+    if(metric == null) return;
+
+    final IndexQuery query = new IndexQueryBuilder().withObject(metric).withIndexName(index).withType("_doc").build();
+    operations.index(query);
   }
   
   public ElasticsearchOperations getElasticsearchOperations() {
