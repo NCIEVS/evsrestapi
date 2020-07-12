@@ -12,6 +12,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
@@ -48,14 +50,20 @@ public class Concept extends ConceptMinimal {
 
   /** The highlight. */
   @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private String highlight;
 
   /** The highlights. */
   @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private java.util.Map<String, String> highlights;
 
   /** The level. */
   @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private Integer level;
 
   /** The leaf. */

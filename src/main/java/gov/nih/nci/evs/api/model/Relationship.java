@@ -4,24 +4,38 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 /**
  * Represents a connection between two concepts.
  */
 public class Relationship extends BaseModel {
 
   /** The type. */
+  @Field(type = FieldType.Text)
   private String type;
 
   /** The related code. */
+  @Field(type = FieldType.Text)
   private String relatedCode;
 
   /** The related name. */
+  @Field(type = FieldType.Text)
   private String relatedName;
 
   /** The highlight. */
+  @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private String highlight;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
+  @Transient
   private List<Qualifier> qualifiers;
 
 
