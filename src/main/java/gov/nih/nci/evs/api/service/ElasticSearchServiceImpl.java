@@ -108,17 +108,17 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // build final search query
     NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
         .withIndices(buildIndicesArray(searchCriteria))
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable);
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE)
+        .withPageable(pageable)
+        .withMinScore(0.01f);
 
     if (searchCriteria.getInclude().toLowerCase().contains("highlights")) {
       searchQuery = searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
     }
-
-    // logger.info(" = " + searchQuery.build().getQuery());
-    // query on operations
-    Page<Concept> resultPage =
-        operations.queryForPage(searchQuery.build(), Concept.class, new EVSConceptResultMapper());
-
+    
+    //query on operations
+    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class, new EVSConceptResultMapper(null));
+    
     logger.debug("result count: {}", resultPage.getTotalElements());
 
     ConceptResultList result = new ConceptResultList();

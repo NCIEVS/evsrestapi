@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public class Path extends BaseModel {
    */
   public Path(int direction, List<ConceptNode> concepts) {
     this.direction = direction;
-    this.concepts = concepts;
+    this.concepts = new ArrayList<>(concepts);
   }
 
   /**

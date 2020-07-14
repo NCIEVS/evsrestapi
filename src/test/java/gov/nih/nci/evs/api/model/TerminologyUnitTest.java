@@ -87,6 +87,8 @@ public class TerminologyUnitTest {
     tester.include("source");
     tester.include("terminologyVersion");
     tester.include("latest");
+    tester.include("indexName");
+    tester.include("objectIndexName");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);

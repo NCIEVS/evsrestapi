@@ -222,7 +222,7 @@ public class SearchControllerTests {
 
     // Page size too small
     url = baseUrl;
-    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=0");
     mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "0"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc

@@ -8,6 +8,9 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 /**
  * Represents a synonym of a concept.
  */
@@ -19,6 +22,8 @@ public class Definition extends BaseModel {
 
   /** The highlight. */
   @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private String highlight;
 
   /** The type. */

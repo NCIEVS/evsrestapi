@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.service.ElasticLoadService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
@@ -41,6 +42,9 @@ public class TerminologyCacheLoader implements ApplicationListener<ApplicationRe
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  @Autowired
+  ElasticLoadService loadService;
+  
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
     log.debug("onApplicationEvent() = " + event);

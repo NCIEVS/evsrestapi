@@ -10,6 +10,11 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
 /**
@@ -40,22 +45,29 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
  * </pre>
  */
 @Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
+@JsonInclude(content = Include.NON_EMPTY)
 public class Concept extends ConceptMinimal {
 
   /** The highlight. */
   @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private String highlight;
 
   /** The highlights. */
   @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private java.util.Map<String, String> highlights;
 
   /** The level. */
   @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private Integer level;
 
   /** The leaf. */
-  @Transient
+  @Field(type = FieldType.Boolean)
   private Boolean leaf;
 
   /** The synonyms. */
@@ -71,37 +83,41 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /** The children. */
-  @Transient
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> children;
 
   /** The parents. */
-  @Transient
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> parents;
 
   /** The associations. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Association> associations;
 
   /** The inverse associations. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Association> inverseAssociations;
 
   /** The roles. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Role> roles;
 
   /** The disjoint with. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Role> inverseRoles;
 
   /** The maps. */
-  @Transient
+  @Field(type = FieldType.Nested)
   private List<Map> maps;
 
+  /** The paths to root. */
+  @Field(type = FieldType.Object)
+  private Paths paths;
+  
   /**
    * Instantiates an empty {@link Concept}.
    */
@@ -186,6 +202,9 @@ public class Concept extends ConceptMinimal {
     inverseRoles = new ArrayList<>(other.getInverseRoles());
     disjointWith = new ArrayList<>(other.getDisjointWith());
     maps = new ArrayList<>(other.getMaps());
+    if (other.getPaths() != null) {
+      paths = other.getPaths();
+    }
   }
 
   /**
@@ -494,4 +513,21 @@ public class Concept extends ConceptMinimal {
     this.maps = maps;
   }
 
+  /**
+   * Returns the paths.
+   * 
+   * @return
+   */
+  public Paths getPaths() {
+    return paths;
+  }
+
+  /**
+   * Sets the paths.
+   * 
+   * @param paths the paths to root
+   */
+  public void setPaths(Paths paths) {
+    this.paths = paths;
+  }
 }

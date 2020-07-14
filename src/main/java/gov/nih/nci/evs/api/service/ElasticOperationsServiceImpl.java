@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
 
 /**
  * The implementation for {@link ElasticOperationsService}
@@ -52,16 +53,12 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   }
 
   @Override
-  public void loadConcepts(List<Concept> concepts, String index, String type) throws IOException {
-    if (CollectionUtils.isEmpty(concepts)) return;
-    
+  public void bulkIndex(List<Object> objects, String index, String type, Class clazz) throws IOException {
+    if (CollectionUtils.isEmpty(objects)) return;
     List<IndexQuery> indexQueries = new ArrayList<>();
     
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    
-    for(Concept concept: concepts) {
-      indexQueries.add(new IndexQueryBuilder().withId(concept.getCode()).withObject(concept)
+    for(Object obj: objects) {
+      indexQueries.add(new IndexQueryBuilder().withObject(clazz.cast(obj))
         .withIndexName(index).withType(type)
         .build());
     }
@@ -73,6 +70,15 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     if(metric == null) return;
 
     final IndexQuery query = new IndexQueryBuilder().withObject(metric).withIndexName(index).withType("_doc").build();
+    operations.index(query);
+  }
+  
+  @Override
+  public void index(Object object, String index, String type, Class clazz) throws IOException {
+    IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object))
+        .withIndexName(index).withType(type)
+        .build();
+    
     operations.index(query);
   }
   

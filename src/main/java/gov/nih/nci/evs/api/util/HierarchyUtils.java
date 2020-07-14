@@ -8,40 +8,61 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.Terminology;
 
 /**
  * Hierarchy utilities.
  */
 public class HierarchyUtils {
 
+  private static final Logger logger = LoggerFactory.getLogger(HierarchyUtils.class);
+  
   /** The parent 2 child. */
+//  @Field(type = FieldType.Object)
+  @Transient
   private HashMap<String, ArrayList<String>> parent2child =
       new HashMap<String, ArrayList<String>>();
 
   /** The child 2 parent. */
+//  @Field(type = FieldType.Object)
+  @Transient
   private HashMap<String, ArrayList<String>> child2parent =
       new HashMap<String, ArrayList<String>>();
 
   /** The code 2 label. */
+//  @Field(type = FieldType.Text)
+  @Transient
   private HashMap<String, String> code2label = new HashMap<String, String>();
 
   /** The label 2 code. */
+  @Transient
   private HashMap<String, String> label2code = new HashMap<String, String>();
 
   /** The concepts. */
+  @Transient
   private HashSet<String> concepts = new HashSet<String>();
 
   /** The parents. */
+  @Transient
   private HashSet<String> parents = new HashSet<String>();
 
   /** The children. */
+  @Transient
   private HashSet<String> children = new HashSet<String>();
 
   /** The roots. */
-  private HashSet<String> roots = null;
+  @Field(type = FieldType.Object)
+  private HashSet<String> hierarchyRoots = null;
 
   /** The leaves. */
+  @Field(type = FieldType.Object)
   private HashSet<String> leaves = null;
 
   /**
@@ -109,8 +130,8 @@ public class HierarchyUtils {
       concepts.add(values[2]);
     }
 
-    roots = new HashSet<String>(parents);
-    roots.removeAll(children);
+    hierarchyRoots = new HashSet<String>(parents);
+    hierarchyRoots.removeAll(children);
 
     leaves = new HashSet<String>(children);
     leaves.removeAll(parents);
@@ -125,32 +146,32 @@ public class HierarchyUtils {
    * @param level the level
    * @return the transitive closure
    */
-  public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts, String code,
-    Integer level) {
-    ArrayList<String> children = this.parent2child.get(code);
-    if (children == null || children.size() == 0) {
-      return concepts;
-    }
-    for (String child : children) {
-      String indent = "";
-      for (int i = 0; i < level; i++) {
-        indent = indent + "    ";
-      }
-      System.out.println(indent + "Parent: " + code + ": " + code2label.get(code) + "  Child: "
-          + child + ": " + code2label.get(child) + "  Level: " + level);
-      // ArrayList<String> newChildren =
-      getTransitiveClosure(concepts, child, level + 1);
-    }
-    return concepts;
-  }
+//  public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts, String code,
+//    Integer level) {
+//    ArrayList<String> children = this.parent2child.get(code);
+//    if (children == null || children.size() == 0) {
+//      return concepts;
+//    }
+//    for (String child : children) {
+//      String indent = "";
+//      for (int i = 0; i < level; i++) {
+//        indent = indent + "    ";
+//      }
+//      System.out.println(indent + "Parent: " + code + ": " + code2label.get(code) + "  Child: "
+//          + child + ": " + code2label.get(child) + "  Level: " + level);
+//      // ArrayList<String> newChildren =
+//      getTransitiveClosure(concepts, child, level + 1);
+//    }
+//    return concepts;
+//  }
 
   /**
    * Returns the roots.
    *
    * @return the roots
    */
-  public ArrayList<String> getRoots() {
-    return new ArrayList<String>(this.roots);
+  public ArrayList<String> getHierarchyRoots() {
+    return new ArrayList<String>(this.hierarchyRoots);
   }
 
   /**
@@ -203,7 +224,7 @@ public class HierarchyUtils {
    */
   public ArrayList<HierarchyNode> getRootNodes() {
     ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    for (String code : this.roots) {
+    for (String code : this.hierarchyRoots) {
       HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
       nodes.add(node);
     }
@@ -314,4 +335,5 @@ public class HierarchyUtils {
     return childCodes.stream().distinct().collect(Collectors.toList());
     // return childCodes;
   }
+  
 }

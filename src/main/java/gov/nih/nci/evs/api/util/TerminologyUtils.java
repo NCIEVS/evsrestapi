@@ -117,4 +117,5 @@ public final class TerminologyUtils {
   public static String constructName(String comment, String version) {
     return comment.substring(0, comment.indexOf(",")) + " " + version;
   }
+
 }

@@ -1,8 +1,16 @@
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 public class ConceptNode {
+  @Field(type = FieldType.Integer)
 	private int idx;
+  
+  @Field(type = FieldType.Text)
 	private String label;
+  
+  @Field(type = FieldType.Text)
 	private String code;
 
 	public ConceptNode() {

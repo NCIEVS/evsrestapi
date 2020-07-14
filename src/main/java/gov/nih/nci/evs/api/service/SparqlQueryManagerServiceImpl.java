@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +56,7 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathFinder;
+import gov.nih.nci.evs.api.util.PathUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -85,7 +85,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The application properties. */
   @Autowired
   ApplicationProperties applicationProperties;
-
+  
   /** The elastic search service. */
   @Autowired
   @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl")
@@ -97,7 +97,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The self. */
   @Resource
   private SparqlQueryManagerService self;
-
+  
   /**
    * Post init.
    *
@@ -577,6 +577,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     Map<String, List<Property>> propertyMap = getProperties(conceptCodes, terminology);
     Map<String, List<Axiom>> axiomMap = getAxioms(conceptCodes, terminology, true);
+    Map<String, List<Concept>> subConceptMap = getSubconcepts(conceptCodes, terminology);
+    Map<String, List<Concept>> superConceptMap = getSuperconcepts(conceptCodes, terminology);
+    Map<String, List<Association>> associationMap = getAssociations(conceptCodes, terminology);
+    Map<String, List<Association>> inverseAssociationMap = getInverseAssociations(conceptCodes, terminology);
+    Map<String, List<Role>> roleMap = getRoles(conceptCodes, terminology);
+    Map<String, List<Role>> inverseRoleMap = getInverseRoles(conceptCodes, terminology);
+    Map<String, List<DisjointWith>> disjointWithMap = getDisjointWith(conceptCodes, terminology);
+    Map<String, Paths> pathsMap = getPathToRoot(conceptCodes, terminology);
     
     for(Concept concept: concepts) {
       String conceptCode = concept.getCode();
@@ -630,6 +638,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       concept.setDefinitions(EVSUtils.getDefinitions(axioms));
+      concept.setChildren(subConceptMap.get(conceptCode));
+      concept.setParents(superConceptMap.get(conceptCode));
+      concept.setAssociations(associationMap.get(conceptCode));
+      concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
+      concept.setRoles(roleMap.get(conceptCode));
+      concept.setInverseRoles(inverseRoleMap.get(conceptCode));
+      concept.setMaps(EVSUtils.getMapsTo(axioms));
+      concept.setDisjointWith(disjointWithMap.get(conceptCode));
+      if (pathsMap.containsKey(conceptCode)) {
+        concept.setPaths(pathsMap.get(conceptCode));
+      }
+      concept.setLeaf(concept.getChildren().isEmpty());
     }
     
     return concepts;
@@ -818,6 +838,37 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return subclasses;
   }
 
+  /* see superclass */
+  public Map<String, List<Concept>> getSubconcepts(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query =
+        queryBuilderService.constructBatchQuery("subconcepts.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Concept>> resultMap = new HashMap<>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+      
+      Concept subclass = new Concept();
+      subclass.setName(b.getSubclassLabel().getValue());
+      subclass.setCode(b.getSubclassCode().getValue());
+      resultMap.get(conceptCode).add(subclass);
+    }
+
+    return resultMap;
+  }
+  
   /**
    * Returns the superconcepts.
    *
@@ -852,6 +903,37 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return superclasses;
   }
 
+  /* see superclass */
+  public Map<String, List<Concept>> getSuperconcepts(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query =
+        queryBuilderService.constructBatchQuery("superconcepts.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+  
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Concept>> resultMap = new HashMap<>();
+  
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+      
+      Concept superclass = new Concept();
+      superclass.setName(b.getSuperclassLabel().getValue());
+      superclass.setCode(b.getSuperclassCode().getValue());
+      resultMap.get(conceptCode).add(superclass);
+    }
+  
+    return resultMap;
+  }
+  
   /**
    * Returns the associations.
    *
@@ -887,6 +969,38 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
+  /* see superclass */
+  public Map<String, List<Association>> getAssociations(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query =
+        queryBuilderService.constructBatchQuery("associations.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Association>> resultMap = new HashMap<>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+      
+      Association association = new Association();
+      association.setType(b.getRelationship().getValue());
+      association.setRelatedCode(b.getRelatedConceptCode().getValue());
+      association.setRelatedName(b.getRelatedConceptLabel().getValue());
+      resultMap.get(conceptCode).add(association);
+    }
+
+    return resultMap;
+  }
+  
   /**
    * Returns the inverse associations.
    *
@@ -922,6 +1036,38 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return associations;
   }
 
+  /* see superclass */
+  public Map<String, List<Association>> getInverseAssociations(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query = queryBuilderService.constructBatchQuery("inverse.associations.batch", 
+        terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Association>> resultMap = new HashMap<>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+      
+      Association association = new Association();
+      association.setType(b.getRelationship().getValue());
+      association.setRelatedCode(b.getRelatedConceptCode().getValue());
+      association.setRelatedName(b.getRelatedConceptLabel().getValue());
+      resultMap.get(conceptCode).add(association);
+    }
+
+    return resultMap;
+  }
+  
   /**
    * Returns the inverse roles.
    *
@@ -957,6 +1103,39 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
+  /* see superclass */
+  public Map<String, List<Role>> getInverseRoles(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query =
+        queryBuilderService.constructBatchQuery("inverse.roles.batch", terminology.getGraph(), inClause);
+    if (log.isDebugEnabled()) log.debug("query: " + query);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Role>> resultMap = new HashMap<>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+      
+      Role role = new Role();
+      role.setType(b.getRelationship().getValue());
+      role.setRelatedCode(b.getRelatedConceptCode().getValue());
+      role.setRelatedName(b.getRelatedConceptLabel().getValue());
+      resultMap.get(conceptCode).add(role);
+    }
+
+    return resultMap;
+  }
+  
   /**
    * Returns the roles.
    *
@@ -992,6 +1171,38 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return roles;
   }
 
+  /* see superclass */
+  public Map<String, List<Role>> getRoles(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query = queryBuilderService.constructBatchQuery("roles.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<Role>> resultMap = new HashMap<>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+      
+      Role role = new Role();
+      role.setType(b.getRelationship().getValue());
+      role.setRelatedCode(b.getRelatedConceptCode().getValue());
+      role.setRelatedName(b.getRelatedConceptLabel().getValue());
+
+      resultMap.get(conceptCode).add(role);
+    }
+
+    return resultMap;
+  }
+  
   /**
    * Returns the disjoint with.
    *
@@ -1027,6 +1238,38 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return disjointWithList;
   }
 
+  /* see superclass */
+  public Map<String, List<DisjointWith>> getDisjointWith(List<String> conceptCodes, Terminology terminology)
+      throws JsonMappingException, JsonParseException, IOException {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String inClause = getInClause(conceptCodes);
+    String query =
+        queryBuilderService.constructBatchQuery("disjoint.with.batch", terminology.getGraph(), inClause);
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    Map<String, List<DisjointWith>> resultMap = new HashMap<>();
+
+    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      String conceptCode = b.getConceptCode().getValue();
+      
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }        
+      
+      DisjointWith disjointWith = new DisjointWith();
+      disjointWith.setType(b.getRelationship().getValue());
+      disjointWith.setRelatedCode(b.getRelatedConceptCode().getValue());
+      disjointWith.setRelatedName(b.getRelatedConceptLabel().getValue());
+      resultMap.get(conceptCode).add(disjointWith);
+    }
+
+    return resultMap;
+  }
+  
   /**
    * Returns the axioms.
    *
@@ -1571,10 +1814,58 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         conceptPaths.add(new Path(1, trimed_concepts));
       }
     }
-    conceptPaths = removeDuplicatePaths(conceptPaths);
+    conceptPaths = PathUtils.removeDuplicatePaths(conceptPaths);
     return conceptPaths;
   }
 
+  private Map<String, Paths> getPathToRoot(List<String> codes, Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException {
+    List<Path> paths = self.getPaths(terminology).getPaths();
+    Map<String, Paths> conceptPaths = new HashMap<>();
+    Map<String, Boolean> codeMap = new HashMap<>();
+    codes.stream().forEach(c -> codeMap.put(c, true));
+    for (Path path : paths) {
+      Boolean sw = false;
+      Map<String, Integer> idxMap = new HashMap<>();
+      List<ConceptNode> concepts = path.getConcepts();
+      for (int i = 0; i < concepts.size(); i++) {
+        ConceptNode concept = concepts.get(i);
+        if (codeMap.containsKey(concept.getCode())) {
+          sw = true;
+          idxMap.put(concept.getCode(), concept.getIdx());
+        }
+      }
+      if (sw) {
+        for(String codeKey: idxMap.keySet()) {
+          int idx = idxMap.get(codeKey);
+          List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
+          if (idx == -1) {
+            idx = concepts.size() - 1;
+          }
+          int j = 0;
+          for (int i = idx; i >= 0; i--) {
+            ConceptNode c = new ConceptNode();
+            c.setCode(concepts.get(i).getCode());
+            c.setLabel(concepts.get(i).getLabel());
+            c.setIdx(j);
+            j++;
+            trimed_concepts.add(c);
+          }
+          conceptPaths.putIfAbsent(codeKey, new Paths());
+          conceptPaths.get(codeKey).add(new Path(1, trimed_concepts));            
+        }
+      }
+    }
+    
+    for(String code: conceptPaths.keySet()) {
+      Paths cPaths = conceptPaths.get(code);
+      cPaths = PathUtils.removeDuplicatePaths(cPaths);
+      conceptPaths.put(code, cPaths);
+    }
+    
+    return conceptPaths;
+  }
+  
   /* see superclass */
   @Override
   public Paths getPathToParent(String code, String parentCode, Terminology terminology)
@@ -1617,33 +1908,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         conceptPaths.add(new Path(1, trimed_concepts));
       }
     }
-    conceptPaths = removeDuplicatePaths(conceptPaths);
+    conceptPaths = PathUtils.removeDuplicatePaths(conceptPaths);
     return conceptPaths;
-  }
-
-  /**
-   * Removes the duplicate paths.
-   *
-   * @param paths the paths
-   * @return the paths
-   */
-  private Paths removeDuplicatePaths(Paths paths) {
-    Paths uniquePaths = new Paths();
-    HashSet<String> seenPaths = new HashSet<String>();
-    for (Path path : paths.getPaths()) {
-      StringBuffer strPath = new StringBuffer();
-      for (ConceptNode concept : path.getConcepts()) {
-        strPath.append(concept.getCode());
-        strPath.append("|");
-      }
-      String pathString = strPath.toString();
-      if (!seenPaths.contains(pathString)) {
-        seenPaths.add(pathString);
-        uniquePaths.add(path);
-      }
-    }
-
-    return uniquePaths;
   }
 
   /* see superclass */

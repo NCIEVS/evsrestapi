@@ -72,6 +72,12 @@ public class ConceptUnitTest {
   /** The m 2. */
   private List<Map> m2;
 
+  /** The m 1. */
+  private String paths1;
+
+  /** The m 2. */
+  private String paths2;
+  
   /**
    * Setup.
    *

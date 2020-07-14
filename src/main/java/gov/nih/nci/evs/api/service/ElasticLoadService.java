@@ -14,7 +14,21 @@ import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
  *
  */
 public interface ElasticLoadService {
-
-  void load(ElasticLoadConfig config, Terminology terminology) throws IOException;
-
+  /**
+   * Load cached objects to elasticsearch.
+   * 
+   * @param config the load config from command line input
+   * @param terminology the terminology
+   * @throws IOException the io exception
+   */
+  void loadObjects(ElasticLoadConfig config, Terminology terminology) throws IOException;
+  
+  /**
+   * Load concepts to elasticsearch.
+   * 
+   * @param config the load config from command line input
+   * @param terminology the terminology
+   * @throws IOException the io exception
+   */
+  void loadConcepts(ElasticLoadConfig config, Terminology terminology) throws IOException;
 }

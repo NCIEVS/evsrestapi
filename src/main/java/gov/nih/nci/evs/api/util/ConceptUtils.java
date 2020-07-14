@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptNode;
@@ -24,6 +25,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
@@ -93,6 +95,69 @@ public final class ConceptUtils {
   }
 
   /**
+   * Apply include
+   * 
+   * @param concepts the list of concepts
+   * @param ip the include param
+   * @return the result concepts
+   */
+  public static List<Concept> applyInclude(final List<Concept> concepts, final IncludeParam ip) {
+    if (CollectionUtils.isEmpty(concepts)) return Collections.emptyList();
+    
+    final List<Concept> result = new ArrayList<>(concepts.size());
+    
+    for(Concept concept: concepts) {
+      Concept newConcept = new Concept();
+      newConcept.setCode(concept.getCode());
+      newConcept.setName(concept.getName());
+      newConcept.setTerminology(concept.getTerminology());
+      newConcept.setVersion(concept.getVersion());
+      newConcept.setLeaf(concept.getLeaf());
+      
+      if (ip.isSynonyms()) {
+        newConcept.setSynonyms(concept.getSynonyms());
+      }
+      if (ip.isDefinitions()) {
+        newConcept.setDefinitions(concept.getDefinitions());
+      }
+      if (ip.isProperties()) {
+        newConcept.setProperties(concept.getProperties());
+      }
+      if (ip.isChildren()) {
+        newConcept.setChildren(concept.getChildren());
+      }
+      if (ip.isParents()) {
+        newConcept.setParents(concept.getParents());
+      }
+      if (ip.isAssociations()) {
+        newConcept.setAssociations(concept.getAssociations());
+      }
+      if (ip.isInverseAssociations()) {
+        newConcept.setInverseAssociations(concept.getInverseAssociations());
+      }
+      if (ip.isRoles()) {
+        newConcept.setRoles(concept.getRoles());
+      }
+      if (ip.isInverseRoles()) {
+        newConcept.setInverseRoles(concept.getInverseRoles());
+      }
+      if (ip.isDisjointWith()) {
+        newConcept.setDisjointWith(concept.getDisjointWith());
+      }
+      if (ip.isMaps()) {
+        newConcept.setMaps(concept.getMaps());
+      }
+      if (ip.isPaths()) {
+        newConcept.setPaths(concept.getPaths());
+      }
+      
+      result.add(newConcept);
+    }
+    
+    return result;
+  }
+  
+  /**
    * Apply include.
    *
    * @param concepts the evs concepts
@@ -154,7 +219,7 @@ public final class ConceptUtils {
   /**
    * Convert concepts from hierarchy with include.
    *
-   * @param service the service
+   * @param service the elastic query service
    * @param ip the ip
    * @param terminology the terminology
    * @param list the list
@@ -162,22 +227,24 @@ public final class ConceptUtils {
    * @throws Exception the exception
    */
   public static List<Concept> convertConceptsFromHierarchyWithInclude(
-    final SparqlQueryManagerService service, final IncludeParam ip, final Terminology terminology,
+    final ElasticQueryService service, final IncludeParam ip, final Terminology terminology,
     final List<HierarchyNode> list) throws Exception {
 
     final List<Concept> concepts = convertConceptsFromHierarchy(list);
+    final List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+    final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
     if (ip.hasAnyTrue()) {
       for (final Concept concept : concepts) {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
+        concept.populateFrom(conceptMap.get(concept.getCode()));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }
     }
     return concepts;
   }
-
+  
   /**
    * Convert paths.
    *
@@ -219,22 +286,24 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<ConceptPath> convertPathsWithInclude(final SparqlQueryManagerService service,
+  public static List<ConceptPath> convertPathsWithInclude(final ElasticQueryService service,
     final IncludeParam ip, final Terminology terminology, final Paths paths, final boolean reverse)
     throws Exception {
 
     final List<ConceptPath> list = convertPaths(paths, reverse);
     if (ip.hasAnyTrue()) {
-      final java.util.Map<String, Concept> cache = new HashMap<>();
+//      final java.util.Map<String, Concept> cache = new HashMap<>();
       for (final ConceptPath concepts : list) {
+        List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+        Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
         for (final Concept concept : concepts) {
           final int level = concept.getLevel();
-          if (cache.containsKey(concept.getCode())) {
-            concept.populateFrom(cache.get(concept.getCode()));
-          } else {
-            concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
-            cache.put(concept.getCode(), concept);
-          }
+//          if (cache.containsKey(concept.getCode())) {
+//            concept.populateFrom(cache.get(concept.getCode()));
+//          } else {
+            concept.populateFrom(conceptMap.get(concept.getCode()));
+//            cache.put(concept.getCode(), concept);
+//          }
           concept.setLevel(level);
         }
       }
