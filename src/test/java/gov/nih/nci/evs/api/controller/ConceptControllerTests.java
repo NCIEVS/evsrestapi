@@ -695,6 +695,11 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
 
+    // Test case with top level term
+    url = baseUrl + "/ncit/C12913/subtree";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound());
+    
     // Test case with bad terminology
     url = baseUrl + "/test/C2291/subtree/children";
     log.info("Testing url - " + url);

@@ -612,10 +612,10 @@ public class SearchControllerTests {
 
     // Retired_Concept
     log.info(
-        "Testing url - " + url + "?terminology=ncit&term=melanoma&conceptStatus=Retired_Concept");
+        "Testing url - " + url + "?terminology=ncit&term=crop&conceptStatus=Obsolete_Concept");
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-        .param("conceptStatus", "Retired_Concept")).andExpect(status().isOk()).andReturn();
+        .param("conceptStatus", "Obsolete_Concept")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
@@ -623,9 +623,9 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     // Bad value
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&conceptStatus=Bad_Value");
+    log.info("Testing url - " + url + "?terminology=ncit&term=crop&conceptStatus=Bad_Value");
 
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "crop")
         .param("conceptStatus", "Bad_Value")).andExpect(status().isBadRequest()).andReturn();
 
     log.info("Done Testing testSearchType");
