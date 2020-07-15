@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.aop;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -18,8 +17,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
@@ -40,22 +37,9 @@ public class MetricAdvice {
   @Autowired
   ElasticServerProperties elasticServerProperties;
 
+  /** The operations service. */
   @Autowired
   ElasticOperationsService operationsService;
-
-  /** The mapper. */
-  private static ObjectMapper mapper = initMapper();
-
-  /**
-   * Inits the mapper.
-   *
-   * @return the object mapper
-   */
-  private static ObjectMapper initMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-    return mapper;
-  }
 
   /**
    * Record metric.
@@ -93,7 +77,6 @@ public class MetricAdvice {
     final Date startDate = new Date();
     Object retval = pjp.proceed();
 
-    
     final Date endDate = new Date();
     final long duration = endDate.getTime() - startDate.getTime();
     final Metric metric = new Metric();
@@ -118,8 +101,9 @@ public class MetricAdvice {
     metric.setEndTime(endDate);
 
     // get the parameters
-    operationsService.loadMetric(metric, "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
-                                          + "-" + String.valueOf(Calendar.getInstance().get(Calendar.MONTH)));
+    operationsService.loadMetric(metric,
+        "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
+            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH)));
 
     logger.debug("metric = " + metric);
     return retval;
