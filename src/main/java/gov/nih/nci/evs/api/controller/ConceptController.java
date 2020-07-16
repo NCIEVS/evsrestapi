@@ -57,10 +57,11 @@ public class ConceptController extends BaseController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The elastic query service. */
   /* The elasticsearch query service */
   @Autowired
   ElasticQueryService elasticQueryService;
-  
+
   /**
    * Returns the associations.
    *
@@ -110,7 +111,8 @@ public class ConceptController extends BaseController {
             "Maximum number of concepts to request at a time is 500 = " + codes.length);
       }
 
-      final List<Concept> concepts = elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
+      final List<Concept> concepts =
+          elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
       return concepts;
     } catch (Exception e) {
       handleException(e);
@@ -204,12 +206,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getAssociations();
     } catch (Exception e) {
       handleException(e);
@@ -248,12 +251,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getInverseAssociations();
     } catch (Exception e) {
       handleException(e);
@@ -294,12 +298,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getRoles();
     } catch (Exception e) {
       handleException(e);
@@ -340,12 +345,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getInverseRoles();
     } catch (Exception e) {
       handleException(e);
@@ -385,12 +391,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getParents();
     } catch (Exception e) {
       handleException(e);
@@ -430,12 +437,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("children"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("children"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getChildren();
     } catch (Exception e) {
       handleException(e);
@@ -529,12 +537,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getMaps();
     } catch (Exception e) {
       handleException(e);
@@ -574,12 +583,13 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
-      
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
+
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      
+
       return concept.get().getDisjointWith();
     } catch (Exception e) {
       handleException(e);
@@ -630,8 +640,8 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
       }
-      return ConceptUtils.convertConceptsFromHierarchyWithInclude(elasticQueryService, ip,
-          term, list);
+      return ConceptUtils.convertConceptsFromHierarchyWithInclude(elasticQueryService, ip, term,
+          list);
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -685,7 +695,7 @@ public class ConceptController extends BaseController {
       }
       final Paths paths = elasticQueryService.getPathToRoot(code, term);
 
-      //TODO: update this method to use es query service
+      // TODO: update this method to use es query service
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
       handleException(e);
@@ -825,8 +835,7 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       final Paths paths = elasticQueryService.getPathToRoot(code, term);
-      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths,
-          false);
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -884,8 +893,7 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       final Paths paths = elasticQueryService.getPathToParent(code, ancestorCode, term);
-      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths,
-          false);
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
 
     } catch (Exception e) {
       handleException(e);
