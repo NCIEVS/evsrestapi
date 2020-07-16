@@ -744,4 +744,44 @@ public class MetadataControllerTests {
     log.info("  content = " + content);
 
   }
+
+  /**
+   * Test property axiom qualifiers.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPropertyQualifiers() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // P383
+    url = baseUrl + "/ncit/qualifier/P383/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotEmpty();
+
+    // term-group
+    url = baseUrl + "/ncit/qualifier/term-group/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/qualifier/P383/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+
+    // Bad property
+    url = baseUrl + "/ncit/qualifier/P383XXX/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+
+  }
+
 }
