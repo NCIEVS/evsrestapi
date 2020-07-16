@@ -281,6 +281,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
           HierarchyNode current = getHierarchyNode(c, knownNodeMap);
           if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(current.getCode()))) {
             previous.getChildren().add(current);
+            previous.setExpanded(true);
           }
           previous = current;
         }

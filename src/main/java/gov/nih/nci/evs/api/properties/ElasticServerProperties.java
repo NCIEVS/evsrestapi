@@ -6,9 +6,6 @@ package gov.nih.nci.evs.api.properties;
  */
 public class ElasticServerProperties {
 
-  /** The url*. */
-  private String url;
-
   /** The host *. */
   private String host;
 
@@ -17,24 +14,6 @@ public class ElasticServerProperties {
 
   /** The cluster name *. */
   private String clusterName;
-
-  /**
-   * Returns the url.
-   *
-   * @return the url
-   */
-  public String getUrl() {
-    return url;
-  }
-
-  /**
-   * Sets the url.
-   *
-   * @param url the url
-   */
-  public void setUrl(String url) {
-    this.url = url;
-  }
 
   /**
    * Returns the host.

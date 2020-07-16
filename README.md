@@ -23,7 +23,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       docker pull docker.elastic.co/elasticsearch/elasticsearch:6.7.0
       # Choose a directory for your elasticsearch data to live
       dir=c:/evsrestapi/elasticsearch/data
-      docker run -d -p 9200:9200 -p 9300:9300 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms3g -Xmx4g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
+      docker run -d --name=es_evs --rm -p 9200:9200 -p 9300:9300 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms1g -Xmx3g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
 
 * Load/Compute Indexes - Run from the "elasticsearch/scripts" folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
@@ -41,7 +41,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       
       ** Usage
       
-        usage: java -jar $DIR/evsrestapi-1.1.1.RELEASE.jar
+        usage: java -jar $DIR/evsrestapi-*.jar
         -d,--downloadOnly        Download concepts and skip elasticsearch load.
         -f,--forceDeleteIndex    Force delete index if index already exists.
         -h,--help                Show this help information and exit.
@@ -59,7 +59,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         # To print help information
         java -jar <path/to/spring-boot-fat-jar> --help 
         
-        example: java -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --help
+        example: java -jar build/libs/evsrestapi-*.jar --help
       
       *** To load indexes by downloading concepts to local disk:
       
@@ -71,7 +71,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         # To initiate index load process
         java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --forceDeleteIndex
         
-        example: java -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --terminology ncit_20.02d --forceDeleteIndex
+        example: java -jar build/libs/evsrestapi-*.jar --terminology ncit_20.02d --forceDeleteIndex
       
       *** To skip download step and load indexes to Elasticsearch from Stardog directly: 
       
@@ -85,7 +85,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         version=ncit_20.04d
         export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=100
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
-        java -Dspring.profiles.active=local -Xmx4G -jar build/libs/evsrestapi-1.1.1.RELEASE.jar --terminology $version --realTime --forceDeleteIndex
+        java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --realTime --forceDeleteIndex
 
 
 ### Steps for Building and Running EVSRESTAPI locally
