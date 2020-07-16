@@ -96,7 +96,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
 * Configure application
     * see `src/main/resources/application-local.yml` file for local setup (these settings should be suitable for local deployment)
 * Build the application (MUST DO BEFORE RUNNING if using "external tools configuration")
-    * ./gradlew clean build -x tests
+    * ./gradlew clean build -x test
     * Executable war file present in build/libs
 
 * Run application in Eclipse (SpringBoot)

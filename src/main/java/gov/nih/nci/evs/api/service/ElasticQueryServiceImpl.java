@@ -290,13 +290,15 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       //set children for the concept
       Concept concept = conceptMap.get(code);
       HierarchyNode hNode = knownNodeMap.get(code);
-      hNode.setHighlight(true);
-      hNode.setLeaf(concept.getLeaf());
-      List<Concept> children = concept.getChildren();
-      for(Concept child: children) {
-        //leaf property is not set as part of children; hence using concept from concept map for leaf property
-        hNode.getChildren().add(new HierarchyNode(child.getCode(), child.getName(), conceptMap.get(child.getCode()).getLeaf()));
-        hNode.setExpanded(true);
+      if(hNode != null) {
+	      hNode.setHighlight(true);
+	      hNode.setLeaf(concept.getLeaf());
+	      List<Concept> children = concept.getChildren();
+	      for(Concept child: children) {
+	        //leaf property is not set as part of children; hence using concept from concept map for leaf property
+          hNode.getChildren().add(new HierarchyNode(child.getCode(), child.getName(), conceptMap.get(child.getCode()).getLeaf()));
+          hNode.setExpanded(true);
+	      }
       }
       
       return rootNodes;
