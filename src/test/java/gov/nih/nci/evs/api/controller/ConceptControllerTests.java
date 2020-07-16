@@ -660,6 +660,9 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
+    // check that subtree is properly expanded
+    HierarchyNode expandedCheck = list.get(8);
+    assertThat(expandedCheck.getExpanded() == true);
     // something should have children
     assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
     // there should be a leaf node in the hierarchy
