@@ -281,6 +281,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
           HierarchyNode current = getHierarchyNode(c, knownNodeMap);
           if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(current.getCode()))) {
             previous.getChildren().add(current);
+            previous.setExpanded(true);
           }
           previous = current;
         }
@@ -295,6 +296,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       for(Concept child: children) {
         //leaf property is not set as part of children; hence using concept from concept map for leaf property
         hNode.getChildren().add(new HierarchyNode(child.getCode(), child.getName(), conceptMap.get(child.getCode()).getLeaf()));
+        hNode.setExpanded(true);
       }
       
       return rootNodes;
