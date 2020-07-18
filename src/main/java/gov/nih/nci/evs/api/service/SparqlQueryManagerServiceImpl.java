@@ -1432,30 +1432,45 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Boolean sw = false;
     String oldAxiom = "";
     String conceptCode = "";
+    
+    Map<String, List<Bindings>> bindingsMap = new HashMap<>();
     for (Bindings b : bindings) {
       conceptCode = b.getConceptCode().getValue();
-
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<Axiom>());
+      if (bindingsMap.get(conceptCode) == null) {
+        bindingsMap.put(conceptCode, new ArrayList<Bindings>());
       }
-
-      String axiom = b.getAxiom().getValue();
-      String property = b.getAxiomProperty().getValue().split("#")[1];
-      String value = b.getAxiomValue().getValue();
-      if (value.contains("#")) {
-        value = value.split("#")[1];
-      }
-
-      if (sw && !axiom.equals(oldAxiom)) {
-        resultMap.get(conceptCode).add(axiomObject);
-        axiomObject = new Axiom();
-      }
-      sw = true;
-      oldAxiom = axiom;
-
-      setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
+      
+      bindingsMap.get(conceptCode).add(b);
     }
-    resultMap.get(conceptCode).add(axiomObject);
+    
+    for (String code: bindingsMap.keySet()) {
+      List<Bindings> bindingsList = bindingsMap.get(code);
+      
+      for (Bindings b : bindingsList) {
+        if (resultMap.get(code) == null) {
+          resultMap.put(code, new ArrayList<Axiom>());
+        }
+        
+        String axiom = b.getAxiom().getValue();
+        String property = b.getAxiomProperty().getValue().split("#")[1];
+        String value = b.getAxiomValue().getValue();
+        if (value.contains("#")) {
+          value = value.split("#")[1];
+        }
+
+        if (sw && !axiom.equals(oldAxiom)) {
+          resultMap.get(code).add(axiomObject);
+          axiomObject = new Axiom();
+        }
+        sw = true;
+        oldAxiom = axiom;
+
+        setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
+      }
+      
+      resultMap.get(code).add(axiomObject);
+    }
+    
     return resultMap;
   }
 

@@ -21,11 +21,11 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
@@ -66,6 +66,9 @@ public class SearchController extends BaseController {
   @Autowired
   MetadataService metadataService;
 
+  @Autowired
+  ElasticQueryService esQueryService;
+  
   /**
    * Search within a single terminology.
    *
@@ -264,22 +267,22 @@ public class SearchController extends BaseController {
       final String terminology = searchCriteria.getTerminology().get(0);
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      final IncludeParam ip = searchCriteria.computeIncludeParam();
+//      final IncludeParam ip = searchCriteria.computeIncludeParam();
 
       searchCriteria.validate(term, metadataService);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
 
-      final List<Concept> concepts = new ArrayList<>();
+//      final List<Concept> concepts = new ArrayList<>();
       for (final Concept result : results.getConcepts()) {
-        final Concept concept = sparqlQueryManagerService.getConcept(result.getCode(), term, ip);
-        ConceptUtils.applyHighlights(concept, result.getHighlights());
+//        final Concept concept = esQueryService.getConcept(result.getCode(), term, ip).get();
+        ConceptUtils.applyHighlights(result, result.getHighlights());
         // Clear highlights now that they have been applied
-        concept.setHighlights(null);
-        concepts.add(concept);
+        result.setHighlights(null);
+//        concepts.add(concept);
       }
-      results.setConcepts(concepts);
+//      results.setConcepts(concepts);
       results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
     } catch (ResponseStatusException rse) {

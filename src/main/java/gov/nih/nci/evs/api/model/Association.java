@@ -1,9 +1,13 @@
 
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * Represents an association between two concepts.
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Association extends Relationship {
   /**
    * Instantiates an empty {@link Association}.

@@ -117,7 +117,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
     
     //query on operations
-    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class, new EVSConceptResultMapper(null));
+    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class, 
+        new EVSConceptResultMapper(searchCriteria.computeIncludeParam()));
     
     logger.debug("result count: {}", resultPage.getTotalElements());
 

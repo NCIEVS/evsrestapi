@@ -45,7 +45,7 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
  * </pre>
  */
 @Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
-@JsonInclude(content = Include.NON_EMPTY)
+@JsonInclude(Include.NON_EMPTY)
 public class Concept extends ConceptMinimal {
 
   /** The highlight. */

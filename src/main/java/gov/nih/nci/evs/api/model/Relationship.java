@@ -8,12 +8,15 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents a connection between two concepts.
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Relationship extends BaseModel {
 
   /** The type. */
@@ -35,7 +38,7 @@ public class Relationship extends BaseModel {
   private String highlight;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Transient
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
 

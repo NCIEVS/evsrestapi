@@ -8,12 +8,15 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents a synonym of a concept.
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Definition extends BaseModel {
 
   /** The definition. */
@@ -35,7 +38,7 @@ public class Definition extends BaseModel {
   private String source;
 
   /** The qualifiers. */
-  @Transient
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**
