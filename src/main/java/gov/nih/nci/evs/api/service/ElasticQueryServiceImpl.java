@@ -374,12 +374,16 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       for (int j = cNodes.size() - 2; j >= 0; j--) {
         ConceptNode cNode = cNodes.get(j);
         Concept c = conceptMap.get(cNode.getCode());
-        HierarchyNode current = getHierarchyNode(c, knownNodeMap);
-        if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(current.getCode()))) {
-          previous.getChildren().add(current);
+        if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(c.getCode()))) {
+          List<HierarchyNode> children = getChildNodes(previous.getCode(), terminology);
+          for (HierarchyNode child : children) {
+        	  previous.getChildren().add(child);
+          }
           previous.setExpanded(true);
         }
-        previous = current;
+        previous = previous.getChildren().stream().filter(n -> n.getCode()
+        				   .equals(c.getCode())).findFirst()
+        				   .orElse(null);
       }
     }
 
