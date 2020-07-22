@@ -1544,8 +1544,6 @@ public class OWLSPARQLUtils {
 
 	public Vector getObjectValuedAnnotationProperties(String named_graph) {
 		String query = construct_get_object_valued_annotation_properties(named_graph);
-		System.out.println(query);
-
 		Vector v = executeQuery(query);
 		Vector w = new ParserUtils().getResponseValues(v);
 		w = new SortUtils().quickSort(w);
@@ -3629,7 +3627,7 @@ public class OWLSPARQLUtils {
 		String params = "String named_graph, String code";
         */
 		String query = getQuery(query_file);
-		System.out.println(query);
+		//System.out.println(query);
         /*
 	    Utils.generate_construct_statement(method_name, params, query_file);
 
@@ -4234,7 +4232,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 			Vector u = StringUtils.parseData(property_name_code, "|");
 			String property_name = (String) u.elementAt(0);
 			lcv++;
-			System.out.println("(" + lcv + ") " + property_name);
+			//System.out.println("(" + lcv + ") " + property_name);
 			String property_code = (String) u.elementAt(1);
 			Vector v = null;
 			try {
@@ -4821,120 +4819,5 @@ Term Type
 	public Vector getCodeByLabel(String named_graph, String label) {
 		return executeQuery(construct_get_code_by_label(named_graph, label));
 	}
-
-	public static void main(String[] args) {
-		if (args.length == 2) {
-			System.out.println("args.length == 2");
-			test1(args);
-		} else {
-			test2(args);
-		}
-	}
-
-	public static void test2(String[] args) {
-		long ms = System.currentTimeMillis();
-		String serviceUrl = args[0];
-		System.out.println(serviceUrl);
-		//MetadataUtils metadataUtils = new MetadataUtils(serviceUrl);
-		String codingScheme = "NCI_Thesaurus";
-		//String version = metadataUtils.getLatestVersion(codingScheme);
-		System.out.println(codingScheme);
-		//System.out.println(version);
-		String named_graph = args[1]; //test.getNamedGraph(codingScheme);
-		System.out.println(named_graph);
-		ParserUtils parser = new ParserUtils();
-
-		String username = args[2]; //ConfigurationController.username;
-		String password = args[3]; //ConfigurationController.password;
-
-		System.out.println("username: " + username);
-		System.out.println("password: " + password);
-		String inputfile = args[4];
-
-
-    	OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
-/*
-    	Vector v = owlSPARQLUtils.getSupportedProperties(named_graph);
-        Utils.dumpVector("v", v);
-        v = owlSPARQLUtils.getSupportedAssociations(named_graph);
-        Utils.dumpVector("v", v);
-*/
-        String code = "C173229";
-        Vector v = owlSPARQLUtils.get_concepts_in_subset(named_graph, code);
-        Utils.dumpVector(code, v);
-
-	    v = owlSPARQLUtils.getAssociatedConcepts(named_graph, "Has_PCDC_Data_Type");
-	    v = parser.getResponseValues(v);
-	    Utils.dumpVector("v", v);
-
-	    v = owlSPARQLUtils.getAssociatedConcepts(named_graph, "Is_PCDC_AML_Permissible_Value_For");
-	    v = parser.getResponseValues(v);
-	    Utils.dumpVector("v", v);
-
-	    AxiomUtils axiomUtils = new AxiomUtils(serviceUrl, username, password);
-
-	    code = "C15538";
-		String propertyName = "FULL_SYN";
-		List list = axiomUtils.getSynonyms(named_graph, code, propertyName);
-		for (int i=0; i<list.size(); i++) {
-			Synonym syn = (Synonym) list.get(i);
-		    System.out.println(syn.toJson());
-		}
-		propertyName = "DEFINITION";
-		list = axiomUtils.getDefinitions(named_graph, code, propertyName);
-		for (int i=0; i<list.size(); i++) {
-			Definition def = (Definition) list.get(i);
-		    System.out.println(def.toJson());
-		}
-
-
-	    code = "C39510";
-		propertyName = "FULL_SYN";
-		list = axiomUtils.getSynonyms(named_graph, code, propertyName);
-		for (int i=0; i<list.size(); i++) {
-			Synonym syn = (Synonym) list.get(i);
-		    System.out.println(syn.toJson());
-		}
-		propertyName = "DEFINITION";
-		list = axiomUtils.getDefinitions(named_graph, code, propertyName);
-		for (int i=0; i<list.size(); i++) {
-			Definition def = (Definition) list.get(i);
-		    System.out.println(def.toJson());
-		}
-
-		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-	}
-
-
 }
 
-/*
-Has_PCDC_Data_Type|A23
-Is_PCDC_AML_Permissible_Value_For|A24
-
-v:
-	(1) Concept_In_Subset|A8
-	(2) Has_CDRH_Parent|A10
-	(3) Has_CTCAE_5_Parent|A15
-	(4) Has_Data_Element|A12
-	(5) Has_Free_Acid_Or_Base_Form|A6
-	(6) Has_INC_Parent|A16
-	(7) Has_NICHD_Parent|A11
-	(8) Has_PCDC_Data_Type|A23
-	(9) Has_Pharmaceutical_Administration_Method|A19
-	(10) Has_Pharmaceutical_Basic_Dose_Form|A18
-	(11) Has_Pharmaceutical_Intended_Site|A20
-	(12) Has_Pharmaceutical_Release_Characteristics|A21
-	(13) Has_Pharmaceutical_State_Of_Matter|A17
-	(14) Has_Pharmaceutical_Transformation|A22
-	(15) Has_Salt_Form|A5
-	(16) Has_Target|A7
-	(17) Is_PCDC_AML_Permissible_Value_For|A24
-	(18) Is_Related_To_Endogenous_Product|A9
-	(19) Neoplasm_Has_Special_Category|A14
-	(20) Qualifier_Applies_To|A4
-	(21) Related_To_Genetic_Biomarker|A13
-	(22) Role_Has_Domain|A1
-	(23) Role_Has_Parent|A3
-	(24) Role_Has_Range|A2
-*/
