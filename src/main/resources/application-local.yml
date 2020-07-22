@@ -50,8 +50,6 @@ nci:
   evs:
     application:
       contextPath: /api/v1
-      generatedFilePath: ${user.home}/apps/evsrestapi/data/
-      forceFileGeneration: false
       metricsEnabled:   ${METRICS_ENABLED:false}
     bulkload:
       conceptsDir: ${NCI_EVS_BULK_LOAD_CONCEPTS_DIR:/tmp/}
@@ -66,15 +64,9 @@ nci:
       password: admin
       readTimeout: 30000
       connectTimeout: 30000
-      populateCacheCron: 0 0 1 * * *
-      forcePopulateCache: N
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
         port: ${ES_PORT:9300}
         clusterName: ${ES_CLUSTER_NAME:docker-cluster}
 
-swagger:
-   documentation:
-       hostURL:  http://localhost:8080
-       searchAPIOperation: Searches for the term or phrase using the Elastic Search mechanism

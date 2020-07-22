@@ -35,6 +35,8 @@ public class ElasticConfiguration {
     }
     
     Settings settings = Settings.builder()
+        .put("http.enabled","true")
+        .put("client.transport.sniff", "false")
         .put("cluster.name", env.getProperty("nci.evs.elasticsearch.server.clusterName")).build();
     TransportClient client = new PreBuiltTransportClient(settings);
     client.addTransportAddress(

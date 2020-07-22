@@ -18,21 +18,15 @@ public class StardogProperties {
   /** The connect timeout. */
   private long connectTimeout;
 
-  /** The populate cache cron. */
-  private String populateCacheCron;
-
-  /** The force populate cache. */
-  private String forcePopulateCache;
-
-  /** The wait populate cache. */
-  private String waitPopulateCache;
-
-  /** The host **/
+  /** The host *. */
   private String host;
-  
-  /** The port **/
+
+  /** The port *. */
   private String port;
-  
+
+  /** The db. */
+  private String db;
+
   /** The query url. */
   private String queryUrl;
 
@@ -109,62 +103,8 @@ public class StardogProperties {
   }
 
   /**
-   * Returns the populate cache cron.
+   * Returns the host.
    *
-   * @return the populate cache cron
-   */
-  public String getPopulateCacheCron() {
-    return populateCacheCron;
-  }
-
-  /**
-   * Sets the populate cache cron.
-   *
-   * @param populateCacheCron the populate cache cron
-   */
-  public void setPopulateCacheCron(String populateCacheCron) {
-    this.populateCacheCron = populateCacheCron;
-  }
-
-  /**
-   * Returns the force populate cache.
-   *
-   * @return the force populate cache
-   */
-  public String getForcePopulateCache() {
-    return forcePopulateCache;
-  }
-
-  /**
-   * Sets the force populate cache.
-   *
-   * @param forcePopulateCache the force populate cache
-   */
-  public void setForcePopulateCache(String forcePopulateCache) {
-    this.forcePopulateCache = forcePopulateCache;
-  }
-
-  /**
-   * Returns the wait populate cache.
-   *
-   * @return the wait populate cache
-   */
-  public String getWaitPopulateCache() {
-    return waitPopulateCache;
-  }
-
-  /**
-   * Sets the wait populate cache.
-   *
-   * @param waitPopulateCache the wait populate cache
-   */
-  public void setWaitPopulateCache(String waitPopulateCache) {
-    this.waitPopulateCache = waitPopulateCache;
-  }
-
-  /**
-   * Returns the host
-   * 
    * @return the host
    */
   public String getHost() {
@@ -172,8 +112,8 @@ public class StardogProperties {
   }
 
   /**
-   * Sets the host
-   * 
+   * Sets the host.
+   *
    * @param host the host
    */
   public void setHost(String host) {
@@ -181,8 +121,8 @@ public class StardogProperties {
   }
 
   /**
-   * Returns the port
-   * 
+   * Returns the port.
+   *
    * @return the port
    */
   public String getPort() {
@@ -190,14 +130,32 @@ public class StardogProperties {
   }
 
   /**
-   * Set the port
-   * 
+   * Set the port.
+   *
    * @param port the port
    */
   public void setPort(String port) {
     this.port = port;
   }
-  
+
+  /**
+   * Returns the db.
+   *
+   * @return the db
+   */
+  public String getDb() {
+    return db;
+  }
+
+  /**
+   * Sets the db.
+   *
+   * @param db the db
+   */
+  public void setDb(String db) {
+    this.db = db;
+  }
+
   /**
    * Returns the query url.
    *
