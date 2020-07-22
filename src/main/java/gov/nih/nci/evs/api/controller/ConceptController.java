@@ -475,20 +475,24 @@ public class ConceptController extends BaseController {
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "maxLevel",
-          value = "Maximum level of ancestors to include, if applicable", required = false,
+      @ApiImplicitParam(name = "fromRecord",
+          value = "Record number to start the paging from", required = false,
+          dataType = "string", paramType = "query"),
+      @ApiImplicitParam(name = "pageSize",
+          value = "size of page to return from API", required = false,
           dataType = "string", paramType = "query")
   })
   public @ResponseBody List<Concept> getDescendants(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
-    @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
+    @RequestParam("fromRecord") final Optional<Integer> fromRecord,
+    @RequestParam("pageSize") final Optional<Integer> pageSize) throws Exception {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
       final List<HierarchyNode> list =
-          elasticQueryService.getChildNodes(code, maxLevel.orElse(0), term);
+          elasticQueryService.getDescendantNodes(code, fromRecord.orElse(0), pageSize.orElse(10), term);
 
       if (list == null || list.isEmpty()) {
         if (!elasticQueryService.checkConceptExists(code, term)) {
