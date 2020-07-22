@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -462,15 +463,16 @@ public class ConceptControllerTests {
       // n/a
     });
     log.info("  list = " + list.size());
+    Predicate<Concept> byLevel = concept -> concept.getLevel() > 0;
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
-    // nothing should have children
-    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isEqualTo(0);
-    // nothing should be a leaf node
-    assertThat(list.stream().filter(c -> c.getLeaf() != null && c.getLeaf()).count()).isEqualTo(0);
+    // preserve level
+    assertThat(list.stream()
+    	      .filter(byLevel)
+    	      .collect(Collectors.toList()).size() > 0);
 
-    // Test maxLevel
-    url = baseUrl + "/ncit/C7058/descendants?maxLevel=2";
+    // Test fromRecord and pageSize
+    url = baseUrl + "/ncit/C7058/descendants?fromRecord=2&pageSize=5";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -481,28 +483,50 @@ public class ConceptControllerTests {
     });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
-    assertThat(list.size()).isGreaterThan(5);
-    // something should have children
-    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
-    // something should have grand children
+    // check pageSize
+    assertThat(list.size() == 5);
+    // preserve level
     assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0
-            && c.getChildren().stream().filter(c2 -> c2.getChildren().size() > 0).count() > 0)
-        .count()).isGreaterThan(0);
-    // grand children should NOT have children
+  	      	  .filter(byLevel)
+  	      	  .collect(Collectors.toList())).isNotEmpty();
+    
+    // Test fromRecord and pageSize with larger values
+    url = baseUrl + "/ncit/C7057/descendants?fromRecord=200&pageSize=500";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    // check pageSize
+    assertThat(list.size() == 500);
+    // preserve level
     assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
-            .filter(c2 -> c2.getChildren().size() > 0
-                && c2.getChildren().stream().filter(c3 -> c3.getChildren().size() > 0).count() > 0)
-            .count() > 0)
-        .count()).isEqualTo(0);
-    // Some grand children should be leaf nodes
+  	      	  .filter(byLevel)
+  	      	  .collect(Collectors.toList())).isNotEmpty();
+    
+    // Test pageSize with BIG value
+    url = baseUrl + "/ncit/C7057/descendants?pageSize=10000";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    // check pageSize
+    assertThat(list.size() == 10000);
+    // preserve level
     assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
-            .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren().stream()
-                .filter(c3 -> c3.getLeaf() != null && c3.getLeaf()).count() > 0)
-            .count() > 0)
-        .count()).isGreaterThan(0);
+  	      	  .filter(byLevel)
+  	      	  .collect(Collectors.toList())).isNotEmpty();
 
     // Test case without descendants
     url = baseUrl + "/ncit/C2291/descendants";
@@ -514,6 +538,18 @@ public class ConceptControllerTests {
       // n/a
     });
     assertThat(list).isEmpty();
+    
+    // Test case with descendants < pageSize but non-zero
+    url = baseUrl + "/ncit/C2323/descendants?pageSize=10";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size() < 10);
   }
 
   /**
