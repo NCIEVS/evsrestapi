@@ -664,8 +664,13 @@ public class ConceptControllerTests {
     assertThat(expandedCheck.getExpanded()).isTrue();
     // something should have children
     assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
+    // none should have "level" set
+    assertThat(list.stream().filter(c -> c.getLevel() != null).count()).isEqualTo(0);
+    // children should not have "level" set
+    assertThat(list.stream().flatMap(c -> c.getChildren().stream())
+        .filter(c -> c.getLevel() != null).count()).isEqualTo(0);
     // there should be a leaf node in the hierarchy
-     assertThat(hasLeafNode(list)).isTrue();
+    assertThat(hasLeafNode(list)).isTrue();
     // something should have grand children
     assertThat(list.stream()
         .filter(c -> c.getChildren().size() > 0
@@ -689,6 +694,13 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+    // none should have "level" set
+    assertThat(list.stream().filter(c -> c.getLevel() != null).count()).isEqualTo(0);
 
     // Test case with top level term
     url = baseUrl + "/ncit/C12913/subtree";

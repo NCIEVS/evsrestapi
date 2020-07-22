@@ -351,6 +351,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     List<HierarchyNode> rootNodes = getRootNodes(terminology);
+    
     Paths paths = getPathToRoot(code, terminology);
 
     // root hierarchy node map for quick look up
@@ -360,8 +361,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     // concepts map for all concepts in the paths
     Map<String, Concept> conceptMap = getConceptsInPaths(code, paths, terminology);
 
-    // known hierarchy nodes map
-    Map<String, HierarchyNode> knownNodeMap = new HashMap<>();
+    // // known hierarchy nodes map
+    // Map<String, HierarchyNode> knownNodeMap = new HashMap<>();
 
     for (Path path : paths.getPaths()) {
       List<ConceptNode> cNodes = path.getConcepts();
@@ -374,30 +375,35 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       for (int j = cNodes.size() - 2; j >= 0; j--) {
         ConceptNode cNode = cNodes.get(j);
         Concept c = conceptMap.get(cNode.getCode());
-        HierarchyNode current = getHierarchyNode(c, knownNodeMap);
-        if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(current.getCode()))) {
-          previous.getChildren().add(current);
+        if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(c.getCode()))) {
+          List<HierarchyNode> children = getChildNodes(previous.getCode(), terminology);
+          for (HierarchyNode child : children) {
+            child.setLevel(null);
+            previous.getChildren().add(child);
+          }
           previous.setExpanded(true);
         }
-        previous = current;
+        previous = previous.getChildren().stream().filter(n -> n.getCode().equals(c.getCode()))
+            .findFirst().orElse(null);
       }
     }
 
-    // set children for the concept
-    Concept concept = conceptMap.get(code);
-    HierarchyNode hNode = knownNodeMap.get(code);
-    if (hNode != null) {
-      hNode.setHighlight(true);
-      hNode.setLeaf(concept.getLeaf());
-      List<Concept> children = concept.getChildren();
-      for (Concept child : children) {
-        // leaf property is not set as part of children; hence using concept
-        // from concept map for leaf property
-        hNode.getChildren().add(new HierarchyNode(child.getCode(), child.getName(),
-            conceptMap.get(child.getCode()).getLeaf()));
-        hNode.setExpanded(true);
-      }
-    }
+    // // set children for the concept
+    // Concept concept = conceptMap.get(code);
+    // HierarchyNode hNode = knownNodeMap.get(code);
+    // if (hNode != null) {
+    // hNode.setHighlight(true);
+    // hNode.setLeaf(concept.getLeaf());
+    // List<Concept> children = concept.getChildren();
+    // for (Concept child : children) {
+    // // leaf property is not set as part of children; hence using concept
+    // // from concept map for leaf property
+    // hNode.getChildren().add(new HierarchyNode(child.getCode(),
+    // child.getName(),
+    // conceptMap.get(child.getCode()).getLeaf()));
+    // hNode.setExpanded(true);
+    // }
+    // }
 
     return rootNodes;
   }
