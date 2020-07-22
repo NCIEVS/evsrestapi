@@ -73,10 +73,19 @@ import org.json.*;
 public class AxiomUtils {
 	String serviceUrl = null;
     OWLSPARQLUtils owlSPARQLUtils = null;
+    String username = null;
+    String password = null;
 
     public AxiomUtils(String serviceUrl) {
         this.serviceUrl = serviceUrl;
         this.owlSPARQLUtils = new OWLSPARQLUtils(this.serviceUrl, null, null);
+    }
+
+    public AxiomUtils(String serviceUrl, String username, String password) {
+        this.serviceUrl = serviceUrl;
+        this.username = username;
+        this.password = password;
+        this.owlSPARQLUtils = new OWLSPARQLUtils(this.serviceUrl, username, password);
     }
 
     public Vector getAxioms(String named_graph, String code, String propertyName) {

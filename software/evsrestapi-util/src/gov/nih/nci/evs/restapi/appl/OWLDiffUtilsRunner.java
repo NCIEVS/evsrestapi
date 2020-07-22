@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.appl;
-
 import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
@@ -88,6 +87,7 @@ public class OWLDiffUtilsRunner {
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
+		/*
 		String version1 = args[0];
 		String owlfile1 = FTPUtils.downloadNCItInferredOWL(version1);
 		System.out.println("owlfile1: " + owlfile1);
@@ -95,15 +95,21 @@ public class OWLDiffUtilsRunner {
 		String version2 = args[1];
 		String owlfile2 = FTPUtils.downloadNCItInferredOWL(version2);
 		System.out.println("owlfile2: " + owlfile2);
+		*/
+		String owlfile1 = args[0];
+		String owlfile2 = args[1];
+
+		System.out.println(owlfile1);
+		System.out.println(owlfile2);
 
 		String diff_file = OWLDiffUtils.run(owlfile1, owlfile2);
 		System.out.println("Total diff run time (ms): " + (System.currentTimeMillis() - ms));
-		ms = System.currentTimeMillis();
+
 		HistoryUtils hist = new HistoryUtils(owlfile2, diff_file);
 		hist.run();
 
         clear(owlfile1, owlfile2);
-		System.out.println("Total edit history run time (ms): " + (System.currentTimeMillis() - ms));
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }
 
