@@ -467,9 +467,7 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // preserve level
-    assertThat(list.stream()
-    	      .filter(byLevel)
-    	      .collect(Collectors.toList()).size() > 0);
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size() > 0);
 
     // Test fromRecord and pageSize
     url = baseUrl + "/ncit/C7058/descendants?fromRecord=2&pageSize=5";
@@ -524,9 +522,7 @@ public class ConceptControllerTests {
     // check pageSize
     assertThat(list.size() == 10000);
     // preserve level
-    assertThat(list.stream()
-  	      	  .filter(byLevel)
-  	      	  .collect(Collectors.toList())).isNotEmpty();
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
 
     // Test case without descendants
     url = baseUrl + "/ncit/C2291/descendants";
