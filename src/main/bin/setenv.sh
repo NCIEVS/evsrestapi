@@ -18,7 +18,5 @@ export STARDOG_READ_TIMEOUT="60"
 export STARDOG_CONNECT_TIMEOUT="60"
 
 export ES_HOST="EDIT_THIS, e.g. without https://"
-export ES_PORT="EDIT_THIS, e.g. 9300"
-# curl -x GET on https://$ES_HOST/
-export ES_CLUSTER_NAME
-
+export ES_PORT="EDIT_THIS, e.g. 443"
+export ES_SCHEME="EDIT_THIS, e.g. https"
