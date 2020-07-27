@@ -73,6 +73,15 @@ public interface ElasticQueryService {
    * @return the list of child concepts
    */
   List<Concept> getSubclasses(String code, Terminology terminology);
+
+  /**
+   * Returns descendant concepts
+   * 
+   * @param code the code of the parent concept
+   * @param terminology the terminology
+   * @return the list of descendant concepts
+   */
+  List<Concept> getDescendants(String code, Terminology terminology);
   
   /**
    * Returns parent concepts

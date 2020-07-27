@@ -161,7 +161,8 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
+      Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
+      
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -491,10 +492,18 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<HierarchyNode> list =
-          elasticQueryService.getDescendantNodes(code, fromRecord.orElse(0), pageSize.orElse(10), term);
+      final List<Concept> list = new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+      List<Concept> sublist = new ArrayList<Concept>();
+      if(list.size() == 0) // empty list
+        sublist = list;
+      else if(list.size() > fromRecord.orElse(0) + pageSize.orElse(10)) // everything is normal
+        sublist = list.subList(fromRecord.orElse(0), pageSize.orElse(10));
+      else if(fromRecord.orElse(0) > list.size()) // from record too large
+        sublist = list.subList(0, pageSize.orElse(10));
+      else // page size goes past end of descendants
+        sublist = list.subList(fromRecord.orElse(0), list.size());
 
-      if (list == null || list.isEmpty()) {
+      if (sublist == null || sublist.isEmpty()) {
         if (!elasticQueryService.checkConceptExists(code, term)) {
           throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
         } else {
@@ -502,7 +511,7 @@ public class ConceptController extends BaseController {
         }
       }
 
-      return ConceptUtils.convertConceptsFromHierarchy(list);
+      return sublist;
     } catch (Exception e) {
       handleException(e);
       return null;

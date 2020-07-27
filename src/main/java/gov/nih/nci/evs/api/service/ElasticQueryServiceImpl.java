@@ -154,6 +154,23 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    *
    * @param code the code
    * @param terminology the terminology
+   * @return the descendants
+   */
+  @Override
+  public List<Concept> getDescendants(String code, Terminology terminology) {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("descendants,children"));
+    if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getDescendants())) {
+      return Collections.emptyList();
+    }
+
+    return concept.get().getDescendants();
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param code the code
+   * @param terminology the terminology
    * @return the superclasses
    */
   @Override

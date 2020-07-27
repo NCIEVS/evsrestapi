@@ -26,6 +26,9 @@ public abstract class BaseResultMapper {
     if (!ip.isChildren()) {
       sourceMap.put("children", null);
     }
+    if (!ip.isDescendants()) {
+      sourceMap.put("descendants", null);
+    }
     if (!ip.isParents()) {
       sourceMap.put("parents", null);
     }

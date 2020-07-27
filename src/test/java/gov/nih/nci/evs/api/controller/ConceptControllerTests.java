@@ -98,6 +98,34 @@ public class ConceptControllerTests {
     assertThat(concept.getTerminology()).isEqualTo("ncit");
 
   }
+  
+  /**
+   * Test get full concept.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptFull() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test with "by code"
+    url = baseUrl + "/ncit/C3224?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C3224");
+    assertThat(concept.getName()).isEqualTo("Melanoma");
+    assertThat(concept.getTerminology()).isEqualTo("ncit");
+    assertThat(concept.getDescendants()).isNotNull();
+
+  }
 
   /**
    * Test bad get concept.
