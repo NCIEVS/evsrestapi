@@ -241,6 +241,67 @@ public class AxiomUtils {
 		return getDefinitions(v);
 	}
 
+
+	public List getMapsTos(String named_graph, String code, String propertyName) {
+		Vector v = getAxioms(named_graph, code, propertyName);
+		return getMapsTos(v);
+	}
+
+    public List getMapsTos(Vector axiom_data) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String axiom_id = (String) u.elementAt(0);
+			String label = (String) u.elementAt(1);
+			String code = (String) u.elementAt(2);
+			String propertyName = (String) u.elementAt(3);
+
+/*
+	(1) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205001|Ciliary Body|C12345|Maps_To|Ciliary body|Relationship_to_Target|Has Synonym
+*/
+
+			//String propertyCode = (String) u.elementAt(4);
+			String targetName = (String) u.elementAt(4);
+			String qualifier_name = (String) u.elementAt(5);
+			//String qualifier_code = (String) u.elementAt(7);
+			String qualifier_value = (String) u.elementAt(6);
+            MapToEntry entry = (MapToEntry) hmap.get(axiom_id);
+            if (entry == null) {
+				entry = new MapToEntry(
+							code,
+							label,
+							null,
+							null,
+							targetName,
+							null,
+							null,
+							null);
+			}
+
+			if (qualifier_name.compareTo("Relationship_to_Target") == 0) {
+				entry.setRelationshipToTarget(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Code") == 0) {
+				entry.setTargetCode(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Term_Type") == 0) {
+				entry.setTargetTermType(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Terminology") == 0) {
+				entry.setTargetTerminology(qualifier_value);
+			} else if (qualifier_name.compareTo("Target_Terminology_Version") == 0) {
+				entry.setTargetTerminologyVersion(qualifier_value);
+			}
+			hmap.put(axiom_id, entry);
+		}
+		Vector w2 = new Vector();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String axiom_id = (String) it.next();
+			MapToEntry entry = (MapToEntry) hmap.get(axiom_id);
+			w2.add(entry);
+		}
+		return w2;
+	}
+
     public static void main(String[] args) {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
