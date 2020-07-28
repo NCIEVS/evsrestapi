@@ -145,33 +145,6 @@ public interface ElasticQueryService {
    * @return the list of child codes
    */
   List<String> getAllChildNodes(String code, Terminology terminology);
-  
-/**
-   * Returns the child nodes
-   * 
-   * @param parent the parent code
-   * @param fromRecord the record to start from
-   * @param pageSize the page size to return
-   * @param terminology the terminology
-   * @return the descendant nodes
-   * @throws JsonParseException
-   * @throws JsonMappingException
-   * @throws IOException
-   */
-  List<HierarchyNode> getDescendantNodes(String parent, int fromRecord, int pageSize, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
-
-   /**
-   * Returns the descendant nodes up to maxSize.
-   *
-   * @param node the node
-   * @param descendantMap the map of descendants
-   * @param maxSize the max size
-   * @param level the level
-   * @param terminology the terminology
-   * @return the descendant nodes
-   */
-  public void getDescendantNodesLevel(HierarchyNode node, Map<String, HierarchyNode> descendantMap, int maxSize, int level,
-  Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the path in hierarchy.

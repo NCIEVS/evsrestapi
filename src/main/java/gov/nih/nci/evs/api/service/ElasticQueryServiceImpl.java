@@ -158,7 +158,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<Concept> getDescendants(String code, Terminology terminology) {
-    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("descendants,children"));
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("descendants"));
     if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getDescendants())) {
       return Collections.emptyList();
     }
@@ -352,91 +352,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
         childCodes.add(c.getCode());
         getAllChildNodesRecursive(c.getCode(), childCodes, terminology);
       }
-    }
-  }
-
-  /**
-   * see superclass *.
-   *
-   * @param parent the parent
-   * @param fromRecord the record to start from
-   * @param pageSize the page size to return
-   * @param terminology the terminology
-   * @return the child nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  public List<HierarchyNode> getDescendantNodes(String parent, int fromRecord, int pageSize, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    Map<String, HierarchyNode> descendantMap = new LinkedHashMap<>();
-    List<Concept> children = getSubclasses(parent, terminology);
-    if (children == null) {
-      return nodes;
-    }
-    for (Concept c : children) {
-      // first check for length
-      if(descendantMap.size() >= fromRecord + pageSize)
-    	  break;
-      HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), false);
-      // top level always zero
-      node.setLevel(0);
-      // is concept already in the map
-      if(descendantMap.get(c.getName()) == null)
-        descendantMap.put(c.getName(), node);
-      // check again for size
-      if(descendantMap.size() < fromRecord + pageSize)
-        getDescendantNodesLevel(node, descendantMap, fromRecord+pageSize, 0, terminology);
-      else
-        break;
-    }
-    int i = 0;
-    for(final String key : descendantMap.keySet()){
-      if(i >= fromRecord && i < (fromRecord + pageSize))
-        nodes.add(descendantMap.get(key));
-      i++;
-    }
-    return nodes;
-  }
-
-  /**
-   * Returns the descendant nodes up to maxSize.
-   *
-   * @param node the node
-   * @param descendantMap the map of descendants
-   * @param maxSize the max size
-   * @param level the level
-   * @param terminology the terminology
-   * @return the descendant nodes
-   */
-  public void getDescendantNodesLevel(HierarchyNode node, Map<String, HierarchyNode> descendantMap, int maxSize, int level,
-    Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
-    List<Concept> children = getSubclasses(node.getCode(), terminology);
-    node.setLevel(level);
-
-    if (children == null || children.size() == 0) {
-      node.setLeaf(true);
-      return;
-    } else {
-      node.setLeaf(false);
-    }
-
-    level = level + 1;
-    for (Concept c : children) {
-      // check for size
-      if(descendantMap.size() < maxSize){
-        HierarchyNode newNode = new HierarchyNode(c.getCode(), c.getName(), false);
-        newNode.setLevel(level);
-        // check if concept in map
-        if(descendantMap.get(c.getName()) == null)
-          descendantMap.put(c.getName(), newNode);
-        // go down to next level
-        getDescendantNodesLevel(newNode, descendantMap, maxSize, level, terminology);
-      }
-      else
-        break;
     }
   }
 

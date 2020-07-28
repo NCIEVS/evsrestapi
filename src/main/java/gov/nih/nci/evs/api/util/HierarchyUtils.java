@@ -2,10 +2,13 @@
 package gov.nih.nci.evs.api.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -14,6 +17,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
 
@@ -200,6 +204,58 @@ public class HierarchyUtils {
     return child2parent.get(code);
   }
 
+
+  /**
+   * Returns the descendant nodes.
+   *
+   * @param parent the parent
+   * @return the descendant nodes
+   */
+  public List<Concept> getDescendants(String code) {
+	ArrayList<Concept> descendants = new ArrayList<Concept>();
+  Map<String, Concept> descendantMap = new LinkedHashMap<>();
+  
+  getDescendantMapLevel(code, descendantMap, 1);
+    
+  descendants = new ArrayList<Concept>(descendantMap.values());
+  Collections.sort(descendants, new Comparator<Concept>() {
+	@Override
+	public int compare(Concept c1, Concept c2) {
+	    if (c1.getLevel() == c2.getLevel()) { return c1.getName().compareTo(c2.getName()); }
+	    else { return c1.getLevel() - c2.getLevel(); }
+	}});
+  return descendants;
+  }
+  
+  /**
+   * Descendant nodes helper.
+   *
+   * @param concept the concept
+   * @param descendantMap the descendant map
+   * @param level the current level
+   * @param term the terminology
+   * @return void
+   */
+  public void getDescendantMapLevel(String code, Map<String, Concept> descendantMap, int level) {
+	List<String> children = parent2child.get(code);
+	if (children == null || children.size() == 0) {
+		return;
+    }
+	for (String child : children) {
+      if(descendantMap.get(child) == null) {
+    	  Concept conc = new Concept(child);
+    	  if(parent2child.containsKey(child))
+    		  conc.setLeaf(false);
+    	  else
+    		  conc.setLeaf(true);
+          conc.setLevel(level);
+          conc.setName(code2label.get(child));
+    	  descendantMap.put(child, conc);
+      }
+      getDescendantMapLevel(child, descendantMap, level+1);
+    }
+  }
+  
   /**
    * Returns the label.
    *

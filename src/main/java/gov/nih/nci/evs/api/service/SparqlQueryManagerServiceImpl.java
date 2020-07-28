@@ -90,6 +90,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Autowired
   @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl")
   ElasticSearchService elasticSearchService;
+  
+  /** The elastic search service. */
+  @Autowired
+  ElasticQueryService elasticQueryService;
 
   /** The rest utils. */
   private RESTUtils restUtils = null;
@@ -553,7 +557,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Concept> getConcepts(List<String> conceptCodes, Terminology terminology)
+  public List<Concept> getConcepts(List<String> conceptCodes, Terminology terminology, HierarchyUtils hierarchy)
     throws IOException {
     if (CollectionUtils.isEmpty(conceptCodes))
       return Collections.<Concept> emptyList();
@@ -645,10 +649,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       concept.setDefinitions(EVSUtils.getDefinitions(axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
-      concept.setDescendants(concept.getChildren());
-      for (Concept descendant : concept.getDescendants()) {
-        descendant.setLevel(0);
-      }
+      concept.setDescendants(hierarchy.getDescendants(conceptCode));
       concept.setParents(superConceptMap.get(conceptCode));
       concept.setAssociations(associationMap.get(conceptCode));
       concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
