@@ -296,7 +296,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     ExecutorService executor = Executors.newFixedThreadPool(10);
 
     while (start < total) {
-      if (total - start <= INDEX_BATCH_SIZE)
+      if (total - start <= DOWNLOAD_BATCH_SIZE)
         end = total.intValue();
 
       logger.info("  Processing {} to {}", start + 1, end);
