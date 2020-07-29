@@ -158,13 +158,13 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     int end = DOWNLOAD_BATCH_SIZE;
 
     int total = allConcepts.size();
-    logger.info("   Total concepts to download: {}", total);
+    logger.info("  Total concepts to download: {}", total);
 
     while (start < total) {
       if (total - start <= DOWNLOAD_BATCH_SIZE)
         end = total;
 
-      logger.info("   Processing {} to {}", start + 1, end);
+      logger.info("  Processing {} to {}", start + 1, end);
 
       List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
           .collect(Collectors.toList());
@@ -217,7 +217,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       return;
     }
 
-    logger.info("   Total concepts to load: {}", jsonFiles.length);
+    logger.info("  Total concepts to load: {}", jsonFiles.length);
 
     Double total = (double) jsonFiles.length;
 
@@ -226,7 +226,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
 
-    logger.debug("   Task size: {}", taskSize.intValue());
+    logger.debug("  Task size: {}", taskSize.intValue());
 
     CountDownLatch latch = new CountDownLatch(taskSize.intValue());
     ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -235,7 +235,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       if (total - start <= INDEX_BATCH_SIZE)
         end = total.intValue();
 
-      logger.debug("   Processing {} to {}", start, end);
+      logger.info("  Processing {} to {}", start, end);
 
       File[] files = Arrays.copyOfRange(jsonFiles, start, end);
       List<Concept> concepts = new ArrayList<>(files.length);
@@ -278,7 +278,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       return;
     }
 
-    logger.info("   Total concepts to load: {}", allConcepts.size());
+    logger.info("  Total concepts to load: {}", allConcepts.size());
 
     Double total = (double) allConcepts.size();
 
@@ -287,7 +287,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
 
-    logger.debug("   Task size: {}", taskSize.intValue());
+    logger.debug("  Task size: {}", taskSize.intValue());
 
     CountDownLatch latch = new CountDownLatch(taskSize.intValue());
     ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -296,7 +296,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       if (total - start <= INDEX_BATCH_SIZE)
         end = total.intValue();
 
-      logger.debug("   Processing {} to {}", start, end);
+      logger.info("  Processing {} to {}", start, end);
       List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
           .collect(Collectors.toList());
       List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology);
@@ -310,11 +310,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     latch.await();
 
-    logger.debug("  shutdown");
+    logger.info("  shutdown");
     executor.shutdown();
-    logger.debug("  await termination");
+    logger.info("  await termination");
     executor.awaitTermination(30, TimeUnit.SECONDS);
-    logger.debug("Done loading concepts!");
+    logger.info("Done loading concepts!");
   }
 
   /* see superclass */
@@ -332,9 +332,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       hierarchyObject.setHierarchy(hierarchy);
       operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
           ElasticObject.class);
-      logger.info("   Hierarchy loaded");
+      logger.info("  Hierarchy loaded");
     } catch (IOException e) {
-      logger.error("   Error loading Elastic Object: Hierarchy");
+      logger.error("  Error loading Elastic Object: Hierarchy");
     }
 
     try {
@@ -344,9 +344,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       ssObject.setConceptMinimals(synonymSources);
       operationsService.index(ssObject, indexName, ElasticOperationsService.OBJECT_TYPE,
           ElasticObject.class);
-      logger.info("   Synonym Sources loaded");
+      logger.info("  Synonym Sources loaded");
     } catch (IOException e) {
-      logger.error("   Error loading Elastic Object: Synonym Sources");
+      logger.error("  Error loading Elastic Object: Synonym Sources");
     }
 
     try {
@@ -356,9 +356,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       conceptsObject.setConcepts(qualifiers);
       operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
           ElasticObject.class);
-      logger.info("   Qualifiers loaded");
+      logger.info("  Qualifiers loaded");
     } catch (IOException e) {
-      logger.error("   Error loading Elastic Object: Qualifiers");
+      logger.error("  Error loading Elastic Object: Qualifiers");
     }
 
     try {
@@ -368,9 +368,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       propertiesObject.setConcepts(properties);
       operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
           ElasticObject.class);
-      logger.info("   Properties loaded");
+      logger.info("  Properties loaded");
     } catch (IOException e) {
-      logger.error("   Error loading Elastic Object: Properties");
+      logger.error("  Error loading Elastic Object: Properties");
     }
 
     try {
@@ -380,9 +380,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       associationsObject.setConcepts(associations);
       operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
           ElasticObject.class);
-      logger.info("   Associations loaded");
+      logger.info("  Associations loaded");
     } catch (IOException e) {
-      logger.error("   Error loading Elastic Object: Associations");
+      logger.error("  Error loading Elastic Object: Associations");
     }
 
     try {
@@ -392,9 +392,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       rolesObject.setConcepts(roles);
       operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
           ElasticObject.class);
-      logger.info("   Roles loaded");
+      logger.info("  Roles loaded");
     } catch (IOException e) {
-      logger.error("   Error loading Elastic Object: Roles");
+      logger.error("  Error loading Elastic Object: Roles");
     }
 
     logger.info("Done loading Elastic Objects!");
@@ -458,10 +458,10 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE,
             Concept.class);
         int progress = (int) Math.floor((1.0 - 1.0 * latch.getCount() / taskSize) * 100);
-        taskLogger.info("   Loaded concepts: {} to {} ({}% complete)", startIndex, endIndex,
+        taskLogger.info("  Loaded concepts: {} to {} ({}% complete)", startIndex, endIndex,
             progress);
-      } catch (IOException e) {
-        taskLogger.error("   Error loading concepts: {} to {}", startIndex, endIndex);
+      } catch (Throwable e) {
+        taskLogger.error("  Error loading concepts: {} to {}", startIndex, endIndex);
         taskLogger.error(e.getMessage(), e);
       } finally {
         latch.countDown();
@@ -495,11 +495,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
 
     try {
-      ElasticLoadServiceImpl loadService = app.getBean(ElasticLoadServiceImpl.class);// get
-                                                                                     // the
-                                                                                     // bean
-                                                                                     // by
-                                                                                     // type
+      // get the bean by type
+      ElasticLoadServiceImpl loadService = app.getBean(ElasticLoadServiceImpl.class);
+
       ElasticLoadConfig config = buildConfig(cmd, loadService.CONCEPTS_OUT_DIR);
 
       if (StringUtils.isBlank(config.getTerminology())) {
