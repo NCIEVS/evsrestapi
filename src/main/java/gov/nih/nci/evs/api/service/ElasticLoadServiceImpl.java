@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
@@ -309,8 +310,10 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     latch.await();
 
+    logger.debug("  shutdown");
     executor.shutdown();
-
+    logger.debug("  await termination");
+    executor.awaitTermination(30, TimeUnit.SECONDS);
     logger.debug("Done loading concepts!");
   }
 
