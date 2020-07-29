@@ -111,7 +111,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
-          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
+          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
@@ -131,12 +131,12 @@ public class SearchController extends BaseController {
       // of associations to search. e.g A10,A215. <a
       // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
       // a list of NCI Thesaurus associations.</a>. The associations can be
-      // specified as code or label", required = false, dataType = "string",
+      // specified as code or name", required = false, dataType = "string",
       // paramType = "query", defaultValue = ""),
       // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
       // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
       // target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The
-      // roles can be specified as code or label", required = false, dataType =
+      // roles can be specified as code or name", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
   @RecordMetric
@@ -189,7 +189,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
-          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
+          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
@@ -209,12 +209,12 @@ public class SearchController extends BaseController {
       // of associations to search. e.g A10,A215. <a
       // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
       // a list of NCI Thesaurus associations.</a>. The associations can be
-      // specified as code or label", required = false, dataType = "string",
+      // specified as code or name", required = false, dataType = "string",
       // paramType = "query", defaultValue = ""),
       // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
       // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
       // target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The
-      // roles can be specified as code or label", required = false, dataType =
+      // roles can be specified as code or name", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
   @RecordMetric
