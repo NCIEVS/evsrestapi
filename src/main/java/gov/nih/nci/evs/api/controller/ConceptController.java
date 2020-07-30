@@ -162,7 +162,6 @@ public class ConceptController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
       Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
-      
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -476,12 +475,10 @@ public class ConceptController extends BaseController {
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "fromRecord",
-          value = "Record number to start the paging from", required = false,
-          dataType = "string", paramType = "query"),
-      @ApiImplicitParam(name = "pageSize",
-          value = "size of page to return from API", required = false,
-          dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(
     @PathVariable(value = "terminology") final String terminology,
@@ -492,26 +489,30 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Concept> list = new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
-      List<Concept> sublist = new ArrayList<Concept>();
-      if(list.size() == 0) // empty list
-        sublist = list;
-      else if(list.size() > fromRecord.orElse(0) + pageSize.orElse(10)) // everything is normal
-        sublist = list.subList(fromRecord.orElse(0), pageSize.orElse(10));
-      else if(fromRecord.orElse(0) > list.size()) // from record too large
-        sublist = list.subList(0, pageSize.orElse(10));
-      else // page size goes past end of descendants
-        sublist = list.subList(fromRecord.orElse(0), list.size());
-
-      if (sublist == null || sublist.isEmpty()) {
-        if (!elasticQueryService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      if (!elasticQueryService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return sublist;
+      final List<Concept> list =
+          new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+
+      int fromIndex = fromRecord.orElse(0);
+      // Use a large default page size
+      int toIndex = fromIndex + pageSize.orElse(10000);
+      if (toIndex >= list.size()) {
+        toIndex = list.size();
+      }
+      // If requesting beyond end of the list, just return empty
+      if (fromRecord.orElse(0) > list.size()) {
+        return new ArrayList<>();
+      }
+      // empty list
+      if (list.size() == 0) {
+        return list;
+      }
+
+      return list.subList(fromIndex, toIndex);
+
     } catch (Exception e) {
       handleException(e);
       return null;

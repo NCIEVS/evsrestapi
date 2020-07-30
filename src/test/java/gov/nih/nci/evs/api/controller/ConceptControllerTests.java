@@ -98,7 +98,7 @@ public class ConceptControllerTests {
     assertThat(concept.getTerminology()).isEqualTo("ncit");
 
   }
-  
+
   /**
    * Test get full concept.
    *
@@ -117,7 +117,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    
+
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C3224");
@@ -512,10 +512,8 @@ public class ConceptControllerTests {
     // check pageSize
     assertThat(list.size() == 5);
     // preserve level
-    assertThat(list.stream()
-  	      	  .filter(byLevel)
-  	      	  .collect(Collectors.toList())).isNotEmpty();
-    
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
+
     // Test fromRecord and pageSize with larger values
     url = baseUrl + "/ncit/C7057/descendants?fromRecord=200&pageSize=500";
     log.info("Testing url - " + url);
@@ -531,10 +529,8 @@ public class ConceptControllerTests {
     // check pageSize
     assertThat(list.size() == 500);
     // preserve level
-    assertThat(list.stream()
-  	      	  .filter(byLevel)
-  	      	  .collect(Collectors.toList())).isNotEmpty();
-    
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
+
     // Test pageSize with BIG value
     url = baseUrl + "/ncit/C7057/descendants?pageSize=10000";
     log.info("Testing url - " + url);
@@ -562,7 +558,7 @@ public class ConceptControllerTests {
       // n/a
     });
     assertThat(list).isEmpty();
-    
+
     // Test case with descendants < pageSize but non-zero
     url = baseUrl + "/ncit/C2323/descendants?pageSize=10";
     log.info("Testing url - " + url);
@@ -757,7 +753,8 @@ public class ConceptControllerTests {
     list = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
       // n/a
     });
-    log.info("  list = " + list.size());    assertThat(list).isNotEmpty();
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // none should have "level" set
     assertThat(list.stream().filter(c -> c.getLevel() != null).count()).isEqualTo(0);
