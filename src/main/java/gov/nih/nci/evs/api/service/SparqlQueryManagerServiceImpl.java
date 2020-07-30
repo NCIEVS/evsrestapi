@@ -576,6 +576,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       Concept c = new Concept();
       c.setCode(b.getConceptCode().getValue());
       c.setTerminology(terminology.getTerminology());
+      c.setVersion(terminology.getVersion());
       c.setName(b.getConceptLabel().getValue());
       concepts.add(c);
     }
