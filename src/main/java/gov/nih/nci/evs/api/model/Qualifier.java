@@ -1,6 +1,9 @@
 
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -13,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Qualifier extends BaseModel {
 
   /** The code. */
+  @Field(type = FieldType.Text, store=false)
   private String code;
 
   /** The type. */
