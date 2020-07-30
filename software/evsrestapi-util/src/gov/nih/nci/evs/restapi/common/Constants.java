@@ -78,7 +78,7 @@ public class Constants {
 
 	public static final String EVSRESTAPI_BEAN = "gov.nih.nci.evs.restapi.bean";
 
-    public static String[] COMMON_PROPERTIES = {"code", "label", "Preferred_Name", "Display_Name", "DEFINITION", "ALT_DEFINITION",
+    public static String[] COMMON_PROPERTIES = {"code", "name", "Preferred_Name", "Display_Name", "DEFINITION", "ALT_DEFINITION",
                                                 "FULL_SYN", "Concept_Status", "Semantic_Type"};
 
 	public static String DEFAULT_VERSION_PREDICATE = "owl:versionInfo";

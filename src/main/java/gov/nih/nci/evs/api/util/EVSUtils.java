@@ -109,6 +109,7 @@ public class EVSUtils {
         definition.setDefinition(axiom.getAnnotatedTarget());
         definition.setSource(axiom.getDefSource());
         definition.getQualifiers().addAll(axiom.getQualifiers());
+        definition.setType("DEFINITION");
         results.add(definition);
       }
       // TODO: CONFIG
