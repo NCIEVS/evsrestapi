@@ -51,7 +51,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public void bulkIndex(List<Object> objects, String index, String type, Class clazz)
+  public void bulkIndex(List<Object> objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
     throws IOException {
     if (CollectionUtils.isEmpty(objects))
       return;
@@ -77,7 +77,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public void index(Object object, String index, String type, Class clazz) throws IOException {
+  public void index(Object object, String index, String type, @SuppressWarnings("rawtypes") Class clazz) throws IOException {
     IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object)).withIndexName(index)
         .withType(type).build();
 

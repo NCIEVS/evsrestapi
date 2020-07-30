@@ -12,8 +12,8 @@ public class ElasticServerProperties {
   /** The port *. */
   private String port;
 
-  /** The cluster name *. */
-  private String clusterName;
+  /** The scheme. */
+  private String scheme;
 
   /**
    * Returns the host.
@@ -52,21 +52,21 @@ public class ElasticServerProperties {
   }
 
   /**
-   * Gets the cluster name.
+   * Returns the scheme.
    *
-   * @return the cluster name
+   * @return the scheme
    */
-  public String getClusterName() {
-    return clusterName;
+  public String getScheme() {
+    return scheme;
   }
 
   /**
-   * Sets the cluster name.
+   * Sets the scheme.
    *
-   * @param clusterName the cluster name
+   * @param scheme the scheme
    */
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setScheme(String scheme) {
+    this.scheme = scheme;
   }
 
 }

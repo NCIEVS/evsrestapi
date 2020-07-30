@@ -80,5 +80,5 @@ nci:
       server:
         host: ${ES_HOST:localhost}
         port: ${ES_PORT:9200}
-        clusterName: ${ES_CLUSTER_NAME:docker-cluster}
+        scheme: ${ES_SCHEME:http}
 
