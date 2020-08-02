@@ -43,6 +43,7 @@ import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.IndexMetadata;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
@@ -88,6 +89,10 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The elasticsearch query service **/
+  @Autowired
+  private ElasticQueryService esQueryService;
+  
   /* see superclass */
   @Override
   public void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException {
@@ -102,9 +107,10 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
     }
 
+    logger.info("Getting all concepts");
+    List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
+    
     if (config.isRealTime()) {
-      List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
-
       try {
         // download concepts and upload to es in real time
         logger.info("Loading in real time");
@@ -113,14 +119,14 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         logger.error(e.getMessage(), e);
       }
 
+      //compare count of concepts loaded and index metadata object
+      checkLoadStatusandIndexMetadata(allConcepts.size(), terminology);
+      
       return;
     }
 
     // get all concepts
     if (!config.isSkipDownload()) {
-      logger.info("Getting all concepts");
-      List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
-
       // download files from stardog in batches
       downloadConcepts(allConcepts, terminology, config.getLocation(), hierarchy);
     }
@@ -138,6 +144,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.error(e.getMessage(), e);
     }
 
+    //compare count of concepts loaded and index metadata object
+    checkLoadStatusandIndexMetadata(allConcepts.size(), terminology);
+    
     return;
   }
 
@@ -416,6 +425,26 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     logger.info("Done loading Elastic Objects!");
   }
 
+  private void checkLoadStatusandIndexMetadata(int total, Terminology terminology) throws IOException {
+    Long count = esQueryService.getCount(terminology);
+    logger.info("Concepts count for index {} = {}", terminology.getIndexName(), count);
+    boolean completed = (total == count.intValue());
+    
+    if (!completed) {
+      logger.warn("Indexed only {} concepts out of {}", count.intValue(), total);
+    }
+    
+    IndexMetadata iMeta = new IndexMetadata();
+    iMeta.setIndexName(terminology.getIndexName());
+    iMeta.setTerminologyVersion(terminology.getTerminologyVersion());
+    iMeta.setTotalConcepts(total);
+    iMeta.setCompleted(completed);
+    
+    operationsService.index(iMeta, 
+        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE, 
+        IndexMetadata.class);
+  }
+  
   /**
    * Task to load a batch of concepts to elasticsearch.
    *

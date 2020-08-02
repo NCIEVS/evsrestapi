@@ -184,6 +184,14 @@ public interface ElasticQueryService {
   Paths getPathToParent(String code, String parentCode, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
   
   /**
+   * Get concepts count for the given terminology
+   * 
+   * @param terminology the terminology
+   * @return the concepts count
+   */
+  long getCount(Terminology terminology); 
+  
+  /**
    * Get hiearchy roots for a given terminology.
    *
    * @param terminology the terminology

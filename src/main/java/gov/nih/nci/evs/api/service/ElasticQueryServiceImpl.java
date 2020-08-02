@@ -486,6 +486,21 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
   /**
    * see superclass *.
+   * 
+   * @param terminology the terminology
+   * @return the concepts count
+   */
+  @Override
+  public long getCount(Terminology terminology) {
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withIndices(terminology.getIndexName())
+            .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+
+    return operations.count(query);
+  }
+  
+  /**
+   * see superclass *.
    *
    * @param terminology the terminology
    * @return the hierarchy

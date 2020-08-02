@@ -21,6 +21,12 @@ public interface ElasticOperationsService {
   /** The type in ES for cached objects *. */
   public static final String OBJECT_TYPE = "evs_object";
 
+  /** The index in ES for index metadata **/
+  public static final String METADATA_INDEX = "evs_metadata";
+  
+  /** The type in ES for index metadata **/
+  public static final String METADATA_TYPE = "evs_metadata";
+  
   /**
    * create index using the given index name.
    *
