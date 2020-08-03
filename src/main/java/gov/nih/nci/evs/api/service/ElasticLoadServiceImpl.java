@@ -431,13 +431,12 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     boolean completed = (total == count.intValue());
     
     if (!completed) {
-      logger.warn("Indexed only {} concepts out of {}", count.intValue(), total);
-      logger.info("Tring 5 times with a 1 second delay between attempts");
+      logger.info("Concepts indexing not complete yet, waiting for completion..");
     }
     
     int attempts = 0;
     
-    while(!completed && attempts < 5) {
+    while(!completed && attempts < 15) {
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
@@ -447,6 +446,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       completed = (total == count.intValue());
       attempts++;
     }
+    
+    logger.info("Indexing metadata object with completed flag: {}", completed);
     
     IndexMetadata iMeta = new IndexMetadata();
     iMeta.setIndexName(terminology.getIndexName());
@@ -566,11 +567,10 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         return;
       }
 
-      Terminology term = TerminologyUtils.getTerminology(loadService.sparqlQueryManagerService,
-          config.getTerminology());
-      HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
-      loadService.loadConcepts(config, term, hierarchy);
-      loadService.loadObjects(config, term, hierarchy);
+      TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
+      Terminology term = termUtils.getTerminology(config.getTerminology());
+      loadService.loadConcepts(config, term);
+      loadService.loadObjects(config, term);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {

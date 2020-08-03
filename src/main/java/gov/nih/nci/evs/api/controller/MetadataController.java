@@ -21,7 +21,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -41,14 +41,14 @@ public class MetadataController extends BaseController {
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MetadataController.class);
 
-  /** The sparql query manager service. */
-  @Autowired
-  SparqlQueryManagerService sparqlQueryManagerService;
-
   /** The metadata service. */
   @Autowired
   MetadataService metadataService;
 
+  /* The terminology utils */
+  @Autowired
+  TerminologyUtils termUtils;
+  
   /**
    * Returns the terminologies.
    *
@@ -67,7 +67,7 @@ public class MetadataController extends BaseController {
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws Exception {
     try {
-      return sparqlQueryManagerService.getTerminologies();
+      return termUtils.getAvailableTerminologies();
     } catch (Exception e) {
       handleException(e);
       return null;

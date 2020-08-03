@@ -195,9 +195,10 @@ public interface ElasticQueryService {
   /**
    * Get {@link IndexMetadata} objects
    * 
+   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
    * @return the list of {@link IndexMetadata} objects
    */
-  List<IndexMetadata> getIndexMetadata();
+  List<IndexMetadata> getIndexMetadata(boolean completedOnly);
   
   /**
    * Get hiearchy roots for a given terminology.

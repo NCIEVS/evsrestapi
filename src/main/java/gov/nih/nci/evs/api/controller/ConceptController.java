@@ -58,11 +58,14 @@ public class ConceptController extends BaseController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The elastic query service. */
   /* The elasticsearch query service */
   @Autowired
   ElasticQueryService elasticQueryService;
 
+  /* The terminology utils */
+  @Autowired
+  TerminologyUtils termUtils;
+  
   /**
    * Returns the associations.
    *
@@ -101,8 +104,7 @@ public class ConceptController extends BaseController {
     @RequestParam("include") final Optional<String> include,
     @RequestParam("list") final String list) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
       final String[] codes = list.split(",");
@@ -158,8 +160,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
       Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
@@ -204,8 +205,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
@@ -249,8 +249,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
@@ -296,8 +295,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
@@ -343,8 +341,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
@@ -389,8 +386,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
@@ -435,8 +431,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("children"));
@@ -491,8 +486,7 @@ public class ConceptController extends BaseController {
     @RequestParam("pageSize") final Optional<Integer> pageSize,
     @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -555,8 +549,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
@@ -601,8 +594,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
@@ -652,8 +644,8 @@ public class ConceptController extends BaseController {
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
+      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       final List<Concept> list = elasticQueryService.getRootNodes(term);
       // "leaf" should be set to false for all roots
@@ -707,8 +699,7 @@ public class ConceptController extends BaseController {
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -753,8 +744,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code) throws Exception {
 
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
@@ -796,8 +786,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
@@ -848,8 +837,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -906,8 +894,7 @@ public class ConceptController extends BaseController {
     @PathVariable(value = "ancestorCode") final String ancestorCode,
     @RequestParam("include") final Optional<String> include) throws Exception {
     try {
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
+      final Terminology term = termUtils.getTerminology(terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       if (!elasticQueryService.checkConceptExists(code, term)) {

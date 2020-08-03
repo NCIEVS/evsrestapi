@@ -503,17 +503,22 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /**
    * see superclass *.
    * 
+   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
    * @return the list of {@link IndexMetadata} objects
    */
   @Override
-  public List<IndexMetadata> getIndexMetadata() {
-    NativeSearchQuery query =
+  public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
+    NativeSearchQueryBuilder queryBuilder =
         new NativeSearchQueryBuilder()
             .withIndices(ElasticOperationsService.METADATA_INDEX)
-            .withTypes(ElasticOperationsService.METADATA_TYPE).build();
+            .withTypes(ElasticOperationsService.METADATA_TYPE);
 
+    if (completedOnly) {
+      queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));
+    }
+    
     List<IndexMetadata> iMetas =
-        operations.multiGet(query, IndexMetadata.class);
+        operations.queryForList(queryBuilder.build(), IndexMetadata.class);
     return iMetas;
   }
   

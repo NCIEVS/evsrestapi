@@ -66,8 +66,13 @@ public class SearchController extends BaseController {
   @Autowired
   MetadataService metadataService;
 
+  /* The elasticsearch query service */
   @Autowired
   ElasticQueryService esQueryService;
+  
+  /* The terminology utils */
+  @Autowired
+  TerminologyUtils termUtils;
   
   /**
    * Search within a single terminology.
@@ -265,24 +270,18 @@ public class SearchController extends BaseController {
 
     try {
       final String terminology = searchCriteria.getTerminology().get(0);
-      final Terminology term =
-          TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-//      final IncludeParam ip = searchCriteria.computeIncludeParam();
+      final Terminology term = termUtils.getTerminology(terminology);
 
       searchCriteria.validate(term, metadataService);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
-
-//      final List<Concept> concepts = new ArrayList<>();
       for (final Concept result : results.getConcepts()) {
-//        final Concept concept = esQueryService.getConcept(result.getCode(), term, ip).get();
         ConceptUtils.applyHighlights(result, result.getHighlights());
         // Clear highlights now that they have been applied
         result.setHighlights(null);
-//        concepts.add(concept);
       }
-//      results.setConcepts(concepts);
+
       results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
     } catch (ResponseStatusException rse) {
