@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.model;
+package gov.nih.nci.evs.api.support.es;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;

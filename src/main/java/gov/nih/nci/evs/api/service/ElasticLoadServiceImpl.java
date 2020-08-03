@@ -43,10 +43,10 @@ import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.IndexMetadata;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -432,6 +432,20 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     
     if (!completed) {
       logger.warn("Indexed only {} concepts out of {}", count.intValue(), total);
+      logger.info("Tring 5 times with a 1 second delay between attempts");
+    }
+    
+    int attempts = 0;
+    
+    while(!completed && attempts < 5) {
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        logger.error("Error while checking load status: sleep interrupted - " + e.getMessage());
+      }
+      count = esQueryService.getCount(terminology);
+      completed = (total == count.intValue());
+      attempts++;
     }
     
     IndexMetadata iMeta = new IndexMetadata();

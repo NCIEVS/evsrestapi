@@ -36,6 +36,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptMultiGetResultMapper;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathUtils;
@@ -497,6 +498,23 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
 
     return operations.count(query);
+  }
+
+  /**
+   * see superclass *.
+   * 
+   * @return the list of {@link IndexMetadata} objects
+   */
+  @Override
+  public List<IndexMetadata> getIndexMetadata() {
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder()
+            .withIndices(ElasticOperationsService.METADATA_INDEX)
+            .withTypes(ElasticOperationsService.METADATA_TYPE).build();
+
+    List<IndexMetadata> iMetas =
+        operations.multiGet(query, IndexMetadata.class);
+    return iMetas;
   }
   
   /**
