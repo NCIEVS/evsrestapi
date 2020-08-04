@@ -483,7 +483,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public Paths getPathToRoot(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("full"));
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("paths"));
     if (!concept.isPresent() || concept.get().getPaths() == null)
       return new Paths();
     return concept.get().getPaths();
