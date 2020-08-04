@@ -90,7 +90,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
   /* see superclass */
   @Override
-  public void loadConcepts(ElasticLoadConfig config, Terminology terminology) throws IOException {
+  public void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException {
 
     logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}",
         terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE);
@@ -108,7 +108,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       try {
         // download concepts and upload to es in real time
         logger.info("Loading in real time");
-        loadConceptsRealTime(allConcepts, terminology);
+        loadConceptsRealTime(allConcepts, terminology, hierarchy);
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
       }
@@ -122,7 +122,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
 
       // download files from stardog in batches
-      downloadConcepts(allConcepts, terminology, config.getLocation());
+      downloadConcepts(allConcepts, terminology, config.getLocation(), hierarchy);
     }
 
     if (config.isDownloadOnly()) {
@@ -133,7 +133,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     // load concepts to es in batches
     try {
       logger.info("Loading concepts from files");
-      loadConceptsFromFiles(config.getLocation(), terminology);
+      loadConceptsFromFiles(config.getLocation(), terminology, hierarchy);
     } catch (InterruptedException e) {
       logger.error(e.getMessage(), e);
     }
@@ -149,7 +149,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    * @param location the location to download
    * @throws IOException the io exception
    */
-  private void downloadConcepts(List<Concept> allConcepts, Terminology terminology, String location)
+  private void downloadConcepts(List<Concept> allConcepts, Terminology terminology, String location, HierarchyUtils hierarchy)
     throws IOException {
     if (CollectionUtils.isEmpty(allConcepts))
       return;
@@ -168,7 +168,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
       List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
           .collect(Collectors.toList());
-      List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology);
+      List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology, hierarchy);
 
       for (Concept concept : concepts) {
         String json = concept.toString();
@@ -195,7 +195,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    * @throws IOException the io exception
    * @throws InterruptedException the interruped exception
    */
-  private void loadConceptsFromFiles(String location, Terminology terminology)
+  private void loadConceptsFromFiles(String location, Terminology terminology, HierarchyUtils hierarchy)
     throws IOException, InterruptedException {
     logger.debug("Loading concepts from files");
     File conceptsDir = new File(location);
@@ -268,7 +268,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    * @param terminology the terminology
    * @throws Exception the exception
    */
-  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology)
+  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology, HierarchyUtils hierarchy)
     throws Exception {
     logger.info("  download batch size = " + DOWNLOAD_BATCH_SIZE);
     logger.info("  index batch size = " + INDEX_BATCH_SIZE);
@@ -303,7 +303,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.info("    start reading {} to {}", start + 1, end);
       List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
           .collect(Collectors.toList());
-      List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology);
+      List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology, hierarchy);
       logger.info("    finish reading {} to {}", start + 1, end);
 
       int indexStart = 0;
@@ -336,7 +336,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
   /* see superclass */
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology) throws IOException {
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException {
     String indexName = terminology.getObjectIndexName();
     logger.info("Loading Elastic Objects");
     logger.debug("object index name: {}", indexName);
@@ -344,7 +344,6 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     logger.debug("index result: {}", result);
 
     try {
-      HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(terminology);
       ElasticObject hierarchyObject = new ElasticObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
       operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
@@ -526,8 +525,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
       Terminology term = TerminologyUtils.getTerminology(loadService.sparqlQueryManagerService,
           config.getTerminology());
-      loadService.loadConcepts(config, term);
-      loadService.loadObjects(config, term);
+      HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
+      loadService.loadConcepts(config, term, hierarchy);
+      loadService.loadObjects(config, term, hierarchy);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {

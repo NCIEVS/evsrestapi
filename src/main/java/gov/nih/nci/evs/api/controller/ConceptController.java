@@ -161,7 +161,7 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
+      Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -456,7 +456,8 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
-   * @param maxLevel the max level
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the descendants
    * @throws Exception the exception
    */
@@ -475,30 +476,44 @@ public class ConceptController extends BaseController {
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "maxLevel",
-          value = "Maximum level of ancestors to include, if applicable", required = false,
-          dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
-    @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
+    @RequestParam("fromRecord") final Optional<Integer> fromRecord,
+    @RequestParam("pageSize") final Optional<Integer> pageSize) throws Exception {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<HierarchyNode> list =
-          elasticQueryService.getChildNodes(code, maxLevel.orElse(0), term);
-
-      if (list == null || list.isEmpty()) {
-        if (!elasticQueryService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      if (!elasticQueryService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return ConceptUtils.convertConceptsFromHierarchy(list);
+      final List<Concept> list =
+          new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+
+      int fromIndex = fromRecord.orElse(0);
+      // Use a large default page size
+      int toIndex = fromIndex + pageSize.orElse(50000);
+      if (toIndex >= list.size()) {
+        toIndex = list.size();
+      }
+      // If requesting beyond end of the list, just return empty
+      if (fromRecord.orElse(0) > list.size()) {
+        return new ArrayList<>();
+      }
+      // empty list
+      if (list.size() == 0) {
+        return list;
+      }
+
+      return list.subList(fromIndex, toIndex);
+
     } catch (Exception e) {
       handleException(e);
       return null;
