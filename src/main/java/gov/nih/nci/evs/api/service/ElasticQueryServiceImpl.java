@@ -190,9 +190,33 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<HierarchyNode> getRootNodes(Terminology terminology)
+  public List<Concept> getRootNodes(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    Optional<HierarchyUtils> hierarchy = getHierarchy(terminology);
+    Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
+    if (!hierarchy.isPresent())
+      return Collections.emptyList();
+    ArrayList<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
+    List<Concept> concepts = getConcepts(hierarchyRoots, terminology, new IncludeParam("minimal"));
+    concepts.sort(Comparator.comparing(Concept::getName));
+    for (Concept c : concepts) {
+    	c.setLeaf(null);
+    }
+    return concepts;
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param terminology the terminology
+   * @return the root nodes
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Override
+  public List<HierarchyNode> getRootNodesHierarchy(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
     if (!hierarchy.isPresent())
       return Collections.emptyList();
     ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
@@ -350,7 +374,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    List<HierarchyNode> rootNodes = getRootNodes(terminology);
+    List<HierarchyNode> rootNodes = getRootNodesHierarchy(terminology);
     
     Paths paths = getPathToRoot(code, terminology);
 
@@ -543,7 +567,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   @Override
-  public Optional<HierarchyUtils> getHierarchy(Terminology terminology)
+  public Optional<HierarchyUtils> getHierarchyRoots(Terminology terminology)
     throws JsonMappingException, JsonProcessingException {
     Optional<ElasticObject> esObject = getElasticObject("hierarchy", terminology);
     if (!esObject.isPresent())

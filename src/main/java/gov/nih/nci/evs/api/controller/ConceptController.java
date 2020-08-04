@@ -635,13 +635,12 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      final List<HierarchyNode> list = elasticQueryService.getRootNodes(term);
+      final List<Concept> list = elasticQueryService.getRootNodes(term);
       if (list == null || list.isEmpty()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
       }
-      return ConceptUtils.convertConceptsFromHierarchyWithInclude(elasticQueryService, ip, term,
-          list);
+      return list;
     } catch (Exception e) {
       handleException(e);
       return null;
