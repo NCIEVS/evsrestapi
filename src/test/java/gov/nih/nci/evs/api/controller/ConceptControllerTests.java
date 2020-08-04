@@ -123,7 +123,10 @@ public class ConceptControllerTests {
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
-    assertThat(concept.getDescendants()).isNotNull();
+
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
 
   }
 
@@ -716,8 +719,7 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // check that subtree is properly expanded
-    HierarchyNode expandedCheck = list.get(8);
-    assertThat(expandedCheck.getExpanded()).isTrue();
+    assertThat(list.stream().filter(n -> n.getExpanded()).count()).isGreaterThan(0);
     // something should have children
     assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
     // none should have "level" set

@@ -50,7 +50,7 @@ public class IncludeParam extends BaseModel {
 
   /** The paths. */
   private boolean paths;
-  
+
   /**
    * Instantiates an empty {@link IncludeParam}.
    */
@@ -105,8 +105,7 @@ public class IncludeParam extends BaseModel {
           paths = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              "Invalid includes value = " + part
-                  + (part.equals(include) ? "" : "; " + include));
+              "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
         }
       }
     }
@@ -169,7 +168,6 @@ public class IncludeParam extends BaseModel {
     definitions = true;
     properties = true;
     children = true;
-    descendants = true;
     parents = true;
     associations = true;
     inverseAssociations = true;
@@ -178,7 +176,10 @@ public class IncludeParam extends BaseModel {
     maps = true;
     highlights = true;
     disjointWith = true;
-    paths = true;
+
+    // Full doesn't include descendants and paths
+    // descendants = true;
+    // paths = true;
   }
 
   /**
@@ -188,8 +189,8 @@ public class IncludeParam extends BaseModel {
    */
   public boolean hasAnyTrue() {
     return synonyms || definitions || properties || children || descendants || parents
-        || associations || inverseAssociations || roles || inverseRoles || maps
-        || disjointWith || paths;
+        || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
+        || paths;
   }
 
   /**

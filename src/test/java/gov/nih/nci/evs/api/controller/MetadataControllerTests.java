@@ -161,6 +161,18 @@ public class MetadataControllerTests {
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();
 
+    // Test with "by code" with include=full
+    url = baseUrl + "/ncit/association/A8?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getCode()).isEqualTo("A8");
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
+
     // Test with "by label"
     url = baseUrl + "/ncit/association/Concept_In_Subset";
     log.info("Testing url - " + url);
@@ -308,6 +320,18 @@ public class MetadataControllerTests {
     assertThat(concept.getName()).isEqualTo("Conceptual_Part_Of");
     assertThat(concept.getCode()).isEqualTo("R27");
     assertThat(concept.getSynonyms()).isNotEmpty();
+
+    // Test with "by code", include=full
+    url = baseUrl + "/ncit/role/R27?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getCode()).isEqualTo("R27");
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
 
     // Test with "by label"
     url = baseUrl + "/ncit/role/Conceptual_Part_Of";
@@ -506,6 +530,18 @@ public class MetadataControllerTests {
     assertThat(concept.getName()).isEqualTo("Chemical_Formula");
     assertThat(concept.getCode()).isEqualTo("P350");
     assertThat(concept.getSynonyms()).isNotEmpty();
+
+    // Test with "by code", include=full
+    url = baseUrl + "/ncit/property/P350?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getCode()).isEqualTo("P350");
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
 
     // Test with "by label"
     url = baseUrl + "/ncit/property/Chemical_Formula";
@@ -746,7 +782,7 @@ public class MetadataControllerTests {
   }
 
   /**
-   * Test property axiom qualifiers.
+   * Test property qualifiers.
    *
    * @throws Exception the exception
    */
@@ -755,7 +791,31 @@ public class MetadataControllerTests {
 
     String url = null;
     MvcResult result = null;
+    Concept concept = null;
     String content = null;
+
+    // Test with "by code"
+    url = baseUrl + "/ncit/qualifier/P383";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getName()).isEqualTo("term-group");
+    assertThat(concept.getCode()).isEqualTo("P383");
+    assertThat(concept.getSynonyms()).isNotEmpty();
+
+    // Test with "by code", full=include
+    url = baseUrl + "/ncit/qualifier/P383?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getCode()).isEqualTo("P383");
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
 
     // P383
     url = baseUrl + "/ncit/qualifier/P383/values";
