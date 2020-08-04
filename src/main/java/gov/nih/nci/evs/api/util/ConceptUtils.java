@@ -95,25 +95,26 @@ public final class ConceptUtils {
   }
 
   /**
-   * Apply include
-   * 
+   * Apply include.
+   *
    * @param concepts the list of concepts
    * @param ip the include param
    * @return the result concepts
    */
   public static List<Concept> applyInclude(final List<Concept> concepts, final IncludeParam ip) {
-    if (CollectionUtils.isEmpty(concepts)) return Collections.emptyList();
-    
+    if (CollectionUtils.isEmpty(concepts))
+      return Collections.emptyList();
+
     final List<Concept> result = new ArrayList<>(concepts.size());
-    
-    for(Concept concept: concepts) {
+
+    for (Concept concept : concepts) {
       Concept newConcept = new Concept();
       newConcept.setCode(concept.getCode());
       newConcept.setName(concept.getName());
       newConcept.setTerminology(concept.getTerminology());
       newConcept.setVersion(concept.getVersion());
       newConcept.setLeaf(concept.getLeaf());
-      
+
       if (ip.isSynonyms()) {
         newConcept.setSynonyms(concept.getSynonyms());
       }
@@ -150,13 +151,16 @@ public final class ConceptUtils {
       if (ip.isPaths()) {
         newConcept.setPaths(concept.getPaths());
       }
-      
+      if (ip.isDescendants()) {
+        newConcept.setDescendants(concept.getDescendants());
+      }
+
       result.add(newConcept);
     }
-    
+
     return result;
   }
-  
+
   /**
    * Apply include.
    *
@@ -244,7 +248,7 @@ public final class ConceptUtils {
     }
     return concepts;
   }
-  
+
   /**
    * Convert paths.
    *
@@ -292,18 +296,18 @@ public final class ConceptUtils {
 
     final List<ConceptPath> list = convertPaths(paths, reverse);
     if (ip.hasAnyTrue()) {
-//      final java.util.Map<String, Concept> cache = new HashMap<>();
+      // final java.util.Map<String, Concept> cache = new HashMap<>();
       for (final ConceptPath concepts : list) {
         List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
         Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
         for (final Concept concept : concepts) {
           final int level = concept.getLevel();
-//          if (cache.containsKey(concept.getCode())) {
-//            concept.populateFrom(cache.get(concept.getCode()));
-//          } else {
-            concept.populateFrom(conceptMap.get(concept.getCode()));
-//            cache.put(concept.getCode(), concept);
-//          }
+          // if (cache.containsKey(concept.getCode())) {
+          // concept.populateFrom(cache.get(concept.getCode()));
+          // } else {
+          concept.populateFrom(conceptMap.get(concept.getCode()));
+          // cache.put(concept.getCode(), concept);
+          // }
           concept.setLevel(level);
         }
       }
