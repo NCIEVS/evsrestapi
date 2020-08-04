@@ -22,3 +22,4 @@ export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
 export ES_HOST="EDIT_THIS, e.g. without https://"
 export ES_PORT="EDIT_THIS, e.g. 443"
 export ES_SCHEME="EDIT_THIS, e.g. https"
+export ES_CLEAN=false
