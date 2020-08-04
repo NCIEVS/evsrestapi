@@ -65,7 +65,7 @@ public class EVSUtils {
   public static Set<String> getCommonPropertyNames(Terminology terminology) {
     // TODO: CONFIG
     return new HashSet<>(Arrays.asList(new String[] {
-        "code", "label", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "Maps_To"
+        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "Maps_To"
     }));
   }
 
@@ -109,6 +109,7 @@ public class EVSUtils {
         definition.setDefinition(axiom.getAnnotatedTarget());
         definition.setSource(axiom.getDefSource());
         definition.getQualifiers().addAll(axiom.getQualifiers());
+        definition.setType("DEFINITION");
         results.add(definition);
       }
       // TODO: CONFIG

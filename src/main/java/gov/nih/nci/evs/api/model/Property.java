@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class Property extends BaseModel {
 
   /** The code. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Text, store=false)
   private String code;
 
   /** The type. */

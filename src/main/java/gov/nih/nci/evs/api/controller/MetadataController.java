@@ -129,7 +129,7 @@ public class MetadataController extends BaseController {
    * @return the association
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the association for the specified terminology and code/label",
+  @ApiOperation(value = "Get the association for the specified terminology and code/name",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -139,8 +139,8 @@ public class MetadataController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrLabel",
-          value = "Association code (or label), e.g. 'A10' or 'Has_CDRH_Parent'", required = true,
+      @ApiImplicitParam(name = "codeOrName",
+          value = "Association code (or name), e.g. 'A10' or 'Has_CDRH_Parent'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -152,10 +152,10 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/association/{codeOrLabel}", produces = "application/json")
+      value = "/metadata/{terminology}/association/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getAssociation(
     @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrLabel") final String code,
+    @PathVariable(value = "codeOrName") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
     try {
 
@@ -231,7 +231,7 @@ public class MetadataController extends BaseController {
    * @return the role
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the role for the specified terminology and code/label",
+  @ApiOperation(value = "Get the role for the specified terminology and code/name",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -241,8 +241,8 @@ public class MetadataController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrLabel",
-          value = "Role code (or label), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'",
+      @ApiImplicitParam(name = "codeOrName",
+          value = "Role code (or name), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -253,11 +253,11 @@ public class MetadataController extends BaseController {
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrLabel}",
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrName}",
       produces = "application/json")
   public @ResponseBody Concept getRole(
     @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrLabel") final String code,
+    @PathVariable(value = "codeOrName") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
     try {
       // If the code contains a comma, just bail
@@ -379,7 +379,7 @@ public class MetadataController extends BaseController {
    * @return the qualifier
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the qualifier for the specified terminology and code/label",
+  @ApiOperation(value = "Get the qualifier for the specified terminology and code/name",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -389,8 +389,8 @@ public class MetadataController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrLabel",
-          value = "Qualifier code (or label), e.g. 'P390' or 'go-source'", required = true,
+      @ApiImplicitParam(name = "codeOrName",
+          value = "Qualifier code (or name), e.g. 'P390' or 'go-source'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -402,10 +402,10 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/qualifier/{codeOrLabel}", produces = "application/json")
+      value = "/metadata/{terminology}/qualifier/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getQualifier(
     @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrLabel") final String code,
+    @PathVariable(value = "codeOrName") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     try {
@@ -465,7 +465,7 @@ public class MetadataController extends BaseController {
    * @return the property
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the property for the specified terminology and code/label",
+  @ApiOperation(value = "Get the property for the specified terminology and code/name",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -475,8 +475,8 @@ public class MetadataController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrLabel",
-          value = "Property code (or label), e.g. 'P90' or 'FULL_SYN'", required = true,
+      @ApiImplicitParam(name = "codeOrName",
+          value = "Property code (or name), e.g. 'P90' or 'FULL_SYN'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -488,10 +488,10 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/property/{codeOrLabel}", produces = "application/json")
+      value = "/metadata/{terminology}/property/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getProperty(
     @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrLabel") final String code,
+    @PathVariable(value = "codeOrName") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
 
     try {
@@ -617,7 +617,7 @@ public class MetadataController extends BaseController {
    * @return the axiom qualifiers list
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get qualifier values for the specified terminology and code/label",
+  @ApiOperation(value = "Get qualifier values for the specified terminology and code/name",
       response = String.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -627,17 +627,17 @@ public class MetadataController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrLabel",
-          value = "Qualifier code (or label), e.g. 'P383' or 'term-group'", required = true,
+      @ApiImplicitParam(name = "codeOrName",
+          value = "Qualifier code (or name), e.g. 'P383' or 'term-group'", required = true,
           dataType = "string", paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/qualifier/{codeOrLabel}/values",
+      value = "/metadata/{terminology}/qualifier/{codeOrName}/values",
       produces = "application/json")
   public @ResponseBody List<String> getQualifierValues(
     @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrLabel") final String code) throws Exception {
+    @PathVariable(value = "codeOrName") final String code) throws Exception {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
