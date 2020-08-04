@@ -21,6 +21,9 @@ public class IncludeParam extends BaseModel {
   /** The children. */
   private boolean children;
 
+  /** The descendants. */
+  private boolean descendants;
+
   /** The parents. */
   private boolean parents;
 
@@ -80,6 +83,8 @@ public class IncludeParam extends BaseModel {
           properties = true;
         } else if (part.equals("children")) {
           children = true;
+        } else if (part.equals("descendants")) {
+          descendants = true;
         } else if (part.equals("parents")) {
           parents = true;
         } else if (part.equals("associations")) {
@@ -126,6 +131,7 @@ public class IncludeParam extends BaseModel {
     definitions = other.isDefinitions();
     properties = other.isProperties();
     children = other.isChildren();
+    descendants = other.isDescendants();
     parents = other.isParents();
     associations = other.isAssociations();
     inverseAssociations = other.isInverseAssociations();
@@ -163,6 +169,7 @@ public class IncludeParam extends BaseModel {
     definitions = true;
     properties = true;
     children = true;
+    descendants = true;
     parents = true;
     associations = true;
     inverseAssociations = true;
@@ -180,7 +187,7 @@ public class IncludeParam extends BaseModel {
    * @return true, if successful
    */
   public boolean hasAnyTrue() {
-    return synonyms || definitions || properties || children || parents
+    return synonyms || definitions || properties || children || descendants || parents
         || associations || inverseAssociations || roles || inverseRoles || maps
         || disjointWith || paths;
   }
@@ -255,6 +262,24 @@ public class IncludeParam extends BaseModel {
    */
   public void setChildren(boolean children) {
     this.children = children;
+  }
+
+  /**
+   * Indicates whether or not descendant is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isDescendants() {
+    return descendants;
+  }
+
+  /**
+   * Sets the descendants.
+   *
+   * @param descendants the descendants
+   */
+  public void setDescendant(boolean descendants) {
+    this.descendants = descendants;
   }
 
   /**

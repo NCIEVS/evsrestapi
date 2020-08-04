@@ -61,9 +61,7 @@ public class Concept extends ConceptMinimal {
   private java.util.Map<String, String> highlights;
 
   /** The level. */
-  @Transient
-  @JsonSerialize
-  @JsonDeserialize
+  @Field(type = FieldType.Integer)
   private Integer level;
 
   /** The leaf. */
@@ -89,6 +87,9 @@ public class Concept extends ConceptMinimal {
   /** The parents. */
   @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> parents;
+
+  /** The descendants. */
+  private List<Concept> descendants;
 
   /** The associations. */
   @Field(type = FieldType.Nested)
@@ -386,6 +387,28 @@ public class Concept extends ConceptMinimal {
   public void setParents(final List<Concept> parents) {
     this.parents = parents;
   }
+
+  /**
+   * Returns the descendants.
+   *
+   * @return the descendants
+   */
+  public List<Concept> getDescendants() {
+    if (descendants == null) {
+      descendants = new ArrayList<>();
+    }
+    return descendants;
+  }
+
+  /**
+   * Sets the descendants.
+   *
+   * @param descendants the descendants
+   */
+  public void setDescendants(final List<Concept> descendants) {
+    this.descendants = descendants;
+  }
+
 
   /**
    * Returns the associations.
