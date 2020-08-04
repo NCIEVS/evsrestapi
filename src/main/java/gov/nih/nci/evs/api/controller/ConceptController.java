@@ -456,7 +456,8 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
-   * @param maxLevel the max level
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the descendants
    * @throws Exception the exception
    */
@@ -498,7 +499,7 @@ public class ConceptController extends BaseController {
 
       int fromIndex = fromRecord.orElse(0);
       // Use a large default page size
-      int toIndex = fromIndex + pageSize.orElse(10000);
+      int toIndex = fromIndex + pageSize.orElse(50000);
       if (toIndex >= list.size()) {
         toIndex = list.size();
       }

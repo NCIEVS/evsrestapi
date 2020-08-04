@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -369,7 +368,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     List<HierarchyNode> rootNodes = getRootNodes(terminology);
-    
+
     Paths paths = getPathToRoot(code, terminology);
 
     // root hierarchy node map for quick look up
