@@ -719,7 +719,8 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // check that subtree is properly expanded
-    assertThat(list.stream().filter(n -> n.getExpanded()).count()).isGreaterThan(0);
+    assertThat(list.stream().filter(n -> n.getExpanded() != null && n.getExpanded()).count())
+        .isGreaterThan(0);
     // something should have children
     assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
     // none should have "level" set
