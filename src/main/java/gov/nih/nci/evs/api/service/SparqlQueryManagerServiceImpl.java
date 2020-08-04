@@ -38,7 +38,6 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.ConceptNode;
 import gov.nih.nci.evs.api.model.DisjointWith;
-import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
@@ -1781,103 +1780,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<HierarchyNode> getRootNodes(Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getRootNodes();
-  }
-
-  /**
-   * Returns the child nodes.
-   *
-   * @param parent the parent
-   * @param terminology the terminology
-   * @return the child nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
-  }
-
-  /* see superclass */
-  @Override
-  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
-  }
-
-  /* see superclass */
-  @Override
   public List<String> getAllChildNodes(String parent, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     return self.getHierarchyUtils(terminology).getAllChildNodes(parent);
-  }
-
-  /* see superclass */
-  @Override
-  public void checkPathInHierarchy(String code, HierarchyNode node, Path path,
-    Terminology terminology) throws JsonParseException, JsonMappingException, IOException {
-
-    // check for empty path
-    if (path.getConcepts().size() == 0) {
-      return;
-    }
-
-    // get path length
-    int end = path.getConcepts().size() - 1;
-
-    // find the end (in this case top) of the path
-    ConceptNode concept = path.getConcepts().get(end);
-    List<HierarchyNode> children = getChildNodes(node.getCode(), 1, terminology);
-
-    // attach children to node if necessary
-    if (node.getChildren().size() == 0) {
-      node.setChildren(children);
-    }
-
-    // is this the top level node containing the term in question
-    if (concept.getCode().equals(node.getCode())) {
-
-      // is this the term itself
-      if (node.getCode().equals(code)) {
-        node.setHighlight(true);
-        return;
-      }
-      node.setExpanded(true);
-      if (path.getConcepts() != null && !path.getConcepts().isEmpty()) {
-        path.getConcepts().remove(path.getConcepts().size() - 1);
-      }
-
-      // recursively check its children until we find the term
-      for (HierarchyNode childNode : node.getChildren()) {
-        checkPathInHierarchy(code, childNode, path, terminology);
-      }
-    }
-
-    // this node does not contain the term
-    else {
-      node.setChildren(null); // we don't care about its children
-    }
-
-  }
-
-  /* see superclass */
-  @Override
-  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    List<HierarchyNode> rootNodes = getRootNodes(terminology);
-    Paths paths = getPathToRoot(code, terminology);
-
-    for (HierarchyNode rootNode : rootNodes) {
-      for (Path path : paths.getPaths()) {
-        checkPathInHierarchy(code, rootNode, path, terminology);
-      }
-    }
-
-    return rootNodes;
   }
 
   /* see superclass */
