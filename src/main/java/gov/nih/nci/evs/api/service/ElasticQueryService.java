@@ -123,18 +123,6 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<HierarchyNode> getRootNodesHierarchy(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
-
-  /**
-   * Returns the child nodes
-   * 
-   * @param parent the parent code
-   * @param terminology the terminology
-   * @return the list of child nodes
-   * @throws JsonParseException
-   * @throws JsonMappingException
-   * @throws IOException
-   */
-  List<HierarchyNode> getChildNodes(String parent, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
   
   /**
    * Returns the child nodes

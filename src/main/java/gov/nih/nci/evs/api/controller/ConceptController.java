@@ -795,7 +795,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, term);
+      final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, 0, term);
       nodes.stream().peek(n -> n.setLevel(null)).count();
       return nodes;
     } catch (Exception e) {

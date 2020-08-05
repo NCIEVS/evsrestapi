@@ -251,22 +251,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * see superclass *.
    *
    * @param parent the parent
-   * @param terminology the terminology
-   * @return the child nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return getChildNodes(parent, 0, terminology);
-  }
-
-  /**
-   * see superclass *.
-   *
-   * @param parent the parent
    * @param maxLevel the max level
    * @param terminology the terminology
    * @return the child nodes
@@ -417,7 +401,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
         ConceptNode cNode = cNodes.get(j);
         Concept c = conceptMap.get(cNode.getCode());
         if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(c.getCode()))) {
-          List<HierarchyNode> children = getChildNodes(previous.getCode(), terminology);
+          List<HierarchyNode> children = getChildNodes(previous.getCode(), 0, terminology);
           for (HierarchyNode child : children) {
             child.setLevel(null);
             previous.getChildren().add(child);
