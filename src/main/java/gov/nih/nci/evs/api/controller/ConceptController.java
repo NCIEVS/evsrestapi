@@ -648,7 +648,6 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       final List<Concept> list = elasticQueryService.getRootNodes(term);
       if (list == null || list.isEmpty()) {
