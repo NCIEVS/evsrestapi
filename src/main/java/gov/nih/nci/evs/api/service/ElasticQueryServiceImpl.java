@@ -488,6 +488,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     Paths paths = getPathToRoot(code, terminology);
     logger.debug("paths: " + paths);
     Paths conceptPaths = new Paths();
+    ConceptNode concept = new ConceptNode();
     for (Path path : paths.getPaths()) {
       logger.debug("checking path: " + path);
       Boolean codeSW = false;
@@ -495,13 +496,13 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       int idx = -1;
       List<ConceptNode> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
-        ConceptNode concept = concepts.get(i);
+    	concept = concepts.get(i);
         if (concept.getCode().equals(code)) {
           codeSW = true;
         }
         if (concept.getCode().equals(parentCode)) {
           parentSW = true;
-          idx = concept.getIdx();
+          idx = i;
         }
       }
       if (codeSW && parentSW) {

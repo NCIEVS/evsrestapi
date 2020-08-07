@@ -947,6 +947,16 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
+    
+    url = baseUrl + "/ncit/C3224/pathsToAncestor/C3224?include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    
+    assertThat(list).isNotEmpty();
+    assertThat(list.size() == 1);
 
   }
 
