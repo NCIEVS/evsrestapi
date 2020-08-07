@@ -452,25 +452,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   }
 
   /**
-   * Returns the hierarchy node.
-   *
-   * @param concept the concept
-   * @param knownNodeMap the known node map
-   * @return the hierarchy node
-   */
-  private HierarchyNode getHierarchyNode(Concept concept, Map<String, HierarchyNode> knownNodeMap) {
-    HierarchyNode hNode = null;
-    if (knownNodeMap.containsKey(concept.getCode())) {
-      hNode = knownNodeMap.get(concept.getCode());
-    } else {
-      hNode = new HierarchyNode(concept.getCode(), concept.getName(), concept.getLeaf());
-      knownNodeMap.put(concept.getCode(), hNode);
-    }
-
-    return hNode;
-  }
-
-  /**
    * see superclass *.
    *
    * @param code the code
