@@ -8,7 +8,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Vector;
 
-import gov.nih.nci.evs.api.model.ConceptNode;
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 
@@ -81,11 +81,13 @@ public class PathFinder {
    */
   public Path createPath(String path) {
     Path p = new Path();
-    List<ConceptNode> concepts = new ArrayList<ConceptNode>();
+    List<Concept> concepts = new ArrayList<Concept>();
     String[] codes = path.split("\\|");
     for (int i = 0; i < codes.length; i++) {
       String name = hierarchy.getLabel(codes[i]);
-      ConceptNode concept = new ConceptNode(i, name, codes[i]);
+      Concept concept = new Concept(codes[i]);
+      concept.setLevel(i);
+      concept.setName(name);
       concepts.add(concept);
     }
 
