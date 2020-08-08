@@ -62,6 +62,10 @@ public class Utils {
 
     public static void dumpHashMap(String label, HashMap hmap) {
 		System.out.println("\n" + label + ":");
+		if (hmap == null) {
+			System.out.println("\tNone");
+			return;
+		}
 		Vector key_vec = new Vector();
 		Iterator it = hmap.keySet().iterator();
 		while (it.hasNext()) {
@@ -78,7 +82,11 @@ public class Utils {
 	}
 
     public static void dumpMultiValuedHashMap(String label, HashMap hmap) {
-		System.out.println("\n" + label + ":");
+   	    System.out.println("\n" + label + ":");
+		if (hmap == null) {
+			System.out.println("\tNone");
+			return;
+		}
 		Vector key_vec = new Vector();
 		Iterator it = hmap.keySet().iterator();
 		while (it.hasNext()) {
@@ -100,6 +108,7 @@ public class Utils {
 
     public static void dumpVector(String label, Vector v) {
 		System.out.println("\n" + label + ":");
+		if (v == null) return;
 		if (v.size() == 0) {
 			System.out.println("\tNone");
 			return;
@@ -116,7 +125,7 @@ public class Utils {
 		if (display_label) {
 			System.out.println("\n" + label + ":");
 		}
-		if (v.size() == 0) {
+		if (v == null || v.size() == 0) {
 			System.out.println("\tNone");
 			return;
 		}
@@ -134,7 +143,7 @@ public class Utils {
 
     public static void dumpArrayList(String label, ArrayList list) {
 		System.out.println("\n" + label + ":");
-		if (list.size() == 0) {
+		if (list == null || list.size() == 0) {
 			System.out.println("\tNone");
 			return;
 		}
@@ -148,7 +157,7 @@ public class Utils {
 
     public static void dumpList(String label, List list) {
 		System.out.println("\n" + label + ":");
-		if (list.size() == 0) {
+		if (list == null || list.size() == 0) {
 			System.out.println("\tNone");
 			return;
 		}
