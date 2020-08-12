@@ -573,6 +573,23 @@ public class ConceptControllerTests {
     });
     assertThat(list).isNotEmpty();
     assertThat(list.size() < 10);
+    
+    // NOTE, this includes a middle concept code that is bougs
+    url = baseUrl + "/ncit/C3510/descendants?maxLevel=2";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    byLevel = concept -> concept.getLevel() > 2;
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+    // preserve level
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size() > 0);
   }
 
   /**

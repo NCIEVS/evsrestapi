@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -478,13 +480,16 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
           required = false, dataType = "string", paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "10000")
+          required = false, dataType = "string", paramType = "query", defaultValue = "10000"),
+      @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
+      required = false, dataType = "string", paramType = "query", defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("fromRecord") final Optional<Integer> fromRecord,
-    @RequestParam("pageSize") final Optional<Integer> pageSize) throws Exception {
+    @RequestParam("pageSize") final Optional<Integer> pageSize,
+    @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -493,8 +498,10 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      final List<Concept> list =
+      List<Concept> list =
           new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+      Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
+      list = list.stream().filter(byLevel).collect(Collectors.toList());
 
       int fromIndex = fromRecord.orElse(0);
       // Use a large default page size
