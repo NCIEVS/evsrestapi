@@ -652,7 +652,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymSource=NCI");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-            .param("synonymSource", "NCI").param("include", "synonyms"))
+            .param("synonymSource", "CDISC").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -662,7 +662,7 @@ public class SearchControllerTests {
 
     boolean found = false;
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
-      if (syn.getName().contains("dsDNA") && syn.getSource().equals("NCI")) {
+      if (syn.getName().contains("dsDNA") && syn.getSource().equals("CDISC")) {
         found = true;
         break;
       }
@@ -683,7 +683,7 @@ public class SearchControllerTests {
 
     found = false;
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
-      if (syn.getName().contains("dsDNA") && syn.getSource().equals("NCI")
+      if (syn.getName().contains("dsDNA") && syn.getSource().equals("CDISC")
           && syn.getTermGroup().equals("SY")) {
         found = true;
         break;

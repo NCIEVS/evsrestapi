@@ -11,8 +11,9 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 /**
  * Custom {@link ElasticsearchRestTemplate} to log queries.
  * 
- * As of spring-data-elasticsearch version 3.2.0, only one query method logs query and honors 
- * spring data logging property. This custom implementation is to cover for that gap.
+ * As of spring-data-elasticsearch version 3.2.0, only one query method logs
+ * query and honors spring data logging property. This custom implementation is
+ * to cover for that gap.
  * 
  * @author Arun
  *
@@ -20,18 +21,20 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
 public class EVSElasticsearchRestTemplate extends ElasticsearchRestTemplate {
 
   private static final Logger logger = LoggerFactory.getLogger(EVSElasticsearchRestTemplate.class);
-  
+
   public EVSElasticsearchRestTemplate(RestHighLevelClient client) {
     super(client);
   }
-  
+
   @Override
-  public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz, SearchResultMapper mapper) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("doSearch query:\n" + query.getQuery().toString());
-    }    
-    
+  public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz,
+    SearchResultMapper mapper) {
+
+    if (logger.isDebugEnabled() && query != null && query.getQuery() != null) {
+      logger.debug("  elasticsearch query = \n" + query.getQuery());
+    }
+
     return super.queryForPage(query, clazz, mapper);
   }
-  
+
 }
