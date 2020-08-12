@@ -691,7 +691,6 @@ public class ConceptControllerTests {
     });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
-    assertThat(list.get(0).getSynonyms()).isNotEmpty();
   }
 
   /**
