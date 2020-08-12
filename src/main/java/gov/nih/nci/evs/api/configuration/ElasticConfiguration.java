@@ -35,6 +35,6 @@ public class ElasticConfiguration {
   
   @Bean(name = "elasticsearchTemplate")
   ElasticsearchRestTemplate elasticRestTemplate() {
-    return new EVSElasticsearchRestTemplate(client());
+    return new ElasticsearchRestTemplate(client());
   }
 }

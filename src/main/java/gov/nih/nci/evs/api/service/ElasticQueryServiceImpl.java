@@ -8,9 +8,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.index.query.QueryBuilders;
@@ -404,32 +406,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     }
 
     return rootNodes;
-  }
-
-  /**
-   * Gets all concepts part of the paths including children for the given code.
-   *
-   * @param code the code
-   * @param paths the paths
-   * @param terminology the terminology
-   * @return the concepts in paths
-   */
-  private Map<String, Concept> getConceptsInPaths(String code, Paths paths,
-    Terminology terminology) {
-    final Set<String> codes = new HashSet<>();
-    for (Path path : paths.getPaths()) {
-      for (int i = 0; i < path.getConcepts().size(); i++) {
-        ConceptNode node = path.getConcepts().get(i);
-        codes.add(node.getCode());
-      }
-    }
-
-    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("children"));
-    if (concept.isPresent() && !concept.get().getLeaf()) {
-      concept.get().getChildren().stream().forEach(c -> codes.add(c.getCode()));
-    }
-
-    return getConceptsAsMap(codes, terminology, new IncludeParam("children"));
   }
 
   /**
