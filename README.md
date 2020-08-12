@@ -23,7 +23,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       docker pull docker.elastic.co/elasticsearch/elasticsearch:6.7.0
       # Choose a directory for your elasticsearch data to live
       dir=c:/evsrestapi/elasticsearch/data
-      docker run -d --name=es_evs --rm -p 9200:9200 -p 9300:9300 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms1g -Xmx3g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
+      docker run -d --name=es_evs --rm -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms1g -Xmx3g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
 
 * Load/Compute Indexes - Run from the "elasticsearch/scripts" folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
