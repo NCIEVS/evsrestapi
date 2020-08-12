@@ -37,7 +37,6 @@ import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
-import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
@@ -1776,36 +1775,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return concepts;
-  }
-
-  /* see superclass */
-  @Override
-  public List<HierarchyNode> getRootNodes(Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getRootNodes();
-  }
-
-  /**
-   * Returns the child nodes.
-   *
-   * @param parent the parent
-   * @param terminology the terminology
-   * @return the child nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
-  }
-
-  /* see superclass */
-  @Override
-  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
   }
 
   /* see superclass */

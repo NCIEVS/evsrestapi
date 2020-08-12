@@ -110,19 +110,19 @@ public interface ElasticQueryService {
    * @throws JsonMappingException
    * @throws IOException
    */
-  List<HierarchyNode> getRootNodes(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
+  List<Concept> getRootNodes(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
   
-  /**
-   * Returns the child nodes
-   * 
-   * @param parent the parent code
+  
+/**
+   * see superclass *.
+   *
    * @param terminology the terminology
-   * @return the list of child nodes
-   * @throws JsonParseException
-   * @throws JsonMappingException
-   * @throws IOException
+   * @return the root nodes
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<HierarchyNode> getChildNodes(String parent, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
+  List<HierarchyNode> getRootNodesHierarchy(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
   
   /**
    * Returns the child nodes
@@ -184,15 +184,15 @@ public interface ElasticQueryService {
   Paths getPathToParent(String code, String parentCode, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
   
   /**
-   * Get hiearchy for a given terminology.
+   * Get hiearchy roots for a given terminology.
    *
    * @param terminology the terminology
-   * @return the hierarchy
+   * @return the hierarchy roots
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  Optional<HierarchyUtils> getHierarchy(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+  public Optional<HierarchyUtils> getHierarchyRoots(Terminology terminology) throws JsonMappingException, JsonProcessingException;
   
   /**
    * Returns qualifiers

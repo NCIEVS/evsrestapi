@@ -16,7 +16,6 @@ import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
@@ -198,48 +197,6 @@ public final class ConceptUtils {
         final Integer level = concept.getLevel();
         final Boolean leaf = concept.getLeaf();
         concept.populateFrom(service.getConcept(concept.getCode(), terminology, ip));
-        concept.setLevel(level);
-        concept.setLeaf(leaf);
-      }
-    }
-    return concepts;
-  }
-
-  /**
-   * Convert concepts from hierarchy.
-   *
-   * @param list the list
-   * @return the list
-   */
-  public static List<Concept> convertConceptsFromHierarchy(final List<HierarchyNode> list) {
-    if (list == null || list.isEmpty()) {
-      return new ArrayList<>();
-    }
-    return list.stream().map(ea -> new Concept(ea)).collect(Collectors.toList());
-  }
-
-  /**
-   * Convert concepts from hierarchy with include.
-   *
-   * @param service the elastic query service
-   * @param ip the ip
-   * @param terminology the terminology
-   * @param list the list
-   * @return the list
-   * @throws Exception the exception
-   */
-  public static List<Concept> convertConceptsFromHierarchyWithInclude(
-    final ElasticQueryService service, final IncludeParam ip, final Terminology terminology,
-    final List<HierarchyNode> list) throws Exception {
-
-    final List<Concept> concepts = convertConceptsFromHierarchy(list);
-    final List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
-    final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
-    if (ip.hasAnyTrue()) {
-      for (final Concept concept : concepts) {
-        final Integer level = concept.getLevel();
-        final Boolean leaf = concept.getLeaf();
-        concept.populateFrom(conceptMap.get(concept.getCode()));
         concept.setLevel(level);
         concept.setLeaf(leaf);
       }

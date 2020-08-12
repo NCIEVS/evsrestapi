@@ -34,7 +34,8 @@ logging:
     level:
         org.springframework: WARN
         gov.nih.nci.evs.api: INFO
-        org.springframework.data.elasticsearch.core: INFO
+        org.springframework.data.elasticsearch.core: DEBUG
+        gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: DEBUG
 
 #
 # Server Properties
