@@ -589,7 +589,7 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // preserve level
-    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size() > 0);
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).isEmpty());
   }
 
   /**

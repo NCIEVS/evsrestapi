@@ -498,10 +498,10 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      List<Concept> list =
+      final List<Concept> baseList =
           new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
       Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
-      list = list.stream().filter(byLevel).collect(Collectors.toList());
+      final List<Concept> list = baseList.stream().filter(byLevel).collect(Collectors.toList());
 
       int fromIndex = fromRecord.orElse(0);
       // Use a large default page size
