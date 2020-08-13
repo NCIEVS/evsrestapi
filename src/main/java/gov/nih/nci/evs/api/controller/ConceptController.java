@@ -22,7 +22,6 @@ import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.ConceptPath;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -671,7 +670,7 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths from the hierarchy root to the specified concept",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
@@ -693,7 +692,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsFromRoot(
+  public @ResponseBody List<List<Concept>> getPathsFromRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -708,7 +707,6 @@ public class ConceptController extends BaseController {
       }
       final Paths paths = elasticQueryService.getPathToRoot(code, term);
 
-      // TODO: update this method to use es query service
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
       handleException(e);
@@ -814,7 +812,7 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths to the hierarchy root from the specified code",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
@@ -836,7 +834,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsToRoot(
+  public @ResponseBody List<List<Concept>> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -867,7 +865,7 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths from the specified code to the specified ancestor code",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
@@ -893,7 +891,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsToAncestor(
+  public @ResponseBody List<List<Concept>> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @PathVariable(value = "ancestorCode") final String ancestorCode,

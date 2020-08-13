@@ -74,16 +74,6 @@ public class ConceptMinimal extends BaseModel {
   }
 
   /**
-   * Instantiates a {@link ConceptMinimal} from the specified parameters.
-   *
-   * @param other the other
-   */
-  public ConceptMinimal(final ConceptNode other) {
-    code = other.getCode();
-    name = other.getLabel();
-  }
-
-  /**
    * Populate from.
    *
    * @param other the other

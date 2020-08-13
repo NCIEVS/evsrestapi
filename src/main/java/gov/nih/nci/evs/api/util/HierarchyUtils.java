@@ -18,6 +18,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 
 /**
  * Hierarchy utilities.
@@ -270,6 +271,83 @@ public class HierarchyUtils {
   /*
    * This section to support the Hierarchy Browser
    */
+  
+  /**
+   * Returns the root nodes.
+   *
+   * @return the root nodes
+   */
+  public ArrayList<HierarchyNode> getRootNodes() {
+    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+    for (String code : this.hierarchyRoots) {
+      HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
+      nodes.add(node);
+    }
+    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
+    return nodes;
+  }
+
+  /**
+   * Returns the child nodes.
+   *
+   * @param parent the parent
+   * @param maxLevel the max level
+   * @return the child nodes
+   */
+  public ArrayList<HierarchyNode> getChildNodes(String parent, int maxLevel) {
+    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+    ArrayList<String> children = this.parent2child.get(parent);
+    if (children == null) {
+      return nodes;
+    }
+    for (String code : children) {
+      HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
+      getChildNodesLevel(node, maxLevel, 0);
+      nodes.add(node);
+    }
+    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
+    return nodes;
+  }
+
+  /**
+   * Returns the child nodes level.
+   *
+   * @param node the node
+   * @param maxLevel the max level
+   * @param level the level
+   * @return the child nodes level
+   */
+  public void getChildNodesLevel(HierarchyNode node, int maxLevel, int level) {
+    List<String> children = this.parent2child.get(node.getCode());
+    node.setLevel(level);
+
+    if (children == null || children.size() == 0) {
+      node.setLeaf(true);
+      return;
+    } else {
+      node.setLeaf(false);
+    }
+    if (level >= maxLevel) {
+      return;
+    }
+
+    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+    level = level + 1;
+    for (String code : children) {
+      HierarchyNode newnode = new HierarchyNode(code, code2label.get(code), false);
+      getChildNodesLevel(newnode, maxLevel, level);
+      List<HierarchyNode> sortedChildren = newnode.getChildren();
+      // Sort children if they exist
+      if (sortedChildren != null && sortedChildren.size() > 0) {
+        sortedChildren.sort(Comparator.comparing(HierarchyNode::getLabel));
+      }
+
+      newnode.setChildren(sortedChildren);
+      nodes.add(newnode);
+    }
+    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
+    node.setChildren(nodes);
+  }
 
   /**
    * Returns the all child nodes recursive.

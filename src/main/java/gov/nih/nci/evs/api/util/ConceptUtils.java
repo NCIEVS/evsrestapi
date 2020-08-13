@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptNode;
-import gov.nih.nci.evs.api.model.ConceptPath;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
@@ -213,16 +211,15 @@ public final class ConceptUtils {
    * @param reverse the reverse
    * @return the list
    */
-  public static List<ConceptPath> convertPaths(final Paths paths, final boolean reverse) {
-    final List<ConceptPath> list = new ArrayList<>();
+  public static List<List<Concept>> convertPaths(final Paths paths, final boolean reverse) {
+    final List<List<Concept>> list = new ArrayList<>();
     if (paths == null || paths.getPaths() == null || paths.getPaths().isEmpty()) {
       return list;
     }
     for (final Path path : paths.getPaths()) {
-      final ConceptPath concepts = new ConceptPath();
-      for (final ConceptNode cn : path.getConcepts()) {
-        final Concept concept = new Concept(cn);
-        concepts.add(concept);
+      final List<Concept> concepts = new ArrayList<Concept>();
+      for (final Concept cn : path.getConcepts()) {
+        concepts.add(cn);
       }
       // Reverse if indicated
       if (reverse) {
@@ -247,28 +244,27 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<ConceptPath> convertPathsWithInclude(final ElasticQueryService service,
+  public static List<List<Concept>> convertPathsWithInclude(final ElasticQueryService service,
     final IncludeParam ip, final Terminology terminology, final Paths paths, final boolean reverse)
     throws Exception {
 
-    final List<ConceptPath> list = convertPaths(paths, reverse);
-    if (ip.hasAnyTrue()) {
-      // final java.util.Map<String, Concept> cache = new HashMap<>();
-      for (final ConceptPath concepts : list) {
-        List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
-        Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
-        for (final Concept concept : concepts) {
-          final int level = concept.getLevel();
-          // if (cache.containsKey(concept.getCode())) {
-          // concept.populateFrom(cache.get(concept.getCode()));
-          // } else {
-          concept.populateFrom(conceptMap.get(concept.getCode()));
-          // cache.put(concept.getCode(), concept);
-          // }
-          concept.setLevel(level);
-        }
+    final List<List<Concept>> list = convertPaths(paths, reverse);
+    // final java.util.Map<String, Concept> cache = new HashMap<>();
+    for (final List<Concept> concepts : list) {
+      List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+      Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
+      for (final Concept concept : concepts) {
+        final int level = concept.getLevel();
+        // if (cache.containsKey(concept.getCode())) {
+        // concept.populateFrom(cache.get(concept.getCode()));
+        // } else {
+        concept.populateFrom(conceptMap.get(concept.getCode()));
+        // cache.put(concept.getCode(), concept);
+        // }
+        concept.setLevel(level);
       }
     }
+
     return list;
   }
 

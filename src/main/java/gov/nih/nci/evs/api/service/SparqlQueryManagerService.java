@@ -15,7 +15,9 @@ import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
@@ -291,6 +293,45 @@ public interface SparqlQueryManagerService {
     throws IOException;
 
   /**
+   * Returns the root nodes.
+   *
+   * @param terminology the terminology
+   * @return the root nodes
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<HierarchyNode> getRootNodes(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Returns the child nodes.
+   *
+   * @param parent the parent
+   * @param terminology the terminology
+   * @return the child nodes
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Returns the child nodes.
+   *
+   * @param parent the parent
+   * @param maxLevel the max level
+   * @param terminology the terminology
+   * @return the child nodes
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException;
+  
+  /**
    * Returns the path to root.
    *
    * @param conceptCode the concept code
@@ -528,4 +569,27 @@ public interface SparqlQueryManagerService {
    * @return list of concept objects
    */
   List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+
+  
+  /**
+   * checks path in hierarchy
+   * 
+   * @param code the code
+   * @param node the HierarchyNode
+   * @param path the path to check
+   * @param terminology the terminology
+   * @return N/A
+   */
+  void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology)
+		throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * checks path in hierarchy
+   * 
+   * @param code the code
+   * @param terminology the terminology
+   * @return list of HierarchyNodes as a path
+   */
+  List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
+		throws JsonParseException, JsonMappingException, IOException;
 }
