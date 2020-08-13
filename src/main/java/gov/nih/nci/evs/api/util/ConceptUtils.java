@@ -249,23 +249,22 @@ public final class ConceptUtils {
     throws Exception {
 
     final List<List<Concept>> list = convertPaths(paths, reverse);
-    if (ip.hasAnyTrue()) {
-      // final java.util.Map<String, Concept> cache = new HashMap<>();
-      for (final List<Concept> concepts : list) {
-        List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
-        Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
-        for (final Concept concept : concepts) {
-          final int level = concept.getLevel();
-          // if (cache.containsKey(concept.getCode())) {
-          // concept.populateFrom(cache.get(concept.getCode()));
-          // } else {
-          concept.populateFrom(conceptMap.get(concept.getCode()));
-          // cache.put(concept.getCode(), concept);
-          // }
-          concept.setLevel(level);
-        }
+    // final java.util.Map<String, Concept> cache = new HashMap<>();
+    for (final List<Concept> concepts : list) {
+      List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+      Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
+      for (final Concept concept : concepts) {
+        final int level = concept.getLevel();
+        // if (cache.containsKey(concept.getCode())) {
+        // concept.populateFrom(cache.get(concept.getCode()));
+        // } else {
+        concept.populateFrom(conceptMap.get(concept.getCode()));
+        // cache.put(concept.getCode(), concept);
+        // }
+        concept.setLevel(level);
       }
     }
+
     return list;
   }
 

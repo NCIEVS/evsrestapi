@@ -707,7 +707,6 @@ public class ConceptController extends BaseController {
       }
       final Paths paths = elasticQueryService.getPathToRoot(code, term);
 
-      // TODO: update this method to use es query service
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
       handleException(e);

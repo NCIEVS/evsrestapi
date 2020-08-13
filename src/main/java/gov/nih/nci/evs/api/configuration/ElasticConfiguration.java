@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.configuration;
 
 import org.apache.http.HttpHost;
@@ -32,9 +33,14 @@ public class ElasticConfiguration {
     // ClientConfiguration.builder().connectedTo(esHost)..build();
     // return RestClients.create(clientConfiguration).rest();
   }
-  
+
+  /**
+   * Elastic rest template.
+   *
+   * @return the elasticsearch rest template
+   */
   @Bean(name = "elasticsearchTemplate")
   ElasticsearchRestTemplate elasticRestTemplate() {
-    return new ElasticsearchRestTemplate(client());
+    return new EVSElasticsearchRestTemplate(client());
   }
 }
