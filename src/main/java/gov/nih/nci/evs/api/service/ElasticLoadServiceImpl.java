@@ -569,8 +569,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
       TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
       Terminology term = termUtils.getTerminology(config.getTerminology());
-      loadService.loadConcepts(config, term);
-      loadService.loadObjects(config, term);
+      HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
+      loadService.loadConcepts(config, term, hierarchy);
+      loadService.loadObjects(config, term, hierarchy);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {
