@@ -20,6 +20,10 @@ public class IndexMetadata {
   @Field(type = FieldType.Keyword)
   private String indexName;
 
+  /** the object index name **/
+  @Field(type = FieldType.Keyword)
+  private String objectIndexName;
+  
   /** the terminology version **/
   @Field(type = FieldType.Keyword)
   private String terminologyVersion;
@@ -42,6 +46,24 @@ public class IndexMetadata {
   }
 
   /**
+   * Set the object index name
+   * 
+   * @param objectIndexName the object index name
+   */
+  public void setObjectIndexName(String objectIndexName) {
+    this.objectIndexName = objectIndexName;
+  }
+
+  /**
+   * Get object index name
+   * 
+   * @return the object index name
+   */
+  public String getObjectIndexName() {
+    return objectIndexName;
+  }
+
+  /**
    * Set the index name
    * 
    * @param indexName the index name
@@ -49,7 +71,7 @@ public class IndexMetadata {
   public void setIndexName(String indexName) {
     this.indexName = indexName;
   }
-
+  
   /**
    * Get terminology version
    * 

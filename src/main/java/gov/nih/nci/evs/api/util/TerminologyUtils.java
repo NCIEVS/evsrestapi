@@ -56,7 +56,7 @@ public final class TerminologyUtils {
   /**
    * Returns terminologies loaded to elasticsearch.
    * 
-   * @return the terminologies
+   * @return the list of terminology objects
    * @throws Exception Signals that an exception has occurred.
    */
   public List<Terminology> getAvailableTerminologies() throws Exception {
@@ -69,10 +69,32 @@ public final class TerminologyUtils {
     final Map<String, Terminology> termMap = new HashMap<>();
     terminologies.stream().forEach(t -> termMap.putIfAbsent(t.getTerminologyVersion(), t));
     
-    //collect only terminologies loaded in es
+    //collect only terminologies loaded in es and present in stardog
     return iMetas.stream()
         .filter(m -> termMap.containsKey(m.getTerminologyVersion()))
         .map(m -> termMap.get(m.getTerminologyVersion()))
+        .collect(Collectors.toList());
+  }
+  
+  /**
+   * Returns terminologies loaded to elasticsearch and not in Stardog.
+   * 
+   * @return the list of {@link IndexMetadata} objects
+   * @throws Exception Signals that an exception has occurred.
+   */
+  public List<IndexMetadata> getStaleTerminologies() throws Exception {
+    //get index metadata for terminologies completely loaded in es
+    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    if (CollectionUtils.isEmpty(iMetas)) return Collections.emptyList();
+    
+    //get all terminologies and organize in a map by terminologyVersion as key
+    List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
+    final Map<String, Terminology> termMap = new HashMap<>();
+    terminologies.stream().forEach(t -> termMap.putIfAbsent(t.getTerminologyVersion(), t));
+    
+    //collect stale terminologies loaded in es
+    return iMetas.stream()
+        .filter(m -> !termMap.containsKey(m.getTerminologyVersion()))
         .collect(Collectors.toList());
   }
   

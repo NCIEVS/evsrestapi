@@ -85,6 +85,12 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   }
 
   /* see superclass */
+  @Override
+  public boolean deleteIndex(String index) {
+    return operations.deleteIndex(index);
+  }
+  
+  /* see superclass */
   public ElasticsearchOperations getElasticsearchOperations() {
     return operations;
   }

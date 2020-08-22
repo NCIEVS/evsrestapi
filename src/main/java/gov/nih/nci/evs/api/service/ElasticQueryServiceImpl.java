@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -520,6 +521,22 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     List<IndexMetadata> iMetas =
         operations.queryForList(queryBuilder.build(), IndexMetadata.class);
     return iMetas;
+  }
+
+  
+  /**
+   * see superclass *.
+   * 
+   * @param id the id of the {@link IndexMetadata} object
+   */
+  @Override
+  public void deleteIndexMetadata(String id) {
+    DeleteQuery delQuery = new DeleteQuery();
+    delQuery.setQuery(QueryBuilders.idsQuery().addIds(id));
+    delQuery.setIndex(ElasticOperationsService.METADATA_INDEX);
+    delQuery.setType(ElasticOperationsService.METADATA_TYPE);
+
+    operations.delete(delQuery);
   }
   
   /**

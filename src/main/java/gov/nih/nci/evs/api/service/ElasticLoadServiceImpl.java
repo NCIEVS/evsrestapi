@@ -93,6 +93,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   @Autowired
   private ElasticQueryService esQueryService;
   
+  /* The terminology utils */
+  private TerminologyUtils termUtils;
+  
   /* see superclass */
   @Override
   public void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException {
@@ -456,6 +459,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     
     IndexMetadata iMeta = new IndexMetadata();
     iMeta.setIndexName(terminology.getIndexName());
+    iMeta.setObjectIndexName(terminology.getObjectIndexName());
     iMeta.setTerminologyVersion(terminology.getTerminologyVersion());
     iMeta.setTotalConcepts(total);
     iMeta.setCompleted(completed);
@@ -463,6 +467,42 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     operationsService.index(iMeta, 
         ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE, 
         IndexMetadata.class);
+  }
+  
+  private void cleanStaleTerminologies() {
+    List<IndexMetadata> iMetas = null;
+    try {
+      iMetas = termUtils.getStaleTerminologies();
+    } catch (Exception e) {
+      logger.error("Error while cleaning stale terminologies: " + e.getMessage());
+    }
+    
+    if (CollectionUtils.isEmpty(iMetas)) return;
+    
+    for(IndexMetadata iMeta: iMetas) {
+      String indexName = iMeta.getIndexName();
+      String objectIndexName = iMeta.getObjectIndexName();
+      
+      //delete objects index
+      boolean result = operationsService.deleteIndex(objectIndexName);
+      
+      if (!result) {
+        logger.warn("Deleting objects index {} failed!", objectIndexName);
+        continue;          
+      }
+      
+      //delete concepts index
+      result = operationsService.deleteIndex(indexName);
+      
+      if (!result) {
+        logger.warn("Deleting concepts index {} failed!", indexName);
+        continue;
+      }
+      
+      //delete metadata object
+      esQueryService.deleteIndexMetadata(indexName);
+    }
+
   }
   
   /**
@@ -577,6 +617,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
       loadService.loadConcepts(config, term, hierarchy);
       loadService.loadObjects(config, term, hierarchy);
+      loadService.cleanStaleTerminologies();
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {

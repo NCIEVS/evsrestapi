@@ -75,4 +75,12 @@ public interface ElasticOperationsService {
    */
   ElasticsearchOperations getElasticsearchOperations();
 
+  /**
+   * delete the index
+   * 
+   * @param index the index name
+   * @return {@literal true} if the index was deleted
+   */
+  boolean deleteIndex(String index);
+
 }
