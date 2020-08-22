@@ -436,12 +436,17 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     
     int attempts = 0;
     
-    while(!completed && attempts < 15) {
+    while(!completed && attempts < 30) {
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
         logger.error("Error while checking load status: sleep interrupted - " + e.getMessage());
       }
+      
+      if (attempts == 15) {
+        logger.info("Index completion is taking longer than expected..");
+      }
+      
       count = esQueryService.getCount(terminology);
       completed = (total == count.intValue());
       attempts++;

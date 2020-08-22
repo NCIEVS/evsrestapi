@@ -71,6 +71,7 @@ public final class TerminologyUtils {
     
     //collect only terminologies loaded in es
     return iMetas.stream()
+        .filter(m -> termMap.containsKey(m.getTerminologyVersion()))
         .map(m -> termMap.get(m.getTerminologyVersion()))
         .collect(Collectors.toList());
   }
