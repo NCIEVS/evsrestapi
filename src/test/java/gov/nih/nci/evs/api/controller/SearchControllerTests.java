@@ -2,10 +2,12 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -615,7 +618,7 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // Retired_Concept
-    log.info("Testing url - " + url + "?terminology=ncit&term=crop&conceptStatus=Obsolete_Concept");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&conceptStatus=Obsolete_Concept");
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
         .param("conceptStatus", "Obsolete_Concept")).andExpect(status().isOk()).andReturn();
@@ -812,6 +815,353 @@ public class SearchControllerTests {
     log.info("Done Testing testDefinitionSource ");
 
   }
+  
+  @Test
+  public void testSearchContains() throws Exception {
+	String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    
+ // Valid test
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=braf&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+    
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=braf");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("include", "synonyms")
+            .param("definitionSource", "NCI")).andExpect(status().isOk()).andReturn();
+    
+    // check that no type = contains
+    String content2 = result.getResponse().getContentAsString();
+    
+    // removing timeTaken key from json before comparison
+    content = removeTimeTaken(content);
+    content2 = removeTimeTaken(content2);
+
+    assertThat(content).isEqualTo(content2);
+    
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    List<Concept> conceptList = list.getConcepts();
+    boolean currentExact = true;
+    for (Concept concept : conceptList) {
+    	if(concept.getName().equalsIgnoreCase("braf") ||
+    	  !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty()) { // found match
+    		if(!currentExact) // check still in front
+    			fail("Exact Matches not in order"); // exact matches not in order
+    	}
+    	else
+    		currentExact = false; // should be at end of exact matches
+    }
+    
+    
+    //phrase term check
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=malignant%20bone%20neoplasm&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+    
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=malignant%20bone%20neoplasm");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("include", "synonyms")
+            .param("definitionSource", "NCI")).andExpect(status().isOk()).andReturn();
+    
+    // check that no type = contains
+    content2 = result.getResponse().getContentAsString();
+    
+    // removing timeTaken key from json before comparison
+    content = removeTimeTaken(content);
+    content2 = removeTimeTaken(content2);
+
+    assertThat(content).isEqualTo(content2);
+    
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    currentExact = true;
+    for (Concept concept : conceptList) {
+    	if(concept.getName().equalsIgnoreCase("braf") ||
+    	  !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty()) { // found match
+    		if(!currentExact) // check still in front
+    			fail("Exact Matches not in order"); // exact matches not in order
+    	}
+    	else
+    		currentExact = false; // should be at end of exact matches
+    }
+    
+  }
+  
+  @Test
+  public void testSearchPhrase() throws Exception {
+	String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    
+    // Valid test
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=phrase");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+        
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    List<Concept> conceptList = list.getConcepts();
+    boolean currentExact = true;
+    for (Concept concept : conceptList) {
+    	if(concept.getName().equalsIgnoreCase("malignant bone neoplasm") ||
+    	  !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+    	  !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty() ||
+    	  !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty()) { // found match
+    		if(!currentExact) // check still in front
+    			fail("Exact Matches not in order");
+    	}
+    	else
+    		currentExact = false; // should be at end of exact matches
+    }
+        
+  }
+  
+  @Test
+  public void testSearchStartsWith() throws Exception {
+	String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    
+    // Valid test
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=startsWith");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+    
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    List<Concept> conceptList = list.getConcepts();
+    for(Concept concept : conceptList) {
+    	assertThat(concept.getName().startsWith("braf") ||
+    			   !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty());
+    }
+    
+    
+    //phrase term check
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    for(Concept concept : conceptList) {
+    	assertThat(concept.getName().startsWith("malignant bone neoplasm") ||
+    			   !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().startsWith("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().startsWith("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().startsWith("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty());
+    }
+    
+    
+  }
+  
+  @Test
+  public void testSearchAND() throws Exception {
+	String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+        
+    // phrase term check
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    List<Concept> conceptList = list.getConcepts();
+    for(Concept concept : conceptList) {
+    	assertThat((concept.getName().contains("malignant") && concept.getName().contains("bone") && concept.getName().contains("neoplasm")) ||
+    	!concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().contains("malignant")).
+    								    filter(p -> p.getName().toLowerCase().contains("bone")).
+    								    filter(p -> p.getName().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty() ||
+    	!concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().contains("malignant")).
+	    								  filter(p -> p.getValue().toLowerCase().contains("bone")).
+	    								  filter(p -> p.getValue().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty() ||
+	    !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().contains("malignant")).
+	    								   filter(p -> p.getDefinition().toLowerCase().contains("bone")).
+	    								   filter(p -> p.getDefinition().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty()
+    	);
+    	
+    }
+    
+  }
+  
+  @Test
+  public void testSearchOR() throws Exception {
+	String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    
+    // Valid test
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=OR");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+    
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    List<Concept> conceptList = list.getConcepts();
+    for(Concept concept : conceptList) {
+    	assertThat((concept.getName().contains("malignant") && concept.getName().contains("bone") && concept.getName().contains("neoplasm")) ||
+    	!concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().contains("braf")).collect(Collectors.toList()).isEmpty() ||
+    	!concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().contains("braf")).collect(Collectors.toList()).isEmpty() ||
+	    !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().contains("braf")).collect(Collectors.toList()).isEmpty()
+    	);
+    	
+    }
+    
+    
+    // phrase term check
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=OR");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    for(Concept concept : conceptList) {
+    	boolean found = false;
+    	if(concept.getName().toLowerCase().contains("malignant") || concept.getName().toLowerCase().contains("bone") || concept.getName().toLowerCase().contains("neoplasm"))
+    		continue;
+    	for(Synonym syn : concept.getSynonyms()) {
+    		if(syn.getName().toLowerCase().contains("malignant") || syn.getName().toLowerCase().contains("bone") || syn.getName().toLowerCase().contains("neoplasm")) {
+    			found = true;
+    		}
+    	}
+    	if(found)
+    		continue;
+    	for(Property prop : concept.getProperties()) {
+    		if(prop.getValue().toLowerCase().contains("malignant") || prop.getValue().toLowerCase().contains("bone") || prop.getValue().toLowerCase().contains("neoplasm")) {
+    			found = true;
+    		}
+    	}
+    	if(found)
+    		continue;
+    	for(Definition def : concept.getDefinitions()) {
+    		if(def.getDefinition().toLowerCase().contains("malignant") || def.getDefinition().toLowerCase().contains("bone") || def.getDefinition().toLowerCase().contains("neoplasm")) {
+    			found = true;
+    		}
+    	}
+    	if(!found)
+    		assertThat(found);
+    	
+    }
+    
+  }
+  
+  @Test
+  public void testSearchExact() throws Exception {
+	String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    
+    // Valid test
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=match");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+    
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    List<Concept> conceptList = list.getConcepts();
+    for(Concept concept : conceptList) {
+    	assertThat(concept.getName().equalsIgnoreCase("braf") ||
+    			   !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getProperties().stream().filter(p -> p.getValue().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty());
+    }
+    
+    
+    // phrase term check
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=match");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+    content = result.getResponse().getContentAsString();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    for(Concept concept : conceptList) {
+    	assertThat(concept.getName().equalsIgnoreCase("malignant bone neoplasm") ||
+    			   !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getProperties().stream().filter(p -> p.getValue().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+    			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty());
+    }
+    
+  }
+  
+  @Test
+  public void testSearchCode() throws Exception {
+	  String url = baseUrl;
+	  MvcResult result = null;
+	  ConceptResultList list = null;
+	  ConceptResultList list2 = null;
+	  log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  
+	  log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+	  list2 = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  
+	  assertThat(list.getConcepts().get(0).equals(list2.getConcepts().get(0))); // make sure code matches name for first result at least
+  }
+  
+  @Test
+  public void testSearchFuzzy() throws Exception {
+	  String url = baseUrl;
+	  MvcResult result = null;
+	  ConceptResultList list = null;
+	  ConceptResultList list2 = null;
+	  log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=fuzzy");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  
+	  log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+    		.andExpect(status().isOk()).andReturn();
+    
+	  list2 = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  
+	  assertThat(list.getTotal() > list2.getTotal()); //should be more in fuzzy search
+  }
+  
+  
 
   /**
    * Removes the time taken.

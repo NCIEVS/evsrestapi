@@ -83,42 +83,42 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /** The children. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
+  //@Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> children;
 
   /** The parents. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
+  //@Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> parents;
 
   /** The descendants. */
   private List<Concept> descendants;
 
   /** The associations. */
-  @Field(type = FieldType.Nested)
+  //@Field(type = FieldType.Nested)
   private List<Association> associations;
 
   /** The inverse associations. */
-  @Field(type = FieldType.Nested)
+  //@Field(type = FieldType.Nested)
   private List<Association> inverseAssociations;
 
   /** The roles. */
-  @Field(type = FieldType.Nested)
+  //@Field(type = FieldType.Nested)
   private List<Role> roles;
 
   /** The disjoint with. */
-  @Field(type = FieldType.Nested)
+  //@Field(type = FieldType.Nested)
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
-  @Field(type = FieldType.Nested)
+  //@Field(type = FieldType.Nested)
   private List<Role> inverseRoles;
 
   /** The maps. */
-  @Field(type = FieldType.Nested)
+  //@Field(type = FieldType.Nested)
   private List<Map> maps;
 
   /** The paths to root. */
-  @Field(type = FieldType.Object)
+  //@Field(type = FieldType.Object)
   private Paths paths;
   
   /**

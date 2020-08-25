@@ -88,11 +88,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
             .field("name", 2f)
             .boost(10f))
         .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
-            .boost(2f))
-        .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max)
-            .boost(4f))
+            .boost(5f))
         .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
-            .boost(8f));
+            .boost(20f));
 
     // append terminology query
     QueryBuilder terminologyQuery = buildTerminologyQuery(searchCriteria);
