@@ -222,7 +222,7 @@ public class SearchControllerTests {
 
     // Page size too small
     url = baseUrl;
-    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=0");
     mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "0"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
@@ -305,15 +305,24 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(2);
-    // From 5 with page size of 9 (should match the last 9 records of
-    // pageSize of 14
+
+    // bad from record - fromRecord should be the first element of page
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=9&fromRecord=5");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&fromRecord=6");
+
+    result = mvc.perform(
+        get(url).param("terminology", "ncit").param("term", "melanoma").param("fromRecord", "6"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // From 5 with page size of 5 (should match the last 9 records of
+    // pageSize of 10
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=5&fromRecord=5");
 
     // Test a basic term search
     result = this.mvc
         .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-            .param("pageSize", "9").param("fromRecord", "5"))
+            .param("pageSize", "5").param("fromRecord", "5"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -321,14 +330,14 @@ public class SearchControllerTests {
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
-    assertThat(list.getConcepts().size()).isEqualTo(9);
+    assertThat(list.getConcepts().size()).isEqualTo(5);
     final List<Concept> cl1 = list.getConcepts();
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=14");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=10");
 
     // Test a basic term search
     result = this.mvc
         .perform(
-            get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "14"))
+            get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "10"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -336,9 +345,9 @@ public class SearchControllerTests {
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
-    assertThat(list.getConcepts().size()).isEqualTo(14);
-    assertThat(list.getConcepts().subList(5, 14).toString()).isEqualTo(cl1.toString());
- 
+    assertThat(list.getConcepts().size()).isEqualTo(10);
+    assertThat(list.getConcepts().subList(5, 10).toString()).isEqualTo(cl1.toString());
+
     // Bad page size = -1
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=-1");
@@ -464,18 +473,22 @@ public class SearchControllerTests {
     assertThat(content).isEqualTo(content2);
 
     // BAD property type
-    url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=XAV05295I5&property=P999999");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "XAV05295I5")
-        .param("property", "P999999")).andExpect(status().isBadRequest()).andReturn();
-
-    // Test with single terminology form
-    url = "/api/v1/concept/ncit/search";
-    log.info("Testing url - " + url + "?term=XAV05295I5&property=P999999");
-
-    result = this.mvc.perform(get(url).param("term", "XAV05295I5").param("property", "P999999"))
-        .andExpect(status().isBadRequest()).andReturn();
-
+    // url = baseUrl;
+    // log.info("Testing url - " + url +
+    // "?terminology=ncit&term=XAV05295I5&property=P999999");
+    //
+    // result = mvc.perform(get(url).param("terminology", "ncit").param("term",
+    // "XAV05295I5")
+    // .param("property",
+    // "P999999")).andExpect(status().isBadRequest()).andReturn();
+    //
+    // // Test with single terminology form
+    // url = "/api/v1/concept/ncit/search";
+    // log.info("Testing url - " + url + "?term=XAV05295I5&property=P999999");
+    //
+    // result = this.mvc.perform(get(url).param("term",
+    // "XAV05295I5").param("property", "P999999"))
+    // .andExpect(status().isBadRequest()).andReturn();
     log.info("Done Testing testSearchProperty ");
   }
 
@@ -504,7 +517,7 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    assertThat(list.getConcepts().get(0).getName()).isEqualToIgnoringCase("enzyme");
+    assertThat(list.getConcepts().get(0).getName()).containsIgnoringCase("enzyme");
 
     // Exact search
     log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&type=exact");
@@ -602,11 +615,10 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // Retired_Concept
-    log.info(
-        "Testing url - " + url + "?terminology=ncit&term=melanoma&conceptStatus=Retired_Concept");
+    log.info("Testing url - " + url + "?terminology=ncit&term=crop&conceptStatus=Obsolete_Concept");
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-        .param("conceptStatus", "Retired_Concept")).andExpect(status().isOk()).andReturn();
+        .param("conceptStatus", "Obsolete_Concept")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
@@ -614,9 +626,9 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     // Bad value
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&conceptStatus=Bad_Value");
+    log.info("Testing url - " + url + "?terminology=ncit&term=crop&conceptStatus=Bad_Value");
 
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "crop")
         .param("conceptStatus", "Bad_Value")).andExpect(status().isBadRequest()).andReturn();
 
     log.info("Done Testing testSearchType");
@@ -640,7 +652,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymSource=NCI");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-            .param("synonymSource", "NCI").param("include", "synonyms"))
+            .param("synonymSource", "CDISC").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -650,7 +662,7 @@ public class SearchControllerTests {
 
     boolean found = false;
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
-      if (syn.getName().contains("dsDNA") && syn.getSource().equals("NCI")) {
+      if (syn.getName().contains("dsDNA") && syn.getSource().equals("CDISC")) {
         found = true;
         break;
       }
@@ -659,7 +671,7 @@ public class SearchControllerTests {
 
     // Test synonymSource+SynonymTermGroup
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=dsDNA&synonymSource=NCI&synonymTermGroup=PT");
+        + "?terminology=ncit&term=dsDNA&synonymSource=NCI&synonymTermGroup=SY");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
         .param("synonymSource", "NCI").param("synonymTermGroup", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
@@ -671,7 +683,7 @@ public class SearchControllerTests {
 
     found = false;
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
-      if (syn.getName().contains("dsDNA") && syn.getSource().equals("NCI")
+      if (syn.getName().contains("dsDNA") && syn.getSource().equals("CDISC")
           && syn.getTermGroup().equals("SY")) {
         found = true;
         break;
@@ -686,6 +698,74 @@ public class SearchControllerTests {
         .param("synonymSource", "Bad_Value")).andExpect(status().isBadRequest()).andReturn();
 
     log.info("Done Testing testSynonymSource");
+
+  }
+
+  /**
+   * Test synonym termGroup.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSynonymTermGroup() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Test single SynonymTermGroup
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermGroup=SY");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+            .param("synonymTermGroup", "SY").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    boolean found = false;
+    for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
+      if (syn.getName().contains("dsDNA") && syn.getTermGroup().equals("SY")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+    // Test multiple SynonymTermGroup
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermGroup=DN,SY&");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+            .param("synonymTermGroup", "DN,SY").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    found = false;
+    boolean found1 = false;
+    for (final Concept concept : list.getConcepts()) {
+      for (final Synonym syn : concept.getSynonyms()) {
+        if (syn.getName().contains("DNA")) {
+          if (!found)
+            found = "SY".equals(syn.getTermGroup());
+          if (!found1)
+            found1 = "PT".equals(syn.getTermGroup());
+          if (found && found1)
+            break;
+        }
+      }
+    }
+
+    log.info("found = {}, found1 = {}", found, found1);
+    assertThat(found && found1).isTrue();
+
+    log.info("Done Testing testSynonymTermGroup");
 
   }
 

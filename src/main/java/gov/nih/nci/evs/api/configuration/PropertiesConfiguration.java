@@ -12,10 +12,8 @@ import org.springframework.context.annotation.Configuration;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
-import gov.nih.nci.evs.api.properties.MetadataProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.properties.SwaggerProperties;
-import gov.nih.nci.evs.api.properties.ThesaurusProperties;
+import gov.nih.nci.evs.api.properties.ThesaurusDocumentationProperties;
 
 /**
  * Properties configuration.
@@ -94,31 +92,10 @@ public class PropertiesConfiguration {
    * @return the thesaurus properties
    */
   @Bean
-  @ConfigurationProperties(prefix = "thesaurus.owl", ignoreUnknownFields = false)
-  ThesaurusProperties thesaurusProperties() {
-    return new ThesaurusProperties();
+  @ConfigurationProperties(prefix = "ncit.doc", ignoreUnknownFields = false)
+  ThesaurusDocumentationProperties thesaurusDocumentationProperties() {
+    return new ThesaurusDocumentationProperties();
   }
 
-  /**
-   * Metadata properties.
-   * 
-   * @return the metadata properties
-   */
-  @Bean
-  @ConfigurationProperties(prefix = "thesaurus.metadata", ignoreUnknownFields = false)
-  MetadataProperties metadataProperties() {
-    return new MetadataProperties();
-  }
-
-  /**
-   * Swagger properties.
-   *
-   * @return the swagger properties
-   */
-  @Bean
-  @ConfigurationProperties(prefix = "swagger.documentation", ignoreUnknownFields = false)
-  SwaggerProperties swaggerProperties() {
-    return new SwaggerProperties();
-  }
 
 }

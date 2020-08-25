@@ -1,82 +1,53 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.Date;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.data.elasticsearch.annotations.DateFormat;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+
 /**
  * Metric.
  */
+@Document(indexName = "default", type = "_doc")
 public class Metric {
 
-  /** The metric id. */
-  private Long metricId;
-
-  /** The username. */
-  private String username;
-
   /** The remote ip address. */
+  @Field(type = FieldType.Text)
   private String remoteIpAddress;
 
-  /** The organization. */
-  private String organization;
-
-  /** The application name. */
-  private String applicationName;
-
   /** The end point. */
+  @Field(type = FieldType.Text)
   private String endPoint;
 
-  /** The class name. */
-  private String className;
-
-  /** The method name. */
-  private String methodName;
-
   /** The query params. */
-  private String queryParams;
+  @Field(type = FieldType.Object)
+  private Map<String, String[]> queryParams;
 
   /** The start time. */
-  private String startTime;
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  private Date startTime;
 
   /** The end time. */
-  private String endTime;
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  private Date endTime;
 
   /** The duration. */
+  @Field(type = FieldType.Long)
   private Long duration;
 
-  /**
-   * Returns the metric id.
-   *
-   * @return the metric id
-   */
-  public Long getMetricId() {
-    return metricId;
-  }
-
-  /**
-   * Sets the metric id.
-   *
-   * @param metricId the metric id
-   */
-  public void setMetricId(Long metricId) {
-    this.metricId = metricId;
-  }
-
-  /**
-   * Returns the username.
-   *
-   * @return the username
-   */
-  public String getUsername() {
-    return username;
-  }
-
-  /**
-   * Sets the username.
-   *
-   * @param username the username
-   */
-  public void setUsername(String username) {
-    this.username = username;
-  }
+  /** The hostname */
+  @Field(type = FieldType.Text)
+  private String hostName;
 
   /**
    * Returns the remote ip address.
@@ -94,42 +65,6 @@ public class Metric {
    */
   public void setRemoteIpAddress(String remoteIpAddress) {
     this.remoteIpAddress = remoteIpAddress;
-  }
-
-  /**
-   * Returns the organization.
-   *
-   * @return the organization
-   */
-  public String getOrganization() {
-    return organization;
-  }
-
-  /**
-   * Sets the organization.
-   *
-   * @param organization the organization
-   */
-  public void setOrganization(String organization) {
-    this.organization = organization;
-  }
-
-  /**
-   * Returns the application name.
-   *
-   * @return the application name
-   */
-  public String getApplicationName() {
-    return applicationName;
-  }
-
-  /**
-   * Sets the application name.
-   *
-   * @param applicationName the application name
-   */
-  public void setApplicationName(String applicationName) {
-    this.applicationName = applicationName;
   }
 
   /**
@@ -151,47 +86,11 @@ public class Metric {
   }
 
   /**
-   * Returns the class name.
-   *
-   * @return the class name
-   */
-  public String getClassName() {
-    return className;
-  }
-
-  /**
-   * Sets the class name.
-   *
-   * @param className the class name
-   */
-  public void setClassName(String className) {
-    this.className = className;
-  }
-
-  /**
-   * Returns the method name.
-   *
-   * @return the method name
-   */
-  public String getMethodName() {
-    return methodName;
-  }
-
-  /**
-   * Sets the method name.
-   *
-   * @param methodName the method name
-   */
-  public void setMethodName(String methodName) {
-    this.methodName = methodName;
-  }
-
-  /**
    * Returns the query params.
    *
    * @return the query params
    */
-  public String getQueryParams() {
+  public Map<String, String[]> getQueryParams() {
     return queryParams;
   }
 
@@ -200,7 +99,7 @@ public class Metric {
    *
    * @param queryParams the query params
    */
-  public void setQueryParams(String queryParams) {
+  public void setQueryParams(Map<String, String[]> queryParams) {
     this.queryParams = queryParams;
   }
 
@@ -209,7 +108,7 @@ public class Metric {
    *
    * @return the start time
    */
-  public String getStartTime() {
+  public Date getStartTime() {
     return startTime;
   }
 
@@ -218,7 +117,7 @@ public class Metric {
    *
    * @param startTime the start time
    */
-  public void setStartTime(String startTime) {
+  public void setStartTime(Date startTime) {
     this.startTime = startTime;
   }
 
@@ -227,7 +126,7 @@ public class Metric {
    *
    * @return the end time
    */
-  public String getEndTime() {
+  public Date getEndTime() {
     return endTime;
   }
 
@@ -236,7 +135,7 @@ public class Metric {
    *
    * @param endTime the end time
    */
-  public void setEndTime(String endTime) {
+  public void setEndTime(Date endTime) {
     this.endTime = endTime;
   }
 
@@ -256,6 +155,34 @@ public class Metric {
    */
   public void setDuration(Long duration) {
     this.duration = duration;
+  }
+
+    /**
+   * Returns the host name.
+   *
+   * @return the host name
+   */
+  public String getHostName() {
+    return hostName;
+  }
+
+  /**
+   * Sets the host name.
+   *
+   * @param hostName the host name
+   */
+  public void setHostName(String hostName) {
+    this.hostName = hostName;
+  }
+
+  /* see superclass */
+  @Override
+  public String toString() {
+    try {
+      return new ObjectMapper().writeValueAsString(this);
+    } catch (final Exception e) {
+      return e.getMessage();
+    }
   }
 
 }

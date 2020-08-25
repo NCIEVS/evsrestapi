@@ -4,24 +4,41 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 /**
  * Represents a synonym of a concept.
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Definition extends BaseModel {
 
   /** The definition. */
+  @Field(type = FieldType.Text)
   private String definition;
 
   /** The highlight. */
+  @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private String highlight;
 
   /** The type. */
+  @Field(type = FieldType.Text)
   private String type;
 
   /** The source. */
+  @Field(type = FieldType.Text)
   private String source;
 
   /** The qualifiers. */
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**

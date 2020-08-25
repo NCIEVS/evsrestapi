@@ -54,7 +54,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   private List<String> definitionSource;
 
   /** The synonym term group. */
-  private String synonymTermGroup;
+  private List<String> synonymTermGroup;
 
   /** The inverse. */
   // private Boolean inverse = null;
@@ -98,7 +98,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     property = new ArrayList<>(other.getProperty());
     // role = new ArrayList<>(other.getRole());
     synonymSource = new ArrayList<>(other.getSynonymSource());
-    synonymTermGroup = other.getSynonymTermGroup();
+    synonymTermGroup = new ArrayList<>(other.getSynonymTermGroup());
     term = other.getTerm();
     type = other.getType();
   }
@@ -282,7 +282,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the synonym term group
    */
-  public String getSynonymTermGroup() {
+  public List<String> getSynonymTermGroup() {
+    if (synonymTermGroup == null) {
+      synonymTermGroup = new ArrayList<>();
+    }
     return synonymTermGroup;
   }
 
@@ -291,7 +294,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @param synonymTermGroup the synonym term group
    */
-  public void setSynonymTermGroup(final String synonymTermGroup) {
+  public void setSynonymTermGroup(final List<String> synonymTermGroup) {
     this.synonymTermGroup = synonymTermGroup;
   }
 
@@ -374,6 +377,15 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Check required fields.
+   *
+   * @return true, if successful
+   */
+  public boolean checkPagination() {
+    return (pageSize > 0 && fromRecord % pageSize == 0);
   }
 
   /**

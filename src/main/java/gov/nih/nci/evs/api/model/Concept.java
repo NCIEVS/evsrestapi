@@ -5,6 +5,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
+
 /**
  * Represents a concept with a code from a terminology.
  * 
@@ -32,53 +45,82 @@ import java.util.List;
  * }
  * </pre>
  */
+@Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
+@JsonInclude(Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Concept extends ConceptMinimal {
 
   /** The highlight. */
+  @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private String highlight;
 
   /** The highlights. */
+  @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private java.util.Map<String, String> highlights;
 
   /** The level. */
+  @Field(type = FieldType.Integer)
   private Integer level;
 
   /** The leaf. */
+  @Field(type = FieldType.Boolean)
   private Boolean leaf;
 
   /** The synonyms. */
+  @Field(type = FieldType.Nested)
   private List<Synonym> synonyms;
 
   /** The definitions. */
+  @Field(type = FieldType.Nested)
   private List<Definition> definitions;
 
   /** The properties. */
+  @Field(type = FieldType.Nested)
   private List<Property> properties;
 
   /** The children. */
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> children;
 
   /** The parents. */
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
   private List<Concept> parents;
 
+  /** The descendants. */
+  private List<Concept> descendants;
+
   /** The associations. */
+  @Field(type = FieldType.Nested)
   private List<Association> associations;
 
   /** The inverse associations. */
+  @Field(type = FieldType.Nested)
   private List<Association> inverseAssociations;
 
   /** The roles. */
+  @Field(type = FieldType.Nested)
   private List<Role> roles;
 
   /** The disjoint with. */
+  @Field(type = FieldType.Nested)
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
+  @Field(type = FieldType.Nested)
   private List<Role> inverseRoles;
 
   /** The maps. */
+  @Field(type = FieldType.Nested)
   private List<Map> maps;
 
+  /** The paths to root. */
+  @Field(type = FieldType.Object)
+  private Paths paths;
+  
   /**
    * Instantiates an empty {@link Concept}.
    */
@@ -120,15 +162,6 @@ public class Concept extends ConceptMinimal {
    *
    * @param other the other
    */
-  public Concept(final ConceptNode other) {
-    super(other);
-  }
-
-  /**
-   * Instantiates a {@link Concept} from the specified parameters.
-   *
-   * @param other the other
-   */
   public Concept(final HierarchyNode other) {
     super(other.getCode());
     setName(other.getLabel());
@@ -163,6 +196,9 @@ public class Concept extends ConceptMinimal {
     inverseRoles = new ArrayList<>(other.getInverseRoles());
     disjointWith = new ArrayList<>(other.getDisjointWith());
     maps = new ArrayList<>(other.getMaps());
+    if (other.getPaths() != null) {
+      paths = other.getPaths();
+    }
   }
 
   /**
@@ -346,6 +382,28 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Returns the descendants.
+   *
+   * @return the descendants
+   */
+  public List<Concept> getDescendants() {
+    if (descendants == null) {
+      descendants = new ArrayList<>();
+    }
+    return descendants;
+  }
+
+  /**
+   * Sets the descendants.
+   *
+   * @param descendants the descendants
+   */
+  public void setDescendants(final List<Concept> descendants) {
+    this.descendants = descendants;
+  }
+
+
+  /**
    * Returns the associations.
    *
    * @return the associations
@@ -471,4 +529,21 @@ public class Concept extends ConceptMinimal {
     this.maps = maps;
   }
 
+  /**
+   * Returns the paths.
+   * 
+   * @return
+   */
+  public Paths getPaths() {
+    return paths;
+  }
+
+  /**
+   * Sets the paths.
+   * 
+   * @param paths the paths to root
+   */
+  public void setPaths(Paths paths) {
+    this.paths = paths;
+  }
 }

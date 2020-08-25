@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.util;
-
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
 
@@ -15,7 +14,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
-import org.apache.commons.codec.binary.Base64;
+//import org.apache.commons.codec.binary.Base64;
 import org.json.*;
 
 /**
@@ -244,7 +243,14 @@ public class OWLSPARQLUtils {
             	json = httpUtils.executeQuery(query);
             	v = new JSONUtils().parseJSON(json);
 			} else {
-				v = httpUtils.execute(this.serviceUrl, this.username, this.password, query, false); // no parser
+
+				RESTUtils restUtils = new RESTUtils(this.username, this.password, 100000, 100000);
+				String response = restUtils.runSPARQL(query, serviceUrl);
+				v = new JSONUtils().parseJSON(response);
+				//v = parser.getResponseValues(v);
+				//Utils.dumpVector("v", v);
+
+				//v = httpUtils.execute(this.serviceUrl, this.username, this.password, query, false); // no parser
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -1537,7 +1543,8 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getObjectValuedAnnotationProperties(String named_graph) {
-		Vector v = executeQuery(construct_get_object_valued_annotation_properties(named_graph));
+		String query = construct_get_object_valued_annotation_properties(named_graph);
+		Vector v = executeQuery(query);
 		Vector w = new ParserUtils().getResponseValues(v);
 		w = new SortUtils().quickSort(w);
 		return w;
@@ -3620,7 +3627,7 @@ public class OWLSPARQLUtils {
 		String params = "String named_graph, String code";
         */
 		String query = getQuery(query_file);
-		System.out.println(query);
+		//System.out.println(query);
         /*
 	    Utils.generate_construct_statement(method_name, params, query_file);
 
@@ -4225,7 +4232,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 			Vector u = StringUtils.parseData(property_name_code, "|");
 			String property_name = (String) u.elementAt(0);
 			lcv++;
-			System.out.println("(" + lcv + ") " + property_name);
+			//System.out.println("(" + lcv + ") " + property_name);
 			String property_code = (String) u.elementAt(1);
 			Vector v = null;
 			try {
@@ -4776,7 +4783,7 @@ Term Type
 		String serviceUrl = args[0];
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
         String named_graph = args[1];
-        String queryfile = args[2];
+        //String queryfile = args[2];
         owlSPARQLUtils.set_named_graph(named_graph);
         Vector v = owlSPARQLUtils.getAllConceptProperties(named_graph);
         Utils.saveToFile("all_properties.txt", v);
@@ -4785,41 +4792,6 @@ Term Type
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
 
-	public static void test2(String[] args) {
-		long ms = System.currentTimeMillis();
-		String serviceUrl = args[0];
-		System.out.println(serviceUrl);
-		//MetadataUtils metadataUtils = new MetadataUtils(serviceUrl);
-		String codingScheme = "NCI_Thesaurus";
-		//String version = metadataUtils.getLatestVersion(codingScheme);
-		System.out.println(codingScheme);
-		//System.out.println(version);
-		String named_graph = args[1]; //test.getNamedGraph(codingScheme);
-		System.out.println(named_graph);
-		ParserUtils parser = new ParserUtils();
-
-		String username = args[2]; //ConfigurationController.username;
-		String password = args[3]; //ConfigurationController.password;
-
-		System.out.println("username: " + username);
-		System.out.println("password: " + password);
-
-    	OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
-		String inputfile = args[4];
-		Vector codes = Utils.readFile(inputfile);
-		Utils.dumpVector("codes", codes);
-		for (int i=0; i<codes.size(); i++) {
-			String concept_code = (String) codes.elementAt(i);
-			Vector w = owlSPARQLUtils.getLabelByCode(named_graph, concept_code);
-			w = new ParserUtils().getResponseValues(w);
-			String label = (String) w.elementAt(0);
-			int j = i+1;
-			System.out.println("(" + j + ") " + label + " (" + concept_code + ")");
-			HashMap prop_map = owlSPARQLUtils.getPropertyHashMapByCode(named_graph, concept_code);
-			Utils.dumpMultiValuedHashMap("prop_map", prop_map);
-		}
-		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-	}
 
 
     public Vector getDefinitions(String named_graph, String code, String prop_label) {
@@ -4847,12 +4819,5 @@ Term Type
 	public Vector getCodeByLabel(String named_graph, String label) {
 		return executeQuery(construct_get_code_by_label(named_graph, label));
 	}
-
-	public static void main(String[] args) {
-		if (args.length == 2) {
-			test1(args);
-		} else {
-			test2(args);
-		}
-	}
 }
+

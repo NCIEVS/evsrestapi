@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
+import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.support.ApplicationVersion;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,9 +31,10 @@ public class VersionController {
   @ApiOperation(value = "Get the application version information", response = ApplicationVersion.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/version", produces = "application/json")
   public @ResponseBody ApplicationVersion getApplicationVersion() throws IOException {
     final ApplicationVersion homePageData = new ApplicationVersion();
@@ -43,7 +44,7 @@ public class VersionController {
         + "To learn more about how to interact with this api, see the  "
         + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK' "
         + "target='_blank'>Github evsrestapi-client-SDK project</a>.");
-    homePageData.setVersion("1.1.1.RELEASE");
+    homePageData.setVersion("1.2.0.RELEASE");
     return homePageData;
   }
 

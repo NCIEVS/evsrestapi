@@ -13,6 +13,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -39,6 +40,8 @@ public class RESTUtils {
   /** The connect timeout. */
   private Duration connectTimeout;
 
+  private RestTemplateBuilder builder;
+
   /**
    * Instantiates an empty {@link RESTUtils}.
    */
@@ -58,6 +61,8 @@ public class RESTUtils {
     this.password = password;
     this.readTimeout = Duration.ofSeconds(readTimeout);
     this.connectTimeout = Duration.ofSeconds(connectTimeout);
+    builder = new RestTemplateBuilder().basicAuthentication(username, password)
+        .setReadTimeout(this.readTimeout).setConnectTimeout(this.connectTimeout);
   }
 
   /**
@@ -68,9 +73,10 @@ public class RESTUtils {
    * @return the string
    */
   public String runSPARQL(String query, String restURL) {
-    RestTemplate restTemplate =
-        new RestTemplateBuilder().rootUri(restURL).basicAuthentication(username, password)
-            .setReadTimeout(readTimeout).setConnectTimeout(connectTimeout).build();
+
+    RestTemplate restTemplate = new RestTemplate();
+    restTemplate.getInterceptors().add(
+        new BasicAuthenticationInterceptor(username, password));
     restTemplate.getMessageConverters().add(0,
         new StringHttpMessageConverter(Charset.forName("UTF-8")));
     MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();

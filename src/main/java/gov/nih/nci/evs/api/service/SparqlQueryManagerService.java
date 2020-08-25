@@ -118,7 +118,7 @@ public interface SparqlQueryManagerService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  public List<String> getAxiomQualifiersList(String propertyCode, Terminology terminology)
+  public List<String> getQualifierValues(String propertyCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -330,20 +330,7 @@ public interface SparqlQueryManagerService {
    */
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
-
-  /**
-   * Returns the path in hierarchy.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @return the path in hierarchy
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
-
+  
   /**
    * Returns the path to root.
    *
@@ -470,6 +457,8 @@ public interface SparqlQueryManagerService {
   String getConceptLabel(String conceptCode, Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
 
+  List<Concept> getConcepts(List<String> conceptCodes, Terminology terminology, HierarchyUtils hierarchy) throws IOException;
+  
   /**
    * Returns the properties.
    *
@@ -550,20 +539,6 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
-   * Check path in hierarchy.
-   *
-   * @param code the code
-   * @param node the node
-   * @param path the path
-   * @param terminology the terminology
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
-
-  /**
    * Get hiearchy for a given terminology.
    *
    * @param terminology the terminology
@@ -586,4 +561,35 @@ public interface SparqlQueryManagerService {
    */
   Paths getPaths(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * gets all concepts (minimal)
+   * 
+   * @param terminology the terminology
+   * @return list of concept objects
+   */
+  List<Concept> getAllConcepts(Terminology terminology) throws JsonMappingException, JsonProcessingException;
+
+  
+  /**
+   * checks path in hierarchy
+   * 
+   * @param code the code
+   * @param node the HierarchyNode
+   * @param path the path to check
+   * @param terminology the terminology
+   * @return N/A
+   */
+  void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology)
+		throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * checks path in hierarchy
+   * 
+   * @param code the code
+   * @param terminology the terminology
+   * @return list of HierarchyNodes as a path
+   */
+  List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
+		throws JsonParseException, JsonMappingException, IOException;
 }

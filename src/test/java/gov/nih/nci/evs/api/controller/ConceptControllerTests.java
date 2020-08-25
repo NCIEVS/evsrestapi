@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -95,6 +96,37 @@ public class ConceptControllerTests {
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
+
+  }
+
+  /**
+   * Test get full concept.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptFull() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test with "by code"
+    url = baseUrl + "/ncit/C3224?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C3224");
+    assertThat(concept.getName()).isEqualTo("Melanoma");
+    assertThat(concept.getTerminology()).isEqualTo("ncit");
+
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
 
   }
 
@@ -462,15 +494,14 @@ public class ConceptControllerTests {
       // n/a
     });
     log.info("  list = " + list.size());
+    Predicate<Concept> byLevel = concept -> concept.getLevel() > 0;
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
-    // nothing should have children
-    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isEqualTo(0);
-    // nothing should be a leaf node
-    assertThat(list.stream().filter(c -> c.getLeaf() != null && c.getLeaf()).count()).isEqualTo(0);
+    // preserve level
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size() > 0);
 
-    // Test maxLevel
-    url = baseUrl + "/ncit/C7058/descendants?maxLevel=2";
+    // Test fromRecord and pageSize
+    url = baseUrl + "/ncit/C7058/descendants?fromRecord=2&pageSize=5";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -481,28 +512,44 @@ public class ConceptControllerTests {
     });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
-    assertThat(list.size()).isGreaterThan(5);
-    // something should have children
-    assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
-    // something should have grand children
-    assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0
-            && c.getChildren().stream().filter(c2 -> c2.getChildren().size() > 0).count() > 0)
-        .count()).isGreaterThan(0);
-    // grand children should NOT have children
-    assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
-            .filter(c2 -> c2.getChildren().size() > 0
-                && c2.getChildren().stream().filter(c3 -> c3.getChildren().size() > 0).count() > 0)
-            .count() > 0)
-        .count()).isEqualTo(0);
-    // Some grand children should be leaf nodes
-    assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
-            .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren().stream()
-                .filter(c3 -> c3.getLeaf() != null && c3.getLeaf()).count() > 0)
-            .count() > 0)
-        .count()).isGreaterThan(0);
+    // check pageSize
+    assertThat(list.size() == 5);
+    // preserve level
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
+
+    // Test fromRecord and pageSize with larger values
+    url = baseUrl + "/ncit/C7057/descendants?fromRecord=200&pageSize=500";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    // check pageSize
+    assertThat(list.size() == 500);
+    // preserve level
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
+
+    // Test pageSize with BIG value
+    url = baseUrl + "/ncit/C7057/descendants?pageSize=10000";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    // check pageSize
+    assertThat(list.size() == 10000);
+    // preserve level
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
 
     // Test case without descendants
     url = baseUrl + "/ncit/C2291/descendants";
@@ -514,6 +561,38 @@ public class ConceptControllerTests {
       // n/a
     });
     assertThat(list).isEmpty();
+
+    // Test case with descendants < pageSize but non-zero
+    url = baseUrl + "/ncit/C2323/descendants?pageSize=10";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size() < 10);
+    
+    // Test case with maxLevel
+    url = baseUrl + "/ncit/C3510/descendants?maxLevel=2";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    byLevel = concept -> concept.getLevel() > 2;
+    assertThat(list).isNotEmpty();
+    int size = list.size();
+    assertThat(list.size()).isGreaterThan(5);
+    // preserve level
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).isEmpty());
+    byLevel = concept -> concept.getLevel() <= 2;
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size() == size);
   }
 
   /**
@@ -632,7 +711,6 @@ public class ConceptControllerTests {
     });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
-    assertThat(list.get(0).getSynonyms()).isNotEmpty();
   }
 
   /**
@@ -647,8 +725,7 @@ public class ConceptControllerTests {
     String content = null;
     List<HierarchyNode> list = null;
 
-    // NOTE, this includes a middle concept code that is bougs
-    url = baseUrl + "/ncit/C7058/subtree";
+    url = baseUrl + "/ncit/C40335/subtree";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -660,21 +737,22 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
+    // check that subtree is properly expanded
+    assertThat(list.stream().filter(n -> n.getExpanded() != null && n.getExpanded()).count())
+        .isGreaterThan(0);
     // something should have children
     assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
+    // none should have "level" set
+    assertThat(list.stream().filter(c -> c.getLevel() != null).count()).isEqualTo(0);
+    // children should not have "level" set
+    assertThat(list.stream().flatMap(c -> c.getChildren().stream())
+        .filter(c -> c.getLevel() != null).count()).isEqualTo(0);
     // there should be a leaf node in the hierarchy
     assertThat(hasLeafNode(list)).isTrue();
     // something should have grand children
     assertThat(list.stream()
         .filter(c -> c.getChildren().size() > 0
             && c.getChildren().stream().filter(c2 -> c2.getChildren().size() > 0).count() > 0)
-        .count()).isGreaterThan(0);
-    // Some grand children should be leaf nodes
-    assertThat(list.stream()
-        .filter(c -> c.getChildren().size() > 0 && c.getChildren().stream()
-            .filter(c2 -> c2.getChildren().size() > 0 && c2.getChildren().stream()
-                .filter(c3 -> c3.getLeaf() != null && c3.getLeaf()).count() > 0)
-            .count() > 0)
         .count()).isGreaterThan(0);
 
     // Test case with bad terminology
@@ -694,6 +772,19 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(5);
+    // none should have "level" set
+    assertThat(list.stream().filter(c -> c.getLevel() != null).count()).isEqualTo(0);
+
+    // Test case with top level term
+    url = baseUrl + "/ncit/C12913/subtree";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isOk());
 
     // Test case with bad terminology
     url = baseUrl + "/test/C2291/subtree/children";
@@ -760,6 +851,21 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
+    
+    url = baseUrl + "/ncit/C3224/pathsFromRoot?include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
   }
 
@@ -817,6 +923,20 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
+    
+    url = baseUrl + "/ncit/C3224/pathsToRoot?include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
   }
 
@@ -844,6 +964,7 @@ public class ConceptControllerTests {
       // n/a
     });
     log.info("  list = " + list.size());
+    log.info("  list values = " + list);
 
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
@@ -874,12 +995,28 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
+    
+    url = baseUrl + "/ncit/C3224/pathsToAncestor/C3224?include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    
+    // check format for ancestor of self
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).get(0).getVersion()).isNotNull();
+    
+    assertThat(list.size() == 1); // single path
+    assertThat(list.get(0).size() == 1); // single element in path
+    assertThat(list.get(0).get(0).getLevel() == 0);
 
   }
 
   /**
-   * Checks if hierarchy has a leaf node anywhere in the hierarchy
-   * 
+   * Checks if hierarchy has a leaf node anywhere in the hierarchy.
+   *
    * @param list list of hierarchy nodes
    * @return boolean true if hierarchy has a leaf node, else false
    */

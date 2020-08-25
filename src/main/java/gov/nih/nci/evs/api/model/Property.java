@@ -4,29 +4,44 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents a synonym of a concept.
  */
-@JsonIgnoreProperties(value = {
-    "code"
-})
+//@JsonIgnoreProperties(value = {
+//    "code"
+//})
+@JsonInclude(Include.NON_EMPTY)
 public class Property extends BaseModel {
 
   /** The code. */
+  @Field(type = FieldType.Text, store=false)
   private String code;
 
   /** The type. */
+  @Field(type = FieldType.Text)
   private String type;
 
   /** The value. */
+  @Field(type = FieldType.Text)
   private String value;
 
   /** The highlight. */
+  @Transient
+  @JsonSerialize
+  @JsonDeserialize
   private String highlight;
 
   /** The qualifiers. */
+  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**

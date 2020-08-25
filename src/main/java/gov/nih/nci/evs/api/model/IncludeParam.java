@@ -21,6 +21,9 @@ public class IncludeParam extends BaseModel {
   /** The children. */
   private boolean children;
 
+  /** The descendants. */
+  private boolean descendants;
+
   /** The parents. */
   private boolean parents;
 
@@ -44,6 +47,9 @@ public class IncludeParam extends BaseModel {
 
   /** The highlights. */
   private boolean highlights;
+
+  /** The paths. */
+  private boolean paths;
 
   /**
    * Instantiates an empty {@link IncludeParam}.
@@ -77,6 +83,8 @@ public class IncludeParam extends BaseModel {
           properties = true;
         } else if (part.equals("children")) {
           children = true;
+        } else if (part.equals("descendants")) {
+          descendants = true;
         } else if (part.equals("parents")) {
           parents = true;
         } else if (part.equals("associations")) {
@@ -93,10 +101,11 @@ public class IncludeParam extends BaseModel {
           highlights = true;
         } else if (part.equals("disjointWith")) {
           disjointWith = true;
+        } else if (part.equals("paths")) {
+          paths = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              "Invalid includes value = " + part
-                  + (part.equals(include) ? "" : "; " + include));
+              "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
         }
       }
     }
@@ -121,6 +130,7 @@ public class IncludeParam extends BaseModel {
     definitions = other.isDefinitions();
     properties = other.isProperties();
     children = other.isChildren();
+    descendants = other.isDescendants();
     parents = other.isParents();
     associations = other.isAssociations();
     inverseAssociations = other.isInverseAssociations();
@@ -129,6 +139,7 @@ public class IncludeParam extends BaseModel {
     maps = other.isMaps();
     highlights = other.isHighlights();
     disjointWith = other.isDisjointWith();
+    paths = other.isPaths();
 
   }
 
@@ -165,6 +176,10 @@ public class IncludeParam extends BaseModel {
     maps = true;
     highlights = true;
     disjointWith = true;
+
+    // Full doesn't include descendants and paths
+    // descendants = true;
+    // paths = true;
   }
 
   /**
@@ -173,9 +188,9 @@ public class IncludeParam extends BaseModel {
    * @return true, if successful
    */
   public boolean hasAnyTrue() {
-    return synonyms || definitions || properties || children || parents
-        || associations || inverseAssociations || roles || inverseRoles || maps
-        || disjointWith;
+    return synonyms || definitions || properties || children || descendants || parents
+        || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
+        || paths;
   }
 
   /**
@@ -248,6 +263,24 @@ public class IncludeParam extends BaseModel {
    */
   public void setChildren(boolean children) {
     this.children = children;
+  }
+
+  /**
+   * Indicates whether or not descendant is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isDescendants() {
+    return descendants;
+  }
+
+  /**
+   * Sets the descendants.
+   *
+   * @param descendants the descendants
+   */
+  public void setDescendant(boolean descendants) {
+    this.descendants = descendants;
   }
 
   /**
@@ -394,4 +427,21 @@ public class IncludeParam extends BaseModel {
     this.disjointWith = disjoint;
   }
 
+  /**
+   * Indicates whether or not paths is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isPaths() {
+    return paths;
+  }
+
+  /**
+   * Sets the disjoint.
+   *
+   * @param disjoint the disjoint
+   */
+  public void setPaths(boolean paths) {
+    this.paths = paths;
+  }
 }

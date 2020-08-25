@@ -449,6 +449,17 @@ public class Utils {
 		return w;
 	}
 
+    public static boolean deleteFile(String filename) {
+        File file = new File(filename);
+        if(file.delete())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 	public static Table constructTable(String label, Vector heading_vec, Vector data_vec) {
         return Table.construct_table(label, heading_vec, data_vec);

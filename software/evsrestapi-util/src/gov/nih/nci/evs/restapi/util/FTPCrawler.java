@@ -216,5 +216,23 @@ public class FTPCrawler {
 		return filter_link_vec(link_vec);
 	}
 
+
+    public static Vector listFileInfoAtFTPSite(String ftp_site) {
+		Vector w = new Vector();
+        try {
+            URL url = new URL(ftp_site);
+            URLConnection conn = url.openConnection();
+            InputStream inputStream = conn.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                w.add(line);
+            }
+            inputStream.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return w;
+    }
 }
 

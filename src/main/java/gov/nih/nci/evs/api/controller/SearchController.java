@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.aop.RecordMetricSearch;
+import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
@@ -66,6 +66,9 @@ public class SearchController extends BaseController {
   @Autowired
   MetadataService metadataService;
 
+  @Autowired
+  ElasticQueryService esQueryService;
+  
   /**
    * Search within a single terminology.
    *
@@ -108,7 +111,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
-          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
+          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
@@ -128,15 +131,15 @@ public class SearchController extends BaseController {
       // of associations to search. e.g A10,A215. <a
       // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
       // a list of NCI Thesaurus associations.</a>. The associations can be
-      // specified as code or label", required = false, dataType = "string",
+      // specified as code or name", required = false, dataType = "string",
       // paramType = "query", defaultValue = ""),
       // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
       // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
       // target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The
-      // roles can be specified as code or label", required = false, dataType =
+      // roles can be specified as code or name", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
-  @RecordMetricSearch
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
@@ -186,7 +189,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
-          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or label",
+          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
@@ -206,15 +209,15 @@ public class SearchController extends BaseController {
       // of associations to search. e.g A10,A215. <a
       // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
       // a list of NCI Thesaurus associations.</a>. The associations can be
-      // specified as code or label", required = false, dataType = "string",
+      // specified as code or name", required = false, dataType = "string",
       // paramType = "query", defaultValue = ""),
       // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
       // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
       // target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The
-      // roles can be specified as code or label", required = false, dataType =
+      // roles can be specified as code or name", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
-  @RecordMetricSearch
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList search(@ModelAttribute SearchCriteria searchCriteria,
@@ -241,6 +244,11 @@ public class SearchController extends BaseController {
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
     }
 
+    if (!searchCriteria.checkPagination()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "FromRecord should be the first record of a page!");
+    }
+    
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
     searchCriteria.setTerm(queryTerm);
     logger.debug("  Search = " + searchCriteria);
@@ -259,24 +267,26 @@ public class SearchController extends BaseController {
       final String terminology = searchCriteria.getTerminology().get(0);
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      final IncludeParam ip = searchCriteria.computeIncludeParam();
+//      final IncludeParam ip = searchCriteria.computeIncludeParam();
 
       searchCriteria.validate(term, metadataService);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
 
-      final List<Concept> concepts = new ArrayList<>();
+//      final List<Concept> concepts = new ArrayList<>();
       for (final Concept result : results.getConcepts()) {
-        final Concept concept = sparqlQueryManagerService.getConcept(result.getCode(), term, ip);
-        ConceptUtils.applyHighlights(concept, result.getHighlights());
+//        final Concept concept = esQueryService.getConcept(result.getCode(), term, ip).get();
+        ConceptUtils.applyHighlights(result, result.getHighlights());
         // Clear highlights now that they have been applied
-        concept.setHighlights(null);
-        concepts.add(concept);
+        result.setHighlights(null);
+//        concepts.add(concept);
       }
-      results.setConcepts(concepts);
+//      results.setConcepts(concepts);
       results.setTimeTaken(System.currentTimeMillis() - startDate);
       return results;
+    } catch (ResponseStatusException rse) {
+      throw rse;
     } catch (Exception e) {
       // TODO: remove this once updated elasticsearch is in place.
       if (e.getMessage().contains("invalid value")) {

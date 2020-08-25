@@ -1,9 +1,13 @@
 
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * Represents a map to a concept in another terminology.
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Map extends BaseModel {
 
   /** The type. */

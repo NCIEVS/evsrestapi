@@ -18,14 +18,14 @@ public class StardogProperties {
   /** The connect timeout. */
   private long connectTimeout;
 
-  /** The populate cache cron. */
-  private String populateCacheCron;
+  /** The host *. */
+  private String host;
 
-  /** The force populate cache. */
-  private String forcePopulateCache;
+  /** The port *. */
+  private String port;
 
-  /** The wait populate cache. */
-  private String waitPopulateCache;
+  /** The db. */
+  private String db;
 
   /** The query url. */
   private String queryUrl;
@@ -103,57 +103,57 @@ public class StardogProperties {
   }
 
   /**
-   * Returns the populate cache cron.
+   * Returns the host.
    *
-   * @return the populate cache cron
+   * @return the host
    */
-  public String getPopulateCacheCron() {
-    return populateCacheCron;
+  public String getHost() {
+    return host;
   }
 
   /**
-   * Sets the populate cache cron.
+   * Sets the host.
    *
-   * @param populateCacheCron the populate cache cron
+   * @param host the host
    */
-  public void setPopulateCacheCron(String populateCacheCron) {
-    this.populateCacheCron = populateCacheCron;
+  public void setHost(String host) {
+    this.host = host;
   }
 
   /**
-   * Returns the force populate cache.
+   * Returns the port.
    *
-   * @return the force populate cache
+   * @return the port
    */
-  public String getForcePopulateCache() {
-    return forcePopulateCache;
+  public String getPort() {
+    return port;
   }
 
   /**
-   * Sets the force populate cache.
+   * Set the port.
    *
-   * @param forcePopulateCache the force populate cache
+   * @param port the port
    */
-  public void setForcePopulateCache(String forcePopulateCache) {
-    this.forcePopulateCache = forcePopulateCache;
+  public void setPort(String port) {
+    this.port = port;
   }
 
   /**
-   * Returns the wait populate cache.
+   * Returns the db.
    *
-   * @return the wait populate cache
+   * @return the db
    */
-  public String getWaitPopulateCache() {
-    return waitPopulateCache;
+  public String getDb() {
+    return db;
   }
 
   /**
-   * Sets the wait populate cache.
+   * Sets the db.
    *
-   * @param waitPopulateCache the wait populate cache
+   * @param db the db
    */
-  public void setWaitPopulateCache(String waitPopulateCache) {
-    this.waitPopulateCache = waitPopulateCache;
+  public void setDb(String db) {
+    this.db = db;
   }
 
   /**

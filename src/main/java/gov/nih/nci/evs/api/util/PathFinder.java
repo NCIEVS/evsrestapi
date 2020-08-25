@@ -5,12 +5,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Stack;
 import java.util.Vector;
 
-import gov.nih.nci.evs.api.model.ConceptNode;
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 
@@ -68,7 +66,7 @@ public class PathFinder {
    * @return the roots
    */
   public ArrayList<String> getRoots() {
-    ArrayList<String> roots = this.hierarchy.getRoots();
+    ArrayList<String> roots = this.hierarchy.getHierarchyRoots();
     for (String root : roots) {
       System.out.println(root);
     }
@@ -83,11 +81,13 @@ public class PathFinder {
    */
   public Path createPath(String path) {
     Path p = new Path();
-    List<ConceptNode> concepts = new ArrayList<ConceptNode>();
+    List<Concept> concepts = new ArrayList<Concept>();
     String[] codes = path.split("\\|");
     for (int i = 0; i < codes.length; i++) {
       String name = hierarchy.getLabel(codes[i]);
-      ConceptNode concept = new ConceptNode(i, name, codes[i]);
+      Concept concept = new Concept(codes[i]);
+      concept.setLevel(i);
+      concept.setName(name);
       concepts.add(concept);
     }
 
@@ -104,7 +104,7 @@ public class PathFinder {
   public Paths findPaths() {
     Paths paths = new Paths();
     Deque<String> stack = new ArrayDeque<String>();
-    ArrayList<String> roots = this.hierarchy.getRoots();
+    ArrayList<String> roots = this.hierarchy.getHierarchyRoots();
     for (String root : roots) {
       stack.push(root);
     }
@@ -125,43 +125,43 @@ public class PathFinder {
 
     return paths;
   }
-
-  /**
-   * Find paths to roots.
-   *
-   * @param code the code
-   * @param hset the hset
-   * @return the paths
-   */
-  public Paths findPathsToRoots(String code, HashSet<String> hset) {
-    Paths paths = new Paths();
-    Stack<String> stack = new Stack<>();
-    stack.push(code);
-    while (!stack.isEmpty()) {
-      String path = (String) stack.pop();
-      Vector<String> u = parseData(path, '|');
-      String last_code = (String) u.elementAt(u.size() - 1);
-      List<String> sups = hierarchy.getSuperclassCodes(last_code);
-      if (sups == null) {
-        paths.add(createPath(path));
-      } else {
-        Vector<String> w = new Vector<>();
-        for (int i = 0; i < sups.size(); i++) {
-          String sup = (String) sups.get(i);
-          if (!hset.contains(sup)) {
-            w.add(sup);
-          }
-        }
-        if (w.size() == 0) {
-          paths.add(createPath(path));
-        } else {
-          for (int k = 0; k < w.size(); k++) {
-            String s = (String) w.elementAt(k);
-            stack.push(path + "|" + s);
-          }
-        }
-      }
-    }
-    return paths;
-  }
+//
+//  /**
+//   * Find paths to roots.
+//   *
+//   * @param code the code
+//   * @param hset the hset
+//   * @return the paths
+//   */
+//  public Paths findPathsToRoots(String code, HashSet<String> hset) {
+//    Paths paths = new Paths();
+//    Stack<String> stack = new Stack<>();
+//    stack.push(code);
+//    while (!stack.isEmpty()) {
+//      String path = (String) stack.pop();
+//      Vector<String> u = parseData(path, '|');
+//      String last_code = (String) u.elementAt(u.size() - 1);
+//      List<String> sups = hierarchy.getSuperclassCodes(last_code);
+//      if (sups == null) {
+//        paths.add(createPath(path));
+//      } else {
+//        Vector<String> w = new Vector<>();
+//        for (int i = 0; i < sups.size(); i++) {
+//          String sup = (String) sups.get(i);
+//          if (!hset.contains(sup)) {
+//            w.add(sup);
+//          }
+//        }
+//        if (w.size() == 0) {
+//          paths.add(createPath(path));
+//        } else {
+//          for (int k = 0; k < w.size(); k++) {
+//            String s = (String) w.elementAt(k);
+//            stack.push(path + "|" + s);
+//          }
+//        }
+//      }
+//    }
+//    return paths;
+//  }
 }

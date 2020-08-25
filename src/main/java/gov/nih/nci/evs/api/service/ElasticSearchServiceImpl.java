@@ -1,205 +1,453 @@
 
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.common.unit.Fuzziness;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.properties.ElasticServerProperties;
+import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
+import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
-/**
- * Reference implementation of {@link ElasticSearchService}. Includes hibernate
- * tags for MEME database.
- */
 @Service
 public class ElasticSearchServiceImpl implements ElasticSearchService {
 
   /** The Constant log. */
-  private static final Logger log = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
 
-  /** The elastic query builder. */
+  /** The Elasticsearch operations **/
   @Autowired
-  ElasticQueryBuilder elasticQueryBuilder;
+  ElasticsearchOperations operations;
 
-  /** The rest template. */
+  /** The sparql query manager service. */
   @Autowired
-  RestTemplate restTemplate;
-
-  /** The elastic server properties. */
-  @Autowired
-  ElasticServerProperties elasticServerProperties;
-
-  /** The object mapper. */
-  private static ObjectMapper objectMapper = new ObjectMapper();
+  SparqlQueryManagerService sparqlQueryManagerService;
 
   /**
-   * Construct return response.
+   * search for the given search criteria.
    *
-   * @param responseStr the response str
-   * @param searchCriteria the filter criteria elastic fields
-   * @return the string
-   * @throws JsonProcessingException the json processing exception
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @param searchCriteria the search criteria
+   * @return the result list with concepts
+   * @throws Exception the exception
    */
-  @SuppressWarnings("unused")
-  private ConceptResultList constructReturnResponse(String responseStr,
-    SearchCriteria searchCriteria) throws JsonProcessingException, IOException {
-    String returnStr = "";
+  @Override
+  public ConceptResultList search(SearchCriteria searchCriteria) throws Exception {
+    int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
+    Pageable pageable =
+        new EVSPageable(page, searchCriteria.getPageSize(), searchCriteria.getFromRecord());// PageRequest.of(page,
+                                                                                            // searchCriteria.getPageSize());
 
-    // convert to Tree Node for manipulation
-    ObjectMapper mapper = new ObjectMapper();
-    JsonNode jsonNode = mapper.readTree(responseStr);
+    logger.debug("query string [{}]", searchCriteria.getTerm());
 
-    // get the total hits
-    JsonNode totalHits = jsonNode.path("hits").path("total");
+    // prepare query_string query builder
+    QueryStringQueryBuilder queryStringQueryBuilder = QueryBuilders
+        .queryStringQuery(updateTermForType(searchCriteria.getTerm(), searchCriteria.getType()));
 
-    final ConceptResultList result = new ConceptResultList();
-    result.setTotal(totalHits.asInt());
-    result.setParameters(searchCriteria);
+    boolean isWildcard = "startswith".equalsIgnoreCase(searchCriteria.getType());
 
-    // Iterate over hits
-    for (final JsonNode node : jsonNode.get("hits").get("hits")) {
-      final JsonNode source = node.get("_source");
-      final Concept concept = new Concept(source.get("Code").asText());
-
-      final JsonNode highlightNode = node.get("highlight");
-      // Only if there are highlights
-      if (highlightNode != null) {
-        final Iterator<Map.Entry<String, JsonNode>> fields = highlightNode.fields();
-        final Set<String> highlights = new HashSet<>();
-        while (fields.hasNext()) {
-          final JsonNode values = fields.next().getValue();
-          for (final JsonNode value : values) {
-            highlights.add(value.asText());
-          }
-        }
-        for (final String highlight : highlights) {
-          concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
-              highlight);
-        }
-      }
-      result.getConcepts().add(concept);
-
+    // -- fuzzy and wildcard - both cannot be used for same query
+    if ("fuzzy".equalsIgnoreCase(searchCriteria.getType())) {
+      queryStringQueryBuilder = queryStringQueryBuilder.fuzziness(Fuzziness.ONE);
+    } else if (isWildcard) {
+      queryStringQueryBuilder = queryStringQueryBuilder.analyzeWildcard(true);
     }
+
+    // -- wildcard search is assumed to be a term search or phrase search
+    if ("AND".equalsIgnoreCase(searchCriteria.getType()) || isWildcard) {
+      queryStringQueryBuilder = queryStringQueryBuilder.defaultOperator(Operator.AND);
+    }
+
+    queryStringQueryBuilder = queryStringQueryBuilder.type(Type.BEST_FIELDS);
+
+    // prepare bool query
+    BoolQueryBuilder boolQuery = new BoolQueryBuilder()
+        .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
+            .field("name", 2f)
+            .boost(10f))
+        .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
+            .boost(2f))
+        .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max)
+            .boost(4f))
+        .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
+            .boost(8f));
+
+    // append terminology query
+    QueryBuilder terminologyQuery = buildTerminologyQuery(searchCriteria);
+    if (terminologyQuery != null) {
+      boolQuery = boolQuery.must(terminologyQuery);
+    }
+
+    // append criteria queries
+    List<QueryBuilder> criteriaQueries = buildCriteriaQueries(searchCriteria);
+    if (!CollectionUtils.isEmpty(criteriaQueries)) {
+      for (QueryBuilder criteriaQuery : criteriaQueries) {
+        boolQuery = boolQuery.must(criteriaQuery);
+      }
+    }
+
+    // build final search query
+    NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
+        .withIndices(buildIndicesArray(searchCriteria))
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE)
+        .withPageable(pageable)
+        .withMinScore(0.01f);
+
+    if (searchCriteria.getInclude().toLowerCase().contains("highlights")) {
+      searchQuery = searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
+    }
+    
+    //query on operations
+    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class, 
+        new EVSConceptResultMapper(searchCriteria.computeIncludeParam()));
+    
+    logger.debug("result count: {}", resultPage.getTotalElements());
+
+    ConceptResultList result = new ConceptResultList();
+    result.setParameters(searchCriteria);
+    result.setConcepts(resultPage.getContent());
+    result.setTotal(Long.valueOf(resultPage.getTotalElements()).intValue());
 
     return result;
   }
 
   /**
-   * Inits the settings.
-   *
-   * @throws IOException Signals that an I/O exception has occurred.
-   * @throws HttpClientErrorException the http client error exception
+   * update term based on type of search
+   * 
+   * @param term the term to be updated
+   * @param type the type of search
+   * @return the updated term
    */
-  public void initSettings() throws IOException, HttpClientErrorException {
-    // get the server url
-    String url = elasticServerProperties.getUrl();
+  private String updateTermForType(String term, String type) {
+    if (StringUtils.isBlank(term) || StringUtils.isBlank(type))
+      return term;
+    String result = null;
 
-    // Call the elastic search url
-    HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-    HttpEntity<String> requestbody =
-        new HttpEntity<>("{\"max_result_window\":500000}", httpHeaders);
+    switch (type.toLowerCase()) {
+      case "fuzzy":
+        result = updateTokens(term, '~');
+        break;
+      case "startswith":
+        result = term + "*";
+        break;
+      case "phrase":
+        result = "\"" + term + "\"";
+        break;
+      default:
+        result = term;
+        break;
+    }
 
-    restTemplate.exchange(url.replace("concept/_search", "_settings"), HttpMethod.PUT, requestbody,
-        String.class);
+    logger.debug("updated term: {}", result);
+
+    return result;
   }
 
   /**
-   * Search.
-   *
-   * @param searchCriteria the search criteria
-   * @return the concept result list
-   * @throws IOException Signals that an I/O exception has occurred.
-   * @throws HttpClientErrorException the http client error exception
+   * append each token from a term with given modifier
+   * 
+   * @param term the term or phrase
+   * @param modifier the modifier
+   * @return the modified term or phrase
    */
-  /* see superclass */
-  @SuppressWarnings("unchecked")
-  @Override
-  public ConceptResultList search(SearchCriteria searchCriteria)
-    throws IOException, HttpClientErrorException {
-    String responseStr = "";
+  private String updateTokens(String term, Character modifier) {
+    String[] tokens = term.split("\\s+");
+    StringBuilder builder = new StringBuilder();
 
-    // construct the query
-    String query = elasticQueryBuilder.constructQuery(searchCriteria);
+    for (String token : tokens) {
+      if (builder.length() > 0)
+        builder.append(" ");
+      builder.append(token).append(modifier);
+    }
 
-    // get the server url
-    String url = elasticServerProperties.getUrl();
+    return builder.toString();
+  }
 
-    // Call the elastic search url
-    HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-    HttpEntity<String> requestbody = new HttpEntity<>(query, httpHeaders);
+  /**
+   * builds terminology query based on input search criteria
+   * 
+   * @param searchCriteria
+   * @return the terminology query builder
+   */
+  private QueryBuilder buildTerminologyQuery(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getTerminology()))
+      return null;
 
-    ResponseEntity<String> response =
-        restTemplate.exchange(url, HttpMethod.POST, requestbody, String.class);
-    // log.debug("response = " + response);
-    HttpStatus statusCode = response.getStatusCode();
-    log.debug("statusCode = " + statusCode);
-    String responseBody = response.getBody();
-    // log.debug("responseBody = " + responseBody);
+    BoolQueryBuilder terminologyQuery = QueryBuilders.boolQuery();
 
-    if (responseBody != null) {
-      Map<String, Object> responseMap =
-          (Map<String, Object>) objectMapper.readValue(responseBody, Map.class);
-      Object error = responseMap.get("error");
-      log.debug("error = " + error);
-      // error handling
-      if (error != null) {
-        if ((statusCode.toString().equals(HttpStatus.BAD_REQUEST.toString()))) {
-          log.debug("statusCode.toString() is equal to HttpStatus.BAD_REQUEST.toString()");
-          String errorDescription = (String) responseMap.get("error_description");
-          log.debug("errorDescription = " + errorDescription);
-          String message = (String) responseMap.get("message");
-          log.debug("message = " + message);
-          log.debug("throw HttpClientErrorException");
-          throw new HttpClientErrorException(statusCode, message);
-
-        } else if ((statusCode.toString().equals(HttpStatus.NOT_FOUND.toString()))) {
-          log.debug("statusCode.toString() is equal to HttpStatus.NOT_FOUND.toString()");
-          String message = (String) responseMap.get("message");
-          log.debug("message = " + message);
-          log.debug("throw HttpClientErrorException");
-          throw new HttpClientErrorException(statusCode, message);
-
-        } else {
-          String message = (String) responseMap.get("message");
-          log.debug("message = " + message);
-          log.debug("throw HttpClientErrorException");
-          throw new HttpClientErrorException(statusCode, message);
-        }
-
-      } else {
-        // get the response
-        responseStr = response.getBody();
+    if (searchCriteria.getTerminology().size() == 1) {
+      terminologyQuery = terminologyQuery
+          .must(QueryBuilders.matchQuery("terminology", searchCriteria.getTerminology().get(0)));
+    } else {
+      for (String terminology : searchCriteria.getTerminology()) {
+        terminologyQuery =
+            terminologyQuery.should(QueryBuilders.matchQuery("terminology", terminology));
       }
     }
 
-    // construct return response
-    return constructReturnResponse(responseStr, searchCriteria);
+    return terminologyQuery;
+  }
 
+  /**
+   * builds list of queries for field specific criteria from the search criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return list of nested queries
+   */
+  private List<QueryBuilder> buildCriteriaQueries(SearchCriteria searchCriteria) {
+    List<QueryBuilder> queries = new ArrayList<>();
+
+    // concept status
+    QueryBuilder conceptStatusQuery =
+        getPropertyTypeValueQueryBuilder(searchCriteria, "Concept_Status");
+    if (conceptStatusQuery != null) {
+      queries.add(conceptStatusQuery);
+    }
+
+    // property
+    QueryBuilder propertyQuery = getPropertyTypeCodeQueryBuilder(searchCriteria);
+    if (propertyQuery != null) {
+      queries.add(propertyQuery);
+    }
+
+    // synonym source
+    QueryBuilder synonymSourceQuery = getSynonymSourceQueryBuilder(searchCriteria);
+    if (synonymSourceQuery != null) {
+      queries.add(synonymSourceQuery);
+    }
+
+    // definition source
+    QueryBuilder definitionSourceQuery = getDefinitionSourceQueryBuilder(searchCriteria);
+    if (definitionSourceQuery != null) {
+      queries.add(definitionSourceQuery);
+    }
+
+    // synonym termGroup
+    QueryBuilder synonymTermGroupQuery = buildSynonymTermGroupQueryBuilder(searchCriteria);
+    if (synonymTermGroupQuery != null) {
+      queries.add(synonymTermGroupQuery);
+    }
+
+    return queries;
+  }
+
+  /**
+   * builds nested query for property criteria on value field for given types
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder getPropertyTypeValueQueryBuilder(SearchCriteria searchCriteria,
+    String type) {
+    List<String> values = null;
+    switch (type.toLowerCase()) {
+      case "concept_status":
+        values = searchCriteria.getConceptStatus();
+        break;
+      default:
+        break;
+    }
+
+    if (CollectionUtils.isEmpty(values))
+      return null;
+
+    // IN query on property.value
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+
+    if (searchCriteria.getProperty().size() == 1) {
+      inQuery = inQuery
+          .must(QueryBuilders.matchQuery("properties.value", searchCriteria.getProperty().get(0)));
+    } else {
+      for (String property : searchCriteria.getProperty()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("properties.value", property));
+      }
+    }
+
+    // bool query to match property.type and property.value
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.matchQuery("properties.type", type)).must(inQuery);
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * builds nested query for property criteria on type or code field
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder getPropertyTypeCodeQueryBuilder(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getProperty()))
+      return null;
+
+    boolean hasTerm = !StringUtils.isBlank(searchCriteria.getTerm());
+
+    // IN query on property.type or property.code
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+
+    if (searchCriteria.getProperty().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.boolQuery()
+          .should(QueryBuilders.matchQuery("properties.type", searchCriteria.getProperty().get(0)))
+          .should(
+              QueryBuilders.matchQuery("properties.code", searchCriteria.getProperty().get(0))));
+
+      if (hasTerm) {
+        inQuery =
+            inQuery.must(QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()));
+      }
+    } else {
+      for (String property : searchCriteria.getProperty()) {
+        inQuery = inQuery.should(
+            QueryBuilders.boolQuery().should(QueryBuilders.matchQuery("properties.type", property))
+                .should(QueryBuilders.matchQuery("properties.code", property)));
+
+        if (hasTerm) {
+          inQuery = inQuery
+              .should(QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()));
+        }
+      }
+    }
+
+    // bool query to match (property.type or property.code) and property.value
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * builds nested query for synonym source criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder getSynonymSourceQueryBuilder(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymSource()))
+      return null;
+
+    // IN query on synonym.source
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+
+    if (searchCriteria.getSynonymSource().size() == 1) {
+      inQuery = inQuery.must(
+          QueryBuilders.matchQuery("synonyms.source", searchCriteria.getSynonymSource().get(0)));
+    } else {
+      for (String source : searchCriteria.getSynonymSource()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.source", source));
+      }
+    }
+
+    // bool query to match synonym.source
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * builds nested query for definition source criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder getDefinitionSourceQueryBuilder(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionSource()))
+      return null;
+
+    // IN query on definition.source
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+
+    if (searchCriteria.getDefinitionSource().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.matchQuery("definitions.source",
+          searchCriteria.getDefinitionSource().get(0)));
+    } else {
+      for (String source : searchCriteria.getDefinitionSource()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.source", source));
+      }
+    }
+
+    // bool query to match definition.source
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("definitions", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * builds nested query for synonym term group criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder buildSynonymTermGroupQueryBuilder(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup()))
+      return null;
+
+    // IN query on synonym.termGroup
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+
+    if (searchCriteria.getSynonymTermGroup().size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.matchQuery("synonyms.termGroup",
+          searchCriteria.getSynonymTermGroup().get(0)));
+    } else {
+      for (String source : searchCriteria.getSynonymTermGroup()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termGroup", source));
+      }
+    }
+
+    // bool query to match synonym.termGroup
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * build array of index names
+   * 
+   * @param searchCriteria the search criteria
+   * @return the array of index names
+   * @throws Exception the exception
+   */
+  private String[] buildIndicesArray(SearchCriteria searchCriteria) throws Exception {
+    List<String> terminologies = searchCriteria.getTerminology();
+
+    if (CollectionUtils.isEmpty(searchCriteria.getTerminology())) {
+      return new String[] {
+          "_all"
+      };
+    }
+
+    String[] indices = new String[terminologies.size()];
+    for (int i = 0; i < terminologies.size(); i++) {
+      indices[i] = TerminologyUtils.getTerminology(sparqlQueryManagerService, terminologies.get(i))
+          .getIndexName();
+    }
+    logger.debug("indices array: " + Arrays.asList(indices));
+    return indices;
   }
 
 }

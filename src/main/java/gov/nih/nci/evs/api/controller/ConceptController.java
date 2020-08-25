@@ -2,8 +2,11 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +20,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.aop.RecordMetricDBFormat;
+import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.ConceptPath;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -29,6 +31,7 @@ import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -55,6 +58,11 @@ public class ConceptController extends BaseController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The elastic query service. */
+  /* The elasticsearch query service */
+  @Autowired
+  ElasticQueryService elasticQueryService;
+
   /**
    * Returns the associations.
    *
@@ -68,8 +76,8 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 404, message = "Resource not found"),
-      @ApiResponse(code = 400, message = "Bad request")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}",
       produces = "application/json")
@@ -87,7 +95,7 @@ public class ConceptController extends BaseController {
           value = "List (comma-separated) of codes to return concepts for, e.g. C2291,C3224.",
           required = true, dataType = "string", paramType = "query")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   public @ResponseBody List<Concept> getConcepts(
     @PathVariable(value = "terminology") final String terminology,
     @RequestParam("include") final Optional<String> include,
@@ -97,8 +105,6 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      final List<Concept> concepts = new ArrayList<>();
-
       final String[] codes = list.split(",");
       // Impose a maximum number at a time
       if (codes.length > 500) {
@@ -106,12 +112,8 @@ public class ConceptController extends BaseController {
             "Maximum number of concepts to request at a time is 500 = " + codes.length);
       }
 
-      for (final String code : codes) {
-        final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
-        if (concept != null && concept.getCode() != null) {
-          concepts.add(concept);
-        }
-      }
+      final List<Concept> concepts =
+          elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
       return concepts;
     } catch (Exception e) {
       handleException(e);
@@ -132,9 +134,10 @@ public class ConceptController extends BaseController {
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}",
       produces = "application/json")
   @ApiImplicitParams({
@@ -159,12 +162,12 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
+      Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
 
-      if (concept == null || concept.getCode() == null) {
+      if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      return concept;
+      return concept.get();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -184,6 +187,7 @@ public class ConceptController extends BaseController {
       response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -192,7 +196,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations",
       produces = "application/json")
   public @ResponseBody List<Association> getAssociations(
@@ -203,16 +207,14 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Association> list = sparqlQueryManagerService.getAssociations(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return list;
+      return concept.get().getAssociations();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -231,6 +233,7 @@ public class ConceptController extends BaseController {
       response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -239,7 +242,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
   public @ResponseBody List<Association> getInverseAssociations(
@@ -249,16 +252,14 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Association> list = sparqlQueryManagerService.getInverseAssociations(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return list;
+      return concept.get().getInverseAssociations();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -278,6 +279,7 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -286,7 +288,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles",
       produces = "application/json")
   public @ResponseBody List<Role> getRoles(
@@ -297,16 +299,14 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Role> list = sparqlQueryManagerService.getRoles(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return list;
+      return concept.get().getRoles();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -326,6 +326,7 @@ public class ConceptController extends BaseController {
       response = Role.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -334,7 +335,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles",
       produces = "application/json")
   public @ResponseBody List<Role> getInverseRoles(
@@ -345,16 +346,14 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Role> list = sparqlQueryManagerService.getInverseRoles(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return list;
+      return concept.get().getInverseRoles();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -373,6 +372,7 @@ public class ConceptController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -381,7 +381,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents",
       produces = "application/json")
   public @ResponseBody List<Concept> getParents(
@@ -392,16 +392,14 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Concept> list = sparqlQueryManagerService.getSuperconcepts(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return list;
+      return concept.get().getParents();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -420,6 +418,7 @@ public class ConceptController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -428,7 +427,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children",
       produces = "application/json")
   public @ResponseBody List<Concept> getChildren(
@@ -439,16 +438,14 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Concept> list = sparqlQueryManagerService.getSubconcepts(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("children"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return list;
+      return concept.get().getChildren();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -460,7 +457,8 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
-   * @param maxLevel the max level
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the descendants
    * @throws Exception the exception
    */
@@ -468,9 +466,10 @@ public class ConceptController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants",
       produces = "application/json")
   @ApiImplicitParams({
@@ -478,30 +477,49 @@ public class ConceptController extends BaseController {
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path"),
-      @ApiImplicitParam(name = "maxLevel",
-          value = "Maximum level of ancestors to include, if applicable", required = false,
-          dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataType = "string", paramType = "query", defaultValue = "10000"),
+      @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
+      	  required = false, dataType = "string", paramType = "query", defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
+    @RequestParam("fromRecord") final Optional<Integer> fromRecord,
+    @RequestParam("pageSize") final Optional<Integer> pageSize,
     @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<HierarchyNode> list =
-          sparqlQueryManagerService.getChildNodes(code, maxLevel.orElse(0), term);
-
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      if (!elasticQueryService.checkConceptExists(code, term)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return ConceptUtils.convertConceptsFromHierarchy(list);
+      final List<Concept> baseList =
+              new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+      Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
+      final List<Concept> list = baseList.stream().filter(byLevel).collect(Collectors.toList());
+
+      int fromIndex = fromRecord.orElse(0);
+      // Use a large default page size
+      int toIndex = fromIndex + pageSize.orElse(50000);
+      if (toIndex >= list.size()) {
+        toIndex = list.size();
+      }
+      // If requesting beyond end of the list, just return empty
+      if (fromRecord.orElse(0) > list.size()) {
+        return new ArrayList<>();
+      }
+      // empty list
+      if (list.size() == 0) {
+        return list;
+      }
+
+      return list.subList(fromIndex, toIndex);
+
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -520,6 +538,7 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -528,7 +547,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
       produces = "application/json")
   public @ResponseBody List<Map> getMaps(
@@ -539,16 +558,14 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      final List<Map> list = sparqlQueryManagerService.getMapsTo(code, term);
-      if (list == null || list.isEmpty()) {
-        if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        } else {
-          return new ArrayList<>();
-        }
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      return list;
+      return concept.get().getMaps();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -568,6 +585,7 @@ public class ConceptController extends BaseController {
       response = DisjointWith.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
@@ -576,7 +594,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3910'",
           required = true, dataType = "string", paramType = "path")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith",
       produces = "application/json")
   public @ResponseBody List<DisjointWith> getDisjointWith(
@@ -585,14 +603,15 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      final IncludeParam ip = new IncludeParam("disjointWith");
 
-      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
 
-      if (concept == null || concept.getCode() == null) {
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
-      return concept.getDisjointWith();
+
+      return concept.get().getDisjointWith();
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -611,9 +630,10 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots",
       produces = "application/json")
   @ApiImplicitParams({
@@ -634,15 +654,13 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      final List<HierarchyNode> list = sparqlQueryManagerService.getRootNodes(term);
+      final List<Concept> list = elasticQueryService.getRootNodes(term);
       if (list == null || list.isEmpty()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
       }
-      return ConceptUtils.convertConceptsFromHierarchyWithInclude(sparqlQueryManagerService, ip,
-          term, list);
+      return list;
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -659,12 +677,13 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths from the hierarchy root to the specified concept",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot",
       produces = "application/json")
   @ApiImplicitParams({
@@ -680,7 +699,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsFromRoot(
+  public @ResponseBody List<List<Concept>> getPathsFromRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -690,12 +709,12 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
+      final Paths paths = elasticQueryService.getPathToRoot(code, term);
 
-      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths, true);
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -715,9 +734,10 @@ public class ConceptController extends BaseController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree",
       produces = "application/json")
   @ApiImplicitParams({
@@ -734,10 +754,10 @@ public class ConceptController extends BaseController {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = sparqlQueryManagerService.getPathInHierarchy(code, term);
+      final List<HierarchyNode> nodes = elasticQueryService.getPathInHierarchy(code, term);
 
       return nodes;
     } catch (Exception e) {
@@ -758,9 +778,10 @@ public class ConceptController extends BaseController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/concept/{terminology}/{code}/subtree/children", produces = "application/json")
   @ApiImplicitParams({
@@ -775,10 +796,11 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = sparqlQueryManagerService.getChildNodes(code, term);
+      final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, 0, term);
+      nodes.stream().peek(n -> n.setLevel(null)).count();
       return nodes;
     } catch (Exception e) {
       handleException(e);
@@ -797,12 +819,13 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths to the hierarchy root from the specified code",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot",
       produces = "application/json")
   @ApiImplicitParams({
@@ -818,7 +841,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsToRoot(
+  public @ResponseBody List<List<Concept>> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -827,12 +850,11 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = sparqlQueryManagerService.getPathToRoot(code, term);
-      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
-          false);
+      final Paths paths = elasticQueryService.getPathToRoot(code, term);
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -850,12 +872,13 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths from the specified code to the specified ancestor code",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RecordMetricDBFormat
+  @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}",
       produces = "application/json")
@@ -875,7 +898,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsToAncestor(
+  public @ResponseBody List<List<Concept>> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @PathVariable(value = "ancestorCode") final String ancestorCode,
@@ -885,12 +908,11 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!sparqlQueryManagerService.checkConceptExists(code, term)) {
+      if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = sparqlQueryManagerService.getPathToParent(code, ancestorCode, term);
-      return ConceptUtils.convertPathsWithInclude(sparqlQueryManagerService, ip, term, paths,
-          false);
+      final Paths paths = elasticQueryService.getPathToParent(code, ancestorCode, term);
+      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
 
     } catch (Exception e) {
       handleException(e);

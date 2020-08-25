@@ -1,9 +1,13 @@
 
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * Represents a role relationship between two concepts.
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Role extends Relationship {
   /**
    * Instantiates an empty {@link Role}.
