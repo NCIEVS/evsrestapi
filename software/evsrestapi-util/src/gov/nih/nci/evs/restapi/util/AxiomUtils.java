@@ -178,6 +178,7 @@ public class AxiomUtils {
 		return syn_list;
 	}
 
+/*
 	public List getDefinitions(Vector v) {
 		if (v == null) return null;
 		List def_list = new ArrayList();
@@ -232,6 +233,88 @@ public class AxiomUtils {
 				desc,
 				defSource);
 			def_list.add(def);
+		}
+		return def_list;
+	}
+*/
+
+	public List getDefinitions(Vector v) {
+		if (v == null) return null;
+		List def_list = new ArrayList();
+        String z_axiom = null;
+		String code = null;
+		String label = null;
+		String desc = null;
+		String defSource = null;
+		String attribution = null;
+		String qualifier_name = null;
+		String qualifier_value = null;
+		String propertyName = null;
+
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+		    Vector u = StringUtils.parseData(line, '|');
+		    String key = (String) u.elementAt(0);
+		    Vector values = new Vector();
+		    if (hmap.containsKey(key)) {
+				values = (Vector) hmap.get(key);
+			}
+			values.add(line);
+			hmap.put(key, values);
+		}
+
+/*
+	(1) bnode_d28617db_50c1_4332_a067_92ecdab7e192_2912161|Sex|C28421|ALT_DEFINITION|The biologic character or quality that distinguishes male and female from one another as expressed by analysis of the person's gonadal, morphologic (internal and external), chromosomal, and hormonal characteristics.|Definition Source|PCDC
+	(2) bnode_d28617db_50c1_4332_a067_92ecdab7e192_2912160|Sex|C28421|ALT_DEFINITION|Phenotypic expression of chromosomal makeup that defines a study subject as male, female, or other. Compare to gender.|Definition Source|CDISC-GLOSS
+	(3) bnode_d28617db_50c1_4332_a067_92ecdab7e192_2912161|Sex|C28421|ALT_DEFINITION|The biologic character or quality that distinguishes male and female from one another as expressed by analysis of the person's gonadal, morphologic (internal and external), chromosomal, and hormonal characteristics.|attribution|AML
+*/
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector values = (Vector) hmap.get(key);
+			code = null;
+			label = null;
+			propertyName = null;
+			desc = null;
+			defSource = null;
+			attribution = null;
+			qualifier_name = null;
+			qualifier_value = null;
+
+			for (int i=0; i<values.size(); i++) {
+				String line = (String) values.elementAt(i);
+				Vector u = StringUtils.parseData(line, '|');
+				label = (String) u.elementAt(1);
+				code = (String) u.elementAt(2);
+				propertyName = (String) u.elementAt(3);
+				desc = (String) u.elementAt(4);
+				qualifier_name = (String) u.elementAt(5);
+				qualifier_value = (String) u.elementAt(6);
+                if (qualifier_name.compareTo("P378") == 0 || qualifier_name.compareTo("def-source") == 0 || qualifier_name.compareTo("Definition Source") == 0) {
+					defSource = qualifier_value;
+                } else if (qualifier_name.compareTo("P381") == 0 || qualifier_name.compareTo("attribution") == 0 || qualifier_name.compareTo("attr") == 0) {
+					attribution = qualifier_value;
+				}
+
+			}
+			if (propertyName.compareTo("DEFINITION") == 0) {
+				Definition def = new Definition(
+					code,
+					label,
+					desc,
+					attribution,
+					defSource);
+				def_list.add(def);
+			} else if (propertyName.compareTo("ALT_DEFINITION") == 0) {
+				AltDefinition def = new AltDefinition(
+					code,
+					label,
+					desc,
+					attribution,
+					defSource);
+				def_list.add(def);
+			}
 		}
 		return def_list;
 	}
