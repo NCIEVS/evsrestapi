@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.configuration;
 
 import org.apache.http.HttpHost;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 
 @Configuration
 public class ElasticConfiguration {
@@ -30,5 +32,15 @@ public class ElasticConfiguration {
     // ClientConfiguration clientConfiguration =
     // ClientConfiguration.builder().connectedTo(esHost)..build();
     // return RestClients.create(clientConfiguration).rest();
+  }
+
+  /**
+   * Elastic rest template.
+   *
+   * @return the elasticsearch rest template
+   */
+  @Bean(name = "elasticsearchTemplate")
+  ElasticsearchRestTemplate elasticRestTemplate() {
+    return new EVSElasticsearchRestTemplate(client());
   }
 }

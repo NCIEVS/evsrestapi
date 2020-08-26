@@ -573,6 +573,26 @@ public class ConceptControllerTests {
     });
     assertThat(list).isNotEmpty();
     assertThat(list.size() < 10);
+    
+    // Test case with maxLevel
+    url = baseUrl + "/ncit/C3510/descendants?maxLevel=2";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    byLevel = concept -> concept.getLevel() > 2;
+    assertThat(list).isNotEmpty();
+    int size = list.size();
+    assertThat(list.size()).isGreaterThan(5);
+    // preserve level
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).isEmpty());
+    byLevel = concept -> concept.getLevel() <= 2;
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size() == size);
   }
 
   /**
@@ -691,7 +711,6 @@ public class ConceptControllerTests {
     });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
-    assertThat(list.get(0).getSynonyms()).isNotEmpty();
   }
 
   /**
@@ -832,6 +851,21 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
+    
+    url = baseUrl + "/ncit/C3224/pathsFromRoot?include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
   }
 
@@ -889,6 +923,20 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
+    
+    url = baseUrl + "/ncit/C3224/pathsToRoot?include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
   }
 
@@ -947,6 +995,22 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
+    
+    url = baseUrl + "/ncit/C3224/pathsToAncestor/C3224?include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    
+    // check format for ancestor of self
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).get(0).getVersion()).isNotNull();
+    
+    assertThat(list.size() == 1); // single path
+    assertThat(list.get(0).size() == 1); // single element in path
+    assertThat(list.get(0).get(0).getLevel() == 0);
 
   }
 
@@ -956,7 +1020,6 @@ public class ConceptControllerTests {
    * @param list list of hierarchy nodes
    * @return boolean true if hierarchy has a leaf node, else false
    */
-  @SuppressWarnings("unused")
   private boolean hasLeafNode(List<HierarchyNode> list) {
     if (CollectionUtils.isEmpty(list))
       return false;

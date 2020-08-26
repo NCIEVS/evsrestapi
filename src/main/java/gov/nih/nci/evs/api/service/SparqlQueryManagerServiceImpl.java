@@ -36,7 +36,6 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.ConceptNode;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -1779,13 +1778,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return concepts;
   }
 
-  /* see superclass */
-  @Override
-  public List<HierarchyNode> getRootNodes(Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getRootNodes();
-  }
-
+    /* see superclass */
+    @Override
+    public List<HierarchyNode> getRootNodes(Terminology terminology)
+      throws JsonParseException, JsonMappingException, IOException {
+      return self.getHierarchyUtils(terminology).getRootNodes();
+    }
+  
   /**
    * Returns the child nodes.
    *
@@ -1796,12 +1795,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
+    
   @Override
   public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
+	throws JsonParseException, JsonMappingException, IOException {
+	return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
   }
-
+  
   /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
@@ -1830,7 +1830,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     int end = path.getConcepts().size() - 1;
 
     // find the end (in this case top) of the path
-    ConceptNode concept = path.getConcepts().get(end);
+    Concept concept = path.getConcepts().get(end);
     List<HierarchyNode> children = getChildNodes(node.getCode(), 1, terminology);
 
     // attach children to node if necessary
@@ -1868,7 +1868,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    List<HierarchyNode> rootNodes = getRootNodes(terminology);
+    List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(terminology);
     Paths paths = getPathToRoot(code, terminology);
 
     for (HierarchyNode rootNode : rootNodes) {
@@ -1889,25 +1889,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Path path : paths) {
       Boolean sw = false;
       int idx = -1;
-      List<ConceptNode> concepts = path.getConcepts();
+      List<Concept> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
-        ConceptNode concept = concepts.get(i);
+        Concept concept = concepts.get(i);
         if (concept.getCode().equals(code)) {
           sw = true;
-          idx = concept.getIdx();
+          idx = concept.getLevel();
         }
       }
       if (sw) {
-        List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
+        List<Concept> trimed_concepts = new ArrayList<Concept>();
         if (idx == -1) {
           idx = concepts.size() - 1;
         }
         int j = 0;
         for (int i = idx; i >= 0; i--) {
-          ConceptNode c = new ConceptNode();
+          Concept c = new Concept();
           c.setCode(concepts.get(i).getCode());
-          c.setLabel(concepts.get(i).getLabel());
-          c.setIdx(j);
+          c.setName(concepts.get(i).getName());
+          c.setLevel(j);
+          c.setTerminology(terminology.getTerminology());
+          c.setVersion(terminology.getVersion());
           j++;
           trimed_concepts.add(c);
         }
@@ -1937,27 +1939,29 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (Path path : paths) {
       Boolean sw = false;
       Map<String, Integer> idxMap = new HashMap<>();
-      List<ConceptNode> concepts = path.getConcepts();
+      List<Concept> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
-        ConceptNode concept = concepts.get(i);
+        Concept concept = concepts.get(i);
         if (codeMap.containsKey(concept.getCode())) {
           sw = true;
-          idxMap.put(concept.getCode(), concept.getIdx());
+          idxMap.put(concept.getCode(), concept.getLevel());
         }
       }
       if (sw) {
         for (String codeKey : idxMap.keySet()) {
           int idx = idxMap.get(codeKey);
-          List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
+          List<Concept> trimed_concepts = new ArrayList<Concept>();
           if (idx == -1) {
             idx = concepts.size() - 1;
           }
           int j = 0;
           for (int i = idx; i >= 0; i--) {
-            ConceptNode c = new ConceptNode();
+            Concept c = new Concept();
             c.setCode(concepts.get(i).getCode());
-            c.setLabel(concepts.get(i).getLabel());
-            c.setIdx(j);
+            c.setName(concepts.get(i).getName());
+            c.setLevel(j);
+            c.setTerminology(terminology.getTerminology());
+            c.setVersion(terminology.getVersion());
             j++;
             trimed_concepts.add(c);
           }
@@ -1986,29 +1990,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       Boolean codeSW = false;
       Boolean parentSW = false;
       int idx = -1;
-      List<ConceptNode> concepts = path.getConcepts();
+      List<Concept> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
-        ConceptNode concept = concepts.get(i);
+        Concept concept = concepts.get(i);
         if (concept.getCode().equals(code)) {
           codeSW = true;
-          idx = concept.getIdx();
+          idx = concept.getLevel();
         }
         if (concept.getCode().equals(parentCode)) {
           parentSW = true;
         }
       }
       if (codeSW && parentSW) {
-        List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
+        List<Concept> trimed_concepts = new ArrayList<Concept>();
         if (idx == -1) {
           idx = concepts.size() - 1;
         }
         int j = 0;
         for (int i = idx; i >= 0; i--) {
-          ConceptNode c = new ConceptNode();
+          Concept c = new Concept();
           c.setCode(concepts.get(i).getCode());
-          c.setLabel(concepts.get(i).getLabel());
-          c.setIdx(j);
-          c.setIdx(j);
+          c.setName(concepts.get(i).getName());
+          c.setLevel(j);
+          c.setTerminology(terminology.getTerminology());
+          c.setVersion(terminology.getVersion());
           j++;
           trimed_concepts.add(c);
           if (c.getCode().equals(parentCode)) {

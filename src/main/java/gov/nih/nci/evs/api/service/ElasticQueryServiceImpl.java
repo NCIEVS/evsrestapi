@@ -8,11 +8,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.index.query.QueryBuilders;
@@ -31,7 +29,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.ConceptNode;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
@@ -207,9 +204,33 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<HierarchyNode> getRootNodes(Terminology terminology)
+  public List<Concept> getRootNodes(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    Optional<HierarchyUtils> hierarchy = getHierarchy(terminology);
+    Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
+    if (!hierarchy.isPresent())
+      return Collections.emptyList();
+    ArrayList<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
+    List<Concept> concepts = getConcepts(hierarchyRoots, terminology, new IncludeParam("minimal"));
+    concepts.sort(Comparator.comparing(Concept::getName));
+    for (Concept c : concepts) {
+    	c.setLeaf(null);
+    }
+    return concepts;
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param terminology the terminology
+   * @return the root nodes
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @Override
+  public List<HierarchyNode> getRootNodesHierarchy(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
     if (!hierarchy.isPresent())
       return Collections.emptyList();
     ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
@@ -221,22 +242,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     }
     nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
     return nodes;
-  }
-
-  /**
-   * see superclass *.
-   *
-   * @param parent the parent
-   * @param terminology the terminology
-   * @return the child nodes
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  @Override
-  public List<HierarchyNode> getChildNodes(String parent, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
-    return getChildNodes(parent, 0, terminology);
   }
 
   /**
@@ -367,33 +372,26 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    List<HierarchyNode> rootNodes = getRootNodes(terminology);
-
+    List<HierarchyNode> rootNodes = getRootNodesHierarchy(terminology);
+    
     Paths paths = getPathToRoot(code, terminology);
 
     // root hierarchy node map for quick look up
     Map<String, HierarchyNode> rootNodeMap = new HashMap<>();
     rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
 
-    // concepts map for all concepts in the paths
-    Map<String, Concept> conceptMap = getConceptsInPaths(code, paths, terminology);
-
-    // // known hierarchy nodes map
-    // Map<String, HierarchyNode> knownNodeMap = new HashMap<>();
-
     for (Path path : paths.getPaths()) {
-      List<ConceptNode> cNodes = path.getConcepts();
-      if (CollectionUtils.isEmpty(cNodes) || cNodes.size() < 2)
+      List<Concept> concepts = path.getConcepts();
+      if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2)
         continue;
-      ConceptNode rootConceptNode = cNodes.get(cNodes.size() - 1);
+      Concept rootConcept = concepts.get(concepts.size() - 1);
 
-      HierarchyNode root = rootNodeMap.get(rootConceptNode.getCode());
+      HierarchyNode root = rootNodeMap.get(rootConcept.getCode());
       HierarchyNode previous = root;
-      for (int j = cNodes.size() - 2; j >= 0; j--) {
-        ConceptNode cNode = cNodes.get(j);
-        Concept c = conceptMap.get(cNode.getCode());
+      for (int j = concepts.size() - 2; j >= 0; j--) {
+        Concept c = concepts.get(j);
         if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(c.getCode()))) {
-          List<HierarchyNode> children = getChildNodes(previous.getCode(), terminology);
+          List<HierarchyNode> children = getChildNodes(previous.getCode(), 0, terminology);
           for (HierarchyNode child : children) {
             child.setLevel(null);
             previous.getChildren().add(child);
@@ -405,69 +403,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       }
     }
 
-    // // set children for the concept
-    // Concept concept = conceptMap.get(code);
-    // HierarchyNode hNode = knownNodeMap.get(code);
-    // if (hNode != null) {
-    // hNode.setHighlight(true);
-    // hNode.setLeaf(concept.getLeaf());
-    // List<Concept> children = concept.getChildren();
-    // for (Concept child : children) {
-    // // leaf property is not set as part of children; hence using concept
-    // // from concept map for leaf property
-    // hNode.getChildren().add(new HierarchyNode(child.getCode(),
-    // child.getName(),
-    // conceptMap.get(child.getCode()).getLeaf()));
-    // hNode.setExpanded(true);
-    // }
-    // }
-
     return rootNodes;
-  }
-
-  /**
-   * Gets all concepts part of the paths including children for the given code.
-   *
-   * @param code the code
-   * @param paths the paths
-   * @param terminology the terminology
-   * @return the concepts in paths
-   */
-  private Map<String, Concept> getConceptsInPaths(String code, Paths paths,
-    Terminology terminology) {
-    final Set<String> codes = new HashSet<>();
-    for (Path path : paths.getPaths()) {
-      for (int i = 0; i < path.getConcepts().size(); i++) {
-        ConceptNode node = path.getConcepts().get(i);
-        codes.add(node.getCode());
-      }
-    }
-
-    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("children"));
-    if (concept.isPresent() && !concept.get().getLeaf()) {
-      concept.get().getChildren().stream().forEach(c -> codes.add(c.getCode()));
-    }
-
-    return getConceptsAsMap(codes, terminology, new IncludeParam("children"));
-  }
-
-  /**
-   * Returns the hierarchy node.
-   *
-   * @param concept the concept
-   * @param knownNodeMap the known node map
-   * @return the hierarchy node
-   */
-  private HierarchyNode getHierarchyNode(Concept concept, Map<String, HierarchyNode> knownNodeMap) {
-    HierarchyNode hNode = null;
-    if (knownNodeMap.containsKey(concept.getCode())) {
-      hNode = knownNodeMap.get(concept.getCode());
-    } else {
-      hNode = new HierarchyNode(concept.getCode(), concept.getName(), concept.getLeaf());
-      knownNodeMap.put(concept.getCode(), hNode);
-    }
-
-    return hNode;
   }
 
   /**
@@ -507,37 +443,34 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     Paths paths = getPathToRoot(code, terminology);
     logger.debug("paths: " + paths);
     Paths conceptPaths = new Paths();
+    Concept concept = new Concept();
     for (Path path : paths.getPaths()) {
       logger.debug("checking path: " + path);
       Boolean codeSW = false;
       Boolean parentSW = false;
       int idx = -1;
-      List<ConceptNode> concepts = path.getConcepts();
+      List<Concept> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
-        ConceptNode concept = concepts.get(i);
+    	concept = concepts.get(i);
         if (concept.getCode().equals(code)) {
           codeSW = true;
         }
         if (concept.getCode().equals(parentCode)) {
           parentSW = true;
-          idx = concept.getIdx();
+          idx = i;
         }
       }
       if (codeSW && parentSW) {
         logger.debug("both codeSW and parentSW are TRUE");
-        List<ConceptNode> trimed_concepts = new ArrayList<ConceptNode>();
+        List<Concept> trimed_concepts = new ArrayList<Concept>();
         if (idx == -1) {
           idx = concepts.size() - 1;
         }
         logger.debug("idx: " + idx);
         for (int i = 0; i <= idx; i++) {
-          ConceptNode c = new ConceptNode();
-          c.setCode(concepts.get(i).getCode());
-          c.setLabel(concepts.get(i).getLabel());
-          c.setIdx(i);
-          logger.debug("adding concept: " + c.getCode());
-          trimed_concepts.add(c);
-          if (c.getCode().equals(parentCode)) {
+          logger.debug("adding concept: " + concepts.get(i).getCode());
+          trimed_concepts.add(concepts.get(i));
+          if (concepts.get(i).getCode().equals(parentCode)) {
             break;
           }
         }
@@ -560,7 +493,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   @Override
-  public Optional<HierarchyUtils> getHierarchy(Terminology terminology)
+  public Optional<HierarchyUtils> getHierarchyRoots(Terminology terminology)
     throws JsonMappingException, JsonProcessingException {
     Optional<ElasticObject> esObject = getElasticObject("hierarchy", terminology);
     if (!esObject.isPresent())

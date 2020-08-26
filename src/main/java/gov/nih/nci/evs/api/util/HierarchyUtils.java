@@ -19,7 +19,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.HierarchyNode;
-import gov.nih.nci.evs.api.model.Terminology;
 
 /**
  * Hierarchy utilities.
@@ -272,7 +271,7 @@ public class HierarchyUtils {
   /*
    * This section to support the Hierarchy Browser
    */
-
+  
   /**
    * Returns the root nodes.
    *

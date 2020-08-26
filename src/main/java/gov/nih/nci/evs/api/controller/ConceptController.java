@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +24,6 @@ import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.ConceptPath;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -479,13 +480,16 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
           required = false, dataType = "string", paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "10000")
+          required = false, dataType = "string", paramType = "query", defaultValue = "10000"),
+      @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
+      	  required = false, dataType = "string", paramType = "query", defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("fromRecord") final Optional<Integer> fromRecord,
-    @RequestParam("pageSize") final Optional<Integer> pageSize) throws Exception {
+    @RequestParam("pageSize") final Optional<Integer> pageSize,
+    @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
@@ -494,8 +498,10 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      final List<Concept> list =
-          new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+      final List<Concept> baseList =
+              new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+      Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
+      final List<Concept> list = baseList.stream().filter(byLevel).collect(Collectors.toList());
 
       int fromIndex = fromRecord.orElse(0);
       // Use a large default page size
@@ -648,15 +654,13 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term =
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
-      final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      final List<HierarchyNode> list = elasticQueryService.getRootNodes(term);
+      final List<Concept> list = elasticQueryService.getRootNodes(term);
       if (list == null || list.isEmpty()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
       }
-      return ConceptUtils.convertConceptsFromHierarchyWithInclude(elasticQueryService, ip, term,
-          list);
+      return list;
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -673,7 +677,7 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths from the hierarchy root to the specified concept",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
@@ -695,7 +699,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsFromRoot(
+  public @ResponseBody List<List<Concept>> getPathsFromRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -710,7 +714,6 @@ public class ConceptController extends BaseController {
       }
       final Paths paths = elasticQueryService.getPathToRoot(code, term);
 
-      // TODO: update this method to use es query service
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
       handleException(e);
@@ -796,7 +799,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, term);
+      final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, 0, term);
       nodes.stream().peek(n -> n.setLevel(null)).count();
       return nodes;
     } catch (Exception e) {
@@ -816,7 +819,7 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths to the hierarchy root from the specified code",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
@@ -838,7 +841,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsToRoot(
+  public @ResponseBody List<List<Concept>> getPathsToRoot(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @RequestParam("include") final Optional<String> include) throws Exception {
@@ -869,7 +872,7 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get paths from the specified code to the specified ancestor code",
-      response = ConceptPath.class, responseContainer = "List")
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
@@ -895,7 +898,7 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<ConceptPath> getPathsToAncestor(
+  public @ResponseBody List<List<Concept>> getPathsToAncestor(
     @PathVariable(value = "terminology") final String terminology,
     @PathVariable(value = "code") final String code,
     @PathVariable(value = "ancestorCode") final String ancestorCode,

@@ -13,7 +13,7 @@ public class Path extends BaseModel {
   private int direction;
 
   /** The concepts. */
-  private List<ConceptNode> concepts;
+  private List<Concept> concepts;
 
   /**
    * Instantiates an empty {@link Path}.
@@ -27,7 +27,7 @@ public class Path extends BaseModel {
    * @param direction the direction
    * @param concepts the concepts
    */
-  public Path(int direction, List<ConceptNode> concepts) {
+  public Path(int direction, List<Concept> concepts) {
     this.direction = direction;
     this.concepts = new ArrayList<>(concepts);
   }
@@ -46,7 +46,7 @@ public class Path extends BaseModel {
    *
    * @param concepts the concepts
    */
-  public void setConcepts(List<ConceptNode> concepts) {
+  public void setConcepts(List<Concept> concepts) {
     this.concepts = concepts;
   }
 
@@ -64,7 +64,7 @@ public class Path extends BaseModel {
    *
    * @return the concepts
    */
-  public List<ConceptNode> getConcepts() {
+  public List<Concept> getConcepts() {
     return this.concepts;
   }
 }

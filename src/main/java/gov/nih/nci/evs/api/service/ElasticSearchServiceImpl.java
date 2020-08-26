@@ -83,12 +83,15 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     queryStringQueryBuilder = queryStringQueryBuilder.type(Type.BEST_FIELDS);
 
     // prepare bool query
-    BoolQueryBuilder boolQuery = new BoolQueryBuilder().should(queryStringQueryBuilder.boost(10f))
-        .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Total)
+    BoolQueryBuilder boolQuery = new BoolQueryBuilder()
+        .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
+            .field("name", 2f)
+            .boost(10f))
+        .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
             .boost(2f))
-        .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Total)
+        .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max)
             .boost(4f))
-        .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Total)
+        .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
             .boost(8f));
 
     // append terminology query

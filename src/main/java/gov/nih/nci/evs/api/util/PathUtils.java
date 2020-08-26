@@ -2,7 +2,7 @@ package gov.nih.nci.evs.api.util;
 
 import java.util.HashSet;
 
-import gov.nih.nci.evs.api.model.ConceptNode;
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 
@@ -24,7 +24,7 @@ public class PathUtils {
     HashSet<String> seenPaths = new HashSet<String>();
     for (Path path : paths.getPaths()) {
       StringBuffer strPath = new StringBuffer();
-      for (ConceptNode concept : path.getConcepts()) {
+      for (Concept concept : path.getConcepts()) {
         strPath.append(concept.getCode());
         strPath.append("|");
       }
