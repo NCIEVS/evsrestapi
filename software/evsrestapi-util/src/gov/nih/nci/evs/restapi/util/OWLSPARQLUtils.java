@@ -3950,7 +3950,11 @@ public class OWLSPARQLUtils {
 		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
 		buf.append("            ?x :NHC0 ?x_code .").append("\n");
 		buf.append("            ?x rdfs:label ?x_label .").append("\n");
-		buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
 		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
 		buf.append("            ?p rdfs:label ?p_label .").append("\n");
 
@@ -3965,7 +3969,6 @@ public class OWLSPARQLUtils {
 		buf.append("        }").append("\n");
 		buf.append("     }").append("\n");
 		buf.append("}").append("\n");
-		//buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
 		return buf.toString();
 	}
 
@@ -4819,5 +4822,59 @@ Term Type
 	public Vector getCodeByLabel(String named_graph, String label) {
 		return executeQuery(construct_get_code_by_label(named_graph, label));
 	}
+
+
+
+	public String construct_axiom_query(String named_graph, String code, String propertyName, String qualifierName) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT ?z_axiom ?x_label ?x_code ?p_label ?z_target ?y_label ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    { ").append("\n");
+		buf.append("    	{").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+
+		if (propertyName != null) {
+			buf.append("            ?p rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("            ?z_axiom ?y ?z . ").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+
+		if (qualifierName != null) {
+			buf.append("            ?y rdfs:label \"" + qualifierName + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("        }").append("\n");
+		buf.append("     }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getAxioms(String named_graph, String code, String propertyName, String qualfierName) {
+		String query = construct_axiom_query(named_graph, code, propertyName, qualfierName);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		if (v != null) {
+			v = new ParserUtils().getResponseValues(v);
+		}
+		return v;
+	}
+
+
 }
 
