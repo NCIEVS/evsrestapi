@@ -118,7 +118,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content).isEqualTo(content2);
+    assertThat(content.equalsIgnoreCase(content2));
 
   }
 
@@ -166,7 +166,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content).isEqualTo(content2);
+    assertThat(content.equalsIgnoreCase(content2));
 
   }
 
@@ -277,7 +277,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content).isEqualTo(content2);
+    assertThat(content.equalsIgnoreCase(content2));
 
   }
 
@@ -402,13 +402,42 @@ public class SearchControllerTests {
     String content = null;
     String content2 = null;
     ConceptResultList list = null;
+    
+// check that search requires exact
+    
+    result = mvc
+            .perform(get(url).param("terminology", "ncit").param("include", "properties")
+                .param("term", "XAV05295I5").param("property", "FDA"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal() == 0);
+        
+    result = mvc
+            .perform(get(url).param("terminology", "ncit").param("include", "properties")
+                .param("term", "XAV0").param("property", "FDA_UNII_Code"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal() == 0);
+   
+    result = mvc
+            .perform(get(url).param("terminology", "ncit").param("include", "properties")
+                .param("term", "XAV0").param("property", "P999"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal() == 0);
 
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=XAV05295I5&property=fda_unii_code&include=properties");
+        + "?terminology=ncit&term=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV05295I5").param("property", "fda_unii_code"))
+            .param("term", "XAV05295I5").param("property", "FDA_UNII_Code"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -425,7 +454,7 @@ public class SearchControllerTests {
 
     // Test with single terminology form
     url = "/api/v1/concept/ncit/search";
-    log.info("Testing url - " + url + "?term=XAV05295I5&property=fda_unii_code&include=properties");
+    log.info("Testing url - " + url + "?term=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
     result = this.mvc.perform(get(url).param("include", "properties").param("term", "XAV05295I5")
         .param("property", "fda_unii_code")).andExpect(status().isOk()).andReturn();
@@ -436,7 +465,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content).isEqualTo(content2);
+    assertThat(content.equalsIgnoreCase(content2));
 
     // With property code also - P319
     url = baseUrl;
@@ -473,7 +502,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content).isEqualTo(content2);
+    assertThat(content.equalsIgnoreCase(content2));
 
     // BAD property type
     // url = baseUrl;
@@ -651,6 +680,14 @@ public class SearchControllerTests {
     String content = null;
     ConceptResultList list = null;
 
+    // incomplete search
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymSource=NCIT");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+        .param("synonymSource", "NCIT")).andExpect(status().isBadRequest()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content.length() == 0); //incomplete query fails
+    
     // Test synonymSource
     log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymSource=NCI");
     result = mvc
@@ -717,6 +754,15 @@ public class SearchControllerTests {
     String content = null;
     ConceptResultList list = null;
 
+    // incomplete search
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermGroup=S");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+        .param("synonymTermGroup", "S")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal() == 0);
+    
     // Test single SynonymTermGroup
     log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermGroup=SY");
     result = mvc
@@ -807,10 +853,17 @@ public class SearchControllerTests {
     assertThat(found).isTrue();
 
     // Bad value test - just no results found in this case.
-    // Valid test
     log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&definitionSource=Bad_Value");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
         .param("definitionSource", "Bad_Value")).andExpect(status().isBadRequest()).andReturn();
+    
+    // incomplete match
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&definitionSource=NC");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
+        .param("definitionSource", "NC")).andExpect(status().isBadRequest()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content.length() == 0); //incomplete query fails
 
     log.info("Done Testing testDefinitionSource ");
 
@@ -842,7 +895,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content).isEqualTo(content2);
+    assertThat(content.equalsIgnoreCase(content2));
     
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
@@ -877,7 +930,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content).isEqualTo(content2);
+    assertThat(content.equalsIgnoreCase(content2));
     
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
