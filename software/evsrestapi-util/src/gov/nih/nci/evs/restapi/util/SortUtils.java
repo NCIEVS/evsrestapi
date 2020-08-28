@@ -150,4 +150,23 @@ public class SortUtils {
 		}
 		return values;
 	}
+
+	public static Vector sortBy(Vector v, int column) {
+		HashMap hmap = new HashMap();
+		Vector keys = new Vector();
+        for (int i=0; i<v.size(); i++) {
+			String str = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(str, '|');
+			String key = (String) u.elementAt(column);
+			keys.add(key);
+			hmap.put(key, str);
+		}
+		Vector w = new Vector();
+		keys = new SortUtils().quickSort(keys);
+        for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			w.add((String) hmap.get(key));
+		}
+		return w;
+	}
 }
