@@ -99,7 +99,6 @@ public class AxiomUtils {
 
     public Vector getAxioms(String named_graph, String code, String propertyName, String qualifierName) {
 		Vector w = owlSPARQLUtils.getAxioms(named_graph, code, propertyName, qualifierName);
-		Utils.saveToFile("axiom_data.txt", w);
 		return w;
 	}
 
