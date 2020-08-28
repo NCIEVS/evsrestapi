@@ -379,6 +379,50 @@ public class AxiomUtils {
 	}
 
 
+	public Vector<Synonym> getSynonymWithQualifierMatching(String named_graph, String qualifierName, String qualifierValue) {
+		Vector syn_vec = new Vector();
+		String propertyName = "FULL_SYN";
+		List list = getSynonyms(named_graph, null, propertyName, qualifierName);
+		Vector codes = new Vector();
+		for (int i=0; i<list.size(); i++) {
+			Synonym syn = (Synonym) list.get(i);
+			if (syn.getSubSourceName().compareTo(qualifierValue) == 0) {
+		        if (!codes.contains(syn.getCode())) {
+					codes.add(syn.getCode());
+				}
+			}
+		}
+		int lcv = 0;
+		for (int i=0; i<codes.size(); i++) {
+			lcv++;
+			String code = (String) codes.elementAt(i);
+			List syns = getSynonyms(named_graph, code, propertyName);
+		    for (int j=0; j<syns.size(); j++) {
+				Synonym syn = (Synonym) syns.get(j);
+				if (qualifierName.compareTo("Subsource Name") == 0) {
+				    if (syn.getSubSourceName() != null && syn.getSubSourceName().compareTo(qualifierValue) == 0) {
+						syn_vec.add(syn);
+					}
+				} else if (qualifierName.compareTo("Term Source") == 0) {
+				    if (syn.getTermSource() != null && syn.getTermSource().compareTo(qualifierValue) == 0) {
+						syn_vec.add(syn);
+					}
+				} else if (qualifierName.compareTo("Term Type") == 0) {
+				    if (syn.getTermGroup() != null && syn.getTermGroup().compareTo(qualifierValue) == 0) {
+						syn_vec.add(syn);
+					}
+				}
+			}
+
+			if (lcv == 500) {
+				System.out.println("" + i + " out of " + codes.size() + " completed.");
+				lcv = 0;
+			}
+		}
+		return syn_vec;
+	}
+
+
     public static void main(String[] args) {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
