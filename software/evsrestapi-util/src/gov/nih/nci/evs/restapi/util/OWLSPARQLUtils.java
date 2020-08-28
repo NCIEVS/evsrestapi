@@ -4103,7 +4103,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("").append("\n");
-		buf.append("SELECT ?x_code ?x_label ?a_code ?a_label ?z").append("\n");
+		buf.append("SELECT distinct ?x_code ?x_label ?a_code ?a_label ?z").append("\n");
 		buf.append("{").append("\n");
 		buf.append("graph <" + named_graph + ">").append("\n");
 		buf.append("{").append("\n");
