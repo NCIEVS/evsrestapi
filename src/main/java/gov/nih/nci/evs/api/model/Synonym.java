@@ -29,27 +29,26 @@ public class Synonym extends BaseModel {
   private String highlight;
 
   /** The term group. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String termGroup;
 
   /** The type. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The source. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /** The code. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String code;
 
   /** The sub source. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**

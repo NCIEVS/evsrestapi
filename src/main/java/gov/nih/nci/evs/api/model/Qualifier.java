@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Qualifier extends BaseModel {
 
   /** The code. */
-  @Field(type = FieldType.Text, store=false)
+  @Field(store=false)
   private String code;
 
   /** The type. */

@@ -23,15 +23,15 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class Property extends BaseModel {
 
   /** The code. */
-  @Field(type = FieldType.Text, store=false)
+  @Field(type = FieldType.Keyword, store=false)
   private String code;
 
   /** The type. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The value. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String value;
 
   /** The highlight. */
@@ -41,7 +41,6 @@ public class Property extends BaseModel {
   private String highlight;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**

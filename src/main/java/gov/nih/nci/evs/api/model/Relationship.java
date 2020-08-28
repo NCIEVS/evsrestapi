@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class Relationship extends BaseModel {
 
   /** The type. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The related code. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String relatedCode;
 
   /** The related name. */
@@ -38,7 +38,6 @@ public class Relationship extends BaseModel {
   private String highlight;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
 
