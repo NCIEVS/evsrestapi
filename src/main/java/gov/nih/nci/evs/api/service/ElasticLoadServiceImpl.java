@@ -94,6 +94,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   private ElasticQueryService esQueryService;
   
   /* The terminology utils */
+  @Autowired
   private TerminologyUtils termUtils;
   
   /* see superclass */
@@ -479,7 +480,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     
     if (CollectionUtils.isEmpty(iMetas)) return;
     
-    logger.info("Stale terminologies: " + iMetas);
+    logger.info("Removing stale terminologies: " + iMetas);
     
     for(IndexMetadata iMeta: iMetas) {
       String indexName = iMeta.getIndexName();
