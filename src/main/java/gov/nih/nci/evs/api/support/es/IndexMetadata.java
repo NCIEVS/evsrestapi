@@ -125,4 +125,10 @@ public class IndexMetadata {
   public void setCompleted(boolean completed) {
     this.completed = completed;
   }
+
+  @Override
+  public String toString() {
+    return String.format("{indexName: %s, totalConcepts: %d, completed: %s}", 
+        indexName, totalConcepts, String.valueOf(completed));
+  }
 }
