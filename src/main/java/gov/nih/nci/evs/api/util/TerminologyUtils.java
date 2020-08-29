@@ -105,9 +105,11 @@ public final class TerminologyUtils {
    * @return the terminology
    * @throws Exception the exception
    */
-  public Terminology getTerminology(final String terminology)
+  public Terminology getTerminology(final String terminology, boolean availableOnly)
     throws Exception {
-    for (final Terminology t : getAvailableTerminologies()) {
+    List<Terminology> terminologies = availableOnly ? 
+        getAvailableTerminologies() : sparqlQueryManagerService.getTerminologies();
+    for (final Terminology t : terminologies) {
       if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
         return t;
       } else if (t.getTerminologyVersion().equals(terminology)) {

@@ -270,7 +270,7 @@ public class SearchController extends BaseController {
 
     try {
       final String terminology = searchCriteria.getTerminology().get(0);
-      final Terminology term = termUtils.getTerminology(terminology);
+      final Terminology term = termUtils.getTerminology(terminology, true);
 
       searchCriteria.validate(term, metadataService);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);

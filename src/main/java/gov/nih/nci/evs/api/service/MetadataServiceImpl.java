@@ -66,7 +66,7 @@ public class MetadataServiceImpl implements MetadataService {
       condition = "#list.orElse('').isEmpty()")
   public List<Concept> getAssociations(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> associations = esQueryService.getAssociations(term, ip);
@@ -90,7 +90,7 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> list = self.getAssociations(terminology,
         Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() == 1) {
-      final Terminology term = termUtils.getTerminology(terminology);
+      final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getAssociation(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
@@ -115,7 +115,7 @@ public class MetadataServiceImpl implements MetadataService {
   public List<Concept> getRoles(String terminology, Optional<String> include, Optional<String> list)
     throws Exception {
 
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> roles = esQueryService.getRoles(term, ip);
@@ -139,7 +139,7 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> list = self.getRoles(terminology,
         Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() == 1) {
-      final Terminology term = termUtils.getTerminology(terminology);
+      final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getRole(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
@@ -162,7 +162,7 @@ public class MetadataServiceImpl implements MetadataService {
       condition = "#list.orElse('').isEmpty()")
   public List<Concept> getProperties(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     // TODO: "first-class attribute qualifiers", like 'NCH0'
@@ -196,7 +196,7 @@ public class MetadataServiceImpl implements MetadataService {
       condition = "#list.orElse('').isEmpty()")
   public List<Concept> getQualifiers(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> qualifiers = esQueryService.getQualifiers(term, ip);
@@ -222,7 +222,7 @@ public class MetadataServiceImpl implements MetadataService {
         self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
 
     if (list.size() == 1) {
-      final Terminology term = termUtils.getTerminology(terminology);
+      final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getQualifier(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
@@ -249,7 +249,7 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> list =
         self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
     if (list.size() == 1) {
-      final Terminology term = termUtils.getTerminology(terminology);
+      final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getProperty(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
@@ -270,7 +270,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
       condition = "#terminology.equals('ncit')")
   public Optional<List<String>> getConceptStatuses(String terminology) throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit"))
       return Optional.empty();
 
@@ -285,7 +285,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
       condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit"))
       return new ArrayList<>();
 
@@ -303,7 +303,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
       condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit"))
       return new ArrayList<>();
 
@@ -322,7 +322,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology, #code}")
   public Optional<List<String>> getQualifierValues(String terminology, String code)
     throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
 
     // Verify that it is a qualifier
     final List<Concept> list =
@@ -351,7 +351,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
   public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
 
-    final Terminology term = termUtils.getTerminology(terminology);
+    final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit"))
       return new ArrayList<>();
 

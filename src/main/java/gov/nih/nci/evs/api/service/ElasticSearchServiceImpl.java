@@ -442,8 +442,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     String[] indices = new String[terminologies.size()];
+    //TODO: add getTerminologies call to avoid looping
     for (int i = 0; i < terminologies.size(); i++) {
-      indices[i] = termUtils.getTerminology(terminologies.get(i))
+      indices[i] = termUtils.getTerminology(terminologies.get(i), true)
           .getIndexName();
     }
     logger.debug("indices array: " + Arrays.asList(indices));

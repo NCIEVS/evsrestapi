@@ -479,6 +479,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     
     if (CollectionUtils.isEmpty(iMetas)) return;
     
+    logger.info("Stale terminologies: " + iMetas);
+    
     for(IndexMetadata iMeta: iMetas) {
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
@@ -613,7 +615,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       }
 
       TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
-      Terminology term = termUtils.getTerminology(config.getTerminology());
+      Terminology term = termUtils.getTerminology(config.getTerminology(), false);
       HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
       loadService.loadConcepts(config, term, hierarchy);
       loadService.loadObjects(config, term, hierarchy);
