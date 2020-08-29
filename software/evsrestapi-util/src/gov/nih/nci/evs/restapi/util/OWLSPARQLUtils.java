@@ -4120,6 +4120,24 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		return buf.toString();
 	}
 
+	public Vector getConceptsContainingProperty(String named_graph, String prop_label) {
+		String prop_code = null;
+		Vector properties = getSupportedProperties(named_graph);
+        for (int i=0; i<properties.size(); i++) {
+			String str = (String) properties.elementAt(i);
+			Vector u = StringUtils.parseData(str, '|');
+			String label = (String) u.elementAt(0);
+			if (label.compareTo(prop_label) == 0) {
+				prop_code = (String) u.elementAt(1);
+			    break;
+			}
+		}
+		Vector w = getConceptsWithProperty(named_graph, prop_code);
+		w = SortUtils.multiValuedSortBy(w, 1);
+        return w;
+	}
+
+
 	public Vector getConceptsWithProperty(String named_graph, String prop_code) {
 		String query = construct_property_query(named_graph, prop_code);
 		Vector v = executeQuery(query);
