@@ -447,7 +447,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       indices[i] = termUtils.getTerminology(terminologies.get(i), true)
           .getIndexName();
     }
-    logger.debug("indices array: " + Arrays.asList(indices));
+    logger.info("indices array: " + Arrays.asList(indices));
     return indices;
   }
 
