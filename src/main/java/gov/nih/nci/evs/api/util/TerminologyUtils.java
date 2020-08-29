@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.util;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -108,7 +107,7 @@ public final class TerminologyUtils {
    */
   public Terminology getTerminology(final String terminology)
     throws Exception {
-    for (final Terminology t : sparqlQueryManagerService.getTerminologies()) {
+    for (final Terminology t : getAvailableTerminologies()) {
       if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
         return t;
       } else if (t.getTerminologyVersion().equals(terminology)) {
@@ -128,7 +127,7 @@ public final class TerminologyUtils {
   public Terminology getLatestTerminology()
     throws Exception {
     
-    List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
+    List<Terminology> terminologies = getAvailableTerminologies();
     if (CollectionUtils.isEmpty(terminologies))
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No terminology found!");
     
