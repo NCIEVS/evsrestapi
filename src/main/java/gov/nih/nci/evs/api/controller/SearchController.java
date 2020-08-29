@@ -258,21 +258,17 @@ public class SearchController extends BaseController {
     searchCriteria.setTerm(queryTerm);
     logger.debug("  Search = " + searchCriteria);
 
-    if (searchCriteria.getTerminology().size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          "Search currently supports only terminology ncit");
-    } else if (searchCriteria.getTerminology().size() == 0) {
+    if (searchCriteria.getTerminology().size() == 0) {
       // Implicitly use ncit
       searchCriteria.getTerminology().add("ncit");
-      // throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-      // "Required parameter 'terminology' is missing");
     }
 
     try {
-      final String terminology = searchCriteria.getTerminology().get(0);
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      for(String terminology: searchCriteria.getTerminology()) {
+        final Terminology term = termUtils.getTerminology(terminology, true);
+        searchCriteria.validate(term, metadataService);        
+      }
 
-      searchCriteria.validate(term, metadataService);
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
 
       // Look up info for all the concepts
