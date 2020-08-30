@@ -45,12 +45,16 @@ public final class TerminologyUtils {
   /**
    * Returns all terminologies.
    * 
+   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies from stardog
    * @return the terminologies
    * @throws Exception Signals that an exception has occurred.
    */
-//  public List<Terminology> getTerminologies() throws Exception {
-//    return sparqlQueryManagerService.getTerminologies();
-//  }
+  public List<Terminology> getTerminologies(boolean indexed) throws Exception {
+    if (indexed) {
+      return getIndexedTerminologies();
+    }
+    return sparqlQueryManagerService.getTerminologies();
+  }
 
   /**
    * Returns terminologies loaded to elasticsearch.
@@ -58,20 +62,13 @@ public final class TerminologyUtils {
    * @return the list of terminology objects
    * @throws Exception Signals that an exception has occurred.
    */
-  public List<Terminology> getAvailableTerminologies() throws Exception {
+  private List<Terminology> getIndexedTerminologies() throws Exception {
     //get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
     if (CollectionUtils.isEmpty(iMetas)) return Collections.emptyList();
     
-    //get all terminologies and organize in a map by terminologyVersion as key
-    List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
-    final Map<String, Terminology> termMap = new HashMap<>();
-    terminologies.stream().forEach(t -> termMap.putIfAbsent(t.getTerminologyVersion(), t));
-    
-    //collect only terminologies loaded in es and present in stardog
     return iMetas.stream()
-        .filter(m -> termMap.containsKey(m.getTerminologyVersion()))
-        .map(m -> termMap.get(m.getTerminologyVersion()))
+        .map(m -> m.getTerminology())
         .collect(Collectors.toList());
   }
   
@@ -100,15 +97,17 @@ public final class TerminologyUtils {
   /**
    * Returns the terminology.
    *
+   * Set {@literal true} for {@code indexedOnly} param to lookup in indexed terminologies.
+   *
    * @param sparqlQueryManagerService the sparql query manager service
    * @param terminology the terminology
+   * @param indexed use {@literal true} to lookup in indexed terminologies as opposed to stardog
    * @return the terminology
    * @throws Exception the exception
    */
-  public Terminology getTerminology(final String terminology, boolean availableOnly)
+  public Terminology getTerminology(final String terminology, boolean indexed)
     throws Exception {
-    List<Terminology> terminologies = availableOnly ? 
-        getAvailableTerminologies() : sparqlQueryManagerService.getTerminologies();
+    List<Terminology> terminologies = getTerminologies(indexed);
     for (final Terminology t : terminologies) {
       if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
         return t;
@@ -122,14 +121,14 @@ public final class TerminologyUtils {
   /**
    * Returns the latest terminology.
    *
-   * @param sparqlQueryManagerService the sparql query manager service
+   * @param indexed use {@literal true} to lookup in indexed terminologies as opposed to stardog
    * @return the terminology
    * @throws Exception the exception
    */
-  public Terminology getLatestTerminology()
+  public Terminology getLatestTerminology(boolean indexed)
     throws Exception {
     
-    List<Terminology> terminologies = getAvailableTerminologies();
+    List<Terminology> terminologies = getTerminologies(indexed);
     if (CollectionUtils.isEmpty(terminologies))
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No terminology found!");
     

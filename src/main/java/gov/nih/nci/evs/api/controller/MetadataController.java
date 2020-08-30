@@ -67,7 +67,7 @@ public class MetadataController extends BaseController {
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies() throws Exception {
     try {
-      return termUtils.getAvailableTerminologies();
+      return termUtils.getTerminologies(true);
     } catch (Exception e) {
       handleException(e);
       return null;

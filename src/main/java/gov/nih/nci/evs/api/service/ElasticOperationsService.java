@@ -46,7 +46,7 @@ public interface ElasticOperationsService {
    * @param clazz the clazz
    * @throws IOException the io exception
    */
-  void bulkIndex(List<Object> objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz) throws IOException;
+  void bulkIndex(List objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz) throws IOException;
 
   /**
    * load object.

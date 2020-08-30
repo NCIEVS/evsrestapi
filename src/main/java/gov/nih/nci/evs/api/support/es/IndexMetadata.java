@@ -5,9 +5,11 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
 @Document(
@@ -20,14 +22,6 @@ public class IndexMetadata {
   @Field(type = FieldType.Keyword)
   private String indexName;
 
-  /** the object index name **/
-  @Field(type = FieldType.Keyword)
-  private String objectIndexName;
-  
-  /** the terminology version **/
-  @Field(type = FieldType.Keyword)
-  private String terminologyVersion;
-
   /** the total concepts to be indexed **/
   @Field(type = FieldType.Integer)
   private int totalConcepts;
@@ -36,6 +30,10 @@ public class IndexMetadata {
   @Field(type = FieldType.Boolean)
   private boolean completed;
 
+  /* the terminology */
+  @Field(type = FieldType.Object)
+  private Terminology terminology;
+  
   /**
    * Get index name
    * 
@@ -43,24 +41,6 @@ public class IndexMetadata {
    */
   public String getIndexName() {
     return indexName;
-  }
-
-  /**
-   * Set the object index name
-   * 
-   * @param objectIndexName the object index name
-   */
-  public void setObjectIndexName(String objectIndexName) {
-    this.objectIndexName = objectIndexName;
-  }
-
-  /**
-   * Get object index name
-   * 
-   * @return the object index name
-   */
-  public String getObjectIndexName() {
-    return objectIndexName;
   }
 
   /**
@@ -72,24 +52,6 @@ public class IndexMetadata {
     this.indexName = indexName;
   }
   
-  /**
-   * Get terminology version
-   * 
-   * @return the terminology version
-   */
-  public String getTerminologyVersion() {
-    return terminologyVersion;
-  }
-
-  /**
-   * Set the terminology version
-   * 
-   * @param terminologyVersion the terminology version
-   */
-  public void setTerminologyVersion(String terminologyVersion) {
-    this.terminologyVersion = terminologyVersion;
-  }
-
   /**
    * Get the concepts total
    * 
@@ -126,6 +88,46 @@ public class IndexMetadata {
     this.completed = completed;
   }
 
+  /**
+   * Get the terminology
+   * 
+   * @return the terminology
+   */
+  public Terminology getTerminology() {
+    return terminology;
+  }
+
+  /**
+   * Set the terminology
+   * 
+   * @param terminology the terminology
+   */
+  public void setTerminology(Terminology terminology) {
+    this.terminology = terminology;
+  }
+  
+  /**
+   * Get object index name
+   * 
+   * @return the object index name
+   */
+  @JsonIgnore
+  public String getObjectIndexName() {
+    if (terminology == null) return null;
+    return terminology.getObjectIndexName();
+  }
+
+  /**
+   * Get terminology version
+   * 
+   * @return the terminology version
+   */
+  @JsonIgnore
+  public String getTerminologyVersion() {
+    if (terminology == null) return null;
+    return terminology.getTerminologyVersion();
+  }
+  
   @Override
   public String toString() {
     return String.format("{indexName: %s, totalConcepts: %d, completed: %s}", 

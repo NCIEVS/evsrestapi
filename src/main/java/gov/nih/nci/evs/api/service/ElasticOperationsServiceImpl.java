@@ -51,7 +51,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public void bulkIndex(List<Object> objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
+  public void bulkIndex(List objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
     throws IOException {
     if (CollectionUtils.isEmpty(objects))
       return;

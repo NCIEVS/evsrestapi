@@ -363,7 +363,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
           ElasticObject.class);
       logger.info("  Hierarchy loaded");
     } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Hierarchy");
+      logger.error("  Error loading Elastic Object: Hierarchy", e);
     }
 
     try {
@@ -375,7 +375,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
           ElasticObject.class);
       logger.info("  Synonym Sources loaded");
     } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Synonym Sources");
+      logger.error("  Error loading Elastic Object: Synonym Sources", e);
     }
 
     try {
@@ -387,7 +387,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
           ElasticObject.class);
       logger.info("  Qualifiers loaded");
     } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Qualifiers");
+      logger.error("  Error loading Elastic Object: Qualifiers", e);
     }
 
     try {
@@ -399,7 +399,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
           ElasticObject.class);
       logger.info("  Properties loaded");
     } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Properties");
+      logger.error("  Error loading Elastic Object: Properties", e);
     }
 
     try {
@@ -411,7 +411,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
           ElasticObject.class);
       logger.info("  Associations loaded");
     } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Associations");
+      logger.error("  Error loading Elastic Object: Associations", e);
     }
 
     try {
@@ -423,7 +423,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
           ElasticObject.class);
       logger.info("  Roles loaded");
     } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Roles");
+      logger.error("  Error loading Elastic Object: Roles", e);
     }
 
     logger.info("Done loading Elastic Objects!");
@@ -444,7 +444,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
-        logger.error("Error while checking load status: sleep interrupted - " + e.getMessage());
+        logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
       }
       
       if (attempts == 15) {
@@ -460,31 +460,36 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     
     IndexMetadata iMeta = new IndexMetadata();
     iMeta.setIndexName(terminology.getIndexName());
-    iMeta.setObjectIndexName(terminology.getObjectIndexName());
-    iMeta.setTerminologyVersion(terminology.getTerminologyVersion());
     iMeta.setTotalConcepts(total);
     iMeta.setCompleted(completed);
+    iMeta.setTerminology(terminology);
     
     operationsService.index(iMeta, 
         ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE, 
         IndexMetadata.class);
   }
   
-  private void cleanStaleTerminologies() {
+  private void cleanStaleIndexes() {
     List<IndexMetadata> iMetas = null;
     try {
       iMetas = termUtils.getStaleTerminologies();
     } catch (Exception e) {
       logger.error("Error while cleaning stale terminologies: " + e.getMessage());
     }
-    
+
     if (CollectionUtils.isEmpty(iMetas)) return;
-    
+        
     logger.info("Removing stale terminologies: " + iMetas);
     
     for(IndexMetadata iMeta: iMetas) {
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
+      
+      //objectIndexName will be NULL if terminology object is not part of IndexMetadata
+      //temporarily required to accommodate change in IndexMetadata object
+      if (objectIndexName == null) {
+        objectIndexName = "evs_object_" + indexName.replace("concept_", "");
+      }
       
       //delete objects index
       boolean result = operationsService.deleteIndex(objectIndexName);
@@ -505,9 +510,32 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       //delete metadata object
       esQueryService.deleteIndexMetadata(indexName);
     }
-
   }
   
+  private void updateLatestFlag() {
+    //update latest flag
+    logger.info("Updating latest flags on all metadata objects");
+    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+
+    if (CollectionUtils.isEmpty(iMetas)) return;
+
+    try {
+      Terminology latest = termUtils.getLatestTerminology(false);
+      for(IndexMetadata iMeta: iMetas) {
+        if (iMeta.getTerminology() != null ) {
+          iMeta.getTerminology().setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
+        }
+      }
+      
+      operationsService.bulkIndex(iMetas,
+          ElasticOperationsService.METADATA_INDEX, 
+          ElasticOperationsService.METADATA_TYPE, 
+          IndexMetadata.class);
+    } catch (Exception e) {
+      logger.error("Error while updating latest flags: " + e.getMessage(), e);
+    }
+  }
+
   /**
    * Task to load a batch of concepts to elasticsearch.
    *
@@ -620,7 +648,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
       loadService.loadConcepts(config, term, hierarchy);
       loadService.loadObjects(config, term, hierarchy);
-      loadService.cleanStaleTerminologies();
+      loadService.cleanStaleIndexes();
+      loadService.updateLatestFlag();
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {
