@@ -606,12 +606,14 @@ public class OWLSPARQLUtils {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("SELECT ?x_label ?y_label ?z").append("\n");
+		buf.append("SELECT ?x_code ?x_label ?y_code ?y_label ?z").append("\n");
+		//buf.append("SELECT ?x_label ?y_label ?z").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    {").append("\n");
 		buf.append("            ?x a owl:Class .").append("\n");
 		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("	        ?x :NHC0 ?x_code .").append("\n");
 		buf.append("            ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
 		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
 		buf.append("            ?x ?y ?z .").append("\n");
@@ -628,6 +630,42 @@ public class OWLSPARQLUtils {
 	public Vector getPropertiesByCode(String named_graph, String code) {
 		return executeQuery(construct_get_properties_by_code(named_graph, code));
 	}
+
+
+	public String construct_get_properties_by_code(String named_graph, String code, String propertyName) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_code ?x_label ?y_code ?y_label ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("	        ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("	        ?xy :NHC0 ?y_code .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+
+        if (propertyName != null) {
+			buf.append("?y rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?y :NHC0 ?y_code .").append("\n");
+		buf.append("            ?y rdfs:range ?y_range").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("    FILTER (str(?y_range)!=\"http://www.w3.org/2001/XMLSchema#anyURI\")").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getPropertiesByCode(String named_graph, String code, String propertyName) {
+		return executeQuery(construct_get_properties_by_code(named_graph, code, propertyName));
+	}
+
 
 	public String construct_get_ontology_version_info(String named_graph) {
 		String prefixes = getPrefixes();
