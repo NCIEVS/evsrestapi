@@ -957,7 +957,7 @@ public class SearchControllerTests {
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=phrase");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "phrase").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -989,7 +989,7 @@ public class SearchControllerTests {
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=startsWith");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "startsWith").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1005,9 +1005,9 @@ public class SearchControllerTests {
     
     
     //phrase term check
-    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=contains");
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=startsWith");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "startsWith").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1032,9 +1032,9 @@ public class SearchControllerTests {
     ConceptResultList list = null;
         
     // phrase term check
-    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=contains");
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=AND");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "AND").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1067,7 +1067,7 @@ public class SearchControllerTests {
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=OR");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "OR").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1087,7 +1087,7 @@ public class SearchControllerTests {
     // phrase term check
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=OR");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "OR").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1134,7 +1134,7 @@ public class SearchControllerTests {
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=match");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "match").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1152,7 +1152,7 @@ public class SearchControllerTests {
     // phrase term check
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=match");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("definitionSource", "NCI").param("type", "contains").param("include", "synonyms,properties,definitions"))
+            .param("definitionSource", "NCI").param("type", "match").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1161,9 +1161,9 @@ public class SearchControllerTests {
     conceptList = list.getConcepts();
     for(Concept concept : conceptList) {
     	assertThat(concept.getName().equalsIgnoreCase("malignant bone neoplasm") ||
-    			   !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
-    			   !concept.getProperties().stream().filter(p -> p.getValue().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
-    			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty());
+            !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+            !concept.getProperties().stream().filter(p -> p.getValue().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+            !concept.getDefinitions().stream().filter(p -> p.getDefinition().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty());
     }
     
   }
