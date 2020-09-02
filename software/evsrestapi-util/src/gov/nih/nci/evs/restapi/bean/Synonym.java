@@ -216,8 +216,6 @@ public class Synonym
 
 	public String print() {
 		StringBuffer buf = new StringBuffer();
-		//buf.append("code: ").append(code).append("\n");
-		//buf.append("label: ").append(label).append("\n");
 		buf.append("termName:").append(termName).append("\n");
 		buf.append("\t").append("termGroup: ").append(termGroup).append("\n");
 		buf.append("\t").append("termSource: ").append(termSource).append("\n");
