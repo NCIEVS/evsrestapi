@@ -22,6 +22,9 @@ public class Synonym extends BaseModel {
   @Field(type = FieldType.Text)
   private String name;
 
+  @Field(type = FieldType.Keyword, store = false)
+  private String normName;
+
   /** The highlight. */
   @Transient
   @JsonSerialize
@@ -99,6 +102,26 @@ public class Synonym extends BaseModel {
    */
   public void setName(final String name) {
     this.name = name;
+  }
+
+  
+  /**
+   * Returns the normName.
+   *
+   * @return the normName
+   */
+  public String getNormName() {
+	return normName;
+  }
+  
+  /**
+   * Sets the normName.
+   *
+   * @param normName the normName
+   */
+  
+  public void setNormName(String normName) {
+		this.normName = normName;
   }
 
   /**
