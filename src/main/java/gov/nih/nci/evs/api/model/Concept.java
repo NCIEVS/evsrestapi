@@ -61,6 +61,10 @@ public class Concept extends ConceptMinimal {
   @JsonSerialize
   @JsonDeserialize
   private java.util.Map<String, String> highlights;
+  
+  /** The normName */
+  @Field(type = FieldType.Keyword, store = false)
+  private String normName;
 
   /** The level. */
   @Field(type = FieldType.Integer)
@@ -241,6 +245,24 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Returns the normName.
+   *
+   * @return the normName
+   */
+  public String getNormName() {
+	return normName;
+  }
+	
+  /**
+   * Sets the normName.
+   *
+   * @param normName the normName
+   */
+  public void setNormName(String normName) {
+	this.normName = normName;
+  }
+
+/**
    * Returns the level.
    *
    * @return the level

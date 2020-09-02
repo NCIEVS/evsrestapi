@@ -30,6 +30,7 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 @Service
@@ -62,35 +63,52 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     logger.debug("query string [{}]", searchCriteria.getTerm());
 
-    // prepare query_string query builder
-    QueryStringQueryBuilder queryStringQueryBuilder = QueryBuilders
+    BoolQueryBuilder boolQuery = new BoolQueryBuilder();
+    
+    boolean startsWithFlag = "startsWith".equalsIgnoreCase(searchCriteria.getType());
+    boolean matchFlag = "match".equalsIgnoreCase(searchCriteria.getType());
+
+    if(matchFlag || startsWithFlag) {
+      // only search normName in concept/synonym or value in property
+      final String normTerm = ConceptUtils.normalize(searchCriteria.getTerm())
+    			.replaceAll(" ", "\\ ") + (startsWithFlag ? "*" : "");
+      
+      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
+  	  .should(QueryBuilders.queryStringQuery("normName:" + normTerm)
+			  .analyzeWildcard(true).boost(20f))
+	  .should(QueryBuilders.nestedQuery("properties", QueryBuilders.queryStringQuery("value:" + normTerm)
+	          .analyzeWildcard(true), ScoreMode.Max).boost(5f))
+	  .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders.queryStringQuery("normName:" + normTerm)
+	          .analyzeWildcard(true), ScoreMode.Max).boost(20f));
+      
+  	  boolQuery.must(boolQuery2);
+    } else {
+      // prepare query_string query builder
+      QueryStringQueryBuilder queryStringQueryBuilder = QueryBuilders
         .queryStringQuery(updateTermForType(searchCriteria.getTerm(), searchCriteria.getType()));
 
-    boolean isWildcard = "startswith".equalsIgnoreCase(searchCriteria.getType());
+      // -- fuzzy and wildcard - both cannot be used for same query
+      if ("fuzzy".equalsIgnoreCase(searchCriteria.getType())) {
+        queryStringQueryBuilder = queryStringQueryBuilder.fuzziness(Fuzziness.ONE);
+      }
 
-    // -- fuzzy and wildcard - both cannot be used for same query
-    if ("fuzzy".equalsIgnoreCase(searchCriteria.getType())) {
-      queryStringQueryBuilder = queryStringQueryBuilder.fuzziness(Fuzziness.ONE);
-    } else if (isWildcard) {
-      queryStringQueryBuilder = queryStringQueryBuilder.analyzeWildcard(true);
+      // -- wildcard search is assumed to be a term search or phrase search
+      if ("AND".equalsIgnoreCase(searchCriteria.getType())) {
+        queryStringQueryBuilder = queryStringQueryBuilder.defaultOperator(Operator.AND);
+      }
+
+      queryStringQueryBuilder = queryStringQueryBuilder.type(Type.BEST_FIELDS);
+
+      // prepare bool query
+      boolQuery
+      .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
+        .field("name", 2f)
+        .boost(10f))
+      .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
+        .boost(5f))
+      .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
+        .boost(20f));
     }
-
-    // -- wildcard search is assumed to be a term search or phrase search
-    if ("AND".equalsIgnoreCase(searchCriteria.getType()) || isWildcard) {
-      queryStringQueryBuilder = queryStringQueryBuilder.defaultOperator(Operator.AND);
-    }
-
-    queryStringQueryBuilder = queryStringQueryBuilder.type(Type.BEST_FIELDS);
-
-    // prepare bool query
-    BoolQueryBuilder boolQuery = new BoolQueryBuilder()
-        .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
-            .field("name", 2f)
-            .boost(10f))
-        .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
-            .boost(5f))
-        .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
-            .boost(20f));
 
     // append terminology query
     QueryBuilder terminologyQuery = buildTerminologyQuery(searchCriteria);
@@ -146,9 +164,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     switch (type.toLowerCase()) {
       case "fuzzy":
         result = updateTokens(term, '~');
-        break;
-      case "startswith":
-        result = term + "*";
         break;
       case "phrase":
         result = "\"" + term + "\"";
