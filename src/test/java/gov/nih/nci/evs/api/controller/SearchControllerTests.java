@@ -997,12 +997,12 @@ public class SearchControllerTests {
     
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
-    /*for(Concept concept : conceptList) {
+    for(Concept concept : conceptList) {
     	assertTrue(concept.getName().startsWith("braf") ||
     			   !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty());
-    }*/
+    }
     
     
     //phrase term check
