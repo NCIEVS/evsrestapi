@@ -13,6 +13,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -63,7 +65,8 @@ public class Concept extends ConceptMinimal {
   private java.util.Map<String, String> highlights;
   
   /** The normName */
-  @Field(type = FieldType.Keyword, store = false)
+  //@JsonProperty(access = Access.WRITE_ONLY)
+  @Field(type = FieldType.Keyword)
   private String normName;
 
   /** The level. */
@@ -87,42 +90,43 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /** The children. */
-  //@Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
   private List<Concept> children;
 
   /** The parents. */
-  //@Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
   private List<Concept> parents;
 
   /** The descendants. */
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
   private List<Concept> descendants;
 
   /** The associations. */
-  //@Field(type = FieldType.Nested)
+  @Field(type = FieldType.Nested)
   private List<Association> associations;
 
   /** The inverse associations. */
-  //@Field(type = FieldType.Nested)
+  @Field(type = FieldType.Nested)
   private List<Association> inverseAssociations;
 
   /** The roles. */
-  //@Field(type = FieldType.Nested)
+  @Field(type = FieldType.Nested)
   private List<Role> roles;
 
   /** The disjoint with. */
-  //@Field(type = FieldType.Nested)
+  @Field(type = FieldType.Nested)
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
-  //@Field(type = FieldType.Nested)
+  @Field(type = FieldType.Nested)
   private List<Role> inverseRoles;
 
   /** The maps. */
-  //@Field(type = FieldType.Nested)
+  @Field(type = FieldType.Nested)
   private List<Map> maps;
 
   /** The paths to root. */
-  //@Field(type = FieldType.Object)
+  @Field(type = FieldType.Nested, ignoreFields = {"paths"})
   private Paths paths;
   
   /**

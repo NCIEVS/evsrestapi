@@ -879,14 +879,14 @@ public class SearchControllerTests {
     
  // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=braf&type=contains");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("pageSize", "100")
             .param("type", "contains").param("include", "synonyms"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
     
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=braf");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("include", "synonyms"))
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("include", "synonyms").param("pageSize", "100"))
     		.andExpect(status().isOk()).andReturn();
     
     // check that no type = contains
@@ -914,14 +914,14 @@ public class SearchControllerTests {
     
     //phrase term check
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=malignant%20bone%20neoplasm&type=contains");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("pageSize", "100")
             .param("type", "contains").param("include", "synonyms"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
     
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=100&term=malignant%20bone%20neoplasm");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("include", "synonyms"))
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("include", "synonyms").param("pageSize", "100"))
     		.andExpect(status().isOk()).andReturn();
     
     // check that no type = contains
@@ -957,7 +957,7 @@ public class SearchControllerTests {
     
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=phrase");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("pageSize", "100")
             .param("type", "phrase").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -989,7 +989,7 @@ public class SearchControllerTests {
     
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=startsWith");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("pageSize", "100")
             .param("type", "startsWith").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -1007,7 +1007,7 @@ public class SearchControllerTests {
     
     //phrase term check
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=startsWith");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("pageSize", "100")
             .param("type", "startsWith").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -1033,9 +1033,9 @@ public class SearchControllerTests {
     ConceptResultList list = null;
         
     // phrase term check
-    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=AND");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("type", "AND").param("include", "synonyms,properties,definitions"))
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties&pageSize=100&term=malignant%20bone%20neoplasm&type=AND");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("pageSize", "100")
+            .param("type", "AND").param("include", "synonyms,properties"))
     		.andExpect(status().isOk()).andReturn();
     
     content = result.getResponse().getContentAsString();
@@ -1048,10 +1048,7 @@ public class SearchControllerTests {
     								    filter(p -> p.getName().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty() ||
     	!concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().contains("malignant")).
 	    								  filter(p -> p.getValue().toLowerCase().contains("bone")).
-	    								  filter(p -> p.getValue().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty() ||
-	    !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().contains("malignant")).
-	    								   filter(p -> p.getDefinition().toLowerCase().contains("bone")).
-	    								   filter(p -> p.getDefinition().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty()
+	    								  filter(p -> p.getValue().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty()
     	);
     	
     }
@@ -1067,7 +1064,7 @@ public class SearchControllerTests {
     
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=OR");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("pageSize", "100")
             .param("type", "OR").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -1087,7 +1084,7 @@ public class SearchControllerTests {
     
     // phrase term check
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=OR");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("pageSize", "100")
             .param("type", "OR").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -1134,7 +1131,7 @@ public class SearchControllerTests {
     
     // Valid test
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=match");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("pageSize", "100")
             .param("type", "match").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -1152,7 +1149,7 @@ public class SearchControllerTests {
     
     // phrase term check
     log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=malignant%20bone%20neoplasm&type=match");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm").param("pageSize", "100")
             .param("type", "match").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -1176,7 +1173,7 @@ public class SearchControllerTests {
 	  ConceptResultList list = null;
 	  ConceptResultList list2 = null;
 	  log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf");
-	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("pageSize", "100")
             .param("type", "contains").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
@@ -1199,14 +1196,14 @@ public class SearchControllerTests {
 	  ConceptResultList list = null;
 	  ConceptResultList list2 = null;
 	  log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf&type=fuzzy");
-	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("pageSize", "100")
             .param("type", "contains").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     
 	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
 	  
 	  log.info("Testing url - " + url + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=braf");
-	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf")
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("term", "braf").param("pageSize", "100")
             .param("type", "contains").param("include", "synonyms,properties,definitions"))
     		.andExpect(status().isOk()).andReturn();
     

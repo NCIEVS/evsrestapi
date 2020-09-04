@@ -71,15 +71,15 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if(matchFlag || startsWithFlag) {
       // only search normName in concept/synonym or value in property
       final String normTerm = ConceptUtils.normalize(searchCriteria.getTerm())
-    			.replaceAll(" ", "\\ ") + (startsWithFlag ? "*" : "");
+    			.replaceAll(" ", "\\\\ ") + (startsWithFlag ? "*" : "");
       
       BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
   	  .should(QueryBuilders.queryStringQuery("normName:" + normTerm)
-			  .analyzeWildcard(true).boost(20f))
-	  .should(QueryBuilders.nestedQuery("properties", QueryBuilders.queryStringQuery("value:" + normTerm)
-	          .analyzeWildcard(true), ScoreMode.Max).boost(5f))
-	  .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders.queryStringQuery("normName:" + normTerm)
-	          .analyzeWildcard(true), ScoreMode.Max).boost(20f));
+			        .analyzeWildcard(true).boost(20f))
+      .should(QueryBuilders.nestedQuery("properties", QueryBuilders.queryStringQuery("properties.value:" + normTerm)
+              .analyzeWildcard(true), ScoreMode.Max).boost(5f))
+      .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders.queryStringQuery("synonyms.normName:" + normTerm)
+              .analyzeWildcard(true), ScoreMode.Max).boost(20f));
       
   	  boolQuery.must(boolQuery2);
     } else {
@@ -100,14 +100,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       queryStringQueryBuilder = queryStringQueryBuilder.type(Type.BEST_FIELDS);
 
       // prepare bool query
-      boolQuery
+      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
       .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
-        .field("name", 2f)
+    	.field("name", 2f)
         .boost(10f))
       .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
         .boost(5f))
       .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
         .boost(20f));
+
+      boolQuery.must(boolQuery2);
     }
 
     // append terminology query
