@@ -1794,7 +1794,7 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_subset_membership(named_graph, code, codeOnly));
 	}
 
-
+/*
 	public String construct_get_associated_concepts(String named_graph, String focus_code, String association, boolean sourceOf) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -1829,7 +1829,7 @@ public class OWLSPARQLUtils {
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
-
+    */
 	public String construct_get_associated_concepts(String named_graph, String association) {
         return construct_get_associated_concepts(named_graph, association, true);
 	}
@@ -1889,8 +1889,8 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association));
 	}
 
-	public Vector getAssociatedConcepts(String named_graph, String target_code, String association, boolean sourceOf) {
-		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association, sourceOf));
+	public Vector getAssociatedConcepts(String named_graph, String target_code, String association, boolean outbound) {
+		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association, outbound));
 	}
 
 	public String[] get_concept_in_subset_codes(String named_graph, String subset_code) {
@@ -4932,5 +4932,38 @@ Term Type
 	}
 
 
+	public String construct_get_associated_concepts(String named_graph, String code, String association, boolean outbound) {
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+		buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+		buf.append("            ?z rdfs:label ?z_label .").append("\n");
+
+		if (code != null) {
+			if (outbound) {
+				buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			} else {
+				buf.append("            ?z :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+		}
+
+		if (association != null) {
+			buf.append("            ?y rdfs:label " + "\"" + association + "\"^^xsd:string ").append("\n");
+		}
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
 }
 
