@@ -4965,5 +4965,19 @@ Term Type
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
+	public Vector getValueSet(String named_graph, String vs_header_concept_code) {
+		String association = "Concept_In_Subset";
+		boolean outbound = false;
+		Vector v = getAssociatedConcepts(named_graph, vs_header_concept_code, association, outbound);
+		v = new ParserUtils().getResponseValues(v);
+        Vector w = new Vector();
+ 	    for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			line = StringUtils.formatAssociation(line);
+			w.add(line);
+		}
+ 	    return w;
+	}
 }
 

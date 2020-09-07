@@ -771,4 +771,10 @@ public class StringUtils {
 		}
 		return hmap;
 	}
+
+    public static String formatAssociation(String line) {
+		Vector u = StringUtils.parseData(line, '|');
+		return "[" + (String) u.elementAt(0) + " (" + (String) u.elementAt(1) + ")] -- (" + (String) u.elementAt(2) + ") --> " +
+		       "[" + (String) u.elementAt(3) + " (" + (String) u.elementAt(4) + ")]";
+	}
 }
