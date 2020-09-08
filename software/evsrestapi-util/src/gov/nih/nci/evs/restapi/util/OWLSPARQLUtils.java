@@ -4967,6 +4967,11 @@ Term Type
 	}
 
 	public Vector getValueSet(String named_graph, String vs_header_concept_code) {
+		boolean formatted = true;
+		return getValueSet(named_graph, vs_header_concept_code, formatted);
+	}
+
+	public Vector getValueSet(String named_graph, String vs_header_concept_code, boolean formatted) {
 		String association = "Concept_In_Subset";
 		boolean outbound = false;
 		Vector v = getAssociatedConcepts(named_graph, vs_header_concept_code, association, outbound);
@@ -4974,7 +4979,9 @@ Term Type
         Vector w = new Vector();
  	    for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			line = StringUtils.formatAssociation(line);
+			if (formatted) {
+				line = StringUtils.formatAssociation(line);
+			}
 			w.add(line);
 		}
  	    return w;
