@@ -150,4 +150,58 @@ public class SortUtils {
 		}
 		return values;
 	}
+
+	public static Vector sortBy(Vector v, int column) {
+		HashMap hmap = new HashMap();
+		Vector keys = new Vector();
+        for (int i=0; i<v.size(); i++) {
+			String str = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(str, '|');
+			String key = (String) u.elementAt(column);
+			keys.add(key);
+			hmap.put(key, str);
+		}
+		Vector w = new Vector();
+		keys = new SortUtils().quickSort(keys);
+        for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			w.add((String) hmap.get(key));
+		}
+		return w;
+	}
+
+	public static Vector multiValuedSortBy(Vector v, int column) {
+		HashMap hmap = new HashMap();
+		Vector keys = new Vector();
+        for (int i=0; i<v.size(); i++) {
+			String str = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(str, '|');
+			String key = (String) u.elementAt(column);
+			if (!keys.contains(key)) {
+				keys.add(key);
+			}
+			Vector v2 = new Vector();
+			if (hmap.containsKey(key)) {
+				v2 = (Vector) hmap.get(key);
+			}
+			if (!v2.contains(str)) {
+				v2.add(str);
+			}
+			hmap.put(key, v2);
+		}
+
+		keys = new SortUtils().quickSort(keys);
+		Vector w = new Vector();
+        for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			Vector v3 = (Vector) hmap.get(key);
+			for (int k=0; k<v3.size(); k++) {
+				String s = (String) v3.elementAt(k);
+				w.add(s);
+			}
+			//w.addAll(v3);
+		}
+		return w;
+	}
+
 }

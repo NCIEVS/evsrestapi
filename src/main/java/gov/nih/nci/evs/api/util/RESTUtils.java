@@ -40,6 +40,7 @@ public class RESTUtils {
   /** The connect timeout. */
   private Duration connectTimeout;
 
+  /** The builder. */
   private RestTemplateBuilder builder;
 
   /**
@@ -75,8 +76,7 @@ public class RESTUtils {
   public String runSPARQL(String query, String restURL) {
 
     RestTemplate restTemplate = new RestTemplate();
-    restTemplate.getInterceptors().add(
-        new BasicAuthenticationInterceptor(username, password));
+    restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
     restTemplate.getMessageConverters().add(0,
         new StringHttpMessageConverter(Charset.forName("UTF-8")));
     MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
