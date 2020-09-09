@@ -65,7 +65,7 @@ public class Concept extends ConceptMinimal {
   private java.util.Map<String, String> highlights;
   
   /** The normName */
-  //@JsonProperty(access = Access.WRITE_ONLY)
+  @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
 
@@ -193,6 +193,7 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     level = other.getLevel();
     leaf = other.getLeaf();
+    normName = other.getNormName();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());

@@ -24,7 +24,7 @@ public class Synonym extends BaseModel {
   @Field(type = FieldType.Text)
   private String name;
 
-  //@JsonProperty(access = Access.WRITE_ONLY)
+  @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
 
@@ -83,6 +83,7 @@ public class Synonym extends BaseModel {
     highlight = other.getHighlight();
     termGroup = other.getTermGroup();
     type = other.getType();
+    normName = other.getNormName();
     source = other.getSource();
     code = other.getCode();
     subSource = other.getSubSource();

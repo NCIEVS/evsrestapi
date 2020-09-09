@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class Property extends BaseModel {
 
   /** The code. */
-  @JsonProperty(access = Access.WRITE_ONLY)
+  @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String code;
 
