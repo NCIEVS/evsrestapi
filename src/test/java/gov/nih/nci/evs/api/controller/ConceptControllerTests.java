@@ -127,6 +127,8 @@ public class ConceptControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
 
   }
 
