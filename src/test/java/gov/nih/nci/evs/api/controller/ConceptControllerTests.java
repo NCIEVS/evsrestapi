@@ -129,6 +129,7 @@ public class ConceptControllerTests {
     assertThat(concept.getPaths()).isNull();
     assertThat(concept.getNormName()).isNull();
     assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
+    assertThat(concept.getProperties().get(0).getCode()).isNull();
 
   }
 
