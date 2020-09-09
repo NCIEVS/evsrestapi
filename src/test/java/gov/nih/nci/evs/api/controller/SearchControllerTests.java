@@ -119,7 +119,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content.equalsIgnoreCase(content2));
+    assertThat(content).isEqualToIgnoringCase(content2);
 
   }
 
@@ -167,7 +167,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content.equalsIgnoreCase(content2));
+    assertThat(content).isEqualToIgnoringCase(content2);
 
   }
 
@@ -278,7 +278,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content.equalsIgnoreCase(content2));
+    assertThat(content).isEqualToIgnoringCase(content2);
 
   }
 
@@ -458,7 +458,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?term=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
     result = this.mvc.perform(get(url).param("include", "properties").param("term", "XAV05295I5")
-        .param("property", "fda_unii_code")).andExpect(status().isOk()).andReturn();
+        .param("property", "FDA_UNII_Code")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
 
@@ -466,7 +466,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content.equalsIgnoreCase(content2));
+    assertThat(content).isEqualToIgnoringCase(content2);
 
     // With property code also - P319
     url = baseUrl;
@@ -503,7 +503,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content.equalsIgnoreCase(content2));
+    assertThat(content).isEqualToIgnoringCase(content2);
 
     // BAD property type
     // url = baseUrl;
@@ -896,7 +896,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content.equalsIgnoreCase(content2));
+    assertThat(content).isEqualToIgnoringCase(content2);
     
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
@@ -931,7 +931,7 @@ public class SearchControllerTests {
     content = removeTimeTaken(content);
     content2 = removeTimeTaken(content2);
 
-    assertThat(content.equalsIgnoreCase(content2));
+    assertThat(content).isEqualToIgnoringCase(content2);
     
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
