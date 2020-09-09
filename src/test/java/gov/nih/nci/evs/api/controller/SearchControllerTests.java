@@ -969,8 +969,8 @@ public class SearchControllerTests {
     for (Concept concept : conceptList) {
     	if(concept.getName().equalsIgnoreCase("malignant bone neoplasm") ||
     	  !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
-    	  !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty() ||
-    	  !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty()) { // found match
+    	  !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
+    	  !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty()) { // found match
     		if(!currentExact) // check still in front
     			fail("Exact Matches not in order");
     	}
@@ -998,7 +998,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for(Concept concept : conceptList) {
-    	assertTrue(concept.getName().startsWith("braf") ||
+    	assertTrue(concept.getName().toLowerCase().startsWith("braf") ||
     			   !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().startsWith("braf")).collect(Collectors.toList()).isEmpty());
@@ -1016,7 +1016,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for(Concept concept : conceptList) {
-    	assertTrue(concept.getName().startsWith("malignant bone neoplasm") ||
+    	assertTrue(concept.getName().toLowerCase().startsWith("malignant bone neoplasm") ||
     			   !concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().startsWith("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().startsWith("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().startsWith("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty());
@@ -1042,7 +1042,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for(Concept concept : conceptList) {
-    	assertTrue((concept.getName().contains("malignant") && concept.getName().contains("bone") && concept.getName().contains("neoplasm")) ||
+    	assertTrue((concept.getName().toLowerCase().contains("malignant") && concept.getName().toLowerCase().contains("bone") && concept.getName().toLowerCase().contains("neoplasm")) ||
     	!concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().contains("malignant")).
     								    filter(p -> p.getName().toLowerCase().contains("bone")).
     								    filter(p -> p.getName().toLowerCase().contains("neoplasm")).collect(Collectors.toList()).isEmpty() ||
@@ -1073,7 +1073,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for(Concept concept : conceptList) {
-    	assertTrue((concept.getName().contains("malignant") && concept.getName().contains("bone") && concept.getName().contains("neoplasm")) ||
+    	assertTrue((concept.getName().toLowerCase().contains("braf")) ||
     	!concept.getSynonyms().stream().filter(p -> p.getName().toLowerCase().contains("braf")).collect(Collectors.toList()).isEmpty() ||
     	!concept.getProperties().stream().filter(p -> p.getValue().toLowerCase().contains("braf")).collect(Collectors.toList()).isEmpty() ||
 	    !concept.getDefinitions().stream().filter(p -> p.getDefinition().toLowerCase().contains("braf")).collect(Collectors.toList()).isEmpty()
@@ -1140,7 +1140,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     List<Concept> conceptList = list.getConcepts();
     for(Concept concept : conceptList) {
-    	assertTrue(concept.getName().equalsIgnoreCase("braf") ||
+    	assertTrue(concept.getName().toLowerCase().equalsIgnoreCase("braf") ||
     			   !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getProperties().stream().filter(p -> p.getValue().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty() ||
     			   !concept.getDefinitions().stream().filter(p -> p.getDefinition().equalsIgnoreCase("braf")).collect(Collectors.toList()).isEmpty());
@@ -1158,7 +1158,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for(Concept concept : conceptList) {
-    	assertTrue(concept.getName().equalsIgnoreCase("malignant bone neoplasm") ||
+    	assertTrue(concept.getName().toLowerCase().equalsIgnoreCase("malignant bone neoplasm") ||
             !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
             !concept.getProperties().stream().filter(p -> p.getValue().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty() ||
             !concept.getDefinitions().stream().filter(p -> p.getDefinition().equalsIgnoreCase("malignant bone neoplasm")).collect(Collectors.toList()).isEmpty());
