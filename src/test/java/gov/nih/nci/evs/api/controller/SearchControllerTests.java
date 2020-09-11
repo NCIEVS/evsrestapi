@@ -199,9 +199,9 @@ public class SearchControllerTests {
 
     // Invalid "include" parameter
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&include=XXX");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&include=XYZ");
     mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "melanoma").param("include", "XXX"))
+        get(url).param("terminology", "ncit").param("term", "melanoma").param("include", "XYZ"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
