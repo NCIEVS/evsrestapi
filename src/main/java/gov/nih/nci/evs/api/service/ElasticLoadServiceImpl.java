@@ -111,6 +111,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         loadConceptsRealTime(allConcepts, terminology, hierarchy);
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
+        throw new IOException(e);
       }
 
       return;
