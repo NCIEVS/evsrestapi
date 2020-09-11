@@ -23,7 +23,7 @@ Information on downloading and using stardog with EVSRESTAPI.
 
 * Loading NCIt ThesaurusInferred.owl (after license is obtained).  Make sure the local volume being mounted is the one that contains the ThesaurusInferred.owl file.
 
-       dir=c:/Users/carlsenbr/eclipse-workspace/data/
+      dir=c:/Users/carlsenbr/eclipse-workspace/data/
       docker run -it --entrypoint "/bin/bash" -p 5820:5820 -v "$dir":/data -v stardog-home:/var/opt/stardog stardog/stardog
       [root@0b9fbb0b90ba bin]# export STARDOG_SERVER_JAVA_ARGS="-Xmx4g -Xms3g -XX:MaxDirectMemorySize=4g"
       [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin server start
