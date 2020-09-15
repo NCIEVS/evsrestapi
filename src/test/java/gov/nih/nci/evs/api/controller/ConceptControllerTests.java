@@ -127,6 +127,11 @@ public class ConceptControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
+    
+    //check that normName and property codes are not showing up in searches, as is intended
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
+    assertThat(concept.getProperties().get(0).getCode()).isNull();
 
   }
 

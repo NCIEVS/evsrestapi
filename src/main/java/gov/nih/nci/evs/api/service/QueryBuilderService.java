@@ -1,7 +1,7 @@
 
-
 package gov.nih.nci.evs.api.service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,11 +33,11 @@ public interface QueryBuilderService {
    *
    * @param queryProp the query prop
    * @param namedGraph the named graph
-   * @param inClause the in clause
+   * @param conceptCodes the concept codes
    * @return the string
-   */  
-  public String constructBatchQuery(String queryProp, String namedGraph, String inClause);
-  
+   */
+  public String constructBatchQuery(String queryProp, String namedGraph, List<String> conceptCodes);
+
   /**
    * Construct query.
    *
@@ -54,6 +54,5 @@ public interface QueryBuilderService {
    * @return the string
    */
   public String contructPrefix(String source);
-
 
 }
