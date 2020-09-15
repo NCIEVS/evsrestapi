@@ -9,6 +9,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -22,6 +24,10 @@ public class Synonym extends BaseModel {
   @Field(type = FieldType.Text)
   private String name;
 
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
+  private String normName;
+
   /** The highlight. */
   @Transient
   @JsonSerialize
@@ -29,27 +35,26 @@ public class Synonym extends BaseModel {
   private String highlight;
 
   /** The term group. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String termGroup;
 
   /** The type. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The source. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /** The code. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String code;
 
   /** The sub source. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**
@@ -78,6 +83,7 @@ public class Synonym extends BaseModel {
     highlight = other.getHighlight();
     termGroup = other.getTermGroup();
     type = other.getType();
+    normName = other.getNormName();
     source = other.getSource();
     code = other.getCode();
     subSource = other.getSubSource();
@@ -100,6 +106,26 @@ public class Synonym extends BaseModel {
    */
   public void setName(final String name) {
     this.name = name;
+  }
+
+  
+  /**
+   * Returns the normName.
+   *
+   * @return the normName
+   */
+  public String getNormName() {
+	return normName;
+  }
+  
+  /**
+   * Sets the normName.
+   *
+   * @param normName the normName
+   */
+  
+  public void setNormName(String normName) {
+		this.normName = normName;
   }
 
   /**

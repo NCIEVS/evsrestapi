@@ -606,6 +606,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setName(pn);
       // final String conceptLabel = getConceptLabel(conceptCode, terminology);
       // concept.setName(conceptLabel);
+      concept.setNormName(ConceptUtils.normalize(pn));
 
       // If loading a qualifier, don't look for additional qualifiers
       final List<Axiom> axioms = axiomMap.get(conceptCode);
@@ -617,10 +618,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // adding preferred name synonym
       pnSynonym.setType("Preferred_Name");
       pnSynonym.setName(pn);
+      pnSynonym.setNormName(ConceptUtils.normalize(pn));
       concept.getSynonyms().add(pnSynonym);
 
       // adding all synonyms
       concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
+      // add norm name here because EVSUtils.getSynonyms is used elsewhere
+      concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName()))).count();
 
       // Properties ending in "Name" are rendered as synonyms here.
       final Set<String> commonProperties = EVSUtils.getCommonPropertyNames(terminology);
@@ -634,7 +638,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           // add synonym
           final Synonym synonym = new Synonym();
           synonym.setType(type);
-          synonym.setName(pn);
+          synonym.setName(property.getValue());
+          synonym.setNormName(ConceptUtils.normalize(property.getValue()));
           concept.getSynonyms().add(synonym);
         }
 

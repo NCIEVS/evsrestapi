@@ -10,6 +10,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -23,15 +25,16 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class Property extends BaseModel {
 
   /** The code. */
-  @Field(type = FieldType.Text, store=false)
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
   private String code;
 
   /** The type. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The value. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String value;
 
   /** The highlight. */
@@ -41,7 +44,6 @@ public class Property extends BaseModel {
   private String highlight;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**
