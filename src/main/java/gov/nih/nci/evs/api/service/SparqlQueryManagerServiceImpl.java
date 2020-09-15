@@ -606,7 +606,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setName(pn);
       // final String conceptLabel = getConceptLabel(conceptCode, terminology);
       // concept.setName(conceptLabel);
-      concept.setNormName(ConceptUtils.normalize(conceptLabel));
+      concept.setNormName(ConceptUtils.normalize(pn));
 
       // If loading a qualifier, don't look for additional qualifiers
       final List<Axiom> axioms = axiomMap.get(conceptCode);
