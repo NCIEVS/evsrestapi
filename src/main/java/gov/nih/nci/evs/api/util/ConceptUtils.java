@@ -42,6 +42,14 @@ public final class ConceptUtils {
     // n/a
   }
 
+  public static final String PUNCTUATION_REGEX =
+  "[ \\t\\-\\(\\{\\[\\)\\}\\]_!@#%&\\*\\\\:;\\\"',\\.\\?\\/~\\+=\\|<>$`^]";
+
+  public static String normalize(final String value) {
+  return value.replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "").toLowerCase().replaceAll(PUNCTUATION_REGEX, " ")
+      .replaceAll("\\s+", " ").trim();
+  }
+
   /**
    * Apply highlights.
    *

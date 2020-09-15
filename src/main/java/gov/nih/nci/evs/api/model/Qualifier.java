@@ -5,6 +5,8 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 /**
  * Represents a qualifier on a synonym, definition, property, or role that isn't
@@ -16,7 +18,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Qualifier extends BaseModel {
 
   /** The code. */
-  @Field(type = FieldType.Text, store=false)
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
   private String code;
 
   /** The type. */

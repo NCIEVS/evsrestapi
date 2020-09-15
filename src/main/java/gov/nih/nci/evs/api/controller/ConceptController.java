@@ -656,6 +656,8 @@ public class ConceptController extends BaseController {
           TerminologyUtils.getTerminology(sparqlQueryManagerService, terminology);
 
       final List<Concept> list = elasticQueryService.getRootNodes(term);
+      // "leaf" should be set to false for all roots
+      list.stream().peek(c -> c.setLeaf(false)).count();
       if (list == null || list.isEmpty()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
