@@ -4986,5 +4986,33 @@ Term Type
 		}
  	    return w;
 	}
+
+	public String generate_get_distinct_property_values(String named_graph, String property_name) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("graph <" + named_graph + ">").append("\n");
+		buf.append("{").append("\n");
+		buf.append("?x a owl:Class .").append("\n");
+		buf.append("?x rdfs:label ?x_label . ").append("\n");
+		buf.append("?x :NHC0 ?x_code .").append("\n");
+		buf.append("?x ?y ?z .").append("\n");
+		buf.append("?y rdfs:label ?y_label .").append("\n");
+		buf.append("?y rdfs:label \"" + property_name + "\"^^xsd:string  ").append("\n");
+		buf.append("}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getDistinctPropertyValues(String named_graph, String property_name) {
+	    String query = generate_get_distinct_property_values(named_graph, property_name);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    v = new SortUtils().quickSort(v);
+	    return v;
+	}
+
 }
 
