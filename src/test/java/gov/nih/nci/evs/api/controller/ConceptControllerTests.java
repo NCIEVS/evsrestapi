@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,10 +31,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -1043,6 +1046,56 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel() == 0);
 
   }
+  
+  /**
+   * Test that we don't have erroneous definitions or synonyms
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCheckDefsAndSynsAreRight() throws Exception {
+	String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test with C3224 synonyms
+    url = baseUrl + "/ncit/C3224";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    for (Definition def : concept.getDefinitions()) {
+    	assertFalse(def.getDefinition().contains("nephron"));
+    }
+    
+    // Test with C36716 synonyms
+    url = baseUrl + "/ncit/C36716";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    for (Synonym syn : concept.getSynonyms()) {
+    	assertFalse(syn.getName().contains("nephron"));
+    }
+    
+    // Test with C100808 definitions
+    url = baseUrl + "/ncit/C100808";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    for (Definition def : concept.getDefinitions()) {
+    	assertFalse(def.getDefinition().contains("arrhythmia"));
+    }
+  }
+  
 
   /**
    * Checks if hierarchy has a leaf node anywhere in the hierarchy.
