@@ -61,6 +61,7 @@ server:
 nci:
   evs:
     application:
+      adminKey: ${NCI_EVS_ADMIN_KEY:Default}
       contextPath: ${NCI_EVS_API_PATH:/api/v1}
       metricsEnabled:   ${METRICS_ENABLED:false}
     bulkload:

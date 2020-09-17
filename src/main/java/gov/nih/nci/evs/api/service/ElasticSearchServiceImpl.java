@@ -43,10 +43,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   @Autowired
   ElasticsearchOperations operations;
 
-  /** The sparql query manager service. */
+  /* The terminology utils */
   @Autowired
-  SparqlQueryManagerService sparqlQueryManagerService;
-
+  TerminologyUtils termUtils;
+  
   /**
    * search for the given search criteria.
    *
@@ -458,11 +458,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     String[] indices = new String[terminologies.size()];
+    //TODO: add getTerminologies call to avoid looping
     for (int i = 0; i < terminologies.size(); i++) {
-      indices[i] = TerminologyUtils.getTerminology(sparqlQueryManagerService, terminologies.get(i))
+      indices[i] = termUtils.getTerminology(terminologies.get(i), true)
           .getIndexName();
     }
-    logger.debug("indices array: " + Arrays.asList(indices));
+    logger.info("indices array: " + Arrays.asList(indices));
     return indices;
   }
 

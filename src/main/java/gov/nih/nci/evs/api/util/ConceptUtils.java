@@ -43,11 +43,20 @@ public final class ConceptUtils {
   }
 
   public static final String PUNCTUATION_REGEX =
-  "[ \\t\\-\\(\\{\\[\\)\\}\\]_!@#%&\\*\\\\:;\\\"',\\.\\?\\/~\\+=\\|<>$`^]";
+      "[ \\t\\-\\(\\{\\[\\)\\}\\]_!@#%&\\*\\\\:;\\\"',\\.\\?\\/~\\+=\\|<>$`^]";
 
+  /**
+   * Normalize.
+   *
+   * @param value the value
+   * @return the string
+   */
   public static String normalize(final String value) {
-  return value.replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "").toLowerCase().replaceAll(PUNCTUATION_REGEX, " ")
-      .replaceAll("\\s+", " ").trim();
+    if (value == null) {
+      return null;
+    }
+    return value.replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "").toLowerCase()
+        .replaceAll(PUNCTUATION_REGEX, " ").replaceAll("\\s+", " ").trim();
   }
 
   /**

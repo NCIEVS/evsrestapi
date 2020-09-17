@@ -1,64 +1,114 @@
 
 package gov.nih.nci.evs.api.util;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 
 /**
  * Utilities for handling the "include" flag, and converting EVSConcept to
  * Concept.
  */
+@Component
 public final class TerminologyUtils {
 
   /** The Constant logger. */
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
 
-  /**
-   * Instantiates an empty {@link TerminologyUtils}.
-   */
-  private TerminologyUtils() {
-    // n/a
-  }
+  /** The sparql query manager service. */
+  @Autowired
+  SparqlQueryManagerService sparqlQueryManagerService;
 
+  /* The elasticsearch query service */
+  @Autowired
+  ElasticQueryService esQueryService;
+  
   /**
-   * Returns the terminologies.
+   * Returns all terminologies.
    * 
-   * Note: To be used only once, during initialization. Subsequently calls to get terminologies
-   * should use {@code SparqlQueryManagerService.getTerminologies()}
-   *
-   * @param sparqlQueryManagerService the sparql query manager service
-   *
+   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies from stardog
    * @return the terminologies
    * @throws Exception Signals that an exception has occurred.
    */
-  public static List<Terminology> getTerminologies(final SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
+  public List<Terminology> getTerminologies(boolean indexed) throws Exception {
+    if (indexed) {
+      return getIndexedTerminologies();
+    }
     return sparqlQueryManagerService.getTerminologies();
   }
 
   /**
+   * Returns terminologies loaded to elasticsearch.
+   * 
+   * @return the list of terminology objects
+   * @throws Exception Signals that an exception has occurred.
+   */
+  private List<Terminology> getIndexedTerminologies() throws Exception {
+    //get index metadata for terminologies completely loaded in es
+    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    if (CollectionUtils.isEmpty(iMetas)) return Collections.emptyList();
+    
+    return iMetas.stream()
+        .map(m -> m.getTerminology())
+        .collect(Collectors.toList());
+  }
+  
+  /**
+   * Returns terminologies loaded to elasticsearch and not in Stardog.
+   * 
+   * @return the list of {@link IndexMetadata} objects
+   * @throws Exception Signals that an exception has occurred.
+   */
+  public List<IndexMetadata> getStaleTerminologies() throws Exception {
+    //get index metadata for terminologies completely loaded in es
+    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    if (CollectionUtils.isEmpty(iMetas)) return Collections.emptyList();
+    
+    //get all terminologies and organize in a map by terminologyVersion as key
+    List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
+    final Map<String, Terminology> termMap = new HashMap<>();
+    terminologies.stream().forEach(t -> termMap.putIfAbsent(t.getTerminologyVersion(), t));
+    
+    //collect stale terminologies loaded in es
+    return iMetas.stream()
+        .filter(m -> !termMap.containsKey(m.getTerminologyVersion()))
+        .collect(Collectors.toList());
+  }
+  
+  /**
    * Returns the terminology.
+   *
+   * Set {@literal true} for {@code indexedOnly} param to lookup in indexed terminologies.
    *
    * @param sparqlQueryManagerService the sparql query manager service
    * @param terminology the terminology
+   * @param indexed use {@literal true} to lookup in indexed terminologies as opposed to stardog
    * @return the terminology
    * @throws Exception the exception
    */
-  public static Terminology getTerminology(
-    final SparqlQueryManagerService sparqlQueryManagerService, final String terminology)
+  public Terminology getTerminology(final String terminology, boolean indexed)
     throws Exception {
-    for (final Terminology t : sparqlQueryManagerService.getTerminologies()) {
+    List<Terminology> terminologies = getTerminologies(indexed);
+    for (final Terminology t : terminologies) {
       if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
         return t;
       } else if (t.getTerminologyVersion().equals(terminology)) {
@@ -71,15 +121,14 @@ public final class TerminologyUtils {
   /**
    * Returns the latest terminology.
    *
-   * @param sparqlQueryManagerService the sparql query manager service
+   * @param indexed use {@literal true} to lookup in indexed terminologies as opposed to stardog
    * @return the terminology
    * @throws Exception the exception
    */
-  public static Terminology getLatestTerminology(
-    final SparqlQueryManagerService sparqlQueryManagerService)
+  public Terminology getLatestTerminology(boolean indexed)
     throws Exception {
     
-    List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
+    List<Terminology> terminologies = getTerminologies(indexed);
     if (CollectionUtils.isEmpty(terminologies))
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No terminology found!");
     
