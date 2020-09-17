@@ -16,6 +16,7 @@ import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
@@ -184,6 +185,29 @@ public interface ElasticQueryService {
   Paths getPathToParent(String code, String parentCode, Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
   
   /**
+   * Get concepts count for the given terminology
+   * 
+   * @param terminology the terminology
+   * @return the concepts count
+   */
+  long getCount(Terminology terminology); 
+  
+  /**
+   * Get {@link IndexMetadata} objects
+   * 
+   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
+   * @return the list of {@link IndexMetadata} objects
+   */
+  List<IndexMetadata> getIndexMetadata(boolean completedOnly);
+  
+  /**
+   * Delete the {@link IndexMetadata} object
+   * 
+   * @param id the id of the {@link IndexMetadata} object
+   */
+  void deleteIndexMetadata(String id);
+  
+  /**
    * Get hiearchy roots for a given terminology.
    *
    * @param terminology the terminology
@@ -313,4 +337,5 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException
    */
   List<ConceptMinimal> getContributingSources(Terminology terminology) throws ClassNotFoundException, IOException;
+
 }

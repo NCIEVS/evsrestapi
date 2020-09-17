@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptMultiGetResultMapper;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathUtils;
@@ -486,6 +488,59 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
   /**
    * see superclass *.
+   * 
+   * @param terminology the terminology
+   * @return the concepts count
+   */
+  @Override
+  public long getCount(Terminology terminology) {
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withIndices(terminology.getIndexName())
+            .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+
+    return operations.count(query);
+  }
+
+  /**
+   * see superclass *.
+   * 
+   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
+   * @return the list of {@link IndexMetadata} objects
+   */
+  @Override
+  public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
+    NativeSearchQueryBuilder queryBuilder =
+        new NativeSearchQueryBuilder()
+            .withIndices(ElasticOperationsService.METADATA_INDEX)
+            .withTypes(ElasticOperationsService.METADATA_TYPE);
+
+    if (completedOnly) {
+      queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));
+    }
+    
+    List<IndexMetadata> iMetas =
+        operations.queryForList(queryBuilder.build(), IndexMetadata.class);
+    return iMetas;
+  }
+
+  
+  /**
+   * see superclass *.
+   * 
+   * @param id the id of the {@link IndexMetadata} object
+   */
+  @Override
+  public void deleteIndexMetadata(String id) {
+    DeleteQuery delQuery = new DeleteQuery();
+    delQuery.setQuery(QueryBuilders.idsQuery().addIds(id));
+    delQuery.setIndex(ElasticOperationsService.METADATA_INDEX);
+    delQuery.setType(ElasticOperationsService.METADATA_TYPE);
+
+    operations.delete(delQuery);
+  }
+  
+  /**
+   * see superclass *.
    *
    * @param terminology the terminology
    * @return the hierarchy
@@ -710,7 +765,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the optional of elasticsearch object
    */
   private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
-    logger.info("getElasticObject({}, {})", id, terminology.getTerminology());
+    if (logger.isDebugEnabled()) { 
+      logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
+    }
+    
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id))
             .withIndices(terminology.getObjectIndexName())
