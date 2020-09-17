@@ -589,7 +589,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         log.info("      start main");
         propertyMap.putAll(getProperties(conceptCodes, terminology));
         axiomMap.putAll(getAxioms(conceptCodes, terminology, true));
-        log.info("YYY axiomMap = " + axiomMap.keySet());
         subConceptMap.putAll(getSubconcepts(conceptCodes, terminology));
         superConceptMap.putAll(getSuperconcepts(conceptCodes, terminology));
         associationMap.putAll(getAssociations(conceptCodes, terminology));
