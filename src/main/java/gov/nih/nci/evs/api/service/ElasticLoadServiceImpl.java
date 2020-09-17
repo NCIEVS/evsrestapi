@@ -19,7 +19,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -89,17 +88,19 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The elasticsearch query service **/
+  /** The elasticsearch query service *. */
   @Autowired
   private ElasticQueryService esQueryService;
-  
+
+  /** The term utils. */
   /* The terminology utils */
   @Autowired
   private TerminologyUtils termUtils;
-  
+
   /* see superclass */
   @Override
-  public void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException {
+  public void loadConcepts(ElasticLoadConfig config, Terminology terminology,
+    HierarchyUtils hierarchy) throws IOException {
 
     logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}",
         terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE);
@@ -113,7 +114,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
     logger.info("Getting all concepts");
     List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
-    
+
     if (config.isRealTime()) {
       try {
         // download concepts and upload to es in real time
@@ -124,9 +125,9 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         throw new IOException(e);
       }
 
-      //compare count of concepts loaded and index metadata object
+      // compare count of concepts loaded and index metadata object
       checkLoadStatusandIndexMetadata(allConcepts.size(), terminology);
-      
+
       return;
     }
 
@@ -147,11 +148,12 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       loadConceptsFromFiles(config.getLocation(), terminology, hierarchy);
     } catch (InterruptedException e) {
       logger.error(e.getMessage(), e);
+      throw new IOException(e);
     }
 
-    //compare count of concepts loaded and index metadata object
+    // compare count of concepts loaded and index metadata object
     checkLoadStatusandIndexMetadata(allConcepts.size(), terminology);
-    
+
     return;
   }
 
@@ -161,10 +163,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    * @param allConcepts all concepts to download
    * @param terminology the terminology
    * @param location the location to download
+   * @param hierarchy the hierarchy
    * @throws IOException the io exception
    */
-  private void downloadConcepts(List<Concept> allConcepts, Terminology terminology, String location, HierarchyUtils hierarchy)
-    throws IOException {
+  private void downloadConcepts(List<Concept> allConcepts, Terminology terminology, String location,
+    HierarchyUtils hierarchy) throws IOException {
     if (CollectionUtils.isEmpty(allConcepts))
       return;
     logger.debug("Downloading concepts");
@@ -180,9 +183,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
       logger.info("  Processing {} to {}", start + 1, end);
 
-      List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
-          .collect(Collectors.toList());
-      List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology, hierarchy);
+      List<Concept> concepts = sparqlQueryManagerService
+          .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
 
       for (Concept concept : concepts) {
         String json = concept.toString();
@@ -206,11 +208,12 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    *
    * @param location the location where files are to be read from
    * @param terminology the terminology
+   * @param hierarchy the hierarchy
    * @throws IOException the io exception
    * @throws InterruptedException the interruped exception
    */
-  private void loadConceptsFromFiles(String location, Terminology terminology, HierarchyUtils hierarchy)
-    throws IOException, InterruptedException {
+  private void loadConceptsFromFiles(String location, Terminology terminology,
+    HierarchyUtils hierarchy) throws IOException, InterruptedException {
     logger.debug("Loading concepts from files");
     File conceptsDir = new File(location);
     File lockFile = new File(location + LOCK_FILE);
@@ -280,10 +283,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    *
    * @param allConcepts all concepts to load
    * @param terminology the terminology
+   * @param hierarchy the hierarchy
    * @throws Exception the exception
    */
-  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology, HierarchyUtils hierarchy)
-    throws Exception {
+  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology,
+    HierarchyUtils hierarchy) throws Exception {
     logger.info("  download batch size = " + DOWNLOAD_BATCH_SIZE);
     logger.info("  index batch size = " + INDEX_BATCH_SIZE);
 
@@ -315,9 +319,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
       logger.info("  Processing {} to {}", start + 1, end);
       logger.info("    start reading {} to {}", start + 1, end);
-      List<String> conceptCodes = allConcepts.subList(start, end).stream().map(c -> c.getCode())
-          .collect(Collectors.toList());
-      List<Concept> concepts = sparqlQueryManagerService.getConcepts(conceptCodes, terminology, hierarchy);
+      List<Concept> concepts = sparqlQueryManagerService
+          .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
       logger.info("    finish reading {} to {}", start + 1, end);
 
       int indexStart = 0;
@@ -350,7 +353,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
   /* see superclass */
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException {
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology,
+    HierarchyUtils hierarchy) throws IOException {
     String indexName = terminology.getObjectIndexName();
     logger.info("Loading Elastic Objects");
     logger.debug("object index name: {}", indexName);
@@ -365,6 +369,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.info("  Hierarchy loaded");
     } catch (IOException e) {
       logger.error("  Error loading Elastic Object: Hierarchy", e);
+      throw new IOException(e);
     }
 
     try {
@@ -377,6 +382,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.info("  Synonym Sources loaded");
     } catch (IOException e) {
       logger.error("  Error loading Elastic Object: Synonym Sources", e);
+      throw new IOException(e);
     }
 
     try {
@@ -389,6 +395,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.info("  Qualifiers loaded");
     } catch (IOException e) {
       logger.error("  Error loading Elastic Object: Qualifiers", e);
+      throw new IOException(e);
     }
 
     try {
@@ -401,6 +408,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.info("  Properties loaded");
     } catch (IOException e) {
       logger.error("  Error loading Elastic Object: Properties", e);
+      throw new IOException(e);
     }
 
     try {
@@ -413,6 +421,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.info("  Associations loaded");
     } catch (IOException e) {
       logger.error("  Error loading Elastic Object: Associations", e);
+      throw new IOException(e);
     }
 
     try {
@@ -425,115 +434,138 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       logger.info("  Roles loaded");
     } catch (IOException e) {
       logger.error("  Error loading Elastic Object: Roles", e);
+      throw new IOException(e);
     }
 
     logger.info("Done loading Elastic Objects!");
   }
 
-  private void checkLoadStatusandIndexMetadata(int total, Terminology terminology) throws IOException {
+  /**
+   * Check load statusand index metadata.
+   *
+   * @param total the total
+   * @param terminology the terminology
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  private void checkLoadStatusandIndexMetadata(int total, Terminology terminology)
+    throws IOException {
     Long count = esQueryService.getCount(terminology);
     logger.info("Concepts count for index {} = {}", terminology.getIndexName(), count);
     boolean completed = (total == count.intValue());
-    
+
     if (!completed) {
       logger.info("Concepts indexing not complete yet, waiting for completion..");
     }
-    
+
     int attempts = 0;
-    
-    while(!completed && attempts < 30) {
+
+    while (!completed && attempts < 30) {
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
         logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
+        throw new IOException(e);
       }
-      
+
       if (attempts == 15) {
         logger.info("Index completion is taking longer than expected..");
       }
-      
+
       count = esQueryService.getCount(terminology);
       completed = (total == count.intValue());
       attempts++;
     }
-    
+
     logger.info("Indexing metadata object with completed flag: {}", completed);
-    
+
     IndexMetadata iMeta = new IndexMetadata();
     iMeta.setIndexName(terminology.getIndexName());
     iMeta.setTotalConcepts(total);
     iMeta.setCompleted(completed);
     iMeta.setTerminology(terminology);
-    
-    operationsService.index(iMeta, 
-        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE, 
-        IndexMetadata.class);
+
+    operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
+        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
   }
-  
-  private void cleanStaleIndexes() {
+
+  /**
+   * Clean stale indexes.
+   *
+   * @throws Exception the exception
+   */
+  private void cleanStaleIndexes() throws Exception {
     List<IndexMetadata> iMetas = null;
     try {
       iMetas = termUtils.getStaleTerminologies();
     } catch (Exception e) {
       logger.error("Error while cleaning stale terminologies: " + e.getMessage());
+      throw new Exception(e);
     }
 
-    if (CollectionUtils.isEmpty(iMetas)) return;
-        
+    if (CollectionUtils.isEmpty(iMetas))
+      return;
+
     logger.info("Removing stale terminologies: " + iMetas);
-    
-    for(IndexMetadata iMeta: iMetas) {
+
+    for (IndexMetadata iMeta : iMetas) {
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
-      
-      //objectIndexName will be NULL if terminology object is not part of IndexMetadata
-      //temporarily required to accommodate change in IndexMetadata object
+
+      // objectIndexName will be NULL if terminology object is not part of
+      // IndexMetadata
+      // temporarily required to accommodate change in IndexMetadata object
       if (objectIndexName == null) {
         objectIndexName = "evs_object_" + indexName.replace("concept_", "");
       }
-      
-      //delete objects index
+
+      // delete objects index
       boolean result = operationsService.deleteIndex(objectIndexName);
-      
+
       if (!result) {
         logger.warn("Deleting objects index {} failed!", objectIndexName);
-        continue;          
+        continue;
       }
-      
-      //delete concepts index
+
+      // delete concepts index
       result = operationsService.deleteIndex(indexName);
-      
+
       if (!result) {
         logger.warn("Deleting concepts index {} failed!", indexName);
         continue;
       }
-      
-      //delete metadata object
+
+      // delete metadata object
       esQueryService.deleteIndexMetadata(indexName);
     }
   }
-  
-  private void updateLatestFlag() {
-    //update latest flag
+
+  /**
+   * Update latest flag.
+   *
+   * @throws Exception the exception
+   */
+  private void updateLatestFlag() throws Exception {
+    // update latest flag
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
 
-    if (CollectionUtils.isEmpty(iMetas)) return;
+    if (CollectionUtils.isEmpty(iMetas))
+      return;
 
     try {
       Terminology latest = termUtils.getLatestTerminology(false);
-      for(IndexMetadata iMeta: iMetas) {
-        if (iMeta.getTerminology() != null ) {
-          iMeta.getTerminology().setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
+      for (IndexMetadata iMeta : iMetas) {
+        if (iMeta.getTerminology() != null) {
+          iMeta.getTerminology()
+              .setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
         }
       }
-      
-      operationsService.bulkIndex(iMetas,
-          ElasticOperationsService.METADATA_INDEX, 
-          ElasticOperationsService.METADATA_TYPE, 
-          IndexMetadata.class);
+
+      operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
+          ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
     } catch (Exception e) {
       logger.error("Error while updating latest flags: " + e.getMessage(), e);
+      throw new Exception(e);
     }
   }
 
@@ -588,9 +620,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     }
 
     /* see superclass */
-    @SuppressWarnings("unchecked")
     @Override
-    public Void call() {
+    public Void call() throws Exception {
       try {
         taskLogger.info("    start loading concepts: {} to {}", startIndex + 1, endIndex);
         operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE,
@@ -601,6 +632,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       } catch (Throwable e) {
         taskLogger.error("  Error loading concepts: {} to {}", startIndex + 1, endIndex);
         taskLogger.error(e.getMessage(), e);
+        throw new Exception(e);
       } finally {
         latch.countDown();
       }
@@ -653,6 +685,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       loadService.updateLatestFlag();
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
+      throw new RuntimeException(e);
     } finally {
       SpringApplication.exit(app);
     }
