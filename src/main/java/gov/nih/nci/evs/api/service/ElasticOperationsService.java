@@ -21,6 +21,12 @@ public interface ElasticOperationsService {
   /** The type in ES for cached objects *. */
   public static final String OBJECT_TYPE = "evs_object";
 
+  /** The index in ES for index metadata **/
+  public static final String METADATA_INDEX = "evs_metadata";
+  
+  /** The type in ES for index metadata **/
+  public static final String METADATA_TYPE = "evs_metadata";
+  
   /**
    * create index using the given index name.
    *
@@ -40,7 +46,7 @@ public interface ElasticOperationsService {
    * @param clazz the clazz
    * @throws IOException the io exception
    */
-  void bulkIndex(List<Object> objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz) throws IOException;
+  void bulkIndex(List objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz) throws IOException;
 
   /**
    * load object.
@@ -68,5 +74,13 @@ public interface ElasticOperationsService {
    * @return the instance of {@code ElasticsearchOperations}
    */
   ElasticsearchOperations getElasticsearchOperations();
+
+  /**
+   * delete the index
+   * 
+   * @param index the index name
+   * @return {@literal true} if the index was deleted
+   */
+  boolean deleteIndex(String index);
 
 }

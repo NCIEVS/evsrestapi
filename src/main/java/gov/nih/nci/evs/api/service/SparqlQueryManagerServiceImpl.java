@@ -16,6 +16,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -557,45 +561,97 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Concept> getConcepts(List<String> conceptCodes, Terminology terminology,
-    HierarchyUtils hierarchy) throws IOException {
-    if (CollectionUtils.isEmpty(conceptCodes))
+  public List<Concept> getConcepts(final List<Concept> concepts, final Terminology terminology,
+    final HierarchyUtils hierarchy) throws IOException {
+    if (CollectionUtils.isEmpty(concepts)) {
       return Collections.<Concept> emptyList();
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructBatchQuery("concepts.batch", terminology.getGraph(),
-        conceptCodes);
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-
-    List<Concept> concepts = new ArrayList<>();
-    for (Bindings b : bindings) {
-      if (b.getConceptCode() == null)
-        continue;
-      Concept c = new Concept();
-      c.setCode(b.getConceptCode().getValue());
-      c.setTerminology(terminology.getTerminology());
-      c.setVersion(terminology.getVersion());
-      c.setName(b.getConceptLabel().getValue());
-      concepts.add(c);
     }
 
-    Map<String, List<Property>> propertyMap = getProperties(conceptCodes, terminology);
-    Map<String, List<Axiom>> axiomMap = getAxioms(conceptCodes, terminology, true);
-    Map<String, List<Concept>> subConceptMap = getSubconcepts(conceptCodes, terminology);
-    Map<String, List<Concept>> superConceptMap = getSuperconcepts(conceptCodes, terminology);
-    Map<String, List<Association>> associationMap = getAssociations(conceptCodes, terminology);
-    Map<String, List<Association>> inverseAssociationMap =
-        getInverseAssociations(conceptCodes, terminology);
-    Map<String, List<Role>> roleMap = getRoles(conceptCodes, terminology);
-    Map<String, List<Role>> inverseRoleMap = getInverseRoles(conceptCodes, terminology);
-    Map<String, List<DisjointWith>> disjointWithMap = getDisjointWith(conceptCodes, terminology);
-    Map<String, Paths> pathsMap = getPathToRoot(conceptCodes, terminology);
+    final ExecutorService executor = Executors.newFixedThreadPool(4);
+    final List<Exception> exceptions = new ArrayList<>();
 
+    final List<String> conceptCodes =
+        concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+    final Map<String, List<Property>> propertyMap = new HashMap<>();
+    final Map<String, List<Axiom>> axiomMap = new HashMap<>();
+    final Map<String, List<Concept>> subConceptMap = new HashMap<>();
+    final Map<String, List<Concept>> superConceptMap = new HashMap<>();
+    final Map<String, List<Association>> associationMap = new HashMap<>();
+    final Map<String, List<Association>> inverseAssociationMap = new HashMap<>();
+    final Map<String, List<Role>> roleMap = new HashMap<>();
+    final Map<String, List<Role>> inverseRoleMap = new HashMap<>();
+    final Map<String, List<DisjointWith>> disjointWithMap = new HashMap<>();
+    final Map<String, Paths> pathsMap = new HashMap<>();
+    final Map<String, List<Concept>> descendantsMap = new HashMap<>();
+
+    executor.submit(() -> {
+      try {
+        log.info("      start main");
+        propertyMap.putAll(getProperties(conceptCodes, terminology));
+        axiomMap.putAll(getAxioms(conceptCodes, terminology, true));
+        log.info("YYY axiomMap = " + axiomMap.keySet());
+        subConceptMap.putAll(getSubconcepts(conceptCodes, terminology));
+        superConceptMap.putAll(getSuperconcepts(conceptCodes, terminology));
+        associationMap.putAll(getAssociations(conceptCodes, terminology));
+        inverseAssociationMap.putAll(getInverseAssociations(conceptCodes, terminology));
+        disjointWithMap.putAll(getDisjointWith(conceptCodes, terminology));
+        log.info("      finish main");
+      } catch (Exception e) {
+        log.error("Uexpected error on main", e);
+        exceptions.add(e);
+      }
+    });
+
+    executor.submit(() -> {
+      try {
+        log.info("      start roles");
+        roleMap.putAll(getRoles(conceptCodes, terminology));
+        log.info("      finish roles");
+      } catch (Exception e) {
+        log.error("Uexpected error on roles", e);
+        exceptions.add(e);
+      }
+    });
+
+    executor.submit(() -> {
+      try {
+        log.info("      start inverse roles");
+        inverseRoleMap.putAll(getInverseRoles(conceptCodes, terminology));
+        log.info("      finish inverse roles");
+      } catch (Exception e) {
+        log.error("Uexpected error on inverse roles", e);
+        exceptions.add(e);
+      }
+    });
+
+    executor.submit(() -> {
+      try {
+        log.info("      start paths + desc");
+        pathsMap.putAll(getPathToRoot(conceptCodes, terminology));
+        for (final String code : conceptCodes) {
+          descendantsMap.put(code, hierarchy.getDescendants(code));
+        }
+        log.info("      finish paths + desc");
+      } catch (Exception e) {
+        log.error("Uexpected error on paths+desc", e);
+        exceptions.add(e);
+      }
+    });
+
+    // Shutdown executor
+    executor.shutdown();
+
+    // Wait up to 10 min for processes to stop
+    try {
+      executor.awaitTermination(10, TimeUnit.MINUTES);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    // Throw an
+    if (!exceptions.isEmpty()) {
+      throw new RuntimeException(exceptions.get(0));
+    }
     for (Concept concept : concepts) {
       String conceptCode = concept.getCode();
       List<Property> properties = propertyMap.get(conceptCode);
@@ -623,9 +679,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.getSynonyms().add(pnSynonym);
 
       // adding all synonyms
+      if (axioms == null || axioms.isEmpty()) {
+        log.info("XXX null axioms = " + concept.getCode() + ", " + axiomMap.keySet());
+        log.info("XXX conceptCodes = " + conceptCodes);
+      }
       concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
       // add norm name here because EVSUtils.getSynonyms is used elsewhere
-      concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName()))).count();
+      concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
+          .count();
 
       // Properties ending in "Name" are rendered as synonyms here.
       final Set<String> commonProperties = EVSUtils.getCommonPropertyNames(terminology);
@@ -655,7 +716,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       concept.setDefinitions(EVSUtils.getDefinitions(axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
-      concept.setDescendants(hierarchy.getDescendants(conceptCode));
+      concept.setDescendants(descendantsMap.get(conceptCode));
       concept.setParents(superConceptMap.get(conceptCode));
       concept.setAssociations(associationMap.get(conceptCode));
       concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
@@ -2175,6 +2236,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       Concept c = new Concept();
       c.setCode(b.getConceptCode().getValue());
       c.setTerminology(terminology.getTerminology());
+      c.setVersion(terminology.getVersion());
       c.setName(b.getConceptLabel().getValue());
       concepts.add(c);
     }

@@ -39,7 +39,7 @@ echo "    version = $version"
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"
 export EVS_SERVER_PORT="8082"
-/usr/local/jdk1.8/bin/java -jar ../lib/evsrestapi.jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/    /'
+/usr/local/jdk1.8/bin/java -jar -Xmx8G ../lib/evsrestapi.jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/    /'
 
 echo "  Remove old version indexes = $ES_CLEAN"
 if [[ $ES_CLEAN == "true" ]]; then

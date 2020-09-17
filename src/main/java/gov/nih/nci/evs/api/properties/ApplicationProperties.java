@@ -6,12 +6,33 @@ package gov.nih.nci.evs.api.properties;
  */
 public class ApplicationProperties {
 
+  /** The admin key. */
+  private String adminKey;
+  
   /** The context path. */
   private String contextPath;
 
   /** The metric log switch. */
   private Boolean metricsEnabled;
 
+  /**
+   * Returns the admin key.
+   *
+   * @return the admin key
+   */
+  public String getAdminKey() {
+    return adminKey;
+  }
+
+  /**
+   * Sets the admin key.
+   *
+   * @param adminKey the admin key
+   */
+  public void setAdminKey(String adminKey) {
+    this.adminKey = adminKey;
+  }
+  
   /**
    * Returns the context path.
    *
