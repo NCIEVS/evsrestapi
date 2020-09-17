@@ -1249,6 +1249,20 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
     assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
     
+    // Test startsWith
+    result = this.mvc.perform(get(url).param("terminology", "ncit").param("term", "C3224").param("type", "startsWith"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
+    
   }
   
   

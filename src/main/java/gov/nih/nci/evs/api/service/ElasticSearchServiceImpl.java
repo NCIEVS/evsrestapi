@@ -75,15 +75,15 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       
       BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
   	  .should(QueryBuilders.queryStringQuery("normName:" + normTerm)
-			    .analyzeWildcard(true).boost(20f))
-  	  .should(QueryBuilders.queryStringQuery("code:" + searchCriteria.getTerm().toUpperCase())
-  				.analyzeWildcard(true).boost(20f))
-  	  .should(QueryBuilders.queryStringQuery("code:" + searchCriteria.getTerm())
-				.analyzeWildcard(true).boost(20f))
+  			  .analyzeWildcard(true).boost(20f))
+  	  .should(QueryBuilders.queryStringQuery("code:" + searchCriteria.getTerm().replaceAll(" ", "\\\\ "))
+  			  .analyzeWildcard(true).boost(20f))
+  	  .should(QueryBuilders.queryStringQuery("code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ "))
+  			  .analyzeWildcard(true).boost(20f))
       .should(QueryBuilders.nestedQuery("properties", QueryBuilders.queryStringQuery("properties.value:" + normTerm)
-              .analyzeWildcard(true), ScoreMode.Max).boost(5f))
+    		  .analyzeWildcard(true), ScoreMode.Max).boost(5f))
       .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders.queryStringQuery("synonyms.normName:" + normTerm)
-              .analyzeWildcard(true), ScoreMode.Max).boost(20f));
+    		  .analyzeWildcard(true), ScoreMode.Max).boost(20f));
       
   	  boolQuery.must(boolQuery2);
     } else {
