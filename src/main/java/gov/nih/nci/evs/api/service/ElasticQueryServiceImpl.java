@@ -206,13 +206,13 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public List<Concept> getRootNodes(Terminology terminology)
+  public List<Concept> getRootNodes(Terminology terminology, IncludeParam ip)
     throws JsonParseException, JsonMappingException, IOException {
     Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
     if (!hierarchy.isPresent())
       return Collections.emptyList();
     ArrayList<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
-    List<Concept> concepts = getConcepts(hierarchyRoots, terminology, new IncludeParam("minimal"));
+    List<Concept> concepts = getConcepts(hierarchyRoots, terminology, ip);
     concepts.sort(Comparator.comparing(Concept::getName));
     for (Concept c : concepts) {
     	c.setLeaf(null);

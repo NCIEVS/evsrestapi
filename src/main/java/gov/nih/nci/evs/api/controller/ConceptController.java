@@ -647,7 +647,7 @@ public class ConceptController extends BaseController {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      final List<Concept> list = elasticQueryService.getRootNodes(term);
+      final List<Concept> list = elasticQueryService.getRootNodes(term, ip);
       // "leaf" should be set to false for all roots
       list.stream().peek(c -> c.setLeaf(false)).count();
       if (list == null || list.isEmpty()) {

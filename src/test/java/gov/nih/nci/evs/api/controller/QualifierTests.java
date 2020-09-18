@@ -371,8 +371,8 @@ public class QualifierTests {
     Concept concept = null;
 
     for (final String name : EVSUtils.getCommonPropertyNames(null)) {
-      // skip name
-      if (name.equals("name")) {
+      // skip name and label
+      if (name.equals("name") || name.equals("label")) {
         continue;
       }
       // Try P98 - expect to not find it as a property
