@@ -65,7 +65,7 @@ public class EVSUtils {
   public static Set<String> getCommonPropertyNames(Terminology terminology) {
     // TODO: CONFIG
     return new HashSet<>(Arrays.asList(new String[] {
-        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "Maps_To"
+        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "Maps_To", "label"
     }));
   }
 
