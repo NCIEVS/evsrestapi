@@ -1212,6 +1212,59 @@ public class SearchControllerTests {
 	  assertThat(list.getTotal() > list2.getTotal()); //should be more in fuzzy search
   }
   
+  @Test
+  public void testSearchByConceptCode() throws Exception {
+	String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=C3224");
+
+    // Test a basic term search
+    result = this.mvc.perform(get(url).param("terminology", "ncit").param("term", "C3224"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
+    
+    // Test fuzzy
+    result = this.mvc.perform(get(url).param("terminology", "ncit").param("term", "C3224").param("type", "fuzzy"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(1);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
+    
+    // Test startsWith
+    result = this.mvc.perform(get(url).param("terminology", "ncit").param("term", "C3224").param("type", "startsWith"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
+    assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
+    
+  }
+  
   
 
   /**

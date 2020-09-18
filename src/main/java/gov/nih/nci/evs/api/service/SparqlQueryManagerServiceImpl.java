@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -588,7 +589,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         log.info("      start main");
         propertyMap.putAll(getProperties(conceptCodes, terminology));
         axiomMap.putAll(getAxioms(conceptCodes, terminology, true));
-        log.info("YYY axiomMap = " + axiomMap.keySet());
         subConceptMap.putAll(getSubconcepts(conceptCodes, terminology));
         superConceptMap.putAll(getSuperconcepts(conceptCodes, terminology));
         associationMap.putAll(getAssociations(conceptCodes, terminology));
@@ -678,10 +678,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.getSynonyms().add(pnSynonym);
 
       // adding all synonyms
-      if (axioms == null || axioms.isEmpty()) {
-        log.info("XXX null axioms = " + concept.getCode() + ", " + axiomMap.keySet());
-        log.info("XXX conceptCodes = " + conceptCodes);
-      }
       concept.getSynonyms().addAll(EVSUtils.getSynonyms(axioms));
       // add norm name here because EVSUtils.getSynonyms is used elsewhere
       concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
@@ -1490,9 +1486,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (bindings.length == 0) {
       return Collections.<String, List<Axiom>> emptyMap();
     }
-    Axiom axiomObject = new Axiom();
-    Boolean sw = false;
-    String oldAxiom = "";
+    
     String conceptCode = "";
 
     Map<String, List<Bindings>> bindingsMap = new HashMap<>();
@@ -1508,31 +1502,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (String code : bindingsMap.keySet()) {
       List<Bindings> bindingsList = bindingsMap.get(code);
 
+      Map<String, Axiom> axiomMap = new HashMap<>();
       for (Bindings b : bindingsList) {
-        if (resultMap.get(code) == null) {
-          resultMap.put(code, new ArrayList<Axiom>());
-        }
-
-        String axiom = b.getAxiom().getValue();
-        String property = b.getAxiomProperty().getValue().split("#")[1];
+    	String axiom = b.getAxiom().getValue();
+    	if(!axiomMap.containsKey(axiom)) {
+    		axiomMap.put(axiom, new Axiom());
+    	}
+    	Axiom axiomObject = axiomMap.get(axiom);
+    	String property = b.getAxiomProperty().getValue().split("#")[1];
         String value = b.getAxiomValue().getValue();
         if (value.contains("#")) {
           value = value.split("#")[1];
         }
-
-        if (sw && !axiom.equals(oldAxiom)) {
-          resultMap.get(code).add(axiomObject);
-          axiomObject = new Axiom();
-        }
-        sw = true;
-        oldAxiom = axiom;
-
+        
         setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
       }
+      for (Axiom axiom : axiomMap.values()) { 
+    	  if (resultMap.get(code) == null) {
+              resultMap.put(code, new ArrayList<Axiom>());
+          }
+    	  resultMap.get(code).add(axiom);
+      }
 
-      resultMap.get(code).add(axiomObject);
     }
-
+    
     return resultMap;
   }
 
