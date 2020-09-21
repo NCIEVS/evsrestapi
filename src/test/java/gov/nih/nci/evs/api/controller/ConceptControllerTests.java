@@ -725,6 +725,33 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getSynonyms().get(0)).isNotNull();
+    
+    url = baseUrl + "/ncit/roots?include=full";
+    log.info("Testing url - " + url);
+    
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).getSynonyms().get(0)).isNotNull();
+    
+    // Even full doesn't include descendants and paths
+    assertThat(list.get(0).getDescendants()).isEmpty();
+    assertThat(list.get(0).getPaths()).isNull();
+    
+    // check that normName and property codes are not showing up in searches, as is intended
+    assertThat(list.get(0).getNormName()).isNull();
+    assertThat(list.get(0).getSynonyms().get(0).getNormName()).isNull();
+    assertThat(list.get(0).getProperties().get(0).getCode()).isNull();
+    
+    // check for a couple things that should only show up in full
+    assertThat(list.get(0).getInverseAssociations().get(0)).isNotNull();
+    assertThat(list.get(0).getChildren().get(0)).isNotNull();
+    assertThat(list.get(0).getDisjointWith().get(0)).isNotNull();
   }
 
   /**
