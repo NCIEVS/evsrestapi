@@ -634,6 +634,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         taskLogger.error(e.getMessage(), e);
         throw new Exception(e);
       } finally {
+        concepts = null;
         latch.countDown();
       }
 
