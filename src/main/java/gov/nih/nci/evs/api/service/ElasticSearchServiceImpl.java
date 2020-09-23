@@ -65,13 +65,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     BoolQueryBuilder boolQuery = new BoolQueryBuilder();
     
+    boolean blankTermFlag = "".equalsIgnoreCase(searchCriteria.getTerm());
     boolean startsWithFlag = "startsWith".equalsIgnoreCase(searchCriteria.getType());
     boolean matchFlag = "match".equalsIgnoreCase(searchCriteria.getType());
 
-    if(matchFlag || startsWithFlag) {
+    if(blankTermFlag) {
+	  
+      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
+  	  .should(QueryBuilders.queryStringQuery("normName:*")
+  			  .analyzeWildcard(true).boost(20f));
+      
+  	  boolQuery.must(boolQuery2);
+    }
+    else if(matchFlag || startsWithFlag) {
       // only search normName in concept/synonym or value in property
       final String normTerm = ConceptUtils.normalize(searchCriteria.getTerm())
-    			.replaceAll(" ", "\\\\ ") + (startsWithFlag ? "*" : "");
+    			.replaceAll(" ", "\\\\ ") + (startsWithFlag? "*" : "");
       
       BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
   	  .should(QueryBuilders.queryStringQuery("normName:" + normTerm)

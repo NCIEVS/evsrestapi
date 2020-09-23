@@ -96,7 +96,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of terminologies to search, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "term",
-          value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true,
+          value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = false,
           dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type",
           value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
@@ -174,7 +174,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of terminologies to search, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "query", defaultValue = "ncit"),
       @ApiImplicitParam(name = "term",
-          value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = true,
+          value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = false,
           dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "type",
           value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
@@ -244,10 +244,10 @@ public class SearchController extends BaseController {
     final long startDate = System.currentTimeMillis();
 
     // Check search criteria for required fields
-    if (!searchCriteria.checkRequiredFields()) {
+    /*if (!searchCriteria.checkRequiredFields()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Missing required field = " + searchCriteria.computeMissingRequiredFields());
-    }
+    }*/
 
     if (!searchCriteria.checkPagination()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
