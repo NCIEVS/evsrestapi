@@ -1262,6 +1262,16 @@ public class SearchControllerTests {
 			.param("synonymTermGroup", "PT")).andExpect(status().isOk()).andReturn();
 	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
 	  assertThat(list.getConcepts().size() > 0);
+	  for(final Concept conc : list.getConcepts()) { // test that have match to synonymSource = GDC
+		  boolean found = false;
+		  for (final Synonym syn : conc.getSynonyms()) {
+			  if (syn.getSource().equals("GDC")) {
+				  found = true;
+				  break;
+			  }
+		  }
+		  assertThat(found).isTrue();
+	  }
 	  
 	  log.info("Testing url - " + url + "?terminology=ncit");
 	  result = mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
