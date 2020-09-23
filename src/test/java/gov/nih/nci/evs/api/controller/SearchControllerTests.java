@@ -187,19 +187,6 @@ public class SearchControllerTests {
         .andExpect(status().isNotFound()).andReturn();
     // content is blank because of MockMvc
 
-    // Missing "term" parameter
-    url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit");
-    mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isBadRequest())
-        .andReturn();
-    // content is blank because of MockMvc
-
-    // Missing "terminology" parameter
-    url = baseUrl;
-    log.info("Testing url - " + url + "?term=melanoma");
-    mvc.perform(get(url).param("melanoma", "melanoma")).andExpect(status().isBadRequest())
-        .andReturn();
-    // content is blank because of MockMvc
 
     // Invalid "include" parameter
     url = baseUrl;
