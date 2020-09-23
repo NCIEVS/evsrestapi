@@ -162,8 +162,27 @@ public class HierarchyHelper implements Serializable {
         for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
-			String parent_code = (String) u.elementAt(1);
-			String child_code = (String) u.elementAt(3);
+
+			String parent_code = null;
+			String child_code = null;
+			if (format == FORMAT_PARENT_CHILD) {
+				if (u.size() == 2) {
+					parent_code = (String) u.elementAt(0);
+					child_code = (String) u.elementAt(1);
+				} else {
+					parent_code = (String) u.elementAt(1);
+					child_code = (String) u.elementAt(3);
+				}
+		    } else {
+				if (u.size() == 2) {
+					parent_code = (String) u.elementAt(1);
+					child_code = (String) u.elementAt(0);
+				} else {
+					parent_code = (String) u.elementAt(3);
+					child_code = (String) u.elementAt(1);
+				}
+			}
+
 			set_parent.add(parent_code);
 			set_child.add(child_code);
 		}
