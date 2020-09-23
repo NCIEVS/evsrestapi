@@ -1273,9 +1273,12 @@ public class SearchControllerTests {
 	  log.info("Testing url - " + url + "?synonymSource=GDC&terminology=ncit&synonymTermGroup=PT");
 	  result = mvc.perform(get(url).param("terminology", "ncit").param("synonymSource", "GDC").param("include", "synonyms")
 			.param("synonymTermGroup", "PT")).andExpect(status().isOk()).andReturn();
-    
 	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  assertThat(list.getConcepts().size() > 0);
 	  
+	  log.info("Testing url - " + url + "?terminology=ncit");
+	  result = mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
+	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
 	  assertThat(list.getConcepts().size() > 0);
   }
   

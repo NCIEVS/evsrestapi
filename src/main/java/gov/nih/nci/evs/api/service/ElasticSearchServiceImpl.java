@@ -71,11 +71,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     if(blankTermFlag) {
 	  
-      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
-  	  .should(QueryBuilders.queryStringQuery("normName:*")
-  			  .analyzeWildcard(true).boost(20f));
-      
-  	  boolQuery.must(boolQuery2);
+      ; // don't create anything
     }
     else if(matchFlag || startsWithFlag) {
       // only search normName in concept/synonym or value in property
