@@ -43,17 +43,11 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       
         usage: java -jar $DIR/evsrestapi-*.jar
         -d,--downloadOnly        Download concepts and skip elasticsearch load.
-        -f,--forceDeleteIndex    Force delete index if index already exists.
         -h,--help                Show this help information and exit.
-        -l,--location <arg>      The folder location (ex: /tmp/) to use for
-                                  download. Overrides the configuration in
-                                  application.yml file. Will be used only if
-                                  download is required.
         -r,--realTime            Load elasticsearch in real-time by fetching
                                   concepts from stardog. Skips downloading to
                                   folder. Ignores --location (-l), --downloadOnly
                                   (-d), --skipDownload (-s) options.
-        -s,--skipDownload        Load elasticsearch from folder without download.
         -t,--terminology <arg>   The terminology (ex: ncit_20.02d) to load.
 
         # To print help information

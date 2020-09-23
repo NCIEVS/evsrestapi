@@ -540,16 +540,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
   private static Options prepareOptions() {
     Options options = new Options();
 
-    options.addOption("d", "downloadOnly", false, "Download concepts and skip elasticsearch load.");
     options.addOption("f", "forceDeleteIndex", false,
         "Force delete index if index already exists.");
     options.addOption("h", "help", false, "Show this help information and exit.");
-    options.addOption("l", "location", true,
-        "The folder location (ex: /tmp/) to use for download. Overrides the configuration in application.yml file. Will be used only if download is required.");
     options.addOption("r", "realTime", false,
         "Load elasticsearch in real-time by fetching concepts from stardog. Skips downloading to folder. Ignores --location (-l), --downloadOnly (-d), --skipDownload (-s) options.");
-    options.addOption("s", "skipDownload", false,
-        "Load elasticsearch from folder without download.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
 
     return options;
