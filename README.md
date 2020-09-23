@@ -85,7 +85,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         version=ncit_20.07d
         export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
-        java -Xmx8G -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --realTime --forceDeleteIndex
+        java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --realTime --forceDeleteIndex
 
 
 ### Steps for Building and Running EVSRESTAPI locally

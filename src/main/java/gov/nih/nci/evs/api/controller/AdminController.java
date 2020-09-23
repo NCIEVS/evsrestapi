@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.configuration.CacheConfiguration;
 import io.swagger.annotations.Api;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
@@ -32,6 +33,7 @@ public class AdminController {
   
   @SuppressWarnings("rawtypes")
   @RequestMapping(method = RequestMethod.DELETE, value = "/admin/cache")
+  @ApiIgnore
   public ResponseEntity clearCache(@RequestParam(name = "key", required = true) final String key) {
     
     String adminKey = env.getProperty("nci.evs.application.adminKey").toString();
