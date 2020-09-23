@@ -466,7 +466,7 @@ public class HierarchyHelper implements Serializable {
 		if (v == null) return w;
 		for (int i=0; i<v.size(); i++) {
 			String child_code = (String) v.elementAt(i);
-			Vector u = getTransitiveClosure(child_code);
+			Vector u = getTransitiveClosure(child_code, traverseDown);
 			if (u != null && u.size() > 0) {
 				w.addAll(u);
 			}
