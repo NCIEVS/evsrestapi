@@ -58,14 +58,16 @@ public class ConceptController extends BaseController {
   @Autowired
   SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The elastic query service. */
   /* The elasticsearch query service */
   @Autowired
   ElasticQueryService elasticQueryService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
-  
+
   /**
    * Returns the associations.
    *
@@ -454,6 +456,7 @@ public class ConceptController extends BaseController {
    * @param code the code
    * @param fromRecord the from record
    * @param pageSize the page size
+   * @param maxLevel the max level
    * @return the descendants
    * @throws Exception the exception
    */
@@ -477,7 +480,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
           required = false, dataType = "string", paramType = "query", defaultValue = "10000"),
       @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
-      	  required = false, dataType = "string", paramType = "query", defaultValue = "10000")
+          required = false, dataType = "string", paramType = "query", defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(
     @PathVariable(value = "terminology") final String terminology,
@@ -493,7 +496,7 @@ public class ConceptController extends BaseController {
       }
 
       final List<Concept> baseList =
-              new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+          new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
       Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
       final List<Concept> list = baseList.stream().filter(byLevel).collect(Collectors.toList());
 

@@ -561,12 +561,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Concept> getConcepts(final List<Concept> concepts, final Terminology terminology,
+  public List<Concept> getConcepts(final List<Concept> origConcepts, final Terminology terminology,
     final HierarchyUtils hierarchy) throws IOException {
-    if (CollectionUtils.isEmpty(concepts)) {
+    if (CollectionUtils.isEmpty(origConcepts)) {
       return Collections.<Concept> emptyList();
     }
-
+    final List<Concept> concepts = new ArrayList<>();
+    // Copy the original concepts to avoid keeping references around
+    for (final Concept concept : origConcepts) {
+      concepts.add(new Concept(concept));
+    }
     final ExecutorService executor = Executors.newFixedThreadPool(4);
     final List<Exception> exceptions = new ArrayList<>();
 
@@ -1486,7 +1490,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (bindings.length == 0) {
       return Collections.<String, List<Axiom>> emptyMap();
     }
-    
+
     String conceptCode = "";
 
     Map<String, List<Bindings>> bindingsMap = new HashMap<>();
@@ -1504,28 +1508,28 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       Map<String, Axiom> axiomMap = new HashMap<>();
       for (Bindings b : bindingsList) {
-    	String axiom = b.getAxiom().getValue();
-    	if(!axiomMap.containsKey(axiom)) {
-    		axiomMap.put(axiom, new Axiom());
-    	}
-    	Axiom axiomObject = axiomMap.get(axiom);
-    	String property = b.getAxiomProperty().getValue().split("#")[1];
+        String axiom = b.getAxiom().getValue();
+        if (!axiomMap.containsKey(axiom)) {
+          axiomMap.put(axiom, new Axiom());
+        }
+        Axiom axiomObject = axiomMap.get(axiom);
+        String property = b.getAxiomProperty().getValue().split("#")[1];
         String value = b.getAxiomValue().getValue();
         if (value.contains("#")) {
           value = value.split("#")[1];
         }
-        
+
         setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
       }
-      for (Axiom axiom : axiomMap.values()) { 
-    	  if (resultMap.get(code) == null) {
-              resultMap.put(code, new ArrayList<Axiom>());
-          }
-    	  resultMap.get(code).add(axiom);
+      for (Axiom axiom : axiomMap.values()) {
+        if (resultMap.get(code) == null) {
+          resultMap.put(code, new ArrayList<Axiom>());
+        }
+        resultMap.get(code).add(axiom);
       }
 
     }
-    
+
     return resultMap;
   }
 
