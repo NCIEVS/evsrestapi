@@ -2,11 +2,13 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.CommandLine;
@@ -102,19 +104,17 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     logger.info("Getting all concepts");
     List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
 
-	try {
-	  // download concepts and upload to es in real time
-	  logger.info("Loading in real time");
-	  loadConceptsRealTime(allConcepts, terminology, hierarchy);
-	} catch (Exception e) {
-	  logger.error(e.getMessage(), e);
-	  throw new IOException(e);
-	}
-	
-	// compare count of concepts loaded and index metadata object
-	checkLoadStatusandIndexMetadata(allConcepts.size(), terminology);
-	
-	return;
+    try {
+      // download concepts and upload to es in real time
+      logger.info("Loading in real time");
+      loadConceptsRealTime(allConcepts, terminology, hierarchy);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new IOException(e);
+    }
+
+    // compare count of concepts loaded and index metadata object
+    checkLoadStatusandIndexMetadata(allConcepts.size(), terminology);
 
   }
 
@@ -166,17 +166,23 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
       int indexStart = 0;
       int indexEnd = INDEX_BATCH_SIZE;
       Double indexTotal = (double) concepts.size();
+      final List<Future<Void>> futures = new ArrayList<>();
       while (indexStart < indexTotal) {
         if (indexTotal - indexStart <= INDEX_BATCH_SIZE)
           indexEnd = indexTotal.intValue();
 
-        executor
+        futures.add(executor
             .submit(new ConceptLoadTask(concepts.subList(indexStart, indexEnd), start + indexStart,
-                start + indexEnd, terminology.getIndexName(), latch, taskSize.intValue()));
+                start + indexEnd, terminology.getIndexName(), latch, taskSize.intValue())));
 
         indexStart = indexEnd;
         indexEnd = indexEnd + INDEX_BATCH_SIZE;
 
+      }
+      // Look for exceptions
+      for (final Future<Void> future : futures) {
+        // This throws an exception if the callable had an issue
+        future.get();
       }
       start = end;
       end = end + DOWNLOAD_BATCH_SIZE;
@@ -201,81 +207,50 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
 
-    try {
-      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-      hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
-      logger.info("  Hierarchy loaded");
-    } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Hierarchy", e);
-      throw new IOException(e);
-    }
+    ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+    hierarchyObject.setHierarchy(hierarchy);
+    operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Hierarchy loaded");
 
-    try {
-      List<ConceptMinimal> synonymSources =
-          sparqlQueryManagerService.getSynonymSources(terminology);
-      ElasticObject ssObject = new ElasticObject("synonym_sources");
-      ssObject.setConceptMinimals(synonymSources);
-      operationsService.index(ssObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
-      logger.info("  Synonym Sources loaded");
-    } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Synonym Sources", e);
-      throw new IOException(e);
-    }
+    List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
+    ElasticObject ssObject = new ElasticObject("synonym_sources");
+    ssObject.setConceptMinimals(synonymSources);
+    operationsService.index(ssObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Synonym Sources loaded");
 
-    try {
-      List<Concept> qualifiers =
-          sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
-      ElasticObject conceptsObject = new ElasticObject("qualifiers");
-      conceptsObject.setConcepts(qualifiers);
-      operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
-      logger.info("  Qualifiers loaded");
-    } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Qualifiers", e);
-      throw new IOException(e);
-    }
+    List<Concept> qualifiers =
+        sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
+    ElasticObject conceptsObject = new ElasticObject("qualifiers");
+    conceptsObject.setConcepts(qualifiers);
+    operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Qualifiers loaded");
 
-    try {
-      List<Concept> properties =
-          sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
-      ElasticObject propertiesObject = new ElasticObject("properties");
-      propertiesObject.setConcepts(properties);
-      operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
-      logger.info("  Properties loaded");
-    } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Properties", e);
-      throw new IOException(e);
-    }
+    List<Concept> properties =
+        sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
+    ElasticObject propertiesObject = new ElasticObject("properties");
+    propertiesObject.setConcepts(properties);
+    operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Properties loaded");
 
-    try {
-      List<Concept> associations =
-          sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
-      ElasticObject associationsObject = new ElasticObject("associations");
-      associationsObject.setConcepts(associations);
-      operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
-      logger.info("  Associations loaded");
-    } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Associations", e);
-      throw new IOException(e);
-    }
+    List<Concept> associations =
+        sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
+    ElasticObject associationsObject = new ElasticObject("associations");
+    associationsObject.setConcepts(associations);
+    operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Associations loaded");
 
-    try {
-      List<Concept> roles =
-          sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
-      ElasticObject rolesObject = new ElasticObject("roles");
-      rolesObject.setConcepts(roles);
-      operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
-      logger.info("  Roles loaded");
-    } catch (IOException e) {
-      logger.error("  Error loading Elastic Object: Roles", e);
-      throw new IOException(e);
-    }
+    List<Concept> roles =
+        sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
+    ElasticObject rolesObject = new ElasticObject("roles");
+    rolesObject.setConcepts(roles);
+    operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Roles loaded");
 
     logger.info("Done loading Elastic Objects!");
   }
@@ -335,12 +310,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
    */
   private void cleanStaleIndexes() throws Exception {
     List<IndexMetadata> iMetas = null;
-    try {
-      iMetas = termUtils.getStaleTerminologies();
-    } catch (Exception e) {
-      logger.error("Error while cleaning stale terminologies: " + e.getMessage());
-      throw new Exception(e);
-    }
+    iMetas = termUtils.getStaleTerminologies();
 
     if (CollectionUtils.isEmpty(iMetas))
       return;
@@ -392,21 +362,17 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     if (CollectionUtils.isEmpty(iMetas))
       return;
 
-    try {
-      Terminology latest = termUtils.getLatestTerminology(false);
-      for (IndexMetadata iMeta : iMetas) {
-        if (iMeta.getTerminology() != null) {
-          iMeta.getTerminology()
-              .setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
-        }
+    Terminology latest = termUtils.getLatestTerminology(false);
+    for (IndexMetadata iMeta : iMetas) {
+      if (iMeta.getTerminology() != null) {
+        iMeta.getTerminology()
+            .setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
       }
-
-      operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
-          ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
-    } catch (Exception e) {
-      logger.error("Error while updating latest flags: " + e.getMessage(), e);
-      throw new Exception(e);
     }
+
+    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
+        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+
   }
 
   /**
@@ -447,10 +413,11 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
      * @param indexName the index name
      * @param latch the latch
      * @param taskSize the task size
+     * @throws Exception the exception
      */
     @SuppressWarnings("rawtypes")
     public ConceptLoadTask(List concepts, int start, int end, String indexName,
-        CountDownLatch latch, int taskSize) {
+        CountDownLatch latch, int taskSize) throws Exception {
       this.concepts = concepts;
       this.startIndex = start;
       this.endIndex = end;
@@ -470,8 +437,6 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
         taskLogger.info("    finish loading concepts: {} to {} ({}% complete)", startIndex + 1,
             endIndex, progress);
       } catch (Throwable e) {
-        taskLogger.error("  Error loading concepts: {} to {}", startIndex + 1, endIndex);
-        taskLogger.error(e.getMessage(), e);
         throw new Exception(e);
       } finally {
         concepts = null;
@@ -543,8 +508,7 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     options.addOption("f", "forceDeleteIndex", false,
         "Force delete index if index already exists.");
     options.addOption("h", "help", false, "Show this help information and exit.");
-    options.addOption("r", "realTime", false,
-        "Load elasticsearch in real-time by fetching concepts from stardog. Skips downloading to folder. Ignores --location (-l), --downloadOnly (-d), --skipDownload (-s) options.");
+    options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
 
     return options;
@@ -572,8 +536,6 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     ElasticLoadConfig config = new ElasticLoadConfig();
 
     config.setTerminology(cmd.getOptionValue('t'));
-    config.setDownloadOnly(cmd.hasOption('d'));
-    config.setSkipDownload(cmd.hasOption('s'));
     config.setRealTime(cmd.hasOption('r'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
     if (cmd.hasOption('l')) {
