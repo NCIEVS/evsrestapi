@@ -96,9 +96,9 @@ public class RESTUtils {
    * @return the string
    */
   public static String escapeLuceneSpecialCharacters(String before) {
-	if(null == before) {
-		return "";
-	}
+    if(null == before) {
+      return "";
+    }
     String patternString = "([+:!~*?/\\-/{}\\[\\]\\(\\)\\^\\\"])";
     Pattern pattern = Pattern.compile(patternString);
     Matcher matcher = pattern.matcher(before);
