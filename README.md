@@ -32,7 +32,6 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       # and make sure the following properties are properly configured 
       ? nci.evs.stardog.host (the stardog host; default is localhost) 
       ? nci.evs.elasticsearch.server.host (the elasticsearch host; default is localhost)
-      ? nci.evs.bulkload.conceptsDir (the directory used to store downloaded concept files; default is /tmp/; ignored for real-time index load)
       ? nci.evs.bulkload.downloadBatchSize (the batch size for download from stardog; default is 1000)
       ? nci.evs.bulkload.indexBatchSize (the batch size for upload to Elasticsearch; default is 1000)
 
@@ -42,18 +41,8 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       ** Usage
       
         usage: java -jar $DIR/evsrestapi-*.jar
-        -d,--downloadOnly        Download concepts and skip elasticsearch load.
-        -f,--forceDeleteIndex    Force delete index if index already exists.
         -h,--help                Show this help information and exit.
-        -l,--location <arg>      The folder location (ex: /tmp/) to use for
-                                  download. Overrides the configuration in
-                                  application.yml file. Will be used only if
-                                  download is required.
-        -r,--realTime            Load elasticsearch in real-time by fetching
-                                  concepts from stardog. Skips downloading to
-                                  folder. Ignores --location (-l), --downloadOnly
-                                  (-d), --skipDownload (-s) options.
-        -s,--skipDownload        Load elasticsearch from folder without download.
+        -r,--realTime            Keep for backwards compatibility. No effect.
         -t,--terminology <arg>   The terminology (ex: ncit_20.02d) to load.
 
         # To print help information
@@ -61,31 +50,19 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         
         example: java -jar build/libs/evsrestapi-*.jar --help
       
-      *** To load indexes by downloading concepts to local disk:
-      
-        # In this mode, index loading happens internally in two steps
-        # step 1: download concepts to a local folder in batches of size 1000. The default folder is /tmp/.
-        # step 2: upload concepts from the local folder to Elasticsearch in batches of size 1000
-        # Single command will trigger both the steps internally, in a sequential manner
-        
-        # To initiate index load process
-        java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --forceDeleteIndex
-        
-        example: java -jar build/libs/evsrestapi-*.jar --terminology ncit_20.02d --forceDeleteIndex
-      
-      *** To skip download step and load indexes to Elasticsearch from Stardog directly: 
+      *** To load indexes to Elasticsearch from Stardog directly: 
       
         # In this mode, index loading happens in real-time (meaning, in a single step)
-        java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --realTime --forceDeleteIndex
+        java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --forceDeleteIndex
         
-        example: java -jar build/libs/evsrestapi-*.jar --terminology ncit_20.04d --realTime --forceDeleteIndex
+        example: java -jar build/libs/evsrestapi-*.jar --terminology ncit_20.04d --forceDeleteIndex
 
       *** To run and build indexes against a docker stardog/elasticsearch:
 
         version=ncit_20.07d
         export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
-        java -Xmx8G -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --realTime --forceDeleteIndex
+        java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --forceDeleteIndex
 
 
 ### Steps for Building and Running EVSRESTAPI locally
