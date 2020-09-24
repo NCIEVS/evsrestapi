@@ -111,7 +111,7 @@ public interface ElasticQueryService {
    * @throws JsonMappingException
    * @throws IOException
    */
-  List<Concept> getRootNodes(Terminology terminology) throws JsonParseException, JsonMappingException, IOException;
+  List<Concept> getRootNodes(Terminology terminology, IncludeParam ip) throws JsonParseException, JsonMappingException, IOException;
   
   
 /**

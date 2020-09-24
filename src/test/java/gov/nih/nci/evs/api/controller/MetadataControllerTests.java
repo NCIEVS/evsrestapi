@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -843,5 +844,50 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
 
   }
+  
+  /**
+   * Test keep type: value out of qualifiers
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testQualifiersWithoutTypeValue() throws Exception {
+	String url = null;
+    MvcResult result = null;
+    Concept concept = null;
+    String content = null;
+
+    // Test with P389
+    url = baseUrl + "/ncit/qualifiers?include=summary&list=P389";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    List<Concept> list =
+            new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+              // n/a
+            });
+    assertThat(list).isNotEmpty();
+    concept = list.get(0);
+    for (Property prop : concept.getProperties()) {
+    	assertThat(!prop.getType().equals("value"));
+    }
+    
+    // Test with P391
+    url = baseUrl + "/ncit/qualifiers?include=summary&list=P391";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+              // n/a
+            });
+    assertThat(list).isNotEmpty();
+    concept = list.get(0);
+    for (Property prop : concept.getProperties()) {
+    	assertThat(!prop.getType().equals("value"));
+    }
+  }
+
 
 }
