@@ -47,7 +47,16 @@ if [[ $ES_CLEAN == "true" ]]; then
     curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | cut -d\  -f 3 | grep -v $version | grep -v $fv | grep ncit_ > /tmp/x.$$
     for i in `cat /tmp/x.$$`; do
       echo "    delete $i"
-      echo curl -s -X DELETE https://$ES_HOST/$i
+      curl -s -X DELETE https://$ES_HOST:$ES_PORT/$i
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/$i"
+          exit 1
+      fi
+      curl -s -X DELETE https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
+          exit 1
+      fi
 done
     /bin/rm -f /tmp/x.$$
 fi

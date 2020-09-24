@@ -30,15 +30,14 @@ public class Definition extends BaseModel {
   private String highlight;
 
   /** The type. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The source. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Object)
   private List<Qualifier> qualifiers;
 
   /**

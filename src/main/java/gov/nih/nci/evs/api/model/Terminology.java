@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 /**
@@ -21,42 +26,55 @@ import org.apache.commons.lang3.StringUtils;
  *  }
  * </pre>
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Terminology extends BaseModel {
 
   /** The terminology. */
+  @Field(type = FieldType.Keyword)
   private String terminology;
 
   /** The version. */
+  @Field(type = FieldType.Keyword)
   private String version;
 
   /** The date. */
+  @Field(type = FieldType.Date)
   private String date;
   
   /** The name. */
+  @Field(type = FieldType.Keyword)
   private String name;
 
   /** The description. */
+  @Field(type = FieldType.Text)
   private String description;
 
   /** The graph. */
+  @Field(type = FieldType.Keyword)
   private String graph;
   
   /** The graph source. */
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /** The terminology version. */
+  @Field(type = FieldType.Keyword)
   private String terminologyVersion;
 
   /** The latest. */
+  @Field(type = FieldType.Boolean)
   private Boolean latest;
 
   /** The tags. */
+  @Field(type = FieldType.Text)
   private Map<String, String> tags;
 
   /** The index name for concepts. */
+  @Field(type = FieldType.Keyword)
   private String indexName;
 
   /** The index name for generic objects. */
+  @Field(type = FieldType.Keyword)
   private String objectIndexName;
   
   /**

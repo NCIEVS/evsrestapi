@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,10 +31,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -127,6 +130,11 @@ public class ConceptControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
+    
+    //check that normName and property codes are not showing up in searches, as is intended
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
+    assertThat(concept.getProperties().get(0).getCode()).isNull();
 
   }
 
@@ -573,7 +581,7 @@ public class ConceptControllerTests {
     });
     assertThat(list).isNotEmpty();
     assertThat(list.size() < 10);
-    
+
     // Test case with maxLevel
     url = baseUrl + "/ncit/C3510/descendants?maxLevel=2";
     log.info("Testing url - " + url);
@@ -699,6 +707,11 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).getCode()).isNotEmpty();
+    assertThat(list.get(0).getName()).isNotEmpty();
+    assertThat(list.get(0).getTerminology()).isNotEmpty();
+    assertThat(list.get(0).getVersion()).isNotEmpty();
+    assertThat(list.get(0).getLeaf()).isEqualTo(false);
 
     url = baseUrl + "/ncit/roots?include=summary";
     log.info("Testing url - " + url);
@@ -711,6 +724,34 @@ public class ConceptControllerTests {
     });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
+    assertThat(list.get(0).getSynonyms().get(0)).isNotNull();
+    
+    url = baseUrl + "/ncit/roots?include=full";
+    log.info("Testing url - " + url);
+    
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.get(0).getSynonyms().get(0)).isNotNull();
+    
+    // Even full doesn't include descendants and paths
+    assertThat(list.get(0).getDescendants()).isEmpty();
+    assertThat(list.get(0).getPaths()).isNull();
+    
+    // check that normName and property codes are not showing up in searches, as is intended
+    assertThat(list.get(0).getNormName()).isNull();
+    assertThat(list.get(0).getSynonyms().get(0).getNormName()).isNull();
+    assertThat(list.get(0).getProperties().get(0).getCode()).isNull();
+    
+    // check for a couple things that should only show up in full
+    assertThat(list.get(0).getInverseAssociations().get(0)).isNotNull();
+    assertThat(list.get(0).getChildren().get(0)).isNotNull();
+    assertThat(list.get(0).getDisjointWith().get(0)).isNotNull();
   }
 
   /**
@@ -824,6 +865,11 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).get(0).getName()).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotEmpty();
+    assertThat(list.get(0).get(0).getVersion()).isNotEmpty();
+    assertThat(list.get(0).get(0).getLeaf()).isEqualTo(false);
+    
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C7057");
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C3224");
@@ -844,6 +890,11 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isNotEmpty();
+    assertThat(list.get(0).get(0).getName()).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotEmpty();
+    assertThat(list.get(0).get(0).getVersion()).isNotEmpty();
+    assertThat(list.get(0).get(0).getLeaf()).isEqualTo(false);
+
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C7057");
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C3224");
@@ -851,7 +902,7 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
-    
+
     url = baseUrl + "/ncit/C3224/pathsFromRoot?include=minimal";
     log.info("Testing url - " + url);
 
@@ -862,7 +913,7 @@ public class ConceptControllerTests {
       // n/a
     });
     log.info("  list = " + list.size());
-    
+
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getTerminology()).isNotNull();
     assertThat(list.get(0).get(0).getVersion()).isNotNull();
@@ -896,6 +947,11 @@ public class ConceptControllerTests {
 
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).get(0).getName()).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotEmpty();
+    assertThat(list.get(0).get(0).getVersion()).isNotEmpty();
+    assertThat(list.get(0).get(0).getLeaf()).isEqualTo(false);
+
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C3224");
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C7057");
@@ -923,7 +979,7 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
-    
+
     url = baseUrl + "/ncit/C3224/pathsToRoot?include=minimal";
     log.info("Testing url - " + url);
 
@@ -968,6 +1024,11 @@ public class ConceptControllerTests {
 
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).get(0).getName()).isNotEmpty();
+    assertThat(list.get(0).get(0).getTerminology()).isNotEmpty();
+    assertThat(list.get(0).get(0).getVersion()).isNotEmpty();
+    assertThat(list.get(0).get(0).getLeaf()).isEqualTo(false);
+
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C3224");
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C2991");
@@ -995,24 +1056,74 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
     assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
         .isEqualTo(list.get(0).size() - 1);
-    
+
     url = baseUrl + "/ncit/C3224/pathsToAncestor/C3224?include=minimal";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    
+
     // check format for ancestor of self
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getTerminology()).isNotNull();
     assertThat(list.get(0).get(0).getVersion()).isNotNull();
-    
+
     assertThat(list.size() == 1); // single path
     assertThat(list.get(0).size() == 1); // single element in path
     assertThat(list.get(0).get(0).getLevel() == 0);
 
   }
+  
+  /**
+   * Test that we don't have erroneous definitions or synonyms
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCheckDefsAndSynsAreRight() throws Exception {
+	String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test with C3224 synonyms
+    url = baseUrl + "/ncit/C3224";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    for (Definition def : concept.getDefinitions()) {
+    	assertFalse(def.getDefinition().contains("nephron"));
+    }
+    
+    // Test with C36716 synonyms
+    url = baseUrl + "/ncit/C36716";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    for (Synonym syn : concept.getSynonyms()) {
+    	assertFalse(syn.getName().contains("nephron"));
+    }
+    
+    // Test with C100808 definitions
+    url = baseUrl + "/ncit/C100808";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    for (Definition def : concept.getDefinitions()) {
+    	assertFalse(def.getDefinition().contains("arrhythmia"));
+    }
+  }
+  
 
   /**
    * Checks if hierarchy has a leaf node anywhere in the hierarchy.

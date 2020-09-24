@@ -51,7 +51,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public void bulkIndex(List<Object> objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
+  public void bulkIndex(List objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
     throws IOException {
     if (CollectionUtils.isEmpty(objects))
       return;
@@ -84,6 +84,12 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     operations.index(query);
   }
 
+  /* see superclass */
+  @Override
+  public boolean deleteIndex(String index) {
+    return operations.deleteIndex(index);
+  }
+  
   /* see superclass */
   public ElasticsearchOperations getElasticsearchOperations() {
     return operations;

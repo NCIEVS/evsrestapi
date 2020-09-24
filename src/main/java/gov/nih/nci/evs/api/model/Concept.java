@@ -13,6 +13,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -61,6 +63,11 @@ public class Concept extends ConceptMinimal {
   @JsonSerialize
   @JsonDeserialize
   private java.util.Map<String, String> highlights;
+  
+  /** The normName */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
+  private String normName;
 
   /** The level. */
   @Field(type = FieldType.Integer)
@@ -83,14 +90,15 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /** The children. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
   private List<Concept> children;
 
   /** The parents. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "leaf"})
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
   private List<Concept> parents;
 
   /** The descendants. */
+  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
   private List<Concept> descendants;
 
   /** The associations. */
@@ -118,7 +126,7 @@ public class Concept extends ConceptMinimal {
   private List<Map> maps;
 
   /** The paths to root. */
-  @Field(type = FieldType.Object)
+  @Field(type = FieldType.Nested, ignoreFields = {"paths"})
   private Paths paths;
   
   /**
@@ -185,6 +193,7 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     level = other.getLevel();
     leaf = other.getLeaf();
+    normName = other.getNormName();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
@@ -241,6 +250,24 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Returns the normName.
+   *
+   * @return the normName
+   */
+  public String getNormName() {
+	return normName;
+  }
+	
+  /**
+   * Sets the normName.
+   *
+   * @param normName the normName
+   */
+  public void setNormName(String normName) {
+	this.normName = normName;
+  }
+
+/**
    * Returns the level.
    *
    * @return the level

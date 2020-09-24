@@ -606,12 +606,14 @@ public class OWLSPARQLUtils {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("SELECT ?x_label ?y_label ?z").append("\n");
+		buf.append("SELECT ?x_code ?x_label ?y_code ?y_label ?z").append("\n");
+		//buf.append("SELECT ?x_label ?y_label ?z").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    {").append("\n");
 		buf.append("            ?x a owl:Class .").append("\n");
 		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("	        ?x :NHC0 ?x_code .").append("\n");
 		buf.append("            ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
 		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
 		buf.append("            ?x ?y ?z .").append("\n");
@@ -628,6 +630,42 @@ public class OWLSPARQLUtils {
 	public Vector getPropertiesByCode(String named_graph, String code) {
 		return executeQuery(construct_get_properties_by_code(named_graph, code));
 	}
+
+
+	public String construct_get_properties_by_code(String named_graph, String code, String propertyName) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_code ?x_label ?y_code ?y_label ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("	        ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("	        ?xy :NHC0 ?y_code .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+
+        if (propertyName != null) {
+			buf.append("?y rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?y :NHC0 ?y_code .").append("\n");
+		buf.append("            ?y rdfs:range ?y_range").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("    FILTER (str(?y_range)!=\"http://www.w3.org/2001/XMLSchema#anyURI\")").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getPropertiesByCode(String named_graph, String code, String propertyName) {
+		return executeQuery(construct_get_properties_by_code(named_graph, code, propertyName));
+	}
+
 
 	public String construct_get_ontology_version_info(String named_graph) {
 		String prefixes = getPrefixes();
@@ -1756,7 +1794,7 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_subset_membership(named_graph, code, codeOnly));
 	}
 
-
+/*
 	public String construct_get_associated_concepts(String named_graph, String focus_code, String association, boolean sourceOf) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -1791,7 +1829,7 @@ public class OWLSPARQLUtils {
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
-
+    */
 	public String construct_get_associated_concepts(String named_graph, String association) {
         return construct_get_associated_concepts(named_graph, association, true);
 	}
@@ -1851,8 +1889,8 @@ public class OWLSPARQLUtils {
 		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association));
 	}
 
-	public Vector getAssociatedConcepts(String named_graph, String target_code, String association, boolean sourceOf) {
-		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association, sourceOf));
+	public Vector getAssociatedConcepts(String named_graph, String target_code, String association, boolean outbound) {
+		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association, outbound));
 	}
 
 	public String[] get_concept_in_subset_codes(String named_graph, String subset_code) {
@@ -3950,7 +3988,11 @@ public class OWLSPARQLUtils {
 		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
 		buf.append("            ?x :NHC0 ?x_code .").append("\n");
 		buf.append("            ?x rdfs:label ?x_label .").append("\n");
-		buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
 		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
 		buf.append("            ?p rdfs:label ?p_label .").append("\n");
 
@@ -3965,7 +4007,6 @@ public class OWLSPARQLUtils {
 		buf.append("        }").append("\n");
 		buf.append("     }").append("\n");
 		buf.append("}").append("\n");
-		//buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
 		return buf.toString();
 	}
 
@@ -4100,7 +4141,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("").append("\n");
-		buf.append("SELECT ?x_code ?a_code ?a_label ?z").append("\n");
+		buf.append("SELECT distinct ?x_code ?x_label ?a_code ?a_label ?z").append("\n");
 		buf.append("{").append("\n");
 		buf.append("graph <" + named_graph + ">").append("\n");
 		buf.append("{").append("\n");
@@ -4116,6 +4157,24 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
+	public Vector getConceptsContainingProperty(String named_graph, String prop_label) {
+		String prop_code = null;
+		Vector properties = getSupportedProperties(named_graph);
+        for (int i=0; i<properties.size(); i++) {
+			String str = (String) properties.elementAt(i);
+			Vector u = StringUtils.parseData(str, '|');
+			String label = (String) u.elementAt(0);
+			if (label.compareTo(prop_label) == 0) {
+				prop_code = (String) u.elementAt(1);
+			    break;
+			}
+		}
+		Vector w = getConceptsWithProperty(named_graph, prop_code);
+		w = SortUtils.multiValuedSortBy(w, 1);
+        return w;
+	}
+
 
 	public Vector getConceptsWithProperty(String named_graph, String prop_code) {
 		String query = construct_property_query(named_graph, prop_code);
@@ -4818,6 +4877,114 @@ Term Type
 
 	public Vector getCodeByLabel(String named_graph, String label) {
 		return executeQuery(construct_get_code_by_label(named_graph, label));
+	}
+
+
+
+	public String construct_axiom_query(String named_graph, String code, String propertyName, String qualifierName) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT ?z_axiom ?x_label ?x_code ?p_label ?z_target ?y_label ?z").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    { ").append("\n");
+		buf.append("    	{").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+
+		if (propertyName != null) {
+			buf.append("            ?p rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("            ?z_axiom ?y ?z . ").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+
+		if (qualifierName != null) {
+			buf.append("            ?y rdfs:label \"" + qualifierName + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("        }").append("\n");
+		buf.append("     }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getAxioms(String named_graph, String code, String propertyName, String qualfierName) {
+		String query = construct_axiom_query(named_graph, code, propertyName, qualfierName);
+		System.out.println(query);
+		Vector v = executeQuery(query);
+		if (v != null) {
+			v = new ParserUtils().getResponseValues(v);
+		}
+		return v;
+	}
+
+
+	public String construct_get_associated_concepts(String named_graph, String code, String association, boolean outbound) {
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT distinct ?x_label ?x_code ?y_label ?z_label ?z_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+		buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+		buf.append("            ?z rdfs:label ?z_label .").append("\n");
+
+		if (code != null) {
+			if (outbound) {
+				buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			} else {
+				buf.append("            ?z :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+		}
+
+		if (association != null) {
+			buf.append("            ?y rdfs:label " + "\"" + association + "\"^^xsd:string ").append("\n");
+		}
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getValueSet(String named_graph, String vs_header_concept_code) {
+		boolean formatted = true;
+		return getValueSet(named_graph, vs_header_concept_code, formatted);
+	}
+
+	public Vector getValueSet(String named_graph, String vs_header_concept_code, boolean formatted) {
+		String association = "Concept_In_Subset";
+		boolean outbound = false;
+		Vector v = getAssociatedConcepts(named_graph, vs_header_concept_code, association, outbound);
+		v = new ParserUtils().getResponseValues(v);
+        Vector w = new Vector();
+ 	    for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			if (formatted) {
+				line = StringUtils.formatAssociation(line);
+			}
+			w.add(line);
+		}
+ 	    return w;
 	}
 }
 

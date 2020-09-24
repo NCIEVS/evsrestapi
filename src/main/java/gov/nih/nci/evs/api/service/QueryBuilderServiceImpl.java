@@ -1,5 +1,7 @@
+
 package gov.nih.nci.evs.api.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +43,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String contructPrefix(String source) {
+  public String contructPrefix(final String source) {
     String prefix = env.getProperty("prefix.common");
 
     if (StringUtils.isNotEmpty(source)) {
@@ -62,7 +64,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String constructQuery(String queryProp, String namedGraph) {
+  public String constructQuery(final String queryProp, String namedGraph) {
     Map<String, String> values = ConceptUtils.asMap("namedGraph", namedGraph);
     String query = getResolvedProperty(queryProp, values);
     log.debug("construct " + queryProp + " - " + query);
@@ -78,10 +80,12 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String constructQuery(String queryProp, String conceptCode, String namedGraph) {
-    Map<String, String> values =
+  public String constructQuery(final String queryProp, final String conceptCode,
+    final String namedGraph) {
+    checkCode(conceptCode);
+    final Map<String, String> values =
         ConceptUtils.asMap("conceptCode", conceptCode, "namedGraph", namedGraph);
-    String query = getResolvedProperty(queryProp, values);
+    final String query = getResolvedProperty(queryProp, values);
     log.debug("construct " + queryProp + " - " + query);
     return query;
   }
@@ -93,16 +97,18 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @param namedGraph the named graph
    * @param inClause the in clause
    * @return the string
-   */  
+   */
   @Override
-  public String constructBatchQuery(String queryProp, String namedGraph, String inClause) {
-    Map<String, String> values =
+  public String constructBatchQuery(final String queryProp, final String namedGraph,
+    final List<String> conceptCodes) {
+    final String inClause = getInClause(conceptCodes);
+    final Map<String, String> values =
         ConceptUtils.asMap("namedGraph", namedGraph, "inClause", inClause);
-    String query = getResolvedProperty(queryProp, values);
+    final String query = getResolvedProperty(queryProp, values);
     log.debug("construct " + queryProp + " - " + query);
     return query;
   }
-  
+
   /**
    * Construct query.
    *
@@ -112,6 +118,12 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    */
   @Override
   public String constructQuery(String queryProp, Map<String, String> values) {
+    // Validate codes
+    for (final Map.Entry<String, String> entry : values.entrySet()) {
+      if (entry.getKey().toLowerCase().contains("code")) {
+        checkCode(entry.getValue());
+      }
+    }
     String query = getResolvedProperty(queryProp, values);
     log.debug("construct " + queryProp + " - " + query);
     return query;
@@ -128,4 +140,40 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     return StringSubstitutor.replace(env.getProperty(queryKey), values, "#{", "}");
   }
 
+  /**
+   * Returns the in clause.
+   *
+   * @param values the values
+   * @return the in clause
+   */
+  private String getInClause(List<String> values) {
+    checkCodes(values);
+    return new StringBuilder().append("'").append(String.join("', '", values)).append("'")
+        .toString();
+  }
+
+  /**
+   * Check concept code.
+   *
+   * @param codes the codes
+   * @throws Exception the exception
+   */
+  private void checkCodes(final List<String> codes) {
+    for (final String code : codes) {
+      checkCode(code);
+    }
+  }
+
+  /**
+   * Check code.
+   *
+   * @param code the code
+   * @throws Exception the exception
+   */
+  private void checkCode(final String code) {
+    // codes should not contain spaces or parentheses
+    if (code.matches(".*[ \\t\\(\\)].*")) {
+      throw new RuntimeException("Concept code contains whitespace or parens = " + code);
+    }
+  }
 }
