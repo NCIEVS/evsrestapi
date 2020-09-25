@@ -1327,11 +1327,19 @@ public class SearchControllerTests {
 	  String url = baseUrl;
 	  MvcResult result = null;
 	  ConceptResultList list = null;
+	  
+	  // no params (should return all concepts
+	  log.info("Testing url - " + url + "?terminology=ncit");
+	  result = mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
+	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  //assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+	  
+	  // search by synonymSource
 	  log.info("Testing url - " + url + "?synonymSource=GDC&terminology=ncit");
 	  result = mvc.perform(get(url).param("terminology", "ncit").param("synonymSource", "GDC").param("include", "synonyms"))
 			  .andExpect(status().isOk()).andReturn();
 	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
-	  assertThat(list.getConcepts().size() > 0);
+	  assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
 	  for(final Concept conc : list.getConcepts()) { // test that have match to synonymSource = GDC
 		  boolean found = false;
 		  for (Synonym syn : conc.getSynonyms()) {
@@ -1343,10 +1351,64 @@ public class SearchControllerTests {
 		  assertThat(found).isTrue();
 	  }
 	  
-	  log.info("Testing url - " + url + "?terminology=ncit");
-	  result = mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
+	  // search by synonymSource + synonymTermGroup
+	  log.info("Testing url - " + url + "?synonymSource=GDC&terminology=ncit");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("synonymSource", "GDC")
+			  .param("synonymTermGroup", "SY").param("include", "synonyms")).andExpect(status().isOk()).andReturn();
 	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
-	  assertThat(list.getConcepts().size() > 0);
+	  assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+	  for(final Concept conc : list.getConcepts()) { // test that have match to synonymSource = GDC
+		  boolean foundBoth = false;
+		  for (Synonym syn : conc.getSynonyms()) {
+			  if (syn.getSource() != null && syn.getSource().equals("GDC")
+					  && syn.getTermGroup() != null && syn.getTermGroup().equals("SY")) {
+				  foundBoth = true;
+				  break;
+			  }
+		  }
+		  assertThat(foundBoth).isTrue();
+	  }
+	  
+	  // search by concept status
+	  log.info("Testing url - " + url + "?terminology=ncit&conceptStatus=Obsolete_Concept");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("conceptStatus", "Obsolete_Concept"))
+			  .andExpect(status().isOk()).andReturn();
+	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+	  
+	  // search by definition source
+	  log.info("Testing url - " + url + "?terminology=ncit&definitionSource=CDISC&include=definitions");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("definitionSource", "CDISC")
+			  .param("include", "definitions")).andExpect(status().isOk()).andReturn();
+	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+	  for(final Concept conc : list.getConcepts()) { // test that have match to synonymSource = GDC
+		  boolean found = false;
+		  for (Definition def : conc.getDefinitions()) {
+			  if (def.getSource() != null && def.getSource().equals("CDISC")) {
+				  found = true;
+				  break;
+			  }
+		  }
+		  assertThat(found).isTrue();
+	  }
+	  
+	  // search by property
+	  log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code");
+	  result = mvc.perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
+			  .param("include", "properties")).andExpect(status().isOk()).andReturn();
+	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+	  assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+	  for(final Concept conc : list.getConcepts()) { // test that have match to synonymSource = GDC
+		  boolean found = false;
+		  for (Property prop : conc.getProperties()) {
+			  if (prop.getType() != null && prop.getType().equals("FDA_UNII_Code")) {
+				  found = true;
+				  break;
+			  }
+		  }
+		  assertThat(found).isTrue();
+	  }
   }
   
   
