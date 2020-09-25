@@ -13,7 +13,6 @@ import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.properties.ThesaurusDocumentationProperties;
 
 /**
  * Properties configuration.
@@ -84,17 +83,6 @@ public class PropertiesConfiguration {
   @ConfigurationProperties(prefix = "nci.evs.elasticsearch.server", ignoreUnknownFields = false)
   ElasticServerProperties elasticServerProperties() {
     return new ElasticServerProperties();
-  }
-
-  /**
-   * Thesaurus properties.
-   *
-   * @return the thesaurus properties
-   */
-  @Bean
-  @ConfigurationProperties(prefix = "ncit.doc", ignoreUnknownFields = false)
-  ThesaurusDocumentationProperties thesaurusDocumentationProperties() {
-    return new ThesaurusDocumentationProperties();
   }
 
 

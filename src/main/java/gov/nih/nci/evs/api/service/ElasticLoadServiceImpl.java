@@ -16,6 +16,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
@@ -484,11 +488,25 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
 
       TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
       Terminology term = termUtils.getTerminology(config.getTerminology(), false);
+
+      // Attempt to read the config, if anything goes wrong
+      // the config file is probably not there
+      final String resource = "metadata/" + term.getTerminology() + ".json";
+      try {
+        TerminologyMetadata metadata = new ObjectMapper().readValue(IOUtils
+            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
+            TerminologyMetadata.class);
+        term.setMetadata(metadata);
+      } catch (Exception e) {
+        throw new Exception("Unexpected error trying to load = " + resource, e);
+      }
+
       HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
       loadService.loadConcepts(config, term, hierarchy);
       loadService.loadObjects(config, term, hierarchy);
       loadService.cleanStaleIndexes();
       loadService.updateLatestFlag();
+
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       throw new RuntimeException(e);
