@@ -144,8 +144,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
         .withIndices(buildIndicesArray(searchCriteria))
         .withTypes(ElasticOperationsService.CONCEPT_TYPE)
-        .withPageable(pageable)
-        .withMinScore(0.01f);
+        .withPageable(pageable);
+        // avoid setting min score
+        //.withMinScore(0.01f);
 
     if (searchCriteria.getInclude().toLowerCase().contains("highlights")) {
       searchQuery = searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));

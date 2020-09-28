@@ -1332,7 +1332,7 @@ public class SearchControllerTests {
 	  log.info("Testing url - " + url);
 	  result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
 	  list = new ObjectMapper().readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
-	  //assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+	  assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
 	  
 	  // search by synonymSource
 	  log.info("Testing url - " + url + "?synonymSource=GDC&terminology=ncit");
