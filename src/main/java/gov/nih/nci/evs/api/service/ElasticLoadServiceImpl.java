@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -435,6 +437,8 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     public Void call() throws Exception {
       try {
         taskLogger.info("    start loading concepts: {} to {}", startIndex + 1, endIndex);
+        FileUtils.write(new File("index." + startIndex + "-" + endIndex + ".json"),
+            concepts.toString(), "UTF-8");
         operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE,
             Concept.class);
         int progress = (int) Math.floor((1.0 - 1.0 * latch.getCount() / taskSize) * 100);

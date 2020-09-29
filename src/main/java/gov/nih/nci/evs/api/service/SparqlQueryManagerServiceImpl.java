@@ -441,9 +441,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             : getMetadataProperties(conceptCode, terminology);
 
     // minimal, always do these
-    concept.setCode(EVSUtils.getProperty(terminology.getMetadata().getCode(), properties));
-    final String pn =
-        EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
+    concept.setCode(conceptCode);
+    String pn = null;
+    pn = EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
+
     final String conceptLabel = getConceptLabel(conceptCode, terminology);
 
     if (!conceptType.equals("qualifier") && !conceptType.equals("property")) {

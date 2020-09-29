@@ -46,7 +46,7 @@ public class EVSUtils {
    */
   public static String getProperty(String type, List<Property> properties) {
     for (Property property : properties) {
-      if (property.getCode().equals(type)) {
+      if (property.getCode() != null && property.getCode().equals(type)) {
         return property.getValue();
       }
     }
