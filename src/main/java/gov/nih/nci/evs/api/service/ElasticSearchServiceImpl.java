@@ -46,7 +46,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
-  
+
   /**
    * search for the given search criteria.
    *
@@ -64,32 +64,44 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     logger.debug("query string [{}]", searchCriteria.getTerm());
 
     BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-    
+
+    boolean blankTermFlag = "".equalsIgnoreCase(searchCriteria.getTerm());
     boolean startsWithFlag = "startsWith".equalsIgnoreCase(searchCriteria.getType());
     boolean matchFlag = "match".equalsIgnoreCase(searchCriteria.getType());
 
-    if(matchFlag || startsWithFlag) {
+    if (blankTermFlag) {
+      // don't create anything
+    } else if (matchFlag || startsWithFlag) {
       // only search normName in concept/synonym or value in property
-      final String normTerm = ConceptUtils.normalize(searchCriteria.getTerm())
-    			.replaceAll(" ", "\\\\ ") + (startsWithFlag ? "*" : "");
-      
-      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
-  	  .should(QueryBuilders.queryStringQuery("normName:" + normTerm)
-  			  .analyzeWildcard(true).boost(20f))
-  	  .should(QueryBuilders.queryStringQuery("code:" + searchCriteria.getTerm().replaceAll(" ", "\\\\ "))
-  			  .analyzeWildcard(true).boost(20f))
-  	  .should(QueryBuilders.queryStringQuery("code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ "))
-  			  .analyzeWildcard(true).boost(20f))
-      .should(QueryBuilders.nestedQuery("properties", QueryBuilders.queryStringQuery("properties.value:" + normTerm)
-    		  .analyzeWildcard(true), ScoreMode.Max).boost(5f))
-      .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders.queryStringQuery("synonyms.normName:" + normTerm)
-    		  .analyzeWildcard(true), ScoreMode.Max).boost(20f));
-      
-  	  boolQuery.must(boolQuery2);
+      final String normTerm =
+          ConceptUtils.normalize(searchCriteria.getTerm()).replaceAll(" ", "\\\\ ")
+              + (startsWithFlag ? "*" : "");
+
+      BoolQueryBuilder boolQuery2 =
+          new BoolQueryBuilder()
+              .should(QueryBuilders.queryStringQuery("normName:" + normTerm).analyzeWildcard(true)
+                  .boost(20f))
+              .should(QueryBuilders
+                  .queryStringQuery("code:" + searchCriteria.getTerm().replaceAll(" ", "\\\\ "))
+                  .analyzeWildcard(true).boost(20f))
+              .should(QueryBuilders
+                  .queryStringQuery(
+                      "code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ "))
+                  .analyzeWildcard(true).boost(20f))
+              .should(
+                  QueryBuilders.nestedQuery("properties",
+                      QueryBuilders.queryStringQuery("properties.value:" + normTerm)
+                          .analyzeWildcard(true),
+                      ScoreMode.Max).boost(5f))
+              .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders
+                  .queryStringQuery("synonyms.normName:" + normTerm).analyzeWildcard(true),
+                  ScoreMode.Max).boost(20f));
+
+      boolQuery.must(boolQuery2);
     } else {
       // prepare query_string query builder
       QueryStringQueryBuilder queryStringQueryBuilder = QueryBuilders
-        .queryStringQuery(updateTermForType(searchCriteria.getTerm(), searchCriteria.getType()));
+          .queryStringQuery(updateTermForType(searchCriteria.getTerm(), searchCriteria.getType()));
 
       // -- fuzzy and wildcard - both cannot be used for same query
       if ("fuzzy".equalsIgnoreCase(searchCriteria.getType())) {
@@ -105,18 +117,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
       // prepare bool query
       BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
-      .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
-    	.field("name", 2f)
-        .boost(10f)
-        .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-      .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
-    	.field("code", 2f)
-        .boost(10f)
-        .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-      .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
-        .boost(5f))
-      .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
-        .boost(20f));
+          .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
+              .field("name", 2f).boost(10f)
+              .defaultOperator(queryStringQueryBuilder.defaultOperator()))
+          .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
+              .field("code", 2f).boost(10f)
+              .defaultOperator(queryStringQueryBuilder.defaultOperator()))
+          .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
+              .boost(5f))
+          .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
+              .boost(20f));
 
       boolQuery.must(boolQuery2);
     }
@@ -138,18 +148,18 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // build final search query
     NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
         .withIndices(buildIndicesArray(searchCriteria))
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE)
-        .withPageable(pageable)
-        .withMinScore(0.01f);
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable);
+    // avoid setting min score
+    // .withMinScore(0.01f);
 
     if (searchCriteria.getInclude().toLowerCase().contains("highlights")) {
       searchQuery = searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
     }
-    
-    //query on operations
-    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class, 
+
+    // query on operations
+    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class,
         new EVSConceptResultMapper(searchCriteria.computeIncludeParam()));
-    
+
     logger.debug("result count: {}", resultPage.getTotalElements());
 
     ConceptResultList result = new ConceptResultList();
@@ -466,10 +476,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     String[] indices = new String[terminologies.size()];
-    //TODO: add getTerminologies call to avoid looping
+    // TODO: add getTerminologies call to avoid looping
     for (int i = 0; i < terminologies.size(); i++) {
-      indices[i] = termUtils.getTerminology(terminologies.get(i), true)
-          .getIndexName();
+      indices[i] = termUtils.getTerminology(terminologies.get(i), true).getIndexName();
     }
     logger.info("indices array: " + Arrays.asList(indices));
     return indices;

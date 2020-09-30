@@ -37,6 +37,7 @@ logging:
         gov.nih.nci.evs.api: INFO
         org.springframework.data.elasticsearch.core: DEBUG
         gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: DEBUG
+        org.apache.http: INFO # change to DEBUG when needed but INFO for now to avoid logspam
 
 #
 # Server Properties

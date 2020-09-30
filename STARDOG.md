@@ -13,8 +13,7 @@ Information on downloading and using stardog with EVSRESTAPI.
       
       # get license
       docker run -it --entrypoint "/bin/bash" -v stardog-home:/var/opt/stardog stardog/stardog
-      [root@0b9fbb0b90ba bin]# cd /opt/stardog/bin
-      [root@0b9fbb0b90ba bin]# ./stardog-admin license request --force
+      [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin license request --force
       ... answer questions, provide email - bcarlsen+stardog@westcoastinformatics.com ...
       [root@0b9fbb0b90ba bin]# exit
 
