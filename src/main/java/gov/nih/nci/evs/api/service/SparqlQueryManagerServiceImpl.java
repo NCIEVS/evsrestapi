@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.apache.commons.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1516,7 +1517,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         String property = b.getAxiomProperty().getValue().split("#")[1];
         String value = b.getAxiomValue().getValue();
         if (value.contains("#")) {
-          value = value.split("#")[1];
+          final String[] tokens = value.split("#");
+          if (tokens.length == 2) {
+            value = value.split("#")[1];
+          } else {
+            log.warn("WARNING: Unexpected axiom value without 2 fields = " + code + ", " + property
+                + ", " + value);
+            value = "";
+          }
         }
 
         setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);

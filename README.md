@@ -50,16 +50,9 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         
         example: java -jar build/libs/evsrestapi-*.jar --help
       
-      *** To load indexes to Elasticsearch from Stardog directly: 
-      
-        # In this mode, index loading happens in real-time (meaning, in a single step)
-        java -jar <path/to/spring-boot-fat-jar> --terminology <terminology_version> --forceDeleteIndex
-        
-        example: java -jar build/libs/evsrestapi-*.jar --terminology ncit_20.04d --forceDeleteIndex
-
       *** To run and build indexes against a docker stardog/elasticsearch:
 
-        version=ncit_20.07d
+        version=ncit_20.09d
         export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
         java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --forceDeleteIndex
