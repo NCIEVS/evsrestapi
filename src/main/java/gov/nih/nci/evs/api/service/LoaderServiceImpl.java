@@ -151,6 +151,24 @@ public class LoaderServiceImpl implements LoaderService {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
+	Options options = prepareOptions();
+    CommandLine cmd;
+    try {
+      cmd = new DefaultParser().parse(options, args);
+    } catch (ParseException e) {
+      logger.error("{}; Try -h or --help to learn more about command line options available.",
+          e.getMessage());
+      return;
+    }
+
+    if (cmd.hasOption('h')) {
+      printHelp(options);
+      return;
+    }
+
+    ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
+    
+    
   }
 
   /**
