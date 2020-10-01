@@ -99,6 +99,7 @@ public class LoaderServiceImpl implements LoaderService {
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
+    options.addOption("d", "directory", true, "load concepts from the given directory");
 
     return options;
   }
@@ -141,6 +142,20 @@ public class LoaderServiceImpl implements LoaderService {
     } else {
       config.setLocation(defaultLocation);
     }
+    if (cmd.hasOption('d')) {
+        String location = cmd.getOptionValue('d');
+        if (StringUtils.isBlank(location)) {
+          logger.error("Location is empty!");
+
+        }
+        if (!location.endsWith("/")) {
+          location += "/";
+        }
+        logger.info("location - {}", location);
+        config.setLocation(location);
+      } else {
+        config.setLocation(defaultLocation);
+      }
 
     return config;
   }
@@ -169,7 +184,7 @@ public class LoaderServiceImpl implements LoaderService {
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
     BaseLoaderService loadService = null;
     try {
-      if(true) {
+      if(cmd.hasOption('d')) {
     	loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
       }
       else {
