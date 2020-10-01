@@ -44,7 +44,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  * @author Arun
  */
 @Service
-public class ElasticLoadServiceImpl implements ElasticLoadService {
+public class ElasticLoadServiceImpl extends BaseLoaderService implements ElasticLoadService {
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(ElasticLoadServiceImpl.class);

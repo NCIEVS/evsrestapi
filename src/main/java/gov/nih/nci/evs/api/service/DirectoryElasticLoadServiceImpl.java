@@ -44,14 +44,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  * @author Arun
  */
 @Service
-public class DirectoryElasticLoadServiceImpl implements ElasticLoadService {
+public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implements ElasticLoadService {
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
-
-  /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.conceptsDir}")
-  private String CONCEPTS_OUT_DIR;
 
   /** the lock file name *. */
   @Value("${nci.evs.bulkload.lockFile}")
@@ -72,10 +68,6 @@ public class DirectoryElasticLoadServiceImpl implements ElasticLoadService {
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
-
-  /** The sparql query manager service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The elasticsearch query service *. */
   @Autowired

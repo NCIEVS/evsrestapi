@@ -51,7 +51,7 @@ public class LoaderServiceImpl implements LoaderService {
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
-  private String CONCEPTS_OUT_DIR;
+  private static String CONCEPTS_OUT_DIR;
 
   /** the lock file name *. */
   @Value("${nci.evs.bulkload.lockFile}")
@@ -75,7 +75,7 @@ public class LoaderServiceImpl implements LoaderService {
 
   /** The sparql query manager service. */
   @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
+  private static SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The elasticsearch query service *. */
   @Autowired
@@ -167,7 +167,28 @@ public class LoaderServiceImpl implements LoaderService {
     }
 
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
-    
+    BaseLoaderService loadService = null;
+    try {
+      if(true) {
+    	loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
+      }
+      else {
+    	loadService = app.getBean(ElasticLoadServiceImpl.class);
+      }
+      ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
+      Terminology term = termUtils.getTerminology(config.getTerminology(), false);
+      HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
+      loadService.loadConcepts(config, term, hierarchy);
+      loadService.loadObjects(config, term, hierarchy);
+      /*loadService.cleanStaleIndexes();
+      loadService.updateLatestFlag();*/
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new RuntimeException(e);
+    } finally {
+      SpringApplication.exit(app);
+    }
     
   }
 
