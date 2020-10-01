@@ -71,7 +71,10 @@ import org.json.*;
 
 
 public class TermSearchUtils {
+	String restricted_value_set_code = null;
 	OWLSPARQLUtils owlSPARQLUtils = null;
+	AxiomUtils axiomUtils = null;
+
 	String serviceUrl = null;
 	String namedGraph = null;
 	HashMap termMap = null;
@@ -80,16 +83,135 @@ public class TermSearchUtils {
 	String full_syn_file = "FULL_SYN.txt";
 	boolean exclude_retired = true;
 
+	Vector restricted_codes = null;
+
 	public TermSearchUtils(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
-		if (serviceUrl.indexOf("?") == -1) {
-			if (!serviceUrl.endsWith("/")) {
-				this.serviceUrl = serviceUrl + "/";
-			}
-	    }
 		this.namedGraph = namedGraph;
-		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-		initialize();
+		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+		this.axiomUtils = new AxiomUtils(serviceUrl, null, null);
+	}
+
+	public TermSearchUtils(String serviceUrl, String namedGraph, String username, String password) {
+		this.serviceUrl = serviceUrl;
+		this.namedGraph = namedGraph;
+		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		this.axiomUtils = new AxiomUtils(serviceUrl, username, password);
+	}
+
+	public void set_restricted_value_set_code(String code) {
+		this.restricted_value_set_code = code;
+	}
+
+    public List getSynonyms(String named_graph, String code) {
+	    return axiomUtils.getSynonyms(named_graph, code, "FULL_SYN");
+	}
+
+/*
+{
+  "code": "C82358",
+  "label": "Adecatumumab",
+  "termName": "ADECATUMUMAB",
+  "termGroup": "PT",
+  "termSource": "FDA",
+  "sourceCode": "000705ZASD",
+  "subSourceName": "UNII"
+}
+*/
+    public String findFirstMatchedConceptCode(String term) {
+		String term_lc = term.toLowerCase();
+		if (!termMap.containsKey(term_lc)) {
+			return "";
+		}
+		Vector w = (Vector) termMap.get(term_lc);
+		StringBuffer buf = new StringBuffer();
+		HashSet hset = new HashSet();
+		int knt = 0;
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			for (int j=0; j<u.size(); j++) {
+				String name = (String) u.elementAt(0);
+				String code = (String) u.elementAt(1);
+				String key = name + "|" + code;
+				if (!hset.contains(key)) {
+					hset.add(key);
+					return code;
+				}
+			}
+		}
+		return "";
+	}
+
+	public String getMatchedSynonymNames(String named_graph, String code, Synonym pattern) {
+		StringBuffer buf = new StringBuffer();
+		List list = getSynonyms(named_graph, code);
+		for (int i=0; i<list.size(); i++) {
+			Synonym syn = (Synonym) list.get(i);
+            boolean matched = true;
+			if (pattern.getTermGroup() != null) {
+				if (syn.getTermGroup() == null || syn.getTermGroup().compareTo(pattern.getTermGroup()) != 0) {
+					matched = false;
+				}
+			}
+			if (pattern.getTermSource() != null) {
+				if (syn.getTermSource() == null || syn.getTermSource().compareTo(pattern.getTermSource()) != 0) {
+					matched = false;
+				}
+			}
+			if (pattern.getSourceCode() != null) {
+				if (syn.getSourceCode() == null || syn.getSourceCode().compareTo(pattern.getSourceCode()) != 0) {
+					matched = false;
+				}
+			}
+			if (pattern.getSubSourceName() != null) {
+				if (syn.getSubSourceName() == null || syn.getSubSourceName().compareTo(pattern.getSubSourceName()) != 0) {
+					matched = false;
+				}
+			}
+			if (matched) {
+				buf.append(syn.getTermName());
+			}
+
+		}
+		String t = buf.toString();
+        if (t.endsWith("$")) {
+			t = t.substring(0, t.length()-1);
+		}
+		return t;
+	}
+
+	public String getFDAPT(String code) {
+		return getFDAPT(namedGraph, code);
+	}
+
+	public String getFDAPT(String named_graph, String code) {
+		List list = getSynonyms(named_graph, code);
+		for (int i=0; i<list.size(); i++) {
+			Synonym syn = (Synonym) list.get(i);
+			if ((syn.getTermGroup() != null &&  syn.getTermGroup().equals("PT")) &&
+			    (syn.getTermSource() != null && syn.getTermSource().equals("FDA")) &&
+			    (syn.getSubSourceName() != null && syn.getSubSourceName().equals("UNII"))) {
+				return syn.getTermName();
+			}
+		}
+        return null;
+	}
+
+	public Vector get_concepts_in_subset(String code) {
+		return owlSPARQLUtils.get_concepts_in_subset(this.namedGraph, code);
+	}
+
+	public Vector getMemberConceptsCodes(String code) {
+        Vector w = owlSPARQLUtils.get_concepts_in_subset(this.namedGraph, code);
+        Vector v = new Vector();
+        for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String s = (String) u.elementAt(1);
+			v.add(s);
+		}
+		return v;
 	}
 
 	public void set_exclude_retired(boolean exclude_retired) {
@@ -111,7 +233,20 @@ public class TermSearchUtils {
 
 	public void initialize() {
 		obsoleteConceptMap = createObsoleteConceptMap();
-		full_syn_vec = retrievePropertyData("FULL_SYN");//.get_full_syn_vec();
+		if (restricted_value_set_code != null) {
+			restricted_codes = getMemberConceptsCodes(restricted_value_set_code);
+		}
+		//restricted_codes = getMemberConceptsCodes(FDA_Established_Names_and_Unique_Ingredient_Identifier_Codes_Terminology_Code);
+		Vector w = retrievePropertyData("FULL_SYN");
+		Vector full_syn_vec = new Vector();
+		for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String code = (String) u.elementAt(1);
+			if (restricted_codes != null && restricted_codes.contains(code)) {
+				full_syn_vec.add(t);
+			}
+		}
 		termMap = createTermMap(full_syn_vec);
 	}
 
@@ -236,6 +371,39 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 		}
 		return t;
 	}
+
+
+    public String findMatchedConceptCodes(String term) {
+		String term_lc = term.toLowerCase();
+		if (!termMap.containsKey(term_lc)) {
+			return "";
+		}
+		Vector w = (Vector) termMap.get(term_lc);
+		StringBuffer buf = new StringBuffer();
+		HashSet hset = new HashSet();
+		int knt = 0;
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			for (int j=0; j<u.size(); j++) {
+				String name = (String) u.elementAt(0);
+				String code = (String) u.elementAt(1);
+				String key = name + "|" + code;
+				if (!hset.contains(key)) {
+					hset.add(key);
+					buf.append(code).append("|");
+					knt++;
+				}
+			}
+		}
+		String t = buf.toString();
+		while (t.endsWith("|")) {
+			t = t.substring(0, t.length()-1);
+		}
+		return t;
+	}
+
+
 
 	public Vector retrieveRetiredConceptData() {
 		String property_name = "Concept_Status";
