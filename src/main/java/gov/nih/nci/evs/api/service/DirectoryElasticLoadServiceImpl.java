@@ -48,6 +48,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
+  
+  /** the concepts download location *. */
+  @Value("${nci.evs.bulkload.conceptsDir}")
+  private String CONCEPTS_OUT_DIR;
 
   /** the lock file name *. */
   @Value("${nci.evs.bulkload.lockFile}")
@@ -64,14 +68,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
   /** the environment *. */
   @Autowired
   Environment env;
+  
+  /** The sparql query manager service. */
+  @Autowired
+  private SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
-  
-  /** The Loader service */
-  @Autowired
-  private LoaderService loaderService;
 
   /* see superclass */
   @Override
@@ -102,6 +106,21 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
   
   @Override
   void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception {
-	  logger.info("d");
+	try {
+	  ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+
+      if (StringUtils.isBlank(config.getTerminology())) {
+        logger.error(
+            "Terminology (-t or --terminology) is required! Try -h or --help to learn more about command line options available.");
+        return;
+      }
+      TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
+      Terminology term = termUtils.getTerminology(config.getTerminology(), false);
+      HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
+	} catch (Exception e) {
+	  logger.error(e.getMessage(), e);
+	  throw new RuntimeException(e);
+	}
+	  
   }
 }

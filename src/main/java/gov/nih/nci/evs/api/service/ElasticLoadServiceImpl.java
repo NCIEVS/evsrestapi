@@ -80,10 +80,6 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
   /** The elasticsearch query service *. */
   @Autowired
   private ElasticQueryService esQueryService;
-  
-  /** The Loader service */
-  @Autowired
-  private LoaderService loaderService;
 
   /** The term utils. */
   /* The terminology utils */
@@ -533,9 +529,8 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
   void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception {
   try {
       // get the bean by type
-      ElasticLoadServiceImpl loadService = app.getBean(ElasticLoadServiceImpl.class);
 
-      ElasticLoadConfig config = buildConfig(cmd, loadService.CONCEPTS_OUT_DIR);
+      ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
 
       if (StringUtils.isBlank(config.getTerminology())) {
         logger.error(
@@ -545,15 +540,14 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
 
       TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
       Terminology term = termUtils.getTerminology(config.getTerminology(), false);
-      HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
+      HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
       if(true) {
-    	  logger.info("no d");
     	  return;
       }
-      loadService.loadConcepts(config, term, hierarchy);
-      loadService.loadObjects(config, term, hierarchy);
-      loadService.cleanStaleIndexes();
-      loadService.updateLatestFlag();
+      loadConcepts(config, term, hierarchy);
+      loadObjects(config, term, hierarchy);
+      cleanStaleIndexes();
+      updateLatestFlag();
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       throw new RuntimeException(e);

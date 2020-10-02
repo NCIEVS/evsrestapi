@@ -61,8 +61,8 @@ public abstract class BaseLoaderService {
   
   /**
    * Set up concept loading
- * @param cmd 
- * @param app 
+   * @param cmd the command line object
+   * @param app the app instance
    *
    * @throws Exception the exception
    */
