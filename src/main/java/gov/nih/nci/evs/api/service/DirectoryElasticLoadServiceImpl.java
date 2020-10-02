@@ -1,8 +1,13 @@
 
 package gov.nih.nci.evs.api.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -117,6 +122,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
       TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
       Terminology term = termUtils.getTerminology(config.getTerminology(), false);
       HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
+      File filepath = new File(cmd.getOptionValue('d'));
+      if(filepath.exists()){
+    	  logger.info("file path exists!");
+      }
+      else {
+    	  logger.error("Given file path does not exist");
+    	  return;
+      }
 	} catch (Exception e) {
 	  logger.error(e.getMessage(), e);
 	  throw new RuntimeException(e);
