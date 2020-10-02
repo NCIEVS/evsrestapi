@@ -196,8 +196,8 @@ public class LoaderServiceImpl implements LoaderService {
       HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
       loadService.loadConcepts(config, term, hierarchy);
       loadService.loadObjects(config, term, hierarchy);
-      /*loadService.cleanStaleIndexes();
-      loadService.updateLatestFlag();*/
+      loadService.cleanStaleIndexes();
+      loadService.updateLatestFlag();
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       throw new RuntimeException(e);

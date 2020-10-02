@@ -308,7 +308,7 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
    *
    * @throws Exception the exception
    */
-  private void cleanStaleIndexes() throws Exception {
+  public void cleanStaleIndexes() throws Exception {
     List<IndexMetadata> iMetas = null;
     iMetas = termUtils.getStaleTerminologies();
 
@@ -354,7 +354,7 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
    *
    * @throws Exception the exception
    */
-  private void updateLatestFlag() throws Exception {
+  public void updateLatestFlag() throws Exception {
     // update latest flag
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);

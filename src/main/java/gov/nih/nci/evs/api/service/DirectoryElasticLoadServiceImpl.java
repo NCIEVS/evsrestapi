@@ -92,4 +92,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
     HierarchyUtils hierarchy) throws IOException {
     
   }
+  
+  /* see superclass */
+  public void cleanStaleIndexes() throws Exception {
+	  
+  }
+  
+  /* see superclass */
+  public void updateLatestFlag() throws Exception {
+	  
+  }
 }

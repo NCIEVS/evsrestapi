@@ -32,4 +32,18 @@ public interface ElasticLoadService {
    * @throws IOException the io exception
    */
   void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException;
+  
+  /**
+   * Clean stale indexes.
+   *
+   * @throws Exception the exception
+   */
+  void cleanStaleIndexes() throws Exception;
+  
+  /**
+   * Update latest flag.
+   *
+   * @throws Exception the exception
+   */
+  void updateLatestFlag() throws Exception;
 }
