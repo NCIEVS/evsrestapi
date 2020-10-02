@@ -80,6 +80,10 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
   /** The elasticsearch query service *. */
   @Autowired
   private ElasticQueryService esQueryService;
+  
+  /** The Loader service */
+  @Autowired
+  private LoaderService loaderService;
 
   /** The term utils. */
   /* The terminology utils */
@@ -525,34 +529,34 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
     return;
   }
 
-  /**
-   * build config object from command line options.
-   *
-   * @param cmd the command line object
-   * @param defaultLocation the default download location to use
-   * @return the config object
-   */
-  private static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-    ElasticLoadConfig config = new ElasticLoadConfig();
+  @Override
+  void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception {
+  try {
+      // get the bean by type
+      ElasticLoadServiceImpl loadService = app.getBean(ElasticLoadServiceImpl.class);
 
-    config.setTerminology(cmd.getOptionValue('t'));
-    config.setRealTime(cmd.hasOption('r'));
-    config.setForceDeleteIndex(cmd.hasOption('f'));
-    if (cmd.hasOption('l')) {
-      String location = cmd.getOptionValue('l');
-      if (StringUtils.isBlank(location)) {
-        logger.error("Location is empty!");
+      ElasticLoadConfig config = buildConfig(cmd, loadService.CONCEPTS_OUT_DIR);
 
+      if (StringUtils.isBlank(config.getTerminology())) {
+        logger.error(
+            "Terminology (-t or --terminology) is required! Try -h or --help to learn more about command line options available.");
+        return;
       }
-      if (!location.endsWith("/")) {
-        location += "/";
+
+      TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
+      Terminology term = termUtils.getTerminology(config.getTerminology(), false);
+      HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
+      if(true) {
+    	  logger.info("no d");
+    	  return;
       }
-      logger.info("location - {}", location);
-      config.setLocation(location);
-    } else {
-      config.setLocation(defaultLocation);
+      loadService.loadConcepts(config, term, hierarchy);
+      loadService.loadObjects(config, term, hierarchy);
+      loadService.cleanStaleIndexes();
+      loadService.updateLatestFlag();
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new RuntimeException(e);
     }
-
-    return config;
   }
 }

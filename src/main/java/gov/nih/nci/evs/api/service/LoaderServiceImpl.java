@@ -1,16 +1,6 @@
 
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -25,16 +15,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
-import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -72,26 +56,13 @@ public class LoaderServiceImpl implements LoaderService {
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
-
-  /** The sparql query manager service. */
-  @Autowired
-  private static SparqlQueryManagerService sparqlQueryManagerService;
-
-  /** The elasticsearch query service *. */
-  @Autowired
-  private ElasticQueryService esQueryService;
-
-  /** The term utils. */
-  /* The terminology utils */
-  @Autowired
-  private TerminologyUtils termUtils;
   
   /**
    * prepare command line options available.
    *
    * @return the options
    */
-  private static Options prepareOptions() {
+  public static Options prepareOptions() {
     Options options = new Options();
 
     options.addOption("f", "forceDeleteIndex", false,
@@ -109,55 +80,10 @@ public class LoaderServiceImpl implements LoaderService {
    *
    * @param options the options available
    */
-  private static void printHelp(Options options) {
+  public static void printHelp(Options options) {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("java -jar $DIR/evsrestapi-*.jar", options);
     return;
-  }
-  
-  /**
-   * build config object from command line options.
-   *
-   * @param cmd the command line object
-   * @param defaultLocation the default download location to use
-   * @return the config object
-   */
-  private static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-    ElasticLoadConfig config = new ElasticLoadConfig();
-
-    config.setTerminology(cmd.getOptionValue('t'));
-    config.setRealTime(cmd.hasOption('r'));
-    config.setForceDeleteIndex(cmd.hasOption('f'));
-    if (cmd.hasOption('l')) {
-      String location = cmd.getOptionValue('l');
-      if (StringUtils.isBlank(location)) {
-        logger.error("Location is empty!");
-
-      }
-      if (!location.endsWith("/")) {
-        location += "/";
-      }
-      logger.info("location - {}", location);
-      config.setLocation(location);
-    } else {
-      config.setLocation(defaultLocation);
-    }
-    if (cmd.hasOption('d')) {
-        String location = cmd.getOptionValue('d');
-        if (StringUtils.isBlank(location)) {
-          logger.error("Location is empty!");
-
-        }
-        if (!location.endsWith("/")) {
-          location += "/";
-        }
-        logger.info("location - {}", location);
-        config.setLocation(location);
-      } else {
-        config.setLocation(defaultLocation);
-      }
-
-    return config;
   }
 
   /**
@@ -183,6 +109,7 @@ public class LoaderServiceImpl implements LoaderService {
 
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
     BaseLoaderService loadService = null;
+    
     try {
       if(cmd.hasOption('d')) {
     	loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
@@ -190,14 +117,8 @@ public class LoaderServiceImpl implements LoaderService {
       else {
     	loadService = app.getBean(ElasticLoadServiceImpl.class);
       }
-      ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
-      TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
-      Terminology term = termUtils.getTerminology(config.getTerminology(), false);
-      HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
-      loadService.loadConcepts(config, term, hierarchy);
-      loadService.loadObjects(config, term, hierarchy);
-      loadService.cleanStaleIndexes();
-      loadService.updateLatestFlag();
+      loadService.setUpConceptLoading(app, cmd);
+      
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       throw new RuntimeException(e);

@@ -68,15 +68,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
-
-  /** The elasticsearch query service *. */
+  
+  /** The Loader service */
   @Autowired
-  private ElasticQueryService esQueryService;
-
-  /** The term utils. */
-  /* The terminology utils */
-  @Autowired
-  private TerminologyUtils termUtils;
+  private LoaderService loaderService;
 
   /* see superclass */
   @Override
@@ -94,12 +89,19 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
   }
   
   /* see superclass */
+  @Override
   public void cleanStaleIndexes() throws Exception {
 	  
   }
   
   /* see superclass */
+  @Override
   public void updateLatestFlag() throws Exception {
 	  
+  }
+  
+  @Override
+  void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception {
+	  logger.info("d");
   }
 }
