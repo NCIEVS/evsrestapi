@@ -541,9 +541,6 @@ public class ElasticLoadServiceImpl extends BaseLoaderService implements Elastic
       TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
       Terminology term = termUtils.getTerminology(config.getTerminology(), false);
       HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
-      if(true) {
-    	  return;
-      }
       loadConcepts(config, term, hierarchy);
       loadObjects(config, term, hierarchy);
       cleanStaleIndexes();
