@@ -25,7 +25,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  * @author Arun
  */
 @Service
-public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implements ElasticLoadService {
+public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
@@ -73,20 +73,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService implement
     
   }
   
-  /* see superclass */
   @Override
-  public void cleanStaleIndexes() throws Exception {
-	  
-  }
-  
-  /* see superclass */
-  @Override
-  public void updateLatestFlag() throws Exception {
-	  
-  }
-  
-  @Override
-  void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception {
+  public void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception {
 	try {
 	  ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
 

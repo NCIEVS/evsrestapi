@@ -2,6 +2,9 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.springframework.context.ApplicationContext;
+
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -46,4 +49,13 @@ public interface ElasticLoadService {
    * @throws Exception the exception
    */
   void updateLatestFlag() throws Exception;
+  
+  /**
+   * Set up concept loading
+   * @param cmd the command line object
+   * @param app the app instance
+   *
+   * @throws Exception the exception
+   */
+  void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception;
 }

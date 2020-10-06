@@ -108,14 +108,14 @@ public class LoaderServiceImpl implements LoaderService {
     }
 
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
-    BaseLoaderService loadService = null;
+    ElasticLoadService loadService = null;
     
     try {
       if(cmd.hasOption('d')) {
     	loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
       }
       else {
-    	loadService = app.getBean(ElasticLoadServiceImpl.class);
+    	loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
       loadService.setUpConceptLoading(app, cmd);
       

@@ -1,18 +1,18 @@
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
+import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The service to load concepts to Elasticsearch
@@ -22,51 +22,27 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
  * @author Arun
  *
  */
-public abstract class BaseLoaderService {
+public abstract class BaseLoaderService implements ElasticLoadService {
 	
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(BaseLoaderService.class);
   
-  /**
-   * Load cached objects to elasticsearch.
-   * 
-   * @param config the load config from command line input
-   * @param terminology the terminology
-   * @throws IOException the io exception
-   */
-  abstract void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException;
-  
-  /**
-   * Load concepts to elasticsearch.
-   * 
-   * @param config the load config from command line input
-   * @param terminology the terminology
-   * @throws IOException the io exception
-   */
-  abstract void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException;
+  /** The Elasticsearch operations service instance *. */
+  @Autowired
+  ElasticOperationsService operationsService;
 
-  /**
-   * Clean stale indexes.
-   *
-   * @throws Exception the exception
-   */
-  abstract void cleanStaleIndexes() throws Exception;
+  /** The sparql query manager service. */
+  @Autowired
+  private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /**
-   * Update latest flag.
-   *
-   * @throws Exception the exception
-   */
-  abstract void updateLatestFlag() throws Exception;
-  
-  /**
-   * Set up concept loading
-   * @param cmd the command line object
-   * @param app the app instance
-   *
-   * @throws Exception the exception
-   */
-  abstract void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception;
+  /** The elasticsearch query service *. */
+  @Autowired
+  private ElasticQueryService esQueryService;
+
+  /** The term utils. */
+  /* The terminology utils */
+  @Autowired
+  private TerminologyUtils termUtils;
   
   /**
    * build config object from command line options.
@@ -111,6 +87,78 @@ public abstract class BaseLoaderService {
       }
 
     return config;
+  }
+  
+  /**
+   * Clean stale indexes.
+   *
+   * @throws Exception the exception
+   */
+  public void cleanStaleIndexes() throws Exception {
+    List<IndexMetadata> iMetas = null;
+    iMetas = termUtils.getStaleTerminologies();
+
+    if (CollectionUtils.isEmpty(iMetas))
+      return;
+
+    logger.info("Removing stale terminologies: " + iMetas);
+
+    for (IndexMetadata iMeta : iMetas) {
+      String indexName = iMeta.getIndexName();
+      String objectIndexName = iMeta.getObjectIndexName();
+
+      // objectIndexName will be NULL if terminology object is not part of
+      // IndexMetadata
+      // temporarily required to accommodate change in IndexMetadata object
+      if (objectIndexName == null) {
+        objectIndexName = "evs_object_" + indexName.replace("concept_", "");
+      }
+
+      // delete objects index
+      boolean result = operationsService.deleteIndex(objectIndexName);
+
+      if (!result) {
+        logger.warn("Deleting objects index {} failed!", objectIndexName);
+        continue;
+      }
+
+      // delete concepts index
+      result = operationsService.deleteIndex(indexName);
+
+      if (!result) {
+        logger.warn("Deleting concepts index {} failed!", indexName);
+        continue;
+      }
+
+      // delete metadata object
+      esQueryService.deleteIndexMetadata(indexName);
+    }
+  }
+
+  /**
+   * Update latest flag.
+   *
+   * @throws Exception the exception
+   */
+  public void updateLatestFlag() throws Exception {
+    // update latest flag
+    logger.info("Updating latest flags on all metadata objects");
+    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+
+    if (CollectionUtils.isEmpty(iMetas))
+      return;
+
+    Terminology latest = termUtils.getLatestTerminology(false);
+    for (IndexMetadata iMeta : iMetas) {
+      if (iMeta.getTerminology() != null) {
+        iMeta.getTerminology()
+            .setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
+      }
+    }
+
+    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
+        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+
   }
 
 }
