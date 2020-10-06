@@ -31,10 +31,6 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Autowired
   ElasticOperationsService operationsService;
 
-  /** The sparql query manager service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
-
   /** The elasticsearch query service *. */
   @Autowired
   private ElasticQueryService esQueryService;

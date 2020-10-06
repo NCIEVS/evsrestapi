@@ -94,6 +94,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     	  logger.error("Given file path does not exist");
     	  return;
       }
+      loadConcepts(config, term, hierarchy);
+      loadObjects(config, term, hierarchy);
+      cleanStaleIndexes();
+      updateLatestFlag();
 	} catch (Exception e) {
 	  logger.error(e.getMessage(), e);
 	  throw new RuntimeException(e);

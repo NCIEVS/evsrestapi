@@ -75,11 +75,6 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   @Autowired
   private ElasticQueryService esQueryService;
 
-  /** The term utils. */
-  /* The terminology utils */
-  @Autowired
-  private TerminologyUtils termUtils;
-
   /* see superclass */
   @Override
   public void loadConcepts(ElasticLoadConfig config, Terminology terminology,
