@@ -1048,6 +1048,7 @@ public class SearchControllerTests {
 
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
+    assertTrue(conceptList.get(0).getName().equalsIgnoreCase("malignant bone neoplasm"));
     for (Concept concept : conceptList) {
       assertTrue(concept.getName().toLowerCase().startsWith("malignant bone neoplasm")
           || !concept.getSynonyms().stream()
@@ -1060,6 +1061,40 @@ public class SearchControllerTests {
               .filter(p -> p.getDefinition().toLowerCase().startsWith("malignant bone neoplasm"))
               .collect(Collectors.toList()).isEmpty());
     }
+    
+    // exact matches come first
+    log.info("Testing url - " + url + "?include=minimal&term=blood&type=startsWith");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "blood")
+            .param("type", "startsWith").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    assertTrue(conceptList.get(0).getName().equalsIgnoreCase("blood"));
+    
+    log.info("Testing url - " + url + "?include=minimal&term=cold&type=startsWith");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "cold")
+            .param("type", "startsWith").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    assertTrue(conceptList.get(0).getName().equalsIgnoreCase("cold"));
+    
+    log.info("Testing url - " + url + "?include=minimal&term=bone&type=startsWith");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "cold")
+            .param("type", "startsWith").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    assertTrue(conceptList.get(0).getName().equalsIgnoreCase("cold"));
 
   }
 
