@@ -97,9 +97,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
                   .queryStringQuery("synonyms.normName:" + normTerm).analyzeWildcard(true),
                   ScoreMode.Max).boost(20f));
 
-      if(startsWithFlag)
-    	  boolQuery2 = boolQuery2.should(QueryBuilders.termQuery("name", searchCriteria.getTerm()))
-          .boost(20f);
+      if (startsWithFlag) {
+    	  boolQuery2 = boolQuery2
+    			  .should(QueryBuilders.matchQuery("normName", normTerm.replaceFirst("\\*$", "")))
+    			  .boost(20f);
+      }
       boolQuery.must(boolQuery2);
     } else {
       // prepare query_string query builder
