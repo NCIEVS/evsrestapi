@@ -1109,6 +1109,20 @@ public class SearchControllerTests {
     	log.info(conc.getName());
     }
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("malignant neoplasm"));
+    
+    log.info("Testing url - " + url + "?include=minimal&term=Malignant%20Neoplasm&type=startsWith");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "Malignant Neoplasm")
+            .param("type", "startsWith").param("pageSize", "100").param("fromRecord", "0").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    for (Concept conc : conceptList) {
+    	log.info(conc.getName());
+    }
+    assertTrue(conceptList.get(0).getName().equalsIgnoreCase("malignant neoplasm"));
 
   }
 
