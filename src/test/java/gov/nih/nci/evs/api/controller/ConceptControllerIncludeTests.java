@@ -33,8 +33,7 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 public class ConceptControllerIncludeTests {
 
   /** The logger. */
-  private static final Logger log =
-      LoggerFactory.getLogger(ConceptControllerIncludeTests.class);
+  private static final Logger log = LoggerFactory.getLogger(ConceptControllerIncludeTests.class);
 
   /** The mvc. */
   @Autowired
@@ -146,14 +145,14 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("Preferred_Name")).count())
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
             .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("FULL_SYN")).count()).isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
+        .isGreaterThan(0);
     // Test properties are "by label"
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
     // Test "summary" is equal to "synonyms,definitions,properties"
@@ -193,22 +192,23 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getChildren()).isNotEmpty();
     assertThat(concept.getParents()).isNotEmpty();
     assertThat(concept.getAssociations()).isNotEmpty();
-    assertThat(concept.getInverseAssociations()).isNotEmpty();
+    // C3224 no longer has associations
+    // assertThat(concept.getInverseAssociations()).isNotEmpty();
     assertThat(concept.getRoles()).isNotEmpty();
     assertThat(concept.getInverseRoles()).isNotEmpty();
     assertThat(concept.getMaps()).isNotEmpty();
     // Test for Preferred_Name and FULL_SYN
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> "Preferred_Name".equals(s.getType())).count())
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> "Preferred_Name".equals(s.getType())).count())
             .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> "Display_Name".equals(s.getType())).count())
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> "Display_Name".equals(s.getType())).count())
             .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> "FULL_SYN".equals(s.getType())).count()).isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> "FULL_SYN".equals(s.getType())).count())
+        .isGreaterThan(0);
     // Test properties are "by label"
-    assertThat(concept.getProperties().stream()
-        .filter(p -> "Semantic_Type".equals(p.getType())).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> "Semantic_Type".equals(p.getType())).count())
             .isGreaterThan(0);
   }
 
@@ -244,11 +244,11 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("Preferred_Name")).count())
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
             .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("FULL_SYN")).count()).isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
+        .isGreaterThan(0);
 
   }
 
@@ -317,8 +317,8 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
     // Test properties are "by label"
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
   }
@@ -404,14 +404,15 @@ public class ConceptControllerIncludeTests {
     String content = null;
     Concept concept = null;
 
-    url = baseUrl + "/ncit/C3224?include=associations,inverseAssociations";
+    // C3224 no longer has inverse associations
+    url = baseUrl + "/ncit/C100139?include=associations,inverseAssociations";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept.getName()).isEqualTo("Melanoma");
-    assertThat(concept.getCode()).isEqualTo("C3224");
+    assertThat(concept.getName()).isEqualTo("CDISC Questionnaire MDS-UPDRS Test Name Terminology");
+    assertThat(concept.getCode()).isEqualTo("C100139");
     assertThat(concept.getSynonyms()).isEmpty();
     assertThat(concept.getDefinitions()).isEmpty();
     assertThat(concept.getProperties()).isEmpty();
