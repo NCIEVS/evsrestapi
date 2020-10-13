@@ -18,44 +18,49 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
  *
  */
 public interface ElasticLoadService {
-  /**
-   * Load cached objects to elasticsearch.
-   * 
-   * @param config the load config from command line input
-   * @param terminology the terminology
-   * @throws IOException the io exception
-   */
-  void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException;
-  
-  /**
-   * Load concepts to elasticsearch.
-   * 
-   * @param config the load config from command line input
-   * @param terminology the terminology
-   * @throws IOException the io exception
-   */
-  void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy) throws IOException;
-  
-  /**
-   * Clean stale indexes.
-   *
-   * @throws Exception the exception
-   */
-  void cleanStaleIndexes() throws Exception;
-  
-  /**
-   * Update latest flag.
-   *
-   * @throws Exception the exception
-   */
-  void updateLatestFlag() throws Exception;
-  
-  /**
-   * Set up concept loading
-   * @param cmd the command line object
-   * @param app the app instance
-   *
-   * @throws Exception the exception
-   */
-  void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception;
+	/**
+	 * Load cached objects to elasticsearch.
+	 * 
+	 * @param config      the load config from command line input
+	 * @param terminology the terminology
+	 * @throws IOException the io exception
+	 * @throws Exception
+	 */
+	void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+			throws IOException, Exception;
+
+	/**
+	 * Load concepts to elasticsearch.
+	 * 
+	 * @param config      the load config from command line input
+	 * @param terminology the terminology
+	 * @throws IOException the io exception
+	 * @throws Exception
+	 */
+	void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+			throws IOException, Exception;
+
+	/**
+	 * Clean stale indexes.
+	 *
+	 * @throws Exception the exception
+	 */
+	void cleanStaleIndexes() throws Exception;
+
+	/**
+	 * Update latest flag.
+	 *
+	 * @throws Exception the exception
+	 */
+	void updateLatestFlag() throws Exception;
+
+	/**
+	 * Set up concept loading
+	 * 
+	 * @param cmd the command line object
+	 * @param app the app instance
+	 *
+	 * @throws Exception the exception
+	 */
+	void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception;
 }
