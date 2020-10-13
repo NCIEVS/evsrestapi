@@ -844,6 +844,23 @@ public class SearchControllerTests {
     log.info("found = {}, found1 = {}", found, found1);
     assertThat(found && found1).isTrue();
 
+    // Test synonymSource + synonymTermGroup
+    // ?include=summary&pageSize=100&synonymSource=CTRM&synonymTermGroup=DN&term=blood
+    log.info("Testing url - " + url
+        + "?include=summary&pageSize=100&synonymSource=CTRM&synonymTermGroup=DN&term=blood");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "blood")
+        .param("synonymSource", "CTRM").param("synonymTermGroup", "DN").param("include", "summary"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Verify that each concept contains a CTRM/DN synonym
+    assertThat(list.getConcepts().stream()
+        .filter(c -> c.getSynonyms().stream()
+            .filter(s -> "DN".equals(s.getTermGroup()) && "CTRM".equals(s.getSource())).count() > 0)
+        .count()).isEqualTo(list.getConcepts().size());
     log.info("Done Testing testSynonymTermGroup");
 
   }

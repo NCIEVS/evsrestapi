@@ -392,19 +392,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       return null;
 
     // IN query on synonym.source
-    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
 
     if (searchCriteria.getSynonymSource().size() == 1) {
-      inQuery = inQuery.must(
+      fieldBoolQuery = fieldBoolQuery.must(
           QueryBuilders.matchQuery("synonyms.source", searchCriteria.getSynonymSource().get(0)));
     } else {
+      BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
       for (String source : searchCriteria.getSynonymSource()) {
         inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.source", source));
       }
+      fieldBoolQuery = fieldBoolQuery.must(inQuery);
     }
-
-    // bool query to match synonym.source
-    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
 
     // nested query on properties
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
@@ -449,20 +449,20 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup()))
       return null;
 
-    // IN query on synonym.termGroup
-    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+    // bool query to match synonym.termGroup
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
 
     if (searchCriteria.getSynonymTermGroup().size() == 1) {
-      inQuery = inQuery.must(QueryBuilders.matchQuery("synonyms.termGroup",
+      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termGroup",
           searchCriteria.getSynonymTermGroup().get(0)));
     } else {
+      // IN query on synonym.termGroup
+      BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
       for (String source : searchCriteria.getSynonymTermGroup()) {
         inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termGroup", source));
       }
+      fieldBoolQuery = fieldBoolQuery.must(inQuery);
     }
-
-    // bool query to match synonym.termGroup
-    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
 
     // nested query on properties
     return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
