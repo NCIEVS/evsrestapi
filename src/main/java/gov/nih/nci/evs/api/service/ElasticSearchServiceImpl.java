@@ -79,14 +79,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
       BoolQueryBuilder boolQuery2 =
           new BoolQueryBuilder()
-              .should(QueryBuilders.queryStringQuery("normName:" + normTerm).analyzeWildcard(true)
-                  .boost(20f))
+              .should(QueryBuilders
+                  .queryStringQuery("normName:" + normTerm).analyzeWildcard(true).boost(20f))
               .should(QueryBuilders
                   .queryStringQuery("code:" + searchCriteria.getTerm().replaceAll(" ", "\\\\ "))
-                  .analyzeWildcard(true).boost(20f))
-              .should(QueryBuilders
-                  .queryStringQuery(
-                      "code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ "))
                   .analyzeWildcard(true).boost(20f))
               .should(
                   QueryBuilders.nestedQuery("properties",
@@ -98,9 +94,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
                   ScoreMode.Max).boost(20f));
 
       if (startsWithFlag) {
-        boolQuery2 = boolQuery2
-            .should(QueryBuilders.matchQuery("normName", ConceptUtils.normalize(searchCriteria.getTerm())))
-            .boost(40f);
+        // Boost exact name match to top of list
+        boolQuery2 = boolQuery2.should(QueryBuilders
+            .matchQuery("normName", ConceptUtils.normalize(searchCriteria.getTerm())).boost(40f))
+            .should(QueryBuilders
+                .queryStringQuery(
+                    "code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ ")+"*")
+                .analyzeWildcard(true).boost(15f));
       }
       boolQuery.must(boolQuery2);
     } else {
