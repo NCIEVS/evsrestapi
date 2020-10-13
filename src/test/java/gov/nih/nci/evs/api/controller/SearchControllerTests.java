@@ -1143,7 +1143,7 @@ public class SearchControllerTests {
         + "?fromRecord=0&include=synonyms,properties&pageSize=100&term=malignant%20bone%20neoplasm&type=AND");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("pageSize", "100").param("type", "AND").param("include", "synonyms,properties"))
+            .param("pageSize", "100").param("type", "AND").param("include", "synonyms,properties,definitions"))
         .andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();
@@ -1162,6 +1162,11 @@ public class SearchControllerTests {
               .filter(p -> p.getValue().toLowerCase().contains("malignant"))
               .filter(p -> p.getValue().toLowerCase().contains("bone"))
               .filter(p -> p.getValue().toLowerCase().contains("neoplasm"))
+              .collect(Collectors.toList()).isEmpty()
+          || !concept.getDefinitions().stream()
+              .filter(p -> p.getDefinition().toLowerCase().contains("malignant"))
+              .filter(p -> p.getDefinition().toLowerCase().contains("bone"))
+              .filter(p -> p.getDefinition().toLowerCase().contains("neoplasm"))
               .collect(Collectors.toList()).isEmpty());
 
     }

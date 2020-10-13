@@ -131,7 +131,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
               .boost(5f))
           .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
-              .boost(20f));
+              .boost(20f))
+          .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max));
 
       boolQuery.must(boolQuery2);
     }
