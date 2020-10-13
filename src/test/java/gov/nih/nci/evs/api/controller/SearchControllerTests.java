@@ -633,17 +633,56 @@ public class SearchControllerTests {
     String content = null;
     ConceptResultList list = null;
 
-    // Retired_Concept
+    // Obsolete_Concept
     log.info(
         "Testing url - " + url + "?terminology=ncit&term=melanoma&conceptStatus=Obsolete_Concept");
 
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "melanoma")
-        .param("conceptStatus", "Obsolete_Concept")).andExpect(status().isOk()).andReturn();
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("conceptStatus", "Obsolete_Concept").param("include", "properties"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Verify property of "Obsolete_Concept on each results
+    assertThat(list.getConcepts().stream().flatMap(c -> c.getProperties().stream())
+        .filter(p -> p.getType().contentEquals("Concept_Status")
+            && p.getValue().contentEquals("Obsolete_Concept"))
+        .count()).isEqualTo(list.getConcepts().size());
+
+    // Retired_Concept
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "blood")
+            .param("conceptStatus", "Retired_Concept").param("include", "properties"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Verify property of "Obsolete_Concept on each results
+    assertThat(list.getConcepts().stream().flatMap(c -> c.getProperties().stream())
+        .filter(p -> p.getType().contentEquals("Concept_Status")
+            && p.getValue().contentEquals("Retired_Concept"))
+        .count()).isEqualTo(list.getConcepts().size());
+
+    // Header_Concept
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "blood")
+            .param("conceptStatus", "Header_Concept").param("include", "properties"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Verify property of "Obsolete_Concept on each results
+    assertThat(list.getConcepts().stream().flatMap(c -> c.getProperties().stream())
+        .filter(p -> p.getType().contentEquals("Concept_Status")
+            && p.getValue().contentEquals("Header_Concept"))
+        .count()).isEqualTo(list.getConcepts().size());
 
     // Bad value
     log.info("Testing url - " + url + "?terminology=ncit&term=crop&conceptStatus=Bad_Value");
@@ -1061,7 +1100,7 @@ public class SearchControllerTests {
               .filter(p -> p.getDefinition().toLowerCase().startsWith("malignant bone neoplasm"))
               .collect(Collectors.toList()).isEmpty());
     }
-    
+
     // exact matches come first
     log.info("Testing url - " + url + "?include=minimal&term=blood&type=startsWith");
     result = mvc
@@ -1073,7 +1112,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("blood"));
-    
+
     log.info("Testing url - " + url + "?include=minimal&term=cold&type=startsWith");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "cold")
@@ -1084,7 +1123,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("cold"));
-    
+
     log.info("Testing url - " + url + "?include=minimal&term=bone&type=startsWith");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "cold")
@@ -1095,32 +1134,30 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("cold"));
-    
+
     log.info("Testing url - " + url + "?include=minimal&term=malignant%20neoplasm&type=startsWith");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "malignant neoplasm")
-            .param("type", "startsWith").param("pageSize", "100").param("fromRecord", "0").param("include", "minimal"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "malignant neoplasm")
+        .param("type", "startsWith").param("pageSize", "100").param("fromRecord", "0")
+        .param("include", "minimal")).andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept conc : conceptList) {
-    	log.info(conc.getName());
+      log.info(conc.getName());
     }
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("malignant neoplasm"));
-    
+
     log.info("Testing url - " + url + "?include=minimal&term=Malignant%20Neoplasm&type=startsWith");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "Malignant Neoplasm")
-            .param("type", "startsWith").param("pageSize", "100").param("fromRecord", "0").param("include", "minimal"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "Malignant Neoplasm")
+        .param("type", "startsWith").param("pageSize", "100").param("fromRecord", "0")
+        .param("include", "minimal")).andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
     for (Concept conc : conceptList) {
-    	log.info(conc.getName());
+      log.info(conc.getName());
     }
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("malignant neoplasm"));
 
@@ -1143,7 +1180,8 @@ public class SearchControllerTests {
         + "?fromRecord=0&include=synonyms,properties&pageSize=100&term=malignant%20bone%20neoplasm&type=AND");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "malignant bone neoplasm")
-            .param("pageSize", "100").param("type", "AND").param("include", "synonyms,properties,definitions"))
+            .param("pageSize", "100").param("type", "AND")
+            .param("include", "synonyms,properties,definitions"))
         .andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();

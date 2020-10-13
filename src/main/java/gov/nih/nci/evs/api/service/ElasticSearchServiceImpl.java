@@ -99,7 +99,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
             .matchQuery("normName", ConceptUtils.normalize(searchCriteria.getTerm())).boost(40f))
             .should(QueryBuilders
                 .queryStringQuery(
-                    "code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ ")+"*")
+                    "code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ ") + "*")
                 .analyzeWildcard(true).boost(15f));
       }
       boolQuery.must(boolQuery2);
@@ -294,9 +294,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for property criteria on value field for given types
-   * 
+   * builds nested query for property criteria on value field for given types.
+   *
    * @param searchCriteria the search criteria
+   * @param type the type
    * @return the nested query
    */
   private QueryBuilder getPropertyTypeValueQueryBuilder(SearchCriteria searchCriteria,
@@ -307,20 +308,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         values = searchCriteria.getConceptStatus();
         break;
       default:
+        values = searchCriteria.getProperty();
         break;
     }
 
-    if (CollectionUtils.isEmpty(values))
+    // If there are no values, bail
+    if (CollectionUtils.isEmpty(values)) {
       return null;
+    }
 
     // IN query on property.value
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
 
-    if (searchCriteria.getProperty().size() == 1) {
-      inQuery = inQuery
-          .must(QueryBuilders.matchQuery("properties.value", searchCriteria.getProperty().get(0)));
+    if (values.size() == 1) {
+      inQuery = inQuery.must(QueryBuilders.matchQuery("properties.value", values.get(0)));
     } else {
-      for (String property : searchCriteria.getProperty()) {
+      for (String property : values) {
         inQuery = inQuery.should(QueryBuilders.matchQuery("properties.value", property));
       }
     }
