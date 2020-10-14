@@ -93,8 +93,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 				if (prevCui != null && !prevCui.equals(cui)) {
 					handleConcept(concept, batch, false, terminology.getIndexName());
 					concept = new Concept();
+					concept.setCode(cui);
+					concept.setVersion(terminology.getVersion());
+					concept.setLeaf(false);
+					if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
+							&& fields[6].equalsIgnoreCase("Y"))
+						concept.setName(fields[14]);
 				}
-				// handle the current line (e.g. create & add a synonym to the concept)
+				// TODO: add synonym
 				prevCui = cui;
 			}
 			handleConcept(concept, batch, true, terminology.getIndexName());
