@@ -20,6 +20,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -83,6 +84,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 			Concept concept = new Concept();
 			List<Concept> batch = new ArrayList<>();
 			String prevCui = null;
+			List<Synonym> synList = new ArrayList<Synonym>();
 			while ((line = in.readLine()) != null) {
 				final String[] fields = line.split("\\|", -1);
 				final String cui = fields[0];
@@ -90,20 +92,30 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 				if (prevCui != null && (cui + "|").compareTo(prevCui + "|") < 0) {
 					throw new Exception("File is unexpectedly out of order = " + prevCui + ", " + cui);
 				}
-				if (prevCui != null && !prevCui.equals(cui)) {
-					handleConcept(concept, batch, false, terminology.getIndexName());
+				if (!cui.equals(prevCui)) {
+					handleConcept(concept, batch, false, terminology.getIndexName(), synList);
+					synList = new ArrayList<Synonym>();
 					concept = new Concept();
 					concept.setCode(cui);
 					concept.setVersion(terminology.getVersion());
 					concept.setLeaf(false);
-					if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
-							&& fields[6].equalsIgnoreCase("Y"))
-						concept.setName(fields[14]);
+
+				}
+				if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
+						&& fields[6].equalsIgnoreCase("Y")) {
+					concept.setName(fields[14]);
 				}
 				// TODO: add synonym
+				Synonym syn = new Synonym();
+				if (!fields[13].equals("NOCODE"))
+					syn.setCode(fields[10]);
+				syn.setSource(fields[11]);
+				syn.setTermGroup(fields[12]);
+				syn.setName(fields[14]);
+				synList.add(syn);
 				prevCui = cui;
 			}
-			handleConcept(concept, batch, true, terminology.getIndexName());
+			handleConcept(concept, batch, true, terminology.getIndexName(), synList);
 		}
 	}
 
@@ -113,8 +125,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 			throws Exception {
 	}
 
-	private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
-			throws IOException {
+	private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,
+			List<Synonym> synList) throws IOException {
+		concept.setSynonyms(synList);
 		batch.add(concept);
 		if (flag || batch.size() == INDEX_BATCH_SIZE) {
 			// send batch for indexing... copy batch when passing it to this --- new
@@ -143,9 +156,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 			term.setLatest(true);
 			// TODO: load actual details from data
 			this.setFilepath(new File(cmd.getOptionValue('d')));
-			if (filepath.exists()) {
-				logger.info("file path exists!");
-			} else {
+			if (!filepath.exists()) {
 				logger.error("Given file path does not exist");
 				return;
 			}
