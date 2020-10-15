@@ -97,6 +97,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 					synList = new ArrayList<Synonym>();
 					concept = new Concept();
 					concept.setCode(cui);
+					concept.setTerminology(terminology.getTerminology());
 					concept.setVersion(terminology.getVersion());
 					concept.setLeaf(false);
 
