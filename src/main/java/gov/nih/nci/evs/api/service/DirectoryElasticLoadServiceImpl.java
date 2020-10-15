@@ -105,7 +105,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 						&& fields[6].equalsIgnoreCase("Y")) {
 					concept.setName(fields[14]);
 				}
-				// TODO: add synonym
 				Synonym syn = new Synonym();
 				if (!fields[13].equals("NOCODE"))
 					syn.setCode(fields[10]);
@@ -130,8 +129,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 		concept.setSynonyms(synList);
 		batch.add(concept);
 		if (flag || batch.size() == INDEX_BATCH_SIZE) {
-			// send batch for indexing... copy batch when passing it to this --- new
-			// ArrayList<>(batch);
 			operationsService.bulkIndex(new ArrayList<>(batch), indexName, ElasticOperationsService.CONCEPT_TYPE,
 					Concept.class);
 			batch.clear();
