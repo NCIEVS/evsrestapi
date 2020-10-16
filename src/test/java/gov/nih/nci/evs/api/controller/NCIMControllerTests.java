@@ -1,7 +1,12 @@
 
 package gov.nih.nci.evs.api.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +17,11 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -53,7 +60,43 @@ public class NCIMControllerTests {
 		this.objectMapper = new ObjectMapper();
 		JacksonTester.initFields(this, objectMapper);
 
-		baseUrl = "/api/v1/concept/search";
+		baseUrl = "/api/v1/concept";
+	}
+
+	/**
+	 * Returns the search simple.
+	 *
+	 * @throws Exception the exception
+	 */
+	@Test
+	public void testMRCONSO() throws Exception {
+		String url = null;
+		MvcResult result = null;
+		String content = null;
+		Concept concept = null;
+
+		url = baseUrl + "/ncim/C0000005";
+		log.info("Testing url - " + url);
+		result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+		content = result.getResponse().getContentAsString();
+		log.info(" content = " + content);
+		concept = new ObjectMapper().readValue(content, Concept.class);
+		assertThat(concept).isNotNull();
+		assertThat(concept.getCode()).isEqualTo("C0000005");
+		assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+		assertThat(concept.getTerminology()).isEqualTo("ncim");
+
+		url = baseUrl + "/ncim/CL990362";
+		log.info("Testing url - " + url + "?terminology=ncim&code=CL990362");
+		result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+		content = result.getResponse().getContentAsString();
+		log.info(" content = " + content);
+		concept = new ObjectMapper().readValue(content, Concept.class);
+		assertThat(concept).isNotNull();
+		assertThat(concept.getCode()).isEqualTo("CL990362");
+		assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
+		assertThat(concept.getTerminology()).isEqualTo("ncim");
+
 	}
 
 }

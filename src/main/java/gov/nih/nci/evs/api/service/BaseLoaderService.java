@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -23,138 +24,195 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  *
  */
 public abstract class BaseLoaderService implements ElasticLoadService {
-	
-  /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(BaseLoaderService.class);
-  
-  /** The Elasticsearch operations service instance *. */
-  @Autowired
-  ElasticOperationsService operationsService;
 
-  /** The elasticsearch query service *. */
-  @Autowired
-  private ElasticQueryService esQueryService;
+	/** the logger *. */
+	private static final Logger logger = LoggerFactory.getLogger(BaseLoaderService.class);
 
-  /** The term utils. */
-  /* The terminology utils */
-  @Autowired
-  private TerminologyUtils termUtils;
-  
-  /**
-   * build config object from command line options.
-   *
-   * @param cmd the command line object
-   * @param defaultLocation the default download location to use
-   * @return the config object
-   */
-  public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-    ElasticLoadConfig config = new ElasticLoadConfig();
+	/** The Elasticsearch operations service instance *. */
+	@Autowired
+	ElasticOperationsService operationsService;
 
-    config.setTerminology(cmd.getOptionValue('t'));
-    config.setRealTime(cmd.hasOption('r'));
-    config.setForceDeleteIndex(cmd.hasOption('f'));
-    if (cmd.hasOption('l')) {
-      String location = cmd.getOptionValue('l');
-      if (StringUtils.isBlank(location)) {
-        logger.error("Location is empty!");
+	/** The elasticsearch query service *. */
+	@Autowired
+	private ElasticQueryService esQueryService;
 
-      }
-      if (!location.endsWith("/")) {
-        location += "/";
-      }
-      logger.info("location - {}", location);
-      config.setLocation(location);
-    } else {
-      config.setLocation(defaultLocation);
-    }
-    if (cmd.hasOption('d')) {
-        String location = cmd.getOptionValue('d');
-        if (StringUtils.isBlank(location)) {
-          logger.error("Location is empty!");
+	/** The term utils. */
+	/* The terminology utils */
+	@Autowired
+	private TerminologyUtils termUtils;
 
-        }
-        if (!location.endsWith("/")) {
-          location += "/";
-        }
-        logger.info("location - {}", location);
-        config.setLocation(location);
-      } else {
-        config.setLocation(defaultLocation);
-      }
+	/**
+	 * build config object from command line options.
+	 *
+	 * @param cmd             the command line object
+	 * @param defaultLocation the default download location to use
+	 * @return the config object
+	 */
+	public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+		ElasticLoadConfig config = new ElasticLoadConfig();
 
-    return config;
-  }
-  
-  /**
-   * Clean stale indexes.
-   *
-   * @throws Exception the exception
-   */
-  public void cleanStaleIndexes() throws Exception {
-    List<IndexMetadata> iMetas = null;
-    iMetas = termUtils.getStaleTerminologies();
+		config.setTerminology(cmd.getOptionValue('t'));
+		config.setRealTime(cmd.hasOption('r'));
+		config.setForceDeleteIndex(cmd.hasOption('f'));
+		if (cmd.hasOption('l')) {
+			String location = cmd.getOptionValue('l');
+			if (StringUtils.isBlank(location)) {
+				logger.error("Location is empty!");
 
-    if (CollectionUtils.isEmpty(iMetas))
-      return;
+			}
+			if (!location.endsWith("/")) {
+				location += "/";
+			}
+			logger.info("location - {}", location);
+			config.setLocation(location);
+		} else {
+			config.setLocation(defaultLocation);
+		}
+		if (cmd.hasOption('d')) {
+			String location = cmd.getOptionValue('d');
+			if (StringUtils.isBlank(location)) {
+				logger.error("Location is empty!");
 
-    logger.info("Removing stale terminologies: " + iMetas);
+			}
+			if (!location.endsWith("/")) {
+				location += "/";
+			}
+			logger.info("location - {}", location);
+			config.setLocation(location);
+		} else {
+			config.setLocation(defaultLocation);
+		}
 
-    for (IndexMetadata iMeta : iMetas) {
-      String indexName = iMeta.getIndexName();
-      String objectIndexName = iMeta.getObjectIndexName();
+		return config;
+	}
 
-      // objectIndexName will be NULL if terminology object is not part of
-      // IndexMetadata
-      // temporarily required to accommodate change in IndexMetadata object
-      if (objectIndexName == null) {
-        objectIndexName = "evs_object_" + indexName.replace("concept_", "");
-      }
+	/**
+	 * Clean stale indexes.
+	 *
+	 * @throws Exception the exception
+	 */
+	public void cleanStaleIndexes() throws Exception {
+		List<IndexMetadata> iMetas = null;
+		iMetas = termUtils.getStaleTerminologies();
 
-      // delete objects index
-      boolean result = operationsService.deleteIndex(objectIndexName);
+		if (CollectionUtils.isEmpty(iMetas))
+			return;
 
-      if (!result) {
-        logger.warn("Deleting objects index {} failed!", objectIndexName);
-        continue;
-      }
+		logger.info("Removing stale terminologies: " + iMetas);
 
-      // delete concepts index
-      result = operationsService.deleteIndex(indexName);
+		for (IndexMetadata iMeta : iMetas) {
+			String indexName = iMeta.getIndexName();
+			String objectIndexName = iMeta.getObjectIndexName();
 
-      if (!result) {
-        logger.warn("Deleting concepts index {} failed!", indexName);
-        continue;
-      }
+			// objectIndexName will be NULL if terminology object is not part of
+			// IndexMetadata
+			// temporarily required to accommodate change in IndexMetadata object
+			if (objectIndexName == null) {
+				objectIndexName = "evs_object_" + indexName.replace("concept_", "");
+			}
 
-      // delete metadata object
-      esQueryService.deleteIndexMetadata(indexName);
-    }
-  }
+			// delete objects index
+			boolean result = operationsService.deleteIndex(objectIndexName);
 
-  /**
-   * Update latest flag.
-   *
-   * @throws Exception the exception
-   */
-  public void updateLatestFlag() throws Exception {
-    // update latest flag
-    logger.info("Updating latest flags on all metadata objects");
-    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+			if (!result) {
+				logger.warn("Deleting objects index {} failed!", objectIndexName);
+				continue;
+			}
 
-    if (CollectionUtils.isEmpty(iMetas))
-      return;
+			// delete concepts index
+			result = operationsService.deleteIndex(indexName);
 
-    Terminology latest = termUtils.getLatestTerminology(false);
-    for (IndexMetadata iMeta : iMetas) {
-      if (iMeta.getTerminology() != null) {
-        iMeta.getTerminology()
-            .setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
-      }
-    }
+			if (!result) {
+				logger.warn("Deleting concepts index {} failed!", indexName);
+				continue;
+			}
 
-    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
-        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+			// delete metadata object
+			esQueryService.deleteIndexMetadata(indexName);
+		}
+	}
 
-  }
+	/**
+	 * Update latest flag.
+	 *
+	 * @throws Exception the exception
+	 */
+	public void updateLatestFlag(Terminology term) throws Exception {
+		// update latest flag
+		logger.info("Updating latest flags on all metadata objects");
+		List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+
+		if (CollectionUtils.isEmpty(iMetas))
+			return;
+
+		Terminology latest = termUtils.getLatestTerminology(true, term);
+		for (IndexMetadata iMeta : iMetas) {
+			logger.info(iMeta.getTerminology().getTerminology() + " " + latest.getTerminology());
+			if (iMeta.getTerminology().getTerminology() == latest.getTerminology()) {
+				logger.info("set " + iMeta.getTerminology().getTerminology() + " to "
+						+ iMeta.getTerminology().equals(latest));
+				iMeta.getTerminology().setLatest(iMeta.getTerminology().equals(latest));
+			}
+		}
+
+		operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
+				ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+
+	}
+
+	/**
+	 * check load status
+	 * 
+	 * @param term the terminology object
+	 * @throws IOException
+	 * 
+	 */
+	public void checkLoadStatus(int total, Terminology term) throws IOException {
+
+		Long count = esQueryService.getCount(term);
+		logger.info("Concepts count for index {} = {}", term.getIndexName(), count);
+		boolean completed = (total == count.intValue());
+
+		if (!completed) {
+			logger.info("Concepts indexing not complete yet, waiting for completion..");
+		}
+
+		int attempts = 0;
+
+		while (!completed && attempts < 30) {
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
+				throw new IOException(e);
+			}
+
+			if (attempts == 15) {
+				logger.info("Index completion is taking longer than expected..");
+			}
+
+			count = esQueryService.getCount(term);
+			completed = (total == count.intValue());
+			attempts++;
+		}
+	}
+
+	/**
+	 * load index metadata
+	 * 
+	 * @param term the terminology object
+	 * @throws IOException
+	 * 
+	 */
+	public void loadIndexMetadata(int total, Terminology term) throws IOException {
+		IndexMetadata iMeta = new IndexMetadata();
+		iMeta.setIndexName(term.getIndexName());
+		iMeta.setTotalConcepts(total);
+		iMeta.setCompleted(true); // won't make it this far if it isn't complete
+		iMeta.setTerminology(term);
+
+		operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
+				IndexMetadata.class);
+	}
 
 }

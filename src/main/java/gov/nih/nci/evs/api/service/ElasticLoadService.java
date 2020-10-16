@@ -5,6 +5,9 @@ import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import org.springframework.context.ApplicationContext;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -34,10 +37,12 @@ public interface ElasticLoadService {
 	 * 
 	 * @param config      the load config from command line input
 	 * @param terminology the terminology
+	 * @param hierarchy   the hierarchy object
+	 * @param cmd         command line objext
 	 * @throws IOException the io exception
 	 * @throws Exception
 	 */
-	void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+	int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy, CommandLine cmd)
 			throws IOException, Exception;
 
 	/**
@@ -49,18 +54,59 @@ public interface ElasticLoadService {
 
 	/**
 	 * Update latest flag.
+	 * 
+	 * @param term the terminology object
 	 *
 	 * @throws Exception the exception
 	 */
-	void updateLatestFlag() throws Exception;
+	void updateLatestFlag(Terminology term) throws Exception;
 
 	/**
-	 * Set up concept loading
+	 * Get Terminology object
 	 * 
-	 * @param cmd the command line object
-	 * @param app the app instance
+	 * @param app    the application context object
+	 * @param config the config object
+	 * 
 	 *
 	 * @throws Exception the exception
 	 */
-	void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception;
+	Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config) throws Exception;
+
+	/**
+	 * check load status
+	 * 
+	 * @param totalConcepts the total number of concepts
+	 * @param term          the terminology object
+	 * @throws IOException
+	 * 
+	 *
+	 * @throws Exception   the exception
+	 */
+	void checkLoadStatus(int totalConcepts, Terminology term) throws IOException;
+
+	/**
+	 * load index metadata
+	 * 
+	 * @param totalConcepts the total number of concepts
+	 * @param term          the terminology object
+	 * @throws IOException
+	 * 
+	 *
+	 * @throws Exception   the exception
+	 */
+	void loadIndexMetadata(int totalConcepts, Terminology term) throws IOException;
+
+	/**
+	 * get hierarchy utils
+	 * 
+	 * @param term the terminology object
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 * 
+	 *
+	 * @throws Exception            the exception
+	 */
+	HierarchyUtils getHierarchyUtils(Terminology term) throws JsonParseException, JsonMappingException, IOException;
+
 }

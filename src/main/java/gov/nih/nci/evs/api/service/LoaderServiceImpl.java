@@ -6,6 +6,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * The implementation for {@link LoaderService}.
@@ -81,6 +85,51 @@ public class LoaderServiceImpl {
 	}
 
 	/**
+	 * build config object from command line options.
+	 *
+	 * @param cmd             the command line object
+	 * @param defaultLocation the default download location to use
+	 * @return the config object
+	 */
+	public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+		ElasticLoadConfig config = new ElasticLoadConfig();
+
+		config.setTerminology(cmd.getOptionValue('t'));
+		config.setRealTime(cmd.hasOption('r'));
+		config.setForceDeleteIndex(cmd.hasOption('f'));
+		if (cmd.hasOption('l')) {
+			String location = cmd.getOptionValue('l');
+			if (StringUtils.isBlank(location)) {
+				logger.error("Location is empty!");
+
+			}
+			if (!location.endsWith("/")) {
+				location += "/";
+			}
+			logger.info("location - {}", location);
+			config.setLocation(location);
+		} else {
+			config.setLocation(defaultLocation);
+		}
+		if (cmd.hasOption('d')) {
+			String location = cmd.getOptionValue('d');
+			if (StringUtils.isBlank(location)) {
+				logger.error("Location is empty!");
+
+			}
+			if (!location.endsWith("/")) {
+				location += "/";
+			}
+			logger.info("location - {}", location);
+			config.setLocation(location);
+		} else {
+			config.setLocation(defaultLocation);
+		}
+
+		return config;
+	}
+
+	/**
 	 * the main method to trigger elasticsearch load via command line *.
 	 *
 	 * @param args the command line arguments
@@ -109,7 +158,15 @@ public class LoaderServiceImpl {
 			} else {
 				loadService = app.getBean(StardogElasticLoadServiceImpl.class);
 			}
-			loadService.setUpConceptLoading(app, cmd);
+			ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+			Terminology term = loadService.getTerminology(app, config);
+			HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+			int totalConcepts = loadService.loadConcepts(config, term, hierarchy, cmd);
+			loadService.checkLoadStatus(totalConcepts, term);
+			loadService.loadIndexMetadata(totalConcepts, term);
+			loadService.loadObjects(config, term, hierarchy);
+			loadService.cleanStaleIndexes();
+			loadService.updateLatestFlag(term);
 
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

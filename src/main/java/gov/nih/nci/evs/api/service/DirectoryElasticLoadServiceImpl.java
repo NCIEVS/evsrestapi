@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +58,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 	@Autowired
 	Environment env;
 
-	/** The sparql query manager service. */
-	@Autowired
-	private SparqlQueryManagerService sparqlQueryManagerService;
-
 	/** The Elasticsearch operations service instance *. */
 	@Autowired
 	ElasticOperationsService operationsService;
@@ -75,8 +70,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 		this.filepath = filepath;
 	}
 
-	public void loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
-			throws Exception {
+	public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy,
+			CommandLine cmd) throws Exception {
+		this.setFilepath(new File(cmd.getOptionValue('d')));
+		if (!filepath.exists()) {
+			throw new Exception("Given filepath does not exist");
+		}
 		try (final FileInputStream fis = new FileInputStream(this.getFilepath());
 				final InputStreamReader isr = new InputStreamReader(fis);
 				final BufferedReader in = new BufferedReader(isr);) {
@@ -85,6 +84,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 			List<Concept> batch = new ArrayList<>();
 			String prevCui = null;
 			List<Synonym> synList = new ArrayList<Synonym>();
+			int totalConcepts = 0;
 			while ((line = in.readLine()) != null) {
 				final String[] fields = line.split("\\|", -1);
 				final String cui = fields[0];
@@ -94,6 +94,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 				}
 				if (!cui.equals(prevCui)) {
 					handleConcept(concept, batch, false, terminology.getIndexName(), synList);
+					totalConcepts++;
 					synList = new ArrayList<Synonym>();
 					concept = new Concept();
 					concept.setCode(cui);
@@ -116,7 +117,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 				prevCui = cui;
 			}
 			handleConcept(concept, batch, true, terminology.getIndexName(), synList);
+			totalConcepts++;
+			return totalConcepts;
 		}
+
 	}
 
 	/* see superclass */
@@ -137,36 +141,18 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 	}
 
 	@Override
-	public void setUpConceptLoading(ApplicationContext app, CommandLine cmd) throws Exception {
-		try {
-			ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+	public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config) {
+		Terminology term = new Terminology();
+		term.setTerminology("ncim");
+		term.setVersion("202008");
+		term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
+		term.setIndexName("concept_" + term.getTerminologyVersion());
+		term.setLatest(true);
+		return term;
+	}
 
-			if (StringUtils.isBlank(config.getTerminology())) {
-				logger.error(
-						"Terminology (-t or --terminology) is required! Try -h or --help to learn more about command line options available.");
-				return;
-			}
-			Terminology term = new Terminology();
-			term.setTerminology(config.getTerminology());
-			term.setVersion("202008");
-			term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
-			term.setIndexName("concept_" + term.getTerminologyVersion());
-			term.setLatest(true);
-			// TODO: load actual details from data
-			this.setFilepath(new File(cmd.getOptionValue('d')));
-			if (!filepath.exists()) {
-				logger.error("Given file path does not exist");
-				return;
-			}
-
-			loadConcepts(config, term, null);
-			loadObjects(config, term, null);
-			cleanStaleIndexes();
-			updateLatestFlag();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-			throw new RuntimeException(e);
-		}
-
+	@Override
+	public HierarchyUtils getHierarchyUtils(Terminology term) {
+		return null;
 	}
 }
