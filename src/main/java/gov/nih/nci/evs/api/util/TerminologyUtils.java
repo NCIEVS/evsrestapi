@@ -132,7 +132,6 @@ public final class TerminologyUtils {
 			throws Exception {
 
 		List<Terminology> terminologies = getTerminologies(indexed);
-		// TODO: filter by terminology name and sort for latest version
 		terminologies = terminologies.stream().filter(t -> t.getTerminology().equals(term.getTerminology()))
 				.collect(Collectors.toList());
 		if (CollectionUtils.isEmpty(terminologies))
