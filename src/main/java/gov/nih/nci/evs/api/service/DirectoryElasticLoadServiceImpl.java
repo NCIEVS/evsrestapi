@@ -131,6 +131,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 	@Override
 	public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
 			throws Exception {
+		// nothing to do here yet
 	}
 
 	private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,

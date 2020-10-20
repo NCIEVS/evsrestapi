@@ -147,10 +147,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
 		Terminology latest = termUtils.getLatestTerminology(true, term);
 		for (IndexMetadata iMeta : iMetas) {
-			logger.info(iMeta.getTerminology().getTerminology() + " " + latest.getTerminology());
+			// only change latest flag of terminologies that match current one
 			if (iMeta.getTerminology().getTerminology() == latest.getTerminology()) {
-				logger.info("set " + iMeta.getTerminology().getTerminology() + " to "
-						+ iMeta.getTerminology().equals(latest));
 				iMeta.getTerminology().setLatest(iMeta.getTerminology().equals(latest));
 			}
 		}
