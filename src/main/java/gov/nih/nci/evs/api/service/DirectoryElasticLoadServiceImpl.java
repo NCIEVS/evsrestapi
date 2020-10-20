@@ -92,6 +92,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 				if (prevCui != null && (cui + "|").compareTo(prevCui + "|") < 0) {
 					throw new Exception("File is unexpectedly out of order = " + prevCui + ", " + cui);
 				}
+				// check if we've hit a new concept
 				if (!cui.equals(prevCui)) {
 					handleConcept(concept, batch, false, terminology.getIndexName(), synList);
 					totalConcepts++;
@@ -103,10 +104,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 					concept.setLeaf(false);
 
 				}
+				// find the proper name
 				if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
 						&& fields[6].equalsIgnoreCase("Y")) {
 					concept.setName(fields[14]);
 				}
+				// build out synonym in concept
 				Synonym syn = new Synonym();
 				if (!fields[13].equals("NOCODE"))
 					syn.setCode(fields[10]);
@@ -116,6 +119,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 				synList.add(syn);
 				prevCui = cui;
 			}
+			// make sure to deal with the last concept in file
 			handleConcept(concept, batch, true, terminology.getIndexName(), synList);
 			totalConcepts++;
 			return totalConcepts;
@@ -142,6 +146,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
 	@Override
 	public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config) {
+		// will eventually read and build differently
 		Terminology term = new Terminology();
 		term.setTerminology("ncim");
 		term.setVersion("202008");
@@ -153,6 +158,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
 	@Override
 	public HierarchyUtils getHierarchyUtils(Terminology term) {
+		// dont need hierarchy utils in this indexing
 		return null;
 	}
 }

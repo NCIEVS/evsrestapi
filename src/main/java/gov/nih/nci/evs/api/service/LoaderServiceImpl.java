@@ -153,6 +153,7 @@ public class LoaderServiceImpl {
 		ElasticLoadService loadService = null;
 
 		try {
+			// which indexing object do we need to use
 			if (cmd.hasOption('d')) {
 				loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
 			} else {
