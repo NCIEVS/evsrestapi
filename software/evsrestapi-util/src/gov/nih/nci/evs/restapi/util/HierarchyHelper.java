@@ -82,8 +82,8 @@ public class HierarchyHelper implements Serializable {
 	private HashMap _parent2childcodesMap = null;
 	private HashMap _child2parentcodesMap = null;
 
-	private int FORMAT_PARENT_CHILD = 1;
-	private int FORMAT_CHILD_PARENT = 2;
+	public static int FORMAT_PARENT_CHILD = 1;
+	public static int FORMAT_CHILD_PARENT = 2;
 
 	private int format = 0;
     private boolean show_code = true;
@@ -162,8 +162,31 @@ public class HierarchyHelper implements Serializable {
         for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
-			String parent_code = (String) u.elementAt(1);
-			String child_code = (String) u.elementAt(3);
+
+			String parent_code = null;
+			String child_code = null;
+			if (format == FORMAT_PARENT_CHILD) {
+				if (u.size() == 2) {
+					// parent_code|child_code
+					parent_code = (String) u.elementAt(0);
+					child_code = (String) u.elementAt(1);
+				} else {
+					// parent_label|parent_code|child_label|child_code
+					parent_code = (String) u.elementAt(1);
+					child_code = (String) u.elementAt(3);
+				}
+		    } else if (format == FORMAT_CHILD_PARENT) {
+				if (u.size() == 2) {
+					// child_code|parent_code
+					parent_code = (String) u.elementAt(1);
+					child_code = (String) u.elementAt(0);
+				} else {
+					// // child_label|child_code|parent_label|parent_code
+					parent_code = (String) u.elementAt(3);
+					child_code = (String) u.elementAt(1);
+				}
+			}
+
 			set_parent.add(parent_code);
 			set_child.add(child_code);
 		}
@@ -443,7 +466,7 @@ public class HierarchyHelper implements Serializable {
 		if (v == null) return w;
 		for (int i=0; i<v.size(); i++) {
 			String child_code = (String) v.elementAt(i);
-			Vector u = getTransitiveClosure(child_code);
+			Vector u = getTransitiveClosure(child_code, traverseDown);
 			if (u != null && u.size() > 0) {
 				w.addAll(u);
 			}
@@ -652,7 +675,7 @@ public class HierarchyHelper implements Serializable {
 
     public static void main(String[] args) {
 		Vector v = Utils.readFile("tvs_rel.txt");
-		HierarchyHelper test = new HierarchyHelper(v, 2);
+		HierarchyHelper test = new HierarchyHelper(v, 1);
 		Vector roots = test.getRoots();
 		StringUtils.dumpVector("roots", roots);
 		Vector leaves = test.getLeaves();

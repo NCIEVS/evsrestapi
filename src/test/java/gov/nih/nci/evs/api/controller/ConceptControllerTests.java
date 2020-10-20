@@ -130,8 +130,9 @@ public class ConceptControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
-    
-    //check that normName and property codes are not showing up in searches, as is intended
+
+    // check that normName and property codes are not showing up in searches, as
+    // is intended
     assertThat(concept.getNormName()).isNull();
     assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
     assertThat(concept.getProperties().get(0).getCode()).isNull();
@@ -300,8 +301,7 @@ public class ConceptControllerTests {
     String content = null;
     List<Association> list = null;
 
-    // NOTE, this includes a middle concept code that is bougs
-    url = baseUrl + "/ncit/C3224/inverseAssociations";
+    url = baseUrl + "/ncit/C100139/inverseAssociations";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -314,6 +314,7 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
 
     // Test case without inverse associations
+    // C3224 no longer has inverse associations
     url = baseUrl + "/ncit/C2291/inverseAssociations";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -725,10 +726,10 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getSynonyms().get(0)).isNotNull();
-    
+
     url = baseUrl + "/ncit/roots?include=full";
     log.info("Testing url - " + url);
-    
+
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -738,16 +739,17 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getSynonyms().get(0)).isNotNull();
-    
+
     // Even full doesn't include descendants and paths
     assertThat(list.get(0).getDescendants()).isEmpty();
     assertThat(list.get(0).getPaths()).isNull();
-    
-    // check that normName and property codes are not showing up in searches, as is intended
+
+    // check that normName and property codes are not showing up in searches, as
+    // is intended
     assertThat(list.get(0).getNormName()).isNull();
     assertThat(list.get(0).getSynonyms().get(0).getNormName()).isNull();
     assertThat(list.get(0).getProperties().get(0).getCode()).isNull();
-    
+
     // check for a couple things that should only show up in full
     assertThat(list.get(0).getInverseAssociations().get(0)).isNotNull();
     assertThat(list.get(0).getChildren().get(0)).isNotNull();
@@ -869,7 +871,7 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getTerminology()).isNotEmpty();
     assertThat(list.get(0).get(0).getVersion()).isNotEmpty();
     assertThat(list.get(0).get(0).getLeaf()).isEqualTo(false);
-    
+
     // Assert that the first element is a "root" - e.g. C7057
     assertThat(list.get(0).get(0).getCode()).isEqualTo("C7057");
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C3224");
@@ -1074,7 +1076,7 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getLevel() == 0);
 
   }
-  
+
   /**
    * Test that we don't have erroneous definitions or synonyms
    *
@@ -1082,7 +1084,7 @@ public class ConceptControllerTests {
    */
   @Test
   public void testCheckDefsAndSynsAreRight() throws Exception {
-	String url = null;
+    String url = null;
     MvcResult result = null;
     String content = null;
     Concept concept = null;
@@ -1096,9 +1098,9 @@ public class ConceptControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     for (Definition def : concept.getDefinitions()) {
-    	assertFalse(def.getDefinition().contains("nephron"));
+      assertFalse(def.getDefinition().contains("nephron"));
     }
-    
+
     // Test with C36716 synonyms
     url = baseUrl + "/ncit/C36716";
     log.info("Testing url - " + url);
@@ -1108,9 +1110,9 @@ public class ConceptControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     for (Synonym syn : concept.getSynonyms()) {
-    	assertFalse(syn.getName().contains("nephron"));
+      assertFalse(syn.getName().contains("nephron"));
     }
-    
+
     // Test with C100808 definitions
     url = baseUrl + "/ncit/C100808";
     log.info("Testing url - " + url);
@@ -1120,10 +1122,9 @@ public class ConceptControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     for (Definition def : concept.getDefinitions()) {
-    	assertFalse(def.getDefinition().contains("arrhythmia"));
+      assertFalse(def.getDefinition().contains("arrhythmia"));
     }
   }
-  
 
   /**
    * Checks if hierarchy has a leaf node anywhere in the hierarchy.
