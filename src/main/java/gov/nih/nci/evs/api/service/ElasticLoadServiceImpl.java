@@ -437,8 +437,6 @@ public class ElasticLoadServiceImpl implements ElasticLoadService {
     public Void call() throws Exception {
       try {
         taskLogger.info("    start loading concepts: {} to {}", startIndex + 1, endIndex);
-        FileUtils.write(new File("index." + startIndex + "-" + endIndex + ".json"),
-            concepts.toString(), "UTF-8");
         operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE,
             Concept.class);
         int progress = (int) Math.floor((1.0 - 1.0 * latch.getCount() / taskSize) * 100);
