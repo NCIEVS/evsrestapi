@@ -85,7 +85,6 @@ public class NCIMControllerTests {
 		content = result.getResponse().getContentAsString();
 		final List<Terminology> terminologies = new ObjectMapper().readValue(content,
 				new TypeReference<List<Terminology>>() {
-					// n/a
 				});
 		assertThat(terminologies.size()).isGreaterThan(1);
 		assertThat(terminologies.get(1).getTerminology().equals("ncim"));
