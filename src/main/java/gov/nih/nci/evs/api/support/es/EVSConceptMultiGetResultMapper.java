@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.support.es;
 
 import java.util.ArrayList;
@@ -17,30 +18,47 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 
 /**
- * The multiGet elasticsearch result mapper
- * 
- * @author Arun
+ * The multiGet elasticsearch result mapper.
  *
+ * @author Arun
  */
-public class EVSConceptMultiGetResultMapper extends BaseResultMapper implements MultiGetResultMapper {
+public class EVSConceptMultiGetResultMapper extends BaseResultMapper
+    implements MultiGetResultMapper {
 
   /** The Constant log. */
-  private static final Logger logger = LoggerFactory.getLogger(EVSConceptMultiGetResultMapper.class);
-  
-  /** the include param **/
+  @SuppressWarnings("unused")
+  private static final Logger logger =
+      LoggerFactory.getLogger(EVSConceptMultiGetResultMapper.class);
+
+  /** the include param *. */
   private IncludeParam ip;
-  
+
+  /**
+   * Instantiates a {@link EVSConceptMultiGetResultMapper} from the specified
+   * parameters.
+   *
+   * @param ip the ip
+   */
   public EVSConceptMultiGetResultMapper(IncludeParam ip) {
     this.ip = ip;
   }
-  
-  /** see superclass **/
+
+  /**
+   * see superclass *.
+   *
+   * @param <T> the
+   * @param responses the responses
+   * @param clazz the clazz
+   * @return the list
+   */
+  @SuppressWarnings("unchecked")
   @Override
   public <T> List<T> mapResults(MultiGetResponse responses, Class<T> clazz) {
     List<Concept> concepts = new ArrayList<>();
     ObjectMapper mapper = new ObjectMapper();
-    for(MultiGetItemResponse response: responses) {
-      if (!response.getResponse().isExists() || response.getResponse().isSourceEmpty()) continue;
+    for (MultiGetItemResponse response : responses) {
+      if (!response.getResponse().isExists() || response.getResponse().isSourceEmpty())
+        continue;
       Concept concept = null;
       if (ip == null) {
         try {
@@ -55,7 +73,7 @@ public class EVSConceptMultiGetResultMapper extends BaseResultMapper implements 
       }
       concepts.add(concept);
     }
-    
-    return (List<T>)concepts;
+
+    return (List<T>) concepts;
   }
 }

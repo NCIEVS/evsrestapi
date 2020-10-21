@@ -2,8 +2,6 @@
 package gov.nih.nci.evs.api.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,42 +45,29 @@ public class EVSUtils {
    * @return the property
    */
   public static String getProperty(String type, List<Property> properties) {
-    ArrayList<String> results = new ArrayList<String>();
     for (Property property : properties) {
-      if (property.getType().equals(type)) {
-        results.add(property.getValue());
+      if (property.getCode() != null && property.getCode().equals(type)) {
+        return property.getValue();
       }
     }
-    return results.isEmpty() ? null : results.get(0);
-  }
-
-  /**
-   * Returns the common property names. These are property names that become
-   * other model objects.
-   *
-   * @return the common property names
-   */
-  public static Set<String> getCommonPropertyNames(Terminology terminology) {
-    // TODO: CONFIG
-    return new HashSet<>(Arrays.asList(new String[] {
-        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "Maps_To", "label"
-    }));
+    return null;
   }
 
   /**
    * Returns the synonyms.
    *
+   * @param terminology the terminology
    * @param axioms the axioms
    * @return the synonyms
    */
-  public static List<Synonym> getSynonyms(List<Axiom> axioms) {
+  public static List<Synonym> getSynonyms(Terminology terminology, List<Axiom> axioms) {
     final List<Synonym> results = new ArrayList<>();
+    final String syCode = terminology.getMetadata().getSynonym();
     for (Axiom axiom : axioms) {
-      if (axiom.getAnnotatedProperty().equals("P90")) {
+      if (axiom.getAnnotatedProperty().equals(syCode)) {
         Synonym synonym = new Synonym();
-        // TODO: CONFIG
-        synonym.setType("FULL_SYN");
-        synonym.setCode("P90");
+        synonym.setType(terminology.getMetadata().getPropertyName(syCode));
+        synonym.setCode(syCode);
         synonym.setName(axiom.getAnnotatedTarget());
         synonym.setTermGroup(axiom.getTermGroup());
         synonym.setSource(axiom.getTermSource());
@@ -97,28 +82,21 @@ public class EVSUtils {
   /**
    * Returns the definitions.
    *
+   * @param terminology the terminology
    * @param axioms the axioms
    * @return the definitions
    */
-  public static List<Definition> getDefinitions(List<Axiom> axioms) {
+  public static List<Definition> getDefinitions(Terminology terminology, List<Axiom> axioms) {
     final ArrayList<Definition> results = new ArrayList<>();
+    final Set<String> defCodes = terminology.getMetadata().getDefinition();
     for (Axiom axiom : axioms) {
-      // TODO: CONFIG
-      if (axiom.getAnnotatedProperty().equals("P97")) {
+      final String axiomCode = axiom.getAnnotatedProperty();
+      if (defCodes.contains(axiomCode)) {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
         definition.setSource(axiom.getDefSource());
         definition.getQualifiers().addAll(axiom.getQualifiers());
-        definition.setType("DEFINITION");
-        results.add(definition);
-      }
-      // TODO: CONFIG
-      else if (axiom.getAnnotatedProperty().equals("P325")) {
-        Definition definition = new Definition();
-        definition.setDefinition(axiom.getAnnotatedTarget());
-        definition.setSource(axiom.getDefSource());
-        definition.getQualifiers().addAll(axiom.getQualifiers());
-        definition.setType("ALT_DEFINITION");
+        definition.setType(terminology.getMetadata().getPropertyName(axiomCode));
         results.add(definition);
       }
     }
@@ -129,6 +107,7 @@ public class EVSUtils {
    * Returns the qualifiers.
    *
    * @param annotatedProperty the property code
+   * @param annotatedTarget the annotated target
    * @param axioms the axioms
    * @return the qualifiers
    */
@@ -146,14 +125,15 @@ public class EVSUtils {
   /**
    * Returns the maps to.
    *
+   * @param terminology the terminology
    * @param axioms the axioms
    * @return the maps to
    */
-  public static List<Map> getMapsTo(List<Axiom> axioms) {
+  public static List<Map> getMapsTo(Terminology terminology, List<Axiom> axioms) {
     ArrayList<Map> results = new ArrayList<Map>();
+    final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
-      // TODO: CONFIG
-      if (axiom.getAnnotatedProperty().equals("P375")) {
+      if (axiom.getAnnotatedProperty().equals(mapCode)) {
         Map mapsTo = new Map();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
