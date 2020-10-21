@@ -66,11 +66,12 @@ public interface ElasticLoadService {
 	 * 
 	 * @param app    the application context object
 	 * @param config the config object
+	 * @param cmd
 	 * 
 	 *
 	 * @throws Exception the exception
 	 */
-	Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config) throws Exception;
+	Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, CommandLine cmd) throws Exception;
 
 	/**
 	 * check load status

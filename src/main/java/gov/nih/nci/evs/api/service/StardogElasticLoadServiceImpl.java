@@ -302,7 +302,8 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
 	}
 
 	@Override
-	public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config) throws Exception {
+	public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, CommandLine cmd)
+			throws Exception {
 		TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
 		return termUtils.getTerminology(config.getTerminology(), false);
 	}

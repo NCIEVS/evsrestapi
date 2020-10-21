@@ -5,9 +5,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
@@ -72,11 +74,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
 	public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy,
 			CommandLine cmd) throws Exception {
-		this.setFilepath(new File(cmd.getOptionValue('d')));
-		if (!filepath.exists()) {
-			throw new Exception("Given filepath does not exist");
-		}
-		try (final FileInputStream fis = new FileInputStream(this.getFilepath());
+		try (final FileInputStream fis = new FileInputStream(this.getFilepath() + "\\MRCONSO.RRF");
 				final InputStreamReader isr = new InputStreamReader(fis);
 				final BufferedReader in = new BufferedReader(isr);) {
 			String line = null;
@@ -146,15 +144,42 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 	}
 
 	@Override
-	public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config) {
+	public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, CommandLine cmd)
+			throws Exception {
 		// will eventually read and build differently
-		Terminology term = new Terminology();
-		term.setTerminology("ncim");
-		term.setVersion("202008");
-		term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
-		term.setIndexName("concept_" + term.getTerminologyVersion());
-		term.setLatest(true);
-		return term;
+		this.setFilepath(new File(cmd.getOptionValue('d')));
+		if (!this.getFilepath().exists()) {
+			throw new Exception("Given filepath does not exist");
+		}
+		try (InputStream input = new FileInputStream(this.getFilepath() + "\\release.dat");
+				final FileInputStream fis = new FileInputStream(this.getFilepath() + "\\MRSAB.RRF");
+				final InputStreamReader isr = new InputStreamReader(fis);
+				final BufferedReader in = new BufferedReader(isr);) {
+
+			String line;
+			while ((line = in.readLine()) != null) {
+				if (line.split("\\|", -1)[3].equals("NCIMTH")) {
+					break;
+				}
+			}
+			Properties p = new Properties();
+			p.load(input);
+			Terminology term = new Terminology();
+			term.setTerminology("ncim");
+			term.setVersion(p.getProperty("umls.release.name"));
+			term.setDate(p.getProperty("umls.release.date"));
+			term.setName(line.split("|", -1)[4]);
+			term.setDescription(line.split("|", -1)[24]);
+			term.setGraph(null);
+			term.setSource(null);
+			term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
+			term.setIndexName("concept_" + term.getTerminologyVersion());
+			term.setLatest(true);
+			return term;
+		} catch (IOException ex) {
+			throw new Exception("Could not load terminology ncim");
+		}
+
 	}
 
 	@Override
