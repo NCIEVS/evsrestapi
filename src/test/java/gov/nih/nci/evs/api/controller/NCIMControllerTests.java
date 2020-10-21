@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,9 +21,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -64,7 +68,31 @@ public class NCIMControllerTests {
 	}
 
 	/**
-	 * Returns the search simple.
+	 * NCIM terminology basic tests
+	 *
+	 * @throws Exception the exception
+	 */
+	@Test
+	public void testNCIMTerminology() throws Exception {
+		String url = null;
+		MvcResult result = null;
+		String content = null;
+
+		// first concept in MRCONSO
+		url = "/api/v1/metadata/terminologies";
+		log.info("Testing url - " + url);
+		result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+		content = result.getResponse().getContentAsString();
+		final List<Terminology> terminologies = new ObjectMapper().readValue(content,
+				new TypeReference<List<Terminology>>() {
+					// n/a
+				});
+		assertThat(terminologies.size()).isGreaterThan(1);
+		assertThat(terminologies.get(1).getTerminology().equals("ncim"));
+	}
+
+	/**
+	 * MRCONSO basic tests
 	 *
 	 * @throws Exception the exception
 	 */
