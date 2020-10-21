@@ -78,7 +78,7 @@ public class NCIMControllerTests {
 		MvcResult result = null;
 		String content = null;
 
-		// first concept in MRCONSO
+		// test if ncim term exists
 		url = "/api/v1/metadata/terminologies";
 		log.info("Testing url - " + url);
 		result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -88,6 +88,7 @@ public class NCIMControllerTests {
 				});
 		assertThat(terminologies.size()).isGreaterThan(1);
 		assertThat(terminologies.get(1).getTerminology().equals("ncim"));
+		assertThat(terminologies.get(1).getLatest()).isTrue();
 	}
 
 	/**
