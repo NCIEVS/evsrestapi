@@ -43,7 +43,7 @@ public class MetadataServiceImpl implements MetadataService {
   /** The elastic query service **/
   @Autowired
   private ElasticQueryService esQueryService;
-
+  
   /** The self. */
   @Resource
   private MetadataService self;
@@ -51,7 +51,7 @@ public class MetadataServiceImpl implements MetadataService {
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
-
+  
   /**
    * Returns the associations.
    *
@@ -274,8 +274,8 @@ public class MetadataServiceImpl implements MetadataService {
     if (!term.getTerminology().equals("ncit"))
       return Optional.empty();
 
-    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term,
-        term.getMetadata().getConceptStatus());
+    // TODO: config (P310)
+    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term, "P310");
     return Optional.of(statuses);
 
   }
@@ -329,7 +329,8 @@ public class MetadataServiceImpl implements MetadataService {
         self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
 
     if (list.size() == 1) {
-      return Optional.of(sparqlQueryManagerService.getQualifierValues(list.get(0).getCode(), term));
+      return Optional
+          .of(sparqlQueryManagerService.getQualifierValues(list.get(0).getCode(), term));
     } else if (list.size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Qualifier " + code + " not found (2)");

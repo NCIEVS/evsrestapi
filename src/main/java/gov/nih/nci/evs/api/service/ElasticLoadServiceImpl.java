@@ -12,27 +12,29 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -42,10 +44,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  * @author Arun
  */
 @Service
-public class StardogElasticLoadServiceImpl extends BaseLoaderService {
+public class ElasticLoadServiceImpl implements ElasticLoadService {
 
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(StardogElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(ElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -75,10 +77,19 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** The elasticsearch query service *. */
+  @Autowired
+  private ElasticQueryService esQueryService;
+
+  /** The term utils. */
+  /* The terminology utils */
+  @Autowired
+  private TerminologyUtils termUtils;
+
   /* see superclass */
   @Override
-  public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy, CommandLine cmd) throws IOException {
+  public void loadConcepts(ElasticLoadConfig config, Terminology terminology,
+    HierarchyUtils hierarchy) throws IOException {
 
     logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}",
         terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE);
@@ -102,7 +113,8 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
       throw new IOException(e);
     }
 
-    return allConcepts.size();
+    // compare count of concepts loaded and index metadata object
+    checkLoadStatusandIndexMetadata(allConcepts.size(), terminology);
 
   }
 
@@ -244,6 +256,126 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
+   * Check load statusand index metadata.
+   *
+   * @param total the total
+   * @param terminology the terminology
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  private void checkLoadStatusandIndexMetadata(int total, Terminology terminology)
+    throws IOException {
+    Long count = esQueryService.getCount(terminology);
+    logger.info("Concepts count for index {} = {}", terminology.getIndexName(), count);
+    boolean completed = (total == count.intValue());
+
+    if (!completed) {
+      logger.info("Concepts indexing not complete yet, waiting for completion..");
+    }
+
+    int attempts = 0;
+
+    while (!completed && attempts < 30) {
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
+        throw new IOException(e);
+      }
+
+      if (attempts == 15) {
+        logger.info("Index completion is taking longer than expected..");
+      }
+
+      count = esQueryService.getCount(terminology);
+      completed = (total == count.intValue());
+      attempts++;
+    }
+
+    logger.info("Indexing metadata object with completed flag: {}", completed);
+
+    IndexMetadata iMeta = new IndexMetadata();
+    iMeta.setIndexName(terminology.getIndexName());
+    iMeta.setTotalConcepts(total);
+    iMeta.setCompleted(completed);
+    iMeta.setTerminology(terminology);
+
+    operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
+        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+  }
+
+  /**
+   * Clean stale indexes.
+   *
+   * @throws Exception the exception
+   */
+  private void cleanStaleIndexes() throws Exception {
+    List<IndexMetadata> iMetas = null;
+    iMetas = termUtils.getStaleTerminologies();
+
+    if (CollectionUtils.isEmpty(iMetas))
+      return;
+
+    logger.info("Removing stale terminologies: " + iMetas);
+
+    for (IndexMetadata iMeta : iMetas) {
+      String indexName = iMeta.getIndexName();
+      String objectIndexName = iMeta.getObjectIndexName();
+
+      // objectIndexName will be NULL if terminology object is not part of
+      // IndexMetadata
+      // temporarily required to accommodate change in IndexMetadata object
+      if (objectIndexName == null) {
+        objectIndexName = "evs_object_" + indexName.replace("concept_", "");
+      }
+
+      // delete objects index
+      boolean result = operationsService.deleteIndex(objectIndexName);
+
+      if (!result) {
+        logger.warn("Deleting objects index {} failed!", objectIndexName);
+        continue;
+      }
+
+      // delete concepts index
+      result = operationsService.deleteIndex(indexName);
+
+      if (!result) {
+        logger.warn("Deleting concepts index {} failed!", indexName);
+        continue;
+      }
+
+      // delete metadata object
+      esQueryService.deleteIndexMetadata(indexName);
+    }
+  }
+
+  /**
+   * Update latest flag.
+   *
+   * @throws Exception the exception
+   */
+  private void updateLatestFlag() throws Exception {
+    // update latest flag
+    logger.info("Updating latest flags on all metadata objects");
+    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+
+    if (CollectionUtils.isEmpty(iMetas))
+      return;
+
+    Terminology latest = termUtils.getLatestTerminology(false);
+    for (IndexMetadata iMeta : iMetas) {
+      if (iMeta.getTerminology() != null) {
+        iMeta.getTerminology()
+            .setLatest(iMeta.getTerminology().getIndexName().equals(latest.getIndexName()));
+      }
+    }
+
+    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
+        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+
+  }
+
+  /**
    * Task to load a batch of concepts to elasticsearch.
    *
    * @author Arun
@@ -315,31 +447,112 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     }
   }
 
-  /* see superclass */
-  @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config)
-    throws Exception {
-    TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
-    final Terminology term = termUtils.getTerminology(config.getTerminology(), false);
-
-    // Attempt to read the config, if anything goes wrong
-    // the config file is probably not there
-    final String resource = "metadata/" + term.getTerminology() + ".json";
+  /**
+   * the main method to trigger elasticsearch load via command line *.
+   *
+   * @param args the command line arguments
+   */
+  public static void main(String[] args) {
+    Options options = prepareOptions();
+    CommandLine cmd;
     try {
-      TerminologyMetadata metadata = new ObjectMapper().readValue(
-          IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
-          TerminologyMetadata.class);
-      term.setMetadata(metadata);
-    } catch (Exception e) {
-      throw new Exception("Unexpected error trying to load = " + resource, e);
+      cmd = new DefaultParser().parse(options, args);
+    } catch (ParseException e) {
+      logger.error("{}; Try -h or --help to learn more about command line options available.",
+          e.getMessage());
+      return;
     }
-    return term;
+
+    if (cmd.hasOption('h')) {
+      printHelp(options);
+      return;
+    }
+
+    ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
+
+    try {
+      // get the bean by type
+      ElasticLoadServiceImpl loadService = app.getBean(ElasticLoadServiceImpl.class);
+
+      ElasticLoadConfig config = buildConfig(cmd, loadService.CONCEPTS_OUT_DIR);
+
+      if (StringUtils.isBlank(config.getTerminology())) {
+        logger.error(
+            "Terminology (-t or --terminology) is required! Try -h or --help to learn more about command line options available.");
+        return;
+      }
+
+      TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
+      Terminology term = termUtils.getTerminology(config.getTerminology(), false);
+      HierarchyUtils hierarchy = loadService.sparqlQueryManagerService.getHierarchyUtils(term);
+      loadService.loadConcepts(config, term, hierarchy);
+      loadService.loadObjects(config, term, hierarchy);
+      loadService.cleanStaleIndexes();
+      loadService.updateLatestFlag();
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new RuntimeException(e);
+    } finally {
+      SpringApplication.exit(app);
+    }
   }
 
-  /* see superclass */
-  @Override
-  public HierarchyUtils getHierarchyUtils(Terminology term)
-    throws JsonParseException, JsonMappingException, IOException {
-    return sparqlQueryManagerService.getHierarchyUtils(term);
+  /**
+   * prepare command line options available.
+   *
+   * @return the options
+   */
+  private static Options prepareOptions() {
+    Options options = new Options();
+
+    options.addOption("f", "forceDeleteIndex", false,
+        "Force delete index if index already exists.");
+    options.addOption("h", "help", false, "Show this help information and exit.");
+    options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
+    options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
+
+    return options;
+  }
+
+  /**
+   * print command line help information.
+   *
+   * @param options the options available
+   */
+  private static void printHelp(Options options) {
+    HelpFormatter formatter = new HelpFormatter();
+    formatter.printHelp("java -jar $DIR/evsrestapi-*.jar", options);
+    return;
+  }
+
+  /**
+   * build config object from command line options.
+   *
+   * @param cmd the command line object
+   * @param defaultLocation the default download location to use
+   * @return the config object
+   */
+  private static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+    ElasticLoadConfig config = new ElasticLoadConfig();
+
+    config.setTerminology(cmd.getOptionValue('t'));
+    config.setRealTime(cmd.hasOption('r'));
+    config.setForceDeleteIndex(cmd.hasOption('f'));
+    if (cmd.hasOption('l')) {
+      String location = cmd.getOptionValue('l');
+      if (StringUtils.isBlank(location)) {
+        logger.error("Location is empty!");
+
+      }
+      if (!location.endsWith("/")) {
+        location += "/";
+      }
+      logger.info("location - {}", location);
+      config.setLocation(location);
+    } else {
+      config.setLocation(defaultLocation);
+    }
+
+    return config;
   }
 }

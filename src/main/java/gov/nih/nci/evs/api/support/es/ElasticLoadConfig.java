@@ -19,12 +19,6 @@ public class ElasticLoadConfig {
 
   /** folder location where concepts are to be download, if required *. */
   private String location;
-  
-  /** tells app to load concepts from directory *. */
-  private boolean loadConceptsFromDir;
-
-  /** tells app where concepts are located *. */
-  private String conceptDir;
 
   /**
    * Instantiates an empty {@link ElasticLoadConfig}.
@@ -105,32 +99,4 @@ public class ElasticLoadConfig {
   public void setLocation(String location) {
     this.location = location;
   }
-
-	/**
-	 * @return the loadConceptsFromDir
-	 */
-	public boolean isLoadConceptsFromDir() {
-		return loadConceptsFromDir;
-	}
-
-	/**
-	 * @param loadConceptsFromDir the loadConceptsFromDir to set
-	 */
-	public void setLoadConceptsFromDir(boolean loadConceptsFromDir) {
-		this.loadConceptsFromDir = loadConceptsFromDir;
-	}
-
-	/**
-	 * @return the conceptDir
-	 */
-	public String getConceptDir() {
-		return conceptDir;
-	}
-
-	/**
-	 * @param conceptDir the conceptDir to set
-	 */
-	public void setConceptDir(String conceptDir) {
-		this.conceptDir = conceptDir;
-	}
 }

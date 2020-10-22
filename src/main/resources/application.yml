@@ -7,8 +7,8 @@ spring:
     #
     application:
         name: nci-evs-api
-    #profiles:
-    #  include: metadata
+    profiles:
+      include: thesaurus
 
     #
     # JSON Formatting Properties
