@@ -54,7 +54,7 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
 
         version=ncit_20.09d
         export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
-        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
+        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=50
         java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --forceDeleteIndex
 
 
