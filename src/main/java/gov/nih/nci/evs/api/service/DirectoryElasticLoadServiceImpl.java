@@ -27,7 +27,7 @@ import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
- * The implementation for {@link DirectoryElasticLoadService}.
+ * The implementation for {@link DirectoryElasticLoadServiceImpl}.
  *
  * @author Arun
  */
@@ -64,15 +64,22 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 	@Autowired
 	ElasticOperationsService operationsService;
 
+	/**
+	 * @return filepath
+	 */
 	public File getFilepath() {
 		return filepath;
 	}
 
+	/**
+	 * @param filepath
+	 */
 	public void setFilepath(File filepath) {
 		this.filepath = filepath;
 	}
 
-	public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy,
+	@Override
+  public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy,
 			CommandLine cmd) throws Exception {
 		try (final FileInputStream fis = new FileInputStream(this.getFilepath() + "\\MRCONSO.RRF");
 				final InputStreamReader isr = new InputStreamReader(fis);
@@ -132,6 +139,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 		// nothing to do here yet
 	}
 
+	/**
+	 * @param concept
+	 * @param batch
+	 * @param flag
+	 * @param indexName
+	 * @param synList
+	 * @throws IOException
+	 */
 	private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,
 			List<Synonym> synList) throws IOException {
 		concept.setSynonyms(synList);
@@ -168,8 +183,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 			term.setTerminology("ncim");
 			term.setVersion(p.getProperty("umls.release.name"));
 			term.setDate(p.getProperty("umls.release.date"));
-			term.setName(line.split("|", -1)[4]);
-			term.setDescription(line.split("|", -1)[24]);
+			if(line != null) {
+  			  term.setName(line.split("|", -1)[4]);
+  			  term.setDescription(line.split("|", -1)[24]);
+			}
 			term.setGraph(null);
 			term.setSource(null);
 			term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
@@ -184,7 +201,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
 	@Override
 	public HierarchyUtils getHierarchyUtils(Terminology term) {
-		// dont need hierarchy utils in this indexing
+		// Don't need hierarchy utils in this indexing
 		return null;
 	}
 }

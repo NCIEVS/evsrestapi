@@ -91,7 +91,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 	 *
 	 * @throws Exception the exception
 	 */
-	public void cleanStaleIndexes() throws Exception {
+	@Override
+  public void cleanStaleIndexes() throws Exception {
 		List<IndexMetadata> iMetas = null;
 		iMetas = termUtils.getStaleTerminologies();
 
@@ -137,7 +138,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 	 *
 	 * @throws Exception the exception
 	 */
-	public void updateLatestFlag(Terminology term) throws Exception {
+	@Override
+  public void updateLatestFlag(Terminology term) throws Exception {
 		// update latest flag
 		logger.info("Updating latest flags on all metadata objects");
 		List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
@@ -165,7 +167,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 	 * @throws IOException
 	 * 
 	 */
-	public void checkLoadStatus(int total, Terminology term) throws IOException {
+	@Override
+  public void checkLoadStatus(int total, Terminology term) throws IOException {
 
 		Long count = esQueryService.getCount(term);
 		logger.info("Concepts count for index {} = {}", term.getIndexName(), count);
@@ -202,7 +205,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 	 * @throws IOException
 	 * 
 	 */
-	public void loadIndexMetadata(int total, Terminology term) throws IOException {
+	@Override
+  public void loadIndexMetadata(int total, Terminology term) throws IOException {
 		IndexMetadata iMeta = new IndexMetadata();
 		iMeta.setIndexName(term.getIndexName());
 		iMeta.setTotalConcepts(total);

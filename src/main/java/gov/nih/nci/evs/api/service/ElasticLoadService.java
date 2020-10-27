@@ -26,6 +26,7 @@ public interface ElasticLoadService {
 	 * 
 	 * @param config      the load config from command line input
 	 * @param terminology the terminology
+	 * @param hierarchy   the terminology hierarchy
 	 * @throws IOException the io exception
 	 * @throws Exception
 	 */
@@ -39,6 +40,7 @@ public interface ElasticLoadService {
 	 * @param terminology the terminology
 	 * @param hierarchy   the hierarchy object
 	 * @param cmd         command line objext
+	 * @return number of concepts loaded
 	 * @throws IOException the io exception
 	 * @throws Exception
 	 */
@@ -67,6 +69,7 @@ public interface ElasticLoadService {
 	 * @param app    the application context object
 	 * @param config the config object
 	 * @param cmd
+	 * @return Terminology
 	 * 
 	 *
 	 * @throws Exception the exception
@@ -79,9 +82,6 @@ public interface ElasticLoadService {
 	 * @param totalConcepts the total number of concepts
 	 * @param term          the terminology object
 	 * @throws IOException
-	 * 
-	 *
-	 * @throws Exception   the exception
 	 */
 	void checkLoadStatus(int totalConcepts, Terminology term) throws IOException;
 
@@ -91,9 +91,6 @@ public interface ElasticLoadService {
 	 * @param totalConcepts the total number of concepts
 	 * @param term          the terminology object
 	 * @throws IOException
-	 * 
-	 *
-	 * @throws Exception   the exception
 	 */
 	void loadIndexMetadata(int totalConcepts, Terminology term) throws IOException;
 
@@ -101,12 +98,10 @@ public interface ElasticLoadService {
 	 * get hierarchy utils
 	 * 
 	 * @param term the terminology object
+	 * @return HierarchyUtils
 	 * @throws IOException
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
-	 * 
-	 *
-	 * @throws Exception            the exception
 	 */
 	HierarchyUtils getHierarchyUtils(Terminology term) throws JsonParseException, JsonMappingException, IOException;
 
