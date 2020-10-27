@@ -338,19 +338,24 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isEqualTo(10);
     assertThat(list.getConcepts().subList(5, 10).toString()).isEqualTo(cl1.toString());
 
-    // Bad page size = -1
+    // Bad page size = -1, 0
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=-1");
     result = mvc
         .perform(
             get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "-1"))
         .andExpect(status().isBadRequest()).andReturn();
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=0");
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "0"))
+        .andExpect(status().isBadRequest()).andReturn();
 
-    // Bad page size = 1001
+    // Bad page size = 101
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=1001");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=101");
     result = mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "1001"))
+        get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "101"))
         .andExpect(status().isBadRequest()).andReturn();
 
     // Bad from record = -1

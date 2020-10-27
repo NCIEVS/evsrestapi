@@ -57,9 +57,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   @Override
   public ConceptResultList search(SearchCriteria searchCriteria) throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
+    // PageRequest.of(page, searchCriteria.getPageSize());
     Pageable pageable =
-        new EVSPageable(page, searchCriteria.getPageSize(), searchCriteria.getFromRecord());// PageRequest.of(page,
-                                                                                            // searchCriteria.getPageSize());
+        new EVSPageable(page, searchCriteria.getPageSize(), searchCriteria.getFromRecord());
 
     logger.debug("query string [{}]", searchCriteria.getTerm());
 
