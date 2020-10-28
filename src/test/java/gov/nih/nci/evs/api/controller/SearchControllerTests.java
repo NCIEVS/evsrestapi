@@ -296,13 +296,36 @@ public class SearchControllerTests {
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(2);
 
-    // bad from record - fromRecord should be the first element of page
+    // fromRecord not matching start of page
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&fromRecord=6");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&fromRecord=6&pageSize=10");
 
-    result = mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "melanoma").param("fromRecord", "6"))
-        .andExpect(status().isBadRequest()).andReturn();
+    // Try from records within page size
+    for (final String fr : new String[] {
+        "1", "9", "6"
+    }) {
+      result = mvc
+          .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+              .param("fromRecord", fr).param("pageSize", "10"))
+          .andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+      assertThat(content).isNotNull();
+      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts().size()).isEqualTo(10);
+    }
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "melanoma")
+            .param("fromRecord", "16").param("pageSize", "10"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    ConceptResultList list2 = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list2.getConcepts().size()).isEqualTo(10);
+    // should be a different code starting on 16
+    assertThat(list.getConcepts().get(0).getCode())
+        .isNotEqualTo(list2.getConcepts().get(0).getCode());
 
     // From 5 with page size of 5 (should match the last 9 records of
     // pageSize of 10
