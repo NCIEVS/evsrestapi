@@ -316,20 +316,25 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // synonym source
     QueryBuilder synonymSourceQuery = getSynonymSourceQueryBuilder(searchCriteria);
-    if (synonymSourceQuery != null) {
+
+    // synonym termGroup
+    QueryBuilder synonymTermGroupQuery = buildSynonymTermGroupQueryBuilder(searchCriteria);
+
+    if (synonymSourceQuery != null && synonymTermGroupQuery != null) {
+      // synonym termGroup + source search clause
+      QueryBuilder synonymTermGroupAndSourceQuery =
+          buildSynonymTermGroupAndSourceQueryBuilder(searchCriteria);
+      queries.add(synonymTermGroupAndSourceQuery);
+    } else if (synonymSourceQuery != null) {
       queries.add(synonymSourceQuery);
+    } else if (synonymTermGroupQuery != null) {
+      queries.add(synonymTermGroupQuery);
     }
 
     // definition source
     QueryBuilder definitionSourceQuery = getDefinitionSourceQueryBuilder(searchCriteria);
     if (definitionSourceQuery != null) {
       queries.add(definitionSourceQuery);
-    }
-
-    // synonym termGroup
-    QueryBuilder synonymTermGroupQuery = buildSynonymTermGroupQueryBuilder(searchCriteria);
-    if (synonymTermGroupQuery != null) {
-      queries.add(synonymTermGroupQuery);
     }
 
     return queries;
@@ -502,6 +507,46 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
       for (String source : searchCriteria.getSynonymTermGroup()) {
         inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termGroup", source));
+      }
+      fieldBoolQuery = fieldBoolQuery.must(inQuery);
+    }
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * builds nested query for synonym term group + source criteria
+   * 
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder buildSynonymTermGroupAndSourceQueryBuilder(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup()))
+      return null;
+
+    // bool query to match synonym.termGroup
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
+
+    if (searchCriteria.getSynonymTermGroup().size() == 1) {
+      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termGroup",
+          searchCriteria.getSynonymTermGroup().get(0)));
+    } else {
+      // IN query on synonym.termGroup
+      BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+      for (String source : searchCriteria.getSynonymTermGroup()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termGroup", source));
+      }
+      fieldBoolQuery = fieldBoolQuery.must(inQuery);
+    }
+
+    if (searchCriteria.getSynonymSource().size() == 1) {
+      fieldBoolQuery = fieldBoolQuery.must(
+          QueryBuilders.matchQuery("synonyms.source", searchCriteria.getSynonymSource().get(0)));
+    } else {
+      BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+      for (String source : searchCriteria.getSynonymSource()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.source", source));
       }
       fieldBoolQuery = fieldBoolQuery.must(inQuery);
     }

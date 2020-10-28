@@ -698,10 +698,10 @@ public class SearchControllerTests {
             && p.getValue().contentEquals("Obsolete_Concept"))
         .count()).isEqualTo(list.getConcepts().size());
 
-    // Retired_Concept
+    // Provisional_Concept
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "blood")
-            .param("conceptStatus", "Retired_Concept").param("include", "properties"))
+            .param("conceptStatus", "Provisional_Concept").param("include", "properties"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -711,7 +711,7 @@ public class SearchControllerTests {
     // Verify property of "Obsolete_Concept on each results
     assertThat(list.getConcepts().stream().flatMap(c -> c.getProperties().stream())
         .filter(p -> p.getType().contentEquals("Concept_Status")
-            && p.getValue().contentEquals("Retired_Concept"))
+            && p.getValue().contentEquals("Provisional_Concept"))
         .count()).isEqualTo(list.getConcepts().size());
 
     // Header_Concept
@@ -797,6 +797,7 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isGreaterThan(0);
 
     found = false;
+    // check concept synonyms for valid synonym
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
       if (syn.getName().contains("dsDNA") && syn.getSource().equals("CDISC")
           && syn.getTermGroup().equals("SY")) {
@@ -891,21 +892,24 @@ public class SearchControllerTests {
     assertThat(found && found1).isTrue();
 
     // Test synonymSource + synonymTermGroup
-    // ?include=summary&pageSize=100&synonymSource=CTRM&synonymTermGroup=DN&term=blood
+    // ?include=summary&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY&term=blood
     log.info("Testing url - " + url
-        + "?include=summary&pageSize=100&synonymSource=CTRM&synonymTermGroup=DN&term=blood");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "blood")
-        .param("synonymSource", "CTRM").param("synonymTermGroup", "DN").param("include", "summary"))
+        + "?include=summary&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY&term=blood");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "blood")
+            .param("synonymSource", "CDISC").param("pageSize", "100")
+            .param("synonymTermGroup", "SY").param("include", "summary"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    // Verify that each concept contains a CTRM/DN synonym
+    // Verify that each concept contains a CDISC/SY synonym
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
-            .filter(s -> "DN".equals(s.getTermGroup()) && "CTRM".equals(s.getSource())).count() > 0)
+            .filter(s -> "SY".equals(s.getTermGroup()) && "CDISC".equals(s.getSource()))
+            .count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
     log.info("Done Testing testSynonymTermGroup");
 
@@ -1005,7 +1009,8 @@ public class SearchControllerTests {
     for (Concept concept : conceptList) {
       if (concept.getName().equalsIgnoreCase("braf")
           || !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("braf"))
-              .collect(Collectors.toList()).isEmpty()) { // found match
+              .collect(Collectors.toList()).isEmpty()) { // found
+                                                         // match
         if (!currentExact) // check still in front
           fail("Exact Matches not in order"); // exact matches not in order
       } else
