@@ -61,11 +61,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     Pageable pageable =
         new EVSPageable(page, searchCriteria.getPageSize(), searchCriteria.getFromRecord());
 
-    logger.debug("query string [{}]", searchCriteria.getTerm());
+    // Escape the term in case it has special characters
+    final String term = escape(searchCriteria.getTerm());
+    logger.debug("query string [{}]", term);
 
     BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
-    boolean blankTermFlag = "".equalsIgnoreCase(searchCriteria.getTerm());
+    boolean blankTermFlag = "".equalsIgnoreCase(term);
     boolean startsWithFlag = "startsWith".equalsIgnoreCase(searchCriteria.getType());
     boolean matchFlag = "match".equalsIgnoreCase(searchCriteria.getType());
 
@@ -77,36 +79,33 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           ConceptUtils.normalize(searchCriteria.getTerm()).replaceAll(" ", "\\\\ ")
               + (startsWithFlag ? "*" : "");
 
-      BoolQueryBuilder boolQuery2 =
-          new BoolQueryBuilder()
-              .should(QueryBuilders
-                  .queryStringQuery("normName:" + normTerm).analyzeWildcard(true).boost(20f))
-              .should(QueryBuilders
-                  .queryStringQuery("code:" + searchCriteria.getTerm().replaceAll(" ", "\\\\ "))
-                  .analyzeWildcard(true).boost(20f))
-              .should(
-                  QueryBuilders.nestedQuery("properties",
-                      QueryBuilders.queryStringQuery("properties.value:" + normTerm)
-                          .analyzeWildcard(true),
-                      ScoreMode.Max).boost(5f))
-              .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders
-                  .queryStringQuery("synonyms.normName:" + normTerm).analyzeWildcard(true),
-                  ScoreMode.Max).boost(20f));
+      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder().should(
+          QueryBuilders.queryStringQuery("normName:" + normTerm).analyzeWildcard(true).boost(20f))
+          .should(QueryBuilders.queryStringQuery("code:" + term.replaceAll(" ", "\\\\ "))
+              .analyzeWildcard(true).boost(20f))
+          .should(
+              QueryBuilders.nestedQuery("properties",
+                  QueryBuilders.queryStringQuery("properties.value:" + normTerm)
+                      .analyzeWildcard(true),
+                  ScoreMode.Max).boost(5f))
+          .should(QueryBuilders.nestedQuery("synonyms",
+              QueryBuilders.queryStringQuery("synonyms.normName:" + normTerm).analyzeWildcard(true),
+              ScoreMode.Max).boost(20f));
 
       if (startsWithFlag) {
         // Boost exact name match to top of list
         boolQuery2 = boolQuery2.should(QueryBuilders
             .matchQuery("normName", ConceptUtils.normalize(searchCriteria.getTerm())).boost(40f))
             .should(QueryBuilders
-                .queryStringQuery(
-                    "code:" + searchCriteria.getTerm().toUpperCase().replaceAll(" ", "\\\\ ") + "*")
+                .queryStringQuery("code:" + term.toUpperCase().replaceAll(" ", "\\\\ ") + "*")
                 .analyzeWildcard(true).boost(15f));
       }
       boolQuery.must(boolQuery2);
+
     } else {
       // prepare query_string query builder
-      QueryStringQueryBuilder queryStringQueryBuilder = QueryBuilders
-          .queryStringQuery(updateTermForType(searchCriteria.getTerm(), searchCriteria.getType()));
+      QueryStringQueryBuilder queryStringQueryBuilder =
+          QueryBuilders.queryStringQuery(updateTermForType(term, searchCriteria.getType()));
 
       // -- fuzzy and wildcard - both cannot be used for same query
       if ("fuzzy".equalsIgnoreCase(searchCriteria.getType())) {
@@ -174,6 +173,27 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     result.setTotal(Long.valueOf(resultPage.getTotalElements()).intValue());
 
     return result;
+  }
+
+  /**
+   * Escape.
+   *
+   * @param s the s
+   * @return the string
+   */
+  public static String escape(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      // These characters are part of the query syntax and must be escaped
+      if (c == '\\' || c == '+' || c == '-' || c == '!' || c == '(' || c == ')' || c == ':'
+          || c == '^' || c == '[' || c == ']' || c == '\"' || c == '{' || c == '}' || c == '~'
+          || c == '*' || c == '?' || c == '|' || c == '&' || c == '/') {
+        sb.append('\\');
+      }
+      sb.append(c);
+    }
+    return sb.toString();
   }
 
   /**

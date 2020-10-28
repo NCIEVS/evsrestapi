@@ -1714,6 +1714,54 @@ public class SearchControllerTests {
     }
   }
 
+  @Test
+  public void testBadSearchTerm() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    ConceptResultList list = null;
+
+    for (final String type : new String[] {
+        "contains", "fuzzy", "phrase", "match", "startsWith", "AND", "OR"
+    }) {
+      // Expect 0 results, no error
+      log.info("Testing url - " + url + "?term=C)%26ghd&type=" + type);
+      result = mvc
+          .perform(
+              get(url).param("terminology", "ncit").param("term", "C)%26ghd").param("type", type))
+          .andExpect(status().isOk()).andReturn();
+      String content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+      assertThat(content).isNotNull();
+      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      if (type.equals("contains") || type.equals("OR")) {
+        assertThat(list.getConcepts()).isNotEmpty();
+      } else {
+        assertThat(list.getConcepts()).isEmpty();
+      }
+
+    }
+
+    for (final String type : new String[] {
+        "contains", "fuzzy", "phrase", "match", "startsWith", "AND", "OR"
+    }) {
+      // Expect 0 results, no error
+      log.info("Testing url - " + url + "?term=C)%26ghd+melanoma&type=" + type);
+      result = mvc.perform(get(url).param("terminology", "ncit").param("term", "C)%26ghd melanoma")
+          .param("type", type)).andExpect(status().isOk()).andReturn();
+      String content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+      assertThat(content).isNotNull();
+      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      // if (type.equals("contains") || type.equals("OR")) {
+      // assertThat(list.getConcepts()).isNotEmpty();
+      // } else {
+      // assertThat(list.getConcepts()).isEmpty();
+      // }
+
+    }
+
+  }
+
   /**
    * Removes the time taken.
    *
