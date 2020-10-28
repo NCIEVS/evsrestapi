@@ -181,7 +181,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       result.setConcepts(resultPage.getContent());
     } else {
       // Handle non-aligned paging (e.g fromRecord=6, pageSize=10)
-      result.setConcepts(resultPage.getContent().subList(fromIndex, toIndex));
+      final List<Concept> results = resultPage.getContent();
+      // if fromIndex is beyond the end of results, bail
+      if (fromIndex >= results.size()) {
+        result.setConcepts(new ArrayList<>());
+      } else {
+        result.setConcepts(results.subList(fromIndex, Math.min(toIndex, results.size())));
+      }
     }
     result.setTotal(Long.valueOf(resultPage.getTotalElements()).intValue());
 
