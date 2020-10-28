@@ -36,6 +36,10 @@ public class RESTUtils {
   /** The connect timeout. */
   // private Duration connectTimeout;
 
+  /** The builder. */
+  @SuppressWarnings("unused")
+  private RestTemplateBuilder builder;
+
   /**
    * Instantiates an empty {@link RESTUtils}.
    */
@@ -84,25 +88,4 @@ public class RESTUtils {
     return results;
   }
 
-  /**
-   * Escape lucene special characters.
-   *
-   * @param before the before
-   * @return the string
-   */
-  public static String escapeLuceneSpecialCharacters(String before) {
-    if (null == before) {
-      return "";
-    }
-    String patternString = "([+:!~*?/\\-/{}\\[\\]\\(\\)\\^\\\"])";
-    Pattern pattern = Pattern.compile(patternString);
-    Matcher matcher = pattern.matcher(before);
-    StringBuffer buf = new StringBuffer();
-    while (matcher.find()) {
-      matcher.appendReplacement(buf, before.substring(matcher.start(), matcher.start(1)) + "\\\\"
-          + "\\\\" + matcher.group(1) + before.substring(matcher.end(1), matcher.end()));
-    }
-    String after = matcher.appendTail(buf).toString();
-    return after;
-  }
 }
