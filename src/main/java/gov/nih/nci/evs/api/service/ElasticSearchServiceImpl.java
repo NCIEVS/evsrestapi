@@ -58,8 +58,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   public ConceptResultList search(SearchCriteria searchCriteria) throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
-    Pageable pageable =
-        new EVSPageable(page, searchCriteria.getPageSize(), searchCriteria.getFromRecord());
+
+    // handle fromRecord offset from pageSize (e.g. fromRecord=6, pageSize=10)
+    final int fromOffset = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
+    final int esFromRecord = searchCriteria.getFromRecord() - fromOffset;
+    final int esPageSize =
+        fromOffset == 0 ? searchCriteria.getPageSize() : (searchCriteria.getPageSize() * 2);
+    final int fromIndex = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
+    final int toIndex = fromIndex + searchCriteria.getPageSize();
+
+    final Pageable pageable = new EVSPageable(page, esPageSize, esFromRecord);
 
     // Escape the term in case it has special characters
     final String term = escape(searchCriteria.getTerm());
@@ -169,7 +177,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     ConceptResultList result = new ConceptResultList();
     result.setParameters(searchCriteria);
-    result.setConcepts(resultPage.getContent());
+    if (fromOffset == 0) {
+      result.setConcepts(resultPage.getContent());
+    } else {
+      // Handle non-aligned paging (e.g fromRecord=6, pageSize=10)
+      result.setConcepts(resultPage.getContent().subList(fromIndex, toIndex));
+    }
     result.setTotal(Long.valueOf(resultPage.getTotalElements()).intValue());
 
     return result;
@@ -182,6 +195,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the string
    */
   public static String escape(String s) {
+    if (s == null) {
+      return "";
+    }
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < s.length(); i++) {
       char c = s.charAt(i);
