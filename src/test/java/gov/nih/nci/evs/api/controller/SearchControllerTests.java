@@ -327,6 +327,24 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().get(0).getCode())
         .isNotEqualTo(list2.getConcepts().get(0).getCode());
 
+    // From record beyond last result
+    // fromRecord=12&pageSize=10&term=C12913&type=startsWith
+    url = baseUrl;
+    log.info("Testing url - " + url
+        + "?terminology=ncit&fromRecord=12&pageSize=10&term=C12913&type=startsWith");
+
+    // Test a basic term search
+    result = this.mvc
+        .perform(get(url).param("terminology", "ncit").param("term", "C12913")
+            .param("pageSize", "10").param("fromRecord", "12").param("type", "startsWith"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts()).isEmpty();
+
     // From 5 with page size of 5 (should match the last 9 records of
     // pageSize of 10
     url = baseUrl;
