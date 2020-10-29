@@ -317,8 +317,8 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, CommandLine cmd)
-    throws Exception {
+  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
+    String filepath, String terminology) throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
     final Terminology term = termUtils.getTerminology(config.getTerminology(), false);
 

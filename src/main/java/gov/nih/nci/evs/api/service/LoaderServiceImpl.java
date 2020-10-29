@@ -29,158 +29,161 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 @Service
 public class LoaderServiceImpl {
 
-	/** the logger *. */
-	private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
+  /** the logger *. */
+  private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
-	/** the concepts download location *. */
-	@Value("${nci.evs.bulkload.conceptsDir}")
-	private static String CONCEPTS_OUT_DIR;
+  /** the concepts download location *. */
+  @Value("${nci.evs.bulkload.conceptsDir}")
+  private static String CONCEPTS_OUT_DIR;
 
-	/** the lock file name *. */
-	@Value("${nci.evs.bulkload.lockFile}")
-	private String LOCK_FILE;
+  /** the lock file name *. */
+  @Value("${nci.evs.bulkload.lockFile}")
+  private String LOCK_FILE;
 
-	/** download batch size *. */
-	@Value("${nci.evs.bulkload.downloadBatchSize}")
-	private int DOWNLOAD_BATCH_SIZE;
+  /** download batch size *. */
+  @Value("${nci.evs.bulkload.downloadBatchSize}")
+  private int DOWNLOAD_BATCH_SIZE;
 
-	/** index batch size *. */
-	@Value("${nci.evs.bulkload.indexBatchSize}")
-	private int INDEX_BATCH_SIZE;
+  /** index batch size *. */
+  @Value("${nci.evs.bulkload.indexBatchSize}")
+  private int INDEX_BATCH_SIZE;
 
-	/** the environment *. */
-	@Autowired
-	Environment env;
+  /** the environment *. */
+  @Autowired
+  Environment env;
 
-	/** The Elasticsearch operations service instance *. */
-	@Autowired
-	ElasticOperationsService operationsService;
+  /** The Elasticsearch operations service instance *. */
+  @Autowired
+  ElasticOperationsService operationsService;
 
-	/**
-	 * prepare command line options available.
-	 *
-	 * @return the options
-	 */
-	public static Options prepareOptions() {
-		Options options = new Options();
+  /**
+   * prepare command line options available.
+   *
+   * @return the options
+   */
+  public static Options prepareOptions() {
+    Options options = new Options();
 
-		options.addOption("f", "forceDeleteIndex", false, "Force delete index if index already exists.");
-		options.addOption("h", "help", false, "Show this help information and exit.");
-		options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
-		options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
-		options.addOption("d", "directory", true, "load concepts from the given directory");
+    options.addOption("f", "forceDeleteIndex", false,
+        "Force delete index if index already exists.");
+    options.addOption("h", "help", false, "Show this help information and exit.");
+    options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
+    options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
+    options.addOption("d", "directory", true, "load concepts from the given directory");
 
-		return options;
-	}
+    return options;
+  }
 
-	/**
-	 * print command line help information.
-	 *
-	 * @param options the options available
-	 */
-	public static void printHelp(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("java -jar $DIR/evsrestapi-*.jar", options);
-		return;
-	}
+  /**
+   * print command line help information.
+   *
+   * @param options the options available
+   */
+  public static void printHelp(Options options) {
+    HelpFormatter formatter = new HelpFormatter();
+    formatter.printHelp("java -jar $DIR/evsrestapi-*.jar", options);
+    return;
+  }
 
-	/**
-	 * build config object from command line options.
-	 *
-	 * @param cmd             the command line object
-	 * @param defaultLocation the default download location to use
-	 * @return the config object
-	 */
-	public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-		ElasticLoadConfig config = new ElasticLoadConfig();
+  /**
+   * build config object from command line options.
+   *
+   * @param cmd the command line object
+   * @param defaultLocation the default download location to use
+   * @return the config object
+   */
+  public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+    ElasticLoadConfig config = new ElasticLoadConfig();
 
-		config.setTerminology(cmd.getOptionValue('t'));
-		config.setRealTime(cmd.hasOption('r'));
-		config.setForceDeleteIndex(cmd.hasOption('f'));
-		if (cmd.hasOption('l')) {
-			String location = cmd.getOptionValue('l');
-			if (StringUtils.isBlank(location)) {
-				logger.error("Location is empty!");
+    config.setTerminology(cmd.getOptionValue('t'));
+    config.setRealTime(cmd.hasOption('r'));
+    config.setForceDeleteIndex(cmd.hasOption('f'));
+    if (cmd.hasOption('l')) {
+      String location = cmd.getOptionValue('l');
+      if (StringUtils.isBlank(location)) {
+        logger.error("Location is empty!");
 
-			}
-			if (!location.endsWith("/")) {
-				location += "/";
-			}
-			logger.info("location - {}", location);
-			config.setLocation(location);
-		} else {
-			config.setLocation(defaultLocation);
-		}
-		if (cmd.hasOption('d')) {
-			String location = cmd.getOptionValue('d');
-			if (StringUtils.isBlank(location)) {
-				logger.error("Location is empty!");
+      }
+      if (!location.endsWith("/")) {
+        location += "/";
+      }
+      logger.info("location - {}", location);
+      config.setLocation(location);
+    } else {
+      config.setLocation(defaultLocation);
+    }
+    if (cmd.hasOption('d')) {
+      String location = cmd.getOptionValue('d');
+      if (StringUtils.isBlank(location)) {
+        logger.error("Location is empty!");
 
-			}
-			if (!location.endsWith("/")) {
-				location += "/";
-			}
-			logger.info("location - {}", location);
-			config.setLocation(location);
-		} else {
-			config.setLocation(defaultLocation);
-		}
+      }
+      if (!location.endsWith("/")) {
+        location += "/";
+      }
+      logger.info("location - {}", location);
+      config.setLocation(location);
+    } else {
+      config.setLocation(defaultLocation);
+    }
 
-		return config;
-	}
+    return config;
+  }
 
-	/**
-	 * the main method to trigger elasticsearch load via command line *.
-	 *
-	 * @param args the command line arguments
-	 */
-	public static void main(String[] args) {
-		Options options = prepareOptions();
-		CommandLine cmd;
-		try {
-			cmd = new DefaultParser().parse(options, args);
-		} catch (ParseException e) {
-			logger.error("{}; Try -h or --help to learn more about command line options available.", e.getMessage());
-			return;
-		}
+  /**
+   * the main method to trigger elasticsearch load via command line *.
+   *
+   * @param args the command line arguments
+   */
+  public static void main(String[] args) {
+    Options options = prepareOptions();
+    CommandLine cmd;
+    try {
+      cmd = new DefaultParser().parse(options, args);
+    } catch (ParseException e) {
+      logger.error("{}; Try -h or --help to learn more about command line options available.",
+          e.getMessage());
+      return;
+    }
 
-		if (cmd.hasOption('h')) {
-			printHelp(options);
-			return;
-		}
+    if (cmd.hasOption('h')) {
+      printHelp(options);
+      return;
+    }
 
-		ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
-		ElasticLoadService loadService = null;
+    ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
+    ElasticLoadService loadService = null;
 
-		try {
-			// which indexing object do we need to use
-			if (cmd.hasOption('d')) {
-				loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
-			} else {
-				loadService = app.getBean(StardogElasticLoadServiceImpl.class);
-			}
-			ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
-			Terminology term = loadService.getTerminology(app, config, cmd);
-			HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
-			int totalConcepts = loadService.loadConcepts(config, term, hierarchy, cmd);
-			loadService.checkLoadStatus(totalConcepts, term);
-			loadService.loadIndexMetadata(totalConcepts, term);
-			loadService.loadObjects(config, term, hierarchy);
-			loadService.cleanStaleIndexes();
-			loadService.updateLatestFlag(term);
+    try {
+      // which indexing object do we need to use
+      if (cmd.hasOption('d')) {
+        loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
+      } else {
+        loadService = app.getBean(StardogElasticLoadServiceImpl.class);
+      }
+      ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      Terminology term =
+          loadService.getTerminology(app, config, cmd.getOptionValue("d"), cmd.getOptionValue("t"));
+      HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+      int totalConcepts = loadService.loadConcepts(config, term, hierarchy, cmd);
+      loadService.checkLoadStatus(totalConcepts, term);
+      loadService.loadIndexMetadata(totalConcepts, term);
+      loadService.loadObjects(config, term, hierarchy);
+      loadService.cleanStaleIndexes();
+      loadService.updateLatestFlag(term);
 
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-			throw new RuntimeException(e);
-		} finally {
-			SpringApplication.exit(app);
-		}
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new RuntimeException(e);
+    } finally {
+      SpringApplication.exit(app);
+    }
 
-	}
+  }
 
-	/**
-	 * prepare command line options available.
-	 *
-	 * @return the options
-	 */
+  /**
+   * prepare command line options available.
+   *
+   * @return the options
+   */
 }
