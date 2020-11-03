@@ -2,7 +2,7 @@
   "code": "NHC0",
   "conceptStatus": "P310",
   "preferredName": "P108",
-  "synonym": "P90",
+  "synonym": [ "P90" ],
   "synonymTermType": "P383",
   "synonymSource": "P384",
   "synonymCode": "P385",

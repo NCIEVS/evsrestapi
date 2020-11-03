@@ -62,12 +62,16 @@ public class EVSUtils {
    */
   public static List<Synonym> getSynonyms(Terminology terminology, List<Axiom> axioms) {
     final List<Synonym> results = new ArrayList<>();
-    final String syCode = terminology.getMetadata().getSynonym();
+    final Set<String> syCode = terminology.getMetadata().getSynonym();
     for (Axiom axiom : axioms) {
-      if (axiom.getAnnotatedProperty().equals(syCode)) {
+      final String axiomCode = axiom.getAnnotatedProperty();
+      if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
-        synonym.setType(terminology.getMetadata().getPropertyName(syCode));
-        synonym.setCode(syCode);
+        synonym.setType(terminology.getMetadata().getPropertyName(axiomCode));
+        if (synonym.getType() == null) {
+          throw new RuntimeException("Unexpected missing name for synonym code = " + axiomCode);
+        }
+        synonym.setCode(axiomCode);
         synonym.setName(axiom.getAnnotatedTarget());
         synonym.setTermGroup(axiom.getTermGroup());
         synonym.setSource(axiom.getTermSource());
@@ -97,6 +101,9 @@ public class EVSUtils {
         definition.setSource(axiom.getDefSource());
         definition.getQualifiers().addAll(axiom.getQualifiers());
         definition.setType(terminology.getMetadata().getPropertyName(axiomCode));
+        if (definition.getType() == null) {
+          throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
+        }
         results.add(definition);
       }
     }

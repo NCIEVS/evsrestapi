@@ -478,6 +478,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
+        // TODO: deal with this EVSRESTAPI-145
         if ((conceptType.equals("qualifier") || conceptType.equals("property"))
             && conceptLabel != null && !conceptLabel.equals(pn)) {
           final Synonym rdfsLabel = new Synonym();
@@ -498,6 +499,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             continue;
           }
 
+          // TODO: deal with this EVSRESTAPI-145
           if (ip.isSynonyms() && type.endsWith("_Name")) {
             // add synonym
             final Synonym synonym = new Synonym();
@@ -506,6 +508,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             concept.getSynonyms().add(synonym);
           }
 
+          // TODO: deal with this EVSRESTAPI-145
           if (ip.isProperties() && !type.endsWith("_Name")) {
             // Add any qualifiers to the property
             property.getQualifiers()
@@ -693,6 +696,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           continue;
         }
 
+        // TODO: deal with this EVSRESTAPI-145
         if (type.endsWith("_Name")) {
           // add synonym
           final Synonym synonym = new Synonym();
@@ -702,6 +706,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getSynonyms().add(synonym);
         }
 
+        // TODO: deal with this EVSRESTAPI-145
         if (!type.endsWith("_Name")) {
           // Add any qualifiers to the property
           property.getQualifiers()

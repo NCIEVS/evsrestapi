@@ -29,7 +29,7 @@ public class TerminologyMetadata extends BaseModel {
   private String relationshipToTarget;
 
   /** The synonym. */
-  private String synonym;
+  private Set<String> synonym;
 
   /** The synonym term type. */
   private String synonymTermType;
@@ -115,7 +115,7 @@ public class TerminologyMetadata extends BaseModel {
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
-    synonym = other.getSynonym();
+    synonym = new HashSet<>(other.getSynonym());
     synonymCode = other.getSynonymCode();
     synonymSource = other.getSynonymSource();
     synonymSubSource = other.getSynonymSubSource();
@@ -320,7 +320,10 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym
    */
-  public String getSynonym() {
+  public Set<String> getSynonym() {
+    if (synonym == null) {
+      synonym = new HashSet<>();
+    }
     return synonym;
   }
 
@@ -329,7 +332,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonym the synonym
    */
-  public void setSynonym(String synonym) {
+  public void setSynonym(Set<String> synonym) {
     this.synonym = synonym;
   }
 
