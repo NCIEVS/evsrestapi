@@ -66,6 +66,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   ElasticOperationsService operationsService;
 
   /**
+   * Returns the filepath.
+   *
    * @return filepath
    */
   public File getFilepath() {
@@ -73,12 +75,15 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * @param filepath
+   * Sets the filepath.
+   *
+   * @param filepath the filepath
    */
   public void setFilepath(File filepath) {
     this.filepath = filepath;
   }
 
+  /* see superclass */
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy, CommandLine cmd) throws Exception {
@@ -94,20 +99,24 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       while ((line = in.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
         final String cui = fields[0];
-        // Test assumption that the file is in order (when considering |)
+        // Test assumption that the file is in order (when considering
+        // |)
         if (prevCui != null && (cui + "|").compareTo(prevCui + "|") < 0) {
           throw new Exception("File is unexpectedly out of order = " + prevCui + ", " + cui);
         }
         // check if we've hit a new concept
         if (!cui.equals(prevCui)) {
           handleConcept(concept, batch, false, terminology.getIndexName(), synList);
-          totalConcepts++;
+          if (totalConcepts++ % 5000 == 0) {
+            logger.info("    count = " + totalConcepts);
+          }
           synList = new ArrayList<Synonym>();
           concept = new Concept();
           concept.setCode(cui);
           concept.setTerminology(terminology.getTerminology());
           concept.setVersion(terminology.getVersion());
-          concept.setLeaf(false);
+          // NO hierarchy, so this is best set to null
+          concept.setLeaf(null);
 
         }
         // find the proper name
@@ -141,12 +150,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * @param concept
-   * @param batch
-   * @param flag
-   * @param indexName
-   * @param synList
-   * @throws IOException
+   * Handle concept.
+   *
+   * @param concept the concept
+   * @param batch the batch
+   * @param flag the flag
+   * @param indexName the index name
+   * @param synList the syn list
+   * @throws IOException Signals that an I/O exception has occurred.
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,
     List<Synonym> synList) throws IOException {
@@ -159,6 +170,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     }
   }
 
+  /* see superclass */
   @Override
   public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
     String filepath, String terminology) throws Exception {
@@ -185,14 +197,15 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       term.setVersion(p.getProperty("umls.release.name"));
       term.setDate(p.getProperty("umls.release.date"));
       if (line != null) {
-        term.setName(line.split("|", -1)[4]);
-        term.setDescription(line.split("|", -1)[24]);
+        term.setName(line.split("\\|", -1)[4]);
+        term.setDescription(line.split("\\|", -1)[24]);
       }
       term.setGraph(null);
       term.setSource(null);
       term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
       term.setIndexName("concept_" + term.getTerminologyVersion());
       term.setLatest(true);
+      logger.info("  ADD terminology = " + term);
       return term;
     } catch (IOException ex) {
       throw new Exception("Could not load terminology ncim");
@@ -200,6 +213,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   }
 
+  /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) {
     // Don't need hierarchy utils in this indexing

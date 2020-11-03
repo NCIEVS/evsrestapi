@@ -24,74 +24,75 @@ import gov.nih.nci.evs.api.model.Metric;
 @Service
 public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
-  /** The Constant logger. */
-  private static final Logger logger = LoggerFactory.getLogger(ElasticOperationsServiceImpl.class);
+	/** The Constant logger. */
+	private static final Logger logger = LoggerFactory.getLogger(ElasticOperationsServiceImpl.class);
 
-  /** Elasticsearch operations *. */
-  @Autowired
-  ElasticsearchOperations operations;
+	/** Elasticsearch operations *. */
+	@Autowired
+	ElasticsearchOperations operations;
 
-  /* see superclass */
-  @Override
-  public boolean createIndex(String index, boolean force) throws IOException {
-    boolean indexExists = operations.indexExists(index);
+	/* see superclass */
+	@Override
+	public boolean createIndex(String index, boolean force) throws IOException {
+		boolean indexExists = operations.indexExists(index);
 
-    if (indexExists) {
-      if (!force) {
-        logger.warn("Index {} already exists. Skipping index creation", index);
-        return false;
-      }
-      operations.deleteIndex(index);
-    }
+		if (indexExists) {
+			if (!force) {
+				logger.warn("Index {} already exists. Skipping index creation", index);
+				return false;
+			}
+			operations.deleteIndex(index);
+		}
 
-    // create index
-    operations.createIndex(index);
-    return true;
-  }
+		// create index
+		operations.createIndex(index);
+		return true;
+	}
 
-  /* see superclass */
-  @Override
-  public void bulkIndex(List objects, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
-    throws IOException {
-    if (CollectionUtils.isEmpty(objects))
-      return;
-    List<IndexQuery> indexQueries = new ArrayList<>();
+	/* see superclass */
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void bulkIndex(List objects, String index, String type, Class clazz) throws IOException {
+		if (CollectionUtils.isEmpty(objects))
+			return;
+		List<IndexQuery> indexQueries = new ArrayList<>();
 
-    for (Object obj : objects) {
-      indexQueries.add(new IndexQueryBuilder().withObject(clazz.cast(obj)).withIndexName(index)
-          .withType(type).build());
-    }
+		for (Object obj : objects) {
+			indexQueries.add(
+					new IndexQueryBuilder().withObject(clazz.cast(obj)).withIndexName(index).withType(type).build());
+		}
 
-    operations.bulkIndex(indexQueries);
-  }
+		operations.bulkIndex(indexQueries);
+	}
 
-  /* see superclass */
-  public void loadMetric(Metric metric, String index) throws IOException {
-    if (metric == null)
-      return;
+	/* see superclass */
+	public void loadMetric(Metric metric, String index) throws IOException {
+		if (metric == null)
+			return;
 
-    final IndexQuery query =
-        new IndexQueryBuilder().withObject(metric).withIndexName(index).withType("_doc").build();
-    operations.index(query);
-  }
+		final IndexQuery query = new IndexQueryBuilder().withObject(metric).withIndexName(index).withType("_doc")
+				.build();
+		operations.index(query);
+	}
 
-  /* see superclass */
-  @Override
-  public void index(Object object, String index, String type, @SuppressWarnings("rawtypes") Class clazz) throws IOException {
-    IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object)).withIndexName(index)
-        .withType(type).build();
+	/* see superclass */
+	@Override
+	public void index(Object object, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
+			throws IOException {
+		IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object)).withIndexName(index).withType(type)
+				.build();
 
-    operations.index(query);
-  }
+		operations.index(query);
+	}
 
-  /* see superclass */
-  @Override
-  public boolean deleteIndex(String index) {
-    return operations.deleteIndex(index);
-  }
-  
-  /* see superclass */
-  public ElasticsearchOperations getElasticsearchOperations() {
-    return operations;
-  }
+	/* see superclass */
+	@Override
+	public boolean deleteIndex(String index) {
+		return operations.deleteIndex(index);
+	}
+
+	/* see superclass */
+	public ElasticsearchOperations getElasticsearchOperations() {
+		return operations;
+	}
 }

@@ -81,3 +81,17 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
 
     * Test that it's up by looking for swagger docs: [http://localhost:8080/swagger-ui.html#/](http://localhost:8080/swagger-ui.html#/)
 
+### Steps for Loading NCI Metathesaurus
+
+* Download the NCI Metathesaurus to a local directory
+
+* Run the elasticsearch loader in directory mode.
+
+        dir=c:/evsrestapi/NCIM_202008/META
+        term=ncim
+        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
+        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=50
+        java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $term --forceDeleteIndex -d $dir
+
+
+

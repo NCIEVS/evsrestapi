@@ -52,7 +52,6 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 		ElasticLoadConfig config = new ElasticLoadConfig();
 
 		config.setTerminology(cmd.getOptionValue('t'));
-		config.setRealTime(cmd.hasOption('r'));
 		config.setForceDeleteIndex(cmd.hasOption('f'));
 		if (cmd.hasOption('l')) {
 			String location = cmd.getOptionValue('l');

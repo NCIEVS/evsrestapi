@@ -96,22 +96,7 @@ public class LoaderServiceImpl {
     ElasticLoadConfig config = new ElasticLoadConfig();
 
     config.setTerminology(cmd.getOptionValue('t'));
-    config.setRealTime(cmd.hasOption('r'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
-    if (cmd.hasOption('l')) {
-      String location = cmd.getOptionValue('l');
-      if (StringUtils.isBlank(location)) {
-        logger.error("Location is empty!");
-
-      }
-      if (!location.endsWith("/")) {
-        location += "/";
-      }
-      logger.info("location - {}", location);
-      config.setLocation(location);
-    } else {
-      config.setLocation(defaultLocation);
-    }
     if (cmd.hasOption('d')) {
       String location = cmd.getOptionValue('d');
       if (StringUtils.isBlank(location)) {
