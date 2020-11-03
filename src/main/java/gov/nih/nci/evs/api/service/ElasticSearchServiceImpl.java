@@ -145,13 +145,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // append terminology query
-    QueryBuilder terminologyQuery = buildTerminologyQuery(searchCriteria);
+    QueryBuilder terminologyQuery = getTerminologyQuery(searchCriteria);
     if (terminologyQuery != null) {
       boolQuery = boolQuery.must(terminologyQuery);
     }
 
     // append criteria queries
-    List<QueryBuilder> criteriaQueries = buildCriteriaQueries(searchCriteria);
+    List<QueryBuilder> criteriaQueries = getCriteriaQueries(searchCriteria);
     if (!CollectionUtils.isEmpty(criteriaQueries)) {
       for (QueryBuilder criteriaQuery : criteriaQueries) {
         boolQuery = boolQuery.must(criteriaQuery);
@@ -273,7 +273,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria
    * @return the terminology query builder
    */
-  private QueryBuilder buildTerminologyQuery(SearchCriteria searchCriteria) {
+  private QueryBuilder getTerminologyQuery(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getTerminology()))
       return null;
 
@@ -298,7 +298,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return list of nested queries
    */
-  private List<QueryBuilder> buildCriteriaQueries(SearchCriteria searchCriteria) {
+  private List<QueryBuilder> getCriteriaQueries(SearchCriteria searchCriteria) {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // concept status
@@ -318,12 +318,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     QueryBuilder synonymSourceQuery = getSynonymSourceQueryBuilder(searchCriteria);
 
     // synonym termGroup
-    QueryBuilder synonymTermGroupQuery = buildSynonymTermGroupQueryBuilder(searchCriteria);
+    QueryBuilder synonymTermGroupQuery = getSynonymTermGroupQueryBuilder(searchCriteria);
 
     if (synonymSourceQuery != null && synonymTermGroupQuery != null) {
       // synonym termGroup + source search clause
       QueryBuilder synonymTermGroupAndSourceQuery =
-          buildSynonymTermGroupAndSourceQueryBuilder(searchCriteria);
+          getSynonymTermGroupAndSourceQueryBuilder(searchCriteria);
       queries.add(synonymTermGroupAndSourceQuery);
     } else if (synonymSourceQuery != null) {
       queries.add(synonymSourceQuery);
@@ -492,7 +492,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return the nested query
    */
-  private QueryBuilder buildSynonymTermGroupQueryBuilder(SearchCriteria searchCriteria) {
+  private QueryBuilder getSynonymTermGroupQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup()))
       return null;
 
@@ -521,7 +521,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return the nested query
    */
-  private QueryBuilder buildSynonymTermGroupAndSourceQueryBuilder(SearchCriteria searchCriteria) {
+  private QueryBuilder getSynonymTermGroupAndSourceQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup()))
       return null;
 
