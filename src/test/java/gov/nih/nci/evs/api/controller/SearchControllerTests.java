@@ -875,7 +875,7 @@ public class SearchControllerTests {
 		log.info("Testing url - " + url + "?include=synonyms&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY");
 		result = mvc
 				.perform(get(url).param("terminology", "ncit").param("synonymSource", "CDISC").param("pageSize", "100")
-						.param("synonymTermGroup", "SY").param("include", "summary"))
+						.param("synonymTermGroup", "SY").param("include", "synonyms"))
 				.andExpect(status().isOk()).andReturn();
 		content = result.getResponse().getContentAsString();
 		log.info("  content = " + content);
