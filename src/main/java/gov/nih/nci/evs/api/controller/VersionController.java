@@ -44,7 +44,7 @@ public class VersionController {
         + "To learn more about how to interact with this api, see the  "
         + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK' "
         + "target='_blank'>Github evsrestapi-client-SDK project</a>.");
-    homePageData.setVersion("1.2.0.RELEASE");
+    homePageData.setVersion("1.3.0.RELEASE");
     return homePageData;
   }
 
