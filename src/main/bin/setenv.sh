@@ -23,3 +23,5 @@ export ES_HOST="EDIT_THIS, e.g. without https://"
 export ES_PORT="EDIT_THIS, e.g. 443"
 export ES_SCHEME="EDIT_THIS, e.g. https"
 export ES_CLEAN=false
+
+export DATA_DIR=/evs/data/ncim

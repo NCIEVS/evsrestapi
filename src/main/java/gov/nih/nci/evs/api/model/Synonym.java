@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
