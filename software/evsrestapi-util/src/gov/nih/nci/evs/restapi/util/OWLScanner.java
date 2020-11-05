@@ -72,6 +72,8 @@ public class OWLScanner {
     Vector owl_vec = null;
     static String NCIT_NAMESPACE_TARGET = "<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
     static String OWL_CLS_TARGET = NCIT_NAMESPACE_TARGET + "C"; //"<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C";
+    static String OWL_ANNOTATION_PROPERTY_TARGET = NCIT_NAMESPACE_TARGET + "A"; //"<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A";
+
 	static String open_tag = "<owl:Axiom>";
 	static String close_tag = "</owl:Axiom>";
 	static String owlannotatedSource = "owl:annotatedSource";
@@ -2159,6 +2161,41 @@ C4910|<NHC0>C4910</NHC0>
 			}
 		}
 		return new SortUtils().quickSort(w);
+	}
+
+	public Vector getAnnotationProperties(Vector owl_vec) {
+		Vector w = new Vector();
+		boolean istart = false;
+		String prop_label = null;
+		String prop_code = null;
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			if (line.indexOf(OWL_ANNOTATION_PROPERTY_TARGET) != -1) {
+                //System.out.println(line);
+                prop_code = line.trim();
+                int n = prop_code.indexOf("#");
+                int m = prop_code.lastIndexOf(" ");
+                prop_code = prop_code.substring(n+1, m);
+                prop_code = prop_code.trim();
+
+
+			} else if (line.indexOf("</owl:AnnotationProperty>") != -1) {
+				if (prop_code != null) {
+					w.add(prop_code + "|" + prop_label);
+					prop_code = null;
+					prop_label = null;
+			    }
+			}
+			if (line.indexOf("<P108>") != -1) {
+				prop_label = line.trim();
+                int n = prop_label.indexOf(">");
+                int m = prop_label.lastIndexOf("<");
+                prop_label = prop_label.substring(n+1, m);
+                prop_label = prop_label.trim();
+
+			}
+		}
+		return w;
 	}
 
     public static void main(String[] args) {
