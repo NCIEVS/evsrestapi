@@ -2163,6 +2163,10 @@ C4910|<NHC0>C4910</NHC0>
 		return new SortUtils().quickSort(w);
 	}
 
+	public Vector getAnnotationProperties() {
+		return getAnnotationProperties(this.owl_vec);
+	}
+
 	public Vector getAnnotationProperties(Vector owl_vec) {
 		Vector w = new Vector();
 		boolean istart = false;
