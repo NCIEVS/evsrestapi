@@ -132,7 +132,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
               .field("name", 2f).boost(10f)
               .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-          .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
+          .should(QueryBuilders.queryStringQuery(term.toUpperCase())
               .field("code", 2f).boost(10f)
               .defaultOperator(queryStringQueryBuilder.defaultOperator()))
           .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
@@ -140,6 +140,17 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
               .boost(20f))
           .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max));
+
+      // For "contains", also search without wildcards
+      if ("contains".equalsIgnoreCase(searchCriteria.getType())) {
+        QueryStringQueryBuilder termBuilder = QueryBuilders.queryStringQuery(term);
+        boolQuery2 =
+            boolQuery2
+                .should(QueryBuilders.queryStringQuery(term).field("name", 3f).boost(10f)
+                    .defaultOperator(queryStringQueryBuilder.defaultOperator()))
+                .should(
+                    QueryBuilders.nestedQuery("synonyms", termBuilder, ScoreMode.Max).boost(25f));
+      }
 
       boolQuery.must(boolQuery2);
     }
@@ -233,6 +244,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     switch (type.toLowerCase()) {
       case "fuzzy":
         result = updateTokens(term, '~');
+        break;
+      case "contains":
+        result = updateTokens(term, '*');
         break;
       case "phrase":
         result = "\"" + term + "\"";
