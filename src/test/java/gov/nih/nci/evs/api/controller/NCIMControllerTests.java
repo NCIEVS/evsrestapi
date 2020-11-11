@@ -86,7 +86,7 @@ public class NCIMControllerTests {
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
         });
-    assertThat(terminologies.size()).isGreaterThan(1);
+    assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).count())
         .isEqualTo(1);
     final Terminology ncim =
