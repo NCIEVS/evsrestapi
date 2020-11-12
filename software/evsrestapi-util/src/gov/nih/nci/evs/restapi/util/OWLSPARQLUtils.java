@@ -5014,7 +5014,7 @@ Term Type
 	    return v;
 	}
 
-	public String construct_get_concepts_with_properties(String named_graph, Vector prop_codes) {
+	public String construct_get_comcepts_with_properties(String named_graph, Vector prop_codes) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
@@ -5052,39 +5052,10 @@ Term Type
 	}
 
 	public Vector getConceptsWithProperties(String named_graph, Vector prop_codes) {
-	    String query = construct_get_concepts_with_properties(named_graph, prop_codes);
+	    String query = construct_get_comcepts_with_properties(named_graph, prop_codes);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    v = new SortUtils().quickSort(v);
-	    return v;
-	}
-
-	public String construct_get_property_qualifiers(String named_graph) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-
-        buf.append("select distinct ?p_label ?p_code ?q_label ?q_code").append("\n");
-        buf.append("{").append("\n");
-        buf.append("graph <" + named_graph + "> {").append("\n");
-
-		buf.append("                ?a a owl:Axiom .").append("\n");
-		buf.append("                ?a owl:annotatedProperty ?p .").append("\n");
-		buf.append("                ?p rdfs:label ?p_label .").append("\n");
-		buf.append("                ?p :NHC0 ?p_code .").append("\n");
-		buf.append("                ?a ?q ?q_value .").append("\n");
-		buf.append("                ?q rdfs:label ?q_label .").append("\n");
-		buf.append("                ?q :NHC0 ?q_code .").append("\n");
-        buf.append("}").append("\n");
-        buf.append("}").append("\n");
-        return buf.toString();
-	}
-
-	public Vector getPropertyQuailfiers(String named_graph) {
-	    String query = construct_get_property_qualifiers(named_graph);
-	    System.out.println(query);
-	    Vector v = executeQuery(query);
-	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
 }
