@@ -21,6 +21,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
@@ -94,10 +95,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRCONSO);
         final PushBackReader readerDef = readers.getReader(RrfReaders.Keys.MRDEF);) {
       String line = null;
+      String defLine = null;
       Concept concept = new Concept();
       List<Concept> batch = new ArrayList<>();
       String prevCui = null;
       List<Synonym> synList = new ArrayList<Synonym>();
+      List<Definition> defList = new ArrayList<Definition>();
       int totalConcepts = 0;
       while ((line = reader.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
@@ -109,11 +112,25 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         }
         // check if we've hit a new concept
         if (!cui.equals(prevCui)) {
-          handleConcept(concept, batch, false, terminology.getIndexName(), synList);
+          while ((defLine = readerDef.readLine()) != null) {
+            if (!defLine.split("\\|", -1)[0].equals(prevCui)) {
+              readerDef.push(defLine);
+              break;
+            }
+            logger
+                .info("prevCui = " + prevCui + " when defReader = " + defLine.split("\\|", -1)[0]);
+            Definition newDef = new Definition();
+            String[] defLineSplit = defLine.split("\\|", -1);
+            newDef.setDefinition(defLineSplit[5]);
+            newDef.setSource(defLineSplit[4]);
+            defList.add(newDef);
+          }
+          handleConcept(concept, batch, false, terminology.getIndexName(), synList, defList);
           if (totalConcepts++ % 5000 == 0) {
             logger.info("    count = " + totalConcepts);
           }
           synList = new ArrayList<Synonym>();
+          defList = new ArrayList<Definition>();
           concept = new Concept();
           concept.setCode(cui);
           concept.setTerminology(terminology.getTerminology());
@@ -138,7 +155,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         prevCui = cui;
       }
       // make sure to deal with the last concept in file
-      handleConcept(concept, batch, true, terminology.getIndexName(), synList);
+      handleConcept(concept, batch, true, terminology.getIndexName(), synList, defList);
       totalConcepts++;
       return totalConcepts;
     } finally {
@@ -162,11 +179,13 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param flag the flag
    * @param indexName the index name
    * @param synList the syn list
+   * @param defList
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,
-    List<Synonym> synList) throws IOException {
+    List<Synonym> synList, List<Definition> defList) throws IOException {
     concept.setSynonyms(synList);
+    concept.setDefinitions(defList);
     batch.add(concept);
     if (flag || batch.size() == INDEX_BATCH_SIZE) {
       operationsService.bulkIndex(new ArrayList<>(batch), indexName,
