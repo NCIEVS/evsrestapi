@@ -117,8 +117,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
               readerDef.push(defLine);
               break;
             }
-            logger
-                .info("prevCui = " + prevCui + " when defReader = " + defLine.split("\\|", -1)[0]);
+            // handle definitions
             Definition newDef = new Definition();
             String[] defLineSplit = defLine.split("\\|", -1);
             newDef.setDefinition(defLineSplit[5]);

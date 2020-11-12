@@ -189,6 +189,18 @@ public class NCIMControllerTests {
         .isEqualTo("The classification and naming of comorbid conditions.");
     assertThat(concept.getDefinitions().get(0).getSource()).isEqualTo("NCI");
 
+    // last concept in MRCONSO, no definitions
+    url = baseUrl + "/ncim/CL990362";
+    log.info("Testing url - " + url + "?terminology=ncim&code=CL990362");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL990362");
+    assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
+    assertThat(concept.getDefinitions()).isEmpty();
+
     // test random concept with definition
     url = baseUrl + "/ncim/C0030920";
     log.info("Testing url - " + url + "?terminology=ncim&code=C0030920");
