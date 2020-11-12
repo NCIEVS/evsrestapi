@@ -5014,7 +5014,7 @@ Term Type
 	    return v;
 	}
 
-	public String construct_get_comcepts_with_properties(String named_graph, Vector prop_codes) {
+	public String construct_get_concepts_with_properties(String named_graph, Vector prop_codes) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
@@ -5052,7 +5052,7 @@ Term Type
 	}
 
 	public Vector getConceptsWithProperties(String named_graph, Vector prop_codes) {
-	    String query = construct_get_comcepts_with_properties(named_graph, prop_codes);
+	    String query = construct_get_concepts_with_properties(named_graph, prop_codes);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    v = new SortUtils().quickSort(v);
