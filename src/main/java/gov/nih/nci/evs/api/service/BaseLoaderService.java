@@ -239,7 +239,6 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   protected void findAndDeleteTerminology(String ID) throws IOException, InterruptedException {
     DeleteRequest request = new DeleteRequest(ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, ID);
-    logger.info("request DELETE: " + request);
     client.delete(request, RequestOptions.DEFAULT);
     Thread.sleep(5000);
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);

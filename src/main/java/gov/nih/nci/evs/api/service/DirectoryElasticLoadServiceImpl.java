@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
@@ -93,14 +94,17 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRCONSO);
-        final PushBackReader readerDef = readers.getReader(RrfReaders.Keys.MRDEF);) {
+        final PushBackReader readerDef = readers.getReader(RrfReaders.Keys.MRDEF);
+        final PushBackReader readerProp = readers.getReader(RrfReaders.Keys.MRSTY);) {
       String line = null;
       String defLine = null;
+      String propLine = null;
       Concept concept = new Concept();
       List<Concept> batch = new ArrayList<>();
       String prevCui = null;
       List<Synonym> synList = new ArrayList<Synonym>();
       List<Definition> defList = new ArrayList<Definition>();
+      List<Property> propList = new ArrayList<Property>();
       int totalConcepts = 0;
       while ((line = reader.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
@@ -118,18 +122,24 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
               break;
             }
             // handle definitions
-            Definition newDef = new Definition();
-            String[] defLineSplit = defLine.split("\\|", -1);
-            newDef.setDefinition(defLineSplit[5]);
-            newDef.setSource(defLineSplit[4]);
-            defList.add(newDef);
+            defList.add(buildDefinition(defLine.split("\\|", -1)[5], defLine.split("\\|", -1)[4]));
           }
-          handleConcept(concept, batch, false, terminology.getIndexName(), synList, defList);
+          while ((propLine = readerProp.readLine()) != null) {
+            if (!propLine.split("\\|", -1)[0].equals(prevCui)) {
+              readerProp.push(propLine);
+              break;
+            }
+            // handle properties (hard code to Semantic_Type for now)
+            propList.add(buildProperty("Semantic_Type", propLine.split("\\|", -1)[3]));
+          }
+          handleConcept(concept, batch, false, terminology.getIndexName(), synList, defList,
+              propList);
           if (totalConcepts++ % 5000 == 0) {
             logger.info("    count = " + totalConcepts);
           }
           synList = new ArrayList<Synonym>();
           defList = new ArrayList<Definition>();
+          propList = new ArrayList<Property>();
           concept = new Concept();
           concept.setCode(cui);
           concept.setTerminology(terminology.getTerminology());
@@ -154,13 +164,46 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         prevCui = cui;
       }
       // make sure to deal with the last concept in file
-      handleConcept(concept, batch, true, terminology.getIndexName(), synList, defList);
+      if (defLine != null)
+        defList.add(buildDefinition(defLine.split("\\|", -1)[5], defLine.split("\\|", -1)[4]));
+      if (propLine != null)
+        propList.add(buildProperty("Semantic_Type", propLine.split("\\|", -1)[3]));
+      logger.info("propLine = " + propLine);
+      logger.info("propList = " + propList);
+      logger.info("concept = " + concept);
+      handleConcept(concept, batch, true, terminology.getIndexName(), synList, defList, propList);
       totalConcepts++;
       return totalConcepts;
     } finally {
       readers.closeReaders();
     }
 
+  }
+
+  /**
+   * Handle building concept property.
+   *
+   * @param type the property type
+   * @param value the property value
+   */
+  private Property buildProperty(String type, String value) {
+    Property newProp = new Property();
+    newProp.setValue(value);
+    newProp.setType(type);
+    return newProp;
+  }
+
+  /**
+   * Handle building concept definition.
+   *
+   * @param definition the definition text
+   * @param source the definition source
+   */
+  private Definition buildDefinition(String definition, String source) {
+    Definition newDef = new Definition();
+    newDef.setDefinition(definition);
+    newDef.setSource(source);
+    return newDef;
   }
 
   /* see superclass */
@@ -179,12 +222,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param indexName the index name
    * @param synList the syn list
    * @param defList
+   * @param propList
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,
-    List<Synonym> synList, List<Definition> defList) throws IOException {
+    List<Synonym> synList, List<Definition> defList, List<Property> propList) throws IOException {
     concept.setSynonyms(synList);
     concept.setDefinitions(defList);
+    concept.setProperties(propList);
     batch.add(concept);
     if (flag || batch.size() == INDEX_BATCH_SIZE) {
       operationsService.bulkIndex(new ArrayList<>(batch), indexName,
