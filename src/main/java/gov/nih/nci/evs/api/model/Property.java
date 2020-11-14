@@ -18,11 +18,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 /**
  * Represents a synonym of a concept.
  */
-//@JsonIgnoreProperties(value = {
-//    "code"
-//})
+// @JsonIgnoreProperties(value = {
+// "code"
+// })
 @JsonInclude(Include.NON_EMPTY)
-public class Property extends BaseModel {
+public class Property extends BaseModel implements Comparable<Property> {
 
   /** The code. */
   @JsonProperty(access = Access.READ_ONLY)
@@ -76,7 +76,8 @@ public class Property extends BaseModel {
   }
 
   /**
-   * Returns the code.  This is really for internal use for connecting qualifiers to properties.
+   * Returns the code. This is really for internal use for connecting qualifiers
+   * to properties.
    *
    * @return the code
    */
@@ -217,6 +218,12 @@ public class Property extends BaseModel {
       return false;
     }
     return true;
+  }
+
+  /* see superclass */
+  @Override
+  public int compareTo(Property o) {
+    return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
   }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-
 /**
  * Represents a terminology loaded into the EVSAPI.
  * 
@@ -27,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * </pre>
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Terminology extends BaseModel {
+public class Terminology extends BaseModel implements Comparable<Terminology> {
 
   /** The terminology. */
   @Field(type = FieldType.Keyword)
@@ -40,7 +39,7 @@ public class Terminology extends BaseModel {
   /** The date. */
   @Field(type = FieldType.Date)
   private String date;
-  
+
   /** The name. */
   @Field(type = FieldType.Keyword)
   private String name;
@@ -52,7 +51,7 @@ public class Terminology extends BaseModel {
   /** The graph. */
   @Field(type = FieldType.Keyword)
   private String graph;
-  
+
   /** The graph source. */
   @Field(type = FieldType.Keyword)
   private String source;
@@ -76,7 +75,7 @@ public class Terminology extends BaseModel {
   /** The index name for generic objects. */
   @Field(type = FieldType.Keyword)
   private String objectIndexName;
-  
+
   /**
    * Instantiates an empty {@link Terminology}.
    */
@@ -113,7 +112,7 @@ public class Terminology extends BaseModel {
     indexName = other.getIndexName();
     objectIndexName = other.getObjectIndexName();
   }
-  
+
   /**
    * Returns the terminology.
    *
@@ -167,7 +166,7 @@ public class Terminology extends BaseModel {
   public void setDate(String date) {
     this.date = date;
   }
-  
+
   /**
    * Returns the name.
    *
@@ -239,7 +238,7 @@ public class Terminology extends BaseModel {
   public void setSource(final String source) {
     this.source = source;
   }
-  
+
   /**
    * Returns the terminology version.
    *
@@ -321,41 +320,39 @@ public class Terminology extends BaseModel {
     this.indexName = indexName;
   }
 
- /**
-  * Returns the index name for objects.
-  * 
-  * @return the object index name
-  */
- public String getObjectIndexName() {
-   if (StringUtils.isEmpty(objectIndexName)) {
-     objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
-   }
-   return objectIndexName;
- }
+  /**
+   * Returns the index name for objects.
+   * 
+   * @return the object index name
+   */
+  public String getObjectIndexName() {
+    if (StringUtils.isEmpty(objectIndexName)) {
+      objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+    }
+    return objectIndexName;
+  }
 
- /**
-  * Sets the index name for objects.
-  * 
-  * @param objectIndexName the object index name
-  */
- public void setObjectIndexName(String objectIndexName) {
-   this.objectIndexName = objectIndexName;
- }
-  
+  /**
+   * Sets the index name for objects.
+   * 
+   * @param objectIndexName the object index name
+   */
+  public void setObjectIndexName(String objectIndexName) {
+    this.objectIndexName = objectIndexName;
+  }
+
+  /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result =
-        prime * result + ((description == null) ? 0 : description.hashCode());
+    result = prime * result + ((description == null) ? 0 : description.hashCode());
     result = prime * result + ((graph == null) ? 0 : graph.hashCode());
     result = prime * result + ((source == null) ? 0 : source.hashCode());
     result = prime * result + ((latest == null) ? 0 : latest.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result =
-        prime * result + ((terminology == null) ? 0 : terminology.hashCode());
-    result = prime * result
-        + ((terminologyVersion == null) ? 0 : terminologyVersion.hashCode());
+    result = prime * result + ((terminology == null) ? 0 : terminology.hashCode());
+    result = prime * result + ((terminologyVersion == null) ? 0 : terminologyVersion.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
     result = prime * result + ((date == null) ? 0 : date.hashCode());
     result = prime * result + ((indexName == null) ? 0 : indexName.hashCode());
@@ -363,6 +360,7 @@ public class Terminology extends BaseModel {
     return result;
   }
 
+  /* see superclass */
   @Override
   public boolean equals(final Object obj) {
     if (this == obj) {
@@ -454,5 +452,11 @@ public class Terminology extends BaseModel {
     }
     return true;
   }
-  
+
+  /* see superclass */
+  @Override
+  public int compareTo(Terminology o) {
+    return (terminology + version).compareToIgnoreCase(o.getTerminology() + o.getVersion());
+  }
+
 }
