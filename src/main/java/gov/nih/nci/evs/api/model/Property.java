@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // "code"
 // })
 @JsonInclude(Include.NON_EMPTY)
-public class Property extends BaseModel {
+public class Property extends BaseModel implements Comparable<Property> {
 
   /** The code. */
   @JsonProperty(access = Access.READ_ONLY)
@@ -248,6 +248,12 @@ public class Property extends BaseModel {
       return false;
     }
     return true;
+  }
+
+  /* see superclass */
+  @Override
+  public int compareTo(Property o) {
+    return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
   }
 
 }
