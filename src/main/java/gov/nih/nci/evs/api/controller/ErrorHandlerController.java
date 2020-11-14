@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
@@ -112,7 +113,18 @@ public class ErrorHandlerController implements ErrorController {
   protected Map<String, Object> getErrorAttributes(HttpServletRequest request,
     boolean includeStackTrace) {
     WebRequest webRequest = new ServletWebRequest(request);
-    return this.errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
+    Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
+    if (body.containsKey("message")) {
+      try {
+        final String message = body.get("message").toString();
+        final String messagePre = message.replaceFirst("^([a-zA-Z '\"=]+).*", "$1");
+        final String messagePost = message.replaceFirst("^[a-zA-Z '\"=]+(.*)", "$1");
+        body.put("message", messagePre + StringEscapeUtils.escapeHtml4(messagePost));
+      } catch (Exception e) {
+        body.put("message", body.get("message").toString());
+      }
+    }
+    return body;
   }
 
   /* see superclass */
