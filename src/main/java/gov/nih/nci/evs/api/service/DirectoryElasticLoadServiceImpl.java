@@ -168,9 +168,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         defList.add(buildDefinition(defLine.split("\\|", -1)[5], defLine.split("\\|", -1)[4]));
       if (propLine != null)
         propList.add(buildProperty("Semantic_Type", propLine.split("\\|", -1)[3]));
-      logger.info("propLine = " + propLine);
-      logger.info("propList = " + propList);
-      logger.info("concept = " + concept);
       handleConcept(concept, batch, true, terminology.getIndexName(), synList, defList, propList);
       totalConcepts++;
       return totalConcepts;
