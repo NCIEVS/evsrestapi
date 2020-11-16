@@ -53,6 +53,9 @@ public class NCIMControllerTests {
   /** The base url. */
   private String baseUrl = "";
 
+  /** The base url for metadata tests. */
+  private String baseUrlMetadata = "";
+
   /**
    * Sets the up.
    */
@@ -65,6 +68,7 @@ public class NCIMControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
+    baseUrlMetadata = "/api/v1/metadata";
   }
 
   /**
@@ -298,6 +302,37 @@ public class NCIMControllerTests {
     assertThat(concept.getProperties().size()).isEqualTo(1);
     assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
     assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Intellectual Product");
+
+  }
+
+  /**
+   * Metadata property tests.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMetadataProperty() throws Exception {
+    /*
+     * String url = null; MvcResult result = null; String content = null;
+     * List<Concept> properties = null;
+     * 
+     * // test metadata Semantic_Type property url = baseUrl +
+     * "/ncim/properties"; log.info("Testing url - " + url +
+     * "/ncim/properties"); result =
+     * mvc.perform(get(url)).andExpect(status().isOk()).andReturn(); content =
+     * result.getResponse().getContentAsString(); log.info(" content = " +
+     * content);
+     * 
+     * properties = new ObjectMapper().readValue(content, new
+     * TypeReference<List<Concept>>() { // n/a });
+     * 
+     * assertThat(properties.get(0).getCode()).isEqualTo("STY");
+     * assertThat(properties.get(0).getName()).isEqualTo("Semantic_Type");
+     * assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
+     * assertThat(properties.get(0).getVersion()).isEqualTo("202008");
+     * assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo(
+     * "Semantic_Type");
+     */
 
   }
 
