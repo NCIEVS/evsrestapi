@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.model.*;
-import gov.nih.nci.evs.restapi.util.*;
+import gov.nih.nci.evs.restapi.bean.EditAction;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -28,25 +28,6 @@ public class EditHistoryUtils {
 	public EditHistoryUtils() {
 
 	}
-
-/*
-	private String code;
-	private String name;
-	private String terminology;
-	private String version;
-
-	private List<Synonym> synonyms;
-	private List<Definition> definitions;
-	private List<Property> properties;
-	private List<Superclass> superclasses;
-	private List<Role> roles;
-	private List<InverseRole> inverseRoles;
-	private List<Association> associations;
-	private List<InverseAssociation> inverseAssociations;
-
-*/
-
-
 
     public static int toHashCode(ConceptDetails cd) {
 		if (cd == null) return -1;
@@ -308,7 +289,7 @@ public class EditHistoryUtils {
 				   + "|Subsource|" + syn.getSubSource()
 				   + "|source-code|" + syn.getCode());
 			} else {
-				v.add("property|" + code + "|" + syn.getType() + "|" + syn.getName());
+				v.add("property|" + code + "|" + cd.getName() + "|" + syn.getType() + "|" + syn.getName());
 			}
 		}
 		return v;
@@ -339,14 +320,14 @@ public class EditHistoryUtils {
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("added|property|" + t);
+			edit_history.add("add|property|" + t);
 		}
 		w1_clone = (Vector) vec_2.clone();
 		w2_clone = (Vector) vec_1.clone();
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("deleted|property|" + t);
+			edit_history.add("delete|property|" + t);
 		}
 
 		// Definition
@@ -357,14 +338,14 @@ public class EditHistoryUtils {
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("added|" + t);
+			edit_history.add("add|" + t);
 		}
 		w1_clone = (Vector) vec_2.clone();
 		w2_clone = (Vector) vec_1.clone();
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("deleted|" + t);
+			edit_history.add("delete|" + t);
 		}
 
         //FULL_SYN
@@ -375,14 +356,14 @@ public class EditHistoryUtils {
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("added|" + t);
+			edit_history.add("add|" + t);
 		}
 		w1_clone = (Vector) vec_2.clone();
 		w2_clone = (Vector) vec_1.clone();
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("deleted|" + t);
+			edit_history.add("delete|" + t);
 		}
 
 		edit_history.addAll(getEditHistoryForRelatedConcepts(cd_1, cd_2, "role"));
@@ -428,7 +409,7 @@ public class EditHistoryUtils {
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("added|"+ type + "|" + t);
+			edit_history.add("add|"+ type + "|" + t);
 		}
 
 		if (vec_2 == null) {
@@ -444,7 +425,7 @@ public class EditHistoryUtils {
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("deleted|"+ type + "|" + t);
+			edit_history.add("delete|"+ type + "|" + t);
 		}
 		return edit_history;
 	}
@@ -497,7 +478,7 @@ public class EditHistoryUtils {
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String code = (String) w1_clone.elementAt(i);
-			edit_history.add("added|concept|" + code + "|" + (String) code2Label1.get(code));
+			edit_history.add("add|concept|" + code + "|" + (String) code2Label1.get(code));
 		}
 
 		w1_clone = (Vector) w2.clone();
@@ -505,7 +486,7 @@ public class EditHistoryUtils {
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String code = (String) w1_clone.elementAt(i);
-			edit_history.add("deleted|concept|" + code + "|" + (String) code2Label2.get(code));
+			edit_history.add("delete|concept|" + code + "|" + (String) code2Label2.get(code));
 		}
 
         HashMap cd_map_1 = new HashMap();
@@ -534,7 +515,7 @@ public class EditHistoryUtils {
 		}
 		for (int i=0; i<w.size(); i++) {
 			String code = (String) w.elementAt(i);
-			edit_history.add("modified|concept|" + code + "|" + (String) code2Label2.get(code));
+			edit_history.add("modify|concept|" + code + "|" + (String) code2Label2.get(code));
 		}
 		for (int i=0; i<w.size(); i++) {
 			String code = (String) w.elementAt(i);
@@ -545,13 +526,83 @@ public class EditHistoryUtils {
         return edit_history;
     }
 
+    public static EditAction toEditAction(String line) {
+		EditAction ea = null;
+		Vector u = StringUtils.parseData(line);
+		String action = (String) u.elementAt(0);
+		String target = (String) u.elementAt(1);
+		if (target.compareTo("concept") == 0) {
+			ea = new EditAction((String) u.elementAt(3),
+			                    (String) u.elementAt(2),
+			                    (String) u.elementAt(0),
+			                    (String) u.elementAt(1),
+			                    null);
+
+		} else if (target.compareTo("property") == 0) {
+			ea = new EditAction((String) u.elementAt(3),
+			                    (String) u.elementAt(2),
+			                    (String) u.elementAt(0),
+			                    target,
+			                    (String) u.elementAt(4)+"|"+(String) u.elementAt(5));
+		} else if (target.compareTo("association") == 0 ||
+		           target.compareTo("inverseAssociation") == 0 ||
+		           target.compareTo("role") == 0 ||
+		           target.compareTo("inverseRole") == 0) {
+			ea = new EditAction((String) u.elementAt(3),
+			                    (String) u.elementAt(2),
+			                    (String) u.elementAt(0),
+			                    target,
+			                    (String) u.elementAt(4)+"|"+(String) u.elementAt(5));
+		} else {
+			StringBuffer buf = new StringBuffer();
+			for (int i=4; i<u.size(); i++) {
+				buf.append((String) u.elementAt(i));
+				if (i < u.size()-1) {
+					buf.append("|");
+				}
+			}
+			String value = buf.toString();
+			ea = new EditAction((String) u.elementAt(3),
+			                    (String) u.elementAt(2),
+			                    (String) u.elementAt(0),
+			                    target,
+			                    value);
+
+	    }
+		return ea;
+	}
+
+    public static List<EditAction> loadEditHistory(String filename) {
+		Vector lines = Utils.readFile(filename);
+		return toEditActionList(lines);
+	}
+
+    public static List<EditAction> toEditActionList(Vector lines) {
+		List<EditAction> list = new ArrayList();
+		for (int i=0; i<lines.size(); i++) {
+			String line = (String) lines.elementAt(i);
+			EditAction ea = toEditAction(line);
+			list.add(ea);
+    	}
+		return list;
+	}
+
 	public static void main(String[] args) {
+	    Vector v = null;
 	    try {
 	        String jsonfile_new = args[0];
 	        String jsonfile_old = args[1];
 	        Vector edit_history = compare(jsonfile_new, jsonfile_old);
+	        /*
 	        System.out.println("saving edit history...");
 	        Utils.saveToFile("edit_history.txt", edit_history);
+	        List<EditAction> list = loadEditHistory("edit_history.txt");
+	        */
+	        List<EditAction> list = toEditActionList(edit_history);
+	        for (int i=0; i<list.size(); i++) {
+				EditAction ea = (EditAction) list.get(i);
+				System.out.println(ea.toJson());
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
