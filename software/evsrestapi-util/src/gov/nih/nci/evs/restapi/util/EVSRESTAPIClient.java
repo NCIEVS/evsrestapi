@@ -173,7 +173,9 @@ public class EVSRESTAPIClient {
 		} else if (className.compareTo("ConceptDetails") == 0) {
 			gov.nih.nci.evs.restapi.model.ConceptDetails superclass = mapper.readValue(json, gov.nih.nci.evs.restapi.model.ConceptDetails.class);
 	        return superclass;
-
+		} else if (className.compareTo("RESTResponse") == 0) {
+			gov.nih.nci.evs.restapi.model.RESTResponse response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.RESTResponse.class);
+	        return response;
 		}
 		return null;
      }
