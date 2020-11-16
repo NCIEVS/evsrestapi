@@ -216,6 +216,7 @@ public class EditHistoryUtils {
 		return hashcode;
 	}
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static Vector getPropertyValues(ConceptDetails cd) {
 		Vector v = new Vector();
 		String code = cd.getCode();
@@ -223,7 +224,7 @@ public class EditHistoryUtils {
 		if (properties == null || properties.size() == 0) return null;
 		for (int i=0; i<properties.size(); i++) {
 			Property prop = (Property) properties.get(i);
-			v.add(code + "|" + prop.getType() + "|" + prop.getValue());
+			v.add(code + "|" + cd.getName() + "|" + prop.getType() + "|" + prop.getValue());
 		}
 		return v;
 	}
@@ -239,7 +240,7 @@ public class EditHistoryUtils {
 			if (def.getSource().compareTo("NCI") != 0) {
 				label = "ALT_DEFINITION";
 			}
-			v.add(label + "|" + code + "|" + def.getDefinition() + "|source|" + def.getSource());
+			v.add(label + "|" + code + "|" + cd.getName() + "|" + def.getDefinition() + "|source|" + def.getSource());
 		}
 		return v;
 	}
@@ -251,7 +252,7 @@ public class EditHistoryUtils {
 		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			Role role = (Role) roles.get(i);
-			v.add(code + "|" + role.getType() + "|" + role.getRelatedCode());
+			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
 		}
 		return v;
 	}
@@ -263,7 +264,7 @@ public class EditHistoryUtils {
 		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			InverseRole role = (InverseRole) roles.get(i);
-			v.add(code + "|" + role.getType() + "|" + role.getRelatedCode());
+			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
 		}
 		return v;
 	}
@@ -275,7 +276,7 @@ public class EditHistoryUtils {
 		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			Association role = (Association) roles.get(i);
-			v.add(code + "|" + role.getType() + "|" + role.getRelatedCode());
+			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
 		}
 		return v;
 	}
@@ -287,7 +288,7 @@ public class EditHistoryUtils {
 		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			InverseAssociation role = (InverseAssociation) roles.get(i);
-			v.add(code + "|" + role.getType() + "|" + role.getRelatedCode());
+			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
 		}
 		return v;
 	}
@@ -545,11 +546,11 @@ public class EditHistoryUtils {
     }
 
 	public static void main(String[] args) {
-	    Vector v = null;
 	    try {
 	        String jsonfile_new = args[0];
 	        String jsonfile_old = args[1];
 	        Vector edit_history = compare(jsonfile_new, jsonfile_old);
+	        System.out.println("saving edit history...");
 	        Utils.saveToFile("edit_history.txt", edit_history);
 		} catch (Exception ex) {
 			ex.printStackTrace();
