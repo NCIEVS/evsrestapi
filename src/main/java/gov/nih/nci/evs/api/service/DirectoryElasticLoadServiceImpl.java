@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -26,6 +27,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
@@ -68,6 +70,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
+
+  /** The sparql query manager service. */
+  @Autowired
+  private SparqlQueryManagerService sparqlQueryManagerService;
 
   /**
    * Returns the filepath.
@@ -207,7 +213,21 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws Exception {
-    // nothing to do here yet
+    String indexName = terminology.getObjectIndexName();
+    logger.info("Loading Elastic Objects");
+    logger.debug("object index name: {}", indexName);
+
+    List<Concept> properties = new ArrayList<Concept>();
+    Concept semType = new Concept("ncim", "STY", "Semantic_Type");
+    semType.setVersion("202008");
+    Synonym semTypeSyn = new Synonym();
+    semTypeSyn.setName("Semantic_Type");
+    semTypeSyn.setType("Preferred_Name");
+    semType.setSynonyms(Arrays.asList(semTypeSyn));
+    ElasticObject propertiesObject = new ElasticObject("properties");
+    propertiesObject.setConcepts(properties);
+
+    // TODO: figure out indexing
   }
 
   /**
