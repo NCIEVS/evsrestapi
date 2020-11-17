@@ -36,10 +36,6 @@ public class RESTUtils {
   /** The connect timeout. */
   // private Duration connectTimeout;
 
-  /** The builder. */
-  @SuppressWarnings("unused")
-  private RestTemplateBuilder builder;
-
   /**
    * Instantiates an empty {@link RESTUtils}.
    */
