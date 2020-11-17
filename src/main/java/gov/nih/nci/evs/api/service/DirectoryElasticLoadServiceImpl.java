@@ -4,9 +4,9 @@ package gov.nih.nci.evs.api.service;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -21,10 +21,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.PushBackReader;
+import gov.nih.nci.evs.api.util.RrfReaders;
 
 /**
  * The implementation for {@link DirectoryElasticLoadServiceImpl}.
@@ -87,16 +90,19 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy, CommandLine cmd) throws Exception {
-    try (final FileInputStream fis = new FileInputStream(this.getFilepath() + "/MRCONSO.RRF");
-        final InputStreamReader isr = new InputStreamReader(fis);
-        final BufferedReader in = new BufferedReader(isr);) {
+    RrfReaders readers = new RrfReaders(this.getFilepath());
+    readers.openOriginalReaders("MR");
+    try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRCONSO);
+        final PushBackReader readerDef = readers.getReader(RrfReaders.Keys.MRDEF);) {
       String line = null;
+      String defLine = null;
       Concept concept = new Concept();
       List<Concept> batch = new ArrayList<>();
       String prevCui = null;
       List<Synonym> synList = new ArrayList<Synonym>();
+      List<Definition> defList = new ArrayList<Definition>();
       int totalConcepts = 0;
-      while ((line = in.readLine()) != null) {
+      while ((line = reader.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
         final String cui = fields[0];
         // Test assumption that the file is in order (when considering
@@ -106,11 +112,24 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         }
         // check if we've hit a new concept
         if (!cui.equals(prevCui)) {
-          handleConcept(concept, batch, false, terminology.getIndexName(), synList);
+          while ((defLine = readerDef.readLine()) != null) {
+            if (!defLine.split("\\|", -1)[0].equals(prevCui)) {
+              readerDef.push(defLine);
+              break;
+            }
+            // handle definitions
+            Definition newDef = new Definition();
+            String[] defLineSplit = defLine.split("\\|", -1);
+            newDef.setDefinition(defLineSplit[5]);
+            newDef.setSource(defLineSplit[4]);
+            defList.add(newDef);
+          }
+          handleConcept(concept, batch, false, terminology.getIndexName(), synList, defList);
           if (totalConcepts++ % 5000 == 0) {
             logger.info("    count = " + totalConcepts);
           }
           synList = new ArrayList<Synonym>();
+          defList = new ArrayList<Definition>();
           concept = new Concept();
           concept.setCode(cui);
           concept.setTerminology(terminology.getTerminology());
@@ -135,9 +154,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         prevCui = cui;
       }
       // make sure to deal with the last concept in file
-      handleConcept(concept, batch, true, terminology.getIndexName(), synList);
+      handleConcept(concept, batch, true, terminology.getIndexName(), synList, defList);
       totalConcepts++;
       return totalConcepts;
+    } finally {
+      readers.closeReaders();
     }
 
   }
@@ -157,11 +178,13 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param flag the flag
    * @param indexName the index name
    * @param synList the syn list
+   * @param defList
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,
-    List<Synonym> synList) throws IOException {
+    List<Synonym> synList, List<Definition> defList) throws IOException {
     concept.setSynonyms(synList);
+    concept.setDefinitions(defList);
     batch.add(concept);
     if (flag || batch.size() == INDEX_BATCH_SIZE) {
       operationsService.bulkIndex(new ArrayList<>(batch), indexName,
@@ -173,16 +196,15 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
-    String filepath, String terminology) throws Exception {
+    String filepath, String terminology, boolean forceDelete) throws Exception {
     // will eventually read and build differently
     this.setFilepath(new File(filepath));
     if (!this.getFilepath().exists()) {
       throw new Exception("Given filepath does not exist");
     }
     try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
-        final FileInputStream fis = new FileInputStream(this.getFilepath() + "/MRSAB.RRF");
-        final InputStreamReader isr = new InputStreamReader(fis);
-        final BufferedReader in = new BufferedReader(isr);) {
+        final BufferedReader in =
+            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
 
       String line;
       while ((line = in.readLine()) != null) {
@@ -205,6 +227,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
       term.setIndexName("concept_" + term.getTerminologyVersion());
       term.setLatest(true);
+      if (forceDelete) {
+        logger.info("DELETE TERMINOLOGY = " + term.getIndexName());
+        findAndDeleteTerminology(term.getIndexName());
+      }
+
       logger.info("  ADD terminology = " + term);
       return term;
     } catch (IOException ex) {

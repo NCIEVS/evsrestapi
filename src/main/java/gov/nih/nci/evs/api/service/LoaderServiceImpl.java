@@ -147,8 +147,8 @@ public class LoaderServiceImpl {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
       ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
-      Terminology term =
-          loadService.getTerminology(app, config, cmd.getOptionValue("d"), cmd.getOptionValue("t"));
+      Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
+          cmd.getOptionValue("t"), config.isForceDeleteIndex());
       HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
       int totalConcepts = loadService.loadConcepts(config, term, hierarchy, cmd);
       loadService.checkLoadStatus(totalConcepts, term);

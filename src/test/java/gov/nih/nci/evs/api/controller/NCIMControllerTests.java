@@ -86,7 +86,7 @@ public class NCIMControllerTests {
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
         });
-    assertThat(terminologies.size()).isGreaterThan(1);
+    assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).count())
         .isEqualTo(1);
     final Terminology ncim =
@@ -146,6 +146,88 @@ public class NCIMControllerTests {
     assertThat(concept.getName()).isEqualTo("Acetic Acids");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
     assertThat(concept.getSynonyms().get(1).getCode()).isNull();
+
+  }
+
+  /**
+   * MRDEF basic tests.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMRDEF() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // first concept in MRCONSO, no definitions
+    url = baseUrl + "/ncim/C0000005";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000005");
+    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+    assertThat(concept.getDefinitions()).isEmpty();
+
+    // last concept in MRCONSO with definition
+    url = baseUrl + "/ncim/CL977629";
+    log.info("Testing url - " + url + "?terminology=ncim&code=CL977629");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL977629");
+    assertThat(concept.getName()).isEqualTo("Concurrent Disease Type");
+    assertThat(concept.getDefinitions()).isNotNull();
+    assertThat(concept.getDefinitions().size()).isEqualTo(1);
+    assertThat(concept.getDefinitions().get(0).getDefinition())
+        .isEqualTo("The classification and naming of comorbid conditions.");
+    assertThat(concept.getDefinitions().get(0).getSource()).isEqualTo("NCI");
+
+    // last concept in MRCONSO, no definitions
+    url = baseUrl + "/ncim/CL990362";
+    log.info("Testing url - " + url + "?terminology=ncim&code=CL990362");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL990362");
+    assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
+    assertThat(concept.getDefinitions()).isEmpty();
+
+    // test random concept with definition
+    url = baseUrl + "/ncim/C0030920";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0030920");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0030920");
+    assertThat(concept.getName()).isEqualTo("Peptic Ulcer");
+    assertThat(concept.getDefinitions()).isNotNull();
+    assertThat(concept.getDefinitions().size()).isEqualTo(8);
+    assertThat(concept.getDefinitions().get(1).getDefinition())
+        .isEqualTo("An ulcer of the gastrointestinal tract. [HPO:probinson]");
+    assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("HPO");
+
+    // test random concept with no definition
+    url = baseUrl + "/ncim/C0426679";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0426679");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0426679");
+    assertThat(concept.getName()).isEqualTo("Puddle sign");
+    assertThat(concept.getDefinitions()).isEmpty();
 
   }
 

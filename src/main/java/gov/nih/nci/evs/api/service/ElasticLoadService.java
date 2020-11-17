@@ -70,13 +70,14 @@ public interface ElasticLoadService {
    * @param config the config object
    * @param filepath the filepath
    * @param termName the terminology name
+   * @param forceDelete force delete terminology
    * @return Terminology
    * 
    *
    * @throws Exception the exception
    */
   Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, String filepath,
-    String termName) throws Exception;
+    String termName, boolean forceDelete) throws Exception;
 
   /**
    * check load status
