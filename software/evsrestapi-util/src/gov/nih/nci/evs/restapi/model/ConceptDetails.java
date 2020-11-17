@@ -11,13 +11,12 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-
-public class ConceptDetails
+public class ConceptDetails extends Concept
 {
 
 // Variable declaration
 	private List<Superclass> parents;
-	private List<Superclass> children;
+	private List<Subclass> children;
 	private List<Role> roles;
 	private List<InverseRole> inverseRoles;
 	private List<Association> associations;
@@ -31,7 +30,7 @@ public class ConceptDetails
 // Constructor
 	public ConceptDetails(
 		List<Superclass> parents,
-		List<Superclass> children,
+		List<Subclass> children,
 		List<Role> roles,
 		List<InverseRole> inverseRoles,
 		List<Association> associations,
@@ -52,7 +51,7 @@ public class ConceptDetails
 		this.parents = parents;
 	}
 
-	public void setChildren(List<Superclass> children) {
+	public void setChildren(List<Subclass> children) {
 		this.children = children;
 	}
 
@@ -82,7 +81,7 @@ public class ConceptDetails
 		return this.parents;
 	}
 
-	public List<Superclass> getChildren() {
+	public List<Subclass> getChildren() {
 		return this.children;
 	}
 
@@ -135,5 +134,4 @@ public class ConceptDetails
 		}
 		return buf.toString();
 	}
-
 }

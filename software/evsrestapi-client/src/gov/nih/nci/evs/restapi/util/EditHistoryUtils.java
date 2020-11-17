@@ -1,4 +1,4 @@
-import gov.nih.nci.evs.restapi.util.*;
+package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.model.*;
 import gov.nih.nci.evs.restapi.bean.EditAction;
@@ -58,8 +58,8 @@ public class EditHistoryUtils {
         if (cd.getDefinitions() != null) {
 			hashcode = hashcode + getDefinitionHashCode(cd.getDefinitions());
 		}
-        if (cd.getSuperclasses() != null) {
-			hashcode = hashcode + getSuperclassHashCode(cd.getSuperclasses());
+        if (cd.getParents() != null) {
+			hashcode = hashcode + getSuperclassHashCode(cd.getParents());
 		}
 	    return hashcode;
 	}
@@ -198,6 +198,18 @@ public class EditHistoryUtils {
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static Vector getSuperclassValues(ConceptDetails cd) {
+		Vector v = new Vector();
+		String code = cd.getCode();
+		List<Superclass> superclasses = cd.getParents();
+		if (superclasses == null || superclasses.size() == 0) return null;
+		for (int i=0; i<superclasses.size(); i++) {
+			Superclass superclass = (Superclass) superclasses.get(i);
+			v.add(code + "|" + cd.getName() + "|" + superclass.getCode() + "|" + superclass.getName());
+		}
+		return v;
+	}
+
     public static Vector getPropertyValues(ConceptDetails cd) {
 		Vector v = new Vector();
 		String code = cd.getCode();
@@ -312,11 +324,29 @@ public class EditHistoryUtils {
 
     public static Vector compare(ConceptDetails cd_1, ConceptDetails cd_2) {
 		Vector edit_history = new Vector();
-        //property
-        Vector vec_1 = getPropertyValues(cd_1);
-        Vector vec_2 = getPropertyValues(cd_2);
+		//superclasses
+        Vector vec_1 = getSuperclassValues(cd_1);
+        Vector vec_2 = getSuperclassValues(cd_2);
 		Vector w1_clone = (Vector) vec_1.clone();
 		Vector w2_clone = (Vector) vec_2.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("add|superclass|" + t);
+		}
+		w1_clone = (Vector) vec_2.clone();
+		w2_clone = (Vector) vec_1.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("delete|superclass|" + t);
+		}
+
+        //property
+        vec_1 = getPropertyValues(cd_1);
+        vec_2 = getPropertyValues(cd_2);
+		w1_clone = (Vector) vec_1.clone();
+		w2_clone = (Vector) vec_2.clone();
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
@@ -431,8 +461,24 @@ public class EditHistoryUtils {
 	}
 
     public static Vector compare(String jsonfilenew, String jsonfileold) {
-        Vector v1 = Utils.readFile(jsonfilenew);
-        Vector v2 = Utils.readFile(jsonfileold);
+        Vector v10 = Utils.readFile(jsonfilenew);
+        Vector v20 = Utils.readFile(jsonfileold);
+        Vector v1 = new Vector();
+        for (int i=0; i<v10.size(); i++) {
+			String t = (String) v10.elementAt(i);
+			t = t.trim();
+			if (t.length() > 0) {
+				v1.add(t);
+			}
+		}
+        Vector v2 = new Vector();
+        for (int i=0; i<v20.size(); i++) {
+			String t = (String) v20.elementAt(i);
+			t = t.trim();
+			if (t.length() > 0) {
+				v2.add(t);
+			}
+		}
         Vector<ConceptDetails> cd1 = new Vector();
         Vector<ConceptDetails> cd2 = new Vector();
         Vector<String> w1 = new Vector();
@@ -452,11 +498,16 @@ public class EditHistoryUtils {
 			ConceptDetails cd = null;
 			try {
 			    cd = (ConceptDetails) EVSRESTAPIClient.deserialize("ConceptDetails", json);
+			    if (cd == null) {
+					System.out.println(json);
+				}
+
 			    cd1.add(cd);
 			    w1.add(cd.getCode());
 			    code2CDMap1.put(cd.getCode(), cd);
 			    code2Label1.put(cd.getCode(), cd.getName());
 			} catch (Exception ex) {
+				System.out.println(json);
 				ex.printStackTrace();
 			}
 		}
