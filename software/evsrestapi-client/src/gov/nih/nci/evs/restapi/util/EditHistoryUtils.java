@@ -461,8 +461,24 @@ public class EditHistoryUtils {
 	}
 
     public static Vector compare(String jsonfilenew, String jsonfileold) {
-        Vector v1 = Utils.readFile(jsonfilenew);
-        Vector v2 = Utils.readFile(jsonfileold);
+        Vector v10 = Utils.readFile(jsonfilenew);
+        Vector v20 = Utils.readFile(jsonfileold);
+        Vector v1 = new Vector();
+        for (int i=0; i<v10.size(); i++) {
+			String t = (String) v10.elementAt(i);
+			t = t.trim();
+			if (t.length() > 0) {
+				v1.add(t);
+			}
+		}
+        Vector v2 = new Vector();
+        for (int i=0; i<v20.size(); i++) {
+			String t = (String) v20.elementAt(i);
+			t = t.trim();
+			if (t.length() > 0) {
+				v2.add(t);
+			}
+		}
         Vector<ConceptDetails> cd1 = new Vector();
         Vector<ConceptDetails> cd2 = new Vector();
         Vector<String> w1 = new Vector();
@@ -482,11 +498,16 @@ public class EditHistoryUtils {
 			ConceptDetails cd = null;
 			try {
 			    cd = (ConceptDetails) EVSRESTAPIClient.deserialize("ConceptDetails", json);
+			    if (cd == null) {
+					System.out.println(json);
+				}
+
 			    cd1.add(cd);
 			    w1.add(cd.getCode());
 			    code2CDMap1.put(cd.getCode(), cd);
 			    code2Label1.put(cd.getCode(), cd.getName());
 			} catch (Exception ex) {
+				System.out.println(json);
 				ex.printStackTrace();
 			}
 		}
