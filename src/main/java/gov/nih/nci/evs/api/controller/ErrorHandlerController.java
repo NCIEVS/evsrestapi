@@ -56,13 +56,10 @@ public class ErrorHandlerController implements ErrorController {
     final Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
     final Map<String, Object> body = getErrorAttributes(request, false);
     String ppBody = null;
-    logger.info("XXX");
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
-      logger.info("XXX2 = " + ppBody);
     } catch (Exception e) {
       ppBody = body.toString().replaceAll("<", "&lt;");
-      logger.info("XXX3 = " + ppBody);
     }
 
     return String.format("<html><body><h2>Error Page</h2><div>Something went wrong, "
