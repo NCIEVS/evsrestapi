@@ -48,6 +48,7 @@ public class EVSRESTAPIClient {
 		EVSRESTAPI_URL_MAP.put("disjointWith", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/disjointWith");
 		EVSRESTAPI_URL_MAP.put("pathsFromRoot", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/pathsFromRoot");
 		EVSRESTAPI_URL_MAP.put("parents", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/parents");
+        EVSRESTAPI_URL_MAP.put("concept", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}?include=full");
 	}
 
 	public EVSRESTAPIClient() {
@@ -170,6 +171,12 @@ public class EVSRESTAPIClient {
 		} else if (className.compareTo("Superclass") == 0) {
 			gov.nih.nci.evs.restapi.model.Superclass superclass = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Superclass.class);
 	        return superclass;
+		} else if (className.compareTo("Subclass") == 0) {
+			gov.nih.nci.evs.restapi.model.Subclass subclass = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Subclass.class);
+	        return subclass;
+		} else if (className.compareTo("MapsTo") == 0) {
+			gov.nih.nci.evs.restapi.model.MapsTo mapsTo = mapper.readValue(json, gov.nih.nci.evs.restapi.model.MapsTo.class);
+	        return mapsTo;
 		} else if (className.compareTo("ConceptDetails") == 0) {
 			gov.nih.nci.evs.restapi.model.ConceptDetails superclass = mapper.readValue(json, gov.nih.nci.evs.restapi.model.ConceptDetails.class);
 	        return superclass;
@@ -227,10 +234,16 @@ public class EVSRESTAPIClient {
 	}
 
 	public static gov.nih.nci.evs.restapi.model.ConceptDetails getConceptDetails(String terminology, String code) {
-		HashMap hmap = EVSRESTAPI_URL_MAP;
+		//HashMap hmap = EVSRESTAPI_URL_MAP;
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		gov.nih.nci.evs.restapi.model.ConceptDetails conceptDetails = null;
+		String t = (String) EVSRESTAPI_URL_MAP.get("concept");
+		t = t.replace("{terminology}", terminology);
+		String url = t.replace("{code}", code);
+        String json = getJson(url);
+		/*
+
         String url = getURL(terminology, code);
 		String json = getJson(url);
 
@@ -258,18 +271,20 @@ public class EVSRESTAPIClient {
 		url = getURL(url, terminology, code);
 		value = getJson(url);
 		json = appendJSON(json, "superclasses", value);
+		*/
 
 		try {
 			conceptDetails = (gov.nih.nci.evs.restapi.model.ConceptDetails) deserialize("ConceptDetails", json);
-			System.out.println(conceptDetails.toJson());
+			//System.out.println(conceptDetails.toJson());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-
         return conceptDetails;
 	}
 
 	public static String getConceptDetailsInJSON(String terminology, String code) {
+		ConceptDetails cd = getConceptDetails(terminology, code);
+		/*
 		HashMap hmap = EVSRESTAPI_URL_MAP;
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -301,8 +316,8 @@ public class EVSRESTAPIClient {
 		url = getURL(url, terminology, code);
 		value = getJson(url);
 		json = appendJSON(json, "superclasses", value);
-
-		return json;
+        */
+		return flattenJSON(cd.toJson());
 	}
 
 	public static Vector getConceptDetailsInJSON(String terminology, Vector codes) {
@@ -337,13 +352,30 @@ public class EVSRESTAPIClient {
 		return response;
 	}
 
+	public static String flattenJSON(String json) {
+		String t = json;
+		Vector u = StringUtils.parseData(t, "\n");
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<u.size(); i++) {
+			String s = (String) u.elementAt(i);
+			s = s.trim();
+			buf.append(s);
+		}
+		return buf.toString();
+	}
+
 	public static void main(String[] args) {
 	    Vector v = null;
 	    try {
             String terminology = "ncit";
             String code = "C3224";
-            gov.nih.nci.evs.restapi.model.Concept c = getConceptDetails(terminology, code);
-            System.out.println(c.toJson());
+            gov.nih.nci.evs.restapi.model.ConceptDetails c = getConceptDetails(terminology, code);
+            String json = c.toJson();
+            //System.out.println(c.toJson());
+            String flattened_json = flattenJSON(json);
+            System.out.println(flattened_json);
+            gov.nih.nci.evs.restapi.model.ConceptDetails c2 = (ConceptDetails) deserialize("ConceptDetails", flattened_json);
+            System.out.println(c2.toJson());
 
 		} catch (Exception ex) {
 			ex.printStackTrace();

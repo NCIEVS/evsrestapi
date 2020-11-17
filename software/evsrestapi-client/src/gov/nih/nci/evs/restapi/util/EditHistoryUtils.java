@@ -58,8 +58,8 @@ public class EditHistoryUtils {
         if (cd.getDefinitions() != null) {
 			hashcode = hashcode + getDefinitionHashCode(cd.getDefinitions());
 		}
-        if (cd.getSuperclasses() != null) {
-			hashcode = hashcode + getSuperclassHashCode(cd.getSuperclasses());
+        if (cd.getParents() != null) {
+			hashcode = hashcode + getSuperclassHashCode(cd.getParents());
 		}
 	    return hashcode;
 	}
@@ -201,7 +201,7 @@ public class EditHistoryUtils {
     public static Vector getSuperclassValues(ConceptDetails cd) {
 		Vector v = new Vector();
 		String code = cd.getCode();
-		List<Superclass> superclasses = cd.getSuperclasses();
+		List<Superclass> superclasses = cd.getParents();
 		if (superclasses == null || superclasses.size() == 0) return null;
 		for (int i=0; i<superclasses.size(); i++) {
 			Superclass superclass = (Superclass) superclasses.get(i);
