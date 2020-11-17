@@ -101,6 +101,7 @@ public class TerminologyUnitTest {
     tester.include("latest");
     tester.include("indexName");
     tester.include("objectIndexName");
+    tester.include("sparqlFlag");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);

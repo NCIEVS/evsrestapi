@@ -312,27 +312,27 @@ public class NCIMControllerTests {
    */
   @Test
   public void testMetadataProperty() throws Exception {
-    /*
-     * String url = null; MvcResult result = null; String content = null;
-     * List<Concept> properties = null;
-     * 
-     * // test metadata Semantic_Type property url = baseUrl +
-     * "/ncim/properties"; log.info("Testing url - " + url +
-     * "/ncim/properties"); result =
-     * mvc.perform(get(url)).andExpect(status().isOk()).andReturn(); content =
-     * result.getResponse().getContentAsString(); log.info(" content = " +
-     * content);
-     * 
-     * properties = new ObjectMapper().readValue(content, new
-     * TypeReference<List<Concept>>() { // n/a });
-     * 
-     * assertThat(properties.get(0).getCode()).isEqualTo("STY");
-     * assertThat(properties.get(0).getName()).isEqualTo("Semantic_Type");
-     * assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
-     * assertThat(properties.get(0).getVersion()).isEqualTo("202008");
-     * assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo(
-     * "Semantic_Type");
-     */
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> properties = null;
+
+    // Semantic_Type property url = baseUrl + "/ncim/properties";
+    url = baseUrlMetadata + "/ncim/properties?include=synonyms";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    properties = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+    });
+
+    assertThat(properties.get(0).getCode()).isEqualTo("STY");
+    assertThat(properties.get(0).getName()).isEqualTo("Semantic_Type");
+    assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
+    assertThat(properties.get(0).getVersion()).isEqualTo("202008");
+    assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo("Semantic_Type");
 
   }
 

@@ -215,17 +215,25 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     HierarchyUtils hierarchy) throws Exception {
     String indexName = terminology.getObjectIndexName();
     logger.info("Loading Elastic Objects");
-    logger.debug("object index name: {}", indexName);
+    logger.info("object index name: {}", indexName);
+    boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
+    logger.debug("index result: {}", result);
 
-    List<Concept> properties = new ArrayList<Concept>();
+    // first level property info
     Concept semType = new Concept("ncim", "STY", "Semantic_Type");
     semType.setVersion("202008");
+    // property synonym info
     Synonym semTypeSyn = new Synonym();
     semTypeSyn.setName("Semantic_Type");
     semTypeSyn.setType("Preferred_Name");
+    // add synonym as list to property
     semType.setSynonyms(Arrays.asList(semTypeSyn));
     ElasticObject propertiesObject = new ElasticObject("properties");
-    propertiesObject.setConcepts(properties);
+    // add properties to the object
+    propertiesObject.setConcepts(Arrays.asList(semType));
+
+    operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     // TODO: figure out indexing
   }
@@ -289,6 +297,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
       term.setIndexName("concept_" + term.getTerminologyVersion());
       term.setLatest(true);
+      term.setSparqlFlag(false);
       if (forceDelete) {
         logger.info("DELETE TERMINOLOGY = " + term.getIndexName());
         findAndDeleteTerminology(term.getIndexName());
@@ -307,5 +316,15 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   public HierarchyUtils getHierarchyUtils(Terminology term) {
     // Don't need hierarchy utils in this indexing
     return null;
+  }
+
+  /**
+   * Clean stale indexes.
+   *
+   * @throws Exception the exception
+   */
+  @Override
+  public void cleanStaleIndexes() throws Exception {
+    // do nothing
   }
 }
