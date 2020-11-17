@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -169,8 +170,9 @@ public class MetadataServiceImpl implements MetadataService {
     // Need to identify which attributes are associated with "other model
     // elements" - they should probably be excluded too - have to derive from
     // properties
-    final Set<String> neverUsedCodes = sparqlQueryManagerService.getAllPropertiesNeverUsed(term, ip)
-        .stream().map(q -> q.getCode()).collect(Collectors.toSet());
+    final Set<String> neverUsedCodes = term.getSparqlFlag() != null && !term.getSparqlFlag()
+        ? new HashSet<>() : sparqlQueryManagerService.getAllPropertiesNeverUsed(term, ip).stream()
+            .map(q -> q.getCode()).collect(Collectors.toSet());
     final Set<String> qualifierCodes = esQueryService.getQualifiers(term, ip).stream()
         .map(q -> q.getCode()).collect(Collectors.toSet());
 

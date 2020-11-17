@@ -53,6 +53,9 @@ public class NCIMControllerTests {
   /** The base url. */
   private String baseUrl = "";
 
+  /** The base url for metadata tests. */
+  private String baseUrlMetadata = "";
+
   /**
    * Sets the up.
    */
@@ -65,6 +68,7 @@ public class NCIMControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
+    baseUrlMetadata = "/api/v1/metadata";
   }
 
   /**
@@ -228,6 +232,107 @@ public class NCIMControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0426679");
     assertThat(concept.getName()).isEqualTo("Puddle sign");
     assertThat(concept.getDefinitions()).isEmpty();
+
+  }
+
+  /**
+   * MRDEF basic tests.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMRSTY() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // first concept in MRCONSO, three properties
+    url = baseUrl + "/ncim/C0000005";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000005");
+    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+    assertThat(concept.getProperties().size()).isGreaterThan(1);
+    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
+    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
+
+    // test random concept with property
+    url = baseUrl + "/ncim/C0718043";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0718043");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0718043");
+    assertThat(concept.getName()).isEqualTo("Sacrosidase");
+    assertThat(concept.getProperties().size()).isGreaterThan(1);
+    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
+    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
+
+    // test penultimate concept with property
+    url = baseUrl + "/ncim/CL990131";
+    log.info("Testing url - " + url + "?terminology=ncim&code=CL990131");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL990131");
+    assertThat(concept.getName()).isEqualTo("HUGO Gene Nomenclature Committee, 2019_03");
+    assertThat(concept.getProperties().size()).isGreaterThan(0);
+    assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
+    assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Intellectual Product");
+
+    // last concept in MRCONSO with one property
+    url = baseUrl + "/ncim/CL990362";
+    log.info("Testing url - " + url + "?terminology=ncim&code=CL990362");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL990362");
+    assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
+    assertThat(concept.getProperties().size()).isEqualTo(1);
+    assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
+    assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Intellectual Product");
+
+  }
+
+  /**
+   * Metadata property tests.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMetadataProperty() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> properties = null;
+
+    // Semantic_Type property url = baseUrl + "/ncim/properties";
+    url = baseUrlMetadata + "/ncim/properties?include=synonyms";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    properties = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+    });
+
+    assertThat(properties.get(0).getCode()).isEqualTo("STY");
+    assertThat(properties.get(0).getName()).isEqualTo("Semantic_Type");
+    assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
+    assertThat(properties.get(0).getVersion()).isEqualTo("202008");
+    assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo("Semantic_Type");
 
   }
 
