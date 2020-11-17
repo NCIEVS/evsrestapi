@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.util.*;
 
 import gov.nih.nci.evs.restapi.model.*;
 import gov.nih.nci.evs.restapi.bean.EditAction;
@@ -25,26 +25,43 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 
 public class EditHistoryUtils {
 	public static String DEFAULT_TERMINOLOGY = "ncit";
-
-	public static String[] DATA_TYPES = new String[] {
-		"synonyms",
-		"definitions",
-		"properties",
-		"parents",
-		"children",
-		"associations",
-		"inverseAssociations",
-		"roles",
-		"inverseRoles",
-		"maps"
-	};
-
 	public EditHistoryUtils() {
 
 	}
 
     public static int toHashCode(ConceptDetails cd) {
-		return cd.toJson().hashCode();
+		if (cd == null) return -1;
+		int hashcode = 0;
+		hashcode = hashcode + cd.getCode().hashCode()
+		                    + cd.getName().hashCode()
+		                    + cd.getTerminology().hashCode()
+		                    + cd.getVersion().hashCode();
+
+        if (cd.getSynonyms() != null) {
+			hashcode = hashcode + getSynonymHashCode(cd.getSynonyms());
+		}
+        if (cd.getProperties() != null) {
+			hashcode = hashcode + getPropertyHashCode(cd.getProperties());
+		}
+        if (cd.getRoles() != null) {
+			hashcode = hashcode + getRoleHashCode(cd.getRoles());
+		}
+        if (cd.getInverseRoles() != null) {
+			hashcode = hashcode + getInverseRoleHashCode(cd.getInverseRoles());
+		}
+        if (cd.getAssociations() != null) {
+			hashcode = hashcode + getAssociationHashCode(cd.getAssociations());
+		}
+        if (cd.getInverseAssociations() != null) {
+			hashcode = hashcode + getInverseAssociationHashCode(cd.getInverseAssociations());
+		}
+        if (cd.getDefinitions() != null) {
+			hashcode = hashcode + getDefinitionHashCode(cd.getDefinitions());
+		}
+        if (cd.getSuperclasses() != null) {
+			hashcode = hashcode + getSuperclassHashCode(cd.getSuperclasses());
+		}
+	    return hashcode;
 	}
 
 	public static Vector getValueSetInJSON(ValueSet vs) {
@@ -57,141 +74,135 @@ public class EditHistoryUtils {
 		return w;
 	}
 
-    public static int getHashCode(List list) {
+    public static int getDefinitionHashCode(List<Definition> definitions) {
 		int hashcode = 0;
-		if (list == null || list.size() == 0) return hashcode;
-		for (int i=0; i<list.size(); i++) {
-			Object obj = list.get(i);
-			if (obj instanceof Synonym) {
-				Synonym cls = (Synonym) obj;
-				if (cls.getName() != null) hashcode = hashcode + cls.getName().hashCode();
-				if (cls.getType() != null) hashcode = hashcode + cls.getType().hashCode();
-				if (cls.getTermGroup() != null) hashcode = hashcode + cls.getTermGroup().hashCode();
-				if (cls.getSource() != null) hashcode = hashcode + cls.getSource().hashCode();
-				if (cls.getSubSource() != null) hashcode = hashcode + cls.getSubSource().hashCode();
-				if (cls.getCode() != null) hashcode = hashcode + cls.getCode().hashCode();
-			} else if (obj instanceof Definition) {
-				Definition cls = (Definition) obj;
-				if (cls.getDefinition() != null) hashcode = hashcode + cls.getDefinition().hashCode();
-				if (cls.getType() != null) hashcode = hashcode + cls.getType().hashCode();
-				if (cls.getSource() != null) hashcode = hashcode + cls.getSource().hashCode();
-			} else if (obj instanceof Property) {
-				Property cls = (Property) obj;
-				hashcode = hashcode + cls.getType().hashCode() + cls.getValue().hashCode();
-			} else if (obj instanceof Subclass) {
-				Subclass cls = (Subclass) obj;
-				hashcode = hashcode + cls.getCode().hashCode() + cls.getName().hashCode();
-			} else if (obj instanceof Superclass) {
-				Superclass cls = (Superclass) obj;
-				hashcode = hashcode + cls.getCode().hashCode() + cls.getName().hashCode();
-			} else if (obj instanceof Association) {
-				Association cls = (Association) obj;
-				hashcode = hashcode + cls.getType().hashCode() + cls.getRelatedCode().hashCode() + cls.getRelatedName().hashCode();
-			} else if (obj instanceof InverseAssociation) {
-				InverseAssociation cls = (InverseAssociation) obj;
-				hashcode = hashcode + cls.getType().hashCode() + cls.getRelatedCode().hashCode() + cls.getRelatedName().hashCode();
-			} else if (obj instanceof Role) {
-				Role cls = (Role) obj;
-				hashcode = hashcode + cls.getType().hashCode() + cls.getRelatedCode().hashCode() + cls.getRelatedName().hashCode();
-			} else if (obj instanceof InverseRole) {
-				InverseRole cls = (InverseRole) obj;
-				hashcode = hashcode + cls.getType().hashCode() + cls.getRelatedCode().hashCode() + cls.getRelatedName().hashCode();
-			} else if (obj instanceof MapsTo) {
-				MapsTo cls = (MapsTo) obj;
-				hashcode = hashcode + cls.getType().hashCode()
-				                    + cls.getTargetTermGroup().hashCode()
-				                    + cls.getTargetCode().hashCode()
-				                    + cls.getTargetTerminology().hashCode()
-				                    + cls.getTargetTerminologyVersion().hashCode();
+		if (definitions == null || definitions.size() == 0) return 0;
+		for (int i=0; i<definitions.size(); i++) {
+			Definition prop = (Definition) definitions.get(i);
+			if (prop.getType() != null) {
+				hashcode = hashcode + prop.getType().hashCode();
+			}
+			if (prop.getDefinition() != null) {
+				hashcode = hashcode + prop.getDefinition().hashCode();
+			}
+			if (prop.getSource() != null) {
+				hashcode = hashcode + prop.getSource().hashCode();
 			}
 		}
 		return hashcode;
 	}
 
-
-
-    public static int getHashCode(ConceptDetails cd, String type) {
+    public static int getSuperclassHashCode(List<Superclass> superclasses) {
 		int hashcode = 0;
-		if (type.compareTo("synonyms") == 0) {
-			 return getHashCode(cd.getSynonyms());
-		} else if (type.compareTo("definitions") == 0) {
-			 return getHashCode(cd.getDefinitions());
-		} else if (type.compareTo("properties") == 0) {
-			 return getHashCode(cd.getProperties());
-		} else if (type.compareTo("parents") == 0) {
-			 return getHashCode(cd.getParents());
-		} else if (type.compareTo("children") == 0) {
-			 return getHashCode(cd.getChildren());
-		} else if (type.compareTo("associations") == 0) {
-			 return getHashCode(cd.getAssociations());
-		} else if (type.compareTo("inverseAssociations") == 0) {
-			 return getHashCode(cd.getInverseAssociations());
-		} else if (type.compareTo("Roles") == 0) {
-			 return getHashCode(cd.getRoles());
-		} else if (type.compareTo("inverseRoles") == 0) {
-			 return getHashCode(cd.getInverseRoles());
-		} else if (type.compareTo("maps") == 0) {
-			 return getHashCode(cd.getMaps());
+		if (superclasses == null || superclasses.size() == 0) return 0;
+		for (int i=0; i<superclasses.size(); i++) {
+			Superclass prop = (Superclass) superclasses.get(i);
+			if (prop.getCode() != null) {
+				hashcode = hashcode + prop.getCode().hashCode();
+			}
+			if (prop.getName() != null) {
+				hashcode = hashcode + prop.getName().hashCode();
+			}
 		}
 		return hashcode;
 	}
 
-    public static boolean modified(ConceptDetails cd_1, ConceptDetails cd_2, String type) {
-		int hashcode_1 = getHashCode(cd_1, type);
-		int hashcode_2 = getHashCode(cd_2, type);
-		if (hashcode_1 == hashcode_2) return false;
-		return true;
+    public static int getSynonymHashCode(List<Synonym> synonyms) {
+		int hashcode = 0;
+		if (synonyms == null || synonyms.size() == 0) return 0;
+		for (int i=0; i<synonyms.size(); i++) {
+			Synonym syn = (Synonym) synonyms.get(i);
+			if (syn.getName() != null) {
+				hashcode = hashcode + syn.getName().hashCode();
+			}
+			if (syn.getType() != null) {
+				hashcode = hashcode + syn.getType().hashCode();
+			}
+			if (syn.getCode() != null) {
+				hashcode = hashcode + syn.getCode().hashCode();
+			}
+			if (syn.getTermGroup() != null) {
+				hashcode = hashcode + syn.getTermGroup().hashCode();
+			}
+			if (syn.getTermGroup() != null) {
+				hashcode = hashcode + syn.getTermGroup().hashCode();
+			}
+			if (syn.getSource() != null) {
+				hashcode = hashcode + syn.getSource().hashCode();
+			}
+			if (syn.getSubSource() != null) {
+				hashcode = hashcode + syn.getSubSource().hashCode();
+			}
+		}
+		return hashcode;
 	}
 
+    public static int getRoleHashCode(List<Role> roles) {
+		int hashcode = 0;
+		if (roles == null || roles.size() == 0) return 0;
+		for (int i=0; i<roles.size(); i++) {
+			Role prop = (Role) roles.get(i);
+			if (prop.getType() != null) {
+				hashcode = hashcode + prop.getType().hashCode();
+			}
+			if (prop.getRelatedCode() != null) {
+				hashcode = hashcode + prop.getRelatedCode().hashCode();
+			}
+		}
+		return hashcode;
+	}
+
+    public static int getInverseRoleHashCode(List<InverseRole> inverseroles) {
+		int hashcode = 0;
+		if (inverseroles == null || inverseroles.size() == 0) return 0;
+		for (int i=0; i<inverseroles.size(); i++) {
+			InverseRole prop = (InverseRole) inverseroles.get(i);
+			if (prop.getType() != null) {
+				hashcode = hashcode + prop.getType().hashCode();
+			}
+			if (prop.getRelatedCode() != null) {
+				hashcode = hashcode + prop.getRelatedCode().hashCode();
+			}
+		}
+		return hashcode;
+	}
+
+    public static int getAssociationHashCode(List<Association> associations) {
+		int hashcode = 0;
+		if (associations == null || associations.size() == 0) return 0;
+		for (int i=0; i<associations.size(); i++) {
+			Association prop = (Association) associations.get(i);
+			if (prop.getType() != null) {
+				hashcode = hashcode + prop.getType().hashCode();
+			}
+			if (prop.getRelatedCode() != null) {
+				hashcode = hashcode + prop.getRelatedCode().hashCode();
+			}
+		}
+		return hashcode;
+	}
+
+    public static int getInverseAssociationHashCode(List<InverseAssociation> inverseassociation) {
+		int hashcode = 0;
+		if (inverseassociation == null || inverseassociation.size() == 0) return 0;
+		for (int i=0; i<inverseassociation.size(); i++) {
+			InverseAssociation prop = (InverseAssociation) inverseassociation.get(i);
+			if (prop.getType() != null) {
+				hashcode = hashcode + prop.getType().hashCode();
+			}
+			if (prop.getRelatedCode() != null) {
+				hashcode = hashcode + prop.getRelatedCode().hashCode();
+			}
+		}
+		return hashcode;
+	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public static Vector getSuperclassValues(ConceptDetails cd) {
-		Vector v = new Vector();
-		String code = cd.getCode();
-		List<Superclass> superclasses = cd.getParents();
-		if (superclasses == null || superclasses.size() == 0) return v;
-		for (int i=0; i<superclasses.size(); i++) {
-			Superclass superclass = (Superclass) superclasses.get(i);
-			v.add(code + "|" + cd.getName() + "|" + superclass.getCode() + "|" + superclass.getName());
-		}
-		return v;
-	}
-
-    public static Vector getSubclassValues(ConceptDetails cd) {
-		Vector v = new Vector();
-		String code = cd.getCode();
-		List<Subclass> suberclasses = cd.getChildren();
-		if (suberclasses == null || suberclasses.size() == 0) return v;
-		for (int i=0; i<suberclasses.size(); i++) {
-			Subclass subclass = (Subclass) suberclasses.get(i);
-			v.add(code + "|" + cd.getName() + "|" + subclass.getCode() + "|" + subclass.getName());
-		}
-		return v;
-	}
-
-    public static Vector getMapsToValues(ConceptDetails cd) {
-		Vector v = new Vector();
-		String code = cd.getCode();
-		List<MapsTo> maps = cd.getMaps();
-		if (maps == null || maps.size() == 0) return v;
-		for (int i=0; i<maps.size(); i++) {
-			MapsTo map = (MapsTo) maps.get(i);
-			v.add(code + "|" + cd.getName() + "|" + map.getType()
-			                                + "|" + map.getTargetName()
-			                                + "|" + map.getTargetTermGroup()
-			                                + "|" + map.getTargetCode()
-			                                + "|" + map.getTargetTerminology()
-			                                + "|" + map.getTargetTerminologyVersion()
-			                                );
-		}
-		return v;
-	}
-
     public static Vector getPropertyValues(ConceptDetails cd) {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Property> properties = cd.getProperties();
-		if (properties == null || properties.size() == 0) return v;
+		if (properties == null || properties.size() == 0) return null;
 		for (int i=0; i<properties.size(); i++) {
 			Property prop = (Property) properties.get(i);
 			v.add(code + "|" + cd.getName() + "|" + prop.getType() + "|" + prop.getValue());
@@ -203,7 +214,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Definition> definitions = cd.getDefinitions();
-		if (definitions == null || definitions.size() == 0) return v;
+		if (definitions == null || definitions.size() == 0) return null;
 		for (int i=0; i<definitions.size(); i++) {
 			Definition def = (Definition) definitions.get(i);
 			String label = "DEFINITION";
@@ -219,7 +230,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Role> roles = cd.getRoles();
-		if (roles == null || roles.size() == 0) return v;
+		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			Role role = (Role) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -231,7 +242,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<InverseRole> roles = cd.getInverseRoles();
-		if (roles == null || roles.size() == 0) return v;
+		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			InverseRole role = (InverseRole) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -243,7 +254,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Association> roles = cd.getAssociations();
-		if (roles == null || roles.size() == 0) return v;
+		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			Association role = (Association) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -255,7 +266,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<InverseAssociation> roles = cd.getInverseAssociations();
-		if (roles == null || roles.size() == 0) return v;
+		if (roles == null || roles.size() == 0) return null;
 		for (int i=0; i<roles.size(); i++) {
 			InverseAssociation role = (InverseAssociation) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -267,7 +278,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Synonym> synonyms = cd.getSynonyms();
-		if (synonyms == null || synonyms.size() == 0) return v;
+		if (synonyms == null || synonyms.size() == 0) return null;
 		for (int i=0; i<synonyms.size(); i++) {
 			Synonym syn = (Synonym) synonyms.get(i);
 			if (syn.getType().compareTo("FULL_SYN") == 0) {
@@ -284,101 +295,81 @@ public class EditHistoryUtils {
 		return v;
 	}
 
-    public static Vector getValues(ConceptDetails cd, String type) {
-		if (type.compareTo("synonyms") == 0) {
-			 return getFULLSYNValues(cd);
-		} else if (type.compareTo("definitions") == 0) {
-			 return getDefinitionValues(cd);
-		} else if (type.compareTo("properties") == 0) {
-			 return getPropertyValues(cd);
-		} else if (type.compareTo("parents") == 0) {
-			 return getSuperclassValues(cd);
-		} else if (type.compareTo("children") == 0) {
-			 return getSubclassValues(cd);
-		} else if (type.compareTo("associations") == 0) {
-			 return getAssociationValues(cd);
-		} else if (type.compareTo("inverseAssociations") == 0) {
-			 return getInverseAssociationValues(cd);
-		} else if (type.compareTo("Roles") == 0) {
-			 return getRoleValues(cd);
-		} else if (type.compareTo("inverseRoles") == 0) {
-			 return getInverseRoleValues(cd);
-		} else if (type.compareTo("maps") == 0) {
-			 return getMapsToValues(cd);
+    public static int getPropertyHashCode(List<Property> properties) {
+		int hashcode = 0;
+		if (properties == null || properties.size() == 0) return 0;
+		for (int i=0; i<properties.size(); i++) {
+			Property prop = (Property) properties.get(i);
+			if (prop.getType() != null) {
+				hashcode = hashcode + prop.getType().hashCode();
+			}
+			if (prop.getValue() != null) {
+				hashcode = hashcode + prop.getValue().hashCode();
+			}
 		}
-		return null;
+		return hashcode;
 	}
 
-    public static Vector compareValues(Vector vec_1, Vector vec_2, String type) {
+    public static Vector compare(ConceptDetails cd_1, ConceptDetails cd_2) {
 		Vector edit_history = new Vector();
-		String s = "";
-		if (type.compareTo("synonyms") == 0) {
-			s = "";
-		} else if (type.compareTo("definitions") == 0) {
-			s = "";
-		} else if (type.compareTo("properties") == 0) {
-			s = "property|";
-		} else if (type.compareTo("parents") == 0) {
-			s = "superclass|";
-		} else if (type.compareTo("children") == 0) {
-			s = "subclass|";
-		} else if (type.compareTo("associations") == 0) {
-			s = "association|";
-		} else if (type.compareTo("inverseAssociations") == 0) {
-			s = "inverseAssociation|";
-		} else if (type.compareTo("roles") == 0) {
-			s = "role|";
-		} else if (type.compareTo("inverseRoles") == 0) {
-			s = "inverseRole|";
-		} else if (type.compareTo("maps") == 0) {
-			s = "maps|";
-		}
+        //property
+        Vector vec_1 = getPropertyValues(cd_1);
+        Vector vec_2 = getPropertyValues(cd_2);
 		Vector w1_clone = (Vector) vec_1.clone();
 		Vector w2_clone = (Vector) vec_2.clone();
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("add|" + s + t);
+			edit_history.add("add|property|" + t);
 		}
 		w1_clone = (Vector) vec_2.clone();
 		w2_clone = (Vector) vec_1.clone();
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
-			edit_history.add("delete|" + s + t);
+			edit_history.add("delete|property|" + t);
 		}
-		return edit_history;
-	}
 
-    public static Vector compare(ConceptDetails cd_1, ConceptDetails cd_2) {
-		Vector edit_history = new Vector();
-		//superclasses
-
-		System.out.println(cd_1.getName() + " (" + cd_1.getCode() + ")");
-		System.out.println(cd_2.getName() + " (" + cd_2.getCode() + ")");
-
-        Vector vec_1 = null;
-        Vector vec_2 = null;
-		for (int i=0; i<DATA_TYPES.length; i++) {
-			String type = (String) DATA_TYPES[i];
-			boolean retval = modified(cd_1, cd_2, type);
-			System.out.println("\t" + type + " modified? " + retval);
-
-			if (retval) {
-				vec_1 = getValues(cd_1, type);
-				vec_2 = getValues(cd_2, type);
-				Vector w = compareValues(vec_1, vec_2, type);
-                edit_history.addAll(w);
-			}
+		// Definition
+        vec_1 = getDefinitionValues(cd_1);
+        vec_2 = getDefinitionValues(cd_2);
+		w1_clone = (Vector) vec_1.clone();
+		w2_clone = (Vector) vec_2.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("add|" + t);
 		}
-        /*
+		w1_clone = (Vector) vec_2.clone();
+		w2_clone = (Vector) vec_1.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("delete|" + t);
+		}
+
+        //FULL_SYN
+        vec_1 = getFULLSYNValues(cd_1);
+        vec_2 = getFULLSYNValues(cd_2);
+		w1_clone = (Vector) vec_1.clone();
+		w2_clone = (Vector) vec_2.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("add|" + t);
+		}
+		w1_clone = (Vector) vec_2.clone();
+		w2_clone = (Vector) vec_1.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("delete|" + t);
+		}
+
 		edit_history.addAll(getEditHistoryForRelatedConcepts(cd_1, cd_2, "role"));
 		edit_history.addAll(getEditHistoryForRelatedConcepts(cd_1, cd_2, "inverseRole"));
 		edit_history.addAll(getEditHistoryForRelatedConcepts(cd_1, cd_2, "association"));
 		edit_history.addAll(getEditHistoryForRelatedConcepts(cd_1, cd_2, "inverseAssociation"));
-		edit_history.addAll(getEditHistoryForRelatedConcepts(cd_1, cd_2, "maps"));
-		*/
-
 		return edit_history;
 	}
 
@@ -400,9 +391,6 @@ public class EditHistoryUtils {
         } else if (type.compareTo("inverseAssociation") == 0) {
 			vec_1 = getInverseAssociationValues(cd_1);
 			vec_2 = getInverseAssociationValues(cd_2);
-        } else if (type.compareTo("maps") == 0) {
-			vec_1 = getMapsToValues(cd_1);
-			vec_2 = getMapsToValues(cd_2);
 		}
 		Vector w1_clone = null;
 		Vector w2_clone = null;
@@ -443,24 +431,8 @@ public class EditHistoryUtils {
 	}
 
     public static Vector compare(String jsonfilenew, String jsonfileold) {
-        Vector v10 = Utils.readFile(jsonfilenew);
-        Vector v20 = Utils.readFile(jsonfileold);
-        Vector v1 = new Vector();
-        for (int i=0; i<v10.size(); i++) {
-			String t = (String) v10.elementAt(i);
-			t = t.trim();
-			if (t.length() > 0) {
-				v1.add(t);
-			}
-		}
-        Vector v2 = new Vector();
-        for (int i=0; i<v20.size(); i++) {
-			String t = (String) v20.elementAt(i);
-			t = t.trim();
-			if (t.length() > 0) {
-				v2.add(t);
-			}
-		}
+        Vector v1 = Utils.readFile(jsonfilenew);
+        Vector v2 = Utils.readFile(jsonfileold);
         Vector<ConceptDetails> cd1 = new Vector();
         Vector<ConceptDetails> cd2 = new Vector();
         Vector<String> w1 = new Vector();
@@ -480,16 +452,11 @@ public class EditHistoryUtils {
 			ConceptDetails cd = null;
 			try {
 			    cd = (ConceptDetails) EVSRESTAPIClient.deserialize("ConceptDetails", json);
-			    if (cd == null) {
-					System.out.println(json);
-				}
-
 			    cd1.add(cd);
 			    w1.add(cd.getCode());
 			    code2CDMap1.put(cd.getCode(), cd);
 			    code2Label1.put(cd.getCode(), cd.getName());
 			} catch (Exception ex) {
-				System.out.println(json);
 				ex.printStackTrace();
 			}
 		}
@@ -522,9 +489,16 @@ public class EditHistoryUtils {
 			edit_history.add("delete|concept|" + code + "|" + (String) code2Label2.get(code));
 		}
 
-		HashMap cd_map_1 = (HashMap) code2CDMap1.clone();// new HashMap();
-		HashMap cd_map_2 = (HashMap) code2CDMap2.clone();
-
+        HashMap cd_map_1 = new HashMap();
+        for (int i=0; i<cd1.size(); i++) {
+			ConceptDetails cd = (ConceptDetails) cd1.elementAt(i);
+			cd_map_1.put(cd.getCode(), cd);
+		}
+        HashMap cd_map_2 = new HashMap();
+        for (int i=0; i<cd2.size(); i++) {
+			ConceptDetails cd = (ConceptDetails) cd2.elementAt(i);
+			cd_map_2.put(cd.getCode(), cd);
+		}
 		Iterator it = cd_map_1.keySet().iterator();
 		Vector w = new Vector();
 		while (it.hasNext()) {
@@ -612,23 +586,6 @@ public class EditHistoryUtils {
     	}
 		return list;
 	}
-
-
-	public static Vector getEditHistory(String jsonfile_new, String jsonfile_old) {
-	    Vector v = new Vector();
-	    try {
-	        Vector edit_history = compare(jsonfile_new, jsonfile_old);
-	        List<EditAction> list = toEditActionList(edit_history);
-	        for (int i=0; i<list.size(); i++) {
-				EditAction ea = (EditAction) list.get(i);
-				v.add(ea.toJson());
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return v;
-	}
-
 
 	public static void main(String[] args) {
 	    Vector v = null;
