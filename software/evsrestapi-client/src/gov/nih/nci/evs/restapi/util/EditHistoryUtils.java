@@ -198,6 +198,18 @@ public class EditHistoryUtils {
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public static Vector getSuperclassValues(ConceptDetails cd) {
+		Vector v = new Vector();
+		String code = cd.getCode();
+		List<Superclass> superclasses = cd.getSuperclasses();
+		if (superclasses == null || superclasses.size() == 0) return null;
+		for (int i=0; i<superclasses.size(); i++) {
+			Superclass superclass = (Superclass) superclasses.get(i);
+			v.add(code + "|" + cd.getName() + "|" + superclass.getCode() + "|" + superclass.getName());
+		}
+		return v;
+	}
+
     public static Vector getPropertyValues(ConceptDetails cd) {
 		Vector v = new Vector();
 		String code = cd.getCode();
@@ -312,11 +324,29 @@ public class EditHistoryUtils {
 
     public static Vector compare(ConceptDetails cd_1, ConceptDetails cd_2) {
 		Vector edit_history = new Vector();
-        //property
-        Vector vec_1 = getPropertyValues(cd_1);
-        Vector vec_2 = getPropertyValues(cd_2);
+		//superclasses
+        Vector vec_1 = getSuperclassValues(cd_1);
+        Vector vec_2 = getSuperclassValues(cd_2);
 		Vector w1_clone = (Vector) vec_1.clone();
 		Vector w2_clone = (Vector) vec_2.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("add|superclass|" + t);
+		}
+		w1_clone = (Vector) vec_2.clone();
+		w2_clone = (Vector) vec_1.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("delete|superclass|" + t);
+		}
+
+        //property
+        vec_1 = getPropertyValues(cd_1);
+        vec_2 = getPropertyValues(cd_2);
+		w1_clone = (Vector) vec_1.clone();
+		w2_clone = (Vector) vec_2.clone();
 		w1_clone.removeAll(w2_clone);
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
