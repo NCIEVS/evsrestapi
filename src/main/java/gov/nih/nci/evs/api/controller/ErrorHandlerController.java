@@ -56,10 +56,13 @@ public class ErrorHandlerController implements ErrorController {
     final Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
     final Map<String, Object> body = getErrorAttributes(request, false);
     String ppBody = null;
+    logger.info("XXX");
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
+      logger.info("XXX2 = " + ppBody);
     } catch (Exception e) {
-      ppBody = body.toString();
+      ppBody = body.toString().replaceAll("<", "&lt;");
+      logger.info("XXX3 = " + ppBody);
     }
 
     return String.format("<html><body><h2>Error Page</h2><div>Something went wrong, "
@@ -117,11 +120,14 @@ public class ErrorHandlerController implements ErrorController {
     if (body.containsKey("message")) {
       try {
         final String message = body.get("message").toString();
-        final String messagePre = message.replaceFirst("^([a-zA-Z '\"=]+).*", "$1");
-        final String messagePost = message.replaceFirst("^[a-zA-Z '\"=]+(.*)", "$1");
-        body.put("message", messagePre + StringEscapeUtils.escapeHtml4(messagePost));
+        final StringBuilder sb = new StringBuilder();
+        for (final String line : message.split("\\n")) {
+          sb.append(StringEscapeUtils.escapeHtml4(line));
+          sb.append("\n");
+        }
+        body.put("message", sb.toString());
       } catch (Exception e) {
-        body.put("message", body.get("message").toString());
+        body.put("message", body.get("message").toString().replaceAll("<", "&lt;"));
       }
     }
     return body;
