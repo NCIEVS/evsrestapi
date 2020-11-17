@@ -11,15 +11,18 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class ConceptDetails extends Concept
+
+public class ConceptDetails
 {
 
 // Variable declaration
-	private List<Superclass> superclasses;
+	private List<Superclass> parents;
+	private List<Superclass> children;
 	private List<Role> roles;
 	private List<InverseRole> inverseRoles;
 	private List<Association> associations;
 	private List<InverseAssociation> inverseAssociations;
+	private List<MapsTo> maps;
 
 // Default constructor
 	public ConceptDetails() {
@@ -27,31 +30,30 @@ public class ConceptDetails extends Concept
 
 // Constructor
 	public ConceptDetails(
-		String code,
-		String name,
-		String terminology,
-		String version,
-		List<Synonym> synonyms,
-		List<Definition> definitions,
-		List<Property> properties,
-		List<Superclass> superclasses,
+		List<Superclass> parents,
+		List<Superclass> children,
 		List<Role> roles,
 		List<InverseRole> inverseRoles,
 		List<Association> associations,
-		List<InverseAssociation> inverseAssociations) {
+		List<InverseAssociation> inverseAssociations,
+		List<MapsTo> maps) {
 
-		super(code, name, terminology, version, synonyms, definitions, properties);
-
-		this.superclasses = superclasses;
+		this.parents = parents;
+		this.children = children;
 		this.roles = roles;
 		this.inverseRoles = inverseRoles;
 		this.associations = associations;
 		this.inverseAssociations = inverseAssociations;
+		this.maps = maps;
 	}
 
 // Set methods
-	public void setSuperclasses(List<Superclass> superclasses) {
-		this.superclasses = superclasses;
+	public void setParents(List<Superclass> parents) {
+		this.parents = parents;
+	}
+
+	public void setChildren(List<Superclass> children) {
+		this.children = children;
 	}
 
 	public void setRoles(List<Role> roles) {
@@ -70,10 +72,18 @@ public class ConceptDetails extends Concept
 		this.inverseAssociations = inverseAssociations;
 	}
 
+	public void setMaps(List<MapsTo> maps) {
+		this.maps = maps;
+	}
+
 
 // Get methods
-	public List<Superclass> getSuperclasses() {
-		return this.superclasses;
+	public List<Superclass> getParents() {
+		return this.parents;
+	}
+
+	public List<Superclass> getChildren() {
+		return this.children;
 	}
 
 	public List<Role> getRoles() {
@@ -90,6 +100,10 @@ public class ConceptDetails extends Concept
 
 	public List<InverseAssociation> getInverseAssociations() {
 		return this.inverseAssociations;
+	}
+
+	public List<MapsTo> getMaps() {
+		return this.maps;
 	}
 
 	public String toXML() {
@@ -121,4 +135,5 @@ public class ConceptDetails extends Concept
 		}
 		return buf.toString();
 	}
+
 }
