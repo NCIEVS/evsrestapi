@@ -61,6 +61,12 @@ public class EditHistoryUtils {
         if (cd.getParents() != null) {
 			hashcode = hashcode + getSuperclassHashCode(cd.getParents());
 		}
+        if (cd.getChildren() != null) {
+			hashcode = hashcode + getSubclassHashCode(cd.getChildren());
+		}
+        if (cd.getMaps() != null) {
+			hashcode = hashcode + getMapsToHashCode(cd.getMaps());
+		}
 	    return hashcode;
 	}
 
@@ -102,6 +108,53 @@ public class EditHistoryUtils {
 			}
 			if (prop.getName() != null) {
 				hashcode = hashcode + prop.getName().hashCode();
+			}
+		}
+		return hashcode;
+	}
+
+    public static int getSubclassHashCode(List<Subclass> subclasses) {
+		int hashcode = 0;
+		if (subclasses == null || subclasses.size() == 0) return 0;
+		for (int i=0; i<subclasses.size(); i++) {
+			Subclass prop = (Subclass) subclasses.get(i);
+			if (prop.getCode() != null) {
+				hashcode = hashcode + prop.getCode().hashCode();
+			}
+			if (prop.getName() != null) {
+				hashcode = hashcode + prop.getName().hashCode();
+			}
+		}
+		return hashcode;
+	}
+
+	private String targetName;
+	private String targetTermGroup;
+
+	private String targetCode;
+	private String targetTerminology;
+	private String targetTerminologyVersion;
+
+
+    public static int getMapsToHashCode(List<MapsTo> maps) {
+		int hashcode = 0;
+		if (maps == null || maps.size() == 0) return 0;
+		for (int i=0; i<maps.size(); i++) {
+			MapsTo map = (MapsTo) maps.get(i);
+			if (map.getTargetName() != null) {
+				hashcode = hashcode + map.getTargetName().hashCode();
+			}
+			if (map.getTargetTermGroup() != null) {
+				hashcode = hashcode + map.getTargetTermGroup().hashCode();
+			}
+			if (map.getTargetCode() != null) {
+				hashcode = hashcode + map.getTargetCode().hashCode();
+			}
+			if (map.getTargetTerminology() != null) {
+				hashcode = hashcode + map.getTargetTerminology().hashCode();
+			}
+			if (map.getTargetTerminologyVersion() != null) {
+				hashcode = hashcode + map.getTargetTerminologyVersion().hashCode();
 			}
 		}
 		return hashcode;
@@ -206,6 +259,49 @@ public class EditHistoryUtils {
 		for (int i=0; i<superclasses.size(); i++) {
 			Superclass superclass = (Superclass) superclasses.get(i);
 			v.add(code + "|" + cd.getName() + "|" + superclass.getCode() + "|" + superclass.getName());
+		}
+		return v;
+	}
+
+    public static Vector getSubclassValues(ConceptDetails cd) {
+		Vector v = new Vector();
+		String code = cd.getCode();
+		List<Subclass> suberclasses = cd.getChildren();
+		if (suberclasses == null || suberclasses.size() == 0) return null;
+		for (int i=0; i<suberclasses.size(); i++) {
+			Subclass subclass = (Subclass) suberclasses.get(i);
+			v.add(code + "|" + cd.getName() + "|" + subclass.getCode() + "|" + subclass.getName());
+		}
+		return v;
+	}
+
+/*
+public class MapsTo
+{
+
+// Variable declaration
+	private String type;
+	private String targetName;
+	private String targetTermGroup;
+	private String targetCode;
+	private String targetTerminology;
+	private String targetTerminologyVersion;
+*/
+
+    public static Vector getMapsToValues(ConceptDetails cd) {
+		Vector v = new Vector();
+		String code = cd.getCode();
+		List<MapsTo> maps = cd.getMaps();
+		if (maps == null || maps.size() == 0) return null;
+		for (int i=0; i<maps.size(); i++) {
+			MapsTo map = (MapsTo) maps.get(i);
+			v.add(code + "|" + cd.getName() + "|" + map.getType()
+			                                + "|" + map.getTargetName()
+			                                + "|" + map.getTargetTermGroup()
+			                                + "|" + map.getTargetCode()
+			                                + "|" + map.getTargetTerminology()
+			                                + "|" + map.getTargetTerminologyVersion()
+			                                );
 		}
 		return v;
 	}
@@ -340,6 +436,24 @@ public class EditHistoryUtils {
 		for (int i=0; i<w1_clone.size(); i++) {
 			String t = (String) w1_clone.elementAt(i);
 			edit_history.add("delete|superclass|" + t);
+		}
+
+		//subclasses
+        vec_1 = getSubclassValues(cd_1);
+        vec_2 = getSubclassValues(cd_2);
+		w1_clone = (Vector) vec_1.clone();
+		w2_clone = (Vector) vec_2.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("add|subclass|" + t);
+		}
+		w1_clone = (Vector) vec_2.clone();
+		w2_clone = (Vector) vec_1.clone();
+		w1_clone.removeAll(w2_clone);
+		for (int i=0; i<w1_clone.size(); i++) {
+			String t = (String) w1_clone.elementAt(i);
+			edit_history.add("delete|subclass|" + t);
 		}
 
         //property
