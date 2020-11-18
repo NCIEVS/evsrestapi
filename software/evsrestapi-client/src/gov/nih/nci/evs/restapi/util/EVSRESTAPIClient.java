@@ -79,7 +79,7 @@ public class EVSRESTAPIClient {
 	}
 
 	public static String getURL(String terminology, String code) {
-		String t = (String) EVSRESTAPI_URL_MAP.get("code");
+		String t = (String) EVSRESTAPI_URL_MAP.get("concept");
 		t = t.replace("{terminology}", terminology);
 		t = t.replace("{code}", code);
 		return t;
@@ -362,6 +362,37 @@ public class EVSRESTAPIClient {
 			buf.append(s);
 		}
 		return buf.toString();
+	}
+
+	public static Vector getJSONs(String filename) {
+		Vector failed_urls = new Vector();
+		Vector w = new Vector();
+		Vector lines = Utils.readFile(filename);
+		String terminology = "ncit";
+		int lcv = 0;
+		long ms = System.currentTimeMillis();
+		for (int i=0; i<lines.size(); i++) {
+			lcv++;
+			if (lcv/50*50 == lcv) {
+				System.out.println("" + lcv + " out of " + lines.size() + " completed.");
+			}
+			String line = (String) lines.elementAt(i);
+			Vector u = StringUtils.parseData(line);
+			String code = (String) u.elementAt(0);
+			try {
+				String json = getConceptDetailsInJSON(terminology, code);
+				w.add(json);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				String url = getURL(terminology, code);
+				failed_urls.add(url);
+			}
+		}
+		if (failed_urls.size() > 0) {
+			Utils.saveToFile("failed_urls.txt", failed_urls);
+		}
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+		return w;
 	}
 
 	public static void main(String[] args) {
