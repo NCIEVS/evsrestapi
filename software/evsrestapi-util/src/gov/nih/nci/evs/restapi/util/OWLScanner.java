@@ -1,6 +1,4 @@
 package gov.nih.nci.evs.restapi.util;
-
-import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.bean.*;
 import java.io.*;
 import java.io.BufferedReader;
@@ -959,15 +957,12 @@ public class OWLScanner {
 			String t = (String) class_vec.elementAt(i);
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
 				//System.out.println(t);
-
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
 				classId = t.substring(1, n);
-				System.out.println("extractOWLRestrictions: " + classId);
 				r = null;
 				//istart = false;
-
 				istart = true;
 
 			}
@@ -994,10 +989,14 @@ public class OWLScanner {
 						n = t.lastIndexOf("\"");
 						someValueFrom = t.substring(1, n);
 						r.setSomeValuesFrom(someValueFrom);
+
+						//System.out.println(r.toString());
+
 						if (!hset.contains(r.toString())) {
 							hset.add(r.toString());
-							w.add(r);
+							w.add(r.toString());
 						}
+
 						r = null;
 					}
 				}
