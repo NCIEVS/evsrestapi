@@ -255,7 +255,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Superclass> superclasses = cd.getParents();
-		if (superclasses == null || superclasses.size() == 0) return null;
+		if (superclasses == null || superclasses.size() == 0) return v;
 		for (int i=0; i<superclasses.size(); i++) {
 			Superclass superclass = (Superclass) superclasses.get(i);
 			v.add(code + "|" + cd.getName() + "|" + superclass.getCode() + "|" + superclass.getName());
@@ -267,7 +267,7 @@ public class EditHistoryUtils {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Subclass> suberclasses = cd.getChildren();
-		if (suberclasses == null || suberclasses.size() == 0) return null;
+		if (suberclasses == null || suberclasses.size() == 0) return v;
 		for (int i=0; i<suberclasses.size(); i++) {
 			Subclass subclass = (Subclass) suberclasses.get(i);
 			v.add(code + "|" + cd.getName() + "|" + subclass.getCode() + "|" + subclass.getName());
@@ -275,24 +275,11 @@ public class EditHistoryUtils {
 		return v;
 	}
 
-/*
-public class MapsTo
-{
-
-// Variable declaration
-	private String type;
-	private String targetName;
-	private String targetTermGroup;
-	private String targetCode;
-	private String targetTerminology;
-	private String targetTerminologyVersion;
-*/
-
     public static Vector getMapsToValues(ConceptDetails cd) {
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<MapsTo> maps = cd.getMaps();
-		if (maps == null || maps.size() == 0) return null;
+		if (maps == null || maps.size() == 0) return v;
 		for (int i=0; i<maps.size(); i++) {
 			MapsTo map = (MapsTo) maps.get(i);
 			v.add(code + "|" + cd.getName() + "|" + map.getType()
@@ -310,7 +297,7 @@ public class MapsTo
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Property> properties = cd.getProperties();
-		if (properties == null || properties.size() == 0) return null;
+		if (properties == null || properties.size() == 0) return v;
 		for (int i=0; i<properties.size(); i++) {
 			Property prop = (Property) properties.get(i);
 			v.add(code + "|" + cd.getName() + "|" + prop.getType() + "|" + prop.getValue());
@@ -322,7 +309,7 @@ public class MapsTo
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Definition> definitions = cd.getDefinitions();
-		if (definitions == null || definitions.size() == 0) return null;
+		if (definitions == null || definitions.size() == 0) return v;
 		for (int i=0; i<definitions.size(); i++) {
 			Definition def = (Definition) definitions.get(i);
 			String label = "DEFINITION";
@@ -338,7 +325,7 @@ public class MapsTo
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Role> roles = cd.getRoles();
-		if (roles == null || roles.size() == 0) return null;
+		if (roles == null || roles.size() == 0) return v;
 		for (int i=0; i<roles.size(); i++) {
 			Role role = (Role) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -350,7 +337,7 @@ public class MapsTo
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<InverseRole> roles = cd.getInverseRoles();
-		if (roles == null || roles.size() == 0) return null;
+		if (roles == null || roles.size() == 0) return v;
 		for (int i=0; i<roles.size(); i++) {
 			InverseRole role = (InverseRole) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -362,7 +349,7 @@ public class MapsTo
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Association> roles = cd.getAssociations();
-		if (roles == null || roles.size() == 0) return null;
+		if (roles == null || roles.size() == 0) return v;
 		for (int i=0; i<roles.size(); i++) {
 			Association role = (Association) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -374,7 +361,7 @@ public class MapsTo
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<InverseAssociation> roles = cd.getInverseAssociations();
-		if (roles == null || roles.size() == 0) return null;
+		if (roles == null || roles.size() == 0) return v;
 		for (int i=0; i<roles.size(); i++) {
 			InverseAssociation role = (InverseAssociation) roles.get(i);
 			v.add(code + "|" + cd.getName() + "|" + role.getType() + "|" + role.getRelatedCode());
@@ -386,7 +373,7 @@ public class MapsTo
 		Vector v = new Vector();
 		String code = cd.getCode();
 		List<Synonym> synonyms = cd.getSynonyms();
-		if (synonyms == null || synonyms.size() == 0) return null;
+		if (synonyms == null || synonyms.size() == 0) return v;
 		for (int i=0; i<synonyms.size(); i++) {
 			Synonym syn = (Synonym) synonyms.get(i);
 			if (syn.getType().compareTo("FULL_SYN") == 0) {
@@ -421,6 +408,10 @@ public class MapsTo
     public static Vector compare(ConceptDetails cd_1, ConceptDetails cd_2) {
 		Vector edit_history = new Vector();
 		//superclasses
+
+		System.out.println(cd_1.getName() + " (" + cd_1.getCode() + ")");
+		System.out.println(cd_2.getName() + " (" + cd_2.getCode() + ")");
+
         Vector vec_1 = getSuperclassValues(cd_1);
         Vector vec_2 = getSuperclassValues(cd_2);
 		Vector w1_clone = (Vector) vec_1.clone();
@@ -751,6 +742,23 @@ public class MapsTo
     	}
 		return list;
 	}
+
+
+	public static Vector getEditHistory(String jsonfile_new, String jsonfile_old) {
+	    Vector v = new Vector();
+	    try {
+	        Vector edit_history = compare(jsonfile_new, jsonfile_old);
+	        List<EditAction> list = toEditActionList(edit_history);
+	        for (int i=0; i<list.size(); i++) {
+				EditAction ea = (EditAction) list.get(i);
+				v.add(ea.toJson());
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
+	}
+
 
 	public static void main(String[] args) {
 	    Vector v = null;
