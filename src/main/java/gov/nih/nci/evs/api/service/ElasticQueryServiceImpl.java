@@ -200,6 +200,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * see superclass *.
    *
    * @param terminology the terminology
+   * @param ip the ip
    * @return the root nodes
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
@@ -215,7 +216,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     List<Concept> concepts = getConcepts(hierarchyRoots, terminology, ip);
     concepts.sort(Comparator.comparing(Concept::getName));
     for (Concept c : concepts) {
-    	c.setLeaf(null);
+      c.setLeaf(null);
     }
     return concepts;
   }
@@ -375,7 +376,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     List<HierarchyNode> rootNodes = getRootNodesHierarchy(terminology);
-    
+
     Paths paths = getPathToRoot(code, terminology);
 
     // root hierarchy node map for quick look up
@@ -453,7 +454,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       int idx = -1;
       List<Concept> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
-    	concept = concepts.get(i);
+        concept = concepts.get(i);
         if (concept.getCode().equals(code)) {
           codeSW = true;
         }
@@ -494,9 +495,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public long getCount(Terminology terminology) {
-    NativeSearchQuery query =
-        new NativeSearchQueryBuilder().withIndices(terminology.getIndexName())
-            .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+    NativeSearchQuery query = new NativeSearchQueryBuilder().withIndices(terminology.getIndexName())
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
 
     return operations.count(query);
   }
@@ -504,26 +504,24 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /**
    * see superclass *.
    * 
-   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
+   * @param completedOnly boolean indicating to fetch metadata for complete
+   *          indexes only
    * @return the list of {@link IndexMetadata} objects
    */
   @Override
   public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
     NativeSearchQueryBuilder queryBuilder =
-        new NativeSearchQueryBuilder()
-            .withIndices(ElasticOperationsService.METADATA_INDEX)
+        new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.METADATA_INDEX)
             .withTypes(ElasticOperationsService.METADATA_TYPE);
 
     if (completedOnly) {
       queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));
     }
-    
-    List<IndexMetadata> iMetas =
-        operations.queryForList(queryBuilder.build(), IndexMetadata.class);
+
+    List<IndexMetadata> iMetas = operations.queryForList(queryBuilder.build(), IndexMetadata.class);
     return iMetas;
   }
 
-  
   /**
    * see superclass *.
    * 
@@ -538,7 +536,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     operations.delete(delQuery);
   }
-  
+
   /**
    * see superclass *.
    *
@@ -689,6 +687,36 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     return roles.stream().filter(r -> r.getCode().equals(code)).findFirst();
   }
 
+  /* see superclass */
+  @Override
+  public List<Concept> getSynonymTypes(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonProcessingException {
+    return getConceptList("synonymTypes", terminology, ip);
+  }
+
+  /* see superclass */
+  @Override
+  public Optional<Concept> getSynonymType(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> synonymTypes = getSynonymTypes(terminology, ip);
+    return synonymTypes.stream().filter(r -> r.getCode().equals(code)).findFirst();
+  }
+
+  /* see superclass */
+  @Override
+  public List<Concept> getDefinitionTypes(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonProcessingException {
+    return getConceptList("definitionTypes", terminology, ip);
+  }
+
+  /* see superclass */
+  @Override
+  public Optional<Concept> getDefinitionType(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> definitionTypes = getDefinitionTypes(terminology, ip);
+    return definitionTypes.stream().filter(r -> r.getCode().equals(code)).findFirst();
+  }
+
   /**
    * see superclass *.
    *
@@ -765,10 +793,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the optional of elasticsearch object
    */
   private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
-    if (logger.isDebugEnabled()) { 
+    if (logger.isDebugEnabled()) {
       logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
     }
-    
+
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id))
             .withIndices(terminology.getObjectIndexName())

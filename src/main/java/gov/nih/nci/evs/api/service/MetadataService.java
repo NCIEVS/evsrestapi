@@ -156,4 +156,53 @@ public interface MetadataService {
    * @throws Exception the exception
    */
   List<ConceptMinimal> getTermTypes(final String terminology) throws Exception;
+
+  /**
+   * Returns the synonym types.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the synonym types
+   * @throws Exception the exception
+   */
+  List<Concept> getSynonymTypes(final String terminology, final Optional<String> include,
+    final Optional<String> list) throws Exception;
+
+  /**
+   * Returns the synonym type.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the synonym type
+   * @throws Exception the exception
+   */
+  Optional<Concept> getSynonymType(final String terminology, final String code,
+    final Optional<String> include) throws Exception;
+
+  /**
+   * Returns the definition types.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the definition types
+   * @throws Exception the exception
+   */
+  List<Concept> getDefinitionTypes(final String terminology, final Optional<String> include,
+    final Optional<String> list) throws Exception;
+
+  /**
+   * Returns the definition type.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the definition type
+   * @throws Exception the exception
+   */
+  Optional<Concept> getDefinitionType(final String terminology, final String code,
+    final Optional<String> include) throws Exception;
+
 }

@@ -649,4 +649,28 @@ public class TerminologyMetadata extends BaseModel {
     this.sourcesToRemove = sourcesToRemove;
   }
 
+  /**
+   * Indicates whether or not property exclusion is the case.
+   *
+   * @param code the code
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isRemodeledProperty(final String code) {
+    return getSynonym().contains(code) || getDefinition().contains(code) || getMap().equals(code)
+        || code.equals(this.code);
+  }
+
+  /**
+   * Indicates whether or not remodeled qualifier is the case.
+   *
+   * @param code the code
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isRemodeledQualifier(final String code) {
+    return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
+        || code.equals(synonymSubSource) || code.equals(definitionSource)
+        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
+        || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
+  }
+
 }

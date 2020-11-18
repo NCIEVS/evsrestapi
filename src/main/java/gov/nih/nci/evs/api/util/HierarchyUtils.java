@@ -25,6 +25,7 @@ import gov.nih.nci.evs.api.model.HierarchyNode;
  */
 public class HierarchyUtils {
 
+  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(HierarchyUtils.class);
   
   /** The parent 2 child. */

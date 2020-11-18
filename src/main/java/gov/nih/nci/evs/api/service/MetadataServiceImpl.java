@@ -4,8 +4,6 @@ package gov.nih.nci.evs.api.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -40,7 +38,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The elastic query service **/
+  /** The elastic query service *. */
   @Autowired
   private ElasticQueryService esQueryService;
 
@@ -48,6 +46,7 @@ public class MetadataServiceImpl implements MetadataService {
   @Resource
   private MetadataService self;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
@@ -165,19 +164,8 @@ public class MetadataServiceImpl implements MetadataService {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    // TODO: "first-class attribute qualifiers", like 'NCH0'
-    // Need to identify which attributes are associated with "other model
-    // elements" - they should probably be excluded too - have to derive from
-    // properties
-    final Set<String> neverUsedCodes = sparqlQueryManagerService.getAllPropertiesNeverUsed(term, ip)
-        .stream().map(q -> q.getCode()).collect(Collectors.toSet());
-    final Set<String> qualifierCodes = esQueryService.getQualifiers(term, ip).stream()
-        .map(q -> q.getCode()).collect(Collectors.toSet());
-
     // Remove qualifiers from properties list
-    final List<Concept> properties = esQueryService.getProperties(term, ip).stream()
-        .filter(p -> !qualifierCodes.contains(p.getCode()) && !neverUsedCodes.contains(p.getCode()))
-        .collect(Collectors.toList());
+    final List<Concept> properties = esQueryService.getProperties(term, ip);
 
     return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
   }
@@ -355,6 +343,72 @@ public class MetadataServiceImpl implements MetadataService {
       return new ArrayList<>();
 
     return sparqlQueryManagerService.getTermTypes(term);
+  }
+
+  /* see superclass */
+  @Override
+  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
+      condition = "#list.orElse('').isEmpty()")
+  public List<Concept> getSynonymTypes(String terminology, Optional<String> include,
+    Optional<String> list) throws Exception {
+
+    final Terminology term = termUtils.getTerminology(terminology, true);
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
+
+    final List<Concept> synonymTypes = esQueryService.getSynonymTypes(term, ip);
+    return ConceptUtils.applyIncludeAndList(synonymTypes, ip, list.orElse(null));
+  }
+
+  /* see superclass */
+  @Override
+  public Optional<Concept> getSynonymType(String terminology, String code, Optional<String> include)
+    throws Exception {
+
+    // Verify that it is a synonym type
+    final List<Concept> list = self.getSynonymTypes(terminology,
+        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
+    if (list.size() == 1) {
+      final Terminology term = termUtils.getTerminology(terminology, true);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      return esQueryService.getSynonymType(list.get(0).getCode(), term, ip);
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Synonym type " + code + " not found (2)");
+    }
+    return Optional.empty();
+  }
+
+  /* see superclass */
+  @Override
+  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
+      condition = "#list.orElse('').isEmpty()")
+  public List<Concept> getDefinitionTypes(String terminology, Optional<String> include,
+    Optional<String> list) throws Exception {
+
+    final Terminology term = termUtils.getTerminology(terminology, true);
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
+
+    final List<Concept> definitionTypes = esQueryService.getDefinitionTypes(term, ip);
+    return ConceptUtils.applyIncludeAndList(definitionTypes, ip, list.orElse(null));
+  }
+
+  /* see superclass */
+  @Override
+  public Optional<Concept> getDefinitionType(String terminology, String code,
+    Optional<String> include) throws Exception {
+
+    // Verify that it is a definition type
+    final List<Concept> list = self.getDefinitionTypes(terminology,
+        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
+    if (list.size() == 1) {
+      final Terminology term = termUtils.getTerminology(terminology, true);
+      final IncludeParam ip = new IncludeParam(include.orElse("summary"));
+      return esQueryService.getDefinitionType(list.get(0).getCode(), term, ip);
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Definition type " + code + " not found (2)");
+    }
+    return Optional.empty();
   }
 
 }

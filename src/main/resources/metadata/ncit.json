@@ -2,7 +2,7 @@
   "code": "NHC0",
   "conceptStatus": "P310",
   "preferredName": "P108",
-  "synonym": [ "P90" ],
+  "synonym": [ "P90", "P107", "P108", "P366" ],
   "synonymTermType": "P383",
   "synonymSource": "P384",
   "synonymCode": "P385",
@@ -18,7 +18,9 @@
   "relationshipToTarget": "P393",
   "propertyNames" : {
     "NHC0": "code",
+    "P107": "Display_Name",
   	"P108" : "Preferred_Name",
+  	"P366" : "Legacy Concept Name",
   	"P97" : "DEFINITION",
   	"P325": "ALT_DEFINITION",
   	"P90": "FULL_SYN",
