@@ -79,6 +79,9 @@ public class Terminology extends BaseModel {
   /** The metadata. */
   private TerminologyMetadata metadata;
 
+  /** The flag for using sparql searches. */
+  private Boolean sparqlFlag;
+
   /**
    * Instantiates an empty {@link Terminology}.
    */
@@ -115,6 +118,7 @@ public class Terminology extends BaseModel {
     indexName = other.getIndexName();
     objectIndexName = other.getObjectIndexName();
     metadata = other.getMetadata();
+    sparqlFlag = other.getSparqlFlag();
   }
 
   /**
@@ -363,6 +367,14 @@ public class Terminology extends BaseModel {
     this.objectIndexName = objectIndexName;
   }
 
+  public Boolean getSparqlFlag() {
+    return sparqlFlag;
+  }
+
+  public void setSparqlFlag(Boolean sparqlFlag) {
+    this.sparqlFlag = sparqlFlag;
+  }
+
   /* see superclass */
   @Override
   public int hashCode() {
@@ -379,6 +391,7 @@ public class Terminology extends BaseModel {
     result = prime * result + ((date == null) ? 0 : date.hashCode());
     result = prime * result + ((indexName == null) ? 0 : indexName.hashCode());
     result = prime * result + ((objectIndexName == null) ? 0 : objectIndexName.hashCode());
+    result = prime * result + ((sparqlFlag == null) ? 0 : sparqlFlag.hashCode());
     return result;
   }
 
@@ -470,6 +483,13 @@ public class Terminology extends BaseModel {
         return false;
       }
     } else if (!objectIndexName.equals(other.objectIndexName)) {
+      return false;
+    }
+    if (sparqlFlag == null) {
+      if (other.sparqlFlag != null) {
+        return false;
+      }
+    } else if (!sparqlFlag.equals(other.sparqlFlag)) {
       return false;
     }
     return true;

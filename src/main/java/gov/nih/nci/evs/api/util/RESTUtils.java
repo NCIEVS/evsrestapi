@@ -2,14 +2,12 @@
 package gov.nih.nci.evs.api.util;
 
 import java.nio.charset.Charset;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,7 +18,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * REST call utilities
+ * REST call utilities.
  */
 public class RESTUtils {
 
@@ -35,18 +33,16 @@ public class RESTUtils {
   private String password;
 
   /** The read timeout. */
-  private Duration readTimeout;
+  // private Duration readTimeout;
 
   /** The connect timeout. */
-  private Duration connectTimeout;
-
-  /** The builder. */
-  private RestTemplateBuilder builder;
+  // private Duration connectTimeout;
 
   /**
    * Instantiates an empty {@link RESTUtils}.
    */
   public RESTUtils() {
+    // n/a
   }
 
   /**
@@ -60,10 +56,11 @@ public class RESTUtils {
   public RESTUtils(String username, String password, long readTimeout, long connectTimeout) {
     this.username = username;
     this.password = password;
-    this.readTimeout = Duration.ofSeconds(readTimeout);
-    this.connectTimeout = Duration.ofSeconds(connectTimeout);
-    builder = new RestTemplateBuilder().basicAuthentication(username, password)
-        .setReadTimeout(this.readTimeout).setConnectTimeout(this.connectTimeout);
+    // this.readTimeout = Duration.ofSeconds(readTimeout);
+    // this.connectTimeout = Duration.ofSeconds(connectTimeout);
+    // builder = new RestTemplateBuilder().basicAuthentication(username,
+    // password)
+    // .setReadTimeout(this.readTimeout).setConnectTimeout(this.connectTimeout);
   }
 
   /**
@@ -96,7 +93,7 @@ public class RESTUtils {
    * @return the string
    */
   public static String escapeLuceneSpecialCharacters(String before) {
-    if(null == before) {
+    if (null == before) {
       return "";
     }
     String patternString = "([+:!~*?/\\-/{}\\[\\]\\(\\)\\^\\\"])";

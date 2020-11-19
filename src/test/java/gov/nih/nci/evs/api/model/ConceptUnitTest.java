@@ -30,8 +30,7 @@ public class ConceptUnitTest {
 
   /** The logger. */
   @SuppressWarnings("unused")
-  private static final Logger log =
-      LoggerFactory.getLogger(ConceptUnitTest.class);
+  private static final Logger log = LoggerFactory.getLogger(ConceptUnitTest.class);
 
   /** The model object to test. */
   private Concept object;
@@ -72,12 +71,6 @@ public class ConceptUnitTest {
   /** The m 2. */
   private List<Map> m2;
 
-  /** The m 1. */
-  private String paths1;
-
-  /** The m 2. */
-  private String paths2;
-  
   /**
    * Setup.
    *

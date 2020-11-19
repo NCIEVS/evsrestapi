@@ -21,7 +21,7 @@ public interface ElasticOperationsService {
   /** The type in ES for cached objects *. */
   public static final String OBJECT_TYPE = "evs_object";
 
-  /** The index in ES for index metadata **/
+  /** The index in ES for index metadata *. */
   public static final String METADATA_INDEX = "evs_metadata";
 
   /** The type in ES for index metadata **/
@@ -78,8 +78,8 @@ public interface ElasticOperationsService {
   ElasticsearchOperations getElasticsearchOperations();
 
   /**
-   * delete the index
-   * 
+   * delete the index.
+   *
    * @param index the index name
    * @return {@literal true} if the index was deleted
    */
