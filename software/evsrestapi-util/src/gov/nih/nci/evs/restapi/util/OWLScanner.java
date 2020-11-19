@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
+
 import gov.nih.nci.evs.restapi.bean.*;
 import java.io.*;
 import java.io.BufferedReader;
@@ -576,7 +577,7 @@ public class OWLScanner {
 												 extractAnnotatedTarget(owlannotatedTarget_value),
 												 extractQualifier(qualify_data),
 												 extractQualifierValue(qualify_data));
-						v.add(owl_Axiom);
+						v.add(owl_Axiom.toString());
 						buf = new StringBuffer();
 						owlannotatedTarget_start = false;
 					}
@@ -990,13 +991,12 @@ public class OWLScanner {
 						someValueFrom = t.substring(1, n);
 						r.setSomeValuesFrom(someValueFrom);
 
-						//System.out.println(r.toString());
-
 						if (!hset.contains(r.toString())) {
 							hset.add(r.toString());
 							w.add(r.toString());
+						} else {
+							//System.out.println("\tWARNING: Duplicate " + r.toString());
 						}
-
 						r = null;
 					}
 				}
