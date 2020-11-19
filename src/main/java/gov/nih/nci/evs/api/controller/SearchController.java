@@ -69,11 +69,11 @@ public class SearchController extends BaseController {
   /* The elasticsearch query service */
   @Autowired
   ElasticQueryService esQueryService;
-  
+
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
-  
+
   /**
    * Search within a single terminology.
    *
@@ -121,8 +121,14 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "definitionType",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results to.",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymType",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
@@ -148,9 +154,9 @@ public class SearchController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
-    @PathVariable(value = "terminology") final String terminology,
-    @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult)
-    throws Exception {
+    @PathVariable(value = "terminology")
+    final String terminology, @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
+    BindingResult bindingResult) throws Exception {
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult);
   }
 
@@ -199,8 +205,14 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "definitionType",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results to.",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymType",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
@@ -244,16 +256,18 @@ public class SearchController extends BaseController {
     final long startDate = System.currentTimeMillis();
 
     // Check search criteria for required fields
-    /*if (!searchCriteria.checkRequiredFields()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Missing required field = " + searchCriteria.computeMissingRequiredFields());
-    }*/
+    /*
+     * if (!searchCriteria.checkRequiredFields()) { throw new
+     * ResponseStatusException(HttpStatus.BAD_REQUEST,
+     * "Missing required field = " +
+     * searchCriteria.computeMissingRequiredFields()); }
+     */
 
     if (!searchCriteria.checkPagination()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "FromRecord should be the first record of a page!");
     }
-    
+
     final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
     searchCriteria.setTerm(queryTerm);
     logger.debug("  Search = " + searchCriteria);
@@ -264,9 +278,9 @@ public class SearchController extends BaseController {
     }
 
     try {
-      for(String terminology: searchCriteria.getTerminology()) {
+      for (String terminology : searchCriteria.getTerminology()) {
         final Terminology term = termUtils.getTerminology(terminology, true);
-        searchCriteria.validate(term, metadataService);        
+        searchCriteria.validate(term, metadataService);
       }
 
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
