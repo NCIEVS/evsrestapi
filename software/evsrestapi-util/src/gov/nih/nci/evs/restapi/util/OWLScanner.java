@@ -2201,6 +2201,34 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public Vector extractSemanticTypes(Vector class_vec) {
+        return extractEnum(class_vec, "Semantic_Type");
+	}
+
+    public Vector extractEnum(Vector class_vec, String type) {
+        Vector w = new Vector();
+        boolean istart = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#" + type + "-enum -->") != -1) {
+				istart = true;
+			}
+			if (istart && t.indexOf("</rdfs:Datatype>") != -1) {
+				istart = false;
+				break;
+			}
+			if (istart && t.indexOf("<rdf:first>") != -1) {
+				t = t.trim();
+				int n = t.lastIndexOf("</rdf:first>");
+				t = t.substring("<rdf:first>".length(), n);
+				w.add(t);
+			}
+		}
+		return new SortUtils().quickSort(w);
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
