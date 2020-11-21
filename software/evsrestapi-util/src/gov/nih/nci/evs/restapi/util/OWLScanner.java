@@ -2229,6 +2229,27 @@ C4910|<NHC0>C4910</NHC0>
 		return new SortUtils().quickSort(w);
 	}
 
+    public Vector extractDeprecatedObjects(Vector owl_vec) {
+        Vector w = new Vector();
+		String classId = null;
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			line = line.trim();
+			if (line.endsWith(" -->")) {
+			    int n = line.lastIndexOf("#");
+				classId = line.substring(n+1, line.length()-4);
+			} else {
+				if (line.indexOf("<owl:deprecated") != -1 && line.indexOf(">true<") != -1) {
+					if (classId != null) {
+						w.add(classId);
+					}
+					classId = null;
+				}
+			}
+		}
+		return w;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
