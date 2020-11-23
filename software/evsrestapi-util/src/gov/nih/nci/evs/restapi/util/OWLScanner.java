@@ -2250,6 +2250,26 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public Vector filterAxiomData(Vector axiom_data, String prop_code) {
+		Vector w = new Vector();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+		    String propertyCode = (String) u.elementAt(3); // e.g., P90
+		    if (propertyCode.compareTo(prop_code) == 0) {
+				w.add(t);
+			}
+		}
+		return w;
+	}
+
+    public List extractFULLSyns() {
+		Vector w = scanAxioms();
+		w = filterAxiomData(w, "P90");
+		List list = new AxiomUtils().getSynonyms(w);
+		return list;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
