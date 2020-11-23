@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
@@ -21,10 +22,9 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 /**
  * The service to load concepts to Elasticsearch
  * 
- * Retrieves concepts from stardog and creates necessary index on Elasticsearch
- * 
- * @author Arun
+ * Retrieves concepts from stardog and creates necessary index on Elasticsearch.
  *
+ * @author Arun
  */
 public abstract class BaseLoaderService implements ElasticLoadService {
 
@@ -44,6 +44,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Autowired
   private TerminologyUtils termUtils;
 
+  /** The client. */
   @Autowired
   private RestHighLevelClient client;
 
@@ -143,6 +144,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   /**
    * Update latest flag.
    *
+   * @param term the term
    * @throws Exception the exception
    */
   @Override
@@ -169,11 +171,11 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   }
 
   /**
-   * check load status
-   * 
+   * check load status.
+   *
+   * @param total the total
    * @param term the terminology object
-   * @throws IOException
-   * 
+   * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
   public void checkLoadStatus(int total, Terminology term) throws IOException {
@@ -207,11 +209,11 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   }
 
   /**
-   * load index metadata
-   * 
+   * load index metadata.
+   *
+   * @param total the total
    * @param term the terminology object
-   * @throws IOException
-   * 
+   * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
   public void loadIndexMetadata(int total, Terminology term) throws IOException {
@@ -223,28 +225,38 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
-    for (IndexMetadata iMetaPostLoad : iMetas) {
-      logger.info("iMetaPostLoad = " + iMetaPostLoad);
-    }
+
+    // This block is for debugging presence of the iMeta
+    // try {
+    // Thread.sleep(2000);
+    // } catch (InterruptedException e) {
+    // // n/a
+    // }
+    // List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    // for (IndexMetadata iMetaPostLoad : iMetas) {
+    // logger.info("iMetaPostLoad = " + iMetaPostLoad);
+    // }
 
   }
 
+  /**
+   * Find and delete terminology.
+   *
+   * @param ID the id
+   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws InterruptedException the interrupted exception
+   */
   protected void findAndDeleteTerminology(String ID) throws IOException, InterruptedException {
     DeleteRequest request = new DeleteRequest(ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, ID);
     client.delete(request, RequestOptions.DEFAULT);
-    Thread.sleep(5000);
-    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
-    for (IndexMetadata iMetaPostDelete : iMetas) {
-      logger.info("iMetaPostDelete = " + iMetaPostDelete);
-    }
+    
+    // This block is for debugging presence of the iMeta still in the index
+    // Thread.sleep(2000);
+    // List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    // for (IndexMetadata iMetaPostDelete : iMetas) {
+    // logger.info("iMetaPostDelete = " + iMetaPostDelete);
+    // }
     return;
 
   }

@@ -105,12 +105,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       String line = null;
       String defLine = null;
       String propLine = null;
+      String prevCui = null;
       Concept concept = new Concept();
       List<Concept> batch = new ArrayList<>();
-      String prevCui = null;
-      List<Synonym> synList = new ArrayList<Synonym>();
-      List<Definition> defList = new ArrayList<Definition>();
-      List<Property> propList = new ArrayList<Property>();
+      List<Synonym> synList = new ArrayList<>();
+      List<Definition> defList = new ArrayList<>();
+      List<Property> propList = new ArrayList<>();
       int totalConcepts = 0;
       while ((line = reader.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
@@ -143,9 +143,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
           if (totalConcepts++ % 5000 == 0) {
             logger.info("    count = " + totalConcepts);
           }
-          synList = new ArrayList<Synonym>();
-          defList = new ArrayList<Definition>();
-          propList = new ArrayList<Property>();
+          synList = new ArrayList<>();
+          defList = new ArrayList<>();
+          propList = new ArrayList<>();
           concept = new Concept();
           concept.setCode(cui);
           concept.setTerminology(terminology.getTerminology());
@@ -161,8 +161,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         }
         // build out synonym in concept
         Synonym syn = new Synonym();
-        if (!fields[13].equals("NOCODE"))
+        if (!fields[13].equals("NOCODE")) {
           syn.setCode(fields[10]);
+        }
         syn.setSource(fields[11]);
         syn.setTermGroup(fields[12]);
         syn.setName(fields[14]);
@@ -235,7 +236,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
 
-    // TODO: figure out indexing
   }
 
   /**
@@ -299,7 +299,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       term.setLatest(true);
       term.setSparqlFlag(false);
       if (forceDelete) {
-        logger.info("DELETE TERMINOLOGY = " + term.getIndexName());
+        logger.info("  DELETE TERMINOLOGY = " + term.getIndexName());
         findAndDeleteTerminology(term.getIndexName());
       }
 
