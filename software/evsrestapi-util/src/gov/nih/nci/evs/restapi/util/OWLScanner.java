@@ -1034,7 +1034,65 @@ C4910|<NHC0>C4910</NHC0>
 		}
 	}
 
+    public Vector extractProperties(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+        boolean switch_off = false;
 
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			System.out.println(t);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+
+			if (t.indexOf("<owl:Axiom>") != -1) {
+				switch_off = true;
+			}
+			if (t.indexOf("</owl:Axiom>") != -1) {
+				switch_off = false;
+			}
+
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						String s = t.substring(1, n-1);
+						if (!switch_off) {
+							w.add(classId + "|" + new OWLScanner().parseProperty(t));
+					    }
+					}
+				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
+				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						String s = t.substring(1, n-1);
+						if (!switch_off) {
+						    w.add(classId + "|" + new OWLScanner().parseProperty(t));
+						}
+					}
+				}
+		    }
+		}
+		return w;
+	}
+
+/*
     public Vector extractProperties(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -1078,7 +1136,7 @@ C4910|<NHC0>C4910</NHC0>
 		}
 		return w;
 	}
-
+*/
 
     public Vector extractSuperclasses(Vector class_vec) {
         Vector w = new Vector();
