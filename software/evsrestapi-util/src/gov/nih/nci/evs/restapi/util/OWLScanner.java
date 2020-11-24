@@ -1043,7 +1043,6 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			System.out.println(t);
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1070,20 +1069,23 @@ C4910|<NHC0>C4910</NHC0>
 			if (istart) {
 				t = t.trim();
 				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+
 					int n = t.indexOf(">");
                     if (n != -1) {
-						String s = t.substring(1, n-1);
+						//String s = t.substring(1, n-1);
 						if (!switch_off) {
-							w.add(classId + "|" + new OWLScanner().parseProperty(t));
+							w.add(classId + "|" + parseProperty(t));
 					    }
 					}
+
+
 				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
 				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
 					int n = t.indexOf(">");
                     if (n != -1) {
-						String s = t.substring(1, n-1);
+						//String s = t.substring(1, n-1);
 						if (!switch_off) {
-						    w.add(classId + "|" + new OWLScanner().parseProperty(t));
+						    w.add(classId + "|" + parseProperty(t));
 						}
 					}
 				}
