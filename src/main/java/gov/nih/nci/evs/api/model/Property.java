@@ -18,9 +18,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 /**
  * Represents a synonym of a concept.
  */
-//@JsonIgnoreProperties(value = {
-//    "code"
-//})
+// @JsonIgnoreProperties(value = {
+// "code"
+// })
 @JsonInclude(Include.NON_EMPTY)
 public class Property extends BaseModel {
 
@@ -45,6 +45,9 @@ public class Property extends BaseModel {
 
   /** The qualifiers. */
   private List<Qualifier> qualifiers;
+
+  /** The source. */
+  private String source;
 
   /**
    * Instantiates an empty {@link Property}.
@@ -73,10 +76,12 @@ public class Property extends BaseModel {
     value = other.getValue();
     highlight = other.getHighlight();
     qualifiers = new ArrayList<>(other.getQualifiers());
+    source = other.getSource();
   }
 
   /**
-   * Returns the code.  This is really for internal use for connecting qualifiers to properties.
+   * Returns the code. This is really for internal use for connecting qualifiers
+   * to properties.
    *
    * @return the code
    */
@@ -169,6 +174,24 @@ public class Property extends BaseModel {
   }
 
   /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source
+   */
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  /**
    * Hash code.
    *
    * @return the int
@@ -180,6 +203,7 @@ public class Property extends BaseModel {
     int result = 1;
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((value == null) ? 0 : value.hashCode());
+    result = prime * result + ((source == null) ? 0 : source.hashCode());
     return result;
   }
 
@@ -214,6 +238,13 @@ public class Property extends BaseModel {
         return false;
       }
     } else if (!value.equals(other.value)) {
+      return false;
+    }
+    if (source == null) {
+      if (other.source != null) {
+        return false;
+      }
+    } else if (!source.equals(other.source)) {
       return false;
     }
     return true;

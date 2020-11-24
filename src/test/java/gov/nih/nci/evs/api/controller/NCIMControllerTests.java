@@ -299,7 +299,7 @@ public class NCIMControllerTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL990362");
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
-    assertThat(concept.getProperties().size()).isEqualTo(1);
+    assertThat(concept.getProperties().size()).isGreaterThan(0);
     assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
     assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Intellectual Product");
 
@@ -333,6 +333,82 @@ public class NCIMControllerTests {
     assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
     assertThat(properties.get(0).getVersion()).isEqualTo("202008");
     assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo("Semantic_Type");
+
+    // check other properties from MRDOC
+    assertThat(properties.get(2).getCode()).isEqualTo("ACCEPTABILITYID");
+    assertThat(properties.get(2).getName()).isEqualTo("Acceptability ID");
+    assertThat(properties.get(2).getTerminology()).isEqualTo("ncim");
+    assertThat(properties.get(2).getVersion()).isEqualTo("202008");
+    assertThat(properties.get(2).getSynonyms().get(0).getName()).isEqualTo("Acceptability ID");
+
+    // one more property check
+    assertThat(properties.get(5).getCode()).isEqualTo("ANDA");
+    assertThat(properties.get(5).getName())
+        .isEqualTo("Abbreviated New (Generic) Drug application number for the MTHSPL drug");
+    assertThat(properties.get(5).getTerminology()).isEqualTo("ncim");
+    assertThat(properties.get(5).getVersion()).isEqualTo("202008");
+    assertThat(properties.get(5).getSynonyms().get(0).getName())
+        .isEqualTo("Abbreviated New (Generic) Drug application number for the MTHSPL drug");
+
+  }
+
+  /**
+   * MRDEF basic tests.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMRSAT() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // first concept in MRSAT
+    url = baseUrl + "/ncim/C0000005";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000005");
+    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+    assertThat(concept.getProperties().size()).isGreaterThan(1);
+    assertThat(concept.getProperties().get(4).getType()).isEqualTo("RN");
+    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("MSH");
+    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("0");
+
+    // random concept in MRSAT
+    url = baseUrl + "/ncim/C0436993";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0436993");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0436993");
+    assertThat(concept.getName()).isEqualTo("On examination - abdominal mass - regular shape");
+    assertThat(concept.getProperties().size()).isGreaterThan(1);
+    assertThat(concept.getProperties().get(4).getType()).isEqualTo("CASE_SIGNIFICANCE_ID");
+    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("SNOMEDCT_US");
+    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("900000000000448009");
+
+    // last concept in MRSTY/MRSAT
+    url = baseUrl + "/ncim/CL988043";
+    log.info("Testing url - " + url + "?terminology=ncim&code=CL988043");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL988043");
+    assertThat(concept.getName()).isEqualTo(
+        "Guidance for drainage+placement of drainage catheter^W contrast IV:Find:Pt:Abdomen:Doc:CT");
+    assertThat(concept.getProperties().size()).isGreaterThan(0);
+    assertThat(concept.getProperties().get(4).getType()).isEqualTo("IMAGING_DOCUMENT_VALUE_SET");
+    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("LNC");
+    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("TRUE");
 
   }
 

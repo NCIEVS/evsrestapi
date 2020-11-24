@@ -80,6 +80,7 @@ public class PropertyUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("type");
     tester.include("value");
+    tester.include("source");
     tester.proxy("qualifiers", 1, q1);
     tester.proxy("qualifiers", 2, q2);
 
