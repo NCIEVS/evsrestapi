@@ -2330,6 +2330,36 @@ C4910|<NHC0>C4910</NHC0>
 		return list;
 	}
 
+	public String extractVersion() {
+		return extractVersion(this.owl_vec);
+	}
+
+	public String extractVersion(Vector owl_vec) {
+		String version = null;
+		String tag = "<owl:versionInfo>";
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			version = extractTagValue(line, tag);
+			if (version != null) {
+				break;
+			}
+		}
+		return version;
+	}
+
+	public String extractTagValue(String line, String tag) {
+		String t = line;
+		t = t.trim();
+		int n = t.indexOf(tag);
+		if (n == -1) return null;
+		t = t.substring(n+tag.length(), t.length());
+		n = t.indexOf("<");
+		if (n == -1) return null;
+		t = t.substring(0, n);
+		t = t.trim();
+		return t;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
