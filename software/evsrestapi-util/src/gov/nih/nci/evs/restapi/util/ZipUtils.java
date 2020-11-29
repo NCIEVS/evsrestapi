@@ -10,26 +10,27 @@ import java.util.zip.*;
 
 public class ZipUtils {
     private static final int BUFFER_SIZE = 4096;
+
 	public ZipUtils() {
 
 	}
 
-	private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+	public static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
 		if (fileToZip.isHidden()) {
 			return;
 		}
 		if (fileToZip.isDirectory()) {
-			if (fileName.endsWith("/")) {
+			if (fileName.endsWith(File.separator)) {
 				zipOut.putNextEntry(new ZipEntry(fileName));
 				zipOut.closeEntry();
 			} else {
-				zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+				zipOut.putNextEntry(new ZipEntry(fileName + File.separator));
 				zipOut.closeEntry();
 			}
 
 			File[] children = fileToZip.listFiles();
 			for (File childFile : children) {
-				zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+				zipFile(childFile, fileName + File.separator + childFile.getName(), zipOut);
 			}
 		   return;
 		}
@@ -61,20 +62,13 @@ public class ZipUtils {
         File f = new File(dirName);
 
 		File filesList[] = f.listFiles();
-		System.out.println("List of files and directories in the specified directory:");
 		for(File file : filesList) {
-			/*
-			System.out.println("File name: "+file.getName());
-			System.out.println("File path: "+file.getAbsolutePath());
-			System.out.println("Size :"+file.getTotalSpace());
-			System.out.println(" ");
-			*/
 			v.add(file.getAbsolutePath());
 		}
         return v;
 	}
 
-	private static void zipFile(String rooDir, String zipfle) throws IOException {
+	public static void zipFile(String rooDir, String zipfle) throws IOException {
 		FileOutputStream fos = new FileOutputStream(zipfle);
 		ZipOutputStream zipOut = new ZipOutputStream(fos);
 		Vector v = listFilesInDirectory(rooDir);
