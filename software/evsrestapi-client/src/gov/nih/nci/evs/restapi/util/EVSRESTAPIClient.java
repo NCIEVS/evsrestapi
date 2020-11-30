@@ -49,6 +49,23 @@ public class EVSRESTAPIClient {
 		EVSRESTAPI_URL_MAP.put("pathsFromRoot", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/pathsFromRoot");
 		EVSRESTAPI_URL_MAP.put("parents", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/parents");
         EVSRESTAPI_URL_MAP.put("concept", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}?include=full");
+
+		EVSRESTAPI_URL_MAP.put("metadata_associations", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/associations");
+		EVSRESTAPI_URL_MAP.put("metadata_terminologies", "https://api-evsrest.nci.nih.gov/api/v1/metadata/terminologies");
+		EVSRESTAPI_URL_MAP.put("metadata_values", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/qualifier/{codeOrLabel}/values");
+		EVSRESTAPI_URL_MAP.put("metadata_roles", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/roles");
+		EVSRESTAPI_URL_MAP.put("metadata_role_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/role/{codeOrLabel}");
+		EVSRESTAPI_URL_MAP.put("metadata_qualifiers", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/qualifiers");
+		EVSRESTAPI_URL_MAP.put("metadata_definitionSources", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/definitionSources");
+		EVSRESTAPI_URL_MAP.put("metadata_termTypes", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/termTypes");
+		EVSRESTAPI_URL_MAP.put("metadata_synonymSources", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/synonymSources");
+		EVSRESTAPI_URL_MAP.put("metadata_association_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/association/{codeOrLabel}");
+		EVSRESTAPI_URL_MAP.put("metadata_property_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/property/{codeOrLabel}");
+		EVSRESTAPI_URL_MAP.put("metadata_conceptStatuses", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/conceptStatuses");
+		EVSRESTAPI_URL_MAP.put("metadata_properties", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/properties");
+		EVSRESTAPI_URL_MAP.put("metadata_qualifier_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/qualifier/{codeOrLabel}");
+
+
 	}
 
 	public EVSRESTAPIClient() {
@@ -57,13 +74,17 @@ public class EVSRESTAPIClient {
 
 	public static HashMap get_evsrestapi_endpoint_map(String filename) {
 		HashMap hmap = new HashMap();
-		String end_point_prefix = ENDPOINT_PREFIX;
+		String end_point_prefix = EVSRESTAPIClient.ENDPOINT_PREFIX;
 		Vector v = Utils.readFile(filename);
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			if (t.indexOf("/api/") != -1) {
 				t = end_point_prefix + t;
+				String t0 = t;
+				if (t.endsWith("{codeOrLabel}")) {
+					t = t.replace("/{codeOrLabel}", "_codeOrLabel");
+   			    }
 				int n = t.lastIndexOf("/");
 				String type = t.substring(n+1, t.length());
 				if (type.startsWith("{")) {
@@ -72,7 +93,7 @@ public class EVSRESTAPIClient {
 				if (type.endsWith("}")) {
 					type = type.substring(0, type.length()-1);
 				}
-				hmap.put(type, t);
+				hmap.put(type, t0);
 			}
 		}
 		return hmap;
@@ -394,6 +415,35 @@ public class EVSRESTAPIClient {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		return w;
 	}
+
+	public static void testMetadataAPIs(String terminology) {
+		HashMap hmap = EVSRESTAPIClient.EVSRESTAPI_URL_MAP;
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			if (key.startsWith("metadata_")) {
+				String t0 = (String) hmap.get(key);
+				String t = t0;
+				t = t.replace("{terminology}", terminology);
+				if (key.compareTo("metadata_role_codeOrLabel") == 0) {
+					t = t.replace("{codeOrLabel}", "R81");
+				} else if (key.compareTo("metadata_association_codeOrLabel") == 0) {
+					t = t.replace("{codeOrLabel}", "A10");
+				} else if (key.compareTo("metadata_property_codeOrLabel") == 0) {
+					t = t.replace("{codeOrLabel}", "P322");
+				} else if (key.compareTo("metadata_qualifier_codeOrLabel") == 0) {
+					t = t.replace("{codeOrLabel}", "P390");
+				} else if (key.compareTo("metadata_values") == 0) {
+					t = t.replace("{codeOrLabel}", "P383");
+				}
+				System.out.println("\n" + t0);
+				System.out.println("Example: " + t);
+				String json = EVSRESTAPIClient.getJson(t);
+				System.out.println(json);
+			}
+		}
+	}
+
 
 	public static void main(String[] args) {
 	    Vector v = null;
