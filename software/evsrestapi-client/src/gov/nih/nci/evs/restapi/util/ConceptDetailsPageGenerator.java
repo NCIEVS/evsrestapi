@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
+
 import gov.nih.nci.evs.restapi.model.*;
 import gov.nih.nci.evs.restapi.bean.*;
 
@@ -82,15 +83,14 @@ public class ConceptDetailsPageGenerator {
 				if (sourcecode == null || sourcecode.compareTo("null") == 0) {
 					sourcecode = "";
 				}
-
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
-				out.println("						<td>" + synonym.getName() + "</td>");
-				out.println("						<td>" + synonym.getType() + "</td>");
-				out.println("						<td>" + termgroup + "</td>");
-				out.println("						<td>" + source + "</td>");
-				out.println("						<td>" + subsource + "</td>");
-				out.println("						<td>" + sourcecode + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"50%\">" + synonym.getName() + "</td>");
+				out.println("						<td width=\"10%\">" + synonym.getType() + "</td>");
+				out.println("						<td width=\"5%\">" + termgroup + "</td>");
+				out.println("						<td width=\"10%\">" + source + "</td>");
+				out.println("						<td width=\"10%\">" + subsource + "</td>");
+				out.println("						<td width=\"10%\">" + sourcecode + "</td>");
 				out.println("					</tr>");
 			}
 
@@ -123,12 +123,11 @@ public class ConceptDetailsPageGenerator {
 				if (type == null || type.compareTo("null") == 0) {
 					type = "DEFINITION";
 				}
-
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
-				out.println("						<td>" + type + "</td>");
-				out.println("						<td>" + a.getDefinition() + "</td>");
-				out.println("						<td>" + a.getSource() + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"15%\">" + type + "</td>");
+				out.println("						<td width=\"70%\">" + a.getDefinition() + "</td>");
+				out.println("						<td width=\"10%\">" + a.getSource() + "</td>");
 				out.println("					</tr>");
 			}
 			out.println("				</tbody>");
@@ -157,9 +156,9 @@ public class ConceptDetailsPageGenerator {
 				gov.nih.nci.evs.restapi.model.Property a = (gov.nih.nci.evs.restapi.model.Property) properties.get(i);
 
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
-				out.println("						<td>" + a.getType() + "</td>");
-				out.println("						<td>" + a.getValue() + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"15%\">" + a.getType() + "</td>");
+				out.println("						<td width=\"80%\">" + a.getValue() + "</td>");
 				out.println("					</tr>");
 			}
 			out.println("				</tbody>");
@@ -188,9 +187,9 @@ public class ConceptDetailsPageGenerator {
 			for (int i=0; i<superconcepts.size(); i++) {
 				Superclass superconcept = (Superclass) superconcepts.get(i);
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
-				out.println("						<td>" + superconcept.getCode() + "</td>");
-				out.println("						<td>" + superconcept.getName() + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"15%\">" + superconcept.getCode() + "</td>");
+				out.println("						<td width=\"80%\">" + superconcept.getName() + "</td>");
 				out.println("					</tr>");
 			}
 			out.println("				</tbody>");
@@ -216,9 +215,10 @@ public class ConceptDetailsPageGenerator {
 			for (int i=0; i<subconcepts.size(); i++) {
 				Subclass subconcept = (Subclass) subconcepts.get(i);
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
-				out.println("						<td>" + subconcept.getCode() + "</td>");
-				out.println("						<td>" + subconcept.getName() + "</td>");
+
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"15%\">" + subconcept.getCode() + "</td>");
+				out.println("						<td width=\"80%\">" + subconcept.getName() + "</td>");
 				out.println("					</tr>");
 			}
 			out.println("				</tbody>");
@@ -239,6 +239,7 @@ public class ConceptDetailsPageGenerator {
 			out.println("					<tr>");
 			out.println("						<th></th>");
 
+
 			out.println("						<th>Name</th>");
 			out.println("						<th>Related Name</th>");
 			out.println("						<th>Related Code</th>");
@@ -249,10 +250,10 @@ public class ConceptDetailsPageGenerator {
 			for (int i=0; i<associations.size(); i++) {
 				gov.nih.nci.evs.restapi.model.Association a = (gov.nih.nci.evs.restapi.model.Association) associations.get(i);
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
-				out.println("						<td>" + a.getType() + "</td>");
-				out.println("						<td>" + a.getRelatedName() + "</td>");
-				out.println("						<td>" + a.getRelatedCode() + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"30%\">" + a.getType() + "</td>");
+				out.println("						<td width=\"65\">" + a.getRelatedName() + "</td>");
+				out.println("						<td width=\"10%\">" + a.getRelatedCode() + "</td>");
 				out.println("					</tr>");
 			}
 			out.println("				</tbody>");
@@ -284,9 +285,11 @@ public class ConceptDetailsPageGenerator {
 				out.println("					<tr>");
 				out.println("						<td>&nbsp;</td>");
 
-				out.println("						<td>" + a.getRelatedName() + "</td>");
-				out.println("						<td>" + a.getRelatedCode() + "</td>");
-				out.println("						<td>" + a.getType() + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"65\">" + a.getRelatedName() + "</td>");
+				out.println("						<td width=\"10%\">" + a.getRelatedCode() + "</td>");
+				out.println("						<td width=\"30%\">" + a.getType() + "</td>");
+
 
 				out.println("					</tr>");
 			}
@@ -317,10 +320,12 @@ public class ConceptDetailsPageGenerator {
 			for (int i=0; i<roles.size(); i++) {
 				gov.nih.nci.evs.restapi.model.Role a = (gov.nih.nci.evs.restapi.model.Role) roles.get(i);
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
-				out.println("						<td>" + a.getType() + "</td>");
-				out.println("						<td>" + a.getRelatedName() + "</td>");
-				out.println("						<td>" + a.getRelatedCode() + "</td>");
+
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"30%\">" + a.getType() + "</td>");
+				out.println("						<td width=\"65\">" + a.getRelatedName() + "</td>");
+				out.println("						<td width=\"10%\">" + a.getRelatedCode() + "</td>");
+
 				out.println("					</tr>");
 			}
 			out.println("				</tbody>");
@@ -349,11 +354,11 @@ public class ConceptDetailsPageGenerator {
 			for (int i=0; i<inv_roles.size(); i++) {
 				gov.nih.nci.evs.restapi.model.InverseRole a = (gov.nih.nci.evs.restapi.model.InverseRole) inv_roles.get(i);
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
 
-				out.println("						<td>" + a.getRelatedName() + "</td>");
-				out.println("						<td>" + a.getRelatedCode() + "</td>");
-				out.println("						<td>" + a.getType() + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"60\">" + a.getRelatedName() + "</td>");
+				out.println("						<td width=\"10%\">" + a.getRelatedCode() + "</td>");
+				out.println("						<td width=\"35%\">" + a.getType() + "</td>");
 
 				out.println("					</tr>");
 			}
@@ -373,7 +378,6 @@ public class ConceptDetailsPageGenerator {
 			out.println("				<thead>");
 			out.println("					<tr>");
 			out.println("						<th></th>");
-
 			out.println("						<th>Type</th>");
 			out.println("						<th>Target Name</th>");
 			out.println("						<th>Target Term Group</th>");
@@ -386,15 +390,19 @@ public class ConceptDetailsPageGenerator {
 			out.println("				<tbody>");
 			for (int i=0; i<maps.size(); i++) {
 				gov.nih.nci.evs.restapi.model.MapsTo a = (gov.nih.nci.evs.restapi.model.MapsTo) maps.get(i);
+				String version = a.getTargetTerminologyVersion();
+				if (version == null || version.compareTo("null") == 0) {
+					version = "";
+				}
 				out.println("					<tr>");
-				out.println("						<td>&nbsp;</td>");
 
-				out.println("						<td>" + a.getType() + "</td>");
-				out.println("						<td>" + a.getTargetName() + "</td>");
-				out.println("						<td>" + a.getTargetTermGroup() + "</td>");
-				out.println("						<td>" + a.getTargetCode() + "</td>");
-				out.println("						<td>" + a.getTargetTerminology() + "</td>");
-				out.println("						<td>" + a.getTargetTerminologyVersion() + "</td>");
+				out.println("						<td width=\"5%\">&nbsp;</td>");
+				out.println("						<td width=\"15%\">" + a.getType() + "</td>");
+				out.println("						<td width=\"30%\">" + a.getTargetName() + "</td>");
+				out.println("						<td width=\"15%\">" + a.getTargetTermGroup() + "</td>");
+				out.println("						<td width=\"15%\">" + a.getTargetCode() + "</td>");
+				out.println("						<td width=\"10%\">" + a.getTargetTerminology() + "</td>");
+				out.println("						<td width=\"5%\">" +version + "</td>");
 
 				out.println("					</tr>");
 			}
