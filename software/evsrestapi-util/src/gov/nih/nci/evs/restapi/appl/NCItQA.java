@@ -39,6 +39,8 @@ public class NCItQA {
     public static String PREFERRED_NAME_PROP_CODE = "P108";
     public static String CONCEPT_STATUS_PROP_CODE = "P310";
 
+
+
     public Vector semantic_types = null;
     Vector objectProperties = null;
     Vector association_vec = null;
@@ -51,7 +53,6 @@ public class NCItQA {
     HashMap code2LabelMap = null;//getCode2LabelMap
     HashMap roleCode2LabelMap = null;
 
-
     public static String AXIOM_FILE = "axioms.txt";
 
     public HashMap concept_status_map = null;
@@ -61,12 +62,22 @@ public class NCItQA {
     List<gov.nih.nci.evs.restapi.bean.Synonym> active_full_syn_list = null;
 
     Vector annotationProperties = null;
+    public boolean saveOption = false;
 
     public NCItQA() {
 
 	}
 
 	public NCItQA(String owlfile) {
+		this.owlfile = owlfile;
+		//initialize();
+	}
+
+	public void setSaveOption(boolean saveOption) {
+		this.saveOption = saveOption;
+	}
+
+	public void initialize() {
 		if (owlfile == null) {
 			if (FileUtils.fileExists(NCIT_OWL)) {
 				System.out.println(NCIT_OWL + " exists.");
@@ -93,7 +104,7 @@ public class NCItQA {
 		property_vec = null;
 		if (!FileUtils.fileExists(PROPERTY_FILE)) {
 			property_vec = owlScanner.extractProperties(owlScanner.get_owl_vec());
-			Utils.saveToFile(PROPERTY_FILE, property_vec);
+			if (saveOption) Utils.saveToFile(PROPERTY_FILE, property_vec);
 		} else {
 			property_vec = Utils.readFile(PROPERTY_FILE);
 		}
@@ -101,14 +112,14 @@ public class NCItQA {
 		Vector w = null;
 		if (!FileUtils.fileExists(ROLE_FILE)) {
 			role_vec = owlScanner.extractOWLRestrictions(owlScanner.get_owl_vec());
-			Utils.saveToFile(ROLE_FILE, role_vec);
+			if (saveOption)  Utils.saveToFile(ROLE_FILE, role_vec);
 		} else {
 			role_vec = Utils.readFile(ROLE_FILE);
 		}
 
 		if (!FileUtils.fileExists(OBJECT_PROPERTY_FILE)) {
 			objectProperties = owlScanner.extractObjectProperties(owlScanner.get_owl_vec());
-			Utils.saveToFile(OBJECT_PROPERTY_FILE, objectProperties);
+			if (saveOption)  Utils.saveToFile(OBJECT_PROPERTY_FILE, objectProperties);
 		} else {
 			objectProperties = Utils.readFile(OBJECT_PROPERTY_FILE);
 		}
@@ -122,21 +133,21 @@ public class NCItQA {
 
 		if (!FileUtils.fileExists(DEPRECATED_FILE)) {
 			deprecated_vec = owlScanner.extractDeprecatedObjects(owlScanner.get_owl_vec());
-			Utils.saveToFile(DEPRECATED_FILE, deprecated_vec);
+			if (saveOption)  Utils.saveToFile(DEPRECATED_FILE, deprecated_vec);
 		} else {
 			deprecated_vec = Utils.readFile(DEPRECATED_FILE);
 		}
 
 		if (!FileUtils.fileExists(OBJECT_PROPERTY_FILE)) {
 			objectProperties = owlScanner.extractObjectProperties(owlScanner.get_owl_vec());
-			Utils.saveToFile(OBJECT_PROPERTY_FILE, objectProperties);
+			if (saveOption)  Utils.saveToFile(OBJECT_PROPERTY_FILE, objectProperties);
 		} else {
 			objectProperties = Utils.readFile(OBJECT_PROPERTY_FILE);
 		}
 
 		if (!FileUtils.fileExists(ANNOTATION_PROPERTY_FILE)) {
 			annotationProperties = owlScanner.extractAnnotationProperties(owlScanner.get_owl_vec());
-			Utils.saveToFile(ANNOTATION_PROPERTY_FILE, annotationProperties);
+			if (saveOption)  Utils.saveToFile(ANNOTATION_PROPERTY_FILE, annotationProperties);
 		} else {
 			annotationProperties = Utils.readFile(ANNOTATION_PROPERTY_FILE);
 		}
@@ -365,9 +376,9 @@ public class NCItQA {
 
     public List extractFULLSyns() {
 		Vector w = owlScanner.scanAxioms();
-		Utils.saveToFile("owlAxioms.txt", w);
+		if (saveOption)  Utils.saveToFile("owlAxioms.txt", w);
 		w = filterAxiomData(w, "P90");
-        Utils.saveToFile("FULLSYN.txt", w);
+        if (saveOption)  Utils.saveToFile("FULLSYN.txt", w);
 		List list = new AxiomUtils().getSynonyms(w);
 		return list;
 	}
@@ -875,7 +886,20 @@ pw.println("KEY: " + key);
 	}
 
 	public static void main(String[] args) {
-        NCItQA ncitQA = new NCItQA(null);
+		String owlfile = null;
+		boolean saveOption = false;
+		if (args.length > 0) {
+			owlfile = (String) args[0];
+		}
+		if (args.length > 1) {
+			String saveOptionStr = (String) args[1];
+			if (saveOptionStr.compareTo("true") == 0) {
+				saveOption = true;
+			}
+		}
+		NCItQA ncitQA = new NCItQA(owlfile);
+		ncitQA.setSaveOption(saveOption);
+		ncitQA.initialize();
         ncitQA.runQA();
 	}
 }
