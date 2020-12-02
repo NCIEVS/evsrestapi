@@ -5059,13 +5059,15 @@ Term Type
 	    return v;
 	}
 
-	public String construct_get_property_qualifiers() {
+	public String construct_get_property_qualifiers(String named_graph) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("select distinct ?p_label ?p_code ?q_label ?q_code").append("\n");
-		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-		buf.append("where  { ").append("\n");
+
+        buf.append("select distinct ?p_label ?p_code ?q_label ?q_code").append("\n");
+        buf.append("{").append("\n");
+        buf.append("graph <" + named_graph + "> {").append("\n");
+
 		buf.append("                ?a a owl:Axiom .").append("\n");
 		buf.append("                ?a owl:annotatedProperty ?p .").append("\n");
 		buf.append("                ?p rdfs:label ?p_label .").append("\n");
@@ -5073,17 +5075,17 @@ Term Type
 		buf.append("                ?a ?q ?q_value .").append("\n");
 		buf.append("                ?q rdfs:label ?q_label .").append("\n");
 		buf.append("                ?q :NHC0 ?q_code .").append("\n");
-		buf.append("}");
-		return buf.toString();
+        buf.append("}").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
 	}
 
-	public Vector getPropertyQuailfiers() {
-	    String query = construct_get_property_qualifiers();
+	public Vector getPropertyQuailfiers(String named_graph) {
+	    String query = construct_get_property_qualifiers(named_graph);
 	    System.out.println(query);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
-
 }
 
