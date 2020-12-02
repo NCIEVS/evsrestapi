@@ -30,6 +30,37 @@ public class Test {
 
     }
 
+    public static String getURL(String key, String terminology, String code) {
+		return getURL(key, terminology, code, "C7057", "C2291,C3224");
+	}
+
+    public static String getURL(String key, String terminology, String code, String ancestorCode, String conceptList) {
+		String t0 = (String) EVSRESTAPIClient.EVSRESTAPI_URL_MAP.get(key);
+		String t = t0;
+		t = t.replace("{terminology}", terminology);
+		if (code != null) t = t.replace("{code}", code);
+		if (key.compareTo("metadata_role_codeOrLabel") == 0) {
+			t = t.replace("{codeOrLabel}", "R81");
+		} else if (key.compareTo("metadata_association_codeOrLabel") == 0) {
+			t = t.replace("{codeOrLabel}", "A10");
+		} else if (key.compareTo("metadata_property_codeOrLabel") == 0) {
+			t = t.replace("{codeOrLabel}", "P322");
+		} else if (key.compareTo("metadata_qualifier_codeOrLabel") == 0) {
+			t = t.replace("{codeOrLabel}", "P390");
+		} else if (key.compareTo("metadata_values") == 0) {
+			t = t.replace("{codeOrLabel}", "P383");
+		} else if (key.compareTo("pathsToAncestor_ancestorCode") == 0) {
+			t = t.replace("{ancestorCode}", ancestorCode);
+		} else if (key.compareTo("concept_terminology") == 0) {
+			t = t + "?list=" + conceptList;
+		}
+		return t;
+	}
+
+	public static String getJson(String url) {
+		return EVSRESTAPIClient.getJson(url);
+	}
+
 	public static void main(String[] args) {
 		String outputfile = "EVSRESTAPI_Test" + ".txt";
 		String terminology = args[0];

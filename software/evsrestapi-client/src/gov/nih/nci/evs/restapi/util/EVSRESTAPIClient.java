@@ -201,6 +201,17 @@ public class EVSRESTAPIClient {
 		} else if (className.compareTo("ConceptDetails") == 0) {
 			gov.nih.nci.evs.restapi.model.ConceptDetails superclass = mapper.readValue(json, gov.nih.nci.evs.restapi.model.ConceptDetails.class);
 	        return superclass;
+
+		} else if (className.compareTo("Subtree") == 0) {
+			gov.nih.nci.evs.restapi.model.Subtree response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Subtree.class);
+	        return response;
+		} else if (className.compareTo("Tree") == 0) {
+			if (!json.startsWith("{")) {
+				json = "{\"subtrees\":" + json + "}";
+			}
+			gov.nih.nci.evs.restapi.model.Tree response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Tree.class);
+	        return response;
+
 		} else if (className.compareTo("RESTResponse") == 0) {
 			gov.nih.nci.evs.restapi.model.RESTResponse response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.RESTResponse.class);
 	        return response;
