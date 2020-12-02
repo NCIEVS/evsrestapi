@@ -5058,5 +5058,32 @@ Term Type
 	    v = new SortUtils().quickSort(v);
 	    return v;
 	}
+
+	public String construct_get_property_qualifiers() {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select distinct ?p_label ?p_code ?q_label ?q_code").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("                ?a a owl:Axiom .").append("\n");
+		buf.append("                ?a owl:annotatedProperty ?p .").append("\n");
+		buf.append("                ?p rdfs:label ?p_label .").append("\n");
+		buf.append("                ?p :NHC0 ?p_code .").append("\n");
+		buf.append("                ?a ?q ?q_value .").append("\n");
+		buf.append("                ?q rdfs:label ?q_label .").append("\n");
+		buf.append("                ?q :NHC0 ?q_code .").append("\n");
+		buf.append("}");
+		return buf.toString();
+	}
+
+	public Vector getPropertyQuailfiers() {
+	    String query = construct_get_property_qualifiers();
+	    System.out.println(query);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
+
 }
 
