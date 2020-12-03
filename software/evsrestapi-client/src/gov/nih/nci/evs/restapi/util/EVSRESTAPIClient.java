@@ -235,11 +235,7 @@ public class EVSRESTAPIClient {
 		 return s;
 	 }
 
-	public static String getURL(String t, String terminology, String code) {
-		t = t.replace("{terminology}", terminology);
-		t = t.replace("{code}", code);
-		return t;
-	}
+
 
 	public static ValueSet getValueSet(String terminology, String code) {
 		HashMap hmap = EVSRESTAPI_URL_MAP;
@@ -275,7 +271,6 @@ public class EVSRESTAPIClient {
 	}
 
 	public static gov.nih.nci.evs.restapi.model.ConceptDetails getConceptDetails(String terminology, String code) {
-		//HashMap hmap = EVSRESTAPI_URL_MAP;
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		gov.nih.nci.evs.restapi.model.ConceptDetails conceptDetails = null;
@@ -283,40 +278,8 @@ public class EVSRESTAPIClient {
 		t = t.replace("{terminology}", terminology);
 		String url = t.replace("{code}", code);
         String json = getJson(url);
-		/*
-
-        String url = getURL(terminology, code);
-		String json = getJson(url);
-
-		url = (String) hmap.get("associations");
-		url = getURL(url, terminology, code);
-		String value = getJson(url);
-		json = appendJSON(json, "associations", value);
-
-		url = (String) hmap.get("inverseAssociations");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseAssociations", value);
-
-		url = (String) hmap.get("roles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "roles", value);
-
-		url = (String) hmap.get("inverseRoles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseRoles", value);
-
-		url = (String) hmap.get("parents");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "superclasses", value);
-		*/
-
 		try {
 			conceptDetails = (gov.nih.nci.evs.restapi.model.ConceptDetails) deserialize("ConceptDetails", json);
-			//System.out.println(conceptDetails.toJson());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -325,39 +288,6 @@ public class EVSRESTAPIClient {
 
 	public static String getConceptDetailsInJSON(String terminology, String code) {
 		ConceptDetails cd = getConceptDetails(terminology, code);
-		/*
-		HashMap hmap = EVSRESTAPI_URL_MAP;
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		gov.nih.nci.evs.restapi.model.ConceptDetails conceptDetails = null;
-        String url = getURL(terminology, code);
-		String json = getJson(url);
-
-		url = (String) hmap.get("associations");
-		url = getURL(url, terminology, code);
-		String value = getJson(url);
-		json = appendJSON(json, "associations", value);
-
-		url = (String) hmap.get("inverseAssociations");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseAssociations", value);
-
-		url = (String) hmap.get("roles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "roles", value);
-
-		url = (String) hmap.get("inverseRoles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseRoles", value);
-
-		url = (String) hmap.get("parents");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "superclasses", value);
-        */
 		return flattenJSON(cd.toJson());
 	}
 
@@ -434,6 +364,26 @@ public class EVSRESTAPIClient {
 		}
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 		return w;
+	}
+
+	public static String getURL(String t, String terminology, String code) {
+		t = t.replace("{terminology}", terminology);
+		t = t.replace("{code}", code);
+		return t;
+	}
+
+	public String code2Label(String code) {
+		String t = (String) EVSRESTAPI_URL_MAP.get("code");
+		String url = getURL(t, "ncit", code);
+		String json = getJson(url);
+		if (json == null) return null;
+		try {
+			gov.nih.nci.evs.restapi.model.Concept c = (gov.nih.nci.evs.restapi.model.Concept) deserialize("Concept", json);
+			return c.getName();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
 	}
 
 	public static void main(String[] args) {
