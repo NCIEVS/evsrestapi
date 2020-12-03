@@ -212,6 +212,15 @@ public class EVSRESTAPIClient {
 			gov.nih.nci.evs.restapi.model.Tree response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Tree.class);
 	        return response;
 
+		} else if (className.compareTo("Descendant") == 0) {
+			if (!json.startsWith("{")) {
+				json = "{\"descendants\":" + json + "}";
+			}
+			System.out.println(json);
+
+			gov.nih.nci.evs.restapi.model.Descendant response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Descendant.class);
+	        return response;
+
 		} else if (className.compareTo("RESTResponse") == 0) {
 			gov.nih.nci.evs.restapi.model.RESTResponse response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.RESTResponse.class);
 	        return response;
