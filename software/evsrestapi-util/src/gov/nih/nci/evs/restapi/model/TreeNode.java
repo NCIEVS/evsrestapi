@@ -19,7 +19,7 @@ public class TreeNode
 	private String name;
 	private int level;
 	private boolean leaf;
-	private List<Subtree> children;
+	private List<TreeNode> children;
 
 // Default constructor
 	public TreeNode() {
@@ -31,7 +31,7 @@ public class TreeNode
 		String name,
 		int level,
 		boolean leaf,
-		List<Subtree> children) {
+		List<TreeNode> children) {
 
 		this.code = code;
 		this.name = name;
@@ -57,7 +57,7 @@ public class TreeNode
 		this.leaf = leaf;
 	}
 
-	public void setChildren(List<Subtree> children) {
+	public void setChildren(List<TreeNode> children) {
 		this.children = children;
 	}
 
@@ -78,7 +78,7 @@ public class TreeNode
 		return this.leaf;
 	}
 
-	public List<Subtree> getChildren() {
+	public List<TreeNode> getChildren() {
 		return this.children;
 	}
 
