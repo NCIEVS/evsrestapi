@@ -446,6 +446,17 @@ public class EVSRESTAPIClient {
 		return null;
 	}
 
+    public void printTree(String code) {
+        printTree("ncit", code);
+	}
+
+    public void printTree(String terminology, String code) {
+        Vector v = extractHierarchyData(terminology, code);
+        HierarchyHelper hh = new HierarchyHelper(v);
+        hh.printTree();
+	}
+
+
 	public static void main(String[] args) {
 	    Vector v = null;
 	    try {
