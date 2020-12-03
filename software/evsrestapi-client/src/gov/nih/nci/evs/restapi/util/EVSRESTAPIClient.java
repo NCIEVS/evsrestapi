@@ -386,6 +386,47 @@ public class EVSRESTAPIClient {
 		return null;
 	}
 
+	public Vector extractHierarchyData(String parentCode, String parntLabel , gov.nih.nci.evs.restapi.model.TreeNode node) {
+		if (node == null) return null;
+		Vector w = new Vector();
+		w.add(parntLabel + "|" + parentCode + "|" + node.getName() + "|" + node.getCode());
+		List list = node.getChildren();
+		if (list != null) {
+			for (int k=0; k<list.size(); k++) {
+				gov.nih.nci.evs.restapi.model.TreeNode childnode = (gov.nih.nci.evs.restapi.model.TreeNode) list.get(k);
+				Vector v = extractHierarchyData(node.getCode(), node.getName(), childnode);
+				w.addAll(v);
+			}
+		}
+		return w;
+	}
+
+	public Vector extractHierarchyData(String rootCode, gov.nih.nci.evs.restapi.model.Descendant descendant) {
+		if (descendant == null) return null;
+		String rootLabel = code2Label(rootCode);
+		Vector w = new Vector();
+		List list = descendant.getDescendants();
+		for (int k=0; k<list.size(); k++) {
+			gov.nih.nci.evs.restapi.model.TreeNode node = (gov.nih.nci.evs.restapi.model.TreeNode) list.get(k);
+			Vector v = extractHierarchyData(rootCode, rootLabel, node);
+			w.addAll(v);
+		}
+		return w;
+	}
+
+	public Vector extractHierarchyData(String code) {
+		String url = getURL("descendants", "ncit", code);
+		String json = getJson(url+ "?maxLevel=50");
+		try {
+			gov.nih.nci.evs.restapi.model.Descendant descendant = (gov.nih.nci.evs.restapi.model.Descendant) deserialize("Descendant", json);
+            return extractHierarchyData(code, descendant);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
+
 	public static void main(String[] args) {
 	    Vector v = null;
 	    try {
