@@ -19,6 +19,7 @@ public class TreeNode
 	private String name;
 	private int level;
 	private boolean leaf;
+	private List<Subtree> children;
 
 // Default constructor
 	public TreeNode() {
@@ -29,47 +30,56 @@ public class TreeNode
 		String code,
 		String name,
 		int level,
-		boolean leaf) {
+		boolean leaf,
+		List<Subtree> children) {
 
 		this.code = code;
 		this.name = name;
 		this.level = level;
 		this.leaf = leaf;
+		this.children = children;
 	}
 
 // Set methods
-	public void setCode(String code) { 
+	public void setCode(String code) {
 		this.code = code;
 	}
 
-	public void setName(String name) { 
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public void setLevel(int level) { 
+	public void setLevel(int level) {
 		this.level = level;
 	}
 
-	public void setLeaf(boolean leaf) { 
+	public void setLeaf(boolean leaf) {
 		this.leaf = leaf;
 	}
 
+	public void setChildren(List<Subtree> children) {
+		this.children = children;
+	}
 
 // Get methods
-	public String getCode() { 
+	public String getCode() {
 		return this.code;
 	}
 
-	public String getName() { 
+	public String getName() {
 		return this.name;
 	}
 
-	public int getLevel() { 
+	public int getLevel() {
 		return this.level;
 	}
 
-	public boolean getLeaf() { 
+	public boolean getLeaf() {
 		return this.leaf;
+	}
+
+	public List<Subtree> getChildren() {
+		return this.children;
 	}
 
 	public String toXML() {
