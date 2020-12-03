@@ -76,6 +76,10 @@ public class AxiomUtils {
     String username = null;
     String password = null;
 
+    public AxiomUtils() {
+
+	}
+
     public AxiomUtils(String serviceUrl) {
         this.serviceUrl = serviceUrl;
         this.owlSPARQLUtils = new OWLSPARQLUtils(this.serviceUrl, null, null);

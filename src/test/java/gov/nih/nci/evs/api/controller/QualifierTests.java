@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
 
 /**
  * Integration tests for ContentController organized around proper handling of
@@ -99,8 +100,8 @@ public class QualifierTests {
             .isGreaterThan(0);
     assertThat(concept.getDefinitions().stream()
         .filter(d -> "ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution"))
-        .count()).isGreaterThan(0);
+        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution")).count())
+            .isGreaterThan(0);
   }
 
   /**
@@ -130,8 +131,8 @@ public class QualifierTests {
             .isGreaterThan(0);
     assertThat(concept.getDefinitions().stream()
         .filter(d -> !"ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution"))
-        .count()).isGreaterThan(0);
+        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution")).count())
+            .isGreaterThan(0);
   }
 
   /**
@@ -334,7 +335,6 @@ public class QualifierTests {
   }
 
   /**
-   * 
    * Test property not used.
    *
    * @throws Exception the exception
@@ -370,10 +370,7 @@ public class QualifierTests {
     String content = null;
     Concept concept = null;
 
-    for (final String name : new String[] {
-        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "Maps_To",
-        "label"
-    }) {
+    for (final String name : EVSUtils.getCommonPropertyNames(null)) {
       // skip name and label
       if (name.equals("name") || name.equals("label")) {
         continue;

@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * </pre>
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Terminology extends BaseModel {
+public class Terminology extends BaseModel implements Comparable<Terminology> {
 
   /** The terminology. */
   @Field(type = FieldType.Keyword)
@@ -76,9 +76,6 @@ public class Terminology extends BaseModel {
   @Field(type = FieldType.Keyword)
   private String objectIndexName;
 
-  /** The metadata. */
-  private TerminologyMetadata metadata;
-
   /** The flag for using sparql searches. */
   private Boolean sparqlFlag;
 
@@ -117,7 +114,6 @@ public class Terminology extends BaseModel {
     tags = new HashMap<>(other.getTags());
     indexName = other.getIndexName();
     objectIndexName = other.getObjectIndexName();
-    metadata = other.getMetadata();
     sparqlFlag = other.getSparqlFlag();
   }
 
@@ -284,24 +280,6 @@ public class Terminology extends BaseModel {
    */
   public void setLatest(final Boolean latest) {
     this.latest = latest;
-  }
-
-  /**
-   * Returns the metadata.
-   *
-   * @return the metadata
-   */
-  public TerminologyMetadata getMetadata() {
-    return metadata;
-  }
-
-  /**
-   * Sets the metadata.
-   *
-   * @param metadata the metadata
-   */
-  public void setMetadata(TerminologyMetadata metadata) {
-    this.metadata = metadata;
   }
 
   /**
@@ -493,6 +471,12 @@ public class Terminology extends BaseModel {
       return false;
     }
     return true;
+  }
+
+  /* see superclass */
+  @Override
+  public int compareTo(Terminology o) {
+    return (terminology + version).compareToIgnoreCase(o.getTerminology() + o.getVersion());
   }
 
 }

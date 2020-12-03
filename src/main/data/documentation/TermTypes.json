@@ -1,0 +1,78 @@
+{
+  "title": "Term Types",
+  "header": "NCI Thesaurus Term Types use 2- or 3-character abbreviations to code the nature of each term associated with a concept. Here is a listing of the term type codes and their meanings:",
+  "table": [
+     {
+        "name": "AB",
+        "description": "Abbreviation"
+     },
+     {
+        "name": "AD",
+        "description": "Adjectival form (and other parts of grammer)"
+     },
+     {
+        "name": "AQ*",
+        "description":"Antiquated preferred term"
+     },
+     {
+        "name": "AQS",
+        "description": "Antiquated term, use when there are antiquated synonyms within a concept"
+     },
+     {
+        "name": "BR",
+        "description": "US brand name, which may be trademarked"
+     },
+     {
+        "name": "CA2",
+        "description": "ISO 3166 alpha-2 country code"
+     },
+     {
+        "name": "CA3",
+        "description": "ISO 3166 alpha-3 country code"
+     },
+     {
+        "name": "CNU",
+        "description": "ISO 3166 numeric country code"
+     },
+     {
+        "name": "CI",
+        "description": "ISO Country code (deprecated)"
+     },
+     {
+        "name": "CN",
+        "description": "Drug study code"
+     },
+     {
+        "name": "CS",
+        "description": "US State Department country code"
+     },
+     {
+        "name": "DN",
+        "description": "Display name"
+     },
+     {
+        "name": "FB",
+        "description": "Foreign brand name, which may be trademarked"
+     },
+     {
+        "name": "LLT",
+        "description": "Lower Level Term"
+     },
+     {
+        "name": "HD*",
+        "description": "Header (groups concepts, but not used for coding data)"     },
+     {
+        "name": "PT*",
+        "description": "Preferred term"
+     },
+     {
+        "name": "SN",
+        "description": "Chemical structure name"
+     },
+     {
+        "name": "SY",
+        "description": "Synonym"
+     }
+   ],
+  "footer": "*Note on special rules governing NCI PT, HD, and AQ term types: Each concept should have one, and only one, term coded with one of these three values. The NCI Preferred Term is always taken from one of the NCI terms, normally that with a type of PT (Preferred Term). However, in special cases, a concept will not have a PT term, but instead, will have either an HD (Header) term or an AQ term. These tags are considered equivalent to PT by the software. This means that a concept may have only as single NCI PT, or HD, or AQ term. In those cases where multiple antiquated terms are needed for a concept which is itself coded as antiquated, one should be tagged AQ and the rest tagged AQS."
+}

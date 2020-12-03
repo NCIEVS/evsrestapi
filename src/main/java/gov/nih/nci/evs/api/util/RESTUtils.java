@@ -3,8 +3,6 @@ package gov.nih.nci.evs.api.util;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

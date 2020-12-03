@@ -5014,5 +5014,78 @@ Term Type
 	    return v;
 	}
 
+	public String construct_get_concepts_with_properties(String named_graph, Vector prop_codes) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		StringBuffer selectStmt = new StringBuffer();
+		selectStmt.append("SELECT ?x_code ?x_label ");
+		for (int i=0; i<prop_codes.size(); i++) {
+			int j = i+1;
+		    selectStmt.append("?p" + j + "_code ?p" + j + "_label ?y" + j + "");
+		    if (i<prop_codes.size()-1) {
+				selectStmt.append(" ");
+			}
+		}
+		String s = selectStmt.toString();
+		buf.append(s);
+		buf.append("{ ");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("	{");
+		buf.append("		?x a owl:Class .");
+		buf.append("                ?x :NHC0 ?x_code .");
+		buf.append("                ?x rdfs:label ?x_label .");
+
+		for (int i=0; i<prop_codes.size(); i++) {
+			int j = i+1;
+			String prop_code = (String) prop_codes.elementAt(i);
+
+			buf.append("		?x ?p" + j + " ?y" + j + " .");
+			buf.append("                ?p" + j + " :NHC0 \"" + prop_code + "\"^^xsd:string .");
+			buf.append("                ?p" + j + " :NHC0 ?p" + j + "_code .");
+			buf.append("                ?p" + j + " rdfs:label ?p" + j + "_label .");
+		}
+
+		buf.append("        }");
+		buf.append("}");
+		return buf.toString();
+	}
+
+	public Vector getConceptsWithProperties(String named_graph, Vector prop_codes) {
+	    String query = construct_get_concepts_with_properties(named_graph, prop_codes);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    v = new SortUtils().quickSort(v);
+	    return v;
+	}
+
+	public String construct_get_property_qualifiers(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+
+        buf.append("select distinct ?p_label ?p_code ?q_label ?q_code").append("\n");
+        buf.append("{").append("\n");
+        buf.append("graph <" + named_graph + "> {").append("\n");
+
+		buf.append("                ?a a owl:Axiom .").append("\n");
+		buf.append("                ?a owl:annotatedProperty ?p .").append("\n");
+		buf.append("                ?p rdfs:label ?p_label .").append("\n");
+		buf.append("                ?p :NHC0 ?p_code .").append("\n");
+		buf.append("                ?a ?q ?q_value .").append("\n");
+		buf.append("                ?q rdfs:label ?q_label .").append("\n");
+		buf.append("                ?q :NHC0 ?q_code .").append("\n");
+        buf.append("}").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+	public Vector getPropertyQuailfiers(String named_graph) {
+	    String query = construct_get_property_qualifiers(named_graph);
+	    System.out.println(query);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
 }
 

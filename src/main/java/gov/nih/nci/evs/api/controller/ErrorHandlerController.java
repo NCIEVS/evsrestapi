@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
@@ -58,7 +59,7 @@ public class ErrorHandlerController implements ErrorController {
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
     } catch (Exception e) {
-      ppBody = body.toString();
+      ppBody = body.toString().replaceAll("<", "&lt;");
     }
 
     return String.format("<html><body><h2>Error Page</h2><div>Something went wrong, "
@@ -112,7 +113,21 @@ public class ErrorHandlerController implements ErrorController {
   protected Map<String, Object> getErrorAttributes(HttpServletRequest request,
     boolean includeStackTrace) {
     WebRequest webRequest = new ServletWebRequest(request);
-    return this.errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
+    Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
+    if (body.containsKey("message")) {
+      try {
+        final String message = body.get("message").toString();
+        final StringBuilder sb = new StringBuilder();
+        for (final String line : message.split("\\n")) {
+          sb.append(StringEscapeUtils.escapeHtml4(line));
+          sb.append("\n");
+        }
+        body.put("message", sb.toString());
+      } catch (Exception e) {
+        body.put("message", body.get("message").toString().replaceAll("<", "&lt;"));
+      }
+    }
+    return body;
   }
 
   /* see superclass */
