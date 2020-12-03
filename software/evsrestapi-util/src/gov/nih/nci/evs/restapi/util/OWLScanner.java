@@ -71,6 +71,8 @@ public class OWLScanner {
     Vector owl_vec = null;
     static String NCIT_NAMESPACE_TARGET = "<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
     static String OWL_CLS_TARGET = NCIT_NAMESPACE_TARGET + "C"; //"<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C";
+    static String OWL_ANNOTATION_PROPERTY_TARGET = NCIT_NAMESPACE_TARGET + "A"; //"<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A";
+
 	static String open_tag = "<owl:Axiom>";
 	static String close_tag = "</owl:Axiom>";
 	static String owlannotatedSource = "owl:annotatedSource";
@@ -100,16 +102,16 @@ public class OWLScanner {
 		}
     }
 
+    public Vector get_owl_vec() {
+		return this.owl_vec;
+	}
+
     public HashMap getCode2LabelMap() {
 		return this.code2LabelMap;
 	}
 
     public String getLabel(String code) {
 		return (String) code2LabelMap.get(code);
-	}
-
-    public Vector get_owl_vec() {
-		return this.owl_vec;
 	}
 
 	public static String getToday() {
@@ -274,13 +276,30 @@ public class OWLScanner {
 	}
 
 	public Vector getOWLClassDataByCode(Vector codes) {
-		Vector v = new Vector();
+		Vector targets = new Vector();
 		for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
-			Vector w = getOWLClassDataByCode(code);
-			v.addAll(w);
+			targets.add(NCIT_NAMESPACE_TARGET + code + " -->");
 		}
-		return v;
+		Vector w = new Vector();
+		boolean istart = false;
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			String line_trimmed = line.trim();
+			if (targets.contains(line_trimmed)) {
+				istart = true;
+			} else if (istart && line.indexOf(OWL_CLS_TARGET) != -1) {
+                istart = false;
+			} else {
+				if (line_trimmed.startsWith(OWL_CLS_TARGET) && !targets.contains(line_trimmed)) {
+					istart = false;
+				}
+			}
+			if (istart) {
+				w.add(line);
+			}
+		}
+		return w;
 	}
 
     public String getCode(String line) {
@@ -558,7 +577,7 @@ public class OWLScanner {
 												 extractAnnotatedTarget(owlannotatedTarget_value),
 												 extractQualifier(qualify_data),
 												 extractQualifierValue(qualify_data));
-						v.add(owl_Axiom);
+						v.add(owl_Axiom.toString());
 						buf = new StringBuffer();
 						owlannotatedTarget_start = false;
 					}
@@ -939,15 +958,12 @@ public class OWLScanner {
 			String t = (String) class_vec.elementAt(i);
 			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
 				//System.out.println(t);
-
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
 				classId = t.substring(1, n);
-				System.out.println("extractOWLRestrictions: " + classId);
 				r = null;
 				//istart = false;
-
 				istart = true;
 
 			}
@@ -974,9 +990,12 @@ public class OWLScanner {
 						n = t.lastIndexOf("\"");
 						someValueFrom = t.substring(1, n);
 						r.setSomeValuesFrom(someValueFrom);
+
 						if (!hset.contains(r.toString())) {
 							hset.add(r.toString());
-							w.add(r);
+							w.add(r.toString());
+						} else {
+							//System.out.println("\tWARNING: Duplicate " + r.toString());
 						}
 						r = null;
 					}
@@ -1015,7 +1034,67 @@ C4910|<NHC0>C4910</NHC0>
 		}
 	}
 
+    public Vector extractProperties(Vector class_vec) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+        boolean switch_off = false;
 
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+
+			if (t.indexOf("<owl:Axiom>") != -1) {
+				switch_off = true;
+			}
+			if (t.indexOf("</owl:Axiom>") != -1) {
+				switch_off = false;
+			}
+
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			if (istart) {
+				t = t.trim();
+				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						//String s = t.substring(1, n-1);
+						if (!switch_off) {
+							w.add(classId + "|" + parseProperty(t));
+					    }
+					}
+
+
+				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
+				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
+					int n = t.indexOf(">");
+                    if (n != -1) {
+						//String s = t.substring(1, n-1);
+						if (!switch_off) {
+						    w.add(classId + "|" + parseProperty(t));
+						}
+					}
+				}
+		    }
+		}
+		return w;
+	}
+
+/*
     public Vector extractProperties(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -1059,7 +1138,7 @@ C4910|<NHC0>C4910</NHC0>
 		}
 		return w;
 	}
-
+*/
 
     public Vector extractSuperclasses(Vector class_vec) {
         Vector w = new Vector();
@@ -1140,6 +1219,22 @@ C4910|<NHC0>C4910</NHC0>
 		    }
 		}
 		return w;
+	}
+
+    public String extractRDFSLabel(Vector class_vec) {
+        Vector w = new Vector();
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			t = t.trim();
+			if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
+				int n = t.lastIndexOf("</rdfs:label>");
+				t = t.substring("<rdfs:label>".length(), n);
+				return t;
+			}
+		}
+		return null;
 	}
 
 	public static Vector hashSet2Vector(HashSet hset) {
@@ -1364,7 +1459,25 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractHierarchicalRelationships() {
+		Vector w = extractHierarchicalRelationships(this.owl_vec);
+		/*
 		Vector v = extractSuperclasses();
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String code_1 = (String) u.elementAt(0);
+			String code_2 = (String) u.elementAt(1);
+			String label_1 = getLabel(code_1);
+			String label_2 = getLabel(code_2);
+			w.add(label_2 + "|" + code_2 + "|" + label_1 + "|" + code_1);
+		}
+		*/
+		return new SortUtils().quickSort(w);
+	}
+
+    public Vector extractHierarchicalRelationships(Vector owl_vec) {
+		Vector v = extractSuperclasses(owl_vec);
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
@@ -1377,7 +1490,6 @@ C4910|<NHC0>C4910</NHC0>
 		}
 		return new SortUtils().quickSort(w);
 	}
-
 
     public Vector extractAllDisjointClasses(Vector class_vec) {
         Vector w = new Vector();
@@ -1816,6 +1928,11 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+    public Vector extract_associations() {
+		return extract_associations(this.owl_vec);
+	}
+
+
     public Vector extract_associations(Vector class_vec) {
         Vector w = new Vector();
         String classId = null;
@@ -2103,6 +2220,144 @@ C4910|<NHC0>C4910</NHC0>
 			}
 		}
 		return new SortUtils().quickSort(w);
+	}
+
+	public Vector getAnnotationProperties() {
+		return getAnnotationProperties(this.owl_vec);
+	}
+
+	public Vector getAnnotationProperties(Vector owl_vec) {
+		Vector w = new Vector();
+		boolean istart = false;
+		String prop_label = null;
+		String prop_code = null;
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			if (line.indexOf(OWL_ANNOTATION_PROPERTY_TARGET) != -1) {
+                //System.out.println(line);
+                prop_code = line.trim();
+                int n = prop_code.indexOf("#");
+                int m = prop_code.lastIndexOf(" ");
+                prop_code = prop_code.substring(n+1, m);
+                prop_code = prop_code.trim();
+
+
+			} else if (line.indexOf("</owl:AnnotationProperty>") != -1) {
+				if (prop_code != null) {
+					w.add(prop_code + "|" + prop_label);
+					prop_code = null;
+					prop_label = null;
+			    }
+			}
+			if (line.indexOf("<P108>") != -1) {
+				prop_label = line.trim();
+                int n = prop_label.indexOf(">");
+                int m = prop_label.lastIndexOf("<");
+                prop_label = prop_label.substring(n+1, m);
+                prop_label = prop_label.trim();
+
+			}
+		}
+		return w;
+	}
+
+    public Vector extractSemanticTypes(Vector class_vec) {
+        return extractEnum(class_vec, "Semantic_Type");
+	}
+
+    public Vector extractEnum(Vector class_vec, String type) {
+        Vector w = new Vector();
+        boolean istart = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#" + type + "-enum -->") != -1) {
+				istart = true;
+			}
+			if (istart && t.indexOf("</rdfs:Datatype>") != -1) {
+				istart = false;
+				break;
+			}
+			if (istart && t.indexOf("<rdf:first>") != -1) {
+				t = t.trim();
+				int n = t.lastIndexOf("</rdf:first>");
+				t = t.substring("<rdf:first>".length(), n);
+				w.add(t);
+			}
+		}
+		return new SortUtils().quickSort(w);
+	}
+
+    public Vector extractDeprecatedObjects(Vector owl_vec) {
+        Vector w = new Vector();
+		String classId = null;
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			line = line.trim();
+			if (line.endsWith(" -->")) {
+			    int n = line.lastIndexOf("#");
+				classId = line.substring(n+1, line.length()-4);
+			} else {
+				if (line.indexOf("<owl:deprecated") != -1 && line.indexOf(">true<") != -1) {
+					if (classId != null) {
+						w.add(classId);
+					}
+					classId = null;
+				}
+			}
+		}
+		return w;
+	}
+
+    public Vector filterAxiomData(Vector axiom_data, String prop_code) {
+		Vector w = new Vector();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+		    String propertyCode = (String) u.elementAt(3); // e.g., P90
+		    if (propertyCode.compareTo(prop_code) == 0) {
+				w.add(t);
+			}
+		}
+		return w;
+	}
+
+    public List extractFULLSyns() {
+		Vector w = scanAxioms();
+		w = filterAxiomData(w, "P90");
+		List list = new AxiomUtils().getSynonyms(w);
+		return list;
+	}
+
+	public String extractVersion() {
+		return extractVersion(this.owl_vec);
+	}
+
+	public String extractVersion(Vector owl_vec) {
+		String version = null;
+		String tag = "<owl:versionInfo>";
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			version = extractTagValue(line, tag);
+			if (version != null) {
+				break;
+			}
+		}
+		return version;
+	}
+
+	public String extractTagValue(String line, String tag) {
+		String t = line;
+		t = t.trim();
+		int n = t.indexOf(tag);
+		if (n == -1) return null;
+		t = t.substring(n+tag.length(), t.length());
+		n = t.indexOf("<");
+		if (n == -1) return null;
+		t = t.substring(0, n);
+		t = t.trim();
+		return t;
 	}
 
     public static void main(String[] args) {

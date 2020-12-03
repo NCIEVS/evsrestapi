@@ -126,10 +126,10 @@ task zipFile(type: Zip) {
     }
 }
 
-// NOTE: this causes LoaderServiceImpl to launch when run via -jar
+// NOTE: this causes ElasticLoadServiceImpl to launch when run via -jar
 bootJar {
     manifest {
-    	attributes 'Start-Class': 'gov.nih.nci.evs.api.service.LoaderServiceImpl'
+    	attributes 'Start-Class': 'gov.nih.nci.evs.api.service.ElasticLoadServiceImpl'
     }
 }
 

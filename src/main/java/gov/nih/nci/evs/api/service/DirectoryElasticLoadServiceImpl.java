@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -71,6 +72,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   @Autowired
   ElasticOperationsService operationsService;
 
+  /** The sparql query manager service. */
+  @Autowired
+  private SparqlQueryManagerService sparqlQueryManagerService;
+
   /**
    * Returns the filepath.
    *
@@ -97,13 +102,15 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     readers.openOriginalReaders("MR");
     try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRCONSO);
         final PushBackReader readerDef = readers.getReader(RrfReaders.Keys.MRDEF);
-        final PushBackReader readerProp = readers.getReader(RrfReaders.Keys.MRSTY);) {
+        final PushBackReader readerProp = readers.getReader(RrfReaders.Keys.MRSTY);
+        final PushBackReader readerProp2 = readers.getReader(RrfReaders.Keys.MRSAT);) {
       String line = null;
       String defLine = null;
       String propLine = null;
+      String propLine2 = null;
+      String prevCui = null;
       Concept concept = new Concept();
       List<Concept> batch = new ArrayList<>();
-      String prevCui = null;
       List<Synonym> synList = new ArrayList<>();
       List<Definition> defList = new ArrayList<>();
       List<Property> propList = new ArrayList<>();
@@ -126,13 +133,24 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
             // handle definitions
             defList.add(buildDefinition(defLine.split("\\|", -1)[5], defLine.split("\\|", -1)[4]));
           }
+          // handle MRSTY properties
           while ((propLine = readerProp.readLine()) != null) {
             if (!propLine.split("\\|", -1)[0].equals(prevCui)) {
               readerProp.push(propLine);
               break;
             }
-            // handle properties (hard code to Semantic_Type for now)
-            propList.add(buildProperty("Semantic_Type", propLine.split("\\|", -1)[3]));
+            // hard code to Semantic_Type for now
+            propList.add(buildProperty("Semantic_Type", propLine.split("\\|", -1)[3], null));
+          }
+          // handle MRSAT properties
+          while ((propLine2 = readerProp2.readLine()) != null) {
+            if (!propLine2.split("\\|", -1)[0].equals(prevCui)) {
+              readerProp2.push(propLine2);
+              break;
+            }
+            // handle properties (include dynamic type)
+            propList.add(buildProperty(propLine2.split("\\|", -1)[8], propLine2.split("\\|", -1)[9],
+                propLine2.split("\\|", -1)[10]));
           }
           handleConcept(concept, batch, false, terminology.getIndexName(), synList, defList,
               propList);
@@ -170,7 +188,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       if (defLine != null)
         defList.add(buildDefinition(defLine.split("\\|", -1)[5], defLine.split("\\|", -1)[4]));
       if (propLine != null)
-        propList.add(buildProperty("Semantic_Type", propLine.split("\\|", -1)[3]));
+        propList.add(buildProperty("Semantic_Type", propLine.split("\\|", -1)[3], null));
       handleConcept(concept, batch, true, terminology.getIndexName(), synList, defList, propList);
       totalConcepts++;
       return totalConcepts;
@@ -186,10 +204,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param type the property type
    * @param value the property value
    */
-  private Property buildProperty(String type, String value) {
+  private Property buildProperty(String type, String value, String source) {
     Property newProp = new Property();
     newProp.setValue(value);
     newProp.setType(type);
+    if (source != null)
+      newProp.setSource(source.toString());
     return newProp;
   }
 
@@ -204,6 +224,28 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     newDef.setDefinition(definition);
     newDef.setSource(source);
     return newDef;
+  }
+
+  /**
+   * Handle building MRDOC property metadata.
+   *
+   * @param property info the property info
+   */
+  private Concept buildMRDOCMetadata(String propertyInfo) {
+    Concept propMeta = new Concept();
+    String[] splitPropInfo = propertyInfo.split("\\|", -1);
+    propMeta.setCode(splitPropInfo[1]);
+    propMeta.setName(splitPropInfo[3]);
+    propMeta.setTerminology("ncim");
+    propMeta.setVersion("202008");
+
+    // property synonym info
+    Synonym propMetaSyn = new Synonym();
+    propMetaSyn.setName(splitPropInfo[3]);
+    propMetaSyn.setType("Preferred_Name");
+    // add synonym as list to property
+    propMeta.setSynonyms(Arrays.asList(propMetaSyn));
+    return propMeta;
   }
 
   /* see superclass */
@@ -225,10 +267,31 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     semTypeSyn.setType("Preferred_Name");
     // add synonym as list to property
     semType.setSynonyms(Arrays.asList(semTypeSyn));
-    ElasticObject propertiesObject = new ElasticObject("properties");
-    // add properties to the object
-    propertiesObject.setConcepts(Arrays.asList(semType));
 
+    ElasticObject propertiesObject = new ElasticObject("properties");
+    List<Concept> propertiesMetaDataList = new ArrayList<>();
+    propertiesMetaDataList.add(semType);
+
+    // add the MRDOC properties
+    RrfReaders readers = new RrfReaders(this.getFilepath());
+    readers.openOriginalReaders("MR");
+    String MRDOCMetaLine = null;
+    LinkedHashMap<String, String> propsMeta = new LinkedHashMap<>();
+    try (final PushBackReader MRDOCMeta = readers.getReader(RrfReaders.Keys.MRDOC);) {
+      while ((MRDOCMetaLine = MRDOCMeta.readLine()) != null) {
+        if (!propsMeta.containsKey(MRDOCMetaLine.split("\\|", -1)[1])) {
+          // only get unique properties
+          propsMeta.put(MRDOCMetaLine.split("\\|", -1)[1], MRDOCMetaLine);
+        }
+      }
+    }
+
+    propsMeta.forEach((key, value) -> {
+      // add properties to the list
+      propertiesMetaDataList.add(buildMRDOCMetadata(value));
+    });
+    propertiesObject = new ElasticObject("properties");
+    propertiesObject.setConcepts(propertiesMetaDataList);
     operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
 
