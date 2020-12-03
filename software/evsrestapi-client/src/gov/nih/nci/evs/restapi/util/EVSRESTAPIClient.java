@@ -415,7 +415,8 @@ public class EVSRESTAPIClient {
 	}
 
 	public Vector extractHierarchyData(String code) {
-		String url = getURL("descendants", "ncit", code);
+		String t = (String) EVSRESTAPI_URL_MAP.get("descendants");
+		String url = getURL(t, "ncit", code);
 		String json = getJson(url+ "?maxLevel=50");
 		try {
 			gov.nih.nci.evs.restapi.model.Descendant descendant = (gov.nih.nci.evs.restapi.model.Descendant) deserialize("Descendant", json);
@@ -425,7 +426,6 @@ public class EVSRESTAPIClient {
 		}
 		return null;
 	}
-
 
 	public static void main(String[] args) {
 	    Vector v = null;
