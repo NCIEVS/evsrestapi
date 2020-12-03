@@ -223,8 +223,6 @@ public class EVSRESTAPIClient {
 			if (!json.startsWith("{")) {
 				json = "{\"descendants\":" + json + "}";
 			}
-			System.out.println(json);
-
 			gov.nih.nci.evs.restapi.model.Descendant response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Descendant.class);
 	        return response;
 
