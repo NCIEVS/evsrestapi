@@ -16,7 +16,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * }
  * </pre>
  */
-public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinimal> {
+public class ConceptMinimal extends BaseModel {
 
   /** The code. */
   @Id
@@ -207,13 +207,6 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
       return false;
     }
     return true;
-  }
-
-  /* see superclass */
-  @Override
-  public int compareTo(ConceptMinimal o) {
-    // Handle null
-    return (name + code).compareToIgnoreCase(o.getName() + o.getCode());
   }
 
 }

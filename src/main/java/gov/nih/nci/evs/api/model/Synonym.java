@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * Represents a synonym of a concept.
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Synonym extends BaseModel implements Comparable<Synonym> {
+public class Synonym extends BaseModel {
 
   /** The name. */
   @Field(type = FieldType.Text)
@@ -109,23 +109,24 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
     this.name = name;
   }
 
+  
   /**
    * Returns the normName.
    *
    * @return the normName
    */
   public String getNormName() {
-    return normName;
+	return normName;
   }
-
+  
   /**
    * Sets the normName.
    *
    * @param normName the normName
    */
-
+  
   public void setNormName(String normName) {
-    this.normName = normName;
+		this.normName = normName;
   }
 
   /**
@@ -332,18 +333,6 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Compare to.
-   *
-   * @param other the other
-   * @return the int
-   */
-  @Override
-  public int compareTo(Synonym other) {
-    return (type + name).compareToIgnoreCase(other.getType() + other.getName());
-
   }
 
 }

@@ -383,22 +383,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * Check required fields.
    *
    * @return true, if successful
-   * @throws Exception the exception
    */
-  public void checkPagination() throws Exception {
-    if (pageSize < 1 || pageSize > 100) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
-
-    }
-
-    // This rule is no longer required, non-aligned fromRecord/pageSize
-    // supported
-    // if (fromRecord % pageSize != 0) {
-    // throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-    // "Parameter 'fromRecord' should be the first record of a page, e.g.
-    // fromRecord % pageSize == 0");
-    // }
+  public boolean checkPagination() {
+    return (pageSize > 0 && fromRecord % pageSize == 0);
   }
 
   /**
@@ -419,10 +406,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void validate(final Terminology terminology, final MetadataService metadataService)
     throws Exception {
-//    if (getTerm() == null) {
-//      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-//          "Required parameter 'term' is missing");
-//    }
+    if (getTerm() == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Required parameter 'term' is missing");
+    }
 
     if (!TerminologyUtils
         .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")

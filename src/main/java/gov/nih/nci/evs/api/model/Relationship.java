@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * Represents a connection between two concepts.
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Relationship extends BaseModel implements Comparable<Relationship> {
+public class Relationship extends BaseModel {
 
   /** The type. */
   @Field(type = FieldType.Keyword)
@@ -39,6 +39,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
   private List<Qualifier> qualifiers;
+
 
   /**
    * Instantiates an empty {@link Relationship}.
@@ -66,7 +67,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
     relatedCode = other.getRelatedCode();
     relatedName = other.getRelatedName();
     highlight = other.getHighlight();
-    qualifiers = new ArrayList<>(other.getQualifiers());
+    qualifiers = new ArrayList<>(other.getQualifiers());    
   }
 
   /**
@@ -161,14 +162,15 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }
-
   /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((relatedCode == null) ? 0 : relatedCode.hashCode());
-    result = prime * result + ((relatedName == null) ? 0 : relatedName.hashCode());
+    result =
+        prime * result + ((relatedCode == null) ? 0 : relatedCode.hashCode());
+    result =
+        prime * result + ((relatedName == null) ? 0 : relatedName.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
@@ -208,13 +210,6 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
       return false;
     }
     return true;
-  }
-
-  /* see superclass */
-  @Override
-  public int compareTo(Relationship o) {
-    return (relatedName + relatedCode + type)
-        .compareToIgnoreCase(o.getRelatedName() + o.getRelatedCode() + o.getType());
   }
 
 }

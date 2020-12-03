@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * Represents a synonym of a concept.
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Definition extends BaseModel implements Comparable<Definition> {
+public class Definition extends BaseModel {
 
   /** The definition. */
   @Field(type = FieldType.Text)
@@ -219,12 +219,6 @@ public class Definition extends BaseModel implements Comparable<Definition> {
       return false;
     }
     return true;
-  }
-
-  /* see superclass */
-  @Override
-  public int compareTo(Definition o) {
-    return (definition + "").compareTo(o.getDefinition() + "");
   }
 
 }

@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
 import gov.nih.nci.evs.api.GetterSetterTester;
+import gov.nih.nci.evs.api.ProxyTester;
 import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 
@@ -29,8 +30,7 @@ public class TerminologyUnitTest {
 
   /** The logger. */
   @SuppressWarnings("unused")
-  private static final Logger log =
-      LoggerFactory.getLogger(TerminologyUnitTest.class);
+  private static final Logger log = LoggerFactory.getLogger(TerminologyUnitTest.class);
 
   /** The model object to test. */
   private Terminology object;
@@ -40,6 +40,12 @@ public class TerminologyUnitTest {
 
   /** The m 2. */
   private Map<String, String> m2;
+
+  /** The tm 1. */
+  private TerminologyMetadata tm1;
+
+  /** The tm 2. */
+  private TerminologyMetadata tm2;
 
   /**
    * Setup.
@@ -54,6 +60,10 @@ public class TerminologyUnitTest {
     m2 = new HashMap<>();
     m2.put("2", "2");
     m2.put("3", "3");
+
+    final ProxyTester tester = new ProxyTester(new TerminologyMetadata());
+    tm1 = (TerminologyMetadata) tester.createObject(1);
+    tm2 = (TerminologyMetadata) tester.createObject(2);
   }
 
   /**
@@ -66,6 +76,8 @@ public class TerminologyUnitTest {
     final GetterSetterTester tester = new GetterSetterTester(object);
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
+    tester.proxy(TerminologyMetadata.class, 1, tm1);
+    tester.proxy(TerminologyMetadata.class, 2, tm2);
 
     tester.test();
   }
@@ -93,6 +105,8 @@ public class TerminologyUnitTest {
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
+    tester.proxy(TerminologyMetadata.class, 1, tm1);
+    tester.proxy(TerminologyMetadata.class, 2, tm2);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -111,6 +125,7 @@ public class TerminologyUnitTest {
   public void testModelCopy() throws Exception {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
     tester.proxy(Map.class, 1, m1);
+    tester.proxy(TerminologyMetadata.class, 1, tm1);
     assertTrue(tester.testCopyConstructor(Terminology.class));
   }
 
@@ -123,6 +138,7 @@ public class TerminologyUnitTest {
   public void testModelSerialization() throws Exception {
     final SerializationTester tester = new SerializationTester(object);
     tester.proxy(Map.class, 1, m1);
+    tester.proxy(TerminologyMetadata.class, 1, tm1);
     assertTrue(tester.testJsonSerialization());
   }
 }

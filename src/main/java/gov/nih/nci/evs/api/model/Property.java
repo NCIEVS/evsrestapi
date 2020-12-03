@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 // "code"
 // })
 @JsonInclude(Include.NON_EMPTY)
-public class Property extends BaseModel implements Comparable<Property> {
+public class Property extends BaseModel {
 
   /** The code. */
   @JsonProperty(access = Access.READ_ONLY)
@@ -45,6 +45,9 @@ public class Property extends BaseModel implements Comparable<Property> {
 
   /** The qualifiers. */
   private List<Qualifier> qualifiers;
+
+  /** The source. */
+  private String source;
 
   /**
    * Instantiates an empty {@link Property}.
@@ -73,6 +76,7 @@ public class Property extends BaseModel implements Comparable<Property> {
     value = other.getValue();
     highlight = other.getHighlight();
     qualifiers = new ArrayList<>(other.getQualifiers());
+    source = other.getSource();
   }
 
   /**
@@ -170,6 +174,24 @@ public class Property extends BaseModel implements Comparable<Property> {
   }
 
   /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source
+   */
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  /**
    * Hash code.
    *
    * @return the int
@@ -181,6 +203,7 @@ public class Property extends BaseModel implements Comparable<Property> {
     int result = 1;
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((value == null) ? 0 : value.hashCode());
+    result = prime * result + ((source == null) ? 0 : source.hashCode());
     return result;
   }
 
@@ -217,13 +240,14 @@ public class Property extends BaseModel implements Comparable<Property> {
     } else if (!value.equals(other.value)) {
       return false;
     }
+    if (source == null) {
+      if (other.source != null) {
+        return false;
+      }
+    } else if (!source.equals(other.source)) {
+      return false;
+    }
     return true;
-  }
-
-  /* see superclass */
-  @Override
-  public int compareTo(Property o) {
-    return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
   }
 
 }

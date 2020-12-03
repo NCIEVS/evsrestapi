@@ -30,6 +30,7 @@ import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -68,11 +69,11 @@ public class SearchController extends BaseController {
   /* The elasticsearch query service */
   @Autowired
   ElasticQueryService esQueryService;
-
+  
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
-
+  
   /**
    * Search within a single terminology.
    *
@@ -243,14 +244,18 @@ public class SearchController extends BaseController {
     final long startDate = System.currentTimeMillis();
 
     // Check search criteria for required fields
-    /*
-     * if (!searchCriteria.checkRequiredFields()) { throw new
-     * ResponseStatusException(HttpStatus.BAD_REQUEST,
-     * "Missing required field = " +
-     * searchCriteria.computeMissingRequiredFields()); }
-     */
+    /*if (!searchCriteria.checkRequiredFields()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Missing required field = " + searchCriteria.computeMissingRequiredFields());
+    }*/
 
-    searchCriteria.checkPagination();
+    if (!searchCriteria.checkPagination()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "FromRecord should be the first record of a page!");
+    }
+    
+    final String queryTerm = RESTUtils.escapeLuceneSpecialCharacters(searchCriteria.getTerm());
+    searchCriteria.setTerm(queryTerm);
     logger.debug("  Search = " + searchCriteria);
 
     if (searchCriteria.getTerminology().size() == 0) {
@@ -259,9 +264,9 @@ public class SearchController extends BaseController {
     }
 
     try {
-      for (String terminology : searchCriteria.getTerminology()) {
+      for(String terminology: searchCriteria.getTerminology()) {
         final Terminology term = termUtils.getTerminology(terminology, true);
-        searchCriteria.validate(term, metadataService);
+        searchCriteria.validate(term, metadataService);        
       }
 
       final ConceptResultList results = elasticSearchService.search(searchCriteria);
@@ -278,6 +283,10 @@ public class SearchController extends BaseController {
     } catch (ResponseStatusException rse) {
       throw rse;
     } catch (Exception e) {
+      // TODO: remove this once updated elasticsearch is in place.
+      if (e.getMessage().contains("invalid value")) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+      }
       handleException(e);
       return null;
     }

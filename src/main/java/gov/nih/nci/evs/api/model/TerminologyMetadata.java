@@ -29,7 +29,7 @@ public class TerminologyMetadata extends BaseModel {
   private String relationshipToTarget;
 
   /** The synonym. */
-  private Set<String> synonym;
+  private String synonym;
 
   /** The synonym term type. */
   private String synonymTermType;
@@ -115,7 +115,7 @@ public class TerminologyMetadata extends BaseModel {
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
-    synonym = new HashSet<>(other.getSynonym());
+    synonym = other.getSynonym();
     synonymCode = other.getSynonymCode();
     synonymSource = other.getSynonymSource();
     synonymSubSource = other.getSynonymSubSource();
@@ -320,10 +320,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym
    */
-  public Set<String> getSynonym() {
-    if (synonym == null) {
-      synonym = new HashSet<>();
-    }
+  public String getSynonym() {
     return synonym;
   }
 
@@ -332,7 +329,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonym the synonym
    */
-  public void setSynonym(Set<String> synonym) {
+  public void setSynonym(String synonym) {
     this.synonym = synonym;
   }
 
@@ -647,30 +644,6 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setSourcesToRemove(Set<String> sourcesToRemove) {
     this.sourcesToRemove = sourcesToRemove;
-  }
-
-  /**
-   * Indicates whether or not property exclusion is the case.
-   *
-   * @param code the code
-   * @return <code>true</code> if so, <code>false</code> otherwise
-   */
-  public boolean isRemodeledProperty(final String code) {
-    return getSynonym().contains(code) || getDefinition().contains(code) || getMap().equals(code)
-        || code.equals(this.code);
-  }
-
-  /**
-   * Indicates whether or not remodeled qualifier is the case.
-   *
-   * @param code the code
-   * @return <code>true</code> if so, <code>false</code> otherwise
-   */
-  public boolean isRemodeledQualifier(final String code) {
-    return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource)
-        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
-        || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
   }
 
 }

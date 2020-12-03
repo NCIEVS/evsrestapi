@@ -367,20 +367,10 @@ public class Terminology extends BaseModel {
     this.objectIndexName = objectIndexName;
   }
 
-  /**
-   * Returns the sparql flag.
-   *
-   * @return the sparql flag
-   */
   public Boolean getSparqlFlag() {
     return sparqlFlag;
   }
 
-  /**
-   * Sets the sparql flag.
-   *
-   * @param sparqlFlag the sparql flag
-   */
   public void setSparqlFlag(Boolean sparqlFlag) {
     this.sparqlFlag = sparqlFlag;
   }

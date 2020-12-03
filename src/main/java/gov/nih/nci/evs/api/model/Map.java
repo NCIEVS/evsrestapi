@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * Represents a map to a concept in another terminology.
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Map extends BaseModel implements Comparable<Map> {
+public class Map extends BaseModel {
 
   /** The type. */
   private String type;
@@ -248,12 +248,6 @@ public class Map extends BaseModel implements Comparable<Map> {
       return false;
     }
     return true;
-  }
-
-  /* see superclass */
-  @Override
-  public int compareTo(Map o) {
-    return (targetName + targetCode).compareToIgnoreCase(o.getTargetName() + o.getTargetCode());
   }
 
 }
