@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.model.*;
-import gov.nih.nci.evs.restapi.util.*;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -136,7 +135,15 @@ public class EVSRESTAPIClient {
 		return json;
 	}
 
+
 	public static Vector get_evsrestapi_endpoints(String filename, String code) {
+		String terminology = "ncit";
+		return get_evsrestapi_endpoints(filename, terminology, code);
+	}
+
+
+
+	public static Vector get_evsrestapi_endpoints(String filename, String terminology, String code) {
 		String end_point_prefix = ENDPOINT_PREFIX;
 		Vector v = Utils.readFile(filename);
 		Vector w = new Vector();
@@ -144,7 +151,7 @@ public class EVSRESTAPIClient {
 			String t = (String) v.elementAt(i);
 			if (t.indexOf("/api/") != -1) {
 				t = end_point_prefix + t;
-				t = t.replace("{terminology}", "ncit");
+				t = t.replace("{terminology}", terminology);
 				t = t.replace("{code}", code);
 				w.add(t);
 			}
@@ -336,10 +343,13 @@ public class EVSRESTAPIClient {
 	}
 
 	public static Vector getJSONs(String filename) {
+		return getJSONs(filename, "ncit");
+	}
+
+	public static Vector getJSONs(String filename, String terminology) {
 		Vector failed_urls = new Vector();
 		Vector w = new Vector();
 		Vector lines = Utils.readFile(filename);
-		String terminology = "ncit";
 		int lcv = 0;
 		long ms = System.currentTimeMillis();
 		for (int i=0; i<lines.size(); i++) {
@@ -373,8 +383,12 @@ public class EVSRESTAPIClient {
 	}
 
 	public String code2Label(String code) {
+		return code2Label("ncit", code);
+	}
+
+	public String code2Label(String terminology, String code) {
 		String t = (String) EVSRESTAPI_URL_MAP.get("code");
-		String url = getURL(t, "ncit", code);
+		String url = getURL(t, terminology, code);
 		String json = getJson(url);
 		if (json == null) return null;
 		try {
@@ -415,8 +429,13 @@ public class EVSRESTAPIClient {
 	}
 
 	public Vector extractHierarchyData(String code) {
+		return extractHierarchyData("ncit", code);
+	}
+
+
+	public Vector extractHierarchyData(String terminology, String code) {
 		String t = (String) EVSRESTAPI_URL_MAP.get("descendants");
-		String url = getURL(t, "ncit", code);
+		String url = getURL(t, terminology, code);
 		String json = getJson(url+ "?maxLevel=50");
 		try {
 			gov.nih.nci.evs.restapi.model.Descendant descendant = (gov.nih.nci.evs.restapi.model.Descendant) deserialize("Descendant", json);
