@@ -690,6 +690,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
           .count();
 
+      // See what's up with display name here
+      if (concept.getCode().equals("C3224")) {
+        log.info("AXIOMS = " + axioms);
+        log.info("SYNONYMS = " + concept.getSynonyms());
+      }
+
       // Properties ending in "Name" are rendered as synonyms here.
       final Collection<String> commonProperties =
           terminology.getMetadata().getPropertyNames().values();

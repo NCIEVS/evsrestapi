@@ -363,6 +363,7 @@ public class QualifierTests {
    *
    * @throws Exception the exception
    */
+  @SuppressWarnings("unused")
   @Test
   public void testCommonPropertyUsed() throws Exception {
     String url = null;
@@ -381,11 +382,7 @@ public class QualifierTests {
       // Try P98 - expect to not find it as a property
       url = metaBaseUrl + "/ncit/property/" + name;
       log.info("Testing url - " + url);
-      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-      content = result.getResponse().getContentAsString();
-      log.info(" content = " + content);
-      concept = new ObjectMapper().readValue(content, Concept.class);
-      assertThat(concept).isNotNull();
+      result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     }
 
   }

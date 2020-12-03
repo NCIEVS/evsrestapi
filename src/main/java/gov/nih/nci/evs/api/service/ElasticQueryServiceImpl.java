@@ -81,13 +81,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Optional<Concept> getConcept(String code, Terminology terminology, IncludeParam ip) {
-    logger.debug(String.format("getConcept(%s)", code));
-    logger.debug("index: " + terminology.getIndexName());
     List<Concept> concepts = getConcepts(Arrays.asList(code), terminology, ip);
-    logger.debug("concepts: " + concepts);
-    if (CollectionUtils.isEmpty(concepts))
+    if (CollectionUtils.isEmpty(concepts)) {
       return Optional.empty();
-    logger.debug("result size: " + concepts.size());
+    }
     return Optional.of(concepts.get(0));
   }
 
@@ -143,7 +140,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getChildren())) {
       return Collections.emptyList();
     }
-
     return concept.get().getChildren();
   }
 
@@ -266,55 +262,20 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     if (children == null) {
       return nodes;
     }
+
+    // Look up "leaf" flags for children (alternatively index "leaf" with
+    // children)
+    Map<String, Boolean> leafMap =
+        getConcepts(children.stream().map(c -> c.getCode()).collect(Collectors.toSet()),
+            terminology, new IncludeParam("minimal")).stream()
+                .collect(Collectors.toMap(Concept::getCode, Concept::getLeaf));
+
     for (Concept c : children) {
-      HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), false);
-      getChildNodesLevel(node, maxLevel, 0, terminology);
+      HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), leafMap.get(c.getCode()));
       nodes.add(node);
     }
     nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
     return nodes;
-  }
-
-  /**
-   * Returns the child nodes level.
-   *
-   * @param node the node
-   * @param maxLevel the max level
-   * @param level the level
-   * @param terminology the terminology
-   * @return the child nodes level
-   */
-  private void getChildNodesLevel(HierarchyNode node, int maxLevel, int level,
-    Terminology terminology) {
-    List<Concept> children = getSubclasses(node.getCode(), terminology);
-    node.setLevel(level);
-
-    if (children == null || children.size() == 0) {
-      node.setLeaf(true);
-      return;
-    } else {
-      node.setLeaf(false);
-    }
-    if (level >= maxLevel) {
-      return;
-    }
-
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    level = level + 1;
-    for (Concept c : children) {
-      HierarchyNode newnode = new HierarchyNode(c.getCode(), c.getName(), false);
-      getChildNodesLevel(newnode, maxLevel, level, terminology);
-      List<HierarchyNode> sortedChildren = newnode.getChildren();
-      // Sort children if they exist
-      if (sortedChildren != null && sortedChildren.size() > 0) {
-        sortedChildren.sort(Comparator.comparing(HierarchyNode::getLabel));
-      }
-
-      newnode.setChildren(sortedChildren);
-      nodes.add(newnode);
-    }
-    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
-    node.setChildren(nodes);
   }
 
   /**
@@ -383,7 +344,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     Map<String, HierarchyNode> rootNodeMap = new HashMap<>();
     rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
 
-    for (Path path : paths.getPaths()) {
+    List<Path> ps = paths.getPaths();
+    for (Path path : ps) {
       List<Concept> concepts = path.getConcepts();
       if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2)
         continue;

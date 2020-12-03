@@ -470,24 +470,6 @@ public class MetadataControllerTests {
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
     assertThat(list.get(0).getDefinitions()).isNotEmpty();
 
-    // Test with a case having an rdfs:label
-    // url = baseUrl + "/ncit/properties?list=term-group&include=summary";
-    // log.info("Testing url - " + url);
-    //
-    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    // list = new ObjectMapper().readValue(content, new
-    // TypeReference<List<Concept>>() {
-    // // n/a
-    // });
-    // assertThat(list).isNotEmpty();
-    // // This should have an rdfs:label synonym
-    // assertThat(
-    // list.get(0).getSynonyms().stream().filter(s ->
-    // s.getType().equals("rdfs:label")).count())
-    // .isEqualTo(1);
-
   }
 
   /**
@@ -795,8 +777,8 @@ public class MetadataControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotEmpty();
 
-    // term-group
-    url = baseUrl + "/ncit/qualifier/term-group/values";
+    // attribution
+    url = baseUrl + "/ncit/qualifier/attribution/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -821,6 +803,11 @@ public class MetadataControllerTests {
 
   }
 
+  /**
+   * Test synonym types.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testSynonymTypes() throws Exception {
 
@@ -864,7 +851,11 @@ public class MetadataControllerTests {
 
   }
 
-
+  /**
+   * Test definition types.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testDefinitionTypes() throws Exception {
 
@@ -874,7 +865,7 @@ public class MetadataControllerTests {
     String content = null;
 
     // Test with "by code"
-    url = baseUrl + "/ncit/definitionType/P90";
+    url = baseUrl + "/ncit/definitionType/P97";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -909,7 +900,7 @@ public class MetadataControllerTests {
   }
 
   /**
-   * Test keep type: value out of qualifiers
+   * Test keep type: value out of qualifiers.
    *
    * @throws Exception the exception
    */
