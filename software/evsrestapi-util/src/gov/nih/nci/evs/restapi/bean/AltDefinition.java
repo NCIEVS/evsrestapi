@@ -17,6 +17,7 @@ public class AltDefinition
 // Variable declaration
 	private String code;
 	private String label;
+	private String propertyLabel;
 	private String description;
 	private String attribution;
 	private String source;
@@ -35,6 +36,7 @@ public class AltDefinition
 
 		this.code = code;
 		this.label = label;
+		this.propertyLabel = "ALT_DEFINITION";
 		this.description = description;
 		this.attribution = attribution;
 		this.source = source;
@@ -48,7 +50,11 @@ public class AltDefinition
 	public void setLabel(String label) {
 		this.label = label;
 	}
-
+/*
+	public void setPropertyLabel(String propertyLabel) {
+		this.propertyLabel = propertyLabel;
+	}
+*/
 	public void setDescription(String description) {
 		this.description = description;
 	}
@@ -69,6 +75,10 @@ public class AltDefinition
 
 	public String getLabel() {
 		return this.label;
+	}
+
+	public String getPropertyLabel() {
+		return this.propertyLabel;
 	}
 
 	public String getDescription() {
