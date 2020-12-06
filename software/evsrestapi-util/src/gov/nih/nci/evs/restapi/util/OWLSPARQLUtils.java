@@ -5082,7 +5082,6 @@ Term Type
 
 	public Vector getPropertyQualifiers(String named_graph) {
 	    String query = construct_get_property_qualifiers(named_graph);
-	    System.out.println(query);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
