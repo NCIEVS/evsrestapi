@@ -5080,7 +5080,7 @@ Term Type
         return buf.toString();
 	}
 
-	public Vector getPropertyQuailfiers(String named_graph) {
+	public Vector getPropertyQualifiers(String named_graph) {
 	    String query = construct_get_property_qualifiers(named_graph);
 	    System.out.println(query);
 	    Vector v = executeQuery(query);
