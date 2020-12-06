@@ -5080,11 +5080,12 @@ Term Type
         return buf.toString();
 	}
 
-	public Vector getPropertyQualifiers(String named_graph) {
+	public Vector getSupportedPropertyQualifiers(String named_graph) {
 	    String query = construct_get_property_qualifiers(named_graph);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
+
 }
 
