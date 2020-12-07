@@ -48,6 +48,7 @@ public class Definition
 
 		this.code = code;
 		this.label = label;
+		this.propertyLabel = "DEFINITION";
 		this.description = description;
 		this.attribution = attribution;
 		this.source = source;
