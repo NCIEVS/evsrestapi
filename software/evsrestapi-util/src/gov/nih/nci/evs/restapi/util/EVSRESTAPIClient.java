@@ -312,6 +312,27 @@ public class EVSRESTAPIClient {
 		return w;
 	}
 
+	public static String wrapJSON(String code, String terminology, String json) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("{\"code\":\"" + code + "\",\"terminology\":\"ncit\",\"list\":");
+		buf.append(json).append("}");
+		return buf.toString();
+	}
+
+    public static RESTResponse getRESTResponse(String code, String terminology, String type) {
+		String url = (String) EVSRESTAPI_URL_MAP.get(type);
+		url = url.replace("{terminology}", terminology);
+		url = url.replace("{code}", code);
+		String json = EVSRESTAPIClient.getJson(url);
+		String json_new = wrapJSON(code, terminology, json);
+		RESTResponse response = null;
+		try {
+			response = (RESTResponse) deserialize("RESTResponse", json_new);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return response;
+	}
 
 	public static void main(String[] args) {
 	    Vector v = null;
