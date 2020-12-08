@@ -100,8 +100,8 @@ public class EVSRESTAPIClient {
 
 	public static String getURL(String terminology, String code) {
 		String t = (String) EVSRESTAPI_URL_MAP.get("concept");
-		t = t.replace("{terminology}", terminology);
-		t = t.replace("{code}", code);
+		if (terminology != null) t = t.replace("{terminology}", terminology);
+		if (code != null) t = t.replace("{code}", code);
 		return t;
 	}
 
@@ -280,8 +280,11 @@ public class EVSRESTAPIClient {
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		gov.nih.nci.evs.restapi.model.ConceptDetails conceptDetails = null;
 		String t = (String) EVSRESTAPI_URL_MAP.get("concept");
-		t = t.replace("{terminology}", terminology);
-		String url = t.replace("{code}", code);
+		if (terminology != null) t = t.replace("{terminology}", terminology);
+		String url = t;
+		if (code != null) {
+			url = t.replace("{code}", code);
+		}
         String json = getJson(url);
 		try {
 			conceptDetails = (gov.nih.nci.evs.restapi.model.ConceptDetails) deserialize("ConceptDetails", json);
@@ -315,8 +318,8 @@ public class EVSRESTAPIClient {
 
     public static RESTResponse getRESTResponse(String code, String terminology, String type) {
 		String url = (String) EVSRESTAPI_URL_MAP.get(type);
-		url = url.replace("{terminology}", terminology);
-		url = url.replace("{code}", code);
+		if (terminology != null) url = url.replace("{terminology}", terminology);
+		if (code != null) url = url.replace("{code}", code);
 		String json = EVSRESTAPIClient.getJson(url);
 		String json_new = wrapJSON(code, terminology, json);
 		RESTResponse response = null;
@@ -375,8 +378,8 @@ public class EVSRESTAPIClient {
 	}
 
 	public static String getURL(String t, String terminology, String code) {
-		t = t.replace("{terminology}", terminology);
-		t = t.replace("{code}", code);
+		if (terminology != null) t = t.replace("{terminology}", terminology);
+		if (code != null) t = t.replace("{code}", code);
 		return t;
 	}
 
