@@ -15,7 +15,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
-import org.apache.commons.codec.binary.Base64;
+//import org.apache.commons.codec.binary.Base64;
 import org.json.*;
 
 /**
@@ -230,7 +230,7 @@ public class AxiomUtils {
 				}
 
 			}
-			if (propertyName.compareTo("DEFINITION") == 0) {
+			if (propertyName.compareTo("DEFINITION") == 0 || propertyName.compareTo("P97") == 0) {
 				Definition def = new Definition(
 					code,
 					label,
@@ -238,7 +238,7 @@ public class AxiomUtils {
 					attribution,
 					defSource);
 				def_list.add(def);
-			} else if (propertyName.compareTo("ALT_DEFINITION") == 0) {
+			} else if (propertyName.compareTo("ALT_DEFINITION") == 0 || propertyName.compareTo("P325") == 0) {
 				AltDefinition def = new AltDefinition(
 					code,
 					label,

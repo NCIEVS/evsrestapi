@@ -60,7 +60,10 @@ public class MapsToReportWriter {
 			String line = (String) concept_status_vec.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String code = (String) u.elementAt(1);
-			retired.add(code);
+			String status = (String) u.elementAt(3);
+			if (status.compareTo("Retired_Concept") == 0) {
+				retired.add(code);
+			}
 		}
         metadataUtils = new MetadataUtils(serviceUrl, username, password);
         ncit_version = get_ncit_version();

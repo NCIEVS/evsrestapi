@@ -17,6 +17,7 @@ public class Definition
 // Variable declaration
 	private String code;
 	private String label;
+	private String propertyLabel;
 	private String description;
 	private String attribution;
 	private String source;
@@ -32,6 +33,7 @@ public class Definition
 
 		this.code = null;
 		this.label = null;
+		this.propertyLabel = "DEFINITION";
 		this.description = description;
 		this.attribution = null;
 		this.source = source;
@@ -46,6 +48,7 @@ public class Definition
 
 		this.code = code;
 		this.label = label;
+		this.propertyLabel = "DEFINITION";
 		this.description = description;
 		this.attribution = attribution;
 		this.source = source;
@@ -59,7 +62,11 @@ public class Definition
 	public void setLabel(String label) {
 		this.label = label;
 	}
-
+/*
+	public void setPropertyLabel(String propertyLabel) {
+		this.propertyLabel = propertyLabel;
+	}
+*/
 	public void setDescription(String description) {
 		this.description = description;
 	}
@@ -80,6 +87,10 @@ public class Definition
 
 	public String getLabel() {
 		return this.label;
+	}
+
+	public String getPropertyLabel() {
+		return this.propertyLabel;
 	}
 
 	public String getDescription() {

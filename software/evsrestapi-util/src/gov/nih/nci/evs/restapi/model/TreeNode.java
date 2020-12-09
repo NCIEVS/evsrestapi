@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.restapi.bean;
+package gov.nih.nci.evs.restapi.model;
 
 import java.io.*;
 import java.util.*;
@@ -11,35 +11,33 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class AltDefinition
+public class TreeNode
 {
 
 // Variable declaration
 	private String code;
-	private String label;
-	private String propertyLabel;
-	private String description;
-	private String attribution;
-	private String source;
+	private String name;
+	private int level;
+	private boolean leaf;
+	private List<TreeNode> children;
 
 // Default constructor
-	public AltDefinition() {
+	public TreeNode() {
 	}
 
 // Constructor
-	public AltDefinition(
+	public TreeNode(
 		String code,
-		String label,
-		String description,
-		String attribution,
-		String source) {
+		String name,
+		int level,
+		boolean leaf,
+		List<TreeNode> children) {
 
 		this.code = code;
-		this.label = label;
-		this.propertyLabel = "ALT_DEFINITION";
-		this.description = description;
-		this.attribution = attribution;
-		this.source = source;
+		this.name = name;
+		this.level = level;
+		this.leaf = leaf;
+		this.children = children;
 	}
 
 // Set methods
@@ -47,50 +45,41 @@ public class AltDefinition
 		this.code = code;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
-	}
-/*
-	public void setPropertyLabel(String propertyLabel) {
-		this.propertyLabel = propertyLabel;
-	}
-*/
-	public void setDescription(String description) {
-		this.description = description;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public void setAttribution(String attribution) {
-		this.attribution = attribution;
+	public void setLevel(int level) {
+		this.level = level;
 	}
 
-	public void setSource(String source) {
-		this.source = source;
+	public void setLeaf(boolean leaf) {
+		this.leaf = leaf;
 	}
 
+	public void setChildren(List<TreeNode> children) {
+		this.children = children;
+	}
 
 // Get methods
 	public String getCode() {
 		return this.code;
 	}
 
-	public String getLabel() {
-		return this.label;
+	public String getName() {
+		return this.name;
 	}
 
-	public String getPropertyLabel() {
-		return this.propertyLabel;
+	public int getLevel() {
+		return this.level;
 	}
 
-	public String getDescription() {
-		return this.description;
+	public boolean getLeaf() {
+		return this.leaf;
 	}
 
-	public String getAttribution() {
-		return this.attribution;
-	}
-
-	public String getSource() {
-		return this.source;
+	public List<TreeNode> getChildren() {
+		return this.children;
 	}
 
 	public String toXML() {
@@ -122,16 +111,4 @@ public class AltDefinition
 		}
 		return buf.toString();
 	}
-
-	public String toString() {
-        return this.code
-        + "|" + this.label + "|"
-        + "P325|"
-        + this.description + "|"
-        + "P381|"
-        + this.attribution + "|"
-        + "P378|"
-        + this.source;
-	}
-
 }

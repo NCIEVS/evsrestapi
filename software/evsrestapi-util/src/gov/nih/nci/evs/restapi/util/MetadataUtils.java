@@ -177,6 +177,23 @@ public class MetadataUtils {
 		}
 	}
 
+    public void dumpNameVersion2NamedGraphMap(PrintWriter pw) {
+		if (nameVersion2NamedGraphMap == null) return;
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		Vector versions = new Vector();
+		while (it.hasNext()) {
+			String nameVersion = (String) it.next();
+			Vector u = StringUtils.parseData(nameVersion);
+			String codingSchemeName = (String) u.elementAt(0);
+			String version = (String) u.elementAt(1);
+			Vector named_graphs = (Vector) nameVersion2NamedGraphMap.get(nameVersion);
+			for (int i=0; i<named_graphs.size(); i++) {
+				String named_graph = (String) named_graphs.elementAt(i);
+				pw.println(nameVersion + " --> " + named_graph);
+			}
+		}
+	}
+
     public String getLatestVersion(String codingScheme) {
 		if (nameVersion2NamedGraphMap == null) return null;
 		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
