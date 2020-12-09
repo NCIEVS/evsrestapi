@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -63,7 +64,7 @@ public class Concept extends ConceptMinimal {
   @JsonSerialize
   @JsonDeserialize
   private java.util.Map<String, String> highlights;
-  
+
   /** The normName */
   @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
@@ -90,15 +91,21 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /** The children. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+      "parents", "children", "descendants", "paths"
+  })
   private List<Concept> children;
 
   /** The parents. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+      "parents", "children", "descendants", "paths"
+  })
   private List<Concept> parents;
 
   /** The descendants. */
-  @Field(type = FieldType.Nested, ignoreFields = {"parents", "children", "descendants", "paths"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+      "parents", "children", "descendants", "paths"
+  })
   private List<Concept> descendants;
 
   /** The associations. */
@@ -126,9 +133,11 @@ public class Concept extends ConceptMinimal {
   private List<Map> maps;
 
   /** The paths to root. */
-  @Field(type = FieldType.Nested, ignoreFields = {"paths"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+      "paths"
+  })
   private Paths paths;
-  
+
   /**
    * Instantiates an empty {@link Concept}.
    */
@@ -255,19 +264,19 @@ public class Concept extends ConceptMinimal {
    * @return the normName
    */
   public String getNormName() {
-	return normName;
+    return normName;
   }
-	
+
   /**
    * Sets the normName.
    *
    * @param normName the normName
    */
   public void setNormName(String normName) {
-	this.normName = normName;
+    this.normName = normName;
   }
 
-/**
+  /**
    * Returns the level.
    *
    * @return the level
@@ -429,7 +438,6 @@ public class Concept extends ConceptMinimal {
     this.descendants = descendants;
   }
 
-
   /**
    * Returns the associations.
    *
@@ -573,4 +581,48 @@ public class Concept extends ConceptMinimal {
   public void setPaths(Paths paths) {
     this.paths = paths;
   }
+
+  /**
+   * Sort lists.
+   */
+  public void sortLists() {
+
+    if (synonyms != null) {
+      Collections.sort(synonyms);
+    }
+    if (definitions != null) {
+      Collections.sort(definitions);
+    }
+    if (properties != null) {
+      Collections.sort(properties);
+    }
+    if (children != null) {
+      Collections.sort(children);
+    }
+    if (parents != null) {
+      Collections.sort(parents);
+    }
+    if (descendants != null) {
+      Collections.sort(descendants);
+    }
+    if (associations != null) {
+      Collections.sort(associations);
+    }
+    if (inverseAssociations != null) {
+      Collections.sort(inverseAssociations);
+    }
+    if (roles != null) {
+      Collections.sort(roles);
+    }
+    if (inverseRoles != null) {
+      Collections.sort(inverseRoles);
+    }
+    if (disjointWith != null) {
+      Collections.sort(disjointWith);
+    }
+    if (maps != null) {
+      Collections.sort(maps);
+    }
+  }
+  
 }

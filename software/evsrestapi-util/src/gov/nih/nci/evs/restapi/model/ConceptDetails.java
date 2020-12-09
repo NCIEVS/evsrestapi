@@ -11,23 +11,16 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class ConceptDetails
+public class ConceptDetails extends Concept
 {
 
 // Variable declaration
-	private String code;
-	private String name;
-	private String terminology;
-	private String version;
-	private List<Synonym> synonyms;
-	private List<Definition> definitions;
-	private List<Property> properties;
 	private List<Superclass> parents;
 	private List<Subclass> children;
-	private List<Association> associations;
-	private List<InverseAssociation> inverseAssociations;
 	private List<Role> roles;
 	private List<InverseRole> inverseRoles;
+	private List<Association> associations;
+	private List<InverseAssociation> inverseAssociations;
 	private List<MapsTo> maps;
 
 // Default constructor
@@ -36,80 +29,30 @@ public class ConceptDetails
 
 // Constructor
 	public ConceptDetails(
-		String code,
-		String name,
-		String terminology,
-		String version,
-		List<Synonym> synonyms,
-		List<Definition> definitions,
-		List<Property> properties,
 		List<Superclass> parents,
 		List<Subclass> children,
-		List<Association> associations,
-		List<InverseAssociation> inverseAssociations,
 		List<Role> roles,
 		List<InverseRole> inverseRoles,
+		List<Association> associations,
+		List<InverseAssociation> inverseAssociations,
 		List<MapsTo> maps) {
 
-		this.code = code;
-		this.name = name;
-		this.terminology = terminology;
-		this.version = version;
-		this.synonyms = synonyms;
-		this.definitions = definitions;
-		this.properties = properties;
 		this.parents = parents;
 		this.children = children;
-		this.associations = associations;
-		this.inverseAssociations = inverseAssociations;
 		this.roles = roles;
 		this.inverseRoles = inverseRoles;
+		this.associations = associations;
+		this.inverseAssociations = inverseAssociations;
 		this.maps = maps;
 	}
 
 // Set methods
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setTerminology(String terminology) {
-		this.terminology = terminology;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
-	}
-
-	public void setSynonyms(List<Synonym> synonyms) {
-		this.synonyms = synonyms;
-	}
-
-	public void setDefinitions(List<Definition> definitions) {
-		this.definitions = definitions;
-	}
-
-	public void setProperties(List<Property> properties) {
-		this.properties = properties;
-	}
-
 	public void setParents(List<Superclass> parents) {
 		this.parents = parents;
 	}
 
 	public void setChildren(List<Subclass> children) {
 		this.children = children;
-	}
-
-	public void setAssociations(List<Association> associations) {
-		this.associations = associations;
-	}
-
-	public void setInverseAssociations(List<InverseAssociation> inverseAssociations) {
-		this.inverseAssociations = inverseAssociations;
 	}
 
 	public void setRoles(List<Role> roles) {
@@ -120,40 +63,20 @@ public class ConceptDetails
 		this.inverseRoles = inverseRoles;
 	}
 
+	public void setAssociations(List<Association> associations) {
+		this.associations = associations;
+	}
+
+	public void setInverseAssociations(List<InverseAssociation> inverseAssociations) {
+		this.inverseAssociations = inverseAssociations;
+	}
+
 	public void setMaps(List<MapsTo> maps) {
 		this.maps = maps;
 	}
 
 
 // Get methods
-	public String getCode() {
-		return this.code;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public String getTerminology() {
-		return this.terminology;
-	}
-
-	public String getVersion() {
-		return this.version;
-	}
-
-	public List<Synonym> getSynonyms() {
-		return this.synonyms;
-	}
-
-	public List<Definition> getDefinitions() {
-		return this.definitions;
-	}
-
-	public List<Property> getProperties() {
-		return this.properties;
-	}
-
 	public List<Superclass> getParents() {
 		return this.parents;
 	}
@@ -162,20 +85,20 @@ public class ConceptDetails
 		return this.children;
 	}
 
-	public List<Association> getAssociations() {
-		return this.associations;
-	}
-
-	public List<InverseAssociation> getInverseAssociations() {
-		return this.inverseAssociations;
-	}
-
 	public List<Role> getRoles() {
 		return this.roles;
 	}
 
 	public List<InverseRole> getInverseRoles() {
 		return this.inverseRoles;
+	}
+
+	public List<Association> getAssociations() {
+		return this.associations;
+	}
+
+	public List<InverseAssociation> getInverseAssociations() {
+		return this.inverseAssociations;
 	}
 
 	public List<MapsTo> getMaps() {
@@ -211,5 +134,4 @@ public class ConceptDetails
 		}
 		return buf.toString();
 	}
-
 }

@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * </pre>
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Terminology extends BaseModel {
+public class Terminology extends BaseModel implements Comparable<Terminology> {
 
   /** The terminology. */
   @Field(type = FieldType.Keyword)
@@ -493,6 +493,12 @@ public class Terminology extends BaseModel {
       return false;
     }
     return true;
+  }
+
+  /* see superclass */
+  @Override
+  public int compareTo(Terminology o) {
+    return (terminology + version).compareToIgnoreCase(o.getTerminology() + o.getVersion());
   }
 
 }

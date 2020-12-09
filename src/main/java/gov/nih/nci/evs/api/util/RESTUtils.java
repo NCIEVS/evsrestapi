@@ -3,8 +3,6 @@ package gov.nih.nci.evs.api.util;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,25 +84,4 @@ public class RESTUtils {
     return results;
   }
 
-  /**
-   * Escape lucene special characters.
-   *
-   * @param before the before
-   * @return the string
-   */
-  public static String escapeLuceneSpecialCharacters(String before) {
-    if (null == before) {
-      return "";
-    }
-    String patternString = "([+:!~*?/\\-/{}\\[\\]\\(\\)\\^\\\"])";
-    Pattern pattern = Pattern.compile(patternString);
-    Matcher matcher = pattern.matcher(before);
-    StringBuffer buf = new StringBuffer();
-    while (matcher.find()) {
-      matcher.appendReplacement(buf, before.substring(matcher.start(), matcher.start(1)) + "\\\\"
-          + "\\\\" + matcher.group(1) + before.substring(matcher.end(1), matcher.end()));
-    }
-    String after = matcher.appendTail(buf).toString();
-    return after;
-  }
 }

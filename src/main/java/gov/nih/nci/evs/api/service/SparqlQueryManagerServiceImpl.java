@@ -559,6 +559,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
     }
 
+    concept.sortLists();
     return concept;
   }
 
@@ -739,6 +740,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setPaths(pathsMap.get(conceptCode));
       }
       concept.setLeaf(concept.getChildren().isEmpty());
+      
+      // Ensure that all list elements of the concept are in a natural sort order
+      concept.sortLists();
     }
 
     return concepts;

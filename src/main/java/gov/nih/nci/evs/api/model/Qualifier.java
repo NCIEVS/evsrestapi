@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 @JsonIgnoreProperties(value = {
     "code"
 })
-public class Qualifier extends BaseModel {
+public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
   /** The code. */
   @JsonProperty(access = Access.READ_ONLY)
@@ -169,6 +169,12 @@ public class Qualifier extends BaseModel {
       return false;
     }
     return true;
+  }
+
+  /* see superclass */
+  @Override
+  public int compareTo(Qualifier o) {
+    return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
   }
 
 }
