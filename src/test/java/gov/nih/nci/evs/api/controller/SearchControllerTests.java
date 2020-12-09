@@ -1096,10 +1096,10 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // Find corona
-    log.info("Testing url - " + url + "?include=synonyms&term=corona&type=contains");
+    log.info("Testing url - " + url + "?include=synonyms&term=corona&type=contains&pageSize=50");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "corona")
-            .param("type", "contains").param("include", "synonyms"))
+            .param("type", "contains").param("pageSize", "50").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
