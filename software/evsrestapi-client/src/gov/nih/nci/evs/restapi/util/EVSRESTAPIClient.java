@@ -1,7 +1,6 @@
-//package gov.nih.nci.evs.restapi.util;
+package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.model.*;
-import gov.nih.nci.evs.restapi.util.*;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -35,7 +34,7 @@ public class EVSRESTAPIClient {
 		EVSRESTAPI_URL_MAP.put("inverseAssociations", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/inverseAssociations");
         EVSRESTAPI_URL_MAP.put("code", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}");
 		EVSRESTAPI_URL_MAP.put("maps", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/maps");
-		EVSRESTAPI_URL_MAP.put("ancestorCode", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}");
+		EVSRESTAPI_URL_MAP.put("pathsToAncestor_ancestorCode", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}");
 		EVSRESTAPI_URL_MAP.put("roles", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/roles");
 		EVSRESTAPI_URL_MAP.put("roots", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/roots");
 		EVSRESTAPI_URL_MAP.put("descendants", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/descendants");
@@ -43,13 +42,30 @@ public class EVSRESTAPIClient {
 		EVSRESTAPI_URL_MAP.put("subtree", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/subtree");
 		EVSRESTAPI_URL_MAP.put("inverseAssociations", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/inverseAssociations");
 		EVSRESTAPI_URL_MAP.put("inverseRoles", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/inverseRoles");
-		EVSRESTAPI_URL_MAP.put("terminology", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}");
+		EVSRESTAPI_URL_MAP.put("concept_terminology", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}");
 		EVSRESTAPI_URL_MAP.put("children", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/subtree/children");
 		EVSRESTAPI_URL_MAP.put("disjointWith", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/disjointWith");
 		EVSRESTAPI_URL_MAP.put("pathsFromRoot", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/pathsFromRoot");
 		EVSRESTAPI_URL_MAP.put("parents", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}/parents");
         EVSRESTAPI_URL_MAP.put("concept", "https://api-evsrest.nci.nih.gov/api/v1/concept/{terminology}/{code}?include=full");
+
+
+		EVSRESTAPI_URL_MAP.put("metadata_associations", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/associations");
+		EVSRESTAPI_URL_MAP.put("metadata_terminologies", "https://api-evsrest.nci.nih.gov/api/v1/metadata/terminologies");
+		EVSRESTAPI_URL_MAP.put("metadata_values", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/qualifier/{codeOrLabel}/values");
+		EVSRESTAPI_URL_MAP.put("metadata_roles", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/roles");
+		EVSRESTAPI_URL_MAP.put("metadata_role_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/role/{codeOrLabel}");
+		EVSRESTAPI_URL_MAP.put("metadata_qualifiers", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/qualifiers");
+		EVSRESTAPI_URL_MAP.put("metadata_definitionSources", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/definitionSources");
+		EVSRESTAPI_URL_MAP.put("metadata_termTypes", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/termTypes");
+		EVSRESTAPI_URL_MAP.put("metadata_synonymSources", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/synonymSources");
+		EVSRESTAPI_URL_MAP.put("metadata_association_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/association/{codeOrLabel}");
+		EVSRESTAPI_URL_MAP.put("metadata_property_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/property/{codeOrLabel}");
+		EVSRESTAPI_URL_MAP.put("metadata_conceptStatuses", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/conceptStatuses");
+		EVSRESTAPI_URL_MAP.put("metadata_properties", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/properties");
+		EVSRESTAPI_URL_MAP.put("metadata_qualifier_codeOrLabel", "https://api-evsrest.nci.nih.gov/api/v1/metadata/{terminology}/qualifier/{codeOrLabel}");
 	}
+
 
 	public EVSRESTAPIClient() {
 
@@ -57,13 +73,17 @@ public class EVSRESTAPIClient {
 
 	public static HashMap get_evsrestapi_endpoint_map(String filename) {
 		HashMap hmap = new HashMap();
-		String end_point_prefix = ENDPOINT_PREFIX;
+		String end_point_prefix = EVSRESTAPIClient.ENDPOINT_PREFIX;
 		Vector v = Utils.readFile(filename);
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			if (t.indexOf("/api/") != -1) {
 				t = end_point_prefix + t;
+				String t0 = t;
+				if (t.endsWith("{codeOrLabel}")) {
+					t = t.replace("/{codeOrLabel}", "_codeOrLabel");
+   			    }
 				int n = t.lastIndexOf("/");
 				String type = t.substring(n+1, t.length());
 				if (type.startsWith("{")) {
@@ -72,16 +92,16 @@ public class EVSRESTAPIClient {
 				if (type.endsWith("}")) {
 					type = type.substring(0, type.length()-1);
 				}
-				hmap.put(type, t);
+				hmap.put(type, t0);
 			}
 		}
 		return hmap;
 	}
 
 	public static String getURL(String terminology, String code) {
-		String t = (String) EVSRESTAPI_URL_MAP.get("code");
-		t = t.replace("{terminology}", terminology);
-		t = t.replace("{code}", code);
+		String t = (String) EVSRESTAPI_URL_MAP.get("concept");
+		if (terminology != null) t = t.replace("{terminology}", terminology);
+		if (code != null) t = t.replace("{code}", code);
 		return t;
 	}
 
@@ -115,7 +135,15 @@ public class EVSRESTAPIClient {
 		return json;
 	}
 
+
 	public static Vector get_evsrestapi_endpoints(String filename, String code) {
+		String terminology = "ncit";
+		return get_evsrestapi_endpoints(filename, terminology, code);
+	}
+
+
+
+	public static Vector get_evsrestapi_endpoints(String filename, String terminology, String code) {
 		String end_point_prefix = ENDPOINT_PREFIX;
 		Vector v = Utils.readFile(filename);
 		Vector w = new Vector();
@@ -123,7 +151,7 @@ public class EVSRESTAPIClient {
 			String t = (String) v.elementAt(i);
 			if (t.indexOf("/api/") != -1) {
 				t = end_point_prefix + t;
-				t = t.replace("{terminology}", "ncit");
+				t = t.replace("{terminology}", terminology);
 				t = t.replace("{code}", code);
 				w.add(t);
 			}
@@ -180,6 +208,24 @@ public class EVSRESTAPIClient {
 		} else if (className.compareTo("ConceptDetails") == 0) {
 			gov.nih.nci.evs.restapi.model.ConceptDetails superclass = mapper.readValue(json, gov.nih.nci.evs.restapi.model.ConceptDetails.class);
 	        return superclass;
+
+		} else if (className.compareTo("Subtree") == 0) {
+			gov.nih.nci.evs.restapi.model.Subtree response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Subtree.class);
+	        return response;
+		} else if (className.compareTo("Tree") == 0) {
+			if (!json.startsWith("{")) {
+				json = "{\"subtrees\":" + json + "}";
+			}
+			gov.nih.nci.evs.restapi.model.Tree response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Tree.class);
+	        return response;
+
+		} else if (className.compareTo("Descendant") == 0) {
+			if (!json.startsWith("{")) {
+				json = "{\"descendants\":" + json + "}";
+			}
+			gov.nih.nci.evs.restapi.model.Descendant response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.Descendant.class);
+	        return response;
+
 		} else if (className.compareTo("RESTResponse") == 0) {
 			gov.nih.nci.evs.restapi.model.RESTResponse response = mapper.readValue(json, gov.nih.nci.evs.restapi.model.RESTResponse.class);
 	        return response;
@@ -194,11 +240,7 @@ public class EVSRESTAPIClient {
 		 return s;
 	 }
 
-	public static String getURL(String t, String terminology, String code) {
-		t = t.replace("{terminology}", terminology);
-		t = t.replace("{code}", code);
-		return t;
-	}
+
 
 	public static ValueSet getValueSet(String terminology, String code) {
 		HashMap hmap = EVSRESTAPI_URL_MAP;
@@ -234,48 +276,18 @@ public class EVSRESTAPIClient {
 	}
 
 	public static gov.nih.nci.evs.restapi.model.ConceptDetails getConceptDetails(String terminology, String code) {
-		//HashMap hmap = EVSRESTAPI_URL_MAP;
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		gov.nih.nci.evs.restapi.model.ConceptDetails conceptDetails = null;
 		String t = (String) EVSRESTAPI_URL_MAP.get("concept");
-		t = t.replace("{terminology}", terminology);
-		String url = t.replace("{code}", code);
+		if (terminology != null) t = t.replace("{terminology}", terminology);
+		String url = t;
+		if (code != null) {
+			url = t.replace("{code}", code);
+		}
         String json = getJson(url);
-		/*
-
-        String url = getURL(terminology, code);
-		String json = getJson(url);
-
-		url = (String) hmap.get("associations");
-		url = getURL(url, terminology, code);
-		String value = getJson(url);
-		json = appendJSON(json, "associations", value);
-
-		url = (String) hmap.get("inverseAssociations");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseAssociations", value);
-
-		url = (String) hmap.get("roles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "roles", value);
-
-		url = (String) hmap.get("inverseRoles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseRoles", value);
-
-		url = (String) hmap.get("parents");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "superclasses", value);
-		*/
-
 		try {
 			conceptDetails = (gov.nih.nci.evs.restapi.model.ConceptDetails) deserialize("ConceptDetails", json);
-			//System.out.println(conceptDetails.toJson());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -284,39 +296,6 @@ public class EVSRESTAPIClient {
 
 	public static String getConceptDetailsInJSON(String terminology, String code) {
 		ConceptDetails cd = getConceptDetails(terminology, code);
-		/*
-		HashMap hmap = EVSRESTAPI_URL_MAP;
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		gov.nih.nci.evs.restapi.model.ConceptDetails conceptDetails = null;
-        String url = getURL(terminology, code);
-		String json = getJson(url);
-
-		url = (String) hmap.get("associations");
-		url = getURL(url, terminology, code);
-		String value = getJson(url);
-		json = appendJSON(json, "associations", value);
-
-		url = (String) hmap.get("inverseAssociations");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseAssociations", value);
-
-		url = (String) hmap.get("roles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "roles", value);
-
-		url = (String) hmap.get("inverseRoles");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "inverseRoles", value);
-
-		url = (String) hmap.get("parents");
-		url = getURL(url, terminology, code);
-		value = getJson(url);
-		json = appendJSON(json, "superclasses", value);
-        */
 		return flattenJSON(cd.toJson());
 	}
 
@@ -339,8 +318,8 @@ public class EVSRESTAPIClient {
 
     public static RESTResponse getRESTResponse(String code, String terminology, String type) {
 		String url = (String) EVSRESTAPI_URL_MAP.get(type);
-		url = url.replace("{terminology}", terminology);
-		url = url.replace("{code}", code);
+		if (terminology != null) url = url.replace("{terminology}", terminology);
+		if (code != null) url = url.replace("{code}", code);
 		String json = EVSRESTAPIClient.getJson(url);
 		String json_new = wrapJSON(code, terminology, json);
 		RESTResponse response = null;
@@ -363,6 +342,121 @@ public class EVSRESTAPIClient {
 		}
 		return buf.toString();
 	}
+
+	public static Vector getJSONs(String filename) {
+		return getJSONs(filename, "ncit");
+	}
+
+	public static Vector getJSONs(String filename, String terminology) {
+		Vector failed_urls = new Vector();
+		Vector w = new Vector();
+		Vector lines = Utils.readFile(filename);
+		int lcv = 0;
+		long ms = System.currentTimeMillis();
+		for (int i=0; i<lines.size(); i++) {
+			lcv++;
+			if (lcv/50*50 == lcv) {
+				System.out.println("" + lcv + " out of " + lines.size() + " completed.");
+			}
+			String line = (String) lines.elementAt(i);
+			Vector u = StringUtils.parseData(line);
+			String code = (String) u.elementAt(0);
+			try {
+				String json = getConceptDetailsInJSON(terminology, code);
+				w.add(json);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				String url = getURL(terminology, code);
+				failed_urls.add(url);
+			}
+		}
+		if (failed_urls.size() > 0) {
+			Utils.saveToFile("failed_urls.txt", failed_urls);
+		}
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+		return w;
+	}
+
+	public static String getURL(String t, String terminology, String code) {
+		if (terminology != null) t = t.replace("{terminology}", terminology);
+		if (code != null) t = t.replace("{code}", code);
+		return t;
+	}
+
+	public String code2Label(String code) {
+		return code2Label("ncit", code);
+	}
+
+	public String code2Label(String terminology, String code) {
+		String t = (String) EVSRESTAPI_URL_MAP.get("code");
+		String url = getURL(t, terminology, code);
+		String json = getJson(url);
+		if (json == null) return null;
+		try {
+			gov.nih.nci.evs.restapi.model.Concept c = (gov.nih.nci.evs.restapi.model.Concept) deserialize("Concept", json);
+			return c.getName();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
+	public Vector extractHierarchyData(String parentCode, String parntLabel , gov.nih.nci.evs.restapi.model.TreeNode node) {
+		if (node == null) return null;
+		Vector w = new Vector();
+		w.add(parntLabel + "|" + parentCode + "|" + node.getName() + "|" + node.getCode());
+		List list = node.getChildren();
+		if (list != null) {
+			for (int k=0; k<list.size(); k++) {
+				gov.nih.nci.evs.restapi.model.TreeNode childnode = (gov.nih.nci.evs.restapi.model.TreeNode) list.get(k);
+				Vector v = extractHierarchyData(node.getCode(), node.getName(), childnode);
+				w.addAll(v);
+			}
+		}
+		return w;
+	}
+
+	public Vector extractHierarchyData(String rootCode, gov.nih.nci.evs.restapi.model.Descendant descendant) {
+		if (descendant == null) return null;
+		String rootLabel = code2Label(rootCode);
+		Vector w = new Vector();
+		List list = descendant.getDescendants();
+		for (int k=0; k<list.size(); k++) {
+			gov.nih.nci.evs.restapi.model.TreeNode node = (gov.nih.nci.evs.restapi.model.TreeNode) list.get(k);
+			Vector v = extractHierarchyData(rootCode, rootLabel, node);
+			w.addAll(v);
+		}
+		return w;
+	}
+
+	public Vector extractHierarchyData(String code) {
+		return extractHierarchyData("ncit", code);
+	}
+
+
+	public Vector extractHierarchyData(String terminology, String code) {
+		String t = (String) EVSRESTAPI_URL_MAP.get("descendants");
+		String url = getURL(t, terminology, code);
+		String json = getJson(url+ "?maxLevel=50");
+		try {
+			gov.nih.nci.evs.restapi.model.Descendant descendant = (gov.nih.nci.evs.restapi.model.Descendant) deserialize("Descendant", json);
+            return extractHierarchyData(code, descendant);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
+    public void printTree(String code) {
+        printTree("ncit", code);
+	}
+
+    public void printTree(String terminology, String code) {
+        Vector v = extractHierarchyData(terminology, code);
+        HierarchyHelper hh = new HierarchyHelper(v);
+        hh.printTree();
+	}
+
 
 	public static void main(String[] args) {
 	    Vector v = null;
