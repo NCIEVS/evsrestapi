@@ -1527,6 +1527,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         String axiom = b.getAxiom().getValue();
         if (!axiomMap.containsKey(axiom)) {
           axiomMap.put(axiom, new Axiom());
+        } else {
+          log.warn("WARNING: duplicate axiom key = " + axiom);
         }
         Axiom axiomObject = axiomMap.get(axiom);
         String property = b.getAxiomProperty().getValue().split("#")[1];
@@ -1735,17 +1737,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> properties = new ArrayList<String>();
+    ArrayList<String> qualifiers = new ArrayList<String>();
     ArrayList<Concept> concepts = new ArrayList<Concept>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      properties.add(b.getPropertyCode().getValue());
+      qualifiers.add(b.getPropertyCode().getValue());
     }
 
     final TerminologyMetadata md = terminology.getMetadata();
-    for (String code : properties) {
+    for (String code : qualifiers) {
       // Exclude properties that are redefined as synonyms or definitions
       if (md.isRemodeledQualifier(code)) {
         continue;

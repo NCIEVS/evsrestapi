@@ -28,6 +28,7 @@ import org.springframework.util.CollectionUtils;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -55,7 +56,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @throws Exception the exception
    */
   @Override
-  public ConceptResultList search(SearchCriteria searchCriteria) throws Exception {
+  public ConceptResultList search(List<Terminology> terminologies, SearchCriteria searchCriteria)
+    throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -132,8 +134,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
               .field("name", 2f).boost(10f)
               .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-          .should(QueryBuilders.queryStringQuery(term.toUpperCase())
-              .field("code", 2f).boost(10f)
+          .should(QueryBuilders.queryStringQuery(term.toUpperCase()).field("code", 2f).boost(10f)
               .defaultOperator(queryStringQueryBuilder.defaultOperator()))
           .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
               .boost(5f))
@@ -162,7 +163,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // append criteria queries
-    List<QueryBuilder> criteriaQueries = getCriteriaQueries(searchCriteria);
+    List<QueryBuilder> criteriaQueries = getCriteriaQueries(terminologies, searchCriteria);
     if (!CollectionUtils.isEmpty(criteriaQueries)) {
       for (QueryBuilder criteriaQuery : criteriaQueries) {
         boolQuery = boolQuery.must(criteriaQuery);
@@ -312,7 +313,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return list of nested queries
    */
-  private List<QueryBuilder> getCriteriaQueries(SearchCriteria searchCriteria) {
+  private List<QueryBuilder> getCriteriaQueries(List<Terminology> terminologies,
+    SearchCriteria searchCriteria) {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // concept status
@@ -345,10 +347,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       queries.add(synonymTermGroupQuery);
     }
 
+    // synonym type
+    QueryBuilder synonymTypeQuery = getSynonymTypeQueryBuilder(terminologies, searchCriteria);
+    if (synonymTypeQuery != null) {
+      queries.add(synonymTypeQuery);
+    }
+
     // definition source
     QueryBuilder definitionSourceQuery = getDefinitionSourceQueryBuilder(searchCriteria);
     if (definitionSourceQuery != null) {
       queries.add(definitionSourceQuery);
+    }
+
+    // definition type
+    QueryBuilder definitionTypeQuery = getDefinitionTypeQueryBuilder(terminologies, searchCriteria);
+    if (definitionTypeQuery != null) {
+      queries.add(definitionTypeQuery);
     }
 
     return queries;
@@ -472,6 +486,38 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
+   * Returns the synonym type query builder.
+   *
+   * @param terminologies the terminologies
+   * @param searchCriteria the search criteria
+   * @return the synonym type query builder
+   */
+  private QueryBuilder getSynonymTypeQueryBuilder(List<Terminology> terminologies,
+    SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymType()))
+      return null;
+
+    // bool query to match synonym.type
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
+
+    // IN query on synonym.type
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+    for (String source : searchCriteria.getSynonymType()) {
+      inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.type", source));
+      for (final Terminology terminology : terminologies) {
+        if (terminology.getMetadata().getPropertyName(source) != null) {
+          inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.type",
+              terminology.getMetadata().getPropertyName(source)));
+        }
+      }
+    }
+    fieldBoolQuery = fieldBoolQuery.must(inQuery);
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("synonyms", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
    * builds nested query for definition source criteria
    * 
    * @param searchCriteria the search criteria
@@ -495,6 +541,37 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // bool query to match definition.source
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
+
+    // nested query on properties
+    return QueryBuilders.nestedQuery("definitions", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * Returns the definition type query builder.
+   *
+   * @param searchCriteria the search criteria
+   * @return the definition type query builder
+   */
+  private QueryBuilder getDefinitionTypeQueryBuilder(List<Terminology> terminologies,
+    SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionType()))
+      return null;
+
+    // bool query to match definition.type
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
+
+    // IN query on definition.type
+    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+    for (String source : searchCriteria.getDefinitionType()) {
+      inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.type", source));
+      for (final Terminology terminology : terminologies) {
+        if (terminology.getMetadata().getPropertyName(source) != null) {
+          inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.type",
+              terminology.getMetadata().getPropertyName(source)));
+        }
+      }
+    }
+    fieldBoolQuery = fieldBoolQuery.must(inQuery);
 
     // nested query on properties
     return QueryBuilders.nestedQuery("definitions", fieldBoolQuery, ScoreMode.Total);

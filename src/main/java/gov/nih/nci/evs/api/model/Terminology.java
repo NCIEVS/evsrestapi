@@ -367,10 +367,20 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
     this.objectIndexName = objectIndexName;
   }
 
+  /**
+   * Returns the sparql flag.
+   *
+   * @return the sparql flag
+   */
   public Boolean getSparqlFlag() {
     return sparqlFlag;
   }
 
+  /**
+   * Sets the sparql flag.
+   *
+   * @param sparqlFlag the sparql flag
+   */
   public void setSparqlFlag(Boolean sparqlFlag) {
     this.sparqlFlag = sparqlFlag;
   }
@@ -495,6 +505,12 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
     return true;
   }
 
+  /**
+   * Compare to.
+   *
+   * @param o the o
+   * @return the int
+   */
   /* see superclass */
   @Override
   public int compareTo(Terminology o) {

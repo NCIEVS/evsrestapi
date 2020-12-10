@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
@@ -417,17 +420,27 @@ public class MetadataControllerTests {
   @Test
   public void testGetProperties() throws Exception {
 
-    final String url = baseUrl + "/ncit/properties";
+    String url = baseUrl + "/ncit/properties";
     log.info("Testing url - " + url);
 
-    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
+    MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
+
+    // Assert that properties don't contain any "remodeled properties"
+    url = baseUrl + "/terminologies";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(list.stream().filter(c -> terminology.getMetadata().isRemodeledProperty(c.getCode()))
+        .count()).isEqualTo(0);
 
     // BAC: this is not true anymore because we've
     // Assert that no cases involve a concept with a name having a space
@@ -942,4 +955,65 @@ public class MetadataControllerTests {
     }
   }
 
+  @Test
+  public void testMutuallyExclusive() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    Concept concept = null;
+    String content = null;
+
+    // Properties
+    url = baseUrl + "/ncit/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> properties =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // Qualifiers
+    url = baseUrl + "/ncit/qualifiers";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> qualifiers =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // Synonym Types
+    url = baseUrl + "/ncit/synonymTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> synonymTypes =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // Definition Types
+    url = baseUrl + "/ncit/definitionTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> definitionTypes =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // All sets are mutually exclusive with respect to each other.
+    assertThat(Sets.intersection(properties, qualifiers)).isEmpty();
+    assertThat(Sets.intersection(properties, synonymTypes)).isEmpty();
+    assertThat(Sets.intersection(properties, definitionTypes)).isEmpty();
+    assertThat(Sets.intersection(qualifiers, synonymTypes)).isEmpty();
+    assertThat(Sets.intersection(qualifiers, definitionTypes)).isEmpty();
+    assertThat(Sets.intersection(synonymTypes, definitionTypes)).isEmpty();
+
+  }
 }

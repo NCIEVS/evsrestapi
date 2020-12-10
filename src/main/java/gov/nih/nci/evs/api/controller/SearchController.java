@@ -271,12 +271,14 @@ public class SearchController extends BaseController {
     }
 
     try {
+      final List<Terminology>terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
         final Terminology term = termUtils.getTerminology(terminology, true);
         searchCriteria.validate(term, metadataService);
+        terminologies.add(term);
       }
 
-      final ConceptResultList results = elasticSearchService.search(searchCriteria);
+      final ConceptResultList results = elasticSearchService.search(terminologies, searchCriteria);
 
       // Look up info for all the concepts
       for (final Concept result : results.getConcepts()) {

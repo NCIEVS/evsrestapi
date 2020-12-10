@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -423,7 +424,7 @@ public class QualifierTests {
    * @throws Exception the exception
    */
   @Test
-  public void testAllQualifiersCanBeIndividuallyResolved() throws Exception {
+  public void testAllQualifiers() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -439,6 +440,18 @@ public class QualifierTests {
           // n/a
         });
     assertThat(list).isNotEmpty();
+
+    // Assert that properties don't contain any "remodeled properties"
+    url = metaBaseUrl + "/terminologies";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(list.stream()
+        .filter(c -> terminology.getMetadata().isRemodeledQualifier(c.getCode())).count())
+            .isEqualTo(0);
 
     // Take the each qualifier and look it up as a qualifier, expect 200
     for (final Concept qualifier : list) {
