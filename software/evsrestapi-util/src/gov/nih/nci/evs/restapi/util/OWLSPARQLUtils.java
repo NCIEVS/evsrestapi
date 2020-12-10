@@ -5121,6 +5121,59 @@ Term Type
 
 ////////////////////getTransitiveClosure//////////////////////////////////////////////////////////////////
 
+	public Vector getDescendants(String root) {
+		return getDescendants(this.named_graph, root);
+	}
+
+	public Vector getDescendants(String namedGraph, String root) {
+	    Vector w = new Vector();
+	    Stack stack = new Stack();
+	    stack.push(root);
+	    while (!stack.isEmpty()) {
+			String code = (String) stack.pop();
+			w.add(code);
+			Vector u = getSubclassesByCode(namedGraph, code);
+			if (u != null && u.size() > 0) {
+				int n = u.size()/2;
+				for (int i=0; i<n; i++) {
+					String s1 = (String) u.elementAt(i*2);
+					String s2 = (String) u.elementAt(i*2+1);
+					String t1 = parser.getValue(s1);
+					String t2 = parser.getValue(s2);
+					stack.push(t2);
+				}
+			}
+		}
+		return w;
+	}
+
+	public Vector getAncestors(String root) {
+		return getAncestors(this.named_graph, root);
+	}
+
+	public Vector getAncestors(String namedGraph, String root) {
+		ParserUtils parser = new ParserUtils();
+	    Vector w = new Vector();
+	    Stack stack = new Stack();
+	    stack.push(root);
+	    while (!stack.isEmpty()) {
+			String code = (String) stack.pop();
+			w.add(code);
+			Vector u = getSuperclassesByCode(namedGraph, code);
+			if (u != null && u.size() > 0) {
+				int n = u.size()/2;
+				for (int i=0; i<n; i++) {
+					String s1 = (String) u.elementAt(i*2);
+					String s2 = (String) u.elementAt(i*2+1);
+					String t1 = parser.getValue(s1);
+					String t2 = parser.getValue(s2);
+					stack.push(t2);
+				}
+			}
+		}
+		return w;
+	}
+
 	public Vector removeDuplicates(Vector codes) {
 		HashSet hset = new HashSet();
 		Vector w = new Vector();
