@@ -5087,5 +5087,36 @@ Term Type
 	    return v;
 	}
 
+    public Vector get_subclasses_by_code(String namedGraph, String code) {
+		Vector w = new Vector();
+		Vector u = getSubclassesByCode(namedGraph, code);
+		if (u != null && u.size() > 0) {
+			int n = u.size()/2;
+			for (int i=0; i<n; i++) {
+				String s1 = (String) u.elementAt(i*2);
+				String s2 = (String) u.elementAt(i*2+1);
+				String t1 = parser.getValue(s1);
+				String t2 = parser.getValue(s2);
+				w.add(t1 + "|" + t2);
+			}
+		}
+		return w;
+	}
+
+    public Vector get_superclasses_by_code(String namedGraph, String code) {
+		Vector w = new Vector();
+		Vector u = getSuperclassesByCode(namedGraph, code);
+		if (u != null && u.size() > 0) {
+			int n = u.size()/2;
+			for (int i=0; i<n; i++) {
+				String s1 = (String) u.elementAt(i*2);
+				String s2 = (String) u.elementAt(i*2+1);
+				String t1 = parser.getValue(s1);
+				String t2 = parser.getValue(s2);
+				w.add(t1 + "|" + t2);
+			}
+		}
+		return w;
+	}
 }
 
