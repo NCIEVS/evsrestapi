@@ -5118,5 +5118,65 @@ Term Type
 		}
 		return w;
 	}
+
+////////////////////getTransitiveClosure//////////////////////////////////////////////////////////////////
+
+	public Vector removeDuplicates(Vector codes) {
+		HashSet hset = new HashSet();
+		Vector w = new Vector();
+		for (int i=0; i<codes.size(); i++) {
+			String code = (String) codes.elementAt(i);
+			if (!hset.contains(code)) {
+				hset.add(code);
+				w.add(code);
+			}
+		}
+		return w;
+	}
+
+  	public Vector getTransitiveClosure(String label, String code) {
+		return getTransitiveClosure(this.named_graph, label, code);
+	}
+
+
+  	public Vector getTransitiveClosure(String namedGraph, String label, String code) {
+		return getTransitiveClosure(namedGraph, label, code, true);
+	}
+
+  	public Vector getTransitiveClosure(String namedGraph, String label, String code, boolean traverseDown) {
+		Vector w = new Vector();
+		Vector v = new Vector();
+		if (traverseDown) {
+		    v = get_subclasses_by_code(namedGraph, code);
+		} else {
+			v = get_superclasses_by_code(namedGraph, code);
+		}
+		if (v == null) return w;
+		for (int i=0; i<v.size(); i++) {
+			String label_and_code = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(label_and_code, '|');
+			String label_next = (String) u.elementAt(0);
+			String code_next = (String) u.elementAt(1);
+			w.add(label + "|" + code + "|" + label_next + "|" + code_next);
+			Vector v2 = getTransitiveClosure(namedGraph, label_next, code_next, traverseDown);
+			if (v2 != null && v2.size() > 0) {
+				w.addAll(v2);
+			}
+		}
+		w = removeDuplicates(w);
+		return w;
+	}
+
+    public void printTree(String parent_child_file) {
+		Vector v = Utils.readFile(parent_child_file);
+		HierarchyHelper hh = new HierarchyHelper(v, 1);
+		hh.printTree();
+	}
+
+    public void printTree(Vector parent_child_vec) {
+		HierarchyHelper hh = new HierarchyHelper(parent_child_vec, 1);
+		hh.printTree();
+	}
+
 }
 
