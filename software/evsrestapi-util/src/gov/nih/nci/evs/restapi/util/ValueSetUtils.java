@@ -87,8 +87,8 @@ public class ValueSetUtils {
 
 	private String version = null;
 	private String serviceUrl = null;
-	//private username = null;
-	//private password = password;
+	private String username = null;
+	private String password = null;
 
 	private String sparql_endpoint = null;
 
@@ -118,6 +118,8 @@ public class ValueSetUtils {
     public ValueSetUtils(String serviceUrl, String named_graph,  String username, String password) {
 		this.serviceUrl = serviceUrl;
 		this.named_graph = named_graph;
+		this.username = username;
+		this.password = password;
 
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
 		owlSPARQLUtils.set_named_graph(named_graph);
@@ -234,7 +236,7 @@ System.out.println("Step 3: " + CONCEPT_IN_SUBSET_FILE);
 			concept_in_subset_vec = readFile(CONCEPT_IN_SUBSET_FILE);
 		}
 		//searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
-		//searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, concept_in_subset_vec);
+		searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password, concept_in_subset_vec);
 		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
 System.out.println("Step 4: " + VS_HEADER_CONCEPT_FILE);
