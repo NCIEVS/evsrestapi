@@ -41,6 +41,9 @@ echo "  Generate indexes"
 export EVS_SERVER_PORT="8082"
 /usr/local/jdk1.8/bin/java -jar ../lib/evsrestapi.jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/    /'
 
+# Set the indexes to have a larger max_result_window
+curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$version/_settings" '{ "index" : { "max_result_window" : 100000 } }'
+
 echo "  Remove old version indexes = $ES_CLEAN"
 if [[ $ES_CLEAN == "true" ]]; then
     fv=`echo $version | perl -pe 's/\.//;'`
