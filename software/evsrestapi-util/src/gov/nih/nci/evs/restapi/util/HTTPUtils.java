@@ -320,6 +320,22 @@ public class HTTPUtils {
 		return v;
 	}
 
+	public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
+		String restURL = args[0];
+		String namedGraph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String queryfile = args[4];
+		HTTPUtils util = new HTTPUtils();
+		String query = util.loadQuery(queryfile, false);
+		boolean parsevalues = true;
+		Vector w = util.execute(restURL, username, password, query, parsevalues);
+		Utils.dumpVector(queryfile, w);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
+	}
+
 }
 
 
