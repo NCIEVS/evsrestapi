@@ -481,7 +481,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
-        // TODO: deal with this EVSRESTAPI-145
         if ((conceptType.equals("qualifier") || conceptType.equals("property"))
             && conceptLabel != null && !conceptLabel.equals(pn)) {
           final Synonym rdfsLabel = new Synonym();
@@ -494,25 +493,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Properties ending in "Name" are rendered as synonyms here.
       if (ip.isSynonyms() || ip.isProperties()) {
 
+        // Render synonym properties and normal properties
         final Collection<String> commonProperties =
             terminology.getMetadata().getPropertyNames().values();
+        final Set<String> syCode = terminology.getMetadata().getSynonym();
         for (Property property : properties) {
           final String type = property.getType();
-          if (commonProperties.contains(type)) {
-            continue;
-          }
-
-          // TODO: deal with this EVSRESTAPI-145
-          if (ip.isSynonyms() && type.endsWith("_Name")) {
+          if (ip.isSynonyms() && syCode.contains(property.getCode())) {
             // add synonym
             final Synonym synonym = new Synonym();
             synonym.setType(type);
-            synonym.setName(pn);
+            synonym.setName(property.getValue());
+            synonym.setNormName(ConceptUtils.normalize(property.getValue()));
             concept.getSynonyms().add(synonym);
+            continue;
           }
 
-          // TODO: deal with this EVSRESTAPI-145
-          if (ip.isProperties() && !type.endsWith("_Name")) {
+          // Handle if not a common property
+          if (ip.isProperties() && !commonProperties.contains(type)) {
             // Add any qualifiers to the property
             property.getQualifiers()
                 .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -520,6 +518,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             concept.getProperties().add(property);
           }
         }
+
       }
 
       if (ip.isDefinitions()) {
@@ -691,33 +690,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
           .count();
 
-      // See what's up with display name here
-      if (concept.getCode().equals("C3224")) {
-        log.info("AXIOMS = " + axioms);
-        log.info("SYNONYMS = " + concept.getSynonyms());
-      }
-
-      // Properties ending in "Name" are rendered as synonyms here.
+      // Render synonym properties and normal properties
       final Collection<String> commonProperties =
           terminology.getMetadata().getPropertyNames().values();
+      final Set<String> syCode = terminology.getMetadata().getSynonym();
       for (Property property : properties) {
         final String type = property.getType();
-        if (commonProperties.contains(type)) {
-          continue;
-        }
-
-        // TODO: deal with this EVSRESTAPI-145
-        if (type.endsWith("_Name")) {
+        if (syCode.contains(property.getCode())) {
           // add synonym
           final Synonym synonym = new Synonym();
           synonym.setType(type);
           synonym.setName(property.getValue());
           synonym.setNormName(ConceptUtils.normalize(property.getValue()));
           concept.getSynonyms().add(synonym);
+          continue;
         }
 
-        // TODO: deal with this EVSRESTAPI-145
-        if (!type.endsWith("_Name")) {
+        // HAndle if not a common property
+        if (!commonProperties.contains(type)) {
           // Add any qualifiers to the property
           property.getQualifiers()
               .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -740,8 +730,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setPaths(pathsMap.get(conceptCode));
       }
       concept.setLeaf(concept.getChildren().isEmpty());
-      
-      // Ensure that all list elements of the concept are in a natural sort order
+
+      // Ensure that all list elements of the concept are in a natural sort
+      // order
       concept.sortLists();
     }
 
@@ -1472,7 +1463,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       sw = true;
       oldAxiom = axiom;
 
-      // TODO: call new function
       setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
     }
     axioms.add(axiomObject);
@@ -1525,10 +1515,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       Map<String, Axiom> axiomMap = new HashMap<>();
       for (Bindings b : bindingsList) {
         String axiom = b.getAxiom().getValue();
+        // Create the axiom the first time it's found, later instances of it
+        // will just build/add more info
         if (!axiomMap.containsKey(axiom)) {
           axiomMap.put(axiom, new Axiom());
-        } else {
-          log.warn("WARNING: duplicate axiom key = " + axiom);
         }
         Axiom axiomObject = axiomMap.get(axiom);
         String property = b.getAxiomProperty().getValue().split("#")[1];
