@@ -5231,7 +5231,7 @@ Term Type
 		hh.printTree();
 	}
 
-	public String construct_get_synonyms_with_qualifier_matching(String named_graph, String code, String propertyLabel,
+	public String construct_get_concepts_with_property_and_qualifiers_matching(String named_graph, String code, String propertyLabel,
 	              Vector qualifierCodes, Vector qualifierValues) {
 		String named_graph_id = ":NHC0";
 		String prefixes = getPrefixes();
@@ -5280,9 +5280,9 @@ Term Type
 		return buf.toString();
 	}
 
-	public Vector getConceptsWithPropertyAndPropertyQualifierMatching(String named_graph, String code, String propertyLabel,
+	public Vector getConceptsWithPropertyAndQualifiersMatching(String named_graph, String code, String propertyLabel,
 	              Vector qualifierCodes, Vector qualifierValues) {
-	    String query = construct_get_synonyms_with_qualifier_matching(named_graph, code, propertyLabel,
+	    String query = construct_get_concepts_with_property_and_qualifiers_matching(named_graph, code, propertyLabel,
 	                   qualifierCodes, qualifierValues);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
