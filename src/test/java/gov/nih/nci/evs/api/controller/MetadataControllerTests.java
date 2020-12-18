@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
@@ -417,17 +420,27 @@ public class MetadataControllerTests {
   @Test
   public void testGetProperties() throws Exception {
 
-    final String url = baseUrl + "/ncit/properties";
+    String url = baseUrl + "/ncit/properties";
     log.info("Testing url - " + url);
 
-    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
+    MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
+
+    // Assert that properties don't contain any "remodeled properties"
+    url = baseUrl + "/terminologies";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(list.stream().filter(c -> terminology.getMetadata().isRemodeledProperty(c.getCode()))
+        .count()).isEqualTo(0);
 
     // BAC: this is not true anymore because we've
     // Assert that no cases involve a concept with a name having a space
@@ -456,7 +469,7 @@ public class MetadataControllerTests {
     List<Concept> list = null;
 
     // NOTE, this includes a middle property label that is bogus.
-    url = baseUrl + "/ncit/properties?list=Chemical_Formula,XYZ,P90&include=summary";
+    url = baseUrl + "/ncit/properties?list=Chemical_Formula,XYZ,P216&include=summary";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -469,43 +482,6 @@ public class MetadataControllerTests {
     assertThat(list.size()).isEqualTo(2);
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
     assertThat(list.get(0).getDefinitions()).isNotEmpty();
-
-    // Test with a case having an rdfs:label
-    // url = baseUrl + "/ncit/properties?list=term-group&include=summary";
-    // log.info("Testing url - " + url);
-    //
-    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    // list = new ObjectMapper().readValue(content, new
-    // TypeReference<List<Concept>>() {
-    // // n/a
-    // });
-    // assertThat(list).isNotEmpty();
-    // // This should have an rdfs:label synonym
-    // assertThat(
-    // list.get(0).getSynonyms().stream().filter(s ->
-    // s.getType().equals("rdfs:label")).count())
-    // .isEqualTo(1);
-
-    // Test with a case having an rdfs:label but using "minimal" where it
-    // shouldn't show up
-    // url = baseUrl + "/ncit/properties?list=P383&include=minimal";
-    // log.info("Testing url - " + url);
-    //
-    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    // list = new ObjectMapper().readValue(content, new
-    // TypeReference<List<Concept>>() {
-    // // n/a
-    // });
-    // assertThat(list).isNotEmpty();
-    // // This should have an rdfs:label synonym
-    // assertThat(
-    // list.get(0).getSynonyms().stream().filter(s ->
-    // s.getType().equals("rdfs:label")).count())
-    // .isEqualTo(0);
 
   }
 
@@ -569,32 +545,6 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
 
-    // BAC: removed because this data condition went away
-    // Test with a code that has an rdfs:label synonym (default mode is summary
-    // here)
-    // url = baseUrl + "/ncit/property/P383?include=summary";
-    // log.info("Testing url - " + url);
-    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    // concept = new ObjectMapper().readValue(content, Concept.class);
-    // // This should have an rdfs:label synonym
-    // assertThat(concept.getSynonyms().stream().filter(s ->
-    // s.getType().equals("rdfs:label")).count())
-    // .isEqualTo(1);
-
-    // Test with same code in mimal model where rdfs:label does not show up
-    // url = baseUrl + "/ncit/property/P383?include=minimal";
-    // log.info("Testing url - " + url);
-    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    // concept = new ObjectMapper().readValue(content, Concept.class);
-    // // This should have an rdfs:label synonym
-    // assertThat(concept.getSynonyms().stream().filter(s ->
-    // s.getType().equals("rdfs:label")).count())
-    // .isEqualTo(0);
-
   }
 
   /**
@@ -607,6 +557,20 @@ public class MetadataControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
+
+    // P90 should no longer be a property
+    url = baseUrl + "/ncit/property/P90";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // P97 should no longer be a property
+    url = baseUrl + "/ncit/property/P97";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
 
     // Bad terminology
     url = baseUrl + "/ncitXXX/property/P350";
@@ -796,63 +760,166 @@ public class MetadataControllerTests {
     String content = null;
 
     // Test with "by code"
-    url = baseUrl + "/ncit/qualifier/P383";
+    url = baseUrl + "/ncit/qualifier/P381";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept.getName()).isEqualTo("term-group");
-    assertThat(concept.getCode()).isEqualTo("P383");
+    assertThat(concept.getName()).isEqualTo("attribution");
+    assertThat(concept.getCode()).isEqualTo("P381");
     assertThat(concept.getSynonyms()).isNotEmpty();
 
     // Test with "by code", full=include
-    url = baseUrl + "/ncit/qualifier/P383?include=full";
+    url = baseUrl + "/ncit/qualifier/P381?include=full";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept.getCode()).isEqualTo("P383");
+    assertThat(concept.getCode()).isEqualTo("P381");
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
 
-    // P383
-    url = baseUrl + "/ncit/qualifier/P383/values";
+    // P381
+    url = baseUrl + "/ncit/qualifier/P381/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotEmpty();
 
-    // term-group
-    url = baseUrl + "/ncit/qualifier/term-group/values";
+    // attribution
+    url = baseUrl + "/ncit/qualifier/attribution/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
 
     // Bad terminology
-    url = baseUrl + "/ncitXXX/qualifier/P383/values";
+    url = baseUrl + "/ncitXXX/qualifier/P381/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
 
     // Bad property
-    url = baseUrl + "/ncit/qualifier/P383XXX/values";
+    url = baseUrl + "/ncit/qualifier/P381XXX/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+
+    // P383 should no longer be a property
+    url = baseUrl + "/ncit/qualifier/P383";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+  }
+
+  /**
+   * Test synonym types.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSynonymTypes() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    Concept concept = null;
+    String content = null;
+
+    // Test with "by code"
+    url = baseUrl + "/ncit/synonymType/P90";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getName()).isEqualTo("FULL_SYN");
+    assertThat(concept.getCode()).isEqualTo("P90");
+    assertThat(concept.getSynonyms()).isNotEmpty();
+
+    // Test with "by code", full=include
+    url = baseUrl + "/ncit/synonymType/P90?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getCode()).isEqualTo("P90");
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/synonymType/P90";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+
+    // Bad property
+    url = baseUrl + "/ncit/synonymType/P90XXX";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
 
   }
-  
+
   /**
-   * Test keep type: value out of qualifiers
+   * Test definition types.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testDefinitionTypes() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    Concept concept = null;
+    String content = null;
+
+    // Test with "by code"
+    url = baseUrl + "/ncit/definitionType/P97";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getName()).isEqualTo("DEFINITION");
+    assertThat(concept.getCode()).isEqualTo("P97");
+    assertThat(concept.getSynonyms()).isNotEmpty();
+
+    // Test with "by code", full=include
+    url = baseUrl + "/ncit/definitionType/P97?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getCode()).isEqualTo("P97");
+    // Even full doesn't include descendants and paths
+    assertThat(concept.getDescendants()).isEmpty();
+    assertThat(concept.getPaths()).isNull();
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/definitionType/P97";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+
+    // Bad property
+    url = baseUrl + "/ncit/synonymType/P97XXX";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+
+  }
+
+  /**
+   * Test keep type: value out of qualifiers.
    *
    * @throws Exception the exception
    */
   @Test
   public void testQualifiersWithoutTypeValue() throws Exception {
-	String url = null;
+    String url = null;
     MvcResult result = null;
     Concept concept = null;
     String content = null;
@@ -863,16 +930,15 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    List<Concept> list =
-            new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-              // n/a
-            });
+    List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
     concept = list.get(0);
     for (Property prop : concept.getProperties()) {
-    	assertThat(!prop.getType().equals("value"));
+      assertThat(!prop.getType().equals("value"));
     }
-    
+
     // Test with P391
     url = baseUrl + "/ncit/qualifiers?include=summary&list=P391";
     log.info("Testing url - " + url);
@@ -880,14 +946,74 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-              // n/a
-            });
+      // n/a
+    });
     assertThat(list).isNotEmpty();
     concept = list.get(0);
     for (Property prop : concept.getProperties()) {
-    	assertThat(!prop.getType().equals("value"));
+      assertThat(!prop.getType().equals("value"));
     }
   }
 
+  @Test
+  public void testMutuallyExclusive() throws Exception {
 
+    String url = null;
+    MvcResult result = null;
+    Concept concept = null;
+    String content = null;
+
+    // Properties
+    url = baseUrl + "/ncit/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> properties =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // Qualifiers
+    url = baseUrl + "/ncit/qualifiers";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> qualifiers =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // Synonym Types
+    url = baseUrl + "/ncit/synonymTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> synonymTypes =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // Definition Types
+    url = baseUrl + "/ncit/definitionTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Set<String> definitionTypes =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+
+    // All sets are mutually exclusive with respect to each other.
+    assertThat(Sets.intersection(properties, qualifiers)).isEmpty();
+    assertThat(Sets.intersection(properties, synonymTypes)).isEmpty();
+    assertThat(Sets.intersection(properties, definitionTypes)).isEmpty();
+    assertThat(Sets.intersection(qualifiers, synonymTypes)).isEmpty();
+    assertThat(Sets.intersection(qualifiers, definitionTypes)).isEmpty();
+    assertThat(Sets.intersection(synonymTypes, definitionTypes)).isEmpty();
+
+  }
 }

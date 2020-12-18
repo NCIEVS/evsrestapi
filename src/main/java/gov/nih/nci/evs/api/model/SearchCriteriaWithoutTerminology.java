@@ -50,8 +50,14 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The synonym source. */
   private List<String> synonymSource;
 
+  /** The synonym type. */
+  private List<String> synonymType;
+
   /** The definition source. */
   private List<String> definitionSource;
+
+  /** The definition type. */
+  private List<String> definitionType;
 
   /** The synonym term group. */
   private List<String> synonymTermGroup;
@@ -91,6 +97,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // association = new ArrayList<>(other.getAssociation());
     conceptStatus = new ArrayList<>(other.getConceptStatus());
     definitionSource = new ArrayList<>(other.getDefinitionSource());
+    definitionType = new ArrayList<>(other.getDefinitionType());
     fromRecord = other.getFromRecord();
     include = other.getInclude();
     // inverse = other.getInverse();
@@ -98,6 +105,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     property = new ArrayList<>(other.getProperty());
     // role = new ArrayList<>(other.getRole());
     synonymSource = new ArrayList<>(other.getSynonymSource());
+    synonymType = new ArrayList<>(other.getSynonymType());
     synonymTermGroup = new ArrayList<>(other.getSynonymTermGroup());
     term = other.getTerm();
     type = other.getType();
@@ -257,6 +265,27 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
+   * Returns the synonym type.
+   *
+   * @return the synonym type
+   */
+  public List<String> getSynonymType() {
+    if (synonymType == null) {
+      synonymType = new ArrayList<>();
+    }
+    return synonymType;
+  }
+
+  /**
+   * Sets the synonym type.
+   *
+   * @param synonymType the synonym type
+   */
+  public void setSynonymType(final List<String> synonymType) {
+    this.synonymType = synonymType;
+  }
+
+  /**
    * Returns the definition source.
    *
    * @return the definition source
@@ -275,6 +304,27 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void setDefinitionSource(final List<String> definitionSource) {
     this.definitionSource = definitionSource;
+  }
+
+  /**
+   * Returns the definition type.
+   *
+   * @return the definition type
+   */
+  public List<String> getDefinitionType() {
+    if (definitionType == null) {
+      definitionType = new ArrayList<>();
+    }
+    return definitionType;
+  }
+
+  /**
+   * Sets the definition type.
+   *
+   * @param definitionType the definition type
+   */
+  public void setDefinitionType(final List<String> definitionType) {
+    this.definitionType = definitionType;
   }
 
   /**

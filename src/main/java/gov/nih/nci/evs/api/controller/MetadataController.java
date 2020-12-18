@@ -45,10 +45,11 @@ public class MetadataController extends BaseController {
   @Autowired
   MetadataService metadataService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
-  
+
   /**
    * Returns the terminologies.
    *
@@ -108,10 +109,10 @@ public class MetadataController extends BaseController {
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
-  public @ResponseBody List<Concept> getAssociations(
-    @PathVariable(value = "terminology") final String terminology,
-    @RequestParam("include") final Optional<String> include,
-    @RequestParam("list") final Optional<String> list) throws Exception {
+  public @ResponseBody List<Concept> getAssociations(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final Optional<String> list) throws Exception {
     try {
       return metadataService.getAssociations(terminology, include, list);
     } catch (Exception e) {
@@ -153,10 +154,10 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/association/{codeOrName}", produces = "application/json")
-  public @ResponseBody Concept getAssociation(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrName") final String code,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody Concept getAssociation(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "codeOrName")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
     try {
 
       // If the code contains a comma, just bail
@@ -210,10 +211,10 @@ public class MetadataController extends BaseController {
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
-  public @ResponseBody List<Concept> getRoles(
-    @PathVariable(value = "terminology") final String terminology,
-    @RequestParam("include") final Optional<String> include,
-    @RequestParam("list") final Optional<String> list) throws Exception {
+  public @ResponseBody List<Concept> getRoles(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final Optional<String> list) throws Exception {
     try {
       return metadataService.getRoles(terminology, include, list);
     } catch (Exception e) {
@@ -255,10 +256,10 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrName}",
       produces = "application/json")
-  public @ResponseBody Concept getRole(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrName") final String code,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody Concept getRole(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "codeOrName")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
@@ -310,10 +311,10 @@ public class MetadataController extends BaseController {
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
-  public @ResponseBody List<Concept> getProperties(
-    @PathVariable(value = "terminology") final String terminology,
-    @RequestParam("include") final Optional<String> include,
-    @RequestParam("list") final Optional<String> list) throws Exception {
+  public @ResponseBody List<Concept> getProperties(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final Optional<String> list) throws Exception {
 
     try {
       return metadataService.getProperties(terminology, include, list);
@@ -358,10 +359,10 @@ public class MetadataController extends BaseController {
 
   })
   @RecordMetric
-  public @ResponseBody List<Concept> getQualifiers(
-    @PathVariable(value = "terminology") final String terminology,
-    @RequestParam("include") final Optional<String> include,
-    @RequestParam("list") final Optional<String> list) throws Exception {
+  public @ResponseBody List<Concept> getQualifiers(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final Optional<String> list) throws Exception {
     try {
       return metadataService.getQualifiers(terminology, include, list);
     } catch (Exception e) {
@@ -403,10 +404,10 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/qualifier/{codeOrName}", produces = "application/json")
-  public @ResponseBody Concept getQualifier(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrName") final String code,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody Concept getQualifier(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "codeOrName")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
 
     try {
       // If the code contains a comma, just bail
@@ -446,8 +447,8 @@ public class MetadataController extends BaseController {
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
-  public @ResponseBody List<ConceptMinimal> getTermTypes(
-    @PathVariable(value = "terminology") final String terminology) throws Exception {
+  public @ResponseBody List<ConceptMinimal> getTermTypes(@PathVariable(value = "terminology")
+  final String terminology) throws Exception {
     try {
       return metadataService.getTermTypes(terminology);
     } catch (Exception e) {
@@ -476,7 +477,7 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Property code (or name), e.g. 'P90' or 'FULL_SYN'", required = true,
+          value = "Property code (or name), e.g. 'P216' or 'BioCarta_ID'", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -489,10 +490,10 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/property/{codeOrName}", produces = "application/json")
-  public @ResponseBody Concept getProperty(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrName") final String code,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody Concept getProperty(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "codeOrName")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
 
     try {
       // If the code contains a comma, just bail
@@ -532,8 +533,8 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses",
       produces = "application/json")
-  public @ResponseBody List<String> getConceptStatuses(
-    @PathVariable(value = "terminology") final String terminology) throws Exception {
+  public @ResponseBody List<String> getConceptStatuses(@PathVariable(value = "terminology")
+  final String terminology) throws Exception {
     try {
       Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
       if (!result.isPresent()) {
@@ -569,7 +570,8 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionSources",
       produces = "application/json")
   public @ResponseBody List<ConceptMinimal> getDefinitionSources(
-    @PathVariable(value = "terminology") final String terminology) throws Exception {
+    @PathVariable(value = "terminology")
+    final String terminology) throws Exception {
     try {
       return metadataService.getDefinitionSources(terminology);
     } catch (Exception e) {
@@ -599,8 +601,8 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymSources",
       produces = "application/json")
-  public @ResponseBody List<ConceptMinimal> getSynonymSources(
-    @PathVariable(value = "terminology") final String terminology) throws Exception {
+  public @ResponseBody List<ConceptMinimal> getSynonymSources(@PathVariable(value = "terminology")
+  final String terminology) throws Exception {
     try {
       return metadataService.getSynonymSources(terminology);
     } catch (Exception e) {
@@ -635,9 +637,9 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/qualifier/{codeOrName}/values",
       produces = "application/json")
-  public @ResponseBody List<String> getQualifierValues(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "codeOrName") final String code) throws Exception {
+  public @ResponseBody List<String> getQualifierValues(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "codeOrName")
+  final String code) throws Exception {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
@@ -649,6 +651,205 @@ public class MetadataController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
 
       return result.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the synonym types.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the synonym types
+   * @throws Exception the exception
+   */
+  @ApiOperation(
+      value = "Get all synonym types (or those specified by list parameter) for the specified terminology",
+      response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymTypes",
+      produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list",
+          value = "List of codes or labels to return synonym types for (or leave blank for all)",
+          required = false, dataType = "string", paramType = "query")
+  })
+  @RecordMetric
+  public @ResponseBody List<Concept> getSynonymTypes(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final Optional<String> list) throws Exception {
+
+    try {
+      return metadataService.getSynonymTypes(terminology, include, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  @ApiOperation(value = "Get the synonym type for the specified terminology and code/name",
+      response = Concept.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "codeOrName",
+          value = "Synonym type code (or name), e.g. 'P90' or 'FULL_SYN'", required = true,
+          dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/metadata/{terminology}/synonymType/{codeOrName}", produces = "application/json")
+  public @ResponseBody Concept getSynonymType(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "codeOrName")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
+
+    try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Synonym type " + code + " not found");
+      }
+
+      Optional<Concept> concept = metadataService.getSynonymType(terminology, code, include);
+      if (!concept.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Synonym type " + code + " not found");
+
+      return concept.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the definition types.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the definition types
+   * @throws Exception the exception
+   */
+  @ApiOperation(
+      value = "Get all definition types (or those specified by list parameter) for the specified terminology",
+      response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionTypes",
+      produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list",
+          value = "List of codes or labels to return definition types for (or leave blank for all)",
+          required = false, dataType = "string", paramType = "query")
+  })
+  @RecordMetric
+  public @ResponseBody List<Concept> getDefinitionTypes(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final Optional<String> list) throws Exception {
+
+    try {
+      return metadataService.getDefinitionTypes(terminology, include, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the definition type.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the definition type
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get the definition type for the specified terminology and code/name",
+      response = Concept.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "codeOrName",
+          value = "Definition type code (or name), e.g. 'P325' or 'DEFINITION'", required = true,
+          dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/metadata/{terminology}/definitionType/{codeOrName}", produces = "application/json")
+  public @ResponseBody Concept getDefinitionType(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "codeOrName")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
+
+    try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Definition type " + code + " not found");
+      }
+
+      Optional<Concept> concept = metadataService.getDefinitionType(terminology, code, include);
+      if (!concept.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Defininition type " + code + " not found");
+
+      return concept.get();
     } catch (Exception e) {
       handleException(e);
       return null;

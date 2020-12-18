@@ -120,8 +120,14 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "definitionType",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results to.",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymType",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
@@ -147,9 +153,9 @@ public class SearchController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
-    @PathVariable(value = "terminology") final String terminology,
-    @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult)
-    throws Exception {
+    @PathVariable(value = "terminology")
+    final String terminology, @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
+    BindingResult bindingResult) throws Exception {
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult);
   }
 
@@ -198,8 +204,14 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "definitionType",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results to.",
+          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "synonymType",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
@@ -259,12 +271,14 @@ public class SearchController extends BaseController {
     }
 
     try {
+      final List<Terminology>terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
         final Terminology term = termUtils.getTerminology(terminology, true);
         searchCriteria.validate(term, metadataService);
+        terminologies.add(term);
       }
 
-      final ConceptResultList results = elasticSearchService.search(searchCriteria);
+      final ConceptResultList results = elasticSearchService.search(terminologies, searchCriteria);
 
       // Look up info for all the concepts
       for (final Concept result : results.getConcepts()) {

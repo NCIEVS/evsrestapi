@@ -240,6 +240,24 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
         ElasticObject.class);
     logger.info("  Roles loaded");
 
+    // synonymTypes
+    List<Concept> synonymTypes =
+        sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
+    ElasticObject synonymTypesObject = new ElasticObject("synonymTypes");
+    synonymTypesObject.setConcepts(synonymTypes);
+    operationsService.index(synonymTypesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Synonym Types loaded");
+
+    // definitionTypes
+    List<Concept> definitionTypes =
+        sparqlQueryManagerService.getAllDefinitionTypes(terminology, new IncludeParam("full"));
+    ElasticObject definitionTypesObject = new ElasticObject("definitionTypes");
+    definitionTypesObject.setConcepts(definitionTypes);
+    operationsService.index(definitionTypesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Definition Types loaded");
+
     logger.info("Done loading Elastic Objects!");
   }
 

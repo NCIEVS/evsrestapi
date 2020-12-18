@@ -13,8 +13,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +52,7 @@ import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -490,23 +493,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Properties ending in "Name" are rendered as synonyms here.
       if (ip.isSynonyms() || ip.isProperties()) {
 
+        // Render synonym properties and normal properties
         final Collection<String> commonProperties =
             terminology.getMetadata().getPropertyNames().values();
+        final Set<String> syCode = terminology.getMetadata().getSynonym();
         for (Property property : properties) {
           final String type = property.getType();
-          if (commonProperties.contains(type)) {
-            continue;
-          }
-
-          if (ip.isSynonyms() && type.endsWith("_Name")) {
+          if (ip.isSynonyms() && syCode.contains(property.getCode())) {
             // add synonym
             final Synonym synonym = new Synonym();
             synonym.setType(type);
-            synonym.setName(pn);
+            synonym.setName(property.getValue());
+            synonym.setNormName(ConceptUtils.normalize(property.getValue()));
             concept.getSynonyms().add(synonym);
+            continue;
           }
 
-          if (ip.isProperties() && !type.endsWith("_Name")) {
+          // Handle if not a common property
+          if (ip.isProperties() && !commonProperties.contains(type)) {
             // Add any qualifiers to the property
             property.getQualifiers()
                 .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -514,6 +518,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             concept.getProperties().add(property);
           }
         }
+
       }
 
       if (ip.isDefinitions()) {
@@ -685,25 +690,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
           .count();
 
-      // Properties ending in "Name" are rendered as synonyms here.
+      // Render synonym properties and normal properties
       final Collection<String> commonProperties =
           terminology.getMetadata().getPropertyNames().values();
+      final Set<String> syCode = terminology.getMetadata().getSynonym();
       for (Property property : properties) {
         final String type = property.getType();
-        if (commonProperties.contains(type)) {
-          continue;
-        }
-
-        if (type.endsWith("_Name")) {
+        if (syCode.contains(property.getCode())) {
           // add synonym
           final Synonym synonym = new Synonym();
           synonym.setType(type);
           synonym.setName(property.getValue());
           synonym.setNormName(ConceptUtils.normalize(property.getValue()));
           concept.getSynonyms().add(synonym);
+          continue;
         }
 
-        if (!type.endsWith("_Name")) {
+        // HAndle if not a common property
+        if (!commonProperties.contains(type)) {
           // Add any qualifiers to the property
           property.getQualifiers()
               .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -726,8 +730,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setPaths(pathsMap.get(conceptCode));
       }
       concept.setLeaf(concept.getChildren().isEmpty());
-      
-      // Ensure that all list elements of the concept are in a natural sort order
+
+      // Ensure that all list elements of the concept are in a natural sort
+      // order
       concept.sortLists();
     }
 
@@ -1458,7 +1463,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       sw = true;
       oldAxiom = axiom;
 
-      // TODO: call new function
       setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
     }
     axioms.add(axiomObject);
@@ -1511,6 +1515,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       Map<String, Axiom> axiomMap = new HashMap<>();
       for (Bindings b : bindingsList) {
         String axiom = b.getAxiom().getValue();
+        // Create the axiom the first time it's found, later instances of it
+        // will just build/add more info
         if (!axiomMap.containsKey(axiom)) {
           axiomMap.put(axiom, new Axiom());
         }
@@ -1641,8 +1647,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> properties = new ArrayList<String>();
-    ArrayList<Concept> concepts = new ArrayList<Concept>();
+    List<String> properties = new ArrayList<>();
+    List<Concept> concepts = new ArrayList<>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -1650,7 +1656,34 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       properties.add(b.getPropertyCode().getValue());
     }
 
+    // Get all qualifier codes (in case there is overlap with properties)
+    String query2 = queryBuilderService.constructQuery("all.qualifiers", terminology.getGraph());
+    String res2 = restUtils.runSPARQL(queryPrefix + query2, getQueryURL());
+    Set<String> qualifiers = new HashSet<>();
+    Sparql sparqlResult2 = mapper.readValue(res2, Sparql.class);
+    Bindings[] bindings2 = sparqlResult2.getResults().getBindings();
+    for (Bindings b : bindings2) {
+      qualifiers.add(b.getPropertyCode().getValue());
+    }
+
+    // Get all "properties never used"
+    String query3 =
+        queryBuilderService.constructQuery("all.propertiesNeverUsed", terminology.getGraph());
+    String res3 = restUtils.runSPARQL(queryPrefix + query3, getQueryURL());
+    Set<String> neverUsed = new HashSet<>();
+    Sparql sparqlResult3 = mapper.readValue(res3, Sparql.class);
+    Bindings[] bindings3 = sparqlResult3.getResults().getBindings();
+    for (Bindings b : bindings3) {
+      neverUsed.add(b.getPropertyCode().getValue());
+    }
+
+    final TerminologyMetadata md = terminology.getMetadata();
     for (String code : properties) {
+      // Exclude properties that are redefined as synonyms or definitions
+      // any qualifiers, and also properties defined in the OWL but never used
+      if (md.isRemodeledProperty(code) || qualifiers.contains(code) || neverUsed.contains(code)) {
+        continue;
+      }
       Concept concept = getProperty(code, terminology, ip);
       concepts.add(concept);
     }
@@ -1686,35 +1719,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
-  public List<Concept> getAllPropertiesNeverUsed(Terminology terminology, IncludeParam ip)
-    throws JsonParseException, JsonMappingException, IOException {
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("all.propertiesNeverUsed", terminology.getGraph());
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> properties = new ArrayList<String>();
-    ArrayList<Concept> concepts = new ArrayList<Concept>();
-
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      properties.add(b.getPropertyCode().getValue());
-    }
-
-    for (String code : properties) {
-      Concept concept = getProperty(code, terminology, ip);
-      concepts.add(concept);
-    }
-
-    return concepts;
-  }
-
-  /* see superclass */
-  @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
   public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1723,16 +1727,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ArrayList<String> properties = new ArrayList<String>();
+    ArrayList<String> qualifiers = new ArrayList<String>();
     ArrayList<Concept> concepts = new ArrayList<Concept>();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      properties.add(b.getPropertyCode().getValue());
+      qualifiers.add(b.getPropertyCode().getValue());
     }
 
-    for (String code : properties) {
+    final TerminologyMetadata md = terminology.getMetadata();
+    for (String code : qualifiers) {
+      // Exclude properties that are redefined as synonyms or definitions
+      if (md.isRemodeledQualifier(code)) {
+        continue;
+      }
+
       Concept concept = getQualifier(code, terminology, ip);
       concepts.add(concept);
     }
@@ -1821,6 +1831,34 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concepts.add(concept);
     }
 
+    return concepts;
+  }
+
+  /* see superclass */
+  @Override
+  public List<Concept> getAllSynonymTypes(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+
+    List<Concept> concepts = new ArrayList<>();
+    final TerminologyMetadata md = terminology.getMetadata();
+    for (final String code : md.getSynonym()) {
+      Concept concept = getProperty(code, terminology, ip);
+      concepts.add(concept);
+    }
+    return concepts;
+  }
+
+  /* see superclass */
+  @Override
+  public List<Concept> getAllDefinitionTypes(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+
+    List<Concept> concepts = new ArrayList<>();
+    final TerminologyMetadata md = terminology.getMetadata();
+    for (final String code : md.getDefinition()) {
+      Concept concept = getProperty(code, terminology, ip);
+      concepts.add(concept);
+    }
     return concepts;
   }
 

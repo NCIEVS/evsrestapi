@@ -938,6 +938,54 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test synonym type.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSynonymType() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // synonymType=P90
+    log.info("Testing url - " + url + "?terminology=ncit&synonymType=P90&include=synonyms");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "P90").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+
+    boolean found = false;
+    for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
+      if (syn.getType().equals("FULL_SYN")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+    // synonymType=FULL_SYN
+    log.info("Testing url - " + url + "?terminology=ncit&synonymType=FULL_SYN&include=synonyms");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "FULL_SYN").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+
+    for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
+      if (syn.getType().equals("FULL_SYN")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+  }
+
+  /**
    * Test definition source.
    *
    * @throws Exception the exception
@@ -988,6 +1036,48 @@ public class SearchControllerTests {
 
   }
 
+  @Test
+  public void testDefinitionType() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // definitionType=P325
+    log.info("Testing url - " + url + "?terminology=ncit&definitionType=P325&include=definitions");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "P325").param("include", "definitions"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+
+    boolean found = false;
+    for (final Definition def : list.getConcepts().get(0).getDefinitions()) {
+      if (def.getType().equals("ALT_DEFINITION")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+    // definitionType=ALT_DEFINITION
+    log.info("Testing url - " + url + "?terminology=ncit&definitionType=ALT_DEFINITION&include=definitions");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "ALT_DEFINITION").param("include", "definitions"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+
+    for (final Definition def : list.getConcepts().get(0).getDefinitions()) {
+      if (def.getType().equals("ALT_DEFINITION")) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+
+  }
   /**
    * Test search contains.
    *
@@ -1120,10 +1210,10 @@ public class SearchControllerTests {
         "corona vei", "coron vein", "cor vei"
     }) {
       log.info(
-          "Testing url - " + url + "?include=synonyms&term=" + coronaryVein + "&type=contains");
+          "Testing url - " + url + "?include=synonyms&term=" + coronaryVein + "&type=contains&pageSize=50");
       result = mvc
           .perform(get(url).param("terminology", "ncit").param("term", coronaryVein)
-              .param("type", "contains").param("include", "synonyms").param("pageSize", "20"))
+              .param("type", "contains").param("include", "synonyms").param("pageSize", "50"))
           .andExpect(status().isOk()).andReturn();
       content = result.getResponse().getContentAsString();
       log.info("  content = " + content);

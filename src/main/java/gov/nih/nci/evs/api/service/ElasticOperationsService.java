@@ -24,7 +24,7 @@ public interface ElasticOperationsService {
   /** The index in ES for index metadata *. */
   public static final String METADATA_INDEX = "evs_metadata";
 
-  /** The type in ES for index metadata *. */
+  /** The type in ES for index metadata **/
   public static final String METADATA_TYPE = "evs_metadata";
 
   /**

@@ -81,13 +81,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Optional<Concept> getConcept(String code, Terminology terminology, IncludeParam ip) {
-    logger.debug(String.format("getConcept(%s)", code));
-    logger.debug("index: " + terminology.getIndexName());
     List<Concept> concepts = getConcepts(Arrays.asList(code), terminology, ip);
-    logger.debug("concepts: " + concepts);
-    if (CollectionUtils.isEmpty(concepts))
+    if (CollectionUtils.isEmpty(concepts)) {
       return Optional.empty();
-    logger.debug("result size: " + concepts.size());
+    }
     return Optional.of(concepts.get(0));
   }
 
@@ -143,7 +140,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getChildren())) {
       return Collections.emptyList();
     }
-
     return concept.get().getChildren();
   }
 
@@ -200,6 +196,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * see superclass *.
    *
    * @param terminology the terminology
+   * @param ip the ip
    * @return the root nodes
    * @throws JsonParseException the json parse exception
    * @throws JsonMappingException the json mapping exception
@@ -215,7 +212,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     List<Concept> concepts = getConcepts(hierarchyRoots, terminology, ip);
     concepts.sort(Comparator.comparing(Concept::getName));
     for (Concept c : concepts) {
-    	c.setLeaf(null);
+      c.setLeaf(null);
     }
     return concepts;
   }
@@ -265,55 +262,20 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     if (children == null) {
       return nodes;
     }
+
+    // Look up "leaf" flags for children (alternatively index "leaf" with
+    // children)
+    Map<String, Boolean> leafMap =
+        getConcepts(children.stream().map(c -> c.getCode()).collect(Collectors.toSet()),
+            terminology, new IncludeParam("minimal")).stream()
+                .collect(Collectors.toMap(Concept::getCode, Concept::getLeaf));
+
     for (Concept c : children) {
-      HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), false);
-      getChildNodesLevel(node, maxLevel, 0, terminology);
+      HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), leafMap.get(c.getCode()));
       nodes.add(node);
     }
     nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
     return nodes;
-  }
-
-  /**
-   * Returns the child nodes level.
-   *
-   * @param node the node
-   * @param maxLevel the max level
-   * @param level the level
-   * @param terminology the terminology
-   * @return the child nodes level
-   */
-  private void getChildNodesLevel(HierarchyNode node, int maxLevel, int level,
-    Terminology terminology) {
-    List<Concept> children = getSubclasses(node.getCode(), terminology);
-    node.setLevel(level);
-
-    if (children == null || children.size() == 0) {
-      node.setLeaf(true);
-      return;
-    } else {
-      node.setLeaf(false);
-    }
-    if (level >= maxLevel) {
-      return;
-    }
-
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    level = level + 1;
-    for (Concept c : children) {
-      HierarchyNode newnode = new HierarchyNode(c.getCode(), c.getName(), false);
-      getChildNodesLevel(newnode, maxLevel, level, terminology);
-      List<HierarchyNode> sortedChildren = newnode.getChildren();
-      // Sort children if they exist
-      if (sortedChildren != null && sortedChildren.size() > 0) {
-        sortedChildren.sort(Comparator.comparing(HierarchyNode::getLabel));
-      }
-
-      newnode.setChildren(sortedChildren);
-      nodes.add(newnode);
-    }
-    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
-    node.setChildren(nodes);
   }
 
   /**
@@ -375,14 +337,15 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     List<HierarchyNode> rootNodes = getRootNodesHierarchy(terminology);
-    
+
     Paths paths = getPathToRoot(code, terminology);
 
     // root hierarchy node map for quick look up
     Map<String, HierarchyNode> rootNodeMap = new HashMap<>();
     rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
 
-    for (Path path : paths.getPaths()) {
+    List<Path> ps = paths.getPaths();
+    for (Path path : ps) {
       List<Concept> concepts = path.getConcepts();
       if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2)
         continue;
@@ -453,7 +416,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       int idx = -1;
       List<Concept> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
-    	concept = concepts.get(i);
+        concept = concepts.get(i);
         if (concept.getCode().equals(code)) {
           codeSW = true;
         }
@@ -494,9 +457,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public long getCount(Terminology terminology) {
-    NativeSearchQuery query =
-        new NativeSearchQueryBuilder().withIndices(terminology.getIndexName())
-            .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+    NativeSearchQuery query = new NativeSearchQueryBuilder().withIndices(terminology.getIndexName())
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
 
     return operations.count(query);
   }
@@ -504,26 +466,24 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /**
    * see superclass *.
    * 
-   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
+   * @param completedOnly boolean indicating to fetch metadata for complete
+   *          indexes only
    * @return the list of {@link IndexMetadata} objects
    */
   @Override
   public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
     NativeSearchQueryBuilder queryBuilder =
-        new NativeSearchQueryBuilder()
-            .withIndices(ElasticOperationsService.METADATA_INDEX)
+        new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.METADATA_INDEX)
             .withTypes(ElasticOperationsService.METADATA_TYPE);
 
     if (completedOnly) {
       queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));
     }
-    
-    List<IndexMetadata> iMetas =
-        operations.queryForList(queryBuilder.build(), IndexMetadata.class);
+
+    List<IndexMetadata> iMetas = operations.queryForList(queryBuilder.build(), IndexMetadata.class);
     return iMetas;
   }
 
-  
   /**
    * see superclass *.
    * 
@@ -538,7 +498,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     operations.delete(delQuery);
   }
-  
+
   /**
    * see superclass *.
    *
@@ -689,6 +649,36 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     return roles.stream().filter(r -> r.getCode().equals(code)).findFirst();
   }
 
+  /* see superclass */
+  @Override
+  public List<Concept> getSynonymTypes(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonProcessingException {
+    return getConceptList("synonymTypes", terminology, ip);
+  }
+
+  /* see superclass */
+  @Override
+  public Optional<Concept> getSynonymType(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> synonymTypes = getSynonymTypes(terminology, ip);
+    return synonymTypes.stream().filter(r -> r.getCode().equals(code)).findFirst();
+  }
+
+  /* see superclass */
+  @Override
+  public List<Concept> getDefinitionTypes(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonProcessingException {
+    return getConceptList("definitionTypes", terminology, ip);
+  }
+
+  /* see superclass */
+  @Override
+  public Optional<Concept> getDefinitionType(String code, Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonParseException, IOException {
+    List<Concept> definitionTypes = getDefinitionTypes(terminology, ip);
+    return definitionTypes.stream().filter(r -> r.getCode().equals(code)).findFirst();
+  }
+
   /**
    * see superclass *.
    *
@@ -765,10 +755,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the optional of elasticsearch object
    */
   private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
-    if (logger.isDebugEnabled()) { 
+    if (logger.isDebugEnabled()) {
       logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
     }
-    
+
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id))
             .withIndices(terminology.getObjectIndexName())
