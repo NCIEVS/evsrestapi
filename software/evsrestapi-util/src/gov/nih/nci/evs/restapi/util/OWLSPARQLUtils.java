@@ -5289,5 +5289,51 @@ Term Type
 	    return v;
 	}
 
+	public String construct_get_concepts_with_properties(String named_graph, String code, Vector propertyLabels) {
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		StringBuffer select_buf = new StringBuffer();
+		buf.append("SELECT distinct ?x_code ?x_label");
+		for (int i=0; i<propertyLabels.size(); i++) {
+			int j = i+1;
+			String propertyLabel = (String) propertyLabels.elementAt(i);
+            select_buf.append(" " + "?y" + j + "_label");
+            select_buf.append(" " + "?y" + j + "_value");
+        }
+        String select_stmt = select_buf.toString();
+		buf.append(select_stmt).append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x " + named_graph_id + " \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+
+		for (int i=0; i<propertyLabels.size(); i++) {
+			int j = i+1;
+			String propertyLabel = (String) propertyLabels.elementAt(i);
+
+            buf.append("            ?y" + j + " rdfs:label " + "?y" + j + "_label .").append("\n");
+            buf.append("            ?y" + j + " rdfs:label " + " \"" + propertyLabel + "\"^^xsd:string .").append("\n");
+            buf.append("            ?x " + "?y" + j + " ?y" + j + "_value .").append("\n");
+        }
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsWithProperties(String named_graph, String code, Vector propertyLabels) {
+	    String query = construct_get_concepts_with_properties(named_graph, code, propertyLabels);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
 }
 
