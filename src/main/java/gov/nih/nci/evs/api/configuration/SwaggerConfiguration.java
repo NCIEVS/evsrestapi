@@ -53,8 +53,9 @@ public class SwaggerConfiguration {
   ApiInfo apiInfo() throws IOException {
     final ApplicationVersion data = new VersionController().getApplicationVersion();
     return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("")
-        .licenseUrl("").termsOfServiceUrl("").version(data.getVersion())
-        .contact(new Contact("", "", "")).build();
+        .licenseUrl("")
+        .termsOfServiceUrl("https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm")
+        .version(data.getVersion()).contact(new Contact("", "", "")).build();
   }
 
 }
