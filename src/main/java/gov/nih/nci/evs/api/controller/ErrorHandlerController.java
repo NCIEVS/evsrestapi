@@ -122,7 +122,8 @@ public class ErrorHandlerController implements ErrorController {
           sb.append(StringEscapeUtils.escapeHtml4(line));
           sb.append("\n");
         }
-        body.put("message", sb.toString());
+        // remove the trailing \n
+        body.put("message", sb.toString().replaceFirst("\\n$",""));
       } catch (Exception e) {
         body.put("message", body.get("message").toString().replaceAll("<", "&lt;"));
       }
