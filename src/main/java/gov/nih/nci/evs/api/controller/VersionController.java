@@ -43,10 +43,7 @@ public class VersionController {
         "Endpoints to support searching, metadata, and content retrieval for EVS terminologies. "
             + "To learn more about how to interact with this api, see the  "
             + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK' "
-            + "target='_blank'>Github evsrestapi-client-SDK project</a>.<br/><br/>"
-            + "Terms of service:"
-            + "<a href=\"https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm\">"
-            + "https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm</a>");
+            + "target='_blank'>Github evsrestapi-client-SDK project</a>.<br/><br/>");
     homePageData.setVersion("1.3.0.RELEASE");
     return homePageData;
   }
