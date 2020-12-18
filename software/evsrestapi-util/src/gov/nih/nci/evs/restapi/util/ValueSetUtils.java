@@ -16,7 +16,9 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
-import org.apache.commons.codec.binary.Base64;
+import java.nio.file.*;
+
+//import org.apache.commons.codec.binary.Base64;
 import org.json.*;
 
 /**
@@ -85,6 +87,9 @@ public class ValueSetUtils {
 
 	private String version = null;
 	private String serviceUrl = null;
+	private String username = null;
+	private String password = null;
+
 	private String sparql_endpoint = null;
 
 	public static String PARENT_CHILD_FILE = "parent_child.txt";
@@ -110,25 +115,26 @@ public class ValueSetUtils {
 
 	}
 
-    public ValueSetUtils(String serviceUrl, String named_graph) {
+    public ValueSetUtils(String serviceUrl, String named_graph,  String username, String password) {
 		this.serviceUrl = serviceUrl;
+		this.named_graph = named_graph;
+		this.username = username;
+		this.password = password;
+
+		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		owlSPARQLUtils.set_named_graph(named_graph);
+
 		this.sparql_endpoint = serviceUrl + "?query=";
-		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
-		this.relSearchUtils = new RelationSearchUtils(sparql_endpoint);
+
+		//this.relSearchUtils = new RelationSearchUtils(sparql_endpoint);
 		System.out.println(serviceUrl);
 
 		System.out.println("Instantiating MetadataUtils ...");
-		mdu = new MetadataUtils(serviceUrl);
-		if (named_graph != null) {
-			this.named_graph = named_graph;
-		} else {
-			this.named_graph = mdu.getNamedGraph(NCI_THESAURUS);
-		}
+		mdu = new MetadataUtils(serviceUrl, username, password);
 		version = mdu.getLatestVersion(NCI_THESAURUS);
-		System.out.println("named_graph: " + this.named_graph);
-		System.out.println("version: " + version);
-		this.owlSPARQLUtils.set_named_graph(this.named_graph);
-		this.relSearchUtils.set_named_graph(this.named_graph);
+		System.out.println("\tnamed_graph: " + this.named_graph);
+		System.out.println("\tgetLatestVersion: " + version);
+
         System.out.println("NameVersion2NamedGraphMap ... ");
 		mdu.dumpNameVersion2NamedGraphMap();
     }
@@ -173,7 +179,7 @@ public class ValueSetUtils {
 		return Utils.readFile(filename);
 	}
 
-	public boolean checkIfFileExists(String filename) {
+	public static boolean checkIfFileExists(String filename) {
 		File file = null;
 		if (data_directory != null) {
 			file = new File(data_directory + File.separator + filename);
@@ -229,7 +235,8 @@ System.out.println("Step 3: " + CONCEPT_IN_SUBSET_FILE);
 			System.out.println("Loading " + CONCEPT_IN_SUBSET_FILE + "...");
 			concept_in_subset_vec = readFile(CONCEPT_IN_SUBSET_FILE);
 		}
-		searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
+		//searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
+		searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password, concept_in_subset_vec);
 		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
 System.out.println("Step 4: " + VS_HEADER_CONCEPT_FILE);
@@ -541,7 +548,7 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public Vector generate_parent_child_vec() {
-		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
+		//owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
 		Vector parent_child_vec = owlSPARQLUtils.getHierarchicalRelationships(named_graph);
 		parent_child_vec = new ParserUtils().getResponseValues(parent_child_vec);
 		parent_child_vec = new SortUtils().quickSort(parent_child_vec);
@@ -549,7 +556,7 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 	}
 
 	public Vector generate_concept_in_subset_vec() {
-		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
+		//OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl + "?query=", null, null);
 		concept_in_subset_vec = owlSPARQLUtils.getAssociationSourcesAndTargets(named_graph, CONCEPT_IN_SUBSET);
 		concept_in_subset_vec = new ParserUtils().getResponseValues(concept_in_subset_vec);
 		concept_in_subset_vec = new SortUtils().quickSort(concept_in_subset_vec);
@@ -796,41 +803,30 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		return eh_vec;
 	}
 
+    public static String getCurrentWorkingDrectory() {
+        return java.nio.file.Paths.get(".").toAbsolutePath().normalize().toString();
+	}
+
+    public static void createCurrentWorkingDrectory(String subdirname) {
+		String currentWorkingDir = getCurrentWorkingDrectory();
+		File theDir = new File(currentWorkingDir + File.separator + subdirname);
+		if (!theDir.exists()){
+			theDir.mkdirs();
+		}
+	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
-
+		String username = args[2];
+		String password = args[3];
 		System.out.println("serviceUrl: " + serviceUrl);
 		System.out.println("named_graph: " + named_graph);
 
-        System.out.println("Instantiating ValueSetUtils ... ");
-		ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph);
-
-		boolean file_exists = false;
-
-	    vsu.set_data_directory("E:/SPARQL/VALUESET/data");
-	    System.out.println("data_directory: " + vsu.get_data_directory());
-/*
-	    file_exists = vsu.checkIfFileExists(ValueSetUtils.PARENT_CHILD_FILE);
-	    System.out.println(ValueSetUtils.PARENT_CHILD_FILE + " exits? " + file_exists);
-
-	    file_exists = vsu.checkIfFileExists(ValueSetUtils.CONCEPT_IN_SUBSET_FILE);
-	    System.out.println(ValueSetUtils.CONCEPT_IN_SUBSET_FILE + " exits? " + file_exists);
-
-	    file_exists = vsu.checkIfFileExists(ValueSetUtils.VS_HEADER_CONCEPT_FILE);
-	    System.out.println(ValueSetUtils.VS_HEADER_CONCEPT_FILE + " exits? " + file_exists);
-
-	    file_exists = vsu.checkIfFileExists(ValueSetUtils.ANNOTATION_PROPERTY_FILE);
-	    System.out.println(ValueSetUtils.ANNOTATION_PROPERTY_FILE + " exits? " + file_exists);
-
-	    file_exists = vsu.checkIfFileExists(ValueSetUtils.EMBEDDED_VALUE_SET_HIERARCHY_FILE);
-	    System.out.println(ValueSetUtils.EMBEDDED_VALUE_SET_HIERARCHY_FILE + " exits? " + file_exists);
-*/
+        ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph, username, password);
 	    vsu.initialize();
-
 	    TreeItem assertedValueSetTree = vsu.getAssertedValueSetTree();
 	    TreeItem.printTree(assertedValueSetTree, 0, false); // print code first = false
 

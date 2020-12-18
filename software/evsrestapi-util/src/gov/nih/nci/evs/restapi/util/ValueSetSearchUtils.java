@@ -86,6 +86,7 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 	private HashMap valueSetURIHashMap = null;
 	private Vector vs_code_vec = null;
 
+/*
 	public ValueSetSearchUtils(String serviceUrl) {
 		super(serviceUrl);
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
@@ -97,9 +98,13 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		this.owlSPARQLUtils = owlSPARQLUtils;
     }
 
-	public ValueSetSearchUtils(String serviceUrl, String named_graph, Vector concept_in_subset_vec) {
+*/
+
+	public ValueSetSearchUtils(String serviceUrl, String named_graph, String username, String password,
+	    Vector concept_in_subset_vec) {
 		super(serviceUrl);
-		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		this.owlSPARQLUtils.set_named_graph(named_graph);
 		initialize(named_graph, concept_in_subset_vec);
     }
 
@@ -396,16 +401,21 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 	}
 
 	public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-
 		String serviceUrl = args[0];
-		System.out.println(serviceUrl);
-		String query_file = args[1];
-		System.out.println(query_file);
-		ValueSetSearchUtils searchUtils = new ValueSetSearchUtils(serviceUrl);
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+		System.out.println("serviceUrl: " + serviceUrl);
+		System.out.println("named_graph: " + named_graph);
+
+		long ms = System.currentTimeMillis();
+		//String query_file = args[1];
+		//System.out.println(query_file);
+		Vector concept_in_subset_vec = Utils.readFile(ValueSetUtils.CONCEPT_IN_SUBSET_FILE);
+		ValueSetSearchUtils searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password, concept_in_subset_vec);
 		//searchUtils.runQuery(query_file);
 
-		String named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+		//String named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
 
 		Vector w = searchUtils.searchValueSets(named_graph, "red", SPARQLSearchUtils.EXACT_MATCH);
 		StringUtils.dumpVector("search_results", w);

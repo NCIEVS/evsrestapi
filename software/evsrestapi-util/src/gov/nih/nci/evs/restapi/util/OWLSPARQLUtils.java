@@ -5087,5 +5087,253 @@ Term Type
 	    return v;
 	}
 
+    public Vector get_subclasses_by_code(String namedGraph, String code) {
+		Vector w = new Vector();
+		Vector u = getSubclassesByCode(namedGraph, code);
+		if (u != null && u.size() > 0) {
+			int n = u.size()/2;
+			for (int i=0; i<n; i++) {
+				String s1 = (String) u.elementAt(i*2);
+				String s2 = (String) u.elementAt(i*2+1);
+				String t1 = parser.getValue(s1);
+				String t2 = parser.getValue(s2);
+				w.add(t1 + "|" + t2);
+			}
+		}
+		return w;
+	}
+
+    public Vector get_superclasses_by_code(String namedGraph, String code) {
+		Vector w = new Vector();
+		Vector u = getSuperclassesByCode(namedGraph, code);
+		if (u != null && u.size() > 0) {
+			int n = u.size()/2;
+			for (int i=0; i<n; i++) {
+				String s1 = (String) u.elementAt(i*2);
+				String s2 = (String) u.elementAt(i*2+1);
+				String t1 = parser.getValue(s1);
+				String t2 = parser.getValue(s2);
+				w.add(t1 + "|" + t2);
+			}
+		}
+		return w;
+	}
+
+////////////////////getTransitiveClosure//////////////////////////////////////////////////////////////////
+
+	public Vector getDescendants(String root) {
+		return getDescendants(this.named_graph, root);
+	}
+
+	public Vector getDescendants(String namedGraph, String root) {
+	    Vector w = new Vector();
+	    Stack stack = new Stack();
+	    stack.push(root);
+	    while (!stack.isEmpty()) {
+			String code = (String) stack.pop();
+			w.add(code);
+			Vector u = getSubclassesByCode(namedGraph, code);
+			if (u != null && u.size() > 0) {
+				int n = u.size()/2;
+				for (int i=0; i<n; i++) {
+					String s1 = (String) u.elementAt(i*2);
+					String s2 = (String) u.elementAt(i*2+1);
+					String t1 = parser.getValue(s1);
+					String t2 = parser.getValue(s2);
+					stack.push(t2);
+				}
+			}
+		}
+		return w;
+	}
+
+	public Vector getAncestors(String root) {
+		return getAncestors(this.named_graph, root);
+	}
+
+	public Vector getAncestors(String namedGraph, String root) {
+		ParserUtils parser = new ParserUtils();
+	    Vector w = new Vector();
+	    Stack stack = new Stack();
+	    stack.push(root);
+	    while (!stack.isEmpty()) {
+			String code = (String) stack.pop();
+			w.add(code);
+			Vector u = getSuperclassesByCode(namedGraph, code);
+			if (u != null && u.size() > 0) {
+				int n = u.size()/2;
+				for (int i=0; i<n; i++) {
+					String s1 = (String) u.elementAt(i*2);
+					String s2 = (String) u.elementAt(i*2+1);
+					String t1 = parser.getValue(s1);
+					String t2 = parser.getValue(s2);
+					stack.push(t2);
+				}
+			}
+		}
+		return w;
+	}
+
+	public Vector removeDuplicates(Vector codes) {
+		HashSet hset = new HashSet();
+		Vector w = new Vector();
+		for (int i=0; i<codes.size(); i++) {
+			String code = (String) codes.elementAt(i);
+			if (!hset.contains(code)) {
+				hset.add(code);
+				w.add(code);
+			}
+		}
+		return w;
+	}
+
+  	public Vector getTransitiveClosure(String label, String code) {
+		return getTransitiveClosure(this.named_graph, label, code);
+	}
+
+
+  	public Vector getTransitiveClosure(String namedGraph, String label, String code) {
+		return getTransitiveClosure(namedGraph, label, code, true);
+	}
+
+  	public Vector getTransitiveClosure(String namedGraph, String label, String code, boolean traverseDown) {
+		Vector w = new Vector();
+		Vector v = new Vector();
+		if (traverseDown) {
+		    v = get_subclasses_by_code(namedGraph, code);
+		} else {
+			v = get_superclasses_by_code(namedGraph, code);
+		}
+		if (v == null) return w;
+		for (int i=0; i<v.size(); i++) {
+			String label_and_code = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(label_and_code, '|');
+			String label_next = (String) u.elementAt(0);
+			String code_next = (String) u.elementAt(1);
+			w.add(label + "|" + code + "|" + label_next + "|" + code_next);
+			Vector v2 = getTransitiveClosure(namedGraph, label_next, code_next, traverseDown);
+			if (v2 != null && v2.size() > 0) {
+				w.addAll(v2);
+			}
+		}
+		w = removeDuplicates(w);
+		return w;
+	}
+
+    public void printTree(String parent_child_file) {
+		Vector v = Utils.readFile(parent_child_file);
+		HierarchyHelper hh = new HierarchyHelper(v, 1);
+		hh.printTree();
+	}
+
+    public void printTree(Vector parent_child_vec) {
+		HierarchyHelper hh = new HierarchyHelper(parent_child_vec, 1);
+		hh.printTree();
+	}
+
+	public String construct_get_concepts_with_property_and_qualifiers_matching(String named_graph, String code, String propertyLabel,
+	              Vector qualifierCodes, Vector qualifierValues) {
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		StringBuffer select_buf = new StringBuffer();
+		buf.append("SELECT distinct ?x_code ?term_name ?p_label");
+		for (int i=0; i<qualifierCodes.size(); i++) {
+			int j = i+1;
+			String qualifierCode = (String) qualifierCodes.elementAt(i);
+			String qualifierValue = (String) qualifierValues.elementAt(i);
+            select_buf.append(" " + "?y" + j + "_code");
+            select_buf.append(" " + "?y" + j + "_value");
+        }
+        String select_stmt = select_buf.toString();
+		buf.append(select_stmt).append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x " + named_graph_id + " \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		//buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("            ?p rdfs:label " + " \"" + propertyLabel + "\"^^xsd:string .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
+		buf.append("            ?z_axiom ?y ?z .").append("\n");
+		for (int i=0; i<qualifierCodes.size(); i++) {
+			int j = i+1;
+			String qualifierCode = (String) qualifierCodes.elementAt(i);
+			String qualifierValue = (String) qualifierValues.elementAt(i);
+			buf.append("            ?z_axiom ?y" + j + " \"" + qualifierValue + "\"^^xsd:string .").append("\n");
+			buf.append("            ?z_axiom ?y" + j + " ?y" + j + "_value .").append("\n");
+			buf.append("            ?y" + j + " :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
+			buf.append("            ?y" + j + " :NHC0 " + "?y" + j + "_code .").append("\n");
+		}
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsWithPropertyAndQualifiersMatching(String named_graph, String code, String propertyLabel,
+	              Vector qualifierCodes, Vector qualifierValues) {
+	    String query = construct_get_concepts_with_property_and_qualifiers_matching(named_graph, code, propertyLabel,
+	                   qualifierCodes, qualifierValues);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
+
+	public String construct_get_concepts_with_properties(String named_graph, String code, Vector propertyLabels) {
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		StringBuffer select_buf = new StringBuffer();
+		buf.append("SELECT distinct ?x_code ?x_label");
+		for (int i=0; i<propertyLabels.size(); i++) {
+			int j = i+1;
+			String propertyLabel = (String) propertyLabels.elementAt(i);
+            select_buf.append(" " + "?y" + j + "_label");
+            select_buf.append(" " + "?y" + j + "_value");
+        }
+        String select_stmt = select_buf.toString();
+		buf.append(select_stmt).append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x " + named_graph_id + " \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+
+		for (int i=0; i<propertyLabels.size(); i++) {
+			int j = i+1;
+			String propertyLabel = (String) propertyLabels.elementAt(i);
+
+            buf.append("            ?y" + j + " rdfs:label " + "?y" + j + "_label .").append("\n");
+            buf.append("            ?y" + j + " rdfs:label " + " \"" + propertyLabel + "\"^^xsd:string .").append("\n");
+            buf.append("            ?x " + "?y" + j + " ?y" + j + "_value .").append("\n");
+        }
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsWithProperties(String named_graph, String code, Vector propertyLabels) {
+	    String query = construct_get_concepts_with_properties(named_graph, code, propertyLabels);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
 }
 
