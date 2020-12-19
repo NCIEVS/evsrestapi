@@ -86,6 +86,8 @@ public class OWLSPARQLUtils {
     String username = null;
     String password = null;
 
+    private HashMap propertyCode2labelHashMap = null;
+
     public void setServiceUrl(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
 	}
@@ -146,7 +148,7 @@ public class OWLSPARQLUtils {
         this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
     }
 
-    HashMap createOntologyUri2LabelMap() {
+    public HashMap createOntologyUri2LabelMap() {
 		HashMap ontologyUri2LabelMap = new HashMap();
 		ontologyUri2LabelMap.put(BASE_URI, "NCI_Thesaurus");
 		ontologyUri2LabelMap.put("http://purl.obolibrary.org/obo/go.owl", "GO");
@@ -175,6 +177,15 @@ public class OWLSPARQLUtils {
 
     public void set_named_graph(String named_graph) {
 		this.named_graph = named_graph;
+		propertyCode2labelHashMap = new HashMap();
+		Vector supportedProperties = getSupportedProperties(named_graph);
+		for (int i=0; i<supportedProperties.size(); i++) {
+			String supportedProperty = (String) supportedProperties.elementAt(i);
+			Vector u = StringUtils.parseData(supportedProperty, '|');
+			String label = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
+			propertyCode2labelHashMap.put(code, label);
+		}
 	}
 
 	public String get_version() {
@@ -5335,5 +5346,11 @@ Term Type
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
+
+	public String getPropertyLabel(String code) {
+		String label = (String) propertyCode2labelHashMap.get(code);
+		return label;
+	}
+
 }
 
