@@ -5432,7 +5432,7 @@ Term Type
 	    String associationTargetCode,
 	    String propertyLabel, //Contributing_Source
 	    String property2Label, //FULL_SYN
-	    String poperty2QualifierCode) {	//Term Source  P384
+	    Vector property2QualifierCodes) {	//Term Source  P384
 
 		String named_graph_id = ":NHC0";
 		String prefixes = getPrefixes();
@@ -5440,7 +5440,13 @@ Term Type
 		buf.append(prefixes);
 		buf.append("").append("\n");
 		StringBuffer select_buf = new StringBuffer();
-        select_buf.append("select ?x_label ?x_code ?p_label ?p_code ?p_value ?p2_label ?p2_code ?y_code ?y_label ?y_value");
+        select_buf.append("select distinct ?a_value_label ?a_value_code ?x_label ?x_code ?p_label ?p_code ?p_value ?p2_label ?p2_code");
+
+        for (int i=0; i<property2QualifierCodes.size(); i++) {
+			int j = i+1;
+			select_buf.append(" ?y" + j + "_code ?y" + j + "_label ?y" + j + "_value");
+		}
+
         String select_stmt = select_buf.toString();
 		buf.append(select_stmt).append("\n");
 		buf.append("{").append("\n");
@@ -5454,18 +5460,26 @@ Term Type
 		buf.append("            ?p rdfs:label " + "\"" + propertyLabel + "\"^^xsd:string .").append("\n");
 		buf.append("            ?x ?a ?a_value .").append("\n");
 		buf.append("            ?a_value" + " :NHC0 ?a_value_code .").append("\n");
+		buf.append("            ?a_value rdfs:label ?a_value_label .").append("\n");
 		buf.append("            ?a_value" + " :NHC0 \"" + associationTargetCode + "\"^^xsd:string .").append("\n");
 		buf.append("            ?x ?p2 ?p2_value .").append("\n");
 		buf.append("            ?p2" + " :NHC0 ?p2_code .").append("\n");
 		buf.append("            ?p2" + " rdfs:label ?p2_label .").append("\n");
 		buf.append("            ?p2 rdfs:label " + "\"" + property2Label + "\"^^xsd:string .").append("\n");
+
 		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
 		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
 		buf.append("            ?z_axiom owl:annotatedProperty ?p2 .").append("\n");
-        buf.append("            ?z_axiom ?y ?y_value .").append("\n");
-		buf.append("            ?y" + " :NHC0 ?y_code .").append("\n");
-		buf.append("            ?y" + " :NHC0 \"" + poperty2QualifierCode + "\"^^xsd:string .").append("\n");
-		buf.append("            ?y" + " rdfs:label ?y_label .").append("\n");
+
+		for (int i=0; i<property2QualifierCodes.size(); i++) {
+			int j = i+1;
+			String property2QualifierCode = (String) property2QualifierCodes.elementAt(i);
+			buf.append("            ?z_axiom ?y" + j + " ?y" + j + "_value .").append("\n");
+			buf.append("            ?y" + j + " :NHC0 ?y" + j + "_code .").append("\n");
+			buf.append("            ?y" + j + " :NHC0 \"" + property2QualifierCode + "\"^^xsd:string .").append("\n");
+			buf.append("            ?y" + j + " rdfs:label " + "?y" + j +"_label .").append("\n");
+		}
+
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
@@ -5477,15 +5491,14 @@ Term Type
 	    String associationTargetCode,
 	    String propertyLabel, //Contributing_Source
 	    String property2Label, //FULL_SYN
-	    String poperty2QualifierCode) {	//Term Source  P384
+	    Vector property2QualifierCodes) {	//Term Source  P384 Term Type  P383
 	    String query = construct_get_concepts_with_association_and_properties_matching(
 			named_graph,
 			associationLabel,
 			associationTargetCode,
 			propertyLabel, //Contributing_Source
 			property2Label, //FULL_SYN
-			poperty2QualifierCode);
-
+			property2QualifierCodes);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
