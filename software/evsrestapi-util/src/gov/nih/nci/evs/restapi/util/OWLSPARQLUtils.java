@@ -5425,5 +5425,71 @@ Term Type
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
+
+	public String construct_get_concepts_with_association_and_properties_matching(
+		String named_graph,
+	    String associationLabel,
+	    String associationTargetCode,
+	    String propertyLabel, //Contributing_Source
+	    String property2Label, //FULL_SYN
+	    String poperty2QualifierCode) {	//Term Source  P384
+
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		StringBuffer select_buf = new StringBuffer();
+        select_buf.append("select ?x_label ?x_code ?p_label ?p_code ?p_value ?p2_label ?p2_code ?y_code ?y_label ?y_value");
+        String select_stmt = select_buf.toString();
+		buf.append(select_stmt).append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?x ?p ?p_value .").append("\n");
+		buf.append("            ?p" + " :NHC0 ?p_code .").append("\n");
+		buf.append("            ?p" + " rdfs:label ?p_label .").append("\n");
+		buf.append("            ?p rdfs:label " + "\"" + propertyLabel + "\"^^xsd:string .").append("\n");
+		buf.append("            ?x ?a ?a_value .").append("\n");
+		buf.append("            ?a_value" + " :NHC0 ?a_value_code .").append("\n");
+		buf.append("            ?a_value" + " :NHC0 \"" + associationTargetCode + "\"^^xsd:string .").append("\n");
+		buf.append("            ?x ?p2 ?p2_value .").append("\n");
+		buf.append("            ?p2" + " :NHC0 ?p2_code .").append("\n");
+		buf.append("            ?p2" + " rdfs:label ?p2_label .").append("\n");
+		buf.append("            ?p2 rdfs:label " + "\"" + property2Label + "\"^^xsd:string .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p2 .").append("\n");
+        buf.append("            ?z_axiom ?y ?y_value .").append("\n");
+		buf.append("            ?y" + " :NHC0 ?y_code .").append("\n");
+		buf.append("            ?y" + " :NHC0 \"" + poperty2QualifierCode + "\"^^xsd:string .").append("\n");
+		buf.append("            ?y" + " rdfs:label ?y_label .").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsWithAssociationAndPropertiesMatching(
+		String named_graph,
+	    String associationLabel,
+	    String associationTargetCode,
+	    String propertyLabel, //Contributing_Source
+	    String property2Label, //FULL_SYN
+	    String poperty2QualifierCode) {	//Term Source  P384
+	    String query = construct_get_concepts_with_association_and_properties_matching(
+			named_graph,
+			associationLabel,
+			associationTargetCode,
+			propertyLabel, //Contributing_Source
+			property2Label, //FULL_SYN
+			poperty2QualifierCode);
+
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
+
 }
 
