@@ -32,8 +32,8 @@ public class JQueryJSONViewer {
 		out.println("    <meta charset=\"utf-8\" />");
 		out.println("");
 		out.println("    <script src=\"http://code.jquery.com/jquery-2.1.3.min.js\"></script>");
-		out.println("    <script src=\"js/jquery.json-viewer.js\"></script>");
-		out.println("    <link href=\"css/jquery.json-viewer.css\" type=\"text/css\" rel=\"stylesheet\" />");
+		out.println("    <script src=\"jquery.json-viewer.js\"></script>");
+		out.println("    <link href=\"jquery.json-viewer.css\" type=\"text/css\" rel=\"stylesheet\" />");
 		out.println("");
 		out.println("    <style type=\"text/css\">");
 		out.println("body {");
