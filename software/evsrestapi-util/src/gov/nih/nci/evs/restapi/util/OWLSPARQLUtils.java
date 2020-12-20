@@ -5354,5 +5354,68 @@ Term Type
 		return label;
 	}
 
+	public String construct_get_known_property_qualifier_values(String named_graph, String code, String propertyLabel,
+	              String qualifierCode, String qualifierValue, String qualifier_code) {
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		StringBuffer select_buf = new StringBuffer();
+
+		if (code == null) {
+			select_buf.append("SELECT distinct ?y_label ?y_code ?y_value ?y2_label ?y2_code ?y2_value");
+		} else {
+			select_buf.append("SELECT distinct ?x_code ?x_label ?y_label ?y_code ?y_value ?y2_label ?y2_code ?y2_value");
+		}
+
+        String select_stmt = select_buf.toString();
+		buf.append(select_stmt).append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x " + named_graph_id + " \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("            ?p rdfs:label " + "\"" + propertyLabel + "\"^^xsd:string .").append("\n");
+		buf.append("            ?z_axiom ?y ?z .").append("\n");
+
+		buf.append("            ?y" + " :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
+		buf.append("            ?y" + " :NHC0 ?y_code .").append("\n");
+        buf.append("            ?y" + " rdfs:label ?y_label .").append("\n");
+
+		buf.append("            ?z_axiom ?y \"" + qualifierValue + "\"^^xsd:string .").append("\n");
+		buf.append("            ?z_axiom ?y ?y_value .").append("\n");
+
+		buf.append("            ?y2" + " :NHC0 \"" + qualifier_code + "\"^^xsd:string .").append("\n");
+		buf.append("            ?y2" + " :NHC0 ?y2_code .").append("\n");
+		buf.append("            ?y2" + " rdfs:label ?y2_label .").append("\n");
+		buf.append("            ?z_axiom ?y2 ?y2_value ").append("\n");
+
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getKnownPropertyQualifierValues(String named_graph, String code, String propertyLabel,
+	              String qualifierCode, String qualifierValue, String qualifier_code) {
+
+	    String query = construct_get_known_property_qualifier_values(named_graph, code, propertyLabel,
+	              qualifierCode, qualifierValue, qualifier_code);
+
+	    System.out.println(query);
+
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
 }
 
