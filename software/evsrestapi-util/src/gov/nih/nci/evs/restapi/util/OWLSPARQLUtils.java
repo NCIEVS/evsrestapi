@@ -5440,7 +5440,7 @@ Term Type
 		buf.append(prefixes);
 		buf.append("").append("\n");
 		StringBuffer select_buf = new StringBuffer();
-        select_buf.append("select distinct ?a_value_label ?a_value_code ?x_label ?x_code ?p_label ?p_code ?p_value ?p2_label ?p2_code");
+        select_buf.append("select distinct ?a_value_label ?a_value_code ?x_label ?x_code ?p_label ?p_code ?p_value ?p2_label ?p2_code ?term_name");
 
         for (int i=0; i<property2QualifierCodes.size(); i++) {
 			int j = i+1;
@@ -5470,6 +5470,7 @@ Term Type
 		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
 		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
 		buf.append("            ?z_axiom owl:annotatedProperty ?p2 .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
 
 		for (int i=0; i<property2QualifierCodes.size(); i++) {
 			int j = i+1;
