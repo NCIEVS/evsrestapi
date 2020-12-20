@@ -5363,10 +5363,18 @@ Term Type
 		buf.append("").append("\n");
 		StringBuffer select_buf = new StringBuffer();
 
-		if (code == null) {
-			select_buf.append("SELECT distinct ?y_label ?y_code ?y_value ?y2_label ?y2_code ?y2_value");
-		} else {
-			select_buf.append("SELECT distinct ?x_code ?x_label ?y_label ?y_code ?y_value ?y2_label ?y2_code ?y2_value");
+        if (qualifierCode != null && qualifierValue != null) {
+			if (code == null) {
+				select_buf.append("SELECT distinct ?y_label ?y_code ?y_value ?y2_label ?y2_code ?y2_value");
+			} else {
+				select_buf.append("SELECT distinct ?x_code ?x_label ?y_label ?y_code ?y_value ?y2_label ?y2_code ?y2_value");
+			}
+	    } else {
+			if (code == null) {
+				select_buf.append("SELECT distinct ?y2_label ?y2_code ?y2_value");
+			} else {
+				select_buf.append("SELECT distinct ?x_code ?x_label ?y2_label ?y2_code ?y2_value");
+			}
 		}
 
         String select_stmt = select_buf.toString();
@@ -5388,12 +5396,14 @@ Term Type
 		buf.append("            ?p rdfs:label " + "\"" + propertyLabel + "\"^^xsd:string .").append("\n");
 		buf.append("            ?z_axiom ?y ?z .").append("\n");
 
-		buf.append("            ?y" + " :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
-		buf.append("            ?y" + " :NHC0 ?y_code .").append("\n");
-        buf.append("            ?y" + " rdfs:label ?y_label .").append("\n");
+        if (qualifierCode != null && qualifierValue != null) {
+			buf.append("            ?y" + " :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
+			buf.append("            ?y" + " :NHC0 ?y_code .").append("\n");
+			buf.append("            ?y" + " rdfs:label ?y_label .").append("\n");
 
-		buf.append("            ?z_axiom ?y \"" + qualifierValue + "\"^^xsd:string .").append("\n");
-		buf.append("            ?z_axiom ?y ?y_value .").append("\n");
+			buf.append("            ?z_axiom ?y \"" + qualifierValue + "\"^^xsd:string .").append("\n");
+			buf.append("            ?z_axiom ?y ?y_value .").append("\n");
+		}
 
 		buf.append("            ?y2" + " :NHC0 \"" + qualifier_code + "\"^^xsd:string .").append("\n");
 		buf.append("            ?y2" + " :NHC0 ?y2_code .").append("\n");
@@ -5404,6 +5414,7 @@ Term Type
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
 
 	public Vector getKnownPropertyQualifierValues(String named_graph, String code, String propertyLabel,
 	              String qualifierCode, String qualifierValue, String qualifier_code) {
