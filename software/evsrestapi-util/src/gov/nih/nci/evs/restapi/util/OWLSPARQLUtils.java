@@ -5410,9 +5410,6 @@ Term Type
 
 	    String query = construct_get_known_property_qualifier_values(named_graph, code, propertyLabel,
 	              qualifierCode, qualifierValue, qualifier_code);
-
-	    System.out.println(query);
-
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
