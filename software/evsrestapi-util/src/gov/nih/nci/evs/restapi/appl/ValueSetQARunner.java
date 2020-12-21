@@ -1,4 +1,5 @@
-package gov.nih.nci.evs.restapi.util;
+package gov.nih.nci.evs.restapi.appl;
+import gov.nih.nci.evs.restapi.util.*;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -71,6 +72,16 @@ public class ValueSetQARunner {
 		}
 	}
 
+	public Vector appendChar(Vector v, char c) {
+		Vector w = new Vector();
+		for (int i=0; i<v.size();i++) {
+			String t = (String) v.elementAt(i);
+			t = t + "|" + c;
+			w.add(t);
+		}
+		return w;
+	}
+
 	public void run() {
 		if (conditionHashMap == null) return;
 		String outputfile = "ValuSetQA_" + StringUtils.getToday() + ".log";
@@ -91,8 +102,8 @@ public class ValueSetQARunner {
 			valueSetQA.run(values);
 			Vector v = new Vector();
 			v.add(headerConceptCode);
-			v.addAll(valueSetQA.getWarnings());
-			v.addAll(valueSetQA.getMissings());
+			v.addAll(appendChar(valueSetQA.getWarnings(), '1'));
+			v.addAll(appendChar(valueSetQA.getMissings(), '2'));
 			warning_vec.addAll(v);
 		}
 		Utils.saveToFile(outputfile, warning_vec);
