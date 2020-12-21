@@ -32,6 +32,7 @@ public class ValueSetConditionValidator {
     static {
 		KEYS = new Vector();
 		KEYS.add("(Property_Code)");
+		KEYS.add("(Property_Value)");
 		KEYS.add("(Association_Code)");
 		KEYS.add("(Qualifier_Code)");
 		KEYS.add("(Header_Concept_Code)");
@@ -39,6 +40,7 @@ public class ValueSetConditionValidator {
 
 		CONDITION_TEMPLATES = new String[] {
 			"Has a property Property_Name (Property_Code).",
+			"Has a property Property_Name (Property_Code) with value equaling (Property_Value).",
 			"Has a property Property_Name (Property_Code) with a qualifier Qualifier_Name (Qualifier_Code) and its value equaling (Qualifier_Value).",
 			"Has an Association Association_Name (Association_Code) pointing to Header_Concept_Name (Header_Concept_Code) or any of its descendant."};
 
@@ -118,19 +120,26 @@ public class ValueSetConditionValidator {
     public static String get_CONDITION_TEMPLATE(String type) {
 		if (type.compareTo("Property") == 0) {
 			return CONDITION_TEMPLATES[0];
-		} else if (type.compareTo("PropertyQualifier") == 0) {
+		} else if (type.compareTo("PropertyValue") == 0) {
 			return CONDITION_TEMPLATES[1];
-		} else if (type.compareTo("ValueSet") == 0) {
+		} else if (type.compareTo("PropertyQualifier") == 0) {
 			return CONDITION_TEMPLATES[2];
+		} else if (type.compareTo("ValueSet") == 0) {
+			return CONDITION_TEMPLATES[3];
 		}
 		return null;
 	}
 
-	public String substitute(String template, String header_concept_code, String property_code, String qualifier_code,
+	public String substitute(String template, String header_concept_code, String property_code, String property_value, String qualifier_code,
 	    String qualifier_value, String association_code) {
 		if (property_code != null) {
 			template = template.replace("(Property_Code)", "(" + property_code + ")");
 			template = template.replace("Property_Name", getPropertyLabel(property_code));
+		}
+
+		if (property_value != null) {
+			template = template.replace("(Property_Code)", "(" + property_code + ")");
+			template = template.replace("(Property_Value)", property_value);
 		}
 
 		if (qualifier_code != null) {
@@ -156,19 +165,25 @@ public class ValueSetConditionValidator {
 
     public String createPropertyCondition(String property_code) {
         String template = get_CONDITION_TEMPLATE("Property");
-        String condition = substitute(template, null, property_code, null, null, null);
+        String condition = substitute(template, null, property_code, null, null, null, null);
+        return condition;
+	}
+
+    public String createPropertyValueCondition(String property_code, String property_value) {
+        String template = get_CONDITION_TEMPLATE("PropertyValue");
+        String condition = substitute(template, null, property_code, property_value, null, null, null);
         return condition;
 	}
 
     public String createPropertyQualifierCondition(String property_code, String qualifier_code, String qualifier_value) {
         String template = get_CONDITION_TEMPLATE("PropertyQualifier");
-        String condition = substitute(template, null, property_code, qualifier_code, qualifier_value, null);
+        String condition = substitute(template, null, property_code, null, qualifier_code, qualifier_value, null);
         return condition;
 	}
 
     public String createValueSetCondition(String header_concept_code, String association_code) {
         String template = get_CONDITION_TEMPLATE("ValueSet");
-        String condition = substitute(template, header_concept_code, null, null, null, association_code);
+        String condition = substitute(template, header_concept_code, null, null, null, null, association_code);
         return condition;
 	}
 
@@ -183,12 +198,19 @@ public class ValueSetConditionValidator {
 				String property_code = (String) u.elementAt(1);
 				String s = createPropertyCondition(property_code);
 				this.conditions.add(s);
+			} else if (type.compareTo("PropertyValue") == 0) {
+				String property_code = (String) u.elementAt(1);
+				String property_value = (String) u.elementAt(2);
+				String s = createPropertyValueCondition(property_code, property_value);
+				this.conditions.add(s);
+
 			} else if (type.compareTo("PropertyQualifier") == 0) {
 				String property_code = (String) u.elementAt(1);
 				String qualifier_code = (String) u.elementAt(2);
 				String qualifier_value = (String) u.elementAt(3);
 				String s = createPropertyQualifierCondition(property_code, qualifier_code, qualifier_value);
 				this.conditions.add(s);
+
 			} else if (type.compareTo("ValueSet") == 0) {
 				String association_code = (String) u.elementAt(1);
 				String header_concept_code = (String) u.elementAt(2);

@@ -20,6 +20,7 @@ public class ValueSetReportGenerator {
     Vector conditions = null;
     String description = null;
     static String NCI_THESAURUS = "NCI_Thesaurus";
+    static String RETIRED_CONCEPT = "Retired_Concept";
     String headerConceptCode = null;
     String timestamp = null;
     String footer = null;
@@ -28,6 +29,11 @@ public class ValueSetReportGenerator {
     ValueSetConditionValidator validator = null;
     String headerConceptLabel = null;
     boolean checkOutBoundConceptInSubset = false;
+    Vector missing_vec = null;
+    public static String CONCEPT_STATUS = "Concept_Status";
+    Vector retired_concepts = null;
+    Vector concept_status_vec = null;
+    HashSet retired_concept_codes = null;
 
     public void setValueSetConditionValidator(ValueSetConditionValidator validator) {
 		this.validator = validator;
@@ -41,6 +47,7 @@ public class ValueSetReportGenerator {
 		checkOutBoundConceptInSubset = bool;
 	}
 
+
 	public ValueSetReportGenerator(String serviceUrl, String namedGraph, String username, String password,
 	    ValueSetConditionValidator validator) {
 		this.serviceUrl = serviceUrl;
@@ -52,6 +59,22 @@ public class ValueSetReportGenerator {
 		this.headerConceptCode = validator.getHeaderConceptCode();
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
 		this.owlSPARQLUtils.set_named_graph(namedGraph);
+
+        this.concept_status_vec = owlSPARQLUtils.getConceptsContainingProperty(this.namedGraph, CONCEPT_STATUS);
+        Utils.saveToFile("CONCEPT_STATUS.txt", this.concept_status_vec);
+
+        this.retired_concept_codes = new HashSet();
+        //C155798|Chimeric Antigen Receptor T-cell Therapy|P310|Concept_Status|Retired_Concept
+        for (int i=0; i<concept_status_vec.size(); i++) {
+			String line = (String) concept_status_vec.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String status = (String) u.elementAt(4);
+			if (status.compareTo(RETIRED_CONCEPT) == 0) {
+				String code = (String) u.elementAt(0);
+				this.retired_concept_codes.add(code);
+			}
+		}
+
 		this.headerConceptLabel = this.owlSPARQLUtils.getLabel(this.headerConceptCode);
 		this.metadataUtils = new MetadataUtils(serviceUrl, username, password);
 
@@ -66,6 +89,11 @@ public class ValueSetReportGenerator {
 		this.footer = "Source: " + NCI_THESAURUS + " (version: " + this.version + ")";
 		this.timestamp = "Last modified: " + StringUtils.getToday();
 
+	}
+
+	public boolean isRetired(String code) {
+		if (retired_concept_codes.contains(code)) return true;
+		return false;
 	}
 
 	private void setTableTitle(String tbl_title) {
@@ -89,7 +117,8 @@ public class ValueSetReportGenerator {
 			String line = (String) condition_data.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String type = (String) u.elementAt(0);
-			if (type.compareTo("Property") == 0 && u.size() == 2) {
+			if ((type.compareTo("Property") == 0 && u.size() == 2) ||
+			    (type.compareTo("PropertyValue") == 0 && u.size() == 3)) {
 				String property_code = (String) u.elementAt(1);
                 String property_label = null;
 				if (validator == null) {
@@ -103,7 +132,7 @@ public class ValueSetReportGenerator {
 		if (w == null || w.size() == 0) {
 			System.out.println("getConceptsWithProperties failed???");
 		}
-        Utils.saveToFile("getConceptsWithProperties.txt", w);
+        Utils.saveToFile(headerConceptCode + "_ConceptsWithProperties.txt", w);
         for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -186,7 +215,7 @@ public class ValueSetReportGenerator {
 			           namedGraph, code, propertyLabel,
 	                   qualifierCodes, qualifierValues);
 
-        Utils.saveToFile("prop_qual_" + propertyLabel + ".txt", w);
+        Utils.saveToFile(headerConceptCode + "_prop_qual_" + propertyLabel + ".txt", w);
         Set condition_codes = new HashSet();
         for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
@@ -205,7 +234,6 @@ public class ValueSetReportGenerator {
 			Set condition_2_codes = findCodesMeetPropertyQualifierConditions(property_label);
 			condition_codes.retainAll(condition_2_codes);
 		}
-
 		Vector v = findPropertyLabelAndValueInPropertyValueConditions();
 		for (int i=0; i<v.size(); i++) {
 			String labelAndValue = (String) v.elementAt(i);
@@ -220,17 +248,36 @@ public class ValueSetReportGenerator {
 		Vector value_set = vsc.generate_concept_in_subset(headerConceptCode);
         Utils.saveToFile(headerConceptCode + ".txt", value_set);
         Vector warnings  = new Vector();
+
+        Vector value_set_codes = new Vector();
         int k = 0;
         for (int i=0; i<value_set.size(); i++) {
 			String line = (String) value_set.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String value_set_code = (String) u.elementAt(1);
+			value_set_codes.add(value_set_code);
 			if (!condition_codes.contains(value_set_code)) {
 				k++;
 				warnings.add(line);
 			}
 		}
 		setWarnings(warnings);
+
+		Vector condition_code_vec = new Vector();
+		Iterator it = condition_codes.iterator();
+		while (it.hasNext()) {
+			String condition_code = (String) it.next();
+			condition_code_vec.add(condition_code);
+		}
+        missing_vec  = new Vector();
+        for (int i=0; i<condition_code_vec.size(); i++) {
+			String condition_code = (String) condition_code_vec.get(i);
+			if (!value_set_codes.contains(condition_code) && !isRetired(condition_code)) {
+				String condition_label = this.owlSPARQLUtils.getLabel(condition_code);
+				missing_vec.add(condition_label + "|" + condition_code);
+			}
+		}
+		Utils.saveToFile(headerConceptCode + "_missing_concepts.txt", missing_vec);
 	}
 
     public void dumpReportInfo() {
@@ -375,7 +422,6 @@ public class ValueSetReportGenerator {
 		return value;
 	}
 
-
     public void printConditions(PrintWriter out) {
 		out.println("");
 		out.println("");
@@ -437,7 +483,41 @@ public class ValueSetReportGenerator {
 			}
 			out.println("</table>");
 		} else {
-			out.println("<center><p>" +"(No concept found.)" + "</p></center>");
+			out.println("<center><p>" +"(None found.)" + "</p></center>");
+		}
+
+		out.println("<div>");
+		out.println("<center>");
+		out.println("<h4>Table 3. Concepts meet conditions but not found in the value set.</h4>");
+
+		if (missing_vec.size() > 0) {
+			out.println("<table>");
+			out.println("<tr>");
+			for (int i=0; i<th_vec.size(); i++) {
+				String th = (String) th_vec.elementAt(i);
+				out.println("<th align='left'>"+ th + "</th>");
+			}
+			out.println("</tr>");
+			for (int i=0; i<missing_vec.size(); i++) {
+				String data = (String) missing_vec.elementAt(i);
+				out.println("<tr>");
+				Vector u = StringUtils.parseData(data, '|');
+				for (int j=0; j<u.size(); j++) {
+					String value = (String) u.elementAt(j);
+					out.println("<td>");
+					String th = (String) th_vec.elementAt(j);
+					if (th.endsWith("Code")) {
+						out.println("<a href=\"" + HYPERLINK_URL + value + "\">" + value + "</a>");
+					} else {
+						out.println(value);
+					}
+					out.println("</td>");
+				}
+				out.println("</tr>");
+			}
+			out.println("</table>");
+		} else {
+			out.println("<center><p>" +"(None found.)" + "</p></center>");
 		}
 
 		out.println("</div>");
