@@ -64,7 +64,7 @@ public class ValueSetQA {
         validator.setConditions(conditions);
 		String headerConceptCode = validator.getHeaderConceptCode();
 		if (headerConceptCode == null) {
-			System.out.println("WARNING: Value set haeder concept not set -- program abort.");
+			System.out.println("WARNING: Value set header concept not set -- program abort.");
 			System.exit(1);
 		}
 		System.out.println("Instantiatng valueSetQA ...");
@@ -82,19 +82,8 @@ public class ValueSetQA {
 		return generator.getWarnings();
 	}
 
-	public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-		String serviceUrl = args[0];
-		String namedGraph = args[1];
-		String username = args[2];
-		String password = args[3];
-		ValueSetQA valueSetQA = new ValueSetQA(serviceUrl, namedGraph, username, password);
-        Vector w = new Vector();
-        w.add("Property|P322");
-        w.add("Property|P107");
-        w.add("PropertyQualifier|P90|P383|DN");
-        w.add("PropertyQualifier|P90|P384|CTRP");
-        w.add("ValueSet|A8|C116977");
-        valueSetQA.run(w);
+	public Vector getMissings() {
+		return generator.getMissings();
 	}
+
 }

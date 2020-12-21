@@ -1,6 +1,4 @@
-package gov.nih.nci.evs.restapi.appl;
-
-import gov.nih.nci.evs.restapi.util.*;
+package gov.nih.nci.evs.restapi.util;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -75,7 +73,7 @@ public class ValueSetQARunner {
 
 	public void run() {
 		if (conditionHashMap == null) return;
-		String outputfile = "ValuSetQA" + StringUtils.getToday() + ".log";
+		String outputfile = "ValuSetQA_" + StringUtils.getToday() + ".log";
 		Vector warning_vec = new Vector();
 		Iterator it = conditionHashMap.keySet().iterator();
 		while (it.hasNext()) {
@@ -94,6 +92,7 @@ public class ValueSetQARunner {
 			Vector v = new Vector();
 			v.add(headerConceptCode);
 			v.addAll(valueSetQA.getWarnings());
+			v.addAll(valueSetQA.getMissings());
 			warning_vec.addAll(v);
 		}
 		Utils.saveToFile(outputfile, warning_vec);
@@ -108,7 +107,6 @@ public class ValueSetQARunner {
 		String datafile = args[4];
 		ValueSetQARunner test = new ValueSetQARunner(serviceUrl, namedGraph, username, password);
 		test.loadConditionHashMap(datafile);
-		//test.dumpConditionHashMap();
 		test.run();
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}

@@ -13,7 +13,7 @@ public class ValueSetReportGenerator {
     String namedGraph = null;
     String username = null;
     String password = null;
-    OWLSPARQLUtils owlSPARQLUtils = null; //(String serviceUrl, String username, String password) {
+    OWLSPARQLUtils owlSPARQLUtils = null;
 	MetadataUtils metadataUtils = null;
     String version = null;
     String definition = null;
@@ -41,6 +41,10 @@ public class ValueSetReportGenerator {
 
 	public Vector getWarnings() {
 		return this.warnings;
+	}
+
+	public Vector getMissings() {
+		return this.missing_vec;
 	}
 
 	public void setCheckOutBoundConceptInSubset(boolean bool) {
@@ -108,7 +112,6 @@ public class ValueSetReportGenerator {
 		this.conditions = conditions;
 	}
 
-
     private Set findCodesMeetPropertyConditions() {
 		Set condition_codes = new HashSet();
         String code = null;
@@ -160,8 +163,6 @@ public class ValueSetReportGenerator {
 		}
 		return propertyLabelAndValue;
 	}
-
-//		String property_name = owlSPARQLUtils.getPropertyLabel(property_code);
 
     private Vector findPropertyLabelsInPropertyQualifierConditions() {
 		Vector propertyLabels = new Vector();
@@ -333,6 +334,10 @@ public class ValueSetReportGenerator {
 
 	public void setWarnings(Vector warnings) {
 		this.warnings = warnings;
+	}
+
+	public void setMissings(Vector missing_vec) {
+		this.missing_vec = missing_vec;
 	}
 
 	public void printBanner(PrintWriter out) {
