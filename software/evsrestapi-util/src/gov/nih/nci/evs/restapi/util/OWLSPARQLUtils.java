@@ -5244,6 +5244,7 @@ Term Type
 		hh.printTree();
 	}
 
+/*
 	public String construct_get_concepts_with_property_and_qualifiers_matching(String named_graph, String code, String propertyLabel,
 	              Vector qualifierCodes, Vector qualifierValues) {
 		String named_graph_id = ":NHC0";
@@ -5301,7 +5302,7 @@ Term Type
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
-
+*/
 	public String construct_get_concepts_with_properties(String named_graph, String code, Vector propertyLabels) {
 		String named_graph_id = ":NHC0";
 		String prefixes = getPrefixes();
@@ -5505,5 +5506,62 @@ Term Type
 	    return v;
 	}
 
+	public String construct_get_concepts_with_property_and_qualifiers_matching(String named_graph, String code, String propertyLabel,
+	              Vector qualifierCodes, Vector qualifierValues) {
+		String named_graph_id = ":NHC0";
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		StringBuffer select_buf = new StringBuffer();
+		buf.append("SELECT distinct ?x_code ?term_name ?p_label");
+		for (int i=0; i<qualifierCodes.size(); i++) {
+			int j = i+1;
+			String qualifierCode = (String) qualifierCodes.elementAt(i);
+			String qualifierValue = (String) qualifierValues.elementAt(i);
+            select_buf.append(" " + "?y" + j + "_code");
+            select_buf.append(" " + "?y" + j + "_value");
+        }
+        String select_stmt = select_buf.toString();
+		buf.append(select_stmt).append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+
+		if (code != null) {
+			buf.append("            ?x " + named_graph_id + " \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		//buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("            ?p rdfs:label " + " \"" + propertyLabel + "\"^^xsd:string .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
+		buf.append("            ?z_axiom ?y ?z .").append("\n");
+		for (int i=0; i<qualifierCodes.size(); i++) {
+			int j = i+1;
+			String qualifierCode = (String) qualifierCodes.elementAt(i);
+			String qualifierValue = (String) qualifierValues.elementAt(i);
+			buf.append("            ?z_axiom ?y" + j + " \"" + qualifierValue + "\"^^xsd:string .").append("\n");
+			buf.append("            ?z_axiom ?y" + j + " ?y" + j + "_value .").append("\n");
+			buf.append("            ?y" + j + " :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
+			buf.append("            ?y" + j + " :NHC0 " + "?y" + j + "_code .").append("\n");
+		}
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsWithPropertyAndQualifiersMatching(String named_graph, String code, String propertyLabel,
+	              Vector qualifierCodes, Vector qualifierValues) {
+	    String query = construct_get_concepts_with_property_and_qualifiers_matching(named_graph, code, propertyLabel,
+	                   qualifierCodes, qualifierValues);
+	    Vector v = executeQuery(query);
+	    v = new ParserUtils().getResponseValues(v);
+	    return v;
+	}
 }
 
