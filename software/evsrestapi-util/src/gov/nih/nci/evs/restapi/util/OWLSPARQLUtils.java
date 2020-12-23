@@ -5533,7 +5533,6 @@ Term Type
 		}
 
 		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
-		//buf.append("            ?x rdfs:label ?x_label .").append("\n");
 		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
 		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
 		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
@@ -5575,10 +5574,14 @@ Term Type
 		buf.append(prefixes);
 		buf.append("").append("\n");
 		StringBuffer select_buf = new StringBuffer();
-		select_buf.append("SELECT distinct ?x_code ?x_label ?y_code ?y_label ?p1_label ?p1_value ?p2_label ?term_name");
-		for (int i=0; i<qualifierCodes.size(); i++) {
-			int j = i+1;
-			select_buf.append(" ?y" + j + "_code ?y" + j + "_value");
+		select_buf.append("SELECT distinct ?x_code ?x_label ?y_code ?y_label ?p1_label ?p1_value ");
+
+		if (qualifierCodes != null) {
+			select_buf.append("?p2_label ?term_name");
+			for (int i=0; i<qualifierCodes.size(); i++) {
+				int j = i+1;
+				select_buf.append(" ?y" + j + "_code ?y" + j + "_value");
+			}
 		}
 		String select_stmt = select_buf.toString();
         buf.append(select_stmt).append("\n");
@@ -5601,20 +5604,24 @@ Term Type
 		buf.append("            ?p1 rdfs:label ?p1_label .").append("\n");
 		buf.append("            ?p1 rdfs:label \"" + propertyLabel + "\"^^xsd:string .").append("\n");
 		buf.append("").append("\n");
-		buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
-		buf.append("            ?z_axiom owl:annotatedSource ?y .").append("\n");
-		buf.append("            ?z_axiom owl:annotatedProperty ?p2 .").append("\n");
-		buf.append("            ?p2 rdfs:label ?p2_label .").append("\n");
-		buf.append("            ?p2 rdfs:label \"FULL_SYN\"^^xsd:string .").append("\n");
-		buf.append("            ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
-		buf.append("          ").append("\n");
-		for (int i=0; i<qualifierCodes.size(); i++) {
-			int j = i+1;
-            String qualifierCode = (String) qualifierCodes.elementAt(i);
-			buf.append("            ?z_axiom ?y" + j + " ?y" + j + "_value .").append("\n");
-			buf.append("            ?y" + j + " :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
-			buf.append("            ?y" + j + " :NHC0 ?y" + j + "_code .").append("\n");
-	    }
+
+		if (qualifierCodes != null) {
+			buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedSource ?y .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedProperty ?p2 .").append("\n");
+			buf.append("            ?p2 rdfs:label ?p2_label .").append("\n");
+			buf.append("            ?p2 rdfs:label \"FULL_SYN\"^^xsd:string .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedTarget ?term_name .").append("\n");
+			buf.append("          ").append("\n");
+			for (int i=0; i<qualifierCodes.size(); i++) {
+				int j = i+1;
+				String qualifierCode = (String) qualifierCodes.elementAt(i);
+				buf.append("            ?z_axiom ?y" + j + " ?y" + j + "_value .").append("\n");
+				buf.append("            ?y" + j + " :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
+				buf.append("            ?y" + j + " :NHC0 ?y" + j + "_code .").append("\n");
+			}
+		}
+
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
