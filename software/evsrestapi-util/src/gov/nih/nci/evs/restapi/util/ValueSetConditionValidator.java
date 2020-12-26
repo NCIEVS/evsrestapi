@@ -55,6 +55,10 @@ public class ValueSetConditionValidator {
 		}
 	}
 
+	public ValueSetConditionValidator() {
+
+	}
+
 	public Vector getConditionData() {
 		return this.condition_data;
 	}
@@ -220,6 +224,7 @@ public class ValueSetConditionValidator {
 			}
 		}
 	}
+
 
 	public String getHeaderConceptCode() {
 		return headerConceptCode;

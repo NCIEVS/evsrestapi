@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.util;
-
 import java.io.*;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -20,7 +19,7 @@ public class ValueSetQA {
 	String namedGraph = null;
 	String prefixes = null;
 	OWLSPARQLUtils owlSPARQLUtils = null;
-	ValueSetConditionValidator validator = null;
+	gov.nih.nci.evs.restapi.util.ValueSetConditionValidator validator = null;
 	boolean checkOutBoundConceptInSubset = false;
 	ValueSetReportGenerator generator = null;
 
@@ -40,7 +39,7 @@ public class ValueSetQA {
 		checkOutBoundConceptInSubset = bool;
 	}
 
-	public void setValueSetConditionValidator(ValueSetConditionValidator validator) {
+	public void setValueSetConditionValidator(gov.nih.nci.evs.restapi.util.ValueSetConditionValidator validator) {
 		this.validator = validator;
 	}
 
@@ -59,7 +58,7 @@ public class ValueSetQA {
 	}
 
 	public void run(Vector conditions) {
-		ValueSetConditionValidator validator = new ValueSetConditionValidator(
+		gov.nih.nci.evs.restapi.util.ValueSetConditionValidator validator = new gov.nih.nci.evs.restapi.util.ValueSetConditionValidator(
 			  this.serviceUrl, this.namedGraph,this. username, this.password);
         validator.setConditions(conditions);
 		String headerConceptCode = validator.getHeaderConceptCode();
