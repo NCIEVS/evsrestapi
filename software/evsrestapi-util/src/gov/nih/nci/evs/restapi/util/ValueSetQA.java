@@ -1,4 +1,6 @@
 package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.model.*;
+
 import java.io.*;
 import java.io.BufferedReader;
 import java.io.InputStream;

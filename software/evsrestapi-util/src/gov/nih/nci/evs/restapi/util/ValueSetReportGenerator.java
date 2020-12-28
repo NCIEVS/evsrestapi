@@ -1,5 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
-
+import gov.nih.nci.evs.restapi.model.*;
 import java.io.*;
 import java.text.*;
 import java.util.*;
@@ -120,10 +120,7 @@ public class ValueSetReportGenerator {
 			String line = (String) condition_data.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String type = (String) u.elementAt(0);
-			if (type.compareTo("ValueSet") == 0) {
-				Vector u0 = StringUtils.parseData(line, '|');
-				code = (String) u0.elementAt(2);
-			} else if ((type.compareTo("Property") == 0 && u.size() == 2) ||
+			if ((type.compareTo("Property") == 0 && u.size() == 2) ||
 			    (type.compareTo("PropertyValue") == 0 && u.size() == 3)) {
 				String property_code = (String) u.elementAt(1);
                 String property_label = null;
@@ -134,10 +131,11 @@ public class ValueSetReportGenerator {
 				propertyLabels.add(property_label);
 			}
 		}
-
 	    Vector w = owlSPARQLUtils.getConceptsWithProperties(this.namedGraph, code, propertyLabels);
+		if (w == null || w.size() == 0) {
+			System.out.println("getConceptsWithProperties failed???");
+		}
         Utils.saveToFile(headerConceptCode + "_ConceptsWithProperties.txt", w);
-
         for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -147,6 +145,7 @@ public class ValueSetReportGenerator {
 		return condition_codes;
 	}
 
+//w.add("Property|P322|CTDC");
     private Vector findPropertyLabelAndValueInPropertyValueConditions() {
 		Vector propertyLabelAndValue = new Vector();
 	    for (int i=0; i<condition_data.size(); i++) {
@@ -212,11 +211,11 @@ public class ValueSetReportGenerator {
 				}
 			}
 		}
-
         String code = null;
         Vector w = owlSPARQLUtils.getConceptsWithPropertyAndQualifiersMatching(
 			           namedGraph, code, propertyLabel,
 	                   qualifierCodes, qualifierValues);
+
         Utils.saveToFile(headerConceptCode + "_prop_qual_" + propertyLabel + ".txt", w);
         Set condition_codes = new HashSet();
         for (int i=0; i<w.size(); i++) {
