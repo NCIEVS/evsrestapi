@@ -5637,5 +5637,47 @@ Term Type
 	    v = new ParserUtils().getResponseValues(v);
 	    return v;
 	}
+
+	public String construct_get_value_set_contributing_sources(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?y_code ?y_label ?p1_code ?p1_label ?p1_value").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?y a owl:Class .").append("\n");
+		buf.append("            ?y :NHC0 ?y_code .").append("\n");
+		buf.append("            ?y rdfs:label ?y_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?y ?p0 \"Yes\"^^xsd:string .").append("\n");
+		buf.append("            ?p0 rdfs:label ?p0_label .").append("\n");
+		buf.append("            ?p0 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?x ?a ?y .").append("\n");
+		buf.append("            ?a :NHC0 \"A8\"^^xsd:string .").append("\n");
+		buf.append(" ").append("\n");
+		buf.append("            ?y ?p1 ?p1_value .").append("\n");
+		buf.append("            ?p1 rdfs:label ?p1_label .").append("\n");
+		buf.append("            ?p1 rdfs:label \"Contributing_Source\"^^xsd:string .").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getValueSetContributingSources(String named_graph) {
+		String query = construct_get_value_set_contributing_sources(named_graph);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
 }
 
