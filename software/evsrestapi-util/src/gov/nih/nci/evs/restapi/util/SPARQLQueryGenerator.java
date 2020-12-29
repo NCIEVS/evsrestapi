@@ -132,8 +132,10 @@ public class SPARQLQueryGenerator {
 		String s1 = constructQueryMethodSignature.substring(0, n);
 		Vector u = StringUtils.parseData(s1, '_');
 		StringBuffer buf = new StringBuffer();
-		for (int k=1; k<u.size(); k++) {
-			String t = (String) u.elementAt(k);
+		String t = (String) u.elementAt(1);
+		buf.append(t);
+		for (int k=2; k<u.size(); k++) {
+			t = (String) u.elementAt(k);
 			String firstCh = t.substring(0, 1);
 			firstCh = firstCh.toUpperCase();
 			t = firstCh + t.substring(1, t.length());
@@ -195,7 +197,7 @@ public class SPARQLQueryGenerator {
 	}
 
 
-    public static void main0(String[] args) {
+    public static void test2(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
         String type = args[1];
@@ -242,9 +244,16 @@ public class SPARQLQueryGenerator {
 
 
     public static void main(String[] args) {
-		//test(args);
-		String queryfile = "qualifier2_query.txt";
-		String methodSignature = "construct_get_valueset_member_with_qualifier(String named_graph, String qualifierCode)";
+		String queryfile = args[0];
+		System.out.println(queryfile);
+		int n = queryfile.lastIndexOf("_query");
+		if(n ==  -1) {
+			System.out.println("queryfile: " + queryfile);
+			System.out.println("ERROR: Incorrect naming of query file (example: sparql_query.txt.)");
+			System.exit(1);
+		}
+		String t = queryfile.substring(0, n);
+		String methodSignature = "construct_get_" + t + "(String named_graph)";
         generateCode(queryfile, methodSignature);
 	}
 }
