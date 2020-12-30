@@ -541,12 +541,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setInverseAssociations(getInverseAssociations(conceptCode, terminology));
       }
 
-      if (ip.isRoles()) {
-        concept.setRoles(getRoles(conceptCode, terminology));
-      }
+      // Only "concept" types have roles
+      if (conceptType.equals("concept")) {
+        if (ip.isRoles()) {
+          concept.setRoles(getRoles(conceptCode, terminology));
+        }
 
-      if (ip.isInverseRoles()) {
-        concept.setInverseRoles(getInverseRoles(conceptCode, terminology));
+        if (ip.isInverseRoles()) {
+          concept.setInverseRoles(getInverseRoles(conceptCode, terminology));
+        }
       }
 
       if (ip.isMaps()) {
@@ -560,6 +563,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     concept.sortLists();
     return concept;
+
   }
 
   /* see superclass */
