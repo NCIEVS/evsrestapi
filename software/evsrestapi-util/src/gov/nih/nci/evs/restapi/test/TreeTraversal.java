@@ -211,9 +211,9 @@ public class TreeTraversal {
 	    String named_graph = args[1];
 	    String username = args[2];
 	    String password = args[3];
+	    String root = args[4];
 
 	    TreeTraversal treeTraversal = new TreeTraversal(serviceUrl, named_graph, username, password);
-	    String root = "C111076";
 	    treeTraversal.run(root);
     }
 }
