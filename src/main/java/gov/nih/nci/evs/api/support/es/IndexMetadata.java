@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.support.es;
 
 import org.springframework.data.annotation.Id;
@@ -12,31 +13,35 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
-@Document(
-    indexName = ElasticOperationsService.METADATA_INDEX, 
+/**
+ * The Class IndexMetadata.
+ */
+@Document(indexName = ElasticOperationsService.METADATA_INDEX,
     type = ElasticOperationsService.METADATA_TYPE)
 @JsonInclude(Include.NON_EMPTY)
 public class IndexMetadata {
-  /** the index name **/
+
+  /** the index name *. */
   @Id
   @Field(type = FieldType.Keyword)
   private String indexName;
 
-  /** the total concepts to be indexed **/
+  /** the total concepts to be indexed *. */
   @Field(type = FieldType.Integer)
   private int totalConcepts;
-  
-  /** the status of indexing **/
+
+  /** the status of indexing *. */
   @Field(type = FieldType.Boolean)
   private boolean completed;
 
+  /** The terminology. */
   /* the terminology */
   @Field(type = FieldType.Object)
   private Terminology terminology;
-  
+
   /**
-   * Get index name
-   * 
+   * Get index name.
+   *
    * @return the index name
    */
   public String getIndexName() {
@@ -44,17 +49,17 @@ public class IndexMetadata {
   }
 
   /**
-   * Set the index name
-   * 
+   * Set the index name.
+   *
    * @param indexName the index name
    */
   public void setIndexName(String indexName) {
     this.indexName = indexName;
   }
-  
+
   /**
-   * Get the concepts total
-   * 
+   * Get the concepts total.
+   *
    * @return the total
    */
   public int getTotalConcepts() {
@@ -62,8 +67,8 @@ public class IndexMetadata {
   }
 
   /**
-   * Set the concepts total
-   * 
+   * Set the concepts total.
+   *
    * @param totalConcepts the concepts total
    */
   public void setTotalConcepts(int totalConcepts) {
@@ -71,8 +76,8 @@ public class IndexMetadata {
   }
 
   /**
-   * Get the boolean indicating status of indexing
-   * 
+   * Get the boolean indicating status of indexing.
+   *
    * @return the boolean indicating index completion status
    */
   public boolean isCompleted() {
@@ -80,8 +85,8 @@ public class IndexMetadata {
   }
 
   /**
-   * Set the status of indexing
-   * 
+   * Set the status of indexing.
+   *
    * @param completed the boolean indicating index completion status
    */
   public void setCompleted(boolean completed) {
@@ -89,8 +94,8 @@ public class IndexMetadata {
   }
 
   /**
-   * Get the terminology
-   * 
+   * Get the terminology.
+   *
    * @return the terminology
    */
   public Terminology getTerminology() {
@@ -98,39 +103,43 @@ public class IndexMetadata {
   }
 
   /**
-   * Set the terminology
-   * 
+   * Set the terminology.
+   *
    * @param terminology the terminology
    */
   public void setTerminology(Terminology terminology) {
     this.terminology = terminology;
   }
-  
+
   /**
-   * Get object index name
-   * 
+   * Get object index name.
+   *
    * @return the object index name
    */
   @JsonIgnore
   public String getObjectIndexName() {
-    if (terminology == null) return null;
+    if (terminology == null)
+      return null;
     return terminology.getObjectIndexName();
   }
 
   /**
-   * Get terminology version
-   * 
+   * Get terminology version.
+   *
    * @return the terminology version
    */
   @JsonIgnore
   public String getTerminologyVersion() {
-    if (terminology == null) return null;
+    if (terminology == null)
+      return null;
     return terminology.getTerminologyVersion();
   }
-  
+
+  /* see superclass */
   @Override
   public String toString() {
-    return String.format("{indexName: %s, totalConcepts: %d, completed: %s}", 
-        indexName, totalConcepts, String.valueOf(completed));
+    return String.format(
+        "{indexName: %s, terminologyVersion: %s, totalConcepts: %d, completed: %s}", indexName,
+        getTerminologyVersion(), totalConcepts, String.valueOf(completed));
   }
 }
