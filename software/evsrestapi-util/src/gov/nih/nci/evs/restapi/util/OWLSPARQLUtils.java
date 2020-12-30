@@ -1938,7 +1938,6 @@ public class OWLSPARQLUtils {
 	}
 
 	public String construct_get_ontology(String named_graph) {
-		//String prefixes = PrefixUtils.getPrefixes(null);
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
 		//buf.append(prefixes);
@@ -5551,6 +5550,38 @@ Term Type
 		v = new ParserUtils().getResponseValues(v);
 		return new SortUtils().quickSort(v);
 	}
+
+	public String construct_get_ontology_data(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT ?o ?date ?version ?lang ?comment").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?o a owl:Ontology .").append("\n");
+		buf.append("            ?o dc:date ?date .").append("\n");
+		buf.append("            ?o owl:versionInfo ?version .").append("\n");
+		buf.append("            ?o protege:defaultLanguage ?lang .").append("\n");
+		buf.append("            ?o rdfs:comment ?comment .").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		buf.append("    ").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getOntologyData(String named_graph) {
+		String query = construct_get_ontology_data(named_graph);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
 
 }
 
