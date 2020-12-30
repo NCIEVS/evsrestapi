@@ -817,4 +817,18 @@ public class StringUtils {
 		 }
 		 return hmap;
 	 }
+
+	 public static HashSet createHashSet(Vector v, int column) {
+		 HashSet hset = new HashSet();
+		 for (int i=0; i<v.size(); i++) {
+			 String line = (String) v.elementAt(i);
+			 Vector u = StringUtils.parseData(line, '|');
+			 String value = (String) u.elementAt(column);
+			 if (!hset.contains(value)) {
+				 hset.add(value);
+			 }
+		 }
+		 return hset;
+	 }
+
 }
