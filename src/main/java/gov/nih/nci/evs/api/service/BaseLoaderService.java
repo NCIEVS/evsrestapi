@@ -102,11 +102,11 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     List<IndexMetadata> iMetas = null;
 
     iMetas = termUtils.getStaleTerminologies();
-
-    if (CollectionUtils.isEmpty(iMetas))
-      return;
-
     logger.info("Removing stale terminologies: " + iMetas);
+
+    if (CollectionUtils.isEmpty(iMetas)) {
+      return;
+    }
 
     for (IndexMetadata iMeta : iMetas) {
       logger.info("stale term = " + iMeta.getTerminology());
