@@ -187,7 +187,8 @@ public class HTMLTable {
     }
 
 	public static void main(String[] args) {
-		Vector v = Utils.readFile("tabledata.txt");
+		String filename = args[0];
+		Vector v = Utils.readFile(filename);
 		generate(v);
 	}
 
