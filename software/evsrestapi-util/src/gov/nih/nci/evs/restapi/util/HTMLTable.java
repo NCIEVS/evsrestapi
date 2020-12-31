@@ -13,13 +13,16 @@ public class HTMLTable {
 		PrintWriter pw = null;
 		Vector th_vec = null;
 		String th = null;
-		Vector data_vec = null;
+		Vector data_vec = new Vector();
 		String footer = null;
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
-			if (t.startsWith("<title>")) {
-				title = t.substring("<title>".length(), t.length());
+			t = t.trim();
+			if (t.indexOf("<title>") != -1) {
+				int n = t.indexOf("<title>");
+				title = t.substring(n + "<title>".length(), t.length());
 				outputfile = title + ".html";
+				System.out.println("*****" + outputfile);
 				try {
 					pw = new PrintWriter(outputfile, "UTF-8");
 				} catch (Exception ex) {
@@ -136,6 +139,10 @@ public class HTMLTable {
         String tableLabel,
         Vector th_vec,
         Vector data_vec) {
+
+			if (out == null) {
+				System.out.println("out is NULL???");
+			}
 		out.println("");
 		out.println("<div>");
 		out.println("<center>");
@@ -170,6 +177,20 @@ public class HTMLTable {
 
     public static void printFooter(PrintWriter out) {
 		printFooter(out, null);
+	}
+
+	public static boolean isCode(String t) {
+		if (t == null) return false;
+		if (t.length() == 0) return false;
+		char c = t.charAt(0);
+		if (c != 'C') return false;
+		String s = t.substring(1, t.length());
+		try {
+			int value = Integer.parseInt(s);
+		} catch (Exception ex) {
+			return false;
+		}
+		return true;
 	}
 
 
