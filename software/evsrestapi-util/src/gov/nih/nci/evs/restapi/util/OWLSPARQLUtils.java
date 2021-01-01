@@ -5612,5 +5612,43 @@ Term Type
 			v = new ParserUtils().getResponseValues(v);
 			return new SortUtils().quickSort(v);
 	}
+
+	public String construct_get_axioms(String named_graph, String code) {
+			String prefixes = getPrefixes();
+			StringBuffer buf = new StringBuffer();
+			buf.append(prefixes);
+			buf.append("").append("\n");
+			buf.append("SELECT distinct ?x_code ?x_label ?p_code ?p_label ?q_code ?q_label ?q_value").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + "> {").append("\n");
+			buf.append("            ?x a owl:Class .").append("\n");
+			buf.append("            ?x :NHC0 ?x_code .").append("\n");
+			buf.append("            ?x  :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			buf.append("            ?x rdfs:label ?x_label .").append("\n");
+			buf.append("").append("\n");
+			buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+			buf.append("            ?p rdfs:label ?p_label .").append("\n");
+			buf.append("            ?p :NHC0 ?p_code .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+			buf.append("            ?z_axiom ?q ?q_value .").append("\n");
+			buf.append("            ?q rdfs:label ?q_label .").append("\n");
+			buf.append("            ?q :NHC0 ?q_code .").append("\n");
+			buf.append("    }").append("\n");
+			buf.append("}").append("\n");
+			return buf.toString();
+	}
+
+
+	public Vector get_axioms_by_code(String named_graph, String code) {
+			String query = construct_get_axioms(named_graph, code);
+			Vector v = executeQuery(query);
+			if (v == null) return null;
+			if (v.size() == 0) return v;
+			v = new ParserUtils().getResponseValues(v);
+			return new SortUtils().quickSort(v);
+	}
+
 }
 
