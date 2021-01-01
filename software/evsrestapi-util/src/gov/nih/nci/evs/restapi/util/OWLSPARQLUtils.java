@@ -5618,7 +5618,7 @@ Term Type
 			StringBuffer buf = new StringBuffer();
 			buf.append(prefixes);
 			buf.append("").append("\n");
-			buf.append("SELECT distinct ?x_code ?x_label ?p_code ?p_label ?q_code ?q_label ?q_value").append("\n");
+			buf.append("SELECT distinct ?z_axiom ?x_code ?x_label ?p_code ?p_label ?q_code ?q_label ?q_value").append("\n");
 			buf.append("{").append("\n");
 			buf.append("    graph <" + named_graph + "> {").append("\n");
 			buf.append("            ?x a owl:Class .").append("\n");
