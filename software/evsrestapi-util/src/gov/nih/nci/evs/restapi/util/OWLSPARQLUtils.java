@@ -5650,5 +5650,34 @@ Term Type
 			return new SortUtils().quickSort(v);
 	}
 
+
+	public String construct_get_axiom_annotated_properties(String named_graph) {
+			String prefixes = getPrefixes();
+			StringBuffer buf = new StringBuffer();
+			buf.append(prefixes);
+			buf.append("").append("\n");
+			buf.append("SELECT distinct ?p_code ?p_label ").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + "> {").append("\n");
+			buf.append("            ?z_axiom a owl:Axiom  .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
+			buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
+			buf.append("            ?p rdfs:label ?p_label .").append("\n");
+			buf.append("            ?p :NHC0 ?p_code .").append("\n");
+			buf.append("    }").append("\n");
+			buf.append("}").append("\n");
+			return buf.toString();
+	}
+
+
+	public Vector get_axiom_annotated_properties(String named_graph) {
+			String query = construct_get_axiom_annotated_properties(named_graph);
+			Vector v = executeQuery(query);
+			if (v == null) return null;
+			if (v.size() == 0) return v;
+			v = new ParserUtils().getResponseValues(v);
+			return new SortUtils().quickSort(v);
+	}
+
 }
 
