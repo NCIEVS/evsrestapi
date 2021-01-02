@@ -22,7 +22,7 @@ public class HTMLTable {
 				int n = t.indexOf("<title>");
 				title = t.substring(n + "<title>".length(), t.length());
 				outputfile = title + ".html";
-				System.out.println("*****" + outputfile);
+				outputfile = outputfile.replace("/", "_");
 				try {
 					pw = new PrintWriter(outputfile, "UTF-8");
 				} catch (Exception ex) {
