@@ -164,9 +164,9 @@ public class ConceptData {
 				if (value.indexOf(BASE_URI) != -1) {
 					int n = value.lastIndexOf("#");
 					value = value.substring(n+1, value.length());
-					value = HyperlinkHelper.toHyperlink(value);
+					value = owlSPARQLUtils.getLabel(value) + " (" + HyperlinkHelper.toHyperlink(value) + ")";
 				} else if (HTMLTable.isCode(value) && value.length() <8) {
-					value = HyperlinkHelper.toHyperlink(value);
+					value = owlSPARQLUtils.getLabel(value) + " (" + HyperlinkHelper.toHyperlink(value) + ")";
 				}
 				w.add(name + "|" + value);
 			}
@@ -206,11 +206,13 @@ public class ConceptData {
 				Object obj = axiomData.elementAt(i);
 				if (obj instanceof Synonym) {
 					Synonym syn = (Synonym) obj;
-					w.add(syn.getTermName() + "|"
+					String value = syn.getTermName() + "|"
 					  + syn.getTermGroup() + "|"
 					  + syn.getTermSource() + "|"
 					  + syn.getSourceCode() + "|"
-					  + syn.getSubSourceName());
+					  + syn.getSubSourceName();
+					value = value.replace("null", "");
+					w.add(value);
 				}
 			}
 	    } else if (propertyName.compareTo("DEFINITION") == 0) {
@@ -218,9 +220,12 @@ public class ConceptData {
 				Object obj = axiomData.elementAt(i);
 				if (obj instanceof Definition) {
 					Definition def = (Definition) obj;
-					w.add(def.getDescription() + "|"
+					String value = def.getDescription() + "|"
 					  + def.getSource() + "|"
-					  + def.getAttribution());
+					  + def.getAttribution();
+					value = value.replace("null", "");
+					w.add(value);
+
 				}
 			}
 
@@ -229,9 +234,11 @@ public class ConceptData {
 				Object obj = axiomData.elementAt(i);
 				if (obj instanceof AltDefinition) {
 					AltDefinition def = (AltDefinition) obj;
-					w.add(def.getDescription() + "|"
+					String value = def.getDescription() + "|"
 					  + def.getSource() + "|"
-					  + def.getAttribution());
+					  + def.getAttribution();
+					value = value.replace("null", "");
+					w.add(value);
 				}
 			}
 
@@ -240,12 +247,14 @@ public class ConceptData {
 				Object obj = axiomData.elementAt(i);
 				if (obj instanceof MapToEntry) {
 					MapToEntry e = (MapToEntry) obj;
-					w.add(e.getPreferredName() + "|"
+					String value = e.getPreferredName() + "|"
 					  + e.getRelationshipToTarget() + "|"
 					  + e.getTargetTermType() + "|"
 					  + e.getTargetCode() + "|"
 					  + e.getTargetTerminology() + "|"
-					  + e.getTargetTerminologyVersion());
+					  + e.getTargetTerminologyVersion();
+					value = value.replace("null", "");
+					w.add(value);
 				}
 			}
 
@@ -254,10 +263,12 @@ public class ConceptData {
 				Object obj = axiomData.elementAt(i);
 				if (obj instanceof GoAnnotation) {
 					GoAnnotation e = (GoAnnotation) obj;
-					w.add(e.getAnnotation() + "|"
+					String value = e.getAnnotation() + "|"
 					  + e.getGoEvi() + "|"
 					  + e.getGoSource() + "|"
-					  + e.getSourceDate());
+					  + e.getSourceDate();
+					value = value.replace("null", "");
+					w.add(value);
 				}
 			}
 		}
