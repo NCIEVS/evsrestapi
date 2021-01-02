@@ -146,7 +146,7 @@ public class HTMLTable {
 		out.println("");
 		out.println("<div>");
 		out.println("<center>");
-		out.println("<h2>" + tableLabel + "</h2>");
+		out.println("<h3>" + tableLabel + "</h3>");
 		out.println("<table>");
         out.println("<tr>");
 		for (int i=0; i<th_vec.size(); i++) {
