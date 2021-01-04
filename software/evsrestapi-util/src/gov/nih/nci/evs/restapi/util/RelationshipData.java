@@ -102,11 +102,44 @@ public class RelationshipData {
 	}
 
     public void generate(String named_graph, String code) {
-		boolean outbound = true;
-        Vector v = getAssociation(named_graph, code, null, outbound);
 		Vector w = new Vector();
 		String label = owlSPARQLUtils.getLabel(code);
 		w.add("<title>" + label + " (" + code + ")");
+
+		Vector v = getSuperconcepts(named_graph, code);
+		w.add("<table>Superconcepts");
+		w.add("<th>Label");
+		w.add("<th>Code");
+		w.add("<data>");
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String concept_label = (String) u.elementAt(0);
+			String concept_code = (String) u.elementAt(1);
+			concept_code = HyperlinkHelper.toHyperlink(concept_code);
+            w.add(concept_label + "|" + concept_code);
+		}
+		w.add("</data>");
+		w.add("</table>");
+
+		v = getSubconcepts(named_graph, code);
+		w.add("<table>Subconcepts");
+		w.add("<th>Label");
+		w.add("<th>Code");
+		w.add("<data>");
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String concept_label = (String) u.elementAt(0);
+			String concept_code = (String) u.elementAt(1);
+			concept_code = HyperlinkHelper.toHyperlink(concept_code);
+            w.add(concept_label + "|" + concept_code);
+		}
+		w.add("</data>");
+		w.add("</table>");
+
+        boolean outbound = true;
+        v = getAssociation(named_graph, code, null, outbound);
 		w.add("<table>Outbound Associations");
 		w.add("<th>Association");
 		w.add("<th>Target Concept Label");
@@ -189,6 +222,23 @@ public class RelationshipData {
 		v = new ParserUtils().getResponseValues(v);
 		return new SortUtils().quickSort(v);
 	}
+
+	public Vector getSuperconcepts(String named_graph, String code) {
+        Vector v = owlSPARQLUtils.getSuperclassesByCode(named_graph, code);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
+	public Vector getSubconcepts(String named_graph, String code) {
+        Vector v = owlSPARQLUtils.getSubclassesByCode(named_graph, code);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
