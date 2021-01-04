@@ -5722,5 +5722,110 @@ Term Type
 		v = new ParserUtils().getResponseValues(v);
 		return new SortUtils().quickSort(v);
 	}
+
+	public String construct_get_restrictions(String named_graph, String code, boolean outbound) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?x_code ?x_label ?p_code ?p_label ?c_code ?c_label").append("\n");
+
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + "> {").append("\n");
+		buf.append("            {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		if (code != null && outbound) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?x owl:equivalentClass ?y .").append("\n");
+		buf.append("            ?y (rdfs:subClassOf|(owl:intersectionOf/rdf:rest*/rdf:first))* ?r1 .").append("\n");
+		buf.append("            ?r1 owl:onProperty ?p .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?p :NHC0 ?p_code .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?r1 owl:someValuesFrom ?c .").append("\n");
+		buf.append("            ?c :NHC0 ?c_code .").append("\n");
+
+		if (code != null && !outbound) {
+			buf.append("            ?c :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?c rdfs:label ?c_label .").append("\n");
+		buf.append("            }").append("\n");
+		buf.append("            UNION").append("\n");
+		buf.append("            {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+
+		if (code != null && outbound) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?x owl:equivalentClass ?y .").append("\n");
+		buf.append("            ?y (rdfs:subClassOf|(owl:unionOf/rdf:rest*/rdf:first))* ?r1 .").append("\n");
+		buf.append("            ?r1 owl:onProperty ?p .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?p :NHC0 ?p_code .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?r1 owl:someValuesFrom ?c .").append("\n");
+		buf.append("            ?c :NHC0 ?c_code .").append("\n");
+
+		if (code != null && !outbound) {
+			buf.append("            ?c :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?c rdfs:label ?c_label .").append("\n");
+		buf.append("            }").append("\n");
+		buf.append("            UNION            ").append("\n");
+		buf.append("            {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+
+		if (code != null && outbound) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x rdfs:subClassOf ?r .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?r owl:onProperty ?p .").append("\n");
+		buf.append("            ?p :NHC0 ?p_code .").append("\n");
+		buf.append("            ?p rdfs:label ?p_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("            ?r owl:someValuesFrom ?c .").append("\n");
+		buf.append("            ?c :NHC0 ?c_code .").append("\n");
+
+		if (code != null && !outbound) {
+			buf.append("            ?c :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+		buf.append("            ?c rdfs:label ?c_label .").append("\n");
+		buf.append("            }").append("\n");
+		buf.append("            ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		buf.append(" ").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getRestrictions(String named_graph, String code, boolean outbound) {
+		String query = construct_get_restrictions(named_graph, code, outbound);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
+
 }
 
