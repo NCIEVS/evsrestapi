@@ -5827,5 +5827,67 @@ Term Type
 	}
 
 
+	public String construct_get_hierarchically_related_concepts(String named_graph, String code, boolean direction) {
+			String prefixes = getPrefixes();
+			StringBuffer buf = new StringBuffer();
+			buf.append(prefixes);
+			buf.append("").append("\n");
+			buf.append("select ?x_label ?x_code ?c_label ?c_code  ").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + "> {").append("\n");
+			buf.append("          { ").append("\n");
+			buf.append("          ?x a owl:Class .").append("\n");
+			buf.append("          ?x :NHC0 ?x_code .").append("\n");
+
+			if (code != null && direction) {
+				buf.append("          ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+			buf.append("          ?x rdfs:label ?x_label .  ").append("\n");
+			buf.append("          ?x rdfs:subClassOf ?c .").append("\n");
+
+
+			buf.append("          ?c :NHC0 ?c_code .").append("\n");
+			if (code != null && !direction) {
+				buf.append("          ?c :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+
+			buf.append("          ?c rdfs:label ?c_label .  ").append("\n");
+			buf.append("          }").append("\n");
+			buf.append("          union").append("\n");
+			buf.append("          {").append("\n");
+			buf.append("          ?x a owl:Class .").append("\n");
+			buf.append("          ?x :NHC0 ?x_code .").append("\n");
+
+			if (code != null && direction) {
+				buf.append("          ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+
+			buf.append("          ?x rdfs:label ?x_label .            ").append("\n");
+			buf.append("          ?x owl:equivalentClass ?y .").append("\n");
+			buf.append("          ?y (rdfs:subClassOf|(owl:intersectionOf/rdf:rest*/rdf:first))* ?c .").append("\n");
+			buf.append("          ?c a owl:Class .").append("\n");
+			buf.append("          ?c :NHC0 ?c_code .").append("\n");
+
+			if (code != null && !direction) {
+				buf.append("          ?c :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+
+			buf.append("          ?c rdfs:label ?c_label .  ").append("\n");
+			buf.append("          }").append("\n");
+			buf.append("    }").append("\n");
+			buf.append("}").append("\n");
+			buf.append("").append("\n");
+			return buf.toString();
+	}
+
+
+	public Vector getHierarchicallyRrelatedConcepts(String named_graph, String code, boolean direction) {
+			String query = construct_get_hierarchically_related_concepts(named_graph, code, direction);
+			Vector v = executeQuery(query);
+			if (v == null) return null;
+			if (v.size() == 0) return v;
+			v = new ParserUtils().getResponseValues(v);
+			return new SortUtils().quickSort(v);
+	}
 }
 
