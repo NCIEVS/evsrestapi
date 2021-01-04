@@ -106,7 +106,7 @@ public class RelationshipData {
 		String label = owlSPARQLUtils.getLabel(code);
 		w.add("<title>" + label + " (" + code + ")");
 
-		Vector v = getSuperconcepts(named_graph, code);
+		Vector v = getHierarchicallyRrelatedConcepts(named_graph, code, true);
 		w.add("<table>Superconcepts");
 		w.add("<th>Label");
 		w.add("<th>Code");
@@ -114,15 +114,15 @@ public class RelationshipData {
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
-			String concept_label = (String) u.elementAt(0);
-			String concept_code = (String) u.elementAt(1);
+			String concept_label = (String) u.elementAt(2);
+			String concept_code = (String) u.elementAt(3);
 			concept_code = HyperlinkHelper.toHyperlink(concept_code);
             w.add(concept_label + "|" + concept_code);
 		}
 		w.add("</data>");
 		w.add("</table>");
 
-		v = getSubconcepts(named_graph, code);
+		v = getHierarchicallyRrelatedConcepts(named_graph, code, false);
 		w.add("<table>Subconcepts");
 		w.add("<th>Label");
 		w.add("<th>Code");
@@ -139,9 +139,6 @@ public class RelationshipData {
 		w.add("</table>");
 
         boolean outbound = true;
-
-//	(24) C122690|Acute Myeloid Leukemia with t(7;12)(q36;p13); HLXB9-ETV6|R176|Disease_Mapped_To_Gene|C105817|MNX1/ETV6 Fusion Gene
-
         v = getRestrictions(named_graph, code, outbound);
 		w.add("<table>Outbound Roles");
 		w.add("<th>Role");
@@ -382,6 +379,71 @@ public class RelationshipData {
 		v = new ParserUtils().getResponseValues(v);
 		return new SortUtils().quickSort(v);
 	}
+
+
+	public String construct_get_hierarchically_related_concepts(String named_graph, String code, boolean direction) {
+			String prefixes = owlSPARQLUtils.getPrefixes();
+			StringBuffer buf = new StringBuffer();
+			buf.append(prefixes);
+			buf.append("").append("\n");
+			buf.append("select ?x_label ?x_code ?c_label ?c_code  ").append("\n");
+			buf.append("{").append("\n");
+			buf.append("    graph <" + named_graph + "> {").append("\n");
+			buf.append("          { ").append("\n");
+			buf.append("          ?x a owl:Class .").append("\n");
+			buf.append("          ?x :NHC0 ?x_code .").append("\n");
+
+			if (code != null && direction) {
+				buf.append("          ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+			buf.append("          ?x rdfs:label ?x_label .  ").append("\n");
+			buf.append("          ?x rdfs:subClassOf ?c .").append("\n");
+
+
+			buf.append("          ?c :NHC0 ?c_code .").append("\n");
+			if (code != null && !direction) {
+				buf.append("          ?c :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+
+			buf.append("          ?c rdfs:label ?c_label .  ").append("\n");
+			buf.append("          }").append("\n");
+			buf.append("          union").append("\n");
+			buf.append("          {").append("\n");
+			buf.append("          ?x a owl:Class .").append("\n");
+			buf.append("          ?x :NHC0 ?x_code .").append("\n");
+
+			if (code != null && direction) {
+				buf.append("          ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+
+			buf.append("          ?x rdfs:label ?x_label .            ").append("\n");
+			buf.append("          ?x owl:equivalentClass ?y .").append("\n");
+			buf.append("          ?y (rdfs:subClassOf|(owl:intersectionOf/rdf:rest*/rdf:first))* ?c .").append("\n");
+			buf.append("          ?c a owl:Class .").append("\n");
+			buf.append("          ?c :NHC0 ?c_code .").append("\n");
+
+			if (code != null && !direction) {
+				buf.append("          ?c :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+			}
+
+			buf.append("          ?c rdfs:label ?c_label .  ").append("\n");
+			buf.append("          }").append("\n");
+			buf.append("    }").append("\n");
+			buf.append("}").append("\n");
+			buf.append("").append("\n");
+			return buf.toString();
+	}
+
+
+	public Vector getHierarchicallyRrelatedConcepts(String named_graph, String code, boolean direction) {
+			String query = construct_get_hierarchically_related_concepts(named_graph, code, direction);
+			Vector v = owlSPARQLUtils.executeQuery(query);
+			if (v == null) return null;
+			if (v.size() == 0) return v;
+			v = new ParserUtils().getResponseValues(v);
+			return new SortUtils().quickSort(v);
+	}
+
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
