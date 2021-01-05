@@ -82,7 +82,21 @@ public class FileUtils
 		}
 	}
 
-    public static void main(String[] args) {
+    public static Vector getFilesInDirectory(String dirpathname) {
+        File f = new File(dirpathname);
+        Vector v = new Vector();
+        String[] pathnames = f.list();
+        for (String pathname : pathnames) {
+            v.add(pathname);
+        }
+        return v;
+    }
+
+    public static void copyAll(String sourceDir, String targetDir) {
+		copyFile(sourceDir, targetDir, getFilesInDirectory(sourceDir));
+	}
+
+    public static void main1(String[] args) {
 		String currentWirkingDir = getCurrentWorkingDirectory();
 		System.out.println("getCurrentWorkingDirectory: " + currentWirkingDir);
 		String today = getToday("MMddyy");
@@ -101,5 +115,11 @@ public class FileUtils
 		filesToCopy.add("cmd.exe");
 		filesToCopy.add("run.bat");
 		copyFile(currentWirkingDir, dirname, filesToCopy);
+	}
+
+	public static void main(String[] args) {
+		String sourceDir = args[4];
+		String targetDir = args[5];
+		copyAll(sourceDir, targetDir);
 	}
 }
