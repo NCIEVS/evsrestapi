@@ -15,6 +15,9 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.sort.ScoreSortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,6 +183,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (searchCriteria.getInclude().toLowerCase().contains("highlights")) {
       searchQuery = searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
     }
+
+    // Sort by score, but then by code
+    searchQuery.withSort(SortBuilders.scoreSort())
+        .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
 
     // query on operations
     Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class,
