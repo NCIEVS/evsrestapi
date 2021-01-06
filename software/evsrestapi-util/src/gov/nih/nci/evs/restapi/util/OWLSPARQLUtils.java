@@ -5881,7 +5881,7 @@ Term Type
 	}
 
 
-	public Vector getHierarchicallyRrelatedConcepts(String named_graph, String code, boolean direction) {
+	public Vector getHierarchicallyRelatedConcepts(String named_graph, String code, boolean direction) {
 			String query = construct_get_hierarchically_related_concepts(named_graph, code, direction);
 			Vector v = executeQuery(query);
 			if (v == null) return null;
