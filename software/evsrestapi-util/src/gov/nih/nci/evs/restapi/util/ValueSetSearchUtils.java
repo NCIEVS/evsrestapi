@@ -80,33 +80,54 @@ import java.util.regex.Matcher;
 public class ValueSetSearchUtils extends SPARQLSearchUtils {
 	private OWLSPARQLUtils owlSPARQLUtils = null;
 	//private SPARQLSearchUtils sparqlSearchUtils = null;
+	private String serviceUrl = null;
 	private String named_graph = null;
+	private String username = null;
+	private String password = null;
 	private HashMap valueSetMembershipHashMap = null;
 	private Vector concept_in_subset_vec = null;
 	private HashMap valueSetURIHashMap = null;
 	private Vector vs_code_vec = null;
+	public static String CONCEPT_IN_SUBSET = "Concept_In_Subset";
 
-/*
-	public ValueSetSearchUtils(String serviceUrl) {
-		super(serviceUrl);
-		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
-    }
+	public ValueSetSearchUtils(String serviceUrl, String named_graph, String username, String password) {
+		super(serviceUrl, username, password);
 
-	public ValueSetSearchUtils(String serviceUrl, OWLSPARQLUtils owlSPARQLUtils) {
-		//this.serviceUrl = serviceUrl;
-		super(serviceUrl);
-		this.owlSPARQLUtils = owlSPARQLUtils;
-    }
-
-*/
-
-	public ValueSetSearchUtils(String serviceUrl, String named_graph, String username, String password,
-	    Vector concept_in_subset_vec) {
-		super(serviceUrl);
+		this.serviceUrl = serviceUrl;
+		this.named_graph = named_graph;
+		this.username = username;
+		this.password = password;
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
-		this.owlSPARQLUtils.set_named_graph(named_graph);
+		if (this.owlSPARQLUtils == null) {
+			System.out.println("this.owlSPARQLUtils == null???");
+		} else {
+			try {
+				this.owlSPARQLUtils.set_named_graph(named_graph);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		concept_in_subset_vec = generate_concept_in_subset_vec();
 		initialize(named_graph, concept_in_subset_vec);
     }
+
+	public Vector generate_concept_in_subset_vec() {
+		boolean fileExists = false;
+		String cisfile = CONCEPT_IN_SUBSET + ".txt";
+		try {
+			fileExists = FileUtils.fileExists(cisfile);
+			if (fileExists) {
+				concept_in_subset_vec = Utils.readFile(cisfile);
+			} else {
+				boolean code_only = false;
+				concept_in_subset_vec = new SortUtils().quickSort(concept_in_subset_vec);
+				Utils.saveToFile(cisfile, concept_in_subset_vec);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return concept_in_subset_vec;
+	}
 
     public void set_concept_in_subset_vec(Vector concept_in_subset_vec) {
 		this.concept_in_subset_vec = concept_in_subset_vec;
@@ -118,14 +139,8 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		this.owlSPARQLUtils.set_named_graph(named_graph);
 		this.set_named_graph(named_graph);
 		this.concept_in_subset_vec = concept_in_subset_vec;
-
-		System.out.println("concept_in_subset_vec: " + concept_in_subset_vec.size());
-
 		this.valueSetMembershipHashMap = this.owlSPARQLUtils.createValueSetMembershipHashMap(concept_in_subset_vec);
 		this.vs_code_vec = this.owlSPARQLUtils.getPermissibleValues(concept_in_subset_vec);
-
-		System.out.println("vs_code_vec: " + vs_code_vec.size());
-
 		this.valueSetURIHashMap = owlSPARQLUtils.createHeaderConceptCode2ValueSetURIHashMap(named_graph, vs_code_vec);
 		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
 	}
@@ -160,31 +175,6 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		Vector results = new Vector();
 		int k = 0;
 		String searchTarget = TARGETS[0];
-
-/*
-        for (int j=0; j<ALGORITHMS.length; j++) {
-			k++;
-			String algorithm = ALGORITHMS[j];
-			String propertyName = "FULL_SYN";
-            results.add("\n(" + k + ") propertyName: " + propertyName + "; searchString: " + searchString + "; target: " + searchTarget + "; algorithm: " + algorithm);
-			try {
-				SearchResult sr = search(named_graph, propertyName, searchString, searchTarget, algorithm);
-				if (sr != null) {
-					sr = restrictToValueSets(sr);
-					results.add(sr.toJson());
-					Vector uris = searchResult2ValueSetURIs(sr);
-					results.add("Value sets: (" + algorithm + ")");
-					for (int k2=0; k2<uris.size(); k2++) {
-						String uri = (String) uris.elementAt(k2);
-						results.add("\t" + uri);
-					}
-				}
-			} catch (Exception ex) {
-				System.out.println("Searching on " + propertyName + " using " + algorithm + " throws exception???");
-			}
-		}
-*/
-
 		searchTarget = TARGETS[2];
 		for (int j=0; j<ALGORITHMS.length; j++) {
 			k++;
@@ -400,6 +390,39 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
+
+
+	public String construct_get_string_valued_annotation_properties(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(this.owlSPARQLUtils.getPrefixes());
+		buf.append("SELECT distinct ?p_label ?p_code ").append("\n");
+		buf.append("{ ").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("      {").append("\n");
+		buf.append("         {").append("\n");
+		buf.append("           ?p a owl:AnnotationProperty .").append("\n");
+		buf.append("           ?p :NHC0 ?p_code .").append("\n");
+		buf.append("           ?p rdfs:label ?p_label .").append("\n");
+		buf.append("         }").append("\n");
+		buf.append("         MINUS").append("\n");
+		buf.append("         {").append("\n");
+		buf.append("           ?x ?p ?y .").append("\n");
+		buf.append("           ?x a owl:Class .").append("\n");
+		buf.append("           ?y a owl:Class .").append("\n");
+		buf.append("         }").append("\n");
+		buf.append("      }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getStringValuedAnnotationProperties(String named_graph) {
+		String query = construct_get_string_valued_annotation_properties(named_graph);
+		return this.owlSPARQLUtils.executeQuery(query);
+	}
+
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
@@ -409,48 +432,8 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 		System.out.println("named_graph: " + named_graph);
 
 		long ms = System.currentTimeMillis();
-		//String query_file = args[1];
-		//System.out.println(query_file);
-		Vector concept_in_subset_vec = Utils.readFile(ValueSetUtils.CONCEPT_IN_SUBSET_FILE);
-		ValueSetSearchUtils searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password, concept_in_subset_vec);
-		//searchUtils.runQuery(query_file);
-
-		//String named_graph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-
+		ValueSetSearchUtils searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password);
 		Vector w = searchUtils.searchValueSets(named_graph, "red", SPARQLSearchUtils.EXACT_MATCH);
 		StringUtils.dumpVector("search_results", w);
 	}
-
-
-/*
-	public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-
-		String serviceUrl = args[0];
-		System.out.println(serviceUrl);
-		String codingScheme = "NCI_Thesaurus";
-		MetadataUtils test = new MetadataUtils(serviceUrl);
-		String version = test.getLatestVersion(codingScheme);
-		String named_graph = test.getNamedGraph(codingScheme);
-
-		System.out.println(named_graph);
-		serviceUrl = serviceUrl + "?query=";
-
-		System.out.println("serviceUrl: " + serviceUrl);
-		System.out.println("codingScheme: " + codingScheme);
-		System.out.println("version: " + version);
-		System.out.println("named_graph: " + named_graph);
-
-		String concept_in_subset_file = "Concept_In_Subset.txt";
-		Vector cis_vec = Utils.readFile(concept_in_subset_file);
-		ValueSetSearchUtils searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, cis_vec);
-	    String outputfile = "search_" + StringUtils.getToday() + ".txt";
-	    String searchString = "red";
-
-	    ms = System.currentTimeMillis();
-	    searchUtils.runSearch(searchString, outputfile);
-	    System.out.println("Total search run time (ms): " + (System.currentTimeMillis() - ms));
-	}
-*/
-
 }

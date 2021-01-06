@@ -236,7 +236,7 @@ System.out.println("Step 3: " + CONCEPT_IN_SUBSET_FILE);
 			concept_in_subset_vec = readFile(CONCEPT_IN_SUBSET_FILE);
 		}
 		//searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
-		searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password, concept_in_subset_vec);
+		//searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password, concept_in_subset_vec);
 		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
 System.out.println("Step 4: " + VS_HEADER_CONCEPT_FILE);

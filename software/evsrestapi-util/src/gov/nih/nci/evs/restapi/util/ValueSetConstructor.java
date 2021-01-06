@@ -1,4 +1,6 @@
 package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.model.*;
+
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
 
@@ -124,15 +126,17 @@ public class ValueSetConstructor {
 	    Vector w = new Vector();
 	    Stack stack = new Stack();
 	    stack.push(root);
+	    Vector v = new Vector();
 	    while (!stack.isEmpty()) {
 			String code = (String) stack.pop();
-			Vector v = owlSPARQLUtils.get_concepts_in_subset(this.namedGraph, code);
+			v = owlSPARQLUtils.get_concepts_in_subset(this.namedGraph, code);
 			w.addAll(v);
 			Vector subs = owlSPARQLUtils.getSubclassesByCode(code);
 			if (subs != null && subs.size() > 0) {
 				for (int k=0; k<subs.size(); k++) {
 					String sub = (String) subs.elementAt(k);
-					stack.push(sub);
+					Vector u = StringUtils.parseData(sub, '|');
+					stack.push((String) u.elementAt(1));
 				}
 			}
 		}
@@ -168,11 +172,11 @@ public class ValueSetConstructor {
 		return w;
 	}
 
-	public Vector generate_concept_in_subset_by_descendants(Vector decendants) {
+	public Vector generate_concept_in_subset_by_descendants(Vector descendants) {
 	    Vector w = new Vector();
 	    HashSet hset = new HashSet();
-	    for (int i=0; i<decendants.size(); i++) {
-			String code = (String) decendants.elementAt(i);
+	    for (int i=0; i<descendants.size(); i++) {
+			String code = (String) descendants.elementAt(i);
 			if (!hset.contains(code)) {
 				hset.add(code);
 				Vector v = owlSPARQLUtils.get_concepts_in_subset(this.namedGraph, code);

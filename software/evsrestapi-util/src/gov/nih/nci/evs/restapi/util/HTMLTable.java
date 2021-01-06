@@ -6,6 +6,58 @@ import java.util.*;
 
 public class HTMLTable {
 
+	public static void generate(Vector v) {
+		String title = null;
+		String table = null;
+		String outputfile = null;
+		PrintWriter pw = null;
+		Vector th_vec = null;
+		String th = null;
+		Vector data_vec = new Vector();
+		String footer = null;
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			t = t.trim();
+			if (t.indexOf("<title>") != -1) {
+				int n = t.indexOf("<title>");
+				title = t.substring(n + "<title>".length(), t.length());
+				outputfile = title + ".html";
+				outputfile = outputfile.replace("/", "_");
+				try {
+					pw = new PrintWriter(outputfile, "UTF-8");
+				} catch (Exception ex) {
+				    ex.printStackTrace();
+				}
+                printHeader(pw, title);
+				table = null;
+			} else if (t.startsWith("<table>")) {
+				table = t.substring("<table>".length(), t.length());
+				th_vec = new Vector();
+			} else if (t.startsWith("<th>")) {
+				th = t.substring("<th>".length(), t.length());
+				th_vec.add(th);
+			} else if (t.startsWith("<data>")) {
+				data_vec = new Vector();
+			} else if (t.startsWith("</table>")) {
+				printTable(pw, table, th_vec, data_vec);
+				table = null;
+                th_vec = new Vector();
+				data_vec = new Vector();
+			} else if (t.startsWith("<footer>")) {
+				footer = t.substring("<footer>".length(), t.length());
+			} else {
+				data_vec.add(t);
+			}
+		}
+		try {
+			printFooter(pw, footer);
+			pw.close();
+			System.out.println("Output file " + outputfile + " generated.");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	public static void printBanner(PrintWriter out) {
 		out.println("<div>");
 		out.println("  <img");
@@ -78,7 +130,7 @@ public class HTMLTable {
 		out.println("<h1>" + pageTitle + "</h1>");
 		out.println("<p>");
 		String today = StringUtils.getToday("MM-dd-yyyy");
-		out.println("<h2>" + today + "</h2>");
+		out.println("<h2>(Last modified: " + today + ")</h2>");
 		out.println("</p>");
 		out.println("</center>");
 	}
@@ -87,10 +139,14 @@ public class HTMLTable {
         String tableLabel,
         Vector th_vec,
         Vector data_vec) {
+
+			if (out == null) {
+				System.out.println("out is NULL???");
+			}
 		out.println("");
 		out.println("<div>");
 		out.println("<center>");
-		out.println("<h2>" + tableLabel + "</h2>");
+		out.println("<h3>" + tableLabel + "</h3>");
 		out.println("<table>");
         out.println("<tr>");
 		for (int i=0; i<th_vec.size(); i++) {
@@ -118,68 +174,43 @@ public class HTMLTable {
 		out.println("");
 	}
 
+
     public static void printFooter(PrintWriter out) {
+		printFooter(out, null);
+	}
+
+	public static boolean isCode(String t) {
+		if (t == null) return false;
+		if (t.length() == 0) return false;
+		char c = t.charAt(0);
+		if (c != 'C') return false;
+		String s = t.substring(1, t.length());
+		try {
+			int value = Integer.parseInt(s);
+		} catch (Exception ex) {
+			return false;
+		}
+		return true;
+	}
+
+
+    public static void printFooter(PrintWriter out, String footer) {
 		out.println("</div>");
-		out.println("");
-		out.println("");
-		out.println("</center>");
+        out.println("<br></br>");
+        out.println("<br></br>");
+        out.println("<center><b>");
+		if(footer != null) {
+			out.println(footer);
+		}
+		out.println("</b></center>");
 		out.println("</body>");
 		out.println("</html>");
     }
 
 	public static void main(String[] args) {
-		String serviceUrl = args[0];
-		String namedGraph = args[1];
-		String username = args[2];
-		String password = args[3];
-	    OWLSPARQLUtils test = new OWLSPARQLUtils(serviceUrl, username, password);
-        test.set_named_graph(namedGraph);
-
-        String pageTitle = "NCIt_Properties_and_Relationships";
-        String outputfile = pageTitle + ".html";
-        pageTitle = pageTitle.replace("_", " ");
-        long ms = System.currentTimeMillis();
-		PrintWriter pw = null;
-		Vector th_vec = new Vector();
-		th_vec.add("Name");
-		th_vec.add("Code");
-		try {
-			pw = new PrintWriter(outputfile, "UTF-8");
-            printHeader(pw, pageTitle);
-			Vector v = test.getSupportedProperties(namedGraph);
-			String tableLabel = "Supported Properties";
-            printTable(pw, tableLabel, th_vec, v);
-
-	        v = test.getSupportedRoles(namedGraph);
- 			tableLabel = "Supported Roles";
-            printTable(pw, tableLabel, th_vec, v);
-
-	        v = test.getSupportedAssociations(namedGraph);
- 			tableLabel = "Supported Associations";
-            printTable(pw, tableLabel, th_vec, v);
-
-            th_vec = new Vector();
-			th_vec.add("Property Name");
-			th_vec.add("Property Code");
-			th_vec.add("Qualifier Name");
-			th_vec.add("Qualifier Code");
-
-	        v = test.getSupportedPropertyQualifiers(namedGraph);
- 			tableLabel = "Supported Property Qualifiers";
-            printTable(pw, tableLabel, th_vec, v);
-
-		} catch (Exception ex) {
-
-		} finally {
-			try {
-				pw.close();
-				System.out.println("Output file " + outputfile + " generated.");
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-
+		String filename = args[0];
+		Vector v = Utils.readFile(filename);
+		generate(v);
 	}
 
 }

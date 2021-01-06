@@ -67,16 +67,137 @@ import java.text.*;
 
 public class SPARQLQueryGenerator {
     private OWLSPARQLUtils owlSPARQLUtils = null;
+	String serviceUrl = null;
+	String namedGraph = null;
+	String username = null;
+	String password = null;
 
-    private String sparql_serviceUrl = "https://sparql-evs.nci.nih.gov/sparql?query=";
-    private String sparql_ns = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    static String returnChar = "\\n";
 
-    public SPARQLQueryGenerator() {
-        owlSPARQLUtils = new OWLSPARQLUtils(sparql_serviceUrl, null,null);
-        owlSPARQLUtils.set_named_graph(sparql_ns);
+    public SPARQLQueryGenerator(String serviceUrl, String namedGraph, String username, String password) {
+        owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+        owlSPARQLUtils.set_named_graph(namedGraph);
     }
 
-    public static void main(String[] args) {
+    public static String bufAppend(String str) {
+        return "buf.append(\"" + str + "\"" + ").append(" + "\"" + returnChar + "\")" + ";";
+    }
+
+    public static Vector bufAppend(Vector v) {
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String str = (String) v.elementAt(i);
+			w.add(bufAppend(str));
+		}
+		return w;
+	}
+
+	public static void dumpVector(String methodSignature, Vector v) {
+		System.out.println(methodSignature);
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String str = (String) v.elementAt(i);
+			System.out.println(str);
+		}
+	}
+
+	public static Vector createConstrcQueryMethod(String methodSignature, Vector v) {
+		Vector w = new Vector();
+	    w.add("public String " + methodSignature + " {");
+		w.add("\tString prefixes = getPrefixes();");
+		w.add("\tStringBuffer buf = new StringBuffer();");
+		w.add("\tbuf.append(prefixes);");
+		for (int i=0; i<v.size(); i++) {
+			String str = (String) v.elementAt(i);
+
+//buf.append("            ?a  :NHC0 ""A8""^^xsd:string .").append("\n");
+
+			str = str.replace("\"", "\\\"");
+
+			String t = str.toUpperCase();
+			t = t.trim();
+
+			if (!t.startsWith("PREFIX")) {
+				w.add("\t" + bufAppend(str));
+		    }
+		}
+		w.add("\treturn buf.toString();");
+		w.add("}");
+		return w;
+	}
+
+	public static Vector createQueryMethod(String constructQueryMethodSignature) {
+		Vector w = new Vector();
+		int n = constructQueryMethodSignature.lastIndexOf("(");
+		String s1 = constructQueryMethodSignature.substring(0, n);
+		Vector u = StringUtils.parseData(s1, '_');
+		StringBuffer buf = new StringBuffer();
+		String t = (String) u.elementAt(1);
+		buf.append(t);
+		for (int k=2; k<u.size(); k++) {
+			t = (String) u.elementAt(k);
+			String firstCh = t.substring(0, 1);
+			firstCh = firstCh.toUpperCase();
+			t = firstCh + t.substring(1, t.length());
+			buf.append(t);
+		}
+		String methodSignature = buf.toString();
+		String s2 = constructQueryMethodSignature.substring(n, constructQueryMethodSignature.length());
+		w.add("public Vector " +  methodSignature + s2 + " {");
+		constructQueryMethodSignature = constructQueryMethodSignature.replace("String ", "");
+
+		w.add("\tString query = " + constructQueryMethodSignature + ";");
+		w.add("\tVector v = executeQuery(query);");
+		w.add("\tif (v == null) return null;");
+		w.add("\tif (v.size() == 0) return v;");
+		w.add("\tv = new ParserUtils().getResponseValues(v);");
+		w.add("\treturn new SortUtils().quickSort(v);");
+		w.add("}");
+		return w;
+	}
+
+    public static void generateCode(String queryfile, String methodSignature) {
+		Vector v = Utils.readFile(queryfile);
+		//String methodSignature = "construct_get_inbound_roles_by_code(String named_graph, String code)";
+		dumpVector("\n", createConstrcQueryMethod(methodSignature, v));
+		dumpVector("\n", createQueryMethod(methodSignature));
+        Vector w = findHardCodedVariables(v);
+		System.out.println("\nReminder: Need to substitute hard-coded variables.");
+		dumpVector("Variables:", w);
+	}
+
+    public static Vector findHardCodedVariables(Vector v) {
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			if (t.indexOf("^^") != -1 || t.indexOf("graph") != -1) {
+				w.add(t);
+			}
+		}
+		return w;
+	}
+
+	public static void test(String[] args) {
+		long ms = System.currentTimeMillis();
+		String restURL = args[0];
+		String namedGraph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String queryfile = args[4];
+		System.out.println(queryfile);
+
+		HTTPUtils util = new HTTPUtils();
+		String query = util.loadQuery(queryfile, false);
+		System.out.println(query);
+		boolean parsevalues = true;
+		Vector w = util.execute(restURL, username, password, query, parsevalues);
+		Utils.saveToFile("ressults_" + queryfile, w);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
+	}
+
+
+    public static void test2(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
         String type = args[1];
@@ -108,12 +229,6 @@ public class SPARQLQueryGenerator {
 			}
 			Utils.saveToFile("superclass_scanOwlTags", w);
 			v = w;
-	/*
-			Vector v = new Vector();
-			v.add("owl:Class|rdfs:subClassOf");
-			v.add("owl:Class|rdfs:subClassOf|owl:Class|owl:intersectionOf|owl:Class");
-			v.add("owl:Class|owl:equivalentClass|owl:Class|owl:intersectionOf|owl:Class");
-	*/
 			for (int i=0; i<v.size(); i++) {
 				int i1 = i+1;
 				String path = (String) v.elementAt(i);
@@ -125,6 +240,21 @@ public class SPARQLQueryGenerator {
 				scanner.print_superclass_query(path, i1);
 			}
 		}
+	}
+
+
+    public static void main(String[] args) {
+		String queryfile = args[0];
+		System.out.println(queryfile);
+		int n = queryfile.lastIndexOf("_query");
+		if(n ==  -1) {
+			System.out.println("queryfile: " + queryfile);
+			System.out.println("ERROR: Incorrect naming of query file (example: sparql_query.txt.)");
+			System.exit(1);
+		}
+		String t = queryfile.substring(0, n);
+		String methodSignature = "construct_get_" + t + "(String named_graph)";
+        generateCode(queryfile, methodSignature);
 	}
 }
 

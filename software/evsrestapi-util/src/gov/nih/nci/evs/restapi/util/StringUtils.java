@@ -206,24 +206,6 @@ public class StringUtils {
 			System.out.println("\t(" + i + ") " + t);
 		}
 	}
-/*
-	public static void dumpHashMap(String label, HashMap hmap) {
-		if (hmap == null) return;
-		System.out.println(label + ":");
-		Iterator it = hmap.keySet().iterator();
-		while (it.hasNext()) {
-			String t = (String) it.next();
-			System.out.println("\tkey: " + t);
-			Vector v = (Vector) hmap.get(t);
-			if (v != null && v.size() > 0) {
-				for (int j=0; j<v.size(); j++) {
-					String s = (String) v.elementAt(j);
-					System.out.println("\t\t" + s);
-				}
-			}
-		}
-	}
-*/
 
 	public static void dumpHashMap(String label, HashMap hmap) {
 		if (hmap == null) return;
@@ -777,4 +759,76 @@ public class StringUtils {
 		return "[" + (String) u.elementAt(0) + " (" + (String) u.elementAt(1) + ")] -- (" + (String) u.elementAt(2) + ") --> " +
 		       "[" + (String) u.elementAt(3) + " (" + (String) u.elementAt(4) + ")]";
 	}
+
+
+	 public static String formatLabelAndCode(String t) {
+		 if (t == null) return null;
+		 Vector u = StringUtils.parseData(t, '|');
+		 return (String) u.elementAt(0) + " (" + (String) u.elementAt(1) + ")";
+	 }
+
+	 public static void dumpMultiValuedHashMap(HashMap hmap) {
+		 Iterator it = hmap.keySet().iterator();
+		 Vector keys = new Vector();
+		 while (it.hasNext()) {
+			 String key = (String) it.next();
+			 keys.add(key);
+		 }
+		 keys = new SortUtils().quickSort(keys);
+         for (int i=0; i<keys.size(); i++) {
+			 String key = (String) keys.elementAt(i);
+			 Vector values = (Vector) hmap.get(key);
+			 Vector v = new Vector();
+			 for (int j=0; j<values.size(); j++) {
+				 String s = (String) values.elementAt(j);
+				 v.add(formatLabelAndCode(s));
+			 }
+			 Utils.dumpVector(formatLabelAndCode(key), v);
+		 }
+	 }
+
+	 public static HashMap createMultiValuedHashMap(Vector v, int key_column_1, int key_column_2, int value_column_1, int value_column_2) {
+		 HashMap hmap = new HashMap();
+		 SortUtils sortUtils = new SortUtils();
+		 for (int i=0; i<v.size(); i++) {
+			 String line = (String) v.elementAt(i);
+			 Vector u = StringUtils.parseData(line, '|');
+			 String key = (String) u.elementAt(key_column_1);
+			 if (key_column_2 != -1) {
+			 	String key2 = (String) u.elementAt(key_column_2);
+			 	key = key + "|" + key2;
+			 }
+
+			 String value1 = (String) u.elementAt(value_column_1);
+			 String value = value1;
+			 if (value_column_2 != -1) {
+			 	String value2 = (String) u.elementAt(value_column_2);
+			 	value = value + "|" + value2;
+			 }
+			 Vector w = new Vector();
+			 if (hmap.containsKey(key)) {
+				 w = (Vector) hmap.get(key);
+			 }
+			 if (!w.contains(value)) {
+				 w.add(value);
+				 w = sortUtils.quickSort(w);
+			 }
+			 hmap.put(key, w);
+		 }
+		 return hmap;
+	 }
+
+	 public static HashSet createHashSet(Vector v, int column) {
+		 HashSet hset = new HashSet();
+		 for (int i=0; i<v.size(); i++) {
+			 String line = (String) v.elementAt(i);
+			 Vector u = StringUtils.parseData(line, '|');
+			 String value = (String) u.elementAt(column);
+			 if (!hset.contains(value)) {
+				 hset.add(value);
+			 }
+		 }
+		 return hset;
+	 }
+
 }
