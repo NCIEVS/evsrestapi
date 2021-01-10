@@ -673,6 +673,66 @@ to be implemented:
 	}
 
 
+	public String construct_get_exactMatch(String named_graph, Vector propertyNames, String term) {
+        String prefixes = getPrefixes();
+        term = term.toLowerCase();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("").append("\n");
+        buf.append("SELECT distinct ?x_code ?x_label ?z_target").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl> {").append("\n");
+        buf.append("            {").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?z_axiom a owl:Axiom  .").append("\n");
+        buf.append("                ?z_axiom owl:annotatedSource ?x .").append("\n");
+        buf.append("                ?z_axiom owl:annotatedProperty ?p .").append("\n");
+        buf.append("                ?p rdfs:label ?p_label .").append("\n");
+        buf.append("                ?p rdfs:label \"FULL_SYN\"^^xsd:string .").append("\n");
+        buf.append("                ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("                FILTER (").append("\n");
+		buf.append("                	lcase(?z_target) = \"" + term + "\"^^xsd:string ").append("\n");
+		buf.append("                )").append("\n");
+        buf.append("            }").append("\n");
+
+        for (int i=0; i<propertyNames.size(); i++) {
+			String propertyName = (String) propertyNames.elementAt(i);
+			buf.append("            UNION ").append("\n");
+			buf.append("            {").append("\n");
+			buf.append("                ?x a owl:Class .").append("\n");
+			buf.append("                ?x :NHC0 ?x_code .").append("\n");
+			buf.append("                ?x rdfs:label ?x_label .").append("\n");
+			buf.append("").append("\n");
+			buf.append("                ?x ?p1 ?z_target .").append("\n");
+			buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
+			buf.append("                ?p1 rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
+			buf.append("                FILTER (").append("\n");
+			buf.append("                	lcase(?z_target) = \"" + term + "\"^^xsd:string ").append("\n");
+			buf.append("                )").append("\n");
+			buf.append("").append("\n");
+			buf.append("            }").append("\n");
+	    }
+
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+    }
+
+
+
+	public Vector getExactMatch(String named_graph, Vector propertyNames, String term) {
+        String query = construct_get_exactMatch(named_graph, propertyNames, term);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 
