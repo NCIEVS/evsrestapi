@@ -613,6 +613,126 @@ to be implemented:
 		return w;
 	}
 
+
+	public String construct_get_contains(String named_graph, String term, String boolean_operator) {
+		term = term.trim();
+		String term_lc = term.toLowerCase();
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("").append("\n");
+		buf.append("SELECT distinct ?x_code ?x_label").append("\n");
+		buf.append("{").append("\n");
+		buf.append("	graph <" + named_graph + "> ").append("\n");
+		buf.append("	{").append("\n");
+		buf.append("		{").append("\n");
+		buf.append("			?x a owl:Class .").append("\n");
+		buf.append("			?x :NHC0 ?x_code .").append("\n");
+		buf.append("			?x rdfs:label ?x_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("			FILTER (").append("\n");
+		StringBuffer contains_buf = new StringBuffer();
+		contains_buf.append("\t\t\t");
+
+		String[] tokens = term_lc.split(" ");
+
+		for (int i=0; i<tokens.length; i++) {
+			String token = tokens[i];
+			contains_buf.append("contains(lcase(?x_label),\"" + token + "\")");
+			if (i<tokens.length-1) {
+				if (boolean_operator.compareToIgnoreCase("AND") == 0) {
+					contains_buf.append(" && ");
+				} else {
+					contains_buf.append(" || ");
+				}
+			}
+		}
+		String contains = contains_buf.toString();
+		buf.append(contains).append("\n");
+		buf.append("			)").append("\n");
+		buf.append("		}").append("\n");
+		buf.append("").append("\n");
+		buf.append("	}").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector containsSearch(String named_graph, String term, String boolean_operator) {
+		String query = construct_get_contains(named_graph, term, boolean_operator);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
+	public Vector containsSearch(String named_graph, String term) {
+		String boolean_operator = "AND";
+		return containsSearch(named_graph, term, boolean_operator);
+	}
+
+
+	public String construct_get_exactMatch(String named_graph, Vector propertyNames, String term) {
+        String prefixes = getPrefixes();
+        term = term.toLowerCase();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("").append("\n");
+        buf.append("SELECT distinct ?x_code ?x_label ?z_target").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl> {").append("\n");
+        buf.append("            {").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?z_axiom a owl:Axiom  .").append("\n");
+        buf.append("                ?z_axiom owl:annotatedSource ?x .").append("\n");
+        buf.append("                ?z_axiom owl:annotatedProperty ?p .").append("\n");
+        buf.append("                ?p rdfs:label ?p_label .").append("\n");
+        buf.append("                ?p rdfs:label \"FULL_SYN\"^^xsd:string .").append("\n");
+        buf.append("                ?z_axiom owl:annotatedTarget ?z_target .").append("\n");
+		buf.append("                FILTER (").append("\n");
+		buf.append("                	lcase(?z_target) = \"" + term + "\"^^xsd:string ").append("\n");
+		buf.append("                )").append("\n");
+        buf.append("            }").append("\n");
+
+        for (int i=0; i<propertyNames.size(); i++) {
+			String propertyName = (String) propertyNames.elementAt(i);
+			buf.append("            UNION ").append("\n");
+			buf.append("            {").append("\n");
+			buf.append("                ?x a owl:Class .").append("\n");
+			buf.append("                ?x :NHC0 ?x_code .").append("\n");
+			buf.append("                ?x rdfs:label ?x_label .").append("\n");
+			buf.append("").append("\n");
+			buf.append("                ?x ?p1 ?z_target .").append("\n");
+			buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
+			buf.append("                ?p1 rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
+			buf.append("                FILTER (").append("\n");
+			buf.append("                	lcase(?z_target) = \"" + term + "\"^^xsd:string ").append("\n");
+			buf.append("                )").append("\n");
+			buf.append("").append("\n");
+			buf.append("            }").append("\n");
+	    }
+
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+    }
+
+
+
+	public Vector getExactMatch(String named_graph, Vector propertyNames, String term) {
+        String query = construct_get_exactMatch(named_graph, propertyNames, term);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 

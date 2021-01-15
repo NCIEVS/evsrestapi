@@ -323,6 +323,17 @@ public class ExcelWriter {
 		}
     }
 
+    public static void write(Workbook workbook, String excelfile) {
+		try {
+			FileOutputStream fileOut = new FileOutputStream(excelfile);
+			workbook.write(fileOut);
+			fileOut.close();
+			workbook.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
     public static void main(String[] args) throws IOException, InvalidFormatException {
 		ExcelWriter writer = new ExcelWriter();
 		boolean test_mode = true;
