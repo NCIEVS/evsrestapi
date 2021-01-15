@@ -476,7 +476,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             .getPropertyName(terminology.getMetadata().getPreferredName()));
         pnSynonym.setName(pn);
         concept.getSynonyms().add(pnSynonym);
-
         concept.getSynonyms().addAll(EVSUtils.getSynonyms(terminology, axioms));
 
         // If we're using preferred name instead of the label above,
@@ -488,6 +487,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           rdfsLabel.setName(conceptLabel);
           concept.getSynonyms().add(rdfsLabel);
         }
+        // add norm name here because EVSUtils.getSynonyms is used elsewhere
+        concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
+            .count();
+
       }
 
       // Properties ending in "Name" are rendered as synonyms here.
@@ -498,16 +501,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             terminology.getMetadata().getPropertyNames().values();
         final Set<String> syCode = terminology.getMetadata().getSynonym();
         for (Property property : properties) {
-          final String type = property.getType();
-          if (ip.isSynonyms() && syCode.contains(property.getCode())) {
-            // add synonym
-            final Synonym synonym = new Synonym();
-            synonym.setType(type);
-            synonym.setName(property.getValue());
-            synonym.setNormName(ConceptUtils.normalize(property.getValue()));
-            concept.getSynonyms().add(synonym);
+          
+          // Synonyms already added above
+          if (syCode.contains(property.getCode())) {
             continue;
           }
+
+          final String type = property.getType();
 
           // Handle if not a common property
           if (ip.isProperties() && !commonProperties.contains(type)) {
@@ -699,18 +699,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           terminology.getMetadata().getPropertyNames().values();
       final Set<String> syCode = terminology.getMetadata().getSynonym();
       for (Property property : properties) {
-        final String type = property.getType();
+
+        // Synonyms added above already, do not add them here
         if (syCode.contains(property.getCode())) {
-          // add synonym
-          final Synonym synonym = new Synonym();
-          synonym.setType(type);
-          synonym.setName(property.getValue());
-          synonym.setNormName(ConceptUtils.normalize(property.getValue()));
-          concept.getSynonyms().add(synonym);
           continue;
         }
 
-        // HAndle if not a common property
+        final String type = property.getType();
+
+        // Handle if not a common property
         if (!commonProperties.contains(type)) {
           // Add any qualifiers to the property
           property.getQualifiers()
