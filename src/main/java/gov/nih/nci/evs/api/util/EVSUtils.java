@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
@@ -19,6 +22,10 @@ import gov.nih.nci.evs.api.model.Terminology;
  * Utilities for handling EVS stuff.
  */
 public class EVSUtils {
+
+  /** The Constant log. */
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
 
   /**
    * Returns the qualifier name.
@@ -77,6 +84,7 @@ public class EVSUtils {
         synonym.setSource(axiom.getTermSource());
         synonym.setCode(axiom.getSourceCode());
         synonym.setSubSource(axiom.getSubsourceName());
+        // log.info(" ADD synonym = " + axiomCode + ", " + synonym);
         results.add(synonym);
       }
     }
@@ -148,6 +156,7 @@ public class EVSUtils {
         mapsTo.setTargetCode(axiom.getTargetCode());
         mapsTo.setTargetTerminology(axiom.getTargetTerminology());
         mapsTo.setTargetTerminologyVersion(axiom.getTargetTerminologyVersion());
+        // log.info(" ADD map = " + mapsTo);
         results.add(mapsTo);
       }
     }
@@ -161,7 +170,8 @@ public class EVSUtils {
    * @param values the values
    * @return the list
    */
-  public static <T> List<T> asList(@SuppressWarnings("unchecked") final T... values) {
+  public static <T> List<T> asList(@SuppressWarnings("unchecked")
+  final T... values) {
     final List<T> list = new ArrayList<>(values.length);
     for (final T value : values) {
       if (value != null) {

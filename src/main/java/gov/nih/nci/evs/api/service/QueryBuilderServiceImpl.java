@@ -26,6 +26,7 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   /** The Constant log. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(QueryBuilderServiceImpl.class);
 
   /** The stardog properties. */
@@ -52,7 +53,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
           + prefix;
     }
 
-    log.debug("prefix - " + prefix);
+    // log.debug("prefix - " + prefix);
     return prefix;
   }
 
@@ -67,7 +68,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructQuery(final String queryProp, String namedGraph) {
     Map<String, String> values = ConceptUtils.asMap("namedGraph", namedGraph);
     String query = getResolvedProperty(queryProp, values);
-    log.debug("construct " + queryProp + " - " + query);
+    // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
 
@@ -86,7 +87,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     final Map<String, String> values =
         ConceptUtils.asMap("conceptCode", conceptCode, "namedGraph", namedGraph);
     final String query = getResolvedProperty(queryProp, values);
-    log.debug("construct " + queryProp + " - " + query);
+    // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
 
@@ -95,7 +96,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    *
    * @param queryProp the query prop
    * @param namedGraph the named graph
-   * @param inClause the in clause
+   * @param conceptCodes the concept codes
    * @return the string
    */
   @Override
@@ -105,7 +106,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     final Map<String, String> values =
         ConceptUtils.asMap("namedGraph", namedGraph, "inClause", inClause);
     final String query = getResolvedProperty(queryProp, values);
-    log.debug("construct " + queryProp + " - " + query);
+    // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
 
@@ -125,7 +126,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
       }
     }
     String query = getResolvedProperty(queryProp, values);
-    log.debug("construct " + queryProp + " - " + query);
+    // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
 
@@ -156,7 +157,6 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Check concept code.
    *
    * @param codes the codes
-   * @throws Exception the exception
    */
   private void checkCodes(final List<String> codes) {
     for (final String code : codes) {
@@ -168,7 +168,6 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Check code.
    *
    * @param code the code
-   * @throws Exception the exception
    */
   private void checkCode(final String code) {
     // codes should not contain spaces or parentheses

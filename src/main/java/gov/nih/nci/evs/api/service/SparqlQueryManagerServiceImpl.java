@@ -468,15 +468,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final List<Axiom> axioms =
           getAxioms(concept.getCode(), terminology, !conceptType.equals("qualifier"));
 
-      if (ip.isSynonyms()) {
-        // Set the preferred name if including synonyms
-        final Synonym pnSynonym = new Synonym();
+      final Set<String> syNameType = new HashSet<>();
 
-        pnSynonym.setType(terminology.getMetadata()
-            .getPropertyName(terminology.getMetadata().getPreferredName()));
-        pnSynonym.setName(pn);
-        concept.getSynonyms().add(pnSynonym);
-        concept.getSynonyms().addAll(EVSUtils.getSynonyms(terminology, axioms));
+      if (ip.isSynonyms()) {
+
+        final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, axioms);
+        syNameType.addAll(
+            synonyms.stream().map(sy -> sy.getType() + sy.getName()).collect(Collectors.toSet()));
+        concept.getSynonyms().addAll(synonyms);
 
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
@@ -486,6 +485,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           rdfsLabel.setType("rdfs:label");
           rdfsLabel.setName(conceptLabel);
           concept.getSynonyms().add(rdfsLabel);
+          syNameType.add("rdfs:label" + rdfsLabel);
         }
         // add norm name here because EVSUtils.getSynonyms is used elsewhere
         concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
@@ -501,13 +501,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             terminology.getMetadata().getPropertyNames().values();
         final Set<String> syCode = terminology.getMetadata().getSynonym();
         for (Property property : properties) {
-          
-          // Synonyms already added above
-          if (syCode.contains(property.getCode())) {
+
+          // Get synonyms without extra axioms
+          // Handle synonyms without extra axioms
+          final String type = property.getType();
+          final String name = property.getValue();
+          if (ip.isSynonyms() && syCode.contains(property.getCode())
+              && !syNameType.contains(type + name)) {
+            // add synonym
+            final Synonym synonym = new Synonym();
+            synonym.setType(type);
+            synonym.setName(name);
+            synonym.setNormName(ConceptUtils.normalize(property.getValue()));
+            concept.getSynonyms().add(synonym);
+            syNameType.add(type + name);
             continue;
           }
-
-          final String type = property.getType();
 
           // Handle if not a common property
           if (ip.isProperties() && !commonProperties.contains(type)) {
@@ -678,18 +687,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // If loading a qualifier, don't look for additional qualifiers
       final List<Axiom> axioms = axiomMap.get(conceptCode);
 
-      // Set the preferred name if including synonyms
-      final Synonym pnSynonym = new Synonym();
-
-      // adding preferred name synonym
-      pnSynonym.setType(
-          terminology.getMetadata().getPropertyName(terminology.getMetadata().getPreferredName()));
-      pnSynonym.setName(pn);
-      pnSynonym.setNormName(ConceptUtils.normalize(pn));
-      concept.getSynonyms().add(pnSynonym);
-
       // adding all synonyms
-      concept.getSynonyms().addAll(EVSUtils.getSynonyms(terminology, axioms));
+      final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, axioms);
+      final Set<String> syNameType =
+          synonyms.stream().map(sy -> sy.getType() + sy.getName()).collect(Collectors.toSet());
+      concept.getSynonyms().addAll(synonyms);
       // add norm name here because EVSUtils.getSynonyms is used elsewhere
       concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
           .count();
@@ -700,12 +702,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final Set<String> syCode = terminology.getMetadata().getSynonym();
       for (Property property : properties) {
 
-        // Synonyms added above already, do not add them here
-        if (syCode.contains(property.getCode())) {
+        // Handle synonyms without extra axioms
+        final String type = property.getType();
+        final String name = property.getValue();
+        if (syCode.contains(property.getCode()) && !syNameType.contains(type + name)) {
+          // add synonym
+          final Synonym synonym = new Synonym();
+          synonym.setType(type);
+          synonym.setName(name);
+          synonym.setNormName(ConceptUtils.normalize(property.getValue()));
+          concept.getSynonyms().add(synonym);
+          syNameType.add(type + name);
           continue;
         }
-
-        final String type = property.getType();
 
         // Handle if not a common property
         if (!commonProperties.contains(type)) {
@@ -716,6 +725,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getProperties().add(property);
         }
       }
+
+      log.info("XXX ADD synonyms = " + concept.getSynonyms());
 
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
       concept.setChildren(subConceptMap.get(conceptCode));

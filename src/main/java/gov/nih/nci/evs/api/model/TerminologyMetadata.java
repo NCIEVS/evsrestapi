@@ -656,8 +656,11 @@ public class TerminologyMetadata extends BaseModel {
    * @return <code>true</code> if so, <code>false</code> otherwise
    */
   public boolean isRemodeledProperty(final String code) {
-    return getSynonym().contains(code) || getDefinition().contains(code) || getMap().equals(code)
-        || code.equals(this.code);
+    // IT was requested that Maps_To remain as property metadata for NCIt
+    // to accommodate report writer use cases
+    // || getMap().equals(code)
+    return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code);
+
   }
 
   /**
