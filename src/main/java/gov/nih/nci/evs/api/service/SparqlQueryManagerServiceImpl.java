@@ -726,8 +726,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
       }
 
-      log.info("XXX ADD synonyms = " + concept.getSynonyms());
-
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
       concept.setDescendants(descendantsMap.get(conceptCode));
