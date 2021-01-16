@@ -960,7 +960,6 @@ public class MetadataControllerTests {
 
     String url = null;
     MvcResult result = null;
-    Concept concept = null;
     String content = null;
 
     // Properties

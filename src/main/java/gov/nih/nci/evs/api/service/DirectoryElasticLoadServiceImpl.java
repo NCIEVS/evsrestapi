@@ -41,9 +41,10 @@ import gov.nih.nci.evs.api.util.RrfReaders;
 @Service
 public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
-	/** the logger *. */
-	@SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
+  /** the logger *. */
+  @SuppressWarnings("unused")
+  private static final Logger logger =
+      LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -71,10 +72,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
-
-  /** The sparql query manager service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
 
   /**
    * Returns the filepath.
