@@ -373,7 +373,8 @@ public class QualifierTests {
     Concept concept = null;
 
     for (final String name : new String[] {
-        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "Maps_To",
+        // "Maps_To", - this one removed for ReportWriter
+        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", 
         "label"
     }) {
       // skip name and label
