@@ -343,6 +343,17 @@ public class ExcelUtils {
 		return buf.toString();
 	}
 
+    public static Workbook replaceRowValues(Workbook workbook, int sheetIndex, int rowIndex, Vector rowValues) {
+		Sheet sheet = workbook.getSheetAt(sheetIndex);
+		Row row = sheet.getRow(rowIndex);
+		int numberOfCells = ExcelUtils.getNumberOfCells(row);
+		for (int j=0; j<numberOfCells; j++) {
+			Cell cell = row.getCell(j);
+			String value = (String) rowValues.elementAt(j);
+			cell.setCellValue(value);
+		}
+		return workbook;
+	}
 
 	public static void main(String[] args) {
 		String excelfile = args[0];
