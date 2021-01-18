@@ -42,7 +42,7 @@ public class ExcelUtils {
 		}
 	}
 
-    private static String getCellValue(Cell cell) {
+    public static String getCellValue(Cell cell) {
 		if (cell == null) {
 			return "";
 		}
@@ -114,18 +114,36 @@ public class ExcelUtils {
 	}
 
     public static String clone(String excelfile) {
-		Workbook workbook = ExcelReader.openWorkbook(excelfile);
-		ExcelWriter.write(workbook, "clone_" + excelfile);
-		return "clone_" + excelfile;
+		String target_file = "clone_" + excelfile;;
+		FileUtils.copyfile(excelfile, target_file);
+		return target_file;
 	}
 
     public static Vector excel2Text(String excelfile, int sheetIndex, char delim) {
 		int n = excelfile.lastIndexOf(".");
 		String textfile = excelfile.substring(0, n) + ".txt";
 		Vector w = new Vector();
-		Workbook workbook = ExcelReader.openWorkbook(excelfile);
-		Sheet sheet = workbook.getSheetAt(sheetIndex);
-		int numberOfRows = getNumberOfRows(sheet);
+		Workbook workbook = null;//
+		try {
+			workbook = ExcelReader.openWorkbook(excelfile);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		Sheet sheet  = null;//
+		try {
+			sheet = workbook.getSheetAt(sheetIndex);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		int numberOfRows = -1;
+		try {
+			numberOfRows = getNumberOfRows(sheet);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
 		for (int i=0; i<numberOfRows; i++) {
 			Row row = sheet.getRow(i);
 			StringBuffer buf = new StringBuffer();
@@ -304,11 +322,35 @@ public class ExcelUtils {
 		write(workbook, outputexcel);
 	}
 
+    public static String getRowValues(String excelfile, int sheetIndex, int rowIndex, char delim) {
+		Workbook workbook = ExcelReader.openWorkbook(excelfile);
+		return getRowValues(workbook, sheetIndex, rowIndex, delim);
+	}
+
+    public static String getRowValues(Workbook workbook, int sheetIndex, int rowIndex, char delim) {
+		Sheet sheet = workbook.getSheetAt(sheetIndex);
+		Row row = sheet.getRow(rowIndex);
+		StringBuffer buf = new StringBuffer();
+		int numberOfCells = ExcelUtils.getNumberOfCells(row);
+		for (int j=0; j<numberOfCells; j++) {
+			Cell cell = row.getCell(j);
+			String value = getCellValue(cell);
+			buf.append(value);
+			if (j<numberOfCells-1) {
+				buf.append(delim);
+			}
+		}
+		return buf.toString();
+	}
+
+
 	public static void main(String[] args) {
 		String excelfile = args[0];
-		////System.out.println("excelfile: " + excelfile);
-		Vector data = excel2Text(excelfile, 0);
-        generateTemplate(excelfile, 0);
+		System.out.println("excelfile: " + excelfile);
+		//Vector data = excel2Text(excelfile, 0);
+        //generateTemplate(excelfile, 0);
         //write("template_" + excelfile, "v2_" + excelfile, 0, data, '\t');
+        String target_file = clone(excelfile);
+
 	}
 }
