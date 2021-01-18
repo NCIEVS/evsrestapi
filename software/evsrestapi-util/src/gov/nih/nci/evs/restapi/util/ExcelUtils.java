@@ -355,6 +355,7 @@ public class ExcelUtils {
 		return workbook;
 	}
 
+
 	public static Workbook deleteColumn(Workbook workbook, int sheetIndex, int columnToDelete ){
 		Sheet sheet = workbook.getSheetAt(sheetIndex);
         int maxColumn = 0;
@@ -416,6 +417,51 @@ public class ExcelUtils {
 			   break;
 			}
 		}
+	}
+
+	public static boolean isInteger(String input) {
+		try {
+			Integer.parseInt( input );
+			return true;
+		}
+			catch( Exception e ) {
+			return false;
+		}
+	}
+
+	public static Workbook addRow(Workbook workbook, int sheetIndex, Vector rowData){
+		Sheet sheet = workbook.getSheetAt(sheetIndex);
+		int lastRowNumber = sheet.getLastRowNum();
+		Row row = sheet.createRow(lastRowNumber+1);
+		for (int i=0; i<rowData.size(); i++) {
+			String value = (String) rowData.elementAt(i);
+			Cell cell = row.createCell(i);
+			if (!isInteger(value)) {
+				cell.setCellValue(value);
+			} else {
+				cell.setCellValue(new Integer(Integer.parseInt(value)));
+			}
+		}
+		return workbook;
+	}
+
+    public static Workbook removeBlankCells(String excelfile, int sheetIndex) {
+		Workbook workbook = ExcelReader.openWorkbook(excelfile);
+        Sheet sheet = workbook.getSheetAt(sheetIndex);
+        for (int i = sheet.getLastRowNum(); i >= 1; i--)
+        {
+			Row row = sheet.getRow(i);
+            if (row != null)
+            {
+                sheet.removeRow(row);
+            }
+        }
+        int numOfColumns = getNumberOfRows(sheet);
+        for (int j = numOfColumns; j >= 1; j--)
+        {
+            workbook = deleteColumn(workbook, sheetIndex, j);
+        }
+        return workbook;
 	}
 
 	public static void main(String[] args) {
