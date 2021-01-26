@@ -105,7 +105,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return associations for (or leave blank for all)",
+          value = "List of codes or labels to return associations for (or leave blank for all). If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
@@ -207,7 +207,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return roles for (or leave blank for all)",
+          value = "List of codes or labels to return roles for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
@@ -307,7 +307,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return properties for (or leave blank for all)",
+          value = "List of codes or labels to return properties for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
@@ -687,7 +687,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return synonym types for (or leave blank for all)",
+          value = "List of codes or labels to return synonym types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
@@ -782,7 +782,7 @@ public class MetadataController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return definition types for (or leave blank for all)",
+          value = "List of codes or labels to return definition types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
