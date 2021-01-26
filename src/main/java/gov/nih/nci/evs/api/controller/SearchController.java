@@ -118,19 +118,19 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
-          value = "Comma-separated list of definition sources to restrict search results to.",
+          value = "Comma-separated list of definition sources to restrict search results to. <a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionType",
-          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION. <a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
-          value = "Comma-separated list of synonym sources to restrict search results to.",
+          value = "Comma-separated list of synonym sources to restrict search results to. <a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymType",
-          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN.",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN. <a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
+          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\". <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -202,19 +202,19 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
-          value = "Comma-separated list of definition sources to restrict search results to.",
+          value = "Comma-separated list of definition sources to restrict search results to. <a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionType",
-          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION. <a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
-          value = "Comma-separated list of synonym sources to restrict search results to.",
+          value = "Comma-separated list of synonym sources to restrict search results to. <a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymType",
-          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN.",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN. <a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\".",
+          value = "Single synonym term group value to restrict search results to. Must use with \"synonymSource\". <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -271,7 +271,7 @@ public class SearchController extends BaseController {
     }
 
     try {
-      final List<Terminology>terminologies = new ArrayList<>();
+      final List<Terminology> terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
         final Terminology term = termUtils.getTerminology(terminology, true);
         searchCriteria.validate(term, metadataService);
