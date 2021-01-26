@@ -32,9 +32,14 @@ select ?graphName ?version where {
 }
 EOF
 query=`cat /tmp/x.$$.txt`
-version=`curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" http://${STARDOG_HOST}:${STARDOG_PORT}/${STARDOG_DB}/query  --data-urlencode "$query" -H "Accept: application/sparql-results+json"  | python -m json.tool | perl -ne 's/^ +"value": "//; s/".*//; print if /^20/' | sort | tail -1`
+version=`curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" http://${STARDOG_HOST}:${STARDOG_PORT}/${STARDOG_DB}/query  --data-urlencode "$query" -H "Accept: application/sparql-results+json" | perl -ne 's/.*"value":"(\d[\d\.abcde]+)".*/$1/; print "$_\n";' | sort | tail -1`
+
 /bin/rm -f /tmp/x.$$.txt
 echo "    version = $version"
+if [[ -z $version ]]; then
+    echo "ERROR: version is unknown"
+    exit 1
+fi
 
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"
