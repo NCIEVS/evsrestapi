@@ -72,6 +72,8 @@ public final class ConceptUtils {
     // concept
     if (highlights.containsKey(concept.getName())) {
       concept.setHighlight(highlights.get(concept.getName()));
+    } else if (highlights.containsKey(concept.getCode())) {
+      concept.setHighlight(highlights.get(concept.getCode()));
     }
 
     // synonyms
