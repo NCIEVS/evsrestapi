@@ -952,8 +952,8 @@ public class SearchControllerTests {
 
     // synonymType=P90
     log.info("Testing url - " + url + "?terminology=ncit&synonymType=P90&include=synonyms");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "P90").param("include", "synonyms"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "P90")
+        .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -969,8 +969,8 @@ public class SearchControllerTests {
 
     // synonymType=FULL_SYN
     log.info("Testing url - " + url + "?terminology=ncit&synonymType=FULL_SYN&include=synonyms");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "FULL_SYN").param("include", "synonyms"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "FULL_SYN")
+        .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1046,8 +1046,8 @@ public class SearchControllerTests {
 
     // definitionType=P325
     log.info("Testing url - " + url + "?terminology=ncit&definitionType=P325&include=definitions");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "P325").param("include", "definitions"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "P325")
+        .param("include", "definitions")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1062,9 +1062,11 @@ public class SearchControllerTests {
     assertThat(found).isTrue();
 
     // definitionType=ALT_DEFINITION
-    log.info("Testing url - " + url + "?terminology=ncit&definitionType=ALT_DEFINITION&include=definitions");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "ALT_DEFINITION").param("include", "definitions"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url
+        + "?terminology=ncit&definitionType=ALT_DEFINITION&include=definitions");
+    result =
+        mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "ALT_DEFINITION")
+            .param("include", "definitions")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1078,6 +1080,7 @@ public class SearchControllerTests {
     assertThat(found).isTrue();
 
   }
+
   /**
    * Test search contains.
    *
@@ -1209,8 +1212,8 @@ public class SearchControllerTests {
     for (final String coronaryVein : new String[] {
         "corona vei", "coron vein", "cor vei"
     }) {
-      log.info(
-          "Testing url - " + url + "?include=synonyms&term=" + coronaryVein + "&type=contains&pageSize=50");
+      log.info("Testing url - " + url + "?include=synonyms&term=" + coronaryVein
+          + "&type=contains&pageSize=50");
       result = mvc
           .perform(get(url).param("terminology", "ncit").param("term", coronaryVein)
               .param("type", "contains").param("include", "synonyms").param("pageSize", "50"))
@@ -1702,7 +1705,8 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&term=C3224");
 
     // Test a basic term search
-    result = this.mvc.perform(get(url).param("terminology", "ncit").param("term", "C3224"))
+    result = this.mvc.perform(
+        get(url).param("terminology", "ncit").param("term", "C3224").param("include", "highlights"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -1714,6 +1718,7 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
     assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
+    assertThat(list.getConcepts().get(0).getHighlight()).isNotEmpty();
 
     // Test fuzzy
     result = this.mvc
