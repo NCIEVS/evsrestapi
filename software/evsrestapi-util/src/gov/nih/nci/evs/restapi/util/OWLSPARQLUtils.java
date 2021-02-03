@@ -72,7 +72,7 @@ import org.json.*;
 public class OWLSPARQLUtils {
     JSONUtils jsonUtils = null;
     HTTPUtils httpUtils = null;
-    String named_graph = null;
+    public String named_graph = null;
     String prefixes = null;
     String serviceUrl = null;
     String restURL = null;
