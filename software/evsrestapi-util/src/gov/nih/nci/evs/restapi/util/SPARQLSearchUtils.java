@@ -98,6 +98,9 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	public static int MATCH_SOURCE = 1;
 	public static int MATCH_TARGET = 2;
 
+	Vector name_data = null;
+	HashMap name_data_hmap = new HashMap();
+
 	public SPARQLSearchUtils() {
 		super();
 	}
@@ -110,9 +113,46 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		super(serverInfo);
 	}
 
-	public SPARQLSearchUtils(String serviceUrl, String username, String password) {
-		super(serviceUrl, username, password);
+	public SPARQLSearchUtils(String serviceUrl, String named_graph, String username, String password) {
+		super(serviceUrl, named_graph, username, password);
+		//this.named_graph = named_graph;
+		long ms = System.currentTimeMillis();
+		initialize();
+        System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
     }
+
+    public void initialize() {
+	    name_data = getSearchByNameData(named_graph);
+	    Utils.saveToFile("name_data.txt", name_data);
+	    name_data_hmap = create_name_data_hmap(name_data);
+	}
+
+    public HashMap create_name_data_hmap(Vector name_data) {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<name_data.size(); i++) {
+			String line = (String) name_data.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String key = (String) u.elementAt(0);
+			key = key.toLowerCase();
+			Vector w = new Vector();
+			if (hmap.containsKey(key)) {
+			    w = (Vector) hmap.get(key);
+			}
+			if (!w.contains(line)) {
+				w.add(line);
+			}
+			hmap.put(key, w);
+		}
+		return hmap;
+	}
+
+
+    public Vector mapTo(String vbt) {
+		vbt = vbt.toLowerCase();
+		return (Vector) name_data_hmap.get(vbt);
+	}
+
+
 
     public String getMatchFilter(String var, String algorithm, String searchString) {
 		if (algorithm.compareTo(EXACT_MATCH) == 0) {
@@ -442,7 +482,6 @@ to be implemented:
 
 	public Vector searchAnnotationProperties(String named_graph, String propertyName, String searchString, String algorithm) {
 		String query = construct_search_annotation_properties(named_graph, propertyName, searchString, algorithm);
-		System.out.println(query);
 		Vector v = null;
 		try {
 			v = executeQuery(query);
@@ -501,7 +540,6 @@ to be implemented:
 
 	public Vector searchAssociationTargets(String named_graph, String associationName, String searchString, String algorithm) {
 		String query = construct_search_association_targets(named_graph, associationName, searchString, algorithm);
-		System.out.println(query);
 		Vector v = executeQuery(query);
 		v = new ParserUtils().getResponseValues(v);
 		if (v.size() > 0) {
@@ -539,46 +577,106 @@ to be implemented:
 		return w;
 	}
 
+
 	public String construct_search_by_name(String named_graph, String searchString, String algorithm) {
+        searchString = searchString.toLowerCase();
+		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
-		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
-		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
-		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
-		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
-		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
-		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append(prefixes);
 
-		if (named_graph == null) {
-			buf.append("SELECT distinct ?g ?x ?x_label").append("\n");
-			buf.append("{").append("\n");
-			buf.append("    graph ?g").append("\n");
-		} else {
-			buf.append("SELECT distinct ?x ?x_label").append("\n");
-			buf.append("{").append("\n");
-			buf.append("    graph <" + named_graph + ">").append("\n");
-		}
-		buf.append("    {").append("\n");
-		buf.append("	    ?x a owl:Class .").append("\n");
-		buf.append("	    ?x rdfs:label ?x_label .").append("\n");
+		buf.append("select distinct ?x_label ?x_code ?a_target ?q1_value ?q2_value ").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
 
-		apply_text_match(buf, "x_label", searchString, algorithm);
-		//buf.append("	    (?x_label) <tag:stardog:api:property:textMatch> (" + searchString + ").").append("\n");
+        buf.append("where  { ").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?a a owl:Axiom .").append("\n");
+        buf.append("                ?a owl:annotatedSource ?x .").append("\n");
+        buf.append("                ?a owl:annotatedProperty ?p .").append("\n");
+        buf.append("                ?a owl:annotatedTarget ?a_target .").append("\n");
+        buf.append("                ?p rdfs:label ?p_label .").append("\n");
+        buf.append("                ?p rdfs:label \"FULL_SYN\"^^xsd:string .").append("\n");
+        buf.append("                ").append("\n");
 
-		buf.append("    }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
+        buf.append("                ?a ?q1 ?q1_value .").append("\n");
+        buf.append("                ?q1 rdfs:label ?q1_label .").append("\n");
+        buf.append("                ?q1 rdfs:label \"Term Source\"^^xsd:string .").append("\n");
+
+        buf.append("                ?a ?q2 ?q2_value .").append("\n");
+        buf.append("                ?q2 rdfs:label ?q2_label .").append("\n");
+        buf.append("                ?q2 rdfs:label \"Term Type\"^^xsd:string .").append("\n");
+        buf.append("                ").append("\n");
+        buf.append("                FILTER (lcase(?a_target) = \"" + searchString + "\"^^xsd:string)    ").append("\n");
+        buf.append("").append("\n");
+        buf.append("").append("\n");
+        buf.append("}").append("\n");
+
+
+	return buf.toString();
+}
+
 
 
 	public Vector searchByName(String named_graph, String searchString, String algorithm) {
-		Vector w = executeQuery(construct_search_by_name(named_graph, searchString, algorithm));
+		String query = construct_search_by_name(named_graph, searchString, algorithm);
+		//System.out.println(query);
+		Vector w = executeQuery(query);
+		if (w != null && w.size() > 0) {
+			w = new ParserUtils().getResponseValues(w);
+		}
+		return w;
+	}
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+	public String construct_search_by_name_data(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+
+		buf.append("select distinct ?x_label ?x_code ?a_target ?q1_value ?q2_value ").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
+
+        buf.append("where  { ").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?a a owl:Axiom .").append("\n");
+        buf.append("                ?a owl:annotatedSource ?x .").append("\n");
+        buf.append("                ?a owl:annotatedProperty ?p .").append("\n");
+        buf.append("                ?a owl:annotatedTarget ?a_target .").append("\n");
+        buf.append("                ?p rdfs:label ?p_label .").append("\n");
+        buf.append("                ?p rdfs:label \"FULL_SYN\"^^xsd:string .").append("\n");
+        buf.append("                ").append("\n");
+
+        buf.append("                ?a ?q2 ?q2_value .").append("\n");
+        buf.append("                ?q2 rdfs:label ?q2_label .").append("\n");
+        buf.append("                ?q2 rdfs:label \"Term Type\"^^xsd:string .").append("\n");
+
+        buf.append("                ?a ?q1 ?q1_value .").append("\n");
+        buf.append("                ?q1 rdfs:label ?q1_label .").append("\n");
+        buf.append("                ?q1 rdfs:label \"Term Source\"^^xsd:string .").append("\n");
+
+        buf.append("                ").append("\n");
+        buf.append("").append("\n");
+        buf.append("").append("\n");
+        buf.append("}").append("\n");
+
+
+	return buf.toString();
+}
+
+	public Vector getSearchByNameData(String named_graph) {
+		String query = construct_search_by_name_data(named_graph);
+		Vector w = executeQuery(query);
 		if (w != null && w.size() > 0) {
 			w = new ParserUtils().getResponseValues(w);
 		}
 		return w;
 	}
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public String construct_search_by_property(String named_graph, String property_name, String property_value, String algorithm) {
 		StringBuffer buf = new StringBuffer();
@@ -735,48 +833,39 @@ to be implemented:
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
-
 		String serviceUrl = args[0];
-		System.out.println(serviceUrl);
+		String namedGraph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String verbatimfile = args[4];
 		String codingScheme = "NCI_Thesaurus";
-		MetadataUtils test = new MetadataUtils(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
 		String version = test.getLatestVersion(codingScheme);
 		String named_graph = test.getNamedGraph(codingScheme);
+		SPARQLSearchUtils searchUtils = new SPARQLSearchUtils(serviceUrl, named_graph, username, password);
+        Vector verbatims = Utils.readFile(verbatimfile);
+        Vector w = new Vector();
+		int k = 0;
+		System.out.println("verbatims.size(): " + verbatims.size());
+		for (int i=0; i<verbatims.size(); i++) {
+			k++;
+			String verbatim = (String) verbatims.elementAt(i);
+			Vector u = StringUtils.parseData(verbatim);
+			String term = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
 
-		serviceUrl = serviceUrl + "?query=";
-
-		System.out.println("serviceUrl: " + serviceUrl);
-		System.out.println("codingScheme: " + codingScheme);
-		System.out.println("version: " + version);
-		System.out.println("named_graph: " + named_graph);
-
-		//named_graph = "http://NCIt";
-
-		SPARQLSearchUtils searchUtils = new SPARQLSearchUtils(serviceUrl, null, null);
-		searchUtils.set_named_graph(named_graph);
-/*
-        String associationName = "Concept_In_Subset";
-        String searchString = "Parietal Lobe";
-
-        searchString = "Red";
-        String searchTarget = ASSOCIATIONS;
-        String algorithm = EXACT_MATCH;
-        Vector v = searchUtils.searchAssociationTargets(named_graph, associationName, searchString, algorithm);
-        if (v != null) {
-			StringUtils.dumpVector("v", v);
+			System.out.println("(" + k + ") " + term + " (" + code + ")");
+			Vector v = searchUtils.mapTo(term);
+			if (v != null && v.size() > 0) {
+				Vector v2 = new Vector();
+				for (int j=0; j<v.size(); j++) {
+					String line = (String) v.elementAt(j);
+					w.add(verbatim + "|" + line);
+				}
+			} else{
+				w.add(verbatim + "||||||No match");
+			}
 		}
-
-        //searchUtils.runSearch("Red");
-        String propertyName = "FULL_SYN";
-        v = searchUtils.searchAnnotationProperties(named_graph, propertyName, searchString, EXACT_MATCH);
-        if (v != null) {
-			StringUtils.dumpVector("v", v);
-		}
-*/
-//        String queryfile = "get_valueset_metadata.txt";
-//        Vector v = searchUtils.runTest(queryfile);
-        gov.nih.nci.evs.restapi.bean.ValueSetDefinition vsd = searchUtils.createValueSetDefinition(named_graph, "C54453");
-        System.out.println(vsd.toJson());
-
+		Utils.saveToFile("results_" + verbatimfile, w);
 	}
 }

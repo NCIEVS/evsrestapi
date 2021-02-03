@@ -91,7 +91,7 @@ public class ValueSetSearchUtils extends SPARQLSearchUtils {
 	public static String CONCEPT_IN_SUBSET = "Concept_In_Subset";
 
 	public ValueSetSearchUtils(String serviceUrl, String named_graph, String username, String password) {
-		super(serviceUrl, username, password);
+		super(serviceUrl, named_graph, username, password);
 
 		this.serviceUrl = serviceUrl;
 		this.named_graph = named_graph;
