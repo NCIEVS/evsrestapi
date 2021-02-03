@@ -148,6 +148,20 @@ public class OWLSPARQLUtils {
         this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
     }
 
+	public OWLSPARQLUtils(String serviceUrl, String named_graph, String username, String password) {
+		this.serviceUrl = serviceUrl;//verifyServiceUrl(serviceUrl);
+		this.named_graph = named_graph;
+		this.restURL = serviceUrl;
+		this.username = username;
+		this.password = password;
+
+		System.out.println(this.serviceUrl);
+		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
+        this.jsonUtils = new JSONUtils();
+        this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
+    }
+
+
     public HashMap createOntologyUri2LabelMap() {
 		HashMap ontologyUri2LabelMap = new HashMap();
 		ontologyUri2LabelMap.put(BASE_URI, "NCI_Thesaurus");
