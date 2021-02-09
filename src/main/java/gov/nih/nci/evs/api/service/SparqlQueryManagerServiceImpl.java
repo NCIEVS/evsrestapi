@@ -731,6 +731,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
+      for (Concept child : concept.getChildren()) {
+        child.setLeaf(hierarchy.getChildNodes(child.getCode(),1).isEmpty());
+      }
       concept.setDescendants(descendantsMap.get(conceptCode));
       concept.setParents(superConceptMap.get(conceptCode));
       concept.setAssociations(associationMap.get(conceptCode));
