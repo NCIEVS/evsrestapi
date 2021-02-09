@@ -27,6 +27,9 @@ public class CacheConfiguration {
   
   /**
    * Scheduled method to evict all cache managed by spring cache manager.
+   * NOTE: while @Cacheable is no longer used, we'll keep this becuase
+   * it has no major effect and will be desired if we bring back any
+   * caching features
    * 
    * The schedule is defined by the cron expression.
    */
