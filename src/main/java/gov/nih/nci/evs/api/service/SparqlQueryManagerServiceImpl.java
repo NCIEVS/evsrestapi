@@ -28,7 +28,6 @@ import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -136,7 +135,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology", key = "#root.methodName")
+  // @Cacheable(value = "terminology", key = "#root.methodName")
   public List<String> getAllGraphNames()
     throws JsonParseException, JsonMappingException, IOException {
     List<String> graphNames = new ArrayList<String>();
@@ -163,7 +162,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology", key = "#root.methodName")
+  // @Cacheable(value = "terminology", key = "#root.methodName")
   public List<Terminology> getTerminologies()
     throws JsonParseException, JsonMappingException, IOException, ParseException {
     String queryPrefix = queryBuilderService.contructPrefix(null);
@@ -269,8 +268,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public Terminology getTerminology(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
 
@@ -386,8 +385,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public Concept getProperty(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("property", code, terminology, ip);
@@ -395,8 +395,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public Concept getQualifier(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("qualifier", code, terminology, ip);
@@ -404,8 +405,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public Concept getAssociation(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("association", code, terminology, ip);
@@ -413,8 +415,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #code, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public Concept getRole(String code, Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     return getConceptByType("role", code, terminology, ip);
@@ -1615,8 +1618,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public ArrayList<String> getHierarchy(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     ArrayList<String> parentchild = new ArrayList<String>();
@@ -1647,8 +1650,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public List<Concept> getAllProperties(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1727,8 +1731,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1786,8 +1791,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public List<Concept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1816,8 +1822,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(), #ip.toString()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
+  // #ip.toString()}")
   public List<Concept> getAllRoles(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -2123,8 +2130,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public HierarchyUtils getHierarchyUtils(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     List<String> parentchild = self.getHierarchy(terminology);
@@ -2133,8 +2140,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public Paths getPaths(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     HierarchyUtils hierarchy = self.getHierarchyUtils(terminology);

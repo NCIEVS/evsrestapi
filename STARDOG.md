@@ -33,6 +33,7 @@ Information on downloading and using stardog with EVSRESTAPI.
       # If not, create it
       [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin db create -n NCIT2
       [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog data add --named-graph http://NCI_T NCIT2 /data/ThesaurusInferred.owl
+      [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin db optimize -n NCIT2
 
 * Running Stardog Locally (after data is loaded)
 
