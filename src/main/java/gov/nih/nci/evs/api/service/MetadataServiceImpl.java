@@ -10,7 +10,6 @@ import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -61,8 +60,9 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
-      condition = "#list.orElse('').isEmpty()")
+  // @Cacheable(value = "metadata", key = "{#root.methodName,
+  // #include.orElse(''), #terminology}",
+  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getAssociations(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -109,8 +109,9 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
-      condition = "#list.orElse('').isEmpty()")
+  // @Cacheable(value = "metadata", key = "{#root.methodName,
+  // #include.orElse(''), #terminology}",
+  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getRoles(String terminology, Optional<String> include, Optional<String> list)
     throws Exception {
 
@@ -157,8 +158,9 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
-      condition = "#list.orElse('').isEmpty()")
+  // @Cacheable(value = "metadata", key = "{#root.methodName,
+  // #include.orElse(''), #terminology}",
+  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getProperties(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -180,8 +182,9 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
-      condition = "#list.orElse('').isEmpty()")
+  // @Cacheable(value = "metadata", key = "{#root.methodName,
+  // #include.orElse(''), #terminology}",
+  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getQualifiers(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -255,8 +258,8 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
-      condition = "#terminology.equals('ncit')")
+  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
+  // condition = "#terminology.equals('ncit')")
   public Optional<List<String>> getConceptStatuses(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit"))
@@ -270,8 +273,8 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
-      condition = "#terminology.equals('ncit')")
+  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
+  // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit"))
@@ -288,8 +291,8 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
-      condition = "#terminology.equals('ncit')")
+  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
+  // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit"))
@@ -307,7 +310,8 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology, #code}")
+  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology,
+  // #code}")
   public Optional<List<String>> getQualifierValues(String terminology, String code)
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -335,7 +339,7 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
+  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
   public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -347,8 +351,9 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
-      condition = "#list.orElse('').isEmpty()")
+  // @Cacheable(value = "metadata", key = "{#root.methodName,
+  // #include.orElse(''), #terminology}",
+  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getSynonymTypes(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
 
@@ -380,8 +385,9 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  @Cacheable(value = "metadata", key = "{#root.methodName, #include.orElse(''), #terminology}",
-      condition = "#list.orElse('').isEmpty()")
+  // @Cacheable(value = "metadata", key = "{#root.methodName,
+  // #include.orElse(''), #terminology}",
+  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getDefinitionTypes(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
 
