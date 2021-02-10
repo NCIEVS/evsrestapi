@@ -42,7 +42,7 @@ public class HTMLTableDataConverter {
 		return true;
 	}
 
-	public void convert(String inputfile, String outputfile, String title, String table,
+	public String convert(String inputfile, String outputfile, String title, String table,
 	    Vector th_vec) {
 		Vector v = Utils.readFile(inputfile);
 
@@ -56,7 +56,7 @@ public class HTMLTableDataConverter {
 				pw.println("<th>" + th);
 			}
 			pw.println("<data>");
-			for (int i=0; i<v.size(); i++) {
+			for (int i=1; i<v.size(); i++) {
 				String t = (String) v.elementAt(i);
 				Vector u = StringUtils.parseData(t, '|');
 				StringBuffer buf = new StringBuffer();
@@ -75,6 +75,7 @@ public class HTMLTableDataConverter {
 			}
 			pw.println("</data>");
 			pw.println("</table>");
+
 			pw.println("<footer>(Source; NCI Thesaurus, version " + ncit_version + ")");
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -85,9 +86,10 @@ public class HTMLTableDataConverter {
 				ex.printStackTrace();
 			}
 		}
+		return outputfile;
 	}
 
-	public void convert(String inputfile) {
+	public String convert(String inputfile) {
 		int n = inputfile.lastIndexOf(".");
 		String title = inputfile.substring(0, n);
 		String table = title;
@@ -97,9 +99,11 @@ public class HTMLTableDataConverter {
 		int numberOfColumns = u.size();
 		Vector th_vec = new Vector();
 		for (int i=0; i<numberOfColumns; i++) {
-			th_vec.add("Column " + i);
+			//th_vec.add("Column " + i);
+			th_vec.add((String) u.elementAt(i));
 		}
-	    convert(inputfile, "tabledata_" + inputfile,
+		String outputfile = title + "_" + StringUtils.getToday() + ".txt";
+	    return convert(inputfile, outputfile,
 			title, table,
 			th_vec);
 	}
@@ -110,6 +114,7 @@ public class HTMLTableDataConverter {
 		String username = args[2];
 		String password = args[3];
 		String inputfile = args[4];
-		new HTMLTableDataConverter(serviceUrl, named_graph, username, password).convert(inputfile);
+		String outputfile = new HTMLTableDataConverter(serviceUrl, named_graph, username, password).convert(inputfile);
+		System.out.println(outputfile + " generated.");
 	}
 }

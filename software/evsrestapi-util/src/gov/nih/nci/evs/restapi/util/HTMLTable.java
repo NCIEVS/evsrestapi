@@ -6,7 +6,7 @@ import java.util.*;
 
 public class HTMLTable {
 
-	public static void generate(Vector v) {
+	public static String generate(Vector v) {
 		String title = null;
 		String table = null;
 		String outputfile = null;
@@ -56,6 +56,8 @@ public class HTMLTable {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		return outputfile;
 	}
 
 	public static void printBanner(PrintWriter out) {
@@ -207,10 +209,23 @@ public class HTMLTable {
 		out.println("</html>");
     }
 
+/*
 	public static void main(String[] args) {
 		String filename = args[0];
 		Vector v = Utils.readFile(filename);
 		generate(v);
 	}
-
+*/
+	public static void main(String[] args) {
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String inputfile = args[4];
+		String outputfile = new HTMLTableDataConverter(serviceUrl, named_graph, username, password).convert(inputfile);
+		System.out.println(outputfile + " generated.");
+		Vector v = Utils.readFile(outputfile);
+		outputfile = new HTMLTable().generate(v);
+		System.out.println(outputfile + " generated.");
+	}
 }
