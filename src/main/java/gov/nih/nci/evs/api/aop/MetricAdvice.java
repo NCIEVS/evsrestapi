@@ -1,10 +1,13 @@
 
 package gov.nih.nci.evs.api.aop;
 
+import java.io.File;
+import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -18,6 +21,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.model.CityResponse;
+
+import gov.nih.nci.evs.api.model.GeoIP;
+import gov.nih.nci.evs.api.model.Location;
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
@@ -33,6 +41,10 @@ public class MetricAdvice {
   /** The logger. */
   private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
+  /** the geoIP location database */
+  DatabaseReader dbReader = null;
+
+
   /** The elastic server properties. */
   @Autowired
   ElasticServerProperties elasticServerProperties;
@@ -40,6 +52,11 @@ public class MetricAdvice {
   /** The operations service. */
   @Autowired
   ElasticOperationsService operationsService;
+
+  @PostConstruct
+  public void postInit() throws Exception {
+    dbReader = new DatabaseReader.Builder(new File("GeoLite2-City.mmdb")).build();
+  }
 
   /**
    * Record metric.
@@ -87,7 +104,8 @@ public class MetricAdvice {
     final ServletRequestAttributes attr =
         (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
 
-    final String userIpAddress = attr.getRequest().getRemoteAddr();
+    final String userIpAddress = "2601:205:c380:2ef0:3105:58fa:23f5:efe2";
+    // final String userIpAddress = attr.getRequest().getRemoteAddr();
     metric.setRemoteIpAddress(userIpAddress);
 
     final String hostName = attr.getRequest().getRemoteHost();
@@ -95,6 +113,19 @@ public class MetricAdvice {
 
     final String url = request.getRequestURL().toString();
     metric.setEndPoint(url);
+
+    try {
+      CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
+      GeoIP geoip = new GeoIP(response.getCity().getName(),
+                              response.getCountry().getName(),
+                              response.getLeastSpecificSubdivision().getName(),
+                              response.getContinent().getName(),
+                              new Location(response.getLocation().getLatitude().toString(),
+                              response.getLocation().getLongitude().toString()));
+      metric.setGeoip(geoip);
+    } catch (Exception e) {
+      logger.warn("GeoIP could not find IP");
+    }
 
     metric.setQueryParams(params);
     metric.setStartTime(startDate);

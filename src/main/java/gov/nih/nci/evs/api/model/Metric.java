@@ -12,7 +12,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 /**
  * Metric.
  */
@@ -32,13 +31,15 @@ public class Metric {
   private Map<String, String[]> queryParams;
 
   /** The start time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date startTime;
 
   /** The end time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date endTime;
 
   /** The duration. */
@@ -48,6 +49,10 @@ public class Metric {
   /** The hostname */
   @Field(type = FieldType.Text)
   private String hostName;
+
+  /** The GeoIP Info object */
+  @Field(type = FieldType.Object)
+  private GeoIP geoip;
 
   /**
    * Returns the remote ip address.
@@ -157,7 +162,7 @@ public class Metric {
     this.duration = duration;
   }
 
-    /**
+  /**
    * Returns the host name.
    *
    * @return the host name
@@ -173,6 +178,20 @@ public class Metric {
    */
   public void setHostName(String hostName) {
     this.hostName = hostName;
+  }
+
+  /**
+   * @return the Geoip
+   */
+  public GeoIP getGeoip() {
+    return geoip;
+  }
+
+  /**
+   * @param ipInfo the Geoip
+   */
+  public void setGeoip(GeoIP geoip) {
+    this.geoip = geoip;
   }
 
   /* see superclass */
