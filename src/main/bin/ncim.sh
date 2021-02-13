@@ -51,8 +51,6 @@ done
 fi
 
 echo ""
-echo "  TODO: bounce evsrestapi server"
-echo ""
 echo "--------------------------------------------------"
 echo "Finished ...`/bin/date`"
 echo "--------------------------------------------------"

@@ -70,6 +70,7 @@ public class EVSUtils {
   public static List<Synonym> getSynonyms(Terminology terminology, List<Axiom> axioms) {
     final List<Synonym> results = new ArrayList<>();
     final Set<String> syCode = terminology.getMetadata().getSynonym();
+    // If 'axioms' is null here, it's likely because the "main" query didn't finish
     for (Axiom axiom : axioms) {
       final String axiomCode = axiom.getAnnotatedProperty();
       if (syCode.contains(axiomCode)) {

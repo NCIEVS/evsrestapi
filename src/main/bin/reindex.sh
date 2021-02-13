@@ -32,9 +32,9 @@ select ?graphName ?version where {
 }
 EOF
 query=`cat /tmp/x.$$.txt`
-version=`curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" http://${STARDOG_HOST}:${STARDOG_PORT}/${STARDOG_DB}/query  --data-urlencode "$query" -H "Accept: application/sparql-results+json" | perl -ne 's/.*"value":"(\d[\d\.abcde]+)".*/$1/; print "$_\n";' | sort | tail -1`
-
+version=`curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" http://${STARDOG_HOST}:${STARDOG_PORT}/${STARDOG_DB}/query  --data-urlencode "$query" -H "Accept: application/sparql-results+json" | perl -ne 's/.*"version".*"value":"(\d[\d\.abcde]+)".*/$1/; print "$_\n";' | sort | tail -1`
 /bin/rm -f /tmp/x.$$.txt
+
 echo "    version = $version"
 if [[ -z $version ]]; then
     echo "ERROR: version is unknown"
@@ -52,28 +52,10 @@ fv=`echo $version | perl -pe 's/\.//;'`
 curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
   -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 100000 } }'
 
-echo "  Remove old version indexes = $ES_CLEAN"
-if [[ $ES_CLEAN == "true" ]]; then
-    fv=`echo $version | perl -pe 's/\.//;'`
-    curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | cut -d\  -f 3 | grep -v $version | grep -v $fv | grep ncit_ > /tmp/x.$$
-    for i in `cat /tmp/x.$$`; do
-      echo "    delete $i"
-      curl -s -X DELETE https://$ES_HOST:$ES_PORT/$i
-      if [[ $? -ne 0 ]]; then
-          echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/$i"
-          exit 1
-      fi
-      curl -s -X DELETE https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i
-      if [[ $? -ne 0 ]]; then
-          echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
-          exit 1
-      fi
-done
-    /bin/rm -f /tmp/x.$$
-fi
+# The part to remove the old version indexes for things no longer in stardog
+# is unnecessary as it is implemented by the reindexing process.  To see an example
+# of the code, see ncim.sh
 
-echo ""
-echo "  TODO: bounce evsrestapi server"
 echo ""
 echo "--------------------------------------------------"
 echo "Finished ...`/bin/date`"

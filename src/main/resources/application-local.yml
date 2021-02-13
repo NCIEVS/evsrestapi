@@ -43,7 +43,7 @@ logging:
 # Server Properties
 #
 server:
-    port: 8082
+    port: ${EVS_SERVER_PORT:8082}
     servlet:
        context-path: /
        session:

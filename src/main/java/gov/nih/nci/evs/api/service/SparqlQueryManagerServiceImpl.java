@@ -28,6 +28,7 @@ import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -670,6 +671,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       throw new RuntimeException(e);
     }
 
+    if (axiomMap.isEmpty()) {
+      // This likely occurs if the 10 minute awaitTermination isn't long enough
+      throw new RuntimeException(
+          "Missing axioms, likely because awaitTermination was not long enough.");
+    }
+
     // Throw an
     if (!exceptions.isEmpty()) {
       throw new RuntimeException(exceptions.get(0));
@@ -732,7 +739,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
       for (Concept child : concept.getChildren()) {
-        child.setLeaf(hierarchy.getChildNodes(child.getCode(),1).isEmpty());
+        child.setLeaf(hierarchy.getChildNodes(child.getCode(), 1).isEmpty());
       }
       concept.setDescendants(descendantsMap.get(conceptCode));
       concept.setParents(superConceptMap.get(conceptCode));
@@ -1254,8 +1261,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructBatchQuery("inverse.roles.batch",
         terminology.getGraph(), conceptCodes);
-    if (log.isDebugEnabled())
-      log.debug("query: " + query);
+
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1621,8 +1627,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public ArrayList<String> getHierarchy(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException {
     ArrayList<String> parentchild = new ArrayList<String>();
@@ -1734,9 +1740,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
+  // Caching needs to remain for "getConcepts" because it's used
+  // in setAxiomProperty
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
   public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonParseException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
