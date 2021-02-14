@@ -673,6 +673,42 @@ public class HierarchyHelper implements Serializable {
 		return this.code2LabelMap;
 	}
 
+	public Vector dumpTallies(HashMap hmap) {
+		Vector v = new Vector();
+		v.add("Root|Size");
+		int count = 0;
+		Vector keys = new Vector();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			keys.add(key);
+		}
+		keys = new SortUtils().quickSort(keys);
+		it = hmap.keySet().iterator();
+		for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			Integer int_obj = (Integer) hmap.get(key);
+			v.add(key + "|" + Integer.valueOf(int_obj));
+			count = count + Integer.valueOf(int_obj);
+		}
+		v.add("Total|" + count);
+		return v;
+	}
+
+
+   	public HashMap getBranchSizes() {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<roots.size(); i++) {
+			String root = (String) roots.elementAt(i);
+			String label = getLabel(root);
+			String key = label + " (" + root + ")";
+			Vector v = getTransitiveClosure(root, true);
+			hmap.put(key, new Integer(v.size()));
+		}
+
+		return hmap;
+	}
+
     public static void main(String[] args) {
 		Vector v = Utils.readFile("tvs_rel.txt");
 		HierarchyHelper test = new HierarchyHelper(v, 1);
