@@ -79,6 +79,9 @@ public class HTTPUtils {
 	private long readTimeout;
 	private long connectTimeout;
 
+	private long DEFAULT_READ_TIMEOUT = 1000000;
+	private long DEFAULT_CONNECT_TIMEOUT = 1000000;
+
 	private Duration readTimeoutDuration;
 	private Duration connectTimeoutDuration;
 
@@ -87,6 +90,14 @@ public class HTTPUtils {
 
     public HTTPUtils() {
 
+	}
+
+	public void setReadTimeout(long readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+
+	public void setconnectTimeout(long connectTimeout) {
+		this.connectTimeout = connectTimeout;
 	}
 
     public HTTPUtils(String serviceUrl) {
@@ -110,6 +121,9 @@ public class HTTPUtils {
 		this.serviceUrl = serviceUrl;
 		this.username = username;
 		this.password = password;
+
+		this.readTimeout = DEFAULT_READ_TIMEOUT;
+		this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 	}
 
 	public HTTPUtils(String username, String password, long readTimeout, long connectTimeout) {
@@ -306,10 +320,10 @@ public class HTTPUtils {
 	}
 
     public Vector execute(String restURL, String username, String password, String query, boolean parsevalues) {
-		HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
 		Vector v = null;
 		try {
-			String json = httpUtils.runSPARQL(query);
+			//String json = httpUtils.runSPARQL(query);
+			String json = runSPARQL(query);
 			v = new JSONUtils().parseJSON(json);
 			if (parsevalues) {
 				v = new ParserUtils().getResponseValues(v);
@@ -318,6 +332,19 @@ public class HTTPUtils {
 			ex.printStackTrace();
 		}
 		return v;
+	}
+
+
+    public void dumpURL(URL url) {
+	    System.out.println("getDefaultPort: " + url.getDefaultPort());
+	    System.out.println("getFile: " + url.getFile());
+	    System.out.println("getHost: " + url. getHost());
+	    System.out.println("getPath: " + url.getPath());
+	    System.out.println("getPort: " + url.getPort());
+	    System.out.println("getProtocol: " + url.getProtocol());
+	    System.out.println("getQuery: " + url.getQuery());
+	    System.out.println("getRef: " + url.getRef());
+	    System.out.println("getUserInfo: " + url.getUserInfo());
 	}
 
 	public static void main(String[] args) {
@@ -333,7 +360,6 @@ public class HTTPUtils {
 		Vector w = util.execute(restURL, username, password, query, parsevalues);
 		Utils.dumpVector(queryfile, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-
 	}
 
 }
