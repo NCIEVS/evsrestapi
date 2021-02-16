@@ -105,7 +105,7 @@ public class HTTPUtils {
 		this.serviceUrl = serviceUrl;
 	}
 
-	public String verifyServiceUrl(String serviceUrl) {
+	public static String verifyServiceUrl(String serviceUrl) {
 		if (serviceUrl.indexOf("?query=?query=") != -1) {
 			int n = serviceUrl.lastIndexOf("?");
 			serviceUrl = serviceUrl.substring(0, n);
@@ -345,6 +345,23 @@ public class HTTPUtils {
 	    System.out.println("getQuery: " + url.getQuery());
 	    System.out.println("getRef: " + url.getRef());
 	    System.out.println("getUserInfo: " + url.getUserInfo());
+	}
+
+    public static Vector runQuery(String restURL, String username, String password, String query) {
+		restURL = verifyServiceUrl(restURL);
+        Vector v = null;
+        try {
+			HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
+			query = httpUtils.encode(query);
+            String json = httpUtils.executeQuery(query);
+            System.out.println(json);
+			v = new JSONUtils().parseJSON(json);
+			v = new ParserUtils().getResponseValues(v);
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
 	}
 
 	public static void main(String[] args) {
