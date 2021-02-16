@@ -354,7 +354,6 @@ public class HTTPUtils {
 			HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
 			query = httpUtils.encode(query);
             String json = httpUtils.executeQuery(query);
-            System.out.println(json);
 			v = new JSONUtils().parseJSON(json);
 			v = new ParserUtils().getResponseValues(v);
 
