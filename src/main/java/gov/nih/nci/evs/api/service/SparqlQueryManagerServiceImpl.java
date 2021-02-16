@@ -210,18 +210,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     for (int i = 0; i < termList.size(); i++) {
       final Terminology term = termList.get(i);
-      setTags(term, fmt);
+
+      // Only set weekly/monthly for NCIt
+      if (term.getTerminology().equals("ncit")) {
+        setTags(term, fmt);
+      }
 
       // set latest tag for the most recent version
       term.setLatest(i == 0);
-
-      // temporary code -- enable date logic in getTerminologyForVersionInfo
-      if (i == 0) {
-        term.getTags().put("monthly", "true");
-      } else {
-        term.getTags().put("weekly", "true");
-      }
-
       results.add(term);
     }
 
@@ -261,10 +257,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         break;
     }
 
-    if (monthly)
+    if (monthly) {
       terminology.getTags().put("monthly", "true");
-    else
-      terminology.getTags().put("weekly", "true");
+    }
+
+    // Every version is also a weekly
+    terminology.getTags().put("weekly", "true");
   }
 
   /* see superclass */

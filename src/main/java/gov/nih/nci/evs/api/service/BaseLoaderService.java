@@ -156,12 +156,17 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     if (CollectionUtils.isEmpty(iMetas))
       return;
 
+    // Make sure the new latest is set as latest and any others with matching
+    // terminology are set to "false".  Skip anything with non-matching terminology.
     Terminology latest = termUtils.getLatestTerminology(true, term);
-    logger.info("latest = " + latest);
     for (IndexMetadata iMeta : iMetas) {
       // only change latest flag of terminologies that match current one
-      if (iMeta.getTerminology().getTerminology() == latest.getTerminology()) {
-        iMeta.getTerminology().setLatest(iMeta.getTerminology().equals(latest));
+      if (iMeta.getTerminology().getTerminology().equals(latest.getTerminology())) {
+        boolean flag = iMeta.getTerminology().equals(latest);
+        logger.info("  " + iMeta.getTerminologyVersion() + " = " + flag);
+        iMeta.getTerminology().setLatest(flag);
+      } else {
+        logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
       }
     }
 
@@ -250,7 +255,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     DeleteRequest request = new DeleteRequest(ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, ID);
     client.delete(request, RequestOptions.DEFAULT);
-    
+
     // This block is for debugging presence of the iMeta still in the index
     // Thread.sleep(2000);
     // List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);

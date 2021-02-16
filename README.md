@@ -53,6 +53,8 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
       *** To run and build indexes against a docker stardog/elasticsearch:
 
         version=ncit_20.09d
+
+        version=ncit_20.10d
         export EVS_SERVER_PORT=8083
         export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
