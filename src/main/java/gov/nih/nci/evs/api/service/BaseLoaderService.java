@@ -157,14 +157,26 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       return;
 
     // Make sure the new latest is set as latest and any others with matching
-    // terminology are set to "false".  Skip anything with non-matching terminology.
+    // terminology are set to "false". Skip anything with non-matching
+    // terminology.
     Terminology latest = termUtils.getLatestTerminology(true, term);
+    boolean latestWeeklyOnly =
+        !latest.getTags().containsKey("monthly") && latest.getTags().containsKey("weekly");
+
     for (IndexMetadata iMeta : iMetas) {
-      // only change latest flag of terminologies that match current one
+      // only change latest flag of terminologies that match latest one
       if (iMeta.getTerminology().getTerminology().equals(latest.getTerminology())) {
-        boolean flag = iMeta.getTerminology().equals(latest);
-        logger.info("  " + iMeta.getTerminologyVersion() + " = " + flag);
-        iMeta.getTerminology().setLatest(flag);
+
+        // If latest is just a weekly update, leave settings for
+        // monthly's unchanged
+        boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
+        if (latestWeeklyOnly && monthly) {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
+        } else {
+          boolean flag = iMeta.getTerminology().equals(latest);
+          logger.info("  " + iMeta.getTerminologyVersion() + " = " + flag);
+          iMeta.getTerminology().setLatest(flag);
+        }
       } else {
         logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
       }

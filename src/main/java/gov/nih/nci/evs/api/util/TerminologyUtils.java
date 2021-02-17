@@ -128,9 +128,9 @@ public final class TerminologyUtils {
 	 * @return the terminology
 	 * @throws Exception the exception
 	 */
-	public Terminology getLatestTerminology(boolean indexed, Terminology term) // pass in terminology name
+	public Terminology getLatestTerminology(boolean indexed, Terminology term) 
 			throws Exception {
-
+	  
 		List<Terminology> terminologies = getTerminologies(indexed);
 		terminologies = terminologies.stream().filter(t -> t.getTerminology().equals(term.getTerminology()))
 				.collect(Collectors.toList());
