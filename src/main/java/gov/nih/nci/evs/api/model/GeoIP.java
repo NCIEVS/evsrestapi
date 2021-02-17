@@ -1,6 +1,9 @@
 
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.data.elasticsearch.annotations.GeoPointField;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
+
 /**
  * Represents a path in a hierarchy (as a list of concepts with a direction
  * flag).
@@ -19,8 +22,9 @@ public class GeoIP extends BaseModel {
   /** The continent name. */
   private String continent_name;
 
-  /** The location object */
-  private Location location;
+  /** The geoPoint object */
+  @GeoPointField
+  private GeoPoint location;
 
   /**
    * Instantiates an empty {@link GeoIP}.
@@ -37,7 +41,8 @@ public class GeoIP extends BaseModel {
    * @param continent_name the continent name
    * @param location the lat/long object
    */
-  public GeoIP(String city_name, String country_name, String state_name, String continent_name, Location location) {
+  public GeoIP(String city_name, String country_name, String state_name, String continent_name,
+      GeoPoint location) {
     this.city_name = city_name;
     this.state_name = state_name;
     this.country_name = country_name;
@@ -86,7 +91,7 @@ public class GeoIP extends BaseModel {
    *
    * @param location the location
    */
-  public void setLocation(Location location) {
+  public void setLocation(GeoPoint location) {
     this.location = location;
   }
 
@@ -131,7 +136,7 @@ public class GeoIP extends BaseModel {
    *
    * @return the latLon
    */
-  public Location getLocation() {
+  public GeoPoint getLocation() {
     return location;
   }
 

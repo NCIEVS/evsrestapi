@@ -15,6 +15,9 @@ import gov.nih.nci.evs.api.model.Metric;
  */
 public interface ElasticOperationsService {
 
+  /** The type in ES for metrics *. */
+  public static final String METRIC_TYPE = "metric";
+
   /** The type in ES for concepts *. */
   public static final String CONCEPT_TYPE = "concept";
 

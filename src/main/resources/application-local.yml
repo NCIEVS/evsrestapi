@@ -54,7 +54,7 @@ nci:
     application:
       adminKey: ${NCI_EVS_ADMIN_KEY:Default}
       contextPath: /api/v1
-      metricsEnabled:   ${METRICS_ENABLED:false}
+      metricsEnabled:   ${METRICS_ENABLED:true}
     bulkload:
       conceptsDir: ${NCI_EVS_BULK_LOAD_CONCEPTS_DIR:/tmp/}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
