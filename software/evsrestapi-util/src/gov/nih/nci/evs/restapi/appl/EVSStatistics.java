@@ -1699,6 +1699,7 @@ public class EVSStatistics {
 
 	public void generate() {
 		generateTableData();
+		Utils.saveToFile("table_data_" + StringUtils.getToday() + ".txt", table_data);
 		String outputfile = new HTMLTable().generate(table_data);
 		System.out.println(outputfile + " generated.");
 	}
