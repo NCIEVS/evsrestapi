@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.aop;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.Date;
@@ -25,6 +26,7 @@ import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.model.CityResponse;
 
 import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
@@ -42,6 +44,10 @@ public class MetricAdvice {
   /** the geoIP location database */
   DatabaseReader dbReader = null;
 
+  /** the metrics db path */
+  @Autowired
+  ApplicationProperties applicationProperties;
+
   /** The elastic server properties. */
   @Autowired
   ElasticServerProperties elasticServerProperties;
@@ -50,10 +56,18 @@ public class MetricAdvice {
   @Autowired
   ElasticOperationsService operationsService;
 
+  boolean databaseFound;
+
   @PostConstruct
   public void postInit() throws Exception {
-    dbReader = new DatabaseReader.Builder(
-        getClass().getClassLoader().getResourceAsStream("GeoLite2-City.mmdb")).build();
+    File file = new File(applicationProperties.getMetricsDir() + "/GeoLite2-City.mmdb");
+    this.databaseFound = file.exists();
+    if (databaseFound) {
+      dbReader = new DatabaseReader.Builder(file).build();
+    } else {
+      logger.warn("GeoLite Database was not found = " + applicationProperties.getMetricsDir());
+    }
+
     String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
         + String.valueOf(Calendar.getInstance().get(Calendar.MONTH));
 
@@ -119,12 +133,15 @@ public class MetricAdvice {
     final String url = request.getRequestURL().toString();
     metric.setEndPoint(url);
 
-    try {
-      CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
-      metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(),
-          response.getLocation().getLongitude()));
-    } catch (Exception e) {
-      logger.warn("GeoPoint could not find IP");
+    if(this.databaseFound){
+      logger.info("database found: " + this.databaseFound);
+      try {
+        CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
+        metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(),
+            response.getLocation().getLongitude()));
+      } catch (Exception e) {
+        logger.warn("GeoPoint could not find IP");
+      }
     }
 
     metric.setQueryParams(params);
