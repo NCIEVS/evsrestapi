@@ -76,6 +76,7 @@ public class EVSStatistics {
 	String password = null;
 	MetadataUtils metadataUtils = null;
 	OWLSPARQLUtils owlSPARQLUtils = null;
+	int table_number = 0;
 
 	HTTPUtils httpUtils = null;
 	String prefixes = null;
@@ -120,6 +121,7 @@ public class EVSStatistics {
 		this.named_graph = named_graph;
 		this.username = username;
 		this.password = password;
+		this.table_number = 0;
 
 		this.metadataUtils = new MetadataUtils(serviceUrl, username, password);
 
@@ -1013,7 +1015,7 @@ public class EVSStatistics {
         buf.append(prefixes);
         buf.append("SELECT ?z_label ?z_code ?x_label ?x_code").append("\n");
         buf.append("{").append("\n");
-        buf.append("  graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
         buf.append("  {").append("\n");
         buf.append("          {").append("\n");
         buf.append("                  {").append("\n");
@@ -1052,6 +1054,114 @@ public class EVSStatistics {
 		}
 		v.add("Total|" + count);
 		return v;
+	}
+
+	public String construct_get_value_sets(String named_graph) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_label ?x_code ?p1_label ?p1_value ?p2_label ?p2_value ").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where  { ").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?p1 a owl:AnnotationProperty .").append("\n");
+        buf.append("                ?p1 :NHC0 ?p1_code .").append("\n");
+        buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
+        buf.append("                ?p1 rdfs:label \"Contributing_Source\"^^xsd:string .").append("\n");
+        buf.append("                ?x  ?p1 ?p1_value .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?p2 a owl:AnnotationProperty .").append("\n");
+        buf.append("                ?p2 :NHC0 ?p2_code .").append("\n");
+        buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
+        buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
+        buf.append("                ").append("\n");
+        buf.append("                ?x ?p2 ?p2_value .").append("\n");
+        buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+//ACC/AHA EHR Terminology|C167405|Contributing_Source|ACC/AHA|Publish_Value_Set|Yes
+
+	public Vector getValueSets(String named_graph) {
+		String query = construct_get_value_sets(named_graph);
+		Vector v = executeQuery(query);
+		return v;
+	}
+
+	public String construct_get_concepts_in_subset(String named_graph, String subset_code, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT ?x_code").append("\n");
+		} else {
+			buf.append("SELECT ?x_label ?x_code").append("\n");
+	    }
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?z " + named_graph_id + " \"" + subset_code + "\"^^xsd:string .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + "Concept_In_Subset" + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getConceptsInSubset(String named_graph, String code, boolean codeOnly) {
+		return executeQuery(construct_get_concepts_in_subset(named_graph, code, codeOnly));
+	}
+
+
+	public String construct_get_value_set_data(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select distinct ?y_label ?y_code ?p0_label ?x_label ?x_code ?p1_label ?p1_value ?p2_label ?p2_value ").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("                ?y a owl:Class .").append("\n");
+		buf.append("                ?y :NHC0 ?y_code .").append("\n");
+		buf.append("                ?y rdfs:label ?y_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?p0 a owl:AnnotationProperty .").append("\n");
+		buf.append("                ?p0 :NHC0 ?p0_code .").append("\n");
+		buf.append("                ?p0 rdfs:label ?p0_label .").append("\n");
+		buf.append("                ?p0 rdfs:label \"Concept_In_Subset\"^^xsd:string .  ").append("\n");
+		buf.append(" ").append("\n");
+		buf.append("                ?x a owl:Class .").append("\n");
+		buf.append("                ?x :NHC0 ?x_code .").append("\n");
+		buf.append("                ?x rdfs:label ?x_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?y ?p0 ?x .   ").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?p1 a owl:AnnotationProperty .").append("\n");
+		buf.append("                ?p1 :NHC0 ?p1_code .").append("\n");
+		buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
+		buf.append("                ?p1 rdfs:label \"Contributing_Source\"^^xsd:string .").append("\n");
+		buf.append("                ?x  ?p1 ?p1_value .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?p2 a owl:AnnotationProperty .").append("\n");
+		buf.append("                ?p2 :NHC0 ?p2_code .").append("\n");
+		buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
+		buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
+		buf.append("                ").append("\n");
+		buf.append("                ?x ?p2 ?p2_value .").append("\n");
+		buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getValueSetData(String named_graph) {
+		return executeQuery(construct_get_value_set_data(named_graph));
 	}
 
 	public static HashMap getTallyHashMap(String datafile) {
@@ -1234,19 +1344,242 @@ public class EVSStatistics {
 		return v0;
 	}
 
+////ACC/AHA EHR Terminology|C167405|Contributing_Source|ACC/AHA|Publish_Value_Set|Yes
+
+    public Vector generateValueSetTableData() {
+		Vector ret_vec = new Vector();
+		Vector v = getValueSets(named_graph);
+		int total = 0;
+		for (int i=0 ; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String label = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
+			String contributing_source = (String) u.elementAt(3);
+			Vector w = getConceptsInSubset(named_graph, code, true);
+			int count = 0;
+			if (w != null) {
+				count = w.size();
+			}
+			total = total + count;
+			String key = label + " (" + code + ")";
+			ret_vec.add(key + "|" + contributing_source + "|" + count);
+		}
+		ret_vec = new SortUtils().quickSort(ret_vec);
+		ret_vec.add("Total||" + total);
+        return ret_vec;
+	}
+
+    public Vector generateSubBranchData(Vector roots) {
+		Vector v0 = new Vector();
+		for (int i=0; i<roots.size(); i++) {
+		    String root = (String) roots.elementAt(i);
+		    String label = hh.getLabel(root);
+			int count = hh.get_transitive_closure(root);
+			v0.add(hh.getLabel(root) + " (" + root + ")|" + count);
+		}
+		return v0;
+    }
+
+    public static Vector createValueSetTableData(HashMap valuesetCountHashMap, HashMap hmap) {
+        Vector w0 = new Vector();
+        Vector w = new Vector();
+        Vector keys = new Vector();
+        Iterator it = hmap.keySet().iterator();
+        while (it.hasNext()) {
+			String t = (String) it.next();
+			keys.add(t);
+		}
+		int total = 0;
+		int sub_total = 0;
+		//HashMap countMap = new HashMap();
+		keys = new SortUtils().quickSort(keys);
+		for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			w = new Vector();
+			Vector values = (Vector) hmap.get(key);
+			values = new SortUtils().quickSort(values);
+			sub_total = 0;
+			for (int k=0; k<values.size(); k++) {
+				String value = (String) values.elementAt(k);
+				Integer int_obj = (Integer) valuesetCountHashMap.get(value);
+				int count = Integer.valueOf(int_obj);
+				sub_total = sub_total + count;
+				int k1 = k+1;
+				total = total + count;
+				w.add(key + "|" + value + "|" + count);
+			}
+			w = new SortUtils().quickSort(w);
+			w.add("Subtotal (" + key + ")|" + "" + "|" + sub_total);
+			w0.addAll(w);
+			//countMap.put(key, new Integer(sub_total));
+		}
+		w0.add("Total||" + total);
+		return w0;
+    }
+
+    public static Vector createValueSetSourceTableData(HashMap valuesetCountHashMap, HashMap hmap) {
+        Vector w = new Vector();
+        Vector keys = new Vector();
+        Iterator it = hmap.keySet().iterator();
+        while (it.hasNext()) {
+			String t = (String) it.next();
+			keys.add(t);
+		}
+		int total = 0;
+		int sub_total = 0;
+		HashMap countMap = new HashMap();
+		keys = new SortUtils().quickSort(keys);
+		for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			Vector values = (Vector) hmap.get(key);
+			values = new SortUtils().quickSort(values);
+			sub_total = 0;
+			for (int k=0; k<values.size(); k++) {
+				String value = (String) values.elementAt(k);
+				Integer int_obj = (Integer) valuesetCountHashMap.get(value);
+				int count = Integer.valueOf(int_obj);
+				sub_total = sub_total + count;
+				int k1 = k+1;
+				total = total + count;
+			}
+			w.add(key + "|" + sub_total);
+		}
+		w = new SortUtils().quickSort(w);
+		w.add("Total|" + total);
+		return w;
+    }
+
+
+	public void run_valuse_set() {
+		Vector v = getValueSetData(named_graph);
+		int number_of_valueses = 0;
+		int number_of_sources = 0;
+		HashSet sourceHashSet = new HashSet();
+		HashSet valuesets = new HashSet();
+		HashMap valuesetCountHashMap = new HashMap();
+
+		HashMap source2valueSetHashMap = new HashMap();
+		HashMap source2ConceptCountHashMap = new HashMap();
+
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String source = (String) u.elementAt(6);
+
+			String valueset = (String) u.elementAt(3) + " (" +
+			                  (String) u.elementAt(4) + ")";
+
+            String code = (String)u.elementAt(1);
+            Integer int_obj = new Integer(0);
+            if (source2ConceptCountHashMap.containsKey(source)) {
+				int_obj = (Integer) source2ConceptCountHashMap.get(source);
+			}
+			int count = Integer.valueOf(int_obj);
+			int_obj = new Integer(count+1);
+			source2ConceptCountHashMap.put(source, int_obj);
+
+			if (!valuesets.contains(valueset)) {
+				valuesets.add(valueset);
+			}
+
+			if (!sourceHashSet.contains(source)) {
+				sourceHashSet.add(source);
+			}
+
+			Vector w = new Vector();
+			if (source2valueSetHashMap.containsKey(source)) {
+				w = (Vector) source2valueSetHashMap.get(source);
+			}
+			if (!w.contains(valueset)) {
+				w.add(valueset);
+			}
+			source2valueSetHashMap.put(source, w);
+
+            int_obj = new Integer(0);
+            if (valuesetCountHashMap.containsKey(valueset)) {
+				int_obj = (Integer) valuesetCountHashMap.get(valueset);
+			}
+			count = Integer.valueOf(int_obj);
+			int_obj = new Integer(count+1);
+			valuesetCountHashMap.put(valueset, int_obj);
+		}
+
+        Vector v1 = createValueSetTableData(valuesetCountHashMap, source2valueSetHashMap);
+	    String tableName = addTableNumber("Concepts In Value Set Grouped by Contributing Source");
+	    Vector th_vec = new Vector();
+	    th_vec.add("Contributing Source");
+	    th_vec.add("Value Set");
+	    th_vec.add("Count");
+	    addTable(tableName, th_vec, v1);
+
+        Vector v2 = createValueSetSourceTableData(valuesetCountHashMap, source2valueSetHashMap);
+	    tableName = addTableNumber("Concepts In Value Set Grouped by Contributing Source Summary");
+	    th_vec = new Vector();
+	    th_vec.add("Contributing Source");
+	    th_vec.add("Count");
+	    addTable(tableName, th_vec, v2);
+	}
+
+	public String addTableNumber(String tableName) {
+		table_number++;
+		return "" + table_number + tableName;
+	}
+
     public void generateTableData() {
 		Vector v = new Vector();
 		addTitle("NCI Thesaurus Statistics");
 
         v = generateBranchSizeTableData();
-	    String tableName = "Branch Size";
+        table_number++;
+	    String tableName = addTableNumber("Branch Size");
 	    Vector th_vec = new Vector();
 	    th_vec.add("Root");
 	    th_vec.add("Count");
 	    addTable(tableName, th_vec, v);
 
+/*
+•	Disease or Disorder (Code C2991)
+•	Neoplasm (Code C3262)
+•	Cancer-Related Condition (Code C8278)
+•	Rare Disorder (Code C4873)
+•	Pediatric Disorder (Code C89328)
+•	Finding (Code C3367)
+•	Clinical or Research Activity (Code C16203)
+•	Intervention or Procedure (Code C25218)
+•	Pharmacologic Substance (Code C1909)
+*/
+
+        Vector spec_roots = new Vector();
+        spec_roots.add("C2991");
+        spec_roots.add("C3262");
+        spec_roots.add("C8278");
+        spec_roots.add("C4873");
+        spec_roots.add("C89328");
+        spec_roots.add("C3367");
+        spec_roots.add("C16203");
+        spec_roots.add("C25218");
+        spec_roots.add("C1909");
+        Vector subbranchdata = generateSubBranchData(spec_roots);
+        subbranchdata = new SortUtils().quickSort(subbranchdata);
+	    tableName = addTableNumber("Subtrees");
+	    th_vec = new Vector();
+	    th_vec.add("Root");
+	    th_vec.add("Count");
+	    addTable(tableName, th_vec, subbranchdata);
+
+		Vector ret_vec = generateValueSetTableData();
+	    tableName = addTableNumber("Tallies of Concepts_In_Subset Associations");
+	    th_vec = new Vector();
+	    th_vec.add("Value Set");
+	    th_vec.add("Contributing Source");
+	    th_vec.add("Count");
+	    addTable(tableName, th_vec, ret_vec);
+
+	    run_valuse_set();
+
 	    v = getPropertyValueCounts(named_graph, "Semantic_Type");
-	    tableName = "Semantic_Type";
+	    tableName = addTableNumber("Semantic_Type");
 	    th_vec = new Vector();
 	    th_vec.add("Semantic Type");
 	    th_vec.add("Count");
@@ -1254,7 +1587,7 @@ public class EVSStatistics {
 	    addFooter();
 
 	    v = getPropertyValueCounts(named_graph, "Contributing_Source");
-	    tableName = "Contributing_Source";
+	    tableName = addTableNumber("Contributing_Source");
 	    th_vec = new Vector();
 	    th_vec.add("Contributing Source");
 	    th_vec.add("Count");
@@ -1262,7 +1595,7 @@ public class EVSStatistics {
 	    addFooter();
 
 	    v = getPropertyValueCounts(named_graph, "Concept_Status");
-	    tableName = "Concept_Status";
+	    tableName = addTableNumber("Concept_Status");
 	    th_vec = new Vector();
 	    th_vec.add("Concept Status");
 	    th_vec.add("Count");
@@ -1270,7 +1603,7 @@ public class EVSStatistics {
 	    addFooter();
 
         v = getPropertyCounts(named_graph);
-	    tableName = "Properties";
+	    tableName = addTableNumber("Properties");
 	    th_vec = new Vector();
 	    th_vec.add("Property");
 	    th_vec.add("Count");
@@ -1280,7 +1613,7 @@ public class EVSStatistics {
         v = getAssociations(named_graph);
         Vector association_knt_vec = getRelationsipCounts(v);
 
-	    tableName = "Associations";
+	    tableName = addTableNumber("Associations");
 	    th_vec = new Vector();
 	    th_vec.add("Association");
 	    th_vec.add("Count");
@@ -1300,7 +1633,7 @@ public class EVSStatistics {
 		}
 
 		Vector role_vec = getRelationsipCounts(v);
-	    tableName = "Roles";
+	    tableName = addTableNumber("Roles");
 	    th_vec = new Vector();
 	    th_vec.add("Role");
 	    th_vec.add("Count");
