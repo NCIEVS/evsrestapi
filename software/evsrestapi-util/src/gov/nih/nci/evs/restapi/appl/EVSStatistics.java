@@ -1332,15 +1332,18 @@ public class EVSStatistics {
 		w = new SortUtils().quickSort(w);
 		StringUtils.dumpVector("roots", w);
         int total = 0;
+        int total2 = 0;
 		for (int i=0; i<roots.size(); i++) {
 		    String root = (String) roots.elementAt(i);
 		    String label = hh.getLabel(root);
 			int count = hh.get_transitive_closure(root);
-			v0.add(hh.getLabel(root) + " (" + root + ")|" + count);
+			int count2 = hh.get_transitive_closure_v2(root);
+			v0.add(hh.getLabel(root) + " (" + root + ")|" + count + "|" + count2);
 			total = total + count;
+			total2 = total2 + count2;
 		}
 		v0 = new SortUtils().quickSort(v0);
-		v0.add("Total|" + total);
+		v0.add("Total|" + total + "|" + total2);
 		return v0;
 	}
 
@@ -1376,7 +1379,8 @@ public class EVSStatistics {
 		    String root = (String) roots.elementAt(i);
 		    String label = hh.getLabel(root);
 			int count = hh.get_transitive_closure(root);
-			v0.add(hh.getLabel(root) + " (" + root + ")|" + count);
+			int count2 = hh.get_transitive_closure_v2(root);
+			v0.add(hh.getLabel(root) + " (" + root + ")|" + count + "|" + count2);
 		}
 		return v0;
     }
@@ -1523,7 +1527,7 @@ public class EVSStatistics {
 
 	public String addTableNumber(String tableName) {
 		table_number++;
-		return "" + table_number + tableName;
+		return "Table " + table_number + ". " + tableName;
 	}
 
     public void generateTableData() {
@@ -1531,24 +1535,12 @@ public class EVSStatistics {
 		addTitle("NCI Thesaurus Statistics");
 
         v = generateBranchSizeTableData();
-        table_number++;
 	    String tableName = addTableNumber("Branch Size");
 	    Vector th_vec = new Vector();
 	    th_vec.add("Root");
-	    th_vec.add("Count");
+	    th_vec.add("Node Count");
+	    th_vec.add("Concept Count");
 	    addTable(tableName, th_vec, v);
-
-/*
-•	Disease or Disorder (Code C2991)
-•	Neoplasm (Code C3262)
-•	Cancer-Related Condition (Code C8278)
-•	Rare Disorder (Code C4873)
-•	Pediatric Disorder (Code C89328)
-•	Finding (Code C3367)
-•	Clinical or Research Activity (Code C16203)
-•	Intervention or Procedure (Code C25218)
-•	Pharmacologic Substance (Code C1909)
-*/
 
         Vector spec_roots = new Vector();
         spec_roots.add("C2991");
@@ -1565,7 +1557,8 @@ public class EVSStatistics {
 	    tableName = addTableNumber("Subtrees");
 	    th_vec = new Vector();
 	    th_vec.add("Root");
-	    th_vec.add("Count");
+	    th_vec.add("Node Count");
+	    th_vec.add("Concept Count");
 	    addTable(tableName, th_vec, subbranchdata);
 
 		Vector ret_vec = generateValueSetTableData();

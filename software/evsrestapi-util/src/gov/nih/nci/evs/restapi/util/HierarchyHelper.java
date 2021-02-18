@@ -728,6 +728,31 @@ public class HierarchyHelper implements Serializable {
 		return count;
 	}
 
+    public int get_transitive_closure_v2(String code) {
+		int count = 0;
+		Vector v = null;
+		Stack stack = new Stack();
+		stack.push(code);
+		HashSet hset = new HashSet();
+
+		while (!stack.isEmpty()) {
+			String next_code = (String) stack.pop();
+			if (!hset.contains(next_code)) {
+				hset.add(next_code);
+				count++;
+			}
+			v = getSubclassCodes(next_code);
+			if (v != null) {
+				for (int i=0; i<v.size(); i++) {
+					String child_code = (String) v.elementAt(i);
+					stack.push(child_code);
+				}
+			}
+		}
+		hset.clear();
+		return count;
+	}
+
     public static void main(String[] args) {
 		Vector v = Utils.readFile("tvs_rel.txt");
 		HierarchyHelper test = new HierarchyHelper(v, 1);
