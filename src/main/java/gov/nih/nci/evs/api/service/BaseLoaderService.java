@@ -164,21 +164,30 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         !latest.getTags().containsKey("monthly") && latest.getTags().containsKey("weekly");
 
     for (IndexMetadata iMeta : iMetas) {
+      boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
+
       // only change latest flag of terminologies that match latest one
       if (iMeta.getTerminology().getTerminology().equals(latest.getTerminology())) {
 
-        // If latest is just a weekly update, leave settings for
-        // monthly's unchanged
-        boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
-        if (latestWeeklyOnly && monthly) {
-          logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
+        // If latest is a weekly update, remove the "weekly" tag from
+        // the monthly, but leave "latest" flag unchanged
+        if (latestWeeklyOnly && monthly && iMeta.getTerminology().getLatest()) {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
+          iMeta.getTerminology().getTags().remove("weekly");
         } else {
           boolean flag = iMeta.getTerminology().equals(latest);
           logger.info("  " + iMeta.getTerminologyVersion() + " = " + flag);
           iMeta.getTerminology().setLatest(flag);
         }
       } else {
-        logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
+        // If latest is a weekly update, remove the "weekly" tag from
+        // the latest monthly, but leave "latest" flag unchanged
+        if (latestWeeklyOnly && monthly && iMeta.getTerminology().getLatest()) {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
+          iMeta.getTerminology().getTags().remove("weekly");
+        } else {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
+        }
       }
     }
 
