@@ -137,14 +137,49 @@ public class HTMLTable {
 		out.println("</center>");
 	}
 
+	public static boolean isWideField(String th) {
+		th = th.toLowerCase();
+		if (th.indexOf("label") != -1 || th.indexOf("term") != -1
+		   || th.indexOf("name") != -1 || th.indexOf("description") != -1
+		   || th.indexOf("definition") != -1) {
+			return true;
+		}
+		return false;
+	}
+
+	public static int calculateWideFieldWidth(int numFields, int numWideFields) {
+		int total = 100;
+		int width = 10;
+		int remaining_width = 100 - 10 * (numFields - numWideFields);
+		return (int) (remaining_width / numWideFields + 0.5);
+	}
+
+	public static int getWidth(int numFields, int numWideFields, String th) {
+		if (!isWideField(th)) return 10;
+		return calculateWideFieldWidth(numFields, numWideFields);
+	}
+
     public static void printTable(PrintWriter out,
         String tableLabel,
         Vector th_vec,
         Vector data_vec) {
 
-			if (out == null) {
-				System.out.println("out is NULL???");
+		int num_wide_fields = 0;
+		int num_fields = th_vec.size();
+		for (int i=0; i<th_vec.size(); i++) {
+			String th = (String) th_vec.elementAt(i);
+		    th = th.toLowerCase();
+		    if (th.indexOf("label") != -1 || th.indexOf("term") != -1
+		       || th.indexOf("name") != -1 || th.indexOf("description") != -1
+		       || th.indexOf("definition") != -1) {
+				num_wide_fields++;
 			}
+		}
+
+		if (out == null) {
+			System.out.println("out is NULL???");
+		}
+
 		out.println("");
 		out.println("<div>");
 		out.println("<center>");
@@ -163,9 +198,11 @@ public class HTMLTable {
 			String data = (String) data_vec.elementAt(i);
 			out.println("<tr>");
 			Vector u = StringUtils.parseData(data, '|');
+
 			for (int j=0; j<u.size(); j++) {
 				String value = (String) u.elementAt(j);
-				out.println("<td>");
+				int percent = getWidth(num_fields, num_wide_fields, (String) th_vec.elementAt(j));
+				out.println("<td width=\"" + percent + "%\">");
 				out.println(value);
 				out.println("</td>");
 			}
