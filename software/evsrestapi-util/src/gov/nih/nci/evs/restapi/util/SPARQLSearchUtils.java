@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
 
-//import gov.nih.nci.evs.restapi.appl.*;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
@@ -78,6 +77,38 @@ import java.util.regex.Matcher;
  */
 
 public class SPARQLSearchUtils extends OWLSPARQLUtils {
+
+
+	public static String[] fillers = new String[] {
+			"a",    "about",        "again",        "all",  "almost",
+			"also", "although",     "always",       "among",        "an",
+			"and",  "another",      "any",  "are",  "as",
+			"at",   "be",   "because",      "been", "before",
+			"being",        "between",      "both", "but",  "by",
+			"can",  "could",        "did",  "do",   "does",
+			"done", "due",  "during",       "each", "either",
+			"enough",       "especially",   "etc",  "external",     "for",
+			"found",        "from", "further",      "had",  "has",
+			"have", "having",       "here", "how",  "however", "human",
+			"i",    "if",   "in",   "internal",     "into",
+			"is",   "it",   "its",  "itself",       "just",
+			"made", "mainly",       "make", "may",  "might",
+			"most", "mostly",       "must", "nearly",       "neither",
+			"nor",  "obtained",     "of",   "often",        "on",
+			"or",   "other",        "our",  "overall",      "part",
+			"parts",        "perhaps",      "pmid", "quite",        "rather",
+			"really",       "regarding",    "secondary",    "seem", "seen",
+			"several",      "should",       "show", "showed",       "shown",
+			"shows",        "significantly",        "since",        "site", "sites",
+			"so",   "some", "specification",        "specified",    "such",
+			"than", "that", "the",  "their",        "theirs",
+			"them", "then", "there",        "therefore",    "these",
+			"they", "this", "those",        "through",      "thus",
+			"to",   "unspecified",  "upon", "use",  "used",
+			"using",        "various",      "very", "was",  "we",
+			"were", "what", "when", "which",        "while",
+			"with", "within",       "without",      "would"};
+
 	public static String[] PRESENTATIONS = new String[] {"Preferred_Name", "Display_Name", "FULL_SYN", "Legacy_Concept_Name", "label"};
 	public static List PRESENTATION_LIST = Arrays.asList(PRESENTATIONS);
 
@@ -99,11 +130,14 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	public static int MATCH_SOURCE = 1;
 	public static int MATCH_TARGET = 2;
 
+    private HashSet filler_set = null;
 	static String NAME_DATA = "name_data.txt";
 
 	Vector name_data = null;
 	HashMap name_data_hmap = new HashMap();
 	HashMap term2label_hmap = new HashMap();
+	HashMap signature2Codes_hmap = new HashMap();
+	HashMap code2Label_hmap = new HashMap();
 
     Vector keyword_vec = null;
     HashSet keywords = null;
@@ -122,11 +156,32 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 
 	public SPARQLSearchUtils(String serviceUrl, String named_graph, String username, String password) {
 		super(serviceUrl, named_graph, username, password);
-		//this.named_graph = named_graph;
 		long ms = System.currentTimeMillis();
 		initialize();
         System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
     }
+
+	public static HashSet toHashSet(Vector a) {
+		HashSet hset = new HashSet();
+		for (int i=0; i<a.size(); i++) {
+			String t = (String) a.elementAt(i);
+			hset.add(t);
+		}
+		return hset;
+	}
+
+	public static HashSet toHashSet(String[] a) {
+		HashSet hset = new HashSet();
+		for (int i=0; i<a.length; i++) {
+			String t = a[i];
+			hset.add(t);
+		}
+		return hset;
+	}
+
+	public boolean isFiller(String word) {
+		return filler_set.contains(word);
+	}
 
     public static boolean checkIfFileExists(String filename) {
 		String currentDir = System.getProperty("user.dir");
@@ -138,7 +193,25 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		}
 	}
 
+	public String getSignature(Vector words) {
+		words = new SortUtils().quickSort(words);
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<words.size(); i++) {
+			String word = (String) words.elementAt(i);
+			if (!isFiller(word)) {
+				buf.append(word);
+				if (i < words.size()-1) {
+					buf.append("$");
+				}
+			}
+		}
+		return buf.toString();
+	}
+
     public void initialize() {
+        code2Label_hmap = new HashMap();
+		filler_set = toHashSet(fillers);
+
 		if (checkIfFileExists(NAME_DATA)) {
 			name_data = Utils.readFile(NAME_DATA);
 		} else {
@@ -151,20 +224,48 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	    keywords = toHashSet(keyword_vec);
 
 	    term2label_hmap = new HashMap();
+	    signature2Codes_hmap = new HashMap();
 
 		Iterator it = name_data_hmap.keySet().iterator();
 		int lcv = 0;
 
 		boolean debug = false;
 		while (it.hasNext()) {
-			String key = (String) it.next();
+			String key = (String) it.next(); //Pericardial Stripping
+			//Pericardial Stripping|C100004|PERICARDIAL STRIPPING|CDISC|PT
 			Vector values = (Vector) name_data_hmap.get(key);
 			for (int i=0; i<values.size(); i++) {
 				String value = (String) values.elementAt(i);
-				Vector u = StringUtils.parseData(value, '|');
-				String syn = (String) u.elementAt(2);
+				Vector w2 = StringUtils.parseData(value);
+				String code = (String) w2.elementAt(1);
+
+				code2Label_hmap.put(code, key);
+
+				String term = (String) w2.elementAt(0);
+				Vector words = toKeywords(term);
+				String signature = getSignature(words);
+				Vector codes = new Vector();
+				if (signature2Codes_hmap.containsKey(signature)) {
+					codes = (Vector) signature2Codes_hmap.get(signature);
+				}
+				if (!codes.contains(code))codes.add(code);
+				signature2Codes_hmap.put(signature, codes);
+
+				term = (String) w2.elementAt(2);
+				words = toKeywords(term);
+				signature = getSignature(words);
+				codes = new Vector();
+				if (signature2Codes_hmap.containsKey(signature)) {
+					codes = (Vector) signature2Codes_hmap.get(signature);
+				}
+				if (!codes.contains(code))codes.add(code);
+				signature2Codes_hmap.put(signature, codes);
+
+				//Vector u = StringUtils.parseData(value, '|');
+				String syn = (String) w2.elementAt(2);
 				syn = syn.toLowerCase();
 				term2label_hmap.put(syn, key);
+
 			}
 	    }
 	}
@@ -287,6 +388,17 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			return "    FILTER (CONTAINS(lcase(?" + var + "), \"" + searchString + "\"))";
 		}
 		return "";
+	}
+
+	public String getLabel(String code) {
+		return (String) code2Label_hmap.get(code);
+	}
+
+	public Vector getCodeBySignature(String signature) {
+		if (signature2Codes_hmap.containsKey(signature)) {
+			return (Vector) signature2Codes_hmap.get(signature);
+		}
+		return null;
 	}
 
 	public List assignScores(List matchedConcepts, String searchString) {
@@ -950,36 +1062,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
-	public static String[] fillers = new String[] {
-			"a",    "about",        "again",        "all",  "almost",
-			"also", "although",     "always",       "among",        "an",
-			"and",  "another",      "any",  "are",  "as",
-			"at",   "be",   "because",      "been", "before",
-			"being",        "between",      "both", "but",  "by",
-			"can",  "could",        "did",  "do",   "does",
-			"done", "due",  "during",       "each", "either",
-			"enough",       "especially",   "etc",  "external",     "for",
-			"found",        "from", "further",      "had",  "has",
-			"have", "having",       "here", "how",  "however",
-			"i",    "if",   "in",   "internal",     "into",
-			"is",   "it",   "its",  "itself",       "just",
-			"made", "mainly",       "make", "may",  "might",
-			"most", "mostly",       "must", "nearly",       "neither",
-			"nor",  "obtained",     "of",   "often",        "on",
-			"or",   "other",        "our",  "overall",      "part",
-			"parts",        "perhaps",      "pmid", "quite",        "rather",
-			"really",       "regarding",    "secondary",    "seem", "seen",
-			"several",      "should",       "show", "showed",       "shown",
-			"shows",        "significantly",        "since",        "site", "sites",
-			"so",   "some", "specification",        "specified",    "such",
-			"than", "that", "the",  "their",        "theirs",
-			"them", "then", "there",        "therefore",    "these",
-			"they", "this", "those",        "through",      "thus",
-			"to",   "unspecified",  "upon", "use",  "used",
-			"using",        "various",      "very", "was",  "we",
-			"were", "what", "when", "which",        "while",
-			"with", "within",       "without",      "would"};
-
 	public static String[] discarded_phrase_values = new String[] {
 			"ill-defined",
 			"not elsewhere classified",
@@ -1029,24 +1111,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			}
 		}
 		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(toVector(hset));
-	}
-
-	public static HashSet toHashSet(Vector a) {
-		HashSet hset = new HashSet();
-		for (int i=0; i<a.size(); i++) {
-			String t = (String) a.elementAt(i);
-			hset.add(t);
-		}
-		return hset;
-	}
-
-	public static HashSet toHashSet(String[] a) {
-		HashSet hset = new HashSet();
-		for (int i=0; i<a.length; i++) {
-			String t = a[i];
-			hset.add(t);
-		}
-		return hset;
 	}
 
 	public static Vector toVector(String[] a) {
@@ -1139,8 +1203,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
         Vector w = new Vector();
 		int k = 0;
 		System.out.println("verbatims.size(): " + verbatims.size());
-
-		//for (int i=0; i<10; i++) {
 	    int num_matched = 0;
 	    Vector no_match_verbatim_vec = new Vector();
 		for (int i=0; i<verbatims.size(); i++) {
@@ -1150,7 +1212,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			Vector u = StringUtils.parseData(verbatim);
 			String term = (String) u.elementAt(0);
 			String code = (String) u.elementAt(1);
-
 			System.out.println("(" + k + ") " + term + " (" + code + ")");
 			Vector v = searchUtils.mapTo(term);
 			if (v != null && v.size() > 0) {
@@ -1175,7 +1236,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		System.out.println("Number of terms matched: " + num_matched);
 		int no_matches = verbatims.size() - num_matched;
 		System.out.println("Number of terms NOT matched: " + no_matches);
-
 	}
 
 }
