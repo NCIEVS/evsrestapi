@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.restapi.util;
-import gov.nih.nci.evs.restapi.appl.*;
+
+//import gov.nih.nci.evs.restapi.appl.*;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
@@ -98,8 +99,14 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	public static int MATCH_SOURCE = 1;
 	public static int MATCH_TARGET = 2;
 
+	static String NAME_DATA = "name_data.txt";
+
 	Vector name_data = null;
 	HashMap name_data_hmap = new HashMap();
+	HashMap term2label_hmap = new HashMap();
+
+    Vector keyword_vec = null;
+    HashSet keywords = null;
 
 	public SPARQLSearchUtils() {
 		super();
@@ -121,10 +128,49 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
         System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
     }
 
+    public static boolean checkIfFileExists(String filename) {
+		String currentDir = System.getProperty("user.dir");
+		File f = new File(currentDir + "\\" + filename);
+		if(f.exists() && !f.isDirectory()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
     public void initialize() {
-	    name_data = getSearchByNameData(named_graph);
-	    Utils.saveToFile("name_data.txt", name_data);
+		if (checkIfFileExists(NAME_DATA)) {
+			name_data = Utils.readFile(NAME_DATA);
+		} else {
+			name_data = getSearchByNameData(named_graph);
+			Utils.saveToFile(NAME_DATA, name_data);
+		}
 	    name_data_hmap = create_name_data_hmap(name_data);
+
+	    keyword_vec = toKeywords(name_data);
+	    keywords = toHashSet(keyword_vec);
+
+	    term2label_hmap = new HashMap();
+
+		Iterator it = name_data_hmap.keySet().iterator();
+		int lcv = 0;
+
+		boolean debug = false;
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector values = (Vector) name_data_hmap.get(key);
+			for (int i=0; i<values.size(); i++) {
+				String value = (String) values.elementAt(i);
+				Vector u = StringUtils.parseData(value, '|');
+				String syn = (String) u.elementAt(2);
+				syn = syn.toLowerCase();
+				term2label_hmap.put(syn, key);
+			}
+	    }
+	}
+
+	public boolean isKeyword(String word) {
+		return keywords.contains(word);
 	}
 
     public HashMap create_name_data_hmap(Vector name_data) {
@@ -152,7 +198,83 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		return (Vector) name_data_hmap.get(vbt);
 	}
 
+	public Vector substringSearch(String vbt) {
+		Vector w = new Vector();
+		vbt = vbt.toLowerCase();
+		vbt = vbt.replace("-", " ");
+		Iterator it = name_data_hmap.keySet().iterator();
+		int lcv = 0;
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			if (lcv == 0) {
+				lcv++;
+			}
+			if (key.indexOf(vbt) != -1) {
+				w.addAll((Vector) name_data_hmap.get(key));
+			}
+	    }
+	    return w;
+	}
 
+	public Vector endsWithSearch(String vbt) {
+		Vector w = new Vector();
+		try {
+			Iterator it = term2label_hmap.keySet().iterator();
+			while (it.hasNext()) {
+				String term = (String) it.next();
+				if (term.endsWith(vbt)) {
+					String key = (String) term2label_hmap.get(term);
+					Vector w2 = (Vector) name_data_hmap.get(key);
+					w.addAll(w2);
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return w;
+    }
+
+	public Vector substringSearch0(String vbt) {
+		Vector w = new Vector();
+		vbt = vbt.toLowerCase();
+		Iterator it = name_data_hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector values = (Vector) name_data_hmap.get(key);
+			for (int k=0; k<values.size(); k++) {
+				String value = (String) values.elementAt(k);
+				Vector u = StringUtils.parseData(value, '|');
+				String syn = (String) u.elementAt(2);
+				Vector v = toKeywords(syn);
+				if (v.contains(vbt)) {
+					w.addAll((Vector) name_data_hmap.get(key));
+				}
+			}
+	    }
+	    return w;
+	}
+
+	public Vector substringSearch2(String vbt) {
+		Vector w = new Vector();
+		vbt = vbt.toLowerCase();
+		vbt = vbt.replace("-", " ");
+		Iterator it = name_data_hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector values = (Vector) name_data_hmap.get(key);
+			for (int k=0; k<values.size(); k++) {
+				String value = (String) values.elementAt(k);
+				Vector u = StringUtils.parseData(value, '|');
+				String syn = (String) u.elementAt(2);
+				Vector v = toKeywords(syn);
+				if (v.contains(vbt)) {
+					w.addAll((Vector) name_data_hmap.get(key));
+					break;
+				}
+			}
+	    }
+	    return w;
+	}
 
     public String getMatchFilter(String var, String algorithm, String searchString) {
 		if (algorithm.compareTo(EXACT_MATCH) == 0) {
@@ -426,11 +548,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 					vs_code = (String) u.elementAt(4);
 					p_value = p_value + " (" + vs_code + ")";
 				}
-/*
-to be implemented:
-				MatchedConcept mc = new MatchedConcept(x_label, x_code, p_label, p_value);
-				matchedConcepts.add(mc);
-*/
 			}
 		}
 		ms = System.currentTimeMillis();
@@ -830,6 +947,181 @@ to be implemented:
         return new SortUtils().quickSort(v);
 	}
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	public static String[] fillers = new String[] {
+			"a",    "about",        "again",        "all",  "almost",
+			"also", "although",     "always",       "among",        "an",
+			"and",  "another",      "any",  "are",  "as",
+			"at",   "be",   "because",      "been", "before",
+			"being",        "between",      "both", "but",  "by",
+			"can",  "could",        "did",  "do",   "does",
+			"done", "due",  "during",       "each", "either",
+			"enough",       "especially",   "etc",  "external",     "for",
+			"found",        "from", "further",      "had",  "has",
+			"have", "having",       "here", "how",  "however",
+			"i",    "if",   "in",   "internal",     "into",
+			"is",   "it",   "its",  "itself",       "just",
+			"made", "mainly",       "make", "may",  "might",
+			"most", "mostly",       "must", "nearly",       "neither",
+			"nor",  "obtained",     "of",   "often",        "on",
+			"or",   "other",        "our",  "overall",      "part",
+			"parts",        "perhaps",      "pmid", "quite",        "rather",
+			"really",       "regarding",    "secondary",    "seem", "seen",
+			"several",      "should",       "show", "showed",       "shown",
+			"shows",        "significantly",        "since",        "site", "sites",
+			"so",   "some", "specification",        "specified",    "such",
+			"than", "that", "the",  "their",        "theirs",
+			"them", "then", "there",        "therefore",    "these",
+			"they", "this", "those",        "through",      "thus",
+			"to",   "unspecified",  "upon", "use",  "used",
+			"using",        "various",      "very", "was",  "we",
+			"were", "what", "when", "which",        "while",
+			"with", "within",       "without",      "would"};
+
+	public static String[] discarded_phrase_values = new String[] {
+			"ill-defined",
+			"not elsewhere classified",
+			"not otherwise classified",
+			"not specified",
+			"Other specified",
+			"Other types of",
+			"primary site unknown, so stated",
+			"Unknown and unspecified causes of"};
+	public static String[] specialChars = new String[] {"{", "}", "(", ")", "'", ":", ";", ".", "," ,"\""};
+	public static HashSet specialCharsHashSet = toHashSet(specialChars);
+
+
+
+	public static Vector toKeywords(String term) {
+		HashSet hset = new HashSet();
+		term = term.trim();
+		term = term.replace("\"", "");
+		term = term.trim();
+		if (term.length() > 0) {
+			term = term.toLowerCase();
+			term = replace(term, '/', ' ');
+			String[] tokens = term.split(" ");
+			for (int j=0; j<tokens.length; j++) {
+				String token = tokens[j];
+				if (token.length() > 1) {
+					char firstChar = token.charAt(0);
+					char lastChar = token.charAt(token.length()-1);
+					if (specialCharsHashSet.contains("" + firstChar) &&
+						specialCharsHashSet.contains("" + lastChar)) {
+						token = token.substring(1, token.length()-1);
+					} else if (specialCharsHashSet.contains("" + lastChar)) {
+						token = token.substring(0, token.length()-1);
+					} else if (specialCharsHashSet.contains("" + firstChar)) {
+						token = token.substring(1, token.length());
+					}
+					if (token.length() > 0) {
+						if (!hset.contains(token)) {
+							hset.add(token);
+						}
+					}
+				} else if (token.length() == 1) {
+					if (!hset.contains(token)) {
+						hset.add(token);
+					}
+				}
+			}
+		}
+		return new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(toVector(hset));
+	}
+
+	public static HashSet toHashSet(Vector a) {
+		HashSet hset = new HashSet();
+		for (int i=0; i<a.size(); i++) {
+			String t = (String) a.elementAt(i);
+			hset.add(t);
+		}
+		return hset;
+	}
+
+	public static HashSet toHashSet(String[] a) {
+		HashSet hset = new HashSet();
+		for (int i=0; i<a.length; i++) {
+			String t = a[i];
+			hset.add(t);
+		}
+		return hset;
+	}
+
+	public static Vector toVector(String[] a) {
+		Vector w = new Vector();
+		for (int i=0; i<a.length; i++) {
+			String t = a[i];
+			w.add(t);
+		}
+		return w;
+	}
+
+    public static Vector toVector(HashSet hset) {
+		Vector v = new Vector();
+		Iterator it = hset.iterator();
+		while (it.hasNext()) {
+			v.add((String) it.next());
+		}
+		return v;
+	}
+
+	public static String replace(String s, char replace, char by) {
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == replace) {// '\u002F' ) {
+				c = by;
+			}
+			buf.append(c);
+		}
+		return buf.toString();
+	}
+
+	public static Vector remove_duplicates(Vector w) {
+		Vector v = new Vector();
+		String t = (String) w.elementAt(0);
+		v.add(t);
+		for (int i=1; i<w.size(); i++) {
+			String s = (String) w.elementAt(i);
+			if (s.compareTo(t) != 0) {
+				v.add(s);
+				t = s;
+			}
+		}
+		return v;
+	}
+
+	public static Vector toKeywords(Vector term_data) {
+		Vector w = new Vector();
+        for (int i=0; i<term_data.size(); i++) {
+			String line = (String) term_data.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String term = (String) u.elementAt(2);
+			Vector v = toKeywords(term);
+			w.addAll(v);
+		}
+		w = new gov.nih.nci.evs.restapi.util.SortUtils().quickSort(w);
+		w = remove_duplicates(w);
+		return w;
+	}
+
+    public static int countNumberOfMatchedConcepts(Vector v) {
+		int n = 0;
+		HashSet hset = new HashSet();
+		if (v == null) return 0;
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String code = (String) u.elementAt(1);
+			if (!hset.contains(code)) {
+				hset.add(code);
+			}
+		}
+		return hset.size();
+	}
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -847,7 +1139,12 @@ to be implemented:
         Vector w = new Vector();
 		int k = 0;
 		System.out.println("verbatims.size(): " + verbatims.size());
+
+		//for (int i=0; i<10; i++) {
+	    int num_matched = 0;
+	    Vector no_match_verbatim_vec = new Vector();
 		for (int i=0; i<verbatims.size(); i++) {
+			boolean matched = true;
 			k++;
 			String verbatim = (String) verbatims.elementAt(i);
 			Vector u = StringUtils.parseData(verbatim);
@@ -864,8 +1161,21 @@ to be implemented:
 				}
 			} else{
 				w.add(verbatim + "||||||No match");
+				matched = false;
+				no_match_verbatim_vec.add(verbatim);
+			}
+			if (matched) {
+				num_matched++;
 			}
 		}
 		Utils.saveToFile("results_" + verbatimfile, w);
+		Utils.saveToFile("nomatches_" + verbatimfile, no_match_verbatim_vec);
+
+		System.out.println("Number of terms: " + verbatims.size());
+		System.out.println("Number of terms matched: " + num_matched);
+		int no_matches = verbatims.size() - num_matched;
+		System.out.println("Number of terms NOT matched: " + no_matches);
+
 	}
+
 }
