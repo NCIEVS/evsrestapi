@@ -89,7 +89,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			"done", "due",  "during",       "each", "either",
 			"enough",       "especially",   "etc",  "external",     "for",
 			"found",        "from", "further",      "had",  "has",
-			"have", "having",       "here", "how",  "however", "human",
+			"have", "having",       "here", "how",  "however",
 			"i",    "if",   "in",   "internal",     "into",
 			"is",   "it",   "its",  "itself",       "just",
 			"made", "mainly",       "make", "may",  "might",
@@ -141,6 +141,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 
     Vector keyword_vec = null;
     HashSet keywords = null;
+    Vector user_fillers = new Vector();
 
 	public SPARQLSearchUtils() {
 		super();
@@ -161,6 +162,10 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
         System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
     }
 
+    public void set_user_fillers(Vector v) {
+		this.user_fillers = v;
+	}
+
 	public static HashSet toHashSet(Vector a) {
 		HashSet hset = new HashSet();
 		for (int i=0; i<a.size(); i++) {
@@ -180,7 +185,9 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	}
 
 	public boolean isFiller(String word) {
-		return filler_set.contains(word);
+		if (filler_set.contains(word)) return true;
+		if (user_fillers.contains(word)) return true;
+		return false;
 	}
 
     public static boolean checkIfFileExists(String filename) {
