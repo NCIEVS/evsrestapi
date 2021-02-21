@@ -69,7 +69,7 @@ public class MetricAdvice {
     }
 
     String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH));
+        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1));
 
     boolean result = operationsService.createIndex(indexName, false);
     if (result) {
