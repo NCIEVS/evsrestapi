@@ -145,6 +145,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
     Vector keyword_vec = null;
     HashSet keywords = null;
     Vector user_fillers = new Vector();
+    Vector keyword_freq_vec = new Vector();
 
 	public SPARQLSearchUtils() {
 		super();
@@ -309,27 +310,31 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 					freq++;
 					kwd_freq_hmap.put(keyword, new Integer(freq));
 				}
-
-
-
 			}
 	    }
 
-		Vector w5 = new Vector();
+		keyword_freq_vec = new Vector();
 		Iterator it2 = kwd_freq_hmap.keySet().iterator();
 		while (it2.hasNext()) {
 			String keyword = (String) it2.next();
 			Integer int_obj = (Integer) kwd_freq_hmap.get(keyword);
-			w5.add(keyword + " " + Integer.valueOf(int_obj));
+			keyword_freq_vec.add(keyword + "|" + Integer.valueOf(int_obj));
 			if (Integer.valueOf(int_obj) == 1) {
 				rareKeywords.add(keyword);
 				rareKeyword_vec.add(keyword);
 			}
 		}
-
-		Utils.saveToFile("rareKeywords.txt", rareKeyword_vec);
-		Utils.saveToFile("w5.txt", new SortUtils().quickSort(w5));
+		keyword_freq_vec = new SortUtils().quickSort(keyword_freq_vec);
 	}
+
+	public Vector getKeywordFrequency() {
+		return keyword_freq_vec;
+	}
+
+	public Vector getRareKeywords() {
+		return rareKeyword_vec;
+	}
+
 
     public String containsRareKeywords(String term) {
 		Vector kwds = toKeywords(term);
@@ -433,7 +438,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		return w;
     }
 
-	public Vector substringSearch0(String vbt) {
+	public Vector substring_search(String vbt) {
 		Vector w = new Vector();
 		vbt = vbt.toLowerCase();
 		Iterator it = name_data_hmap.keySet().iterator();
@@ -453,6 +458,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	    return w;
 	}
 
+/*
 	public Vector substringSearch2(String vbt) {
 		Vector w = new Vector();
 		vbt = vbt.toLowerCase();
@@ -474,6 +480,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	    }
 	    return w;
 	}
+*/
 
     public String getMatchFilter(String var, String algorithm, String searchString) {
 		if (algorithm.compareTo(EXACT_MATCH) == 0) {
@@ -1168,6 +1175,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			"Other types of",
 			"primary site unknown, so stated",
 			"Unknown and unspecified causes of"};
+
 	public static String[] specialChars = new String[] {"{", "}", "(", ")", "'", ":", ";", ".", "," ,"\""};
 	public static HashSet specialCharsHashSet = toHashSet(specialChars);
 
