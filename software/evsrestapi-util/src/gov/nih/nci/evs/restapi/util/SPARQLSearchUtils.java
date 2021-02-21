@@ -89,7 +89,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			"done", "due",  "during",       "each", "either",
 			"enough",       "especially",   "etc",  "external",     "for",
 			"found",        "from", "further",      "had",  "has",
-			"have", "having",       "here", "how",  "however",
+			"have", "having",       "here", "how",  "however", "human",
 			"i",    "if",   "in",   "internal",     "into",
 			"is",   "it",   "its",  "itself",       "just",
 			"made", "mainly",       "make", "may",  "might",
@@ -138,6 +138,9 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	HashMap term2label_hmap = new HashMap();
 	HashMap signature2Codes_hmap = new HashMap();
 	HashMap code2Label_hmap = new HashMap();
+	HashMap kwd_freq_hmap = null;
+	HashSet rareKeywords = new HashSet();
+	Vector rareKeyword_vec = new Vector();
 
     Vector keyword_vec = null;
     HashSet keywords = null;
@@ -217,6 +220,8 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 
     public void initialize() {
         code2Label_hmap = new HashMap();
+        kwd_freq_hmap = new HashMap();
+        rareKeywords = new HashSet();
 		filler_set = toHashSet(fillers);
 
 		if (checkIfFileExists(NAME_DATA)) {
@@ -237,8 +242,25 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		int lcv = 0;
 
 		boolean debug = false;
+
+		int knt = 0;
+
 		while (it.hasNext()) {
 			String key = (String) it.next(); //Pericardial Stripping
+
+			Vector kwds = toKeywords(key);
+			for (int k=0; k<kwds.size(); k++) {
+				String keyword = (String) kwds.elementAt(k);
+				Vector w1 = new Vector();
+				Integer int_obj = new Integer(0);
+				if (kwd_freq_hmap.containsKey(keyword)) {
+					int_obj = (Integer) kwd_freq_hmap.get(keyword);
+				}
+				int freq = Integer.valueOf(int_obj);
+				freq++;
+				kwd_freq_hmap.put(keyword, new Integer(freq));
+			}
+
 			//Pericardial Stripping|C100004|PERICARDIAL STRIPPING|CDISC|PT
 			Vector values = (Vector) name_data_hmap.get(key);
 			for (int i=0; i<values.size(); i++) {
@@ -247,8 +269,10 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 				String code = (String) w2.elementAt(1);
 
 				code2Label_hmap.put(code, key);
-
 				String term = (String) w2.elementAt(0);
+
+
+
 				Vector words = toKeywords(term);
 				String signature = getSignature(words);
 				Vector codes = new Vector();
@@ -273,8 +297,49 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 				syn = syn.toLowerCase();
 				term2label_hmap.put(syn, key);
 
+				kwds = toKeywords(syn);
+				for (int k=0; k<kwds.size(); k++) {
+					String keyword = (String) kwds.elementAt(k);
+					Vector w1 = new Vector();
+					Integer int_obj = new Integer(0);
+					if (kwd_freq_hmap.containsKey(keyword)) {
+						int_obj = (Integer) kwd_freq_hmap.get(keyword);
+					}
+					int freq = Integer.valueOf(int_obj);
+					freq++;
+					kwd_freq_hmap.put(keyword, new Integer(freq));
+				}
+
+
+
 			}
 	    }
+
+		Vector w5 = new Vector();
+		Iterator it2 = kwd_freq_hmap.keySet().iterator();
+		while (it2.hasNext()) {
+			String keyword = (String) it2.next();
+			Integer int_obj = (Integer) kwd_freq_hmap.get(keyword);
+			w5.add(keyword + " " + Integer.valueOf(int_obj));
+			if (Integer.valueOf(int_obj) == 1) {
+				rareKeywords.add(keyword);
+				rareKeyword_vec.add(keyword);
+			}
+		}
+
+		Utils.saveToFile("rareKeywords.txt", rareKeyword_vec);
+		Utils.saveToFile("w5.txt", new SortUtils().quickSort(w5));
+	}
+
+    public String containsRareKeywords(String term) {
+		Vector kwds = toKeywords(term);
+		for (int k=0; k<kwds.size(); k++) {
+			String kwd = (String) kwds.elementAt(k);
+			if (rareKeywords.contains(kwd)) {
+				return kwd;
+			}
+		}
+		return null;
 	}
 
 	public boolean isKeyword(String word) {
@@ -304,6 +369,32 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
     public Vector mapTo(String vbt) {
 		vbt = vbt.toLowerCase();
 		return (Vector) name_data_hmap.get(vbt);
+	}
+
+	public Vector keywordSearch(String word) {
+		Vector w = new Vector();
+		Iterator it = name_data_hmap.keySet().iterator();
+		int lcv = 0;
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Vector words = toKeywords(key);
+			if (words.contains(word)) {
+				w.addAll((Vector) name_data_hmap.get(key));
+				return w;
+			}
+			Vector values = (Vector) name_data_hmap.get(key);
+			for (int k=0; k<values.size(); k++) {
+				String value = (String) values.elementAt(k);
+				Vector u = StringUtils.parseData(value, '|');
+				String syn = (String) u.elementAt(2);
+				Vector v = toKeywords(syn);
+				if (v.contains(word)) {
+					w.addAll((Vector) name_data_hmap.get(key));
+					break;
+				}
+			}
+	    }
+	    return w;
 	}
 
 	public Vector substringSearch(String vbt) {
@@ -857,7 +948,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 
 	public Vector searchByName(String named_graph, String searchString, String algorithm) {
 		String query = construct_search_by_name(named_graph, searchString, algorithm);
-		//System.out.println(query);
 		Vector w = executeQuery(query);
 		if (w != null && w.size() > 0) {
 			w = new ParserUtils().getResponseValues(w);
@@ -1209,7 +1299,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
         Vector verbatims = Utils.readFile(verbatimfile);
         Vector w = new Vector();
 		int k = 0;
-		System.out.println("verbatims.size(): " + verbatims.size());
+
 	    int num_matched = 0;
 	    Vector no_match_verbatim_vec = new Vector();
 		for (int i=0; i<verbatims.size(); i++) {
@@ -1219,6 +1309,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			Vector u = StringUtils.parseData(verbatim);
 			String term = (String) u.elementAt(0);
 			String code = (String) u.elementAt(1);
+
 			System.out.println("(" + k + ") " + term + " (" + code + ")");
 			Vector v = searchUtils.mapTo(term);
 			if (v != null && v.size() > 0) {
@@ -1243,6 +1334,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		System.out.println("Number of terms matched: " + num_matched);
 		int no_matches = verbatims.size() - num_matched;
 		System.out.println("Number of terms NOT matched: " + no_matches);
+
 	}
 
 }
