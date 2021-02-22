@@ -2,13 +2,43 @@ package gov.nih.nci.evs.restapi.util;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.DataFormatter;
+
 
 import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class ExcelReader {
 	public static DataFormatter dataFormatter = new DataFormatter();
+
+    public static Vector csv2Text(String xlsxfile, String sheetName) throws Exception {
+		DataFormatter dataFormatter  = new DataFormatter();
+		File file = new File(xlsxfile);
+        FileInputStream ip = new FileInputStream(file);
+        Workbook wb = WorkbookFactory.create(ip);
+        Sheet sheet = wb.getSheet(sheetName);
+		Vector w = new Vector();
+        Iterator<Row> rowIterator = sheet.rowIterator();
+        while (rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Iterator<Cell> cellIterator = row.cellIterator();
+            StringBuffer buf = new StringBuffer();
+            while (cellIterator.hasNext()) {
+                Cell cell = cellIterator.next();
+                String cellValue = dataFormatter.formatCellValue(cell);
+                buf.append(cellValue + "\t");
+            }
+            String t = buf.toString();
+            t = t.substring(0, t.length()-1);
+            w.add(t);
+        }
+        ip.close();
+        return w;
+    }
 
     public static int getNumberOfSheets(String excelfile) {
 		try {
