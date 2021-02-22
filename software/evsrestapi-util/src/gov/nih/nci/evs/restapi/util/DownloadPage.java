@@ -16,16 +16,7 @@ import java.util.regex.*;
 import org.apache.commons.codec.binary.Base64;
 import java.nio.charset.Charset;
 
-//http://www.hccp.org/java-net-cookie-how-to.html
-//https://www.mkyong.com/java/how-to-download-file-from-website-java-jsp/
-
 public class DownloadPage {
-
-	public static String SOURCE_HELP_PAGE_URL = "https://nciterms65.nci.nih.gov/ncitbrowser/pages/source_help_info.jsf?dictionary=NCI_Thesaurus";
-	public static String TERM_TYPE_HELP_PAGE_URL = "https://nciterms65.nci.nih.gov/ncitbrowser/pages/term_type_help_info.jsf?dictionary=NCI_Thesaurus";
-
-	public static String TERM_BROWSER_HOME_URL = "https://nciterms65.nci.nih.gov";
-
 	public DownloadPage() {
 
 	}
@@ -37,27 +28,7 @@ public class DownloadPage {
 			System.out.println(t);
 		}
 	}
-/*
-    public static void download(String url, String filePath) {
-		try {
-			URL urlObj = new URL(url);
-			URLConnection urlConnection = urlObj.openConnection();
-			Charset charset = Charset.forName("UTF8");
-			InputStreamReader stream = new InputStreamReader(urlConnection.getInputStream(), charset);
-			BufferedReader reader = new BufferedReader(stream);
-			StringBuffer responseBuffer = new StringBuffer();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				responseBuffer.append(line);
-				responseBuffer.append("\n");
-			}
-			reader.close();
-			System.out.println(responseBuffer.toString());
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-*/
+
     public static Vector download(String url) {
 		Vector w = new Vector();
 		try {
@@ -76,33 +47,5 @@ public class DownloadPage {
 			ex.printStackTrace();
 		}
 		return w;
-	}
-
-	public static void main(String[] args) {
-		String url = SOURCE_HELP_PAGE_URL;
-	    Vector v = null;
-	    try {
-
-			//url = "https://google.com";
-			//String filePath = "google.html";
-
-			url = SOURCE_HELP_PAGE_URL;
-			url = TERM_TYPE_HELP_PAGE_URL;
-			String filePath = "help.html";
-
-			//url = TERM_BROWSER_HOME_URL;
-			//filePath = "home.html";
-
-			Vector w = download(url);
-
-			//v = WebPageRetrieval.download(url);
-			dumpVector(url, w);
-
-			//String retstr = WebPageRetrieval.executeQuery(new URL(url), null, null, "UTF8");
-			//System.out.println(retstr);
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
 	}
 }
