@@ -133,7 +133,7 @@ public class MetricAdvice {
     final String url = request.getRequestURL().toString();
     metric.setEndPoint(url);
 
-    if(this.databaseFound){
+    if (this.databaseFound) {
       logger.info("database found: " + this.databaseFound);
       try {
         CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
@@ -151,7 +151,7 @@ public class MetricAdvice {
     // get the parameters
     operationsService.loadMetric(metric,
         "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH)));
+            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1)));
 
     logger.debug("metric = " + metric);
     return retval;
