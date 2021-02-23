@@ -889,7 +889,9 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	}
 
 public String construct_get_property_values(String named_graph, String propertyName) {
+	String prefixes = getPrefixes();
 	StringBuffer buf = new StringBuffer();
+	buf.append(prefixes).append("\n");
 	buf.append("select distinct ?x_label ?x_code ?p_label ?p_value").append("\n");
 	buf.append("from <" + named_graph + ">").append("\n");
 	buf.append("where  { ").append("\n");
