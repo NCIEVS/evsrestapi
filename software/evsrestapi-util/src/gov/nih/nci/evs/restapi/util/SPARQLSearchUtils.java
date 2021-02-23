@@ -458,29 +458,6 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 	    return w;
 	}
 
-/*
-	public Vector substringSearch2(String vbt) {
-		Vector w = new Vector();
-		vbt = vbt.toLowerCase();
-		vbt = vbt.replace("-", " ");
-		Iterator it = name_data_hmap.keySet().iterator();
-		while (it.hasNext()) {
-			String key = (String) it.next();
-			Vector values = (Vector) name_data_hmap.get(key);
-			for (int k=0; k<values.size(); k++) {
-				String value = (String) values.elementAt(k);
-				Vector u = StringUtils.parseData(value, '|');
-				String syn = (String) u.elementAt(2);
-				Vector v = toKeywords(syn);
-				if (v.contains(vbt)) {
-					w.addAll((Vector) name_data_hmap.get(key));
-					break;
-				}
-			}
-	    }
-	    return w;
-	}
-*/
 
     public String getMatchFilter(String var, String algorithm, String searchString) {
 		if (algorithm.compareTo(EXACT_MATCH) == 0) {
@@ -910,6 +887,33 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		w = new ParserUtils().getResponseValues(w);
 		return w;
 	}
+
+public String construct_get_property_values(String named_graph, String propertyName) {
+	StringBuffer buf = new StringBuffer();
+	buf.append("select distinct ?x_label ?x_code ?p_label ?p_value").append("\n");
+	buf.append("from <" + named_graph + ">").append("\n");
+	buf.append("where  { ").append("\n");
+	buf.append("                ?x a owl:Class .").append("\n");
+	buf.append("                ?x :NHC0 ?x_code .").append("\n");
+	buf.append("                ?x rdfs:label ?x_label .").append("\n");
+	buf.append("").append("\n");
+	buf.append("                ?p :NHC0 ?p_code .").append("\n");
+	buf.append("                ?p rdfs:label ?p_label .").append("\n");
+	buf.append("                ?p rdfs:label \"" + propertyName + "\"^^xsd:string .").append("\n");
+	buf.append("                ?p a owl:AnnotationProperty .").append("\n");
+	buf.append("                ").append("\n");
+	buf.append("                ?x ?p ?p_value .").append("\n");
+	buf.append("}").append("\n");
+	return buf.toString();
+}
+
+
+public Vector getPropertyValues(String named_graph, String propertyName) {
+	String query = construct_get_property_values(named_graph, propertyName);
+	Vector w = executeQuery(query);
+	w = new ParserUtils().getResponseValues(w);
+	return w;
+}
 
 
 	public String construct_search_by_name(String named_graph, String searchString, String algorithm) {
