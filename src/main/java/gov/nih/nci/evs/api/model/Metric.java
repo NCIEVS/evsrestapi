@@ -8,14 +8,17 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
+
 /**
  * Metric.
  */
-@Document(indexName = "default", type = "_doc")
+@Document(indexName = "default", type = ElasticOperationsService.METRIC_TYPE)
 public class Metric {
 
   /** The remote ip address. */
@@ -50,9 +53,8 @@ public class Metric {
   @Field(type = FieldType.Text)
   private String hostName;
 
-  /** The GeoIP Info object */
-  @Field(type = FieldType.Object)
-  private GeoIP geoip;
+  /** The geoPoint object */
+  private GeoPoint geoPoint;
 
   /**
    * Returns the remote ip address.
@@ -183,15 +185,15 @@ public class Metric {
   /**
    * @return the Geoip
    */
-  public GeoIP getGeoip() {
-    return geoip;
+  public GeoPoint getGeoPoint() {
+    return geoPoint;
   }
 
   /**
    * @param ipInfo the Geoip
    */
-  public void setGeoip(GeoIP geoip) {
-    this.geoip = geoip;
+  public void setGeoPoint(GeoPoint geoPoint) {
+    this.geoPoint = geoPoint;
   }
 
   /* see superclass */

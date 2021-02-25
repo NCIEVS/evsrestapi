@@ -15,6 +15,9 @@ public class ApplicationProperties {
   /** The metric log switch. */
   private Boolean metricsEnabled;
 
+  /** The metrics dir */
+  private String metricsDir;
+
   /**
    * Returns the admin key.
    *
@@ -67,6 +70,24 @@ public class ApplicationProperties {
    */
   public void setMetricsEnabled(Boolean metricsEnabled) {
     this.metricsEnabled = metricsEnabled;
+  }
+
+  /**
+   * Returns the metric Dir.
+   *
+   * @return the metric Dir
+   */
+  public String getMetricsDir() {
+    return metricsDir;
+  }
+
+  /**
+   * Sets the metric directory.
+   *
+   * @param metricsDir the metric directory
+   */
+  public void setMetricsDir(String metricsDir) {
+    this.metricsDir = metricsDir;
   }
 
 }

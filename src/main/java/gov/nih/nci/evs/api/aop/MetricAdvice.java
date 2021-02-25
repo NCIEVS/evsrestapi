@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -24,9 +25,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.model.CityResponse;
 
-import gov.nih.nci.evs.api.model.GeoIP;
-import gov.nih.nci.evs.api.model.Location;
 import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
@@ -41,8 +41,12 @@ public class MetricAdvice {
   /** The logger. */
   private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
-  /** the geoIP location database. */
+  /** the geoIP location database */
   DatabaseReader dbReader = null;
+
+  /** the metrics db path */
+  @Autowired
+  ApplicationProperties applicationProperties;
 
   /** The elastic server properties. */
   @Autowired
@@ -52,14 +56,26 @@ public class MetricAdvice {
   @Autowired
   ElasticOperationsService operationsService;
 
-  /**
-   * Post init.
-   *
-   * @throws Exception the exception
-   */
+  boolean databaseFound;
+
   @PostConstruct
   public void postInit() throws Exception {
-    dbReader = new DatabaseReader.Builder(new File("GeoLite2-City.mmdb")).build();
+    File file = new File(applicationProperties.getMetricsDir() + "/GeoLite2-City.mmdb");
+    this.databaseFound = file.exists();
+    if (databaseFound) {
+      dbReader = new DatabaseReader.Builder(file).build();
+    } else {
+      logger.warn("GeoLite Database was not found = " + applicationProperties.getMetricsDir());
+    }
+
+    String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
+        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1));
+
+    boolean result = operationsService.createIndex(indexName, false);
+    if (result) {
+      operationsService.getElasticsearchOperations().putMapping(indexName,
+          ElasticOperationsService.METRIC_TYPE, Metric.class);
+    }
   }
 
   /**
@@ -108,8 +124,7 @@ public class MetricAdvice {
     final ServletRequestAttributes attr =
         (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
 
-    final String userIpAddress = "2601:205:c380:2ef0:3105:58fa:23f5:efe2";
-    // final String userIpAddress = attr.getRequest().getRemoteAddr();
+    final String userIpAddress = attr.getRequest().getRemoteAddr();
     metric.setRemoteIpAddress(userIpAddress);
 
     final String hostName = attr.getRequest().getRemoteHost();
@@ -118,15 +133,15 @@ public class MetricAdvice {
     final String url = request.getRequestURL().toString();
     metric.setEndPoint(url);
 
-    try {
-      CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
-      GeoIP geoip = new GeoIP(response.getCity().getName(), response.getCountry().getName(),
-          response.getLeastSpecificSubdivision().getName(), response.getContinent().getName(),
-          new Location(response.getLocation().getLatitude().toString(),
-              response.getLocation().getLongitude().toString()));
-      metric.setGeoip(geoip);
-    } catch (Exception e) {
-      logger.warn("GeoIP could not find IP");
+    if (this.databaseFound) {
+      logger.info("database found: " + this.databaseFound);
+      try {
+        CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
+        metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(),
+            response.getLocation().getLongitude()));
+      } catch (Exception e) {
+        logger.warn("GeoPoint could not find IP");
+      }
     }
 
     metric.setQueryParams(params);
@@ -136,7 +151,7 @@ public class MetricAdvice {
     // get the parameters
     operationsService.loadMetric(metric,
         "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
+            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1)));
 
     logger.debug("metric = " + metric);
     return retval;
