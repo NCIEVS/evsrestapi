@@ -111,9 +111,19 @@ public final class TerminologyUtils {
   public Terminology getTerminology(final String terminology, boolean indexed) throws Exception {
     List<Terminology> terminologies = getTerminologies(indexed);
     for (final Terminology t : terminologies) {
-      if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
+
+      // For "ncit", choose the "latest monthly" before latest weekly
+      if (t.getTerminology().equals(terminology) && "ncit".equals(terminology)
+          && "true".equals(t.getTags().get("monthly")) && t.getLatest() != null && t.getLatest()) {
         return t;
-      } else if (t.getTerminologyVersion().equals(terminology)) {
+      }
+      // Otherwise choose the latest (in general) - this works for both the ncim
+      // case and the ncit case where only a weekly is loaded.
+      else if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
+        return t;
+      }
+      // Otherwise choose the matching terminology+version
+      else if (t.getTerminologyVersion().equals(terminology)) {
         return t;
       }
     }
