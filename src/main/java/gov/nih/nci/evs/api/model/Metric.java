@@ -8,15 +8,17 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
 /**
  * Metric.
  */
-@Document(indexName = "default", type = "_doc")
+@Document(indexName = "default", type = ElasticOperationsService.METRIC_TYPE)
 public class Metric {
 
   /** The remote ip address. */
@@ -32,13 +34,15 @@ public class Metric {
   private Map<String, String[]> queryParams;
 
   /** The start time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date startTime;
 
   /** The end time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-  @JsonFormat (shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date endTime;
 
   /** The duration. */
@@ -48,6 +52,9 @@ public class Metric {
   /** The hostname */
   @Field(type = FieldType.Text)
   private String hostName;
+
+  /** The geoPoint object */
+  private GeoPoint geoPoint;
 
   /**
    * Returns the remote ip address.
@@ -157,7 +164,7 @@ public class Metric {
     this.duration = duration;
   }
 
-    /**
+  /**
    * Returns the host name.
    *
    * @return the host name
@@ -173,6 +180,20 @@ public class Metric {
    */
   public void setHostName(String hostName) {
     this.hostName = hostName;
+  }
+
+  /**
+   * @return the Geoip
+   */
+  public GeoPoint getGeoPoint() {
+    return geoPoint;
+  }
+
+  /**
+   * @param ipInfo the Geoip
+   */
+  public void setGeoPoint(GeoPoint geoPoint) {
+    this.geoPoint = geoPoint;
   }
 
   /* see superclass */

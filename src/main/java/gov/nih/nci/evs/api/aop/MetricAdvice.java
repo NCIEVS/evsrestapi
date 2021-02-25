@@ -1,10 +1,13 @@
 
 package gov.nih.nci.evs.api.aop;
 
+import java.io.File;
+import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -14,11 +17,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.model.CityResponse;
+
 import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 
@@ -33,6 +41,13 @@ public class MetricAdvice {
   /** The logger. */
   private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
+  /** the geoIP location database. */
+  DatabaseReader dbReader = null;
+
+  /** the metrics db path. */
+  @Autowired
+  ApplicationProperties applicationProperties;
+
   /** The elastic server properties. */
   @Autowired
   ElasticServerProperties elasticServerProperties;
@@ -40,6 +55,34 @@ public class MetricAdvice {
   /** The operations service. */
   @Autowired
   ElasticOperationsService operationsService;
+
+  /** The database found. */
+  boolean databaseFound;
+
+  /**
+   * Post init.
+   *
+   * @throws Exception the exception
+   */
+  @PostConstruct
+  public void postInit() throws Exception {
+    File file = new File(applicationProperties.getMetricsDir() + "/GeoLite2-City.mmdb");
+    this.databaseFound = file.exists();
+    if (databaseFound) {
+      dbReader = new DatabaseReader.Builder(file).build();
+    } else {
+      logger.warn("GeoLite Database was not found = " + applicationProperties.getMetricsDir());
+    }
+
+    String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
+        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1));
+
+    boolean result = operationsService.createIndex(indexName, false);
+    if (result) {
+      operationsService.getElasticsearchOperations().putMapping(indexName,
+          ElasticOperationsService.METRIC_TYPE, Metric.class);
+    }
+  }
 
   /**
    * Record metric.
@@ -96,6 +139,17 @@ public class MetricAdvice {
     final String url = request.getRequestURL().toString();
     metric.setEndPoint(url);
 
+    if (this.databaseFound) {
+      logger.info("database found: " + this.databaseFound);
+      try {
+        CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
+        metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(),
+            response.getLocation().getLongitude()));
+      } catch (Exception e) {
+        logger.warn("GeoPoint could not find IP");
+      }
+    }
+
     metric.setQueryParams(params);
     metric.setStartTime(startDate);
     metric.setEndTime(endDate);
@@ -103,7 +157,7 @@ public class MetricAdvice {
     // get the parameters
     operationsService.loadMetric(metric,
         "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH)));
+            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1)));
 
     logger.debug("metric = " + metric);
     return retval;
