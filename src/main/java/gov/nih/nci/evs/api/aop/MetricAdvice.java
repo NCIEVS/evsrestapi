@@ -41,9 +41,8 @@ public class MetricAdvice {
   /** The logger. */
   private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
-  /** the geoIP location database */
+  /** the geoIP location database. */
   DatabaseReader dbReader = null;
-
 
   /** The elastic server properties. */
   @Autowired
@@ -53,6 +52,11 @@ public class MetricAdvice {
   @Autowired
   ElasticOperationsService operationsService;
 
+  /**
+   * Post init.
+   *
+   * @throws Exception the exception
+   */
   @PostConstruct
   public void postInit() throws Exception {
     dbReader = new DatabaseReader.Builder(new File("GeoLite2-City.mmdb")).build();
@@ -116,12 +120,10 @@ public class MetricAdvice {
 
     try {
       CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
-      GeoIP geoip = new GeoIP(response.getCity().getName(),
-                              response.getCountry().getName(),
-                              response.getLeastSpecificSubdivision().getName(),
-                              response.getContinent().getName(),
-                              new Location(response.getLocation().getLatitude().toString(),
-                              response.getLocation().getLongitude().toString()));
+      GeoIP geoip = new GeoIP(response.getCity().getName(), response.getCountry().getName(),
+          response.getLeastSpecificSubdivision().getName(), response.getContinent().getName(),
+          new Location(response.getLocation().getLatitude().toString(),
+              response.getLocation().getLongitude().toString()));
       metric.setGeoip(geoip);
     } catch (Exception e) {
       logger.warn("GeoIP could not find IP");
@@ -134,7 +136,7 @@ public class MetricAdvice {
     // get the parameters
     operationsService.loadMetric(metric,
         "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH)));
+            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
 
     logger.debug("metric = " + metric);
     return retval;
