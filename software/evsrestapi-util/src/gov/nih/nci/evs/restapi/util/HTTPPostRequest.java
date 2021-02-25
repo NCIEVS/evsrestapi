@@ -200,10 +200,9 @@ public class HTTPPostRequest {
 		String textfile = "FDA_Approved_Drug_Data.txt";
 		Utils.saveToFile(textfile, w);
 
-        String dir = ".";
 		char delimiter = '\t';
 		try {
-			String csvfile = Text2CSV.toCSV(dir, textfile, delimiter);
+			String csvfile = Text2CSV.toCSV(textfile, delimiter);
 			System.out.println(csvfile + " generated.");
 		} catch (Exception ex) {
 			ex.printStackTrace();
