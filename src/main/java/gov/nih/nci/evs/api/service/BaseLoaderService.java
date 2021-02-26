@@ -156,12 +156,38 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     if (CollectionUtils.isEmpty(iMetas))
       return;
 
+    // Make sure the new latest is set as latest and any others with matching
+    // terminology are set to "false". Skip anything with non-matching
+    // terminology.
     Terminology latest = termUtils.getLatestTerminology(true, term);
-    logger.info("latest = " + latest);
+    boolean latestWeeklyOnly =
+        !latest.getTags().containsKey("monthly") && latest.getTags().containsKey("weekly");
+
     for (IndexMetadata iMeta : iMetas) {
-      // only change latest flag of terminologies that match current one
-      if (iMeta.getTerminology().getTerminology() == latest.getTerminology()) {
-        iMeta.getTerminology().setLatest(iMeta.getTerminology().equals(latest));
+      boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
+
+      // only change latest flag of terminologies that match latest one
+      if (iMeta.getTerminology().getTerminology().equals(latest.getTerminology())) {
+
+        // If latest is a weekly update, remove the "weekly" tag from
+        // the monthly, but leave "latest" flag unchanged
+        if (latestWeeklyOnly && monthly && iMeta.getTerminology().getLatest()) {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
+          iMeta.getTerminology().getTags().remove("weekly");
+        } else {
+          boolean flag = iMeta.getTerminology().equals(latest);
+          logger.info("  " + iMeta.getTerminologyVersion() + " = " + flag);
+          iMeta.getTerminology().setLatest(flag);
+        }
+      } else {
+        // If latest is a weekly update, remove the "weekly" tag from
+        // the latest monthly, but leave "latest" flag unchanged
+        if (latestWeeklyOnly && monthly && iMeta.getTerminology().getLatest()) {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
+          iMeta.getTerminology().getTags().remove("weekly");
+        } else {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
+        }
       }
     }
 
@@ -250,7 +276,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     DeleteRequest request = new DeleteRequest(ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, ID);
     client.delete(request, RequestOptions.DEFAULT);
-    
+
     // This block is for debugging presence of the iMeta still in the index
     // Thread.sleep(2000);
     // List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);

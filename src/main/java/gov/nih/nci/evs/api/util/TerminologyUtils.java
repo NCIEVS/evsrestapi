@@ -135,15 +135,10 @@ public final class TerminologyUtils {
    *
    * @param indexed use {@literal true} to lookup in indexed terminologies as
    *          opposed to stardog
-   * @param term the term
    * @return the terminology
    * @throws Exception the exception
    */
-  public Terminology getLatestTerminology(boolean indexed, Terminology term) // pass
-                                                                             // in
-                                                                             // terminology
-                                                                             // name
-    throws Exception {
+  public Terminology getLatestTerminology(boolean indexed, Terminology term) throws Exception {
 
     List<Terminology> terminologies = getTerminologies(indexed);
     terminologies = terminologies.stream()
