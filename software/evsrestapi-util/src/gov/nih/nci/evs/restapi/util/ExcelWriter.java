@@ -3,6 +3,8 @@ package gov.nih.nci.evs.restapi.util;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 
 import java.io.*;
 import java.util.*;
@@ -332,6 +334,105 @@ public class ExcelWriter {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+	}
+
+
+    public static CellStyle cloneStyleFrom(CellStyle style_clone, CellStyle style) {
+		style_clone.cloneStyleFrom(style);
+
+		int code = style.getAlignment();
+		HorizontalAlignment ha = HorizontalAlignment.forInt(code);
+		style_clone.setAlignment(ha);
+
+		short style_code = style.getBorderBottom();
+		style_clone.setBorderBottom(BorderStyle.valueOf(style_code));
+
+		style_code = style.getFillBackgroundColor();
+		style_clone.setFillBackgroundColor(style_code);
+
+		style_code = style.getFillForegroundColor();
+		style_clone.setFillForegroundColor(style_code);
+
+		style_code = style.getFillPattern();
+		style_clone.setFillPattern(FillPatternType.forInt(style_code));
+        return style_clone;
+	}
+
+    public static String cloneWorkbook(String xlsxfile) {
+		String outputfile = "cloned_" + xlsxfile;
+		Workbook workbook = null;
+		try {
+			workbook = new XSSFWorkbook(new FileInputStream(xlsxfile));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		Workbook workbook_clone = new XSSFWorkbook();
+		CellStyle style_clone = workbook_clone.createCellStyle();
+		Row row;
+		//Cell cell;
+		for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+			XSSFSheet sheet = (XSSFSheet) workbook.getSheetAt(i);
+			XSSFSheet sheet_clone = (XSSFSheet) workbook_clone.createSheet(sheet.getSheetName());
+			Cell c = null;
+			Cell cell = null;
+			System.out.println("Number of rows in " + sheet.getSheetName() + ": " + sheet.getPhysicalNumberOfRows());
+			for (int rowIndex = 0; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
+				row = sheet.getRow(rowIndex);
+				if (row != null) {
+					Row row_clone = sheet_clone.createRow(rowIndex);
+					Iterator<Cell> cellIterator = row.cellIterator();
+					int colIndex = 0;
+					while (cellIterator.hasNext()) {
+						c = cellIterator.next();
+						if (c == null) {
+							System.out.println("WARNING: cell(" + rowIndex + "," + colIndex + ") on " + sheet.getSheetName() +  " is null");
+                            cell = row_clone.createCell(colIndex);
+                            cell.setCellValue("");
+						} else if (c != null) {
+							CellStyle style = c.getCellStyle();
+							cell = row_clone.createCell(colIndex);
+							style_clone = cloneStyleFrom(style_clone, style);
+							cell.setCellStyle(style_clone);
+							switch (c.getCellTypeEnum()) {
+								case STRING:
+									cell.setCellValue(c.getRichStringCellValue().getString());
+									break;
+								case NUMERIC:
+									if (DateUtil.isCellDateFormatted(cell)) {
+										cell.setCellValue(c.getDateCellValue());
+									} else {
+										cell.setCellValue(c.getNumericCellValue());
+									}
+									break;
+								case BOOLEAN:
+									cell.setCellValue(c.getBooleanCellValue());
+									break;
+								case FORMULA:
+									cell.setCellValue(c.getCellFormula());
+									break;
+								case BLANK:
+									cell.setCellValue("");
+									break;
+								default:
+									//cell.setCellValue("");
+							}
+						}
+						colIndex++;
+					}
+				}
+			}
+		}
+		FileOutputStream fileOut = null;
+		try {
+			fileOut = new FileOutputStream(outputfile);
+			workbook_clone.write(fileOut);
+			workbook.close();
+			workbook_clone.close();
+			fileOut.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return outputfile;
 	}
 
     public static void main(String[] args) throws IOException, InvalidFormatException {

@@ -263,15 +263,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       return nodes;
     }
 
-    // Look up "leaf" flags for children (alternatively index "leaf" with
-    // children)
-    Map<String, Boolean> leafMap =
-        getConcepts(children.stream().map(c -> c.getCode()).collect(Collectors.toSet()),
-            terminology, new IncludeParam("minimal")).stream()
-                .collect(Collectors.toMap(Concept::getCode, Concept::getLeaf));
-
     for (Concept c : children) {
-      HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), leafMap.get(c.getCode()));
+      HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), c.getLeaf());
       nodes.add(node);
     }
     nodes.sort(Comparator.comparing(HierarchyNode::getLabel));

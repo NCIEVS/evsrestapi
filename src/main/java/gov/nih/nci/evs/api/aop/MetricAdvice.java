@@ -41,10 +41,10 @@ public class MetricAdvice {
   /** The logger. */
   private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
-  /** the geoIP location database */
+  /** the geoIP location database. */
   DatabaseReader dbReader = null;
 
-  /** the metrics db path */
+  /** the metrics db path. */
   @Autowired
   ApplicationProperties applicationProperties;
 
@@ -56,8 +56,14 @@ public class MetricAdvice {
   @Autowired
   ElasticOperationsService operationsService;
 
+  /** The database found. */
   boolean databaseFound;
 
+  /**
+   * Post init.
+   *
+   * @throws Exception the exception
+   */
   @PostConstruct
   public void postInit() throws Exception {
     File file = new File(applicationProperties.getMetricsDir() + "/GeoLite2-City.mmdb");

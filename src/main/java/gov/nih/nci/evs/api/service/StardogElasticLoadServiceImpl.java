@@ -140,48 +140,54 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
 
     CountDownLatch latch = new CountDownLatch(taskSize.intValue());
     ExecutorService executor = Executors.newFixedThreadPool(10);
+    try {
+      while (start < total) {
+        if (total - start <= DOWNLOAD_BATCH_SIZE)
+          end = total.intValue();
 
-    while (start < total) {
-      if (total - start <= DOWNLOAD_BATCH_SIZE)
-        end = total.intValue();
+        logger.info("  Processing {} to {}", start + 1, end);
+        logger.info("    start reading {} to {}", start + 1, end);
+        List<Concept> concepts = sparqlQueryManagerService
+            .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
+        logger.info("    finish reading {} to {}", start + 1, end);
 
-      logger.info("  Processing {} to {}", start + 1, end);
-      logger.info("    start reading {} to {}", start + 1, end);
-      List<Concept> concepts = sparqlQueryManagerService
-          .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
-      logger.info("    finish reading {} to {}", start + 1, end);
+        int indexStart = 0;
+        int indexEnd = INDEX_BATCH_SIZE;
+        Double indexTotal = (double) concepts.size();
+        final List<Future<Void>> futures = new ArrayList<>();
+        while (indexStart < indexTotal) {
+          if (indexTotal - indexStart <= INDEX_BATCH_SIZE)
+            indexEnd = indexTotal.intValue();
 
-      int indexStart = 0;
-      int indexEnd = INDEX_BATCH_SIZE;
-      Double indexTotal = (double) concepts.size();
-      final List<Future<Void>> futures = new ArrayList<>();
-      while (indexStart < indexTotal) {
-        if (indexTotal - indexStart <= INDEX_BATCH_SIZE)
-          indexEnd = indexTotal.intValue();
+          futures.add(executor.submit(
+              new ConceptLoadTask(concepts.subList(indexStart, indexEnd), start + indexStart,
+                  start + indexEnd, terminology.getIndexName(), latch, taskSize.intValue())));
 
-        futures.add(executor
-            .submit(new ConceptLoadTask(concepts.subList(indexStart, indexEnd), start + indexStart,
-                start + indexEnd, terminology.getIndexName(), latch, taskSize.intValue())));
+          indexStart = indexEnd;
+          indexEnd = indexEnd + INDEX_BATCH_SIZE;
 
-        indexStart = indexEnd;
-        indexEnd = indexEnd + INDEX_BATCH_SIZE;
-
+        }
+        // Look for exceptions
+        for (final Future<Void> future : futures) {
+          // This throws an exception if the callable had an issue
+          future.get();
+        }
+        start = end;
+        end = end + DOWNLOAD_BATCH_SIZE;
       }
-      // Look for exceptions
-      for (final Future<Void> future : futures) {
-        // This throws an exception if the callable had an issue
-        future.get();
-      }
-      start = end;
-      end = end + DOWNLOAD_BATCH_SIZE;
+
+      latch.await();
+
+      logger.info("  shutdown");
+      executor.shutdown();
+      logger.info("  await termination");
+      executor.awaitTermination(30, TimeUnit.SECONDS);
+
+    } catch (Exception e) {
+      logger.info("  shutdown now");
+      executor.shutdownNow();
+      throw e;
     }
-
-    latch.await();
-
-    logger.info("  shutdown");
-    executor.shutdown();
-    logger.info("  await termination");
-    executor.awaitTermination(30, TimeUnit.SECONDS);
     logger.info("Done loading concepts!");
   }
 

@@ -33,7 +33,7 @@ export EVS_SERVER_PORT="8082"
 echo "  Remove old version indexes = $ES_CLEAN"
 if [[ $ES_CLEAN == "true" ]]; then
     fv=`echo $version | perl -pe 's/\.//;'`
-    curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | cut -d\  -f 3 | grep -v $version | grep -v $fv | grep ${terminology}_ > /tmp/x.$$
+    curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | perl -pe 's/^.* open ([^ ]+).*/$1/' | grep -v $version | grep -v $fv | grep ${terminology}_ > /tmp/x.$$
     for i in `cat /tmp/x.$$`; do
       echo "    delete $i"
       curl -s -X DELETE https://$ES_HOST:$ES_PORT/$i
@@ -50,8 +50,6 @@ done
     /bin/rm -f /tmp/x.$$
 fi
 
-echo ""
-echo "  TODO: bounce evsrestapi server"
 echo ""
 echo "--------------------------------------------------"
 echo "Finished ...`/bin/date`"
