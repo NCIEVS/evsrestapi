@@ -10,6 +10,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Paths;
@@ -25,7 +26,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 @Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
 @JsonInclude(content = Include.NON_EMPTY)
 public class ElasticObject {
-  
+
   @Id
   private String name;
 
@@ -34,16 +35,19 @@ public class ElasticObject {
 
   @Field(type = FieldType.Object)
   private Paths paths;
-  
+
   @Field(type = FieldType.Nested)
   private List<Concept> concepts;
 
   @Field(type = FieldType.Nested)
   private List<ConceptMinimal> conceptMinimals;
 
+  @Field(type = FieldType.Object)
+  private List<AssociationEntry> AssociationEntries;
+
   public ElasticObject() {
   }
-  
+
   public ElasticObject(String name) {
     this.name = name;
   }
@@ -86,5 +90,13 @@ public class ElasticObject {
 
   public void setConceptMinimals(List<ConceptMinimal> conceptMinimals) {
     this.conceptMinimals = conceptMinimals;
+  }
+
+  public List<AssociationEntry> getAssociationEntries() {
+    return AssociationEntries;
+  }
+
+  public void setAssociationEntries(List<AssociationEntry> associationEntries) {
+    AssociationEntries = associationEntries;
   }
 }
