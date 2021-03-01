@@ -133,10 +133,55 @@ public class HTTPGetRequest {
         Utils.saveToFile("FDAApprovedDrugs.html", w);
 	}
 
-	public static void main(String[] args) throws IOException {
+	public void extractStemTable(Vector v) {
+        Vector w = new Vector();
+        w.add("<html>");
+        w.add("<head>");
+        w.add("</head>");
+        w.add("<body style=\"background-color:LightGray;\">");
+        w.add("<h2>");
+        w.add("<center>FDA Drug Name Stems</center>");
+        w.add("<h4>");
+        w.add("<center>(Last Updated on " + StringUtils.getToday() + ")</center>");
+        w.add("<center>");
+        w.add("<p></p>");
+        w.add(getAlphabeticListing());
+        w.add("<p></p>");
+
+        boolean start = false;
+	    for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			if (line.indexOf("<table class=\"stemTable\">") != -1) {
+				start = true;
+			}
+			if (start) {
+				w.add(line);
+			}
+			if (line.indexOf("</table>") != -1) {
+				break;
+			}
+		}
+		w.add("</center>");
+		w.add("</body>");
+        w.add("</html>");
+        Utils.saveToFile("DrugNameStem.html", w);
+	}
+
+
+	public static void main1(String[] args) throws IOException {
 		long ms = System.currentTimeMillis();
 		HTTPGetRequest httpGetRequest = new HTTPGetRequest();
         httpGetRequest.generate();
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
+
+	public static void main(String[] args) throws IOException {
+		long ms = System.currentTimeMillis();
+		HTTPGetRequest httpGetRequest = new HTTPGetRequest();
+		String url_str = "https://druginfo.nlm.nih.gov/drugportal/jsp/drugportal/DrugNameGenericStems.jsp";
+        httpGetRequest.extractStemTable(httpGetRequest.sendGET(url_str));
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
 }
+
+
