@@ -26,53 +26,6 @@ public class HTTPGetRequest {
 		this.GET_URL = GET_URL;
 	}
 
-/*
-    private String extractTable(String line) {
-		int n = line.indexOf("<table");
-		line = line.substring(n, line.length());
-		n = line.lastIndexOf("</table>");
-		line = line.substring(0, n + "</table>".length());
-		return line;
-	}
-
-    private Vector extractTableHeadings(String line) {
-		Vector th_vec = new Vector();
-		int n = line.indexOf("</th>");
-		while (n != -1) {
-			String t = line.substring(0, n);
-			int m = t.lastIndexOf(">");
-			String s = t.substring(m+1, n);
-			if (s.length() > 0) {
-				if (!th_vec.contains(s)) {
-					th_vec.add(s);
-				} else {
-					break;
-				}
-			} else {
-				th_vec.add(s);
-			}
-
-			line = line.substring(n+1, line.length());
-			n = line.indexOf("</th>");
-		}
-		return th_vec;
-	}
-
-    private Vector extractTableData(String line) {
-		Vector td_vec = new Vector();
-		int n = line.indexOf("</td>");
-		while (n != -1) {
-			String t = line.substring(0, n);
-			int m = t.lastIndexOf(">");
-			String s = t.substring(m+1, n);
-			td_vec.add(s);
-			line = line.substring(n+1, line.length());
-			n = line.indexOf("</td>");
-		}
-		return td_vec;
-	}
-*/
-
 	public Vector extractRowData(Vector w) {
 		Vector v = new Vector();
 		for (int i=0; i<w.size(); i++) {
@@ -84,6 +37,29 @@ public class HTTPGetRequest {
 			}
 		}
 		return v;
+	}
+
+	public Vector sendGET(String url_str) throws IOException {
+		Vector w = new Vector();
+		URL obj = new URL(url_str);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.setRequestProperty("User-Agent", USER_AGENT);
+		int responseCode = con.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK) { // success
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+					con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				w.add(inputLine);
+			}
+			in.close();
+		} else {
+			System.out.println("GET request failed.");
+		}
+		return w;
 	}
 
 
@@ -105,7 +81,7 @@ public class HTTPGetRequest {
 			}
 			in.close();
 		} else {
-			System.out.println("GET request not worked");
+			System.out.println("GET request failed.");
 		}
 		return w;
 	}
