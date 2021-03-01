@@ -151,6 +151,7 @@ public class HTTPGetRequest {
         boolean start = false;
 	    for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
+			line = line.replace("/drugportal", "https://druginfo.nlm.nih.gov/drugportal");
 			if (line.indexOf("<table class=\"stemTable\">") != -1) {
 				start = true;
 			}
