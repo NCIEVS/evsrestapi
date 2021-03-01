@@ -75,7 +75,7 @@ public class MetricAdvice {
     }
 
     String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1));
+        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
 
     boolean result = operationsService.createIndex(indexName, false);
     if (result) {
@@ -157,7 +157,7 @@ public class MetricAdvice {
     // get the parameters
     operationsService.loadMetric(metric,
         "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH + 1)));
+            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
 
     logger.debug("metric = " + metric);
     return retval;
