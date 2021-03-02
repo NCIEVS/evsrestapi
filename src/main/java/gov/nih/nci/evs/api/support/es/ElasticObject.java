@@ -43,7 +43,7 @@ public class ElasticObject {
   private List<ConceptMinimal> conceptMinimals;
 
   @Field(type = FieldType.Object)
-  private List<AssociationEntry> AssociationEntries;
+  private List<AssociationEntry> associationEntries;
 
   public ElasticObject() {
   }
@@ -93,10 +93,10 @@ public class ElasticObject {
   }
 
   public List<AssociationEntry> getAssociationEntries() {
-    return AssociationEntries;
+    return associationEntries;
   }
 
   public void setAssociationEntries(List<AssociationEntry> associationEntries) {
-    AssociationEntries = associationEntries;
+    this.associationEntries = associationEntries;
   }
 }
