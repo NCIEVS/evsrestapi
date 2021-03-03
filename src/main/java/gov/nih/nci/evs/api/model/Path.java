@@ -4,9 +4,14 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
- * Represents a path in a hierarchy (as a list of concepts with a direction flag).
+ * Represents a path in a hierarchy (as a list of concepts with a direction
+ * flag).
  */
+@JsonInclude(Include.NON_EMPTY)
 public class Path extends BaseModel {
 
   /** The direction. */
@@ -67,4 +72,36 @@ public class Path extends BaseModel {
   public List<Concept> getConcepts() {
     return this.concepts;
   }
+  
+
+  /* see superclass */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((concepts == null) ? 0 : concepts.hashCode());
+    result = prime * result + direction;
+    return result;
+  }
+
+  /* see superclass */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Path other = (Path) obj;
+    if (concepts == null) {
+      if (other.concepts != null)
+        return false;
+    } else if (!concepts.equals(other.concepts))
+      return false;
+    if (direction != other.direction)
+      return false;
+    return true;
+  }
+
 }

@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class Paths extends BaseModel {
 
+
   /** The paths. */
   private List<Path> paths = null;
 
@@ -38,7 +39,7 @@ public class Paths extends BaseModel {
    *
    * @param paths the path
    */
-  public void setPath(List<Path> paths) {
+  public void setPaths(List<Path> paths) {
     this.paths = paths;
   }
 
@@ -68,5 +69,33 @@ public class Paths extends BaseModel {
   @JsonIgnore
   public int getPathCount() {
     return this.paths.size();
+  }
+  
+
+  /* see superclass */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((paths == null) ? 0 : paths.hashCode());
+    return result;
+  }
+
+  /* see superclass */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Paths other = (Paths) obj;
+    if (paths == null) {
+      if (other.paths != null)
+        return false;
+    } else if (!paths.equals(other.paths))
+      return false;
+    return true;
   }
 }
