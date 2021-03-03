@@ -27,6 +27,7 @@
   	"rdfs:label" : "label",
   	"P375": "Maps_To"
   },
+  "subset": [ "A8" ],
   "sources": {
     "ACC": "American College of Cardiology",
     "ACC/AHA": "American College of Cardiology / American Heart Association",

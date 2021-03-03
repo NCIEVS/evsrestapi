@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -2293,6 +2294,45 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return concepts;
+  }
+
+  /**
+   * gets association entries.
+   *
+   * @param terminology the terminology
+   * @param association the association
+   * @return list of AssociationEntries
+   */
+  @Override
+  public List<AssociationEntry> getAssociationEntries(Terminology terminology,
+    Concept association) {
+    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    String query = queryBuilderService.constructQuery("associationEntries", association.getCode(),
+        terminology.getGraph());
+    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    List<AssociationEntry> entries = new ArrayList<AssociationEntry>();
+    Sparql sparqlResult = null;
+    try {
+      sparqlResult = mapper.readValue(res, Sparql.class);
+    } catch (Exception e) {
+      log.error("Mapper could not read value in Association Entries");
+      e.printStackTrace();
+    }
+    Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      AssociationEntry entry = new AssociationEntry();
+      entry.setTerminology(terminology.getTerminology());
+      entry.setVersion(terminology.getVersion());
+      entry.setAssociation(association.getName());
+      entry.setCode(b.getConceptCode().getValue());
+      entry.setName(b.getConceptLabel().getValue());
+      entry.setRelatedCode(b.getRelatedConceptCode().getValue());
+      entry.setRelatedName(b.getRelatedConceptLabel().getValue());
+      entries.add(entry);
+    }
+    return entries;
   }
 
 }

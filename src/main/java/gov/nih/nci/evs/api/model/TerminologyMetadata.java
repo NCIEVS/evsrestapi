@@ -79,6 +79,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
 
+  /** The subsets for association entries */
+  private Set<String> subset;
+
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
    */
@@ -647,6 +650,20 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setSourcesToRemove(Set<String> sourcesToRemove) {
     this.sourcesToRemove = sourcesToRemove;
+  }
+
+  /**
+   * @return the subset
+   */
+  public Set<String> getSubset() {
+    return subset;
+  }
+
+  /**
+   * @param subset the subset to set
+   */
+  public void setSubset(Set<String> subset) {
+    this.subset = subset;
   }
 
   /**

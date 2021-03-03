@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -263,6 +264,22 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     operationsService.index(definitionTypesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
     logger.info("  Definition Types loaded");
+
+    // associationEntries
+    for (Concept association : associations) {
+      logger.info(association.getName());
+      if (association.getName().equals("Concept_In_Subset"))
+        continue;
+      List<AssociationEntry> entries =
+          sparqlQueryManagerService.getAssociationEntries(terminology, association);
+      ElasticObject associationEntriesObject =
+          new ElasticObject("associationEntries_" + association.getName());
+      logger.info("    add associationEntries_" + association.getName() + " = " + entries.size());
+      associationEntriesObject.setAssociationEntries(entries);
+      operationsService.index(associationEntriesObject, indexName,
+          ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    }
+    logger.info("  Association Entries loaded");
 
     logger.info("Done loading Elastic Objects!");
   }
