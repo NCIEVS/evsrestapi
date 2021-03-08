@@ -79,8 +79,8 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
 
-  /** The subsets for association entries */
-  private Set<String> subset;
+  /** The subsetMembers for association entries */
+  private Set<String> subsetMember;
 
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
@@ -125,7 +125,7 @@ public class TerminologyMetadata extends BaseModel {
     synonymTermType = other.getSynonymTermType();
     termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getTermTypes());
-    subset = new HashSet<>(other.getSubset());
+    subsetMember = new HashSet<>(other.getSubsetMember());
   }
 
   /* see superclass */
@@ -151,7 +151,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((synonymSubSource == null) ? 0 : synonymSubSource.hashCode());
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
     result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
-    result = prime * result + ((subset == null) ? 0 : subset.hashCode());
+    result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
     return result;
   }
 
@@ -245,10 +245,10 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!termTypes.equals(other.termTypes))
       return false;
-    if (subset == null) {
-      if (other.subset != null)
+    if (subsetMember == null) {
+      if (other.subsetMember != null)
         return false;
-    } else if (!subset.equals(other.subset))
+    } else if (!subsetMember.equals(other.subsetMember))
       return false;
     return true;
   }
@@ -660,20 +660,20 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * @return the subset
+   * @return the subsetMember
    */
-  public Set<String> getSubset() {
-    if (subset == null) {
-      subset = new HashSet<>();
+  public Set<String> getSubsetMember() {
+    if (subsetMember == null) {
+      subsetMember = new HashSet<>();
     }
-    return subset;
+    return subsetMember;
   }
 
   /**
-   * @param subset the subset to set
+   * @param subsetMember the subsetMember to set
    */
-  public void setSubset(Set<String> subset) {
-    this.subset = subset;
+  public void setSubsetMember(Set<String> subsetMember) {
+    this.subsetMember = subsetMember;
   }
 
   /**

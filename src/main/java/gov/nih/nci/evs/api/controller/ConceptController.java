@@ -270,7 +270,8 @@ public class ConceptController extends BaseController {
           "Association " + codeOrLabel + " not found");
     String label = association.get().getName();
     String code = association.get().getCode();
-    if (termUtils.getTerminology(terminology, true).getMetadata().getSubset().contains(code)) {
+    if (termUtils.getTerminology(terminology, true).getMetadata().getSubsetMember()
+        .contains(code)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Associations used to define subset membership are not resolved by this call");
     }
