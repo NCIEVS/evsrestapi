@@ -5000,6 +5000,7 @@ Term Type
 	    String query = construct_get_property_qualifiers(named_graph);
 	    Vector v = executeQuery(query);
 	    v = new ParserUtils().getResponseValues(v);
+	    v = new SortUtils().quickSort(v);
 	    return v;
 	}
 
