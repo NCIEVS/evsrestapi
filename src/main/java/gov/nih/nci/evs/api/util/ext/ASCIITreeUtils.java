@@ -1,12 +1,3 @@
-
-package gov.nih.nci.evs.api.util.ext;
-
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Vector;
-
 /**
  * <!-- LICENSE_TEXT_START -->
  * Copyright 2008-2016 NGIS. This software was developed in conjunction
@@ -49,13 +40,13 @@ import java.util.Vector;
  * <!-- LICENSE_TEXT_END -->
  */
 
-/**
- * @author EVS Team
- * @version 1.0
- *
- *          Modification history: Initial implementation kim.ong@ngc.com
- *
- */
+package gov.nih.nci.evs.api.util.ext;
+
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Vector;
 
 @SuppressWarnings({
     "unchecked", "rawtypes"

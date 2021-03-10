@@ -84,7 +84,7 @@ public class PathFinder {
     List<Concept> concepts = new ArrayList<Concept>();
     String[] codes = path.split("\\|");
     for (int i = 0; i < codes.length; i++) {
-      String name = hierarchy.getLabel(codes[i]);
+      String name = hierarchy.getName(codes[i]);
       Concept concept = new Concept(codes[i]);
       concept.setLevel(i);
       concept.setName(name);
