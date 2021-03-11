@@ -625,4 +625,17 @@ public interface SparqlQueryManagerService {
    */
   List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * gets all subsets.
+   *
+   * @param terminology the terminology
+   * @return list of concept objects
+   * @throws IOException
+   * @throws JsonParseException
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  List<Concept> getAllSubsets(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException;
 }

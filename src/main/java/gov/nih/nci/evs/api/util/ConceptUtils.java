@@ -180,18 +180,92 @@ public final class ConceptUtils {
   /**
    * Apply include.
    *
+   * @param concepts the list of concepts
+   * @param ip the include param
+   * @return the result concepts
+   */
+  public static void applyInclude(Concept concept, final IncludeParam ip) {
+    log.info(concept.toString());
+    log.info(ip.toString());
+    if (concept == null)
+      return;
+
+    if (!ip.isSynonyms()) {
+      concept.setSynonyms(null);
+    }
+    if (!ip.isDefinitions()) {
+      concept.setDefinitions(null);
+    }
+    if (!ip.isProperties()) {
+      concept.setProperties(null);
+    }
+    if (!ip.isChildren()) {
+      concept.setChildren(null);
+    }
+    if (!ip.isParents()) {
+      concept.setParents(null);
+    }
+    if (!ip.isAssociations()) {
+      concept.setAssociations(null);
+    }
+    if (!ip.isInverseAssociations()) {
+      concept.setInverseAssociations(null);
+    }
+    if (!ip.isRoles()) {
+      concept.setRoles(null);
+    }
+    if (!ip.isInverseRoles()) {
+      concept.setInverseRoles(null);
+    }
+    if (!ip.isDisjointWith()) {
+      concept.setDisjointWith(null);
+    }
+    if (!ip.isMaps()) {
+      concept.setMaps(null);
+    }
+    if (!ip.isPaths()) {
+      concept.setPaths(null);
+    }
+    if (!ip.isDescendants()) {
+      concept.setDescendants(null);
+    }
+
+  }
+
+  /**
+   * Apply list.
+   *
    * @param concepts the evs concepts
    * @param ip the ip
    * @param list the list
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyIncludeAndList(final List<Concept> concepts,
-    final IncludeParam ip, final String list) throws Exception {
+  public static List<Concept> applyList(final List<Concept> concepts, final IncludeParam ip,
+    final String list) throws Exception {
     final Set<String> codes = (list == null || list.isEmpty()) ? null
         : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
     return concepts.stream()
+        .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Apply include with children.
+   *
+   * @param concepts the evs concepts
+   * @param ip the ip
+   * @param list the list
+   * @return the list
+   * @throws Exception the exception
+   */
+  public static List<Concept> applyListWithChildren(final List<Concept> concepts,
+    final IncludeParam ip, final String list) throws Exception {
+    final Set<String> codes = (list == null || list.isEmpty()) ? null
+        : Arrays.stream(list.split(",")).collect(Collectors.toSet());
+
+    return concepts.stream().flatMap(Concept::streamSelfAndChildren)
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
         .collect(Collectors.toList());
   }

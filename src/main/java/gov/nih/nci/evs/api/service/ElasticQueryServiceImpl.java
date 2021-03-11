@@ -765,4 +765,11 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     return Optional.of(objects.get(0));
   }
+
+  @Override
+  public List<Concept> getSubsets(Terminology term, IncludeParam ip)
+    throws JsonMappingException, JsonProcessingException {
+    return getConceptList("subsets", term, ip);
+  }
+
 }

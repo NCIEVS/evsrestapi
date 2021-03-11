@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -624,5 +625,13 @@ public class Concept extends ConceptMinimal {
       Collections.sort(maps);
     }
   }
-  
+
+  /**
+   * stream children
+   */
+  public Stream<Concept> streamSelfAndChildren() {
+    return Stream.concat(Stream.of(this),
+        getChildren().stream().flatMap(Concept::streamSelfAndChildren));
+  }
+
 }

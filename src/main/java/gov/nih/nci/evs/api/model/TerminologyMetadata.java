@@ -79,6 +79,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
 
+  /** The subset. */
+  private Set<String> subset;
+
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
    */
@@ -122,6 +125,7 @@ public class TerminologyMetadata extends BaseModel {
     synonymTermType = other.getSynonymTermType();
     termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getTermTypes());
+    subset = new HashSet<>(other.getSubset());
   }
 
   /* see superclass */
@@ -147,6 +151,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((synonymSubSource == null) ? 0 : synonymSubSource.hashCode());
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
     result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
+    result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     return result;
   }
 
@@ -239,6 +244,11 @@ public class TerminologyMetadata extends BaseModel {
       if (other.termTypes != null)
         return false;
     } else if (!termTypes.equals(other.termTypes))
+      return false;
+    if (subset == null) {
+      if (other.subset != null)
+        return false;
+    } else if (!subset.equals(other.subset))
       return false;
     return true;
   }
@@ -647,6 +657,20 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setSourcesToRemove(Set<String> sourcesToRemove) {
     this.sourcesToRemove = sourcesToRemove;
+  }
+
+  /**
+   * @return the subset
+   */
+  public Set<String> getSubset() {
+    return subset;
+  }
+
+  /**
+   * @param subset the subset to set
+   */
+  public void setSubset(Set<String> subset) {
+    this.subset = subset;
   }
 
   /**

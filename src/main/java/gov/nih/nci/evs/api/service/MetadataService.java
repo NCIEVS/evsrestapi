@@ -205,4 +205,28 @@ public interface MetadataService {
   Optional<Concept> getDefinitionType(final String terminology, final String code,
     final Optional<String> include) throws Exception;
 
+  /**
+   * Returns the subsets.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the properties
+   * @throws Exception the exception
+   */
+  List<Concept> getSubsets(String terminology, Optional<String> include, Optional<String> list)
+    throws Exception;
+
+  /**
+   * Get subset for the given code.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the optional subset - empty if subset is not found
+   * @throws Exception the exception
+   */
+  Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
+    throws Exception;
+
 }

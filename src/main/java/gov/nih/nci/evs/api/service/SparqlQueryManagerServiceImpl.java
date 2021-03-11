@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2293,6 +2294,40 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return concepts;
+  }
+
+  /**
+   * gets all subsets.
+   *
+   * @param terminology the terminology
+   * @return list of concept objects
+   * @throws IOException
+   * @throws JsonParseException
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  @Override
+  public List<Concept> getAllSubsets(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    List<Concept> subsets = new ArrayList<>();
+    for (String code : terminology.getMetadata().getSubset()) {
+      Concept concept = getConcept(code, terminology, new IncludeParam("summary,children"));
+      getSubsetsHelper(concept, terminology, 0);
+      subsets.add(concept);
+    }
+    return subsets.stream().flatMap(c -> c.getChildren().stream()).collect(Collectors.toList());
+  }
+
+  private void getSubsetsHelper(Concept concept, Terminology terminology, int level)
+    throws JsonParseException, JsonMappingException, IOException {
+    List<Concept> children = new ArrayList<>();
+    for (Concept child : concept.getChildren()) {
+      Concept childFull =
+          getConcept(child.getCode(), terminology, new IncludeParam("summary,children"));
+      children.add(childFull);
+      getSubsetsHelper(childFull, terminology, level + 1);
+    }
+    concept.setChildren(children);
   }
 
 }

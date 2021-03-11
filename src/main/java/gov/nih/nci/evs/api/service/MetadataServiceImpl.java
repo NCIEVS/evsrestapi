@@ -69,7 +69,7 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> associations = esQueryService.getAssociations(term, ip);
-    return ConceptUtils.applyIncludeAndList(associations, ip, list.orElse(null));
+    return ConceptUtils.applyList(associations, ip, list.orElse(null));
   }
 
   /**
@@ -119,7 +119,7 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> roles = esQueryService.getRoles(term, ip);
-    return ConceptUtils.applyIncludeAndList(roles, ip, list.orElse(null));
+    return ConceptUtils.applyList(roles, ip, list.orElse(null));
   }
 
   /**
@@ -169,7 +169,7 @@ public class MetadataServiceImpl implements MetadataService {
     // Remove qualifiers from properties list
     final List<Concept> properties = esQueryService.getProperties(term, ip);
 
-    return ConceptUtils.applyIncludeAndList(properties, ip, list.orElse(null));
+    return ConceptUtils.applyList(properties, ip, list.orElse(null));
   }
 
   /**
@@ -193,7 +193,7 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> qualifiers = esQueryService.getQualifiers(term, ip);
 
     // IF "for documentation" mode, remove the "not considered" cases.
-    return ConceptUtils.applyIncludeAndList(qualifiers, ip, list.orElse(null));
+    return ConceptUtils.applyList(qualifiers, ip, list.orElse(null));
   }
 
   /**
@@ -361,7 +361,7 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> synonymTypes = esQueryService.getSynonymTypes(term, ip);
-    return ConceptUtils.applyIncludeAndList(synonymTypes, ip, list.orElse(null));
+    return ConceptUtils.applyList(synonymTypes, ip, list.orElse(null));
   }
 
   /* see superclass */
@@ -395,7 +395,7 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> definitionTypes = esQueryService.getDefinitionTypes(term, ip);
-    return ConceptUtils.applyIncludeAndList(definitionTypes, ip, list.orElse(null));
+    return ConceptUtils.applyList(definitionTypes, ip, list.orElse(null));
   }
 
   /* see superclass */
@@ -413,6 +413,44 @@ public class MetadataServiceImpl implements MetadataService {
     } else if (list.size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Definition type " + code + " not found (2)");
+    }
+    return Optional.empty();
+  }
+
+  /* see superclass */
+  @Override
+  public List<Concept> getSubsets(String terminology, Optional<String> include,
+    Optional<String> list) throws Exception {
+    final Terminology term = termUtils.getTerminology(terminology, true);
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
+
+    // subsets should always return children
+    ip.setChildren(true);
+    List<Concept> subsets = esQueryService.getSubsets(term, ip);
+
+    if (!list.isPresent()) {
+      subsets.stream().flatMap(Concept::streamSelfAndChildren)
+          .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
+      return subsets;
+    }
+
+    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null));
+    subsets.stream().flatMap(Concept::streamSelfAndChildren)
+        .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
+    return subsets;
+  }
+
+  /* see superclass */
+  @Override
+  public Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
+    throws Exception {
+    // Verify that it is a property
+    final List<Concept> list =
+        self.getSubsets(terminology, include, Optional.ofNullable(code));
+    if (list.size() == 1) {
+      return Optional.of(list.get(0));
+    } else if (list.size() > 1) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found (2)");
     }
     return Optional.empty();
   }
