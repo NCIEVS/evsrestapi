@@ -70,8 +70,8 @@ import org.json.*;
 
 
 public class OWLSPARQLUtils {
-    JSONUtils jsonUtils = null;
-    HTTPUtils httpUtils = null;
+    gov.nih.nci.evs.restapi.util.JSONUtils jsonUtils = null;
+    gov.nih.nci.evs.restapi.util.HTTPUtils httpUtils = null;
     public String named_graph = null;
     String prefixes = null;
     String serviceUrl = null;
@@ -79,7 +79,7 @@ public class OWLSPARQLUtils {
     String named_graph_id = ":NHC0";
     String BASE_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
 
-    ParserUtils parser = new ParserUtils();
+    gov.nih.nci.evs.restapi.util.ParserUtils parser = new ParserUtils();
     HashMap nameVersion2NamedGraphMap = null;
     HashMap ontologyUri2LabelMap = null;
     String version = null;
@@ -143,8 +143,8 @@ public class OWLSPARQLUtils {
 		this.password = password;
 
 		System.out.println(this.serviceUrl);
-		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
-        this.jsonUtils = new JSONUtils();
+		this.httpUtils = new gov.nih.nci.evs.restapi.util.HTTPUtils(serviceUrl, username, password);
+        this.jsonUtils = new gov.nih.nci.evs.restapi.util.JSONUtils();
         this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
     }
 
@@ -268,10 +268,9 @@ public class OWLSPARQLUtils {
             	json = httpUtils.executeQuery(query);
             	v = new JSONUtils().parseJSON(json);
 			} else {
-
-				RESTUtils restUtils = new RESTUtils(this.username, this.password, 100000, 100000);
+				gov.nih.nci.evs.restapi.util.RESTUtils restUtils = new gov.nih.nci.evs.restapi.util.RESTUtils(this.username, this.password, 100000, 100000);
 				String response = restUtils.runSPARQL(query, serviceUrl);
-				v = new JSONUtils().parseJSON(response);
+				v = new gov.nih.nci.evs.restapi.util.JSONUtils().parseJSON(response);
 				//v = parser.getResponseValues(v);
 				//Utils.dumpVector("v", v);
 
@@ -5960,6 +5959,19 @@ Term Type
         if (v.size() == 0) return v;
         v = new ParserUtils().getResponseValues(v);
         return new SortUtils().quickSort(v);
+	}
+
+	public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
+		String restURL = args[0];
+		String namedGraph = args[1];
+		String username = args[2];
+		String password = args[3];
+		//String code = args[5];
+	    OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(restURL, username, password);
+	    owlSPARQLUtils.set_named_graph(namedGraph);
+		Vector v = owlSPARQLUtils.getSubclassesByCode(namedGraph, "C168547");
+		Utils.dumpVector("v", v);
 	}
 
 }
