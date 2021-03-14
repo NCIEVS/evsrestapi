@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
+
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
 
@@ -1678,7 +1679,6 @@ public class OWLSPARQLUtils {
 
 	public Vector getHierarchicalRelationships(String named_graph) {
 		String query = construct_get_subclasses(named_graph);
-		System.out.println(query);
 		return executeQuery(query);
 	}
 
@@ -1722,6 +1722,50 @@ public class OWLSPARQLUtils {
 		buf.append("            ?x ?y ?z .").append("\n");
 		buf.append("            ?z " + named_graph_id + " \"" + subset_code + "\"^^xsd:string .").append("\n");
 		buf.append("            ?y rdfs:label " + "\"" + "Concept_In_Subset" + "\"^^xsd:string ").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getPublishedValueSets(String named_graph) {
+		return getPublishedValueSets(named_graph, true);
+	}
+
+
+	public Vector getPublishedValueSets(String named_graph, boolean codeOnly) {
+		String query = construct_get_published_value_sets(named_graph, codeOnly);
+		Vector v = executeQuery(query);
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
+	}
+
+	public String construct_get_published_value_sets(String named_graph, boolean codeOnly) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (codeOnly) {
+			buf.append("SELECT distinct ?z_code").append("\n");
+		} else{
+			buf.append("SELECT distinct ?z_label ?z_code").append("\n");
+		}
+  		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("            ?x a owl:Class .").append("\n");
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+		buf.append("            ?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?y rdfs:label " + "\"" + "Concept_In_Subset" + "\"^^xsd:string .").append("\n");
+
+		buf.append("            ?x ?y ?z .").append("\n");
+		buf.append("            ?z rdfs:label ?z_label .").append("\n");
+		buf.append("            ?z " + named_graph_id + " ?z_code .").append("\n");
+
+		buf.append("            ?p a owl:AnnotationProperty .").append("\n");
+		buf.append("            ?p rdfs:label " + "\"" + "Publish_Value_Set" + "\"^^xsd:string .").append("\n");
+		buf.append("            ?z ?p " + "\"" + "Yes" + "\"^^xsd:string .").append("\n");
+
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
@@ -2393,7 +2437,6 @@ public class OWLSPARQLUtils {
 
 	public Vector getValueSetMetadata(String named_graph, String vs_code) {
 		String query = construct_get_valueset_metadata(named_graph, vs_code);
-		//System.out.println(query);
 		Vector v = executeQuery(query);
 		v = new ParserUtils().getResponseValues(v);
 		return v;
@@ -2961,7 +3004,6 @@ public class OWLSPARQLUtils {
 
 	public Vector getSampleOWLClass(String named_graph, String code) {
 		String query = construct_get_sample_owlclass(named_graph, code);
-		//System.out.println(query);
 		Vector v = executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return new Vector();
@@ -2996,7 +3038,6 @@ public class OWLSPARQLUtils {
 
 	public Vector getSimpleRestrictions(String named_graph) {
 		String query = construct_get_simple_restrictions(named_graph);
-		//System.out.println(query);
 		Vector v = executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return new Vector();
@@ -3186,28 +3227,24 @@ public class OWLSPARQLUtils {
 	public Vector getRestrictions(String named_graph, boolean codeOnly) {
 		Vector w = new Vector();
 		String query = construct_get_roles_1(named_graph, codeOnly);
-		//System.out.println(query);
 		Vector w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
 			w.addAll(w1);
 		}
 		query = construct_get_roles_2(named_graph, codeOnly);
-		//System.out.println(query);
 		w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
 			w.addAll(w1);
 		}
 		query = construct_get_roles_3(named_graph, codeOnly);
-		//System.out.println(query);
 		w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
 			w.addAll(w1);
 		}
 		query = construct_get_roles_4(named_graph, codeOnly);
-		//System.out.println(query);
 		w1 = executeQuery(query);
 		if (w1 != null && w1.size() > 0) {
 			w1 = new ParserUtils().getResponseValues(w1);
@@ -3627,24 +3664,10 @@ public class OWLSPARQLUtils {
 	}
 
     public void runQuery(String query_file) {
-		/*
-		int n = query_file.indexOf(".");
-		String method_name = query_file.substring(0, n);
-		String params = "String named_graph, String code";
-        */
 		String query = getQuery(query_file);
-		//System.out.println(query);
-        /*
-	    Utils.generate_construct_statement(method_name, params, query_file);
-
-		String json = getJSONResponseString(query);
-		System.out.println(json);
-		*/
         Vector v = execute(query_file);
         v = formatOutput(v);
-        //StringUtils.dumpVector("v", v);
         Utils.saveToFile("output_" + query_file, v);
-
 	}
 
 	public String construct_outbound_role_query(String named_graph, String roleName) {
@@ -4260,7 +4283,6 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 			Vector u = StringUtils.parseData(property_name_code, "|");
 			String property_name = (String) u.elementAt(0);
 			lcv++;
-			//System.out.println("(" + lcv + ") " + property_name);
 			String property_code = (String) u.elementAt(1);
 			Vector v = null;
 			try {
@@ -4892,7 +4914,6 @@ Term Type
 
 	public Vector getAxioms(String named_graph, String code, String propertyName, String qualfierName) {
 		String query = construct_axiom_query(named_graph, code, propertyName, qualfierName);
-		System.out.println(query);
 		Vector v = executeQuery(query);
 		if (v != null) {
 			v = new ParserUtils().getResponseValues(v);
@@ -6024,9 +6045,16 @@ Term Type
 		//String code = args[5];
 	    OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(restURL, username, password);
 	    owlSPARQLUtils.set_named_graph(namedGraph);
+
+
 		Vector v = owlSPARQLUtils.getSubclassesByCode(namedGraph, "C168547");
 		Utils.dumpVector("v", v);
-	}
 
+		Vector v2 = owlSPARQLUtils.getPublishedValueSets(namedGraph);
+		v2 = new ParserUtils().getResponseValues(v2);
+		v2 = new SortUtils().quickSort(v2);
+		Utils.dumpVector("getPublishedValueSets", v2);
+
+    }
 }
 
