@@ -582,7 +582,9 @@ public class OWLSPARQLUtils {
 		buf.append("  {").append("\n");
 		buf.append("	  {").append("\n");
 		buf.append("	    ?x a owl:Class .").append("\n");
-		buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		if (code != null) {
+			buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		}
 		buf.append("	    ?y rdfs:subClassOf ?x .").append("\n");
 		buf.append("	    ?y a owl:Class .").append("\n");
 		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
@@ -603,7 +605,9 @@ public class OWLSPARQLUtils {
 
 		buf.append("	    ?list rdf:rest*/rdf:first ?x .").append("\n");
 		buf.append("	    ?x a owl:Class .").append("\n");
-		buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		if (code != null) {
+			buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
+		}
 		buf.append("	  }").append("\n");
 		buf.append("	  FILTER (?x != ?y)").append("\n");
 		buf.append("  }").append("\n");
@@ -1623,10 +1627,60 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+/*
 	public Vector getHierarchicalRelationships(String named_graph) {
 		return executeQuery(construct_get_hierarchical_relationships(named_graph));
 	}
+*/
 
+
+	public String construct_get_subclasses(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("SELECT ?x_label ?x_code ?y_label ?y_code").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("  {").append("\n");
+		buf.append("  {").append("\n");
+		buf.append("	  {").append("\n");
+		buf.append("	    ?x a owl:Class .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x " + named_graph_id + " ?x_code .").append("\n");
+
+		buf.append("	    ?y rdfs:subClassOf ?x .").append("\n");
+		buf.append("	    ?y a owl:Class .").append("\n");
+		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
+		buf.append("	    ?y :NHC0 ?y_code .").append("\n");
+		buf.append("	  }").append("\n");
+		buf.append("	  FILTER (?x != ?y)").append("\n");
+		buf.append("  }").append("\n");
+		buf.append("  UNION").append("\n");
+		buf.append("  {").append("\n");
+		buf.append("	  {").append("\n");
+		buf.append("	    ?y a owl:Class .").append("\n");
+		buf.append("	    ?y :NHC0 ?y_code .").append("\n");
+		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
+		buf.append("		?y owl:equivalentClass ?z0 .").append("\n");
+		buf.append("		?z0 a owl:Class .").append("\n");
+		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
+		buf.append("	    ?list rdf:rest*/rdf:first ?x .").append("\n");
+		buf.append("	    ?x a owl:Class .").append("\n");
+		buf.append("		?x rdfs:label ?x_label .").append("\n");
+		buf.append("		?x " + named_graph_id + " ?x_code .").append("\n");
+		buf.append("	  }").append("\n");
+		buf.append("	  FILTER (?x != ?y)").append("\n");
+		buf.append("  }").append("\n");
+		buf.append("  }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getHierarchicalRelationships(String named_graph) {
+		String query = construct_get_subclasses(named_graph);
+		System.out.println(query);
+		return executeQuery(query);
+	}
 
 	public Vector getHierarchicalRelationships(String named_graph, boolean raw_data) {
 		Vector v = executeQuery(construct_get_hierarchical_relationships(named_graph));
