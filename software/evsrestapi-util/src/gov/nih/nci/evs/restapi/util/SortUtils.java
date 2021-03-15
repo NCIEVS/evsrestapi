@@ -204,4 +204,34 @@ public class SortUtils {
 		return w;
 	}
 
+    public static String transformCode(String c_code) {
+		//"C12345";
+		String t = c_code.substring(1, c_code.length());
+		int num = 7-t.length()-1;
+		StringBuffer buf = new StringBuffer();
+		buf.append("C");
+		for (int i=0; i<num;i++) {
+			buf.append("0");
+		}
+		buf.append(t);
+		return buf.toString();
+	}
+
+	public static Vector sortConceptCodes(Vector v) {
+		Vector w = new Vector();
+		HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String code = (String) v.elementAt(i);
+			String new_code = transformCode(code);
+			hmap.put(new_code, code);
+			w.add(new_code);
+		}
+		w = new SortUtils().quickSort(w);
+		Vector w2 = new Vector();
+		for (int i=0; i<w.size(); i++) {
+			String t = (String) w.elementAt(i);
+			w2.add((String) hmap.get(t));
+		}
+		return w2;
+	}
 }
