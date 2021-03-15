@@ -5,7 +5,7 @@ import java.text.*;
 import java.util.*;
 
 public class HyperlinkHelper {
-	private static String HYPER_LINK = "https://nciterms65.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI_Thesaurus&version=20.11e&ns=ncit&code=";
+	private static String HYPER_LINK = "https://nciterms65.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI_Thesaurus&code=";
 
 	public static String toHyperlink(String code) {
 		return toHyperlink(HYPER_LINK, code);
