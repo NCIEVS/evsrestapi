@@ -1798,6 +1798,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /* see superclass */
+  public List<Concept> getSubsetMembers(String subsetCode, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    final String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    final Map<String, String> values =
+        ConceptUtils.asMap("conceptCode", subsetCode, "namedGraph", terminology.getGraph());
+    final String query = queryBuilderService.constructQuery("subset", values);
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final List<Concept> subsetMembers = new ArrayList<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      final String code = b.getConceptCode().getValue();
+      final String name = b.getConceptLabel().getValue();
+      subsetMembers.add(new Concept(terminology.getTerminology(), code, name));
+    }
+
+    return subsetMembers;
+  }
+
+  /* see superclass */
   @Override
   // @Cacheable(value = "terminology",
   // key = "{#root.methodName, #terminology.getTerminologyVersion(),

@@ -59,7 +59,6 @@ public class ConceptController extends BaseController {
   SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The elastic query service. */
-  /* The elasticsearch query service */
   @Autowired
   ElasticQueryService elasticQueryService;
 

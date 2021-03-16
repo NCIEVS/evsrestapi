@@ -2,7 +2,11 @@
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 @JsonInclude(Include.NON_EMPTY)
 public class Paths extends BaseModel {
-
 
   /** The paths. */
   private List<Path> paths = null;
@@ -70,7 +73,6 @@ public class Paths extends BaseModel {
   public int getPathCount() {
     return this.paths.size();
   }
-  
 
   /* see superclass */
   @Override
@@ -98,4 +100,48 @@ public class Paths extends BaseModel {
       return false;
     return true;
   }
+
+  /**
+   * Returns the paths with ancestor.
+   *
+   * @param ancestors the ancestors
+   * @return the paths with ancestor
+   */
+  public List<Path> getPathsWithAncestors(final Set<String> ancestors) {
+    // Return filtered paths that contain a reference to specified code
+    return getPaths().stream().filter(p -> p.getConcepts().stream()
+        .filter(c -> ancestors.contains(c.getCode())).findFirst().orElse(null) != null)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Rewrite paths for ancestor.
+   * This method is for the CTRP "main menu ancestors" computation.
+   * @param ancestors the ancestors
+   * @return the list
+   */
+  public List<Paths> rewritePathsForAncestors(final Set<String> ancestors) {
+
+    final Map<String, List<Path>> map = new HashMap<>();
+
+    for (final Path path : paths) {
+      final Path rewritePath = new Path();
+      rewritePath.setDirection(path.getDirection());
+      String broadCode = null;
+      for (final Concept concept : path.getConcepts()) {
+        rewritePath.getConcepts().add(concept);
+        if (ancestors.contains(concept.getCode())) {
+          broadCode = concept.getCode();
+          break;
+        }
+      }
+      if (!map.containsKey(broadCode)) {
+        map.put(broadCode, new ArrayList<>());
+      }
+      map.get(broadCode).add(rewritePath);
+    }
+    return map.values().stream().map(l -> new Paths(l)).collect(Collectors.toList());
+
+  }
+
 }

@@ -111,6 +111,19 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
+   * Returns the subset members.
+   *
+   * @param subsetCode the subset code
+   * @param terminology the terminology
+   * @return the subset members
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<Concept> getSubsetMembers(String subsetCode, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException;
+
+  /**
    * Returns the all associations.
    *
    * @param terminology the terminology
