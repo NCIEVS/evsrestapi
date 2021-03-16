@@ -1506,40 +1506,6 @@ public class OWLSPARQLUtils {
 		return w;
 	}
 
-/*
-	public String construct_get_string_valued_annotation_properties(String named_graph) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT distinct ?x_label ?x_code ").append("\n");
-		buf.append("{ ").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
-		buf.append("    {").append("\n");
-		buf.append("      {").append("\n");
-		buf.append("         {").append("\n");
-		buf.append("           ?x a owl:AnnotationProperty .").append("\n");
-		buf.append("           ?x :NHC0 ?x_code .").append("\n");
-		buf.append("           ?x rdfs:label ?x_label .").append("\n");
-		buf.append("           ?x rdfs:range ?x_range").append("\n");
-		buf.append("         }").append("\n");
-		buf.append("        FILTER (str(?x_range)=\"http://www.w3.org/2001/XMLSchema#string\")").append("\n");
-		buf.append("      }").append("\n");
-		buf.append("  	  UNION").append("\n");
-		buf.append("      {").append("\n");
-		buf.append("         {").append("\n");
-		buf.append("           ?x a owl:AnnotationProperty .").append("\n");
-		buf.append("           ?x :NHC0 ?x_code .").append("\n");
-		buf.append("           ?x rdfs:label ?x_label .").append("\n");
-		buf.append("           ?x rdfs:range ?x_range").append("\n");
-		buf.append("         }").append("\n");
-		buf.append("        FILTER (str(?x_range)=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#textArea\")").append("\n");
-		buf.append("      }").append("\n");
-		buf.append("    }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
-*/
-
 	public String construct_get_string_valued_annotation_properties(String named_graph) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -1553,12 +1519,11 @@ public class OWLSPARQLUtils {
 		buf.append("           ?p a owl:AnnotationProperty .").append("\n");
 		buf.append("           ?p :NHC0 ?p_code .").append("\n");
 		buf.append("           ?p rdfs:label ?p_label .").append("\n");
-		buf.append("         }").append("\n");
+        buf.append("         }").append("\n");
 		buf.append("         MINUS").append("\n");
 		buf.append("         {").append("\n");
-		buf.append("           ?x ?p ?y .").append("\n");
-		buf.append("           ?x a owl:Class .").append("\n");
-		buf.append("           ?y a owl:Class .").append("\n");
+		buf.append("           ?p a owl:AnnotationProperty .").append("\n");
+		buf.append("           ?p rdfs:range xsd:anyURI .").append("\n");
 		buf.append("         }").append("\n");
 		buf.append("      }").append("\n");
 		buf.append("    }").append("\n");
