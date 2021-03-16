@@ -101,10 +101,10 @@ public class ConceptController extends BaseController {
           required = true, dataType = "string", paramType = "query")
   })
   @RecordMetric
-  public @ResponseBody List<Concept> getConcepts(
-    @PathVariable(value = "terminology") final String terminology,
-    @RequestParam("include") final Optional<String> include,
-    @RequestParam("list") final String list) throws Exception {
+  public @ResponseBody List<Concept> getConcepts(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final String list) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
@@ -157,10 +157,10 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
-  public @ResponseBody Concept getConcept(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody Concept getConcept(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
@@ -202,9 +202,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations",
       produces = "application/json")
-  public @ResponseBody List<Association> getAssociations(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<Association> getAssociations(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -247,9 +247,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
-  public @ResponseBody List<Association> getInverseAssociations(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<Association> getInverseAssociations(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
@@ -261,6 +261,64 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getInverseAssociations();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+
+  }
+
+  /**
+   * Returns the subsets.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the subsets
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get subsets for the specified terminology and code",
+      response = Association.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
+          required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataType = "string", paramType = "query"),
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
+      produces = "application/json")
+  public @ResponseBody List<Concept> getSubsetMembers(@PathVariable(value = "terminology")
+  final String terminology, final Optional<Integer> pageSize, @PathVariable(value = "code")
+  final String code) throws Exception {
+    try {
+      final Terminology term = termUtils.getTerminology(terminology, true);
+
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+
+      List<Concept> subsets = new ArrayList<>();
+      int associationListSize = concept.get().getInverseAssociations().size();
+
+      if (associationListSize > 0) {
+        logger.info("associationListSize > 0");
+        for (Association assn : concept.get().getInverseAssociations().subList(0,
+            pageSize.orElse(associationListSize - 1))) {
+          subsets.add(new Concept("ncit", assn.getRelatedCode(), assn.getRelatedName()));
+        }
+      }
+
+      return subsets;
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -292,9 +350,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles",
       produces = "application/json")
-  public @ResponseBody List<Role> getRoles(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<Role> getRoles(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -338,9 +396,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles",
       produces = "application/json")
-  public @ResponseBody List<Role> getInverseRoles(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<Role> getInverseRoles(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -383,9 +441,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents",
       produces = "application/json")
-  public @ResponseBody List<Concept> getParents(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<Concept> getParents(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -428,9 +486,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children",
       produces = "application/json")
-  public @ResponseBody List<Concept> getChildren(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<Concept> getChildren(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -482,12 +540,12 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
           required = false, dataType = "string", paramType = "query", defaultValue = "10000")
   })
-  public @ResponseBody List<Concept> getDescendants(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code,
-    @RequestParam("fromRecord") final Optional<Integer> fromRecord,
-    @RequestParam("pageSize") final Optional<Integer> pageSize,
-    @RequestParam("maxLevel") final Optional<Integer> maxLevel) throws Exception {
+  public @ResponseBody List<Concept> getDescendants(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code, @RequestParam("fromRecord")
+  final Optional<Integer> fromRecord, @RequestParam("pageSize")
+  final Optional<Integer> pageSize, @RequestParam("maxLevel")
+  final Optional<Integer> maxLevel) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
@@ -547,9 +605,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
       produces = "application/json")
-  public @ResponseBody List<Map> getMaps(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<Map> getMaps(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -593,9 +651,9 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith",
       produces = "application/json")
-  public @ResponseBody List<DisjointWith> getDisjointWith(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<DisjointWith> getDisjointWith(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
@@ -642,9 +700,9 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<Concept> getRoots(
-    @PathVariable(value = "terminology") final String terminology,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody List<Concept> getRoots(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -696,10 +754,10 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsFromRoot(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -742,9 +800,9 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  public @ResponseBody List<HierarchyNode> getSubtree(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<HierarchyNode> getSubtree(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -785,9 +843,9 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
           required = true, dataType = "string", paramType = "path")
   })
-  public @ResponseBody List<HierarchyNode> getSubtreeChildren(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code) throws Exception {
+  public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -835,10 +893,10 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToRoot(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -891,11 +949,11 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToAncestor(
-    @PathVariable(value = "terminology") final String terminology,
-    @PathVariable(value = "code") final String code,
-    @PathVariable(value = "ancestorCode") final String ancestorCode,
-    @RequestParam("include") final Optional<String> include) throws Exception {
+  public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code, @PathVariable(value = "ancestorCode")
+  final String ancestorCode, @RequestParam("include")
+  final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
