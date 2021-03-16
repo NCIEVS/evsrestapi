@@ -200,6 +200,10 @@ public class EVSStatistics {
 		table_data.add("<title>" + title);
 	}
 
+	public boolean is_retired(String code) {
+		return retired_concepts.contains(code);
+	}
+
 	public void addTable(String tableName, Vector th_vec, Vector data) {
 		table_data.add("<table>" + tableName);
 		for (int i=0; i<th_vec.size(); i++) {
@@ -1481,19 +1485,38 @@ public class EVSStatistics {
 		Vector v0 = new Vector();
 		w = new SortUtils().quickSort(w);
 		StringUtils.dumpVector("roots", w);
-        int total = 0;
-        int total2 = 0;
+        int total = 0; // nodes
+        int total2 = 0; // concepts excl retired
+        int total3 = 0;
+        int total4 = 0;
 		for (int i=0; i<roots.size(); i++) {
 		    String root = (String) roots.elementAt(i);
 		    String label = hh.getLabel(root);
-			int count = hh.get_transitive_closure(root);
-			int count2 = hh.get_transitive_closure_v2(root);
-			v0.add(hh.getLabel(root) + " (" + root + ")|" + count + "|" + count2);
-			total = total + count;
+			int count = hh.get_transitive_closure(root); //number of nodes
+			Vector v3 = hh.get_transitive_closure_v3(root);
+			HashSet hset = new HashSet();
+			int retired = 0;
+			for (int j=0; j<v3.size(); j++) {
+				String t = (String) v3.elementAt(j);
+				if (is_retired(t)) {
+					retired++;
+				}
+                hset.add(t);
+			}
+			int count2 = hset.size() - retired;
+			int count3 = retired;
+			int count4 = hset.size();
+
 			total2 = total2 + count2;
+			total3 = total3 + count3;
+			total4 = total4 + count4;
+
+			total = total + count;
+			v0.add(hh.getLabel(root) + " (" + root + ")|" + count + "|" + count2 + "|" + count3 + "|" + count4);
+
 		}
 		v0 = new SortUtils().quickSort(v0);
-		v0.add("Total|" + total + "|" + total2);
+		v0.add("Total|" + total + "|" + total2 + "|" + total3 + "|" + total4);
 		return v0;
 	}
 
@@ -1508,10 +1531,7 @@ public class EVSStatistics {
 			Vector u = StringUtils.parseData(line, '|');
 			String label = (String) u.elementAt(0);
 			String code = (String) u.elementAt(1);
-			//String contributing_source = (String) u.elementAt(3);
-
-String contributing_source = (String) valueset2ContributingSourceMap.get(code);
-
+			String contributing_source = (String) valueset2ContributingSourceMap.get(code);
 			Vector w = getConceptsInSubset(named_graph, code, true);
 			int count = 0;
 			if (w != null) {
@@ -1531,12 +1551,25 @@ String contributing_source = (String) valueset2ContributingSourceMap.get(code);
 		for (int i=0; i<roots.size(); i++) {
 		    String root = (String) roots.elementAt(i);
 		    String label = hh.getLabel(root);
-			int count = hh.get_transitive_closure(root);
-			int count2 = hh.get_transitive_closure_v2(root);
-			v0.add(hh.getLabel(root) + " (" + root + ")|" + count + "|" + count2);
+			int count = hh.get_transitive_closure(root); //number of nodes
+			Vector v3 = hh.get_transitive_closure_v3(root);
+			HashSet hset = new HashSet();
+			int retired = 0;
+			for (int j=0; j<v3.size(); j++) {
+				String t = (String) v3.elementAt(j);
+				if (is_retired(t)) {
+					retired++;
+				}
+                hset.add(t);
+			}
+			int count2 = hset.size() - retired;
+			int count3 = retired;
+			int count4 = hset.size();
+			v0.add(hh.getLabel(root) + " (" + root + ")|" + count + "|" + count2 + "|" + count3 + "|" + count4);
 		}
+		v0 = new SortUtils().quickSort(v0);
 		return v0;
-    }
+	}
 
     public static Vector createValueSetTableData(HashMap valuesetCountHashMap, HashMap hmap) {
         Vector w0 = new Vector();
@@ -1684,14 +1717,18 @@ String contributing_source = (String) valueset2ContributingSourceMap.get(code);
 
     public void generateTableData() {
 		Vector v = new Vector();
+		String tableName = null;
+		Vector th_vec = null;
 		addTitle("NCI Thesaurus Statistics");
 
         v = generateBranchSizeTableData();
-	    String tableName = addTableNumber("Branch Size");
-	    Vector th_vec = new Vector();
+	    tableName = addTableNumber("Branch Size");
+	    th_vec = new Vector();
 	    th_vec.add("Root");
 	    th_vec.add("Node Count");
-	    th_vec.add("Concept Count");
+	    th_vec.add("Concepts Excl. Retired");
+	    th_vec.add("Retired");
+	    th_vec.add("Total");
 	    addTable(tableName, th_vec, v);
 
         Vector spec_roots = new Vector();
@@ -1710,7 +1747,9 @@ String contributing_source = (String) valueset2ContributingSourceMap.get(code);
 	    th_vec = new Vector();
 	    th_vec.add("Root");
 	    th_vec.add("Node Count");
-	    th_vec.add("Concept Count");
+	    th_vec.add("Concepts Excl. Retired");
+	    th_vec.add("Retired");
+	    th_vec.add("Total");
 	    addTable(tableName, th_vec, subbranchdata);
 
 		Vector ret_vec = generateValueSetTableData();
@@ -1782,7 +1821,6 @@ String contributing_source = (String) valueset2ContributingSourceMap.get(code);
 	    th_vec.add("Role");
 	    th_vec.add("Count");
 	    addTable(tableName, th_vec, role_vec);
-
 	    addFooter();
 	}
 
@@ -1875,15 +1913,14 @@ String contributing_source = (String) valueset2ContributingSourceMap.get(code);
 		String password = args[3];
 		EVSStatistics evsStatistics = new EVSStatistics(serviceUrl, named_graph, username, password);
 
-	    Vector w = evsStatistics.getValueSetData(named_graph);
-	    Utils.dumpVector("getValueSetData", w);
+Vector w = evsStatistics.getSupportedProperties(named_graph);
 
-	    //Publish_Value_Set|null
+	    Utils.dumpVector("getSupportedProperties", w);
+
 
 
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
-	//	public Vector findConceptsWithPropertyMatching(String named_graph, String property_name, String property_value) {
 
 
 }
