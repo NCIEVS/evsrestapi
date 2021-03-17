@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.List;
+
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -10,7 +12,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * Represents a synonym of a concept.
  */
-@JsonInclude(Include.NON_EMPTY)
+// Show empty "mainMenuAncestors" rather than nothing.
+@JsonInclude(Include.NON_NULL)
 public class Extensions extends BaseModel implements Comparable<Extensions> {
 
   /** CTRP "is disease" flag. */
@@ -25,7 +28,7 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
   @Field(type = FieldType.Object, ignoreFields = {
       "paths"
   })
-  private Paths mainMenuAncestors;
+  private List<Paths> mainMenuAncestors;
 
   /**
    * Instantiates an empty {@link Extensions}.
@@ -95,7 +98,7 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
    *
    * @return the paths
    */
-  public Paths getMainMenuAncestors() {
+  public List<Paths> getMainMenuAncestors() {
     return mainMenuAncestors;
   }
 
@@ -104,10 +107,11 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
    *
    * @param mainMenuAncestors the main menu ancestors
    */
-  public void setMainMenuAncestors(final Paths mainMenuAncestors) {
+  public void setMainMenuAncestors(final List<Paths> mainMenuAncestors) {
     this.mainMenuAncestors = mainMenuAncestors;
   }
 
+  /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -118,6 +122,7 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
     return result;
   }
 
+  /* see superclass */
   @Override
   public boolean equals(Object obj) {
     if (this == obj)

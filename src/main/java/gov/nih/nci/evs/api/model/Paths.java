@@ -115,8 +115,8 @@ public class Paths extends BaseModel {
   }
 
   /**
-   * Rewrite paths for ancestor.
-   * This method is for the CTRP "main menu ancestors" computation.
+   * Rewrite paths for ancestor. This method is for the CTRP "main menu
+   * ancestors" computation.
    * @param ancestors the ancestors
    * @return the list
    */
@@ -126,19 +126,23 @@ public class Paths extends BaseModel {
 
     for (final Path path : paths) {
       final Path rewritePath = new Path();
+      rewritePath.setConcepts(new ArrayList<>());
       rewritePath.setDirection(path.getDirection());
-      String broadCode = null;
+      int level = 0;
+      final StringBuffer key = new StringBuffer();
       for (final Concept concept : path.getConcepts()) {
-        rewritePath.getConcepts().add(concept);
         if (ancestors.contains(concept.getCode())) {
-          broadCode = concept.getCode();
-          break;
+          final Concept copy = new Concept(concept);
+          copy.setLevel(level++);
+          rewritePath.getConcepts().add(copy);
+          key.append(copy.getCode()).append(",");
         }
       }
-      if (!map.containsKey(broadCode)) {
-        map.put(broadCode, new ArrayList<>());
+      // Only if we found something do we add it
+      if (level > 0 && !map.containsKey(key.toString())) {
+        map.put(key.toString(), new ArrayList<>(2));
+        map.get(key.toString()).add(rewritePath);
       }
-      map.get(broadCode).add(rewritePath);
     }
     return map.values().stream().map(l -> new Paths(l)).collect(Collectors.toList());
 
