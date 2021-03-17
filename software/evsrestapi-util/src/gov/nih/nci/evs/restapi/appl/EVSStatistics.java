@@ -1495,7 +1495,7 @@ public class EVSStatistics {
 			String root = (String) roots.elementAt(i);
 			String root_label = hh.getLabel(root);
 			String label = hh.getLabel(root);
-			System.out.println("Processing " + label + " (" + root + ")");
+			//System.out.println("Processing " + label + " (" + root + ")");
 			int count = hh.get_transitive_closure(root); //number of nodes
 			Vector v3 = hh.get_transitive_closure_v3(root);
 			HashSet hset = new HashSet();
@@ -1618,14 +1618,6 @@ public class EVSStatistics {
 		return w0;
     }
 
-/*
-		HashMap valuesetCountHashMap = new HashMap();
-		HashMap source2valueSetHashMap = new HashMap();
-		HashMap source2ConceptCountHashMap = new HashMap();
-		HashMap source2ValueSetCountHashMap = getSource2valueSetCountHashMap(v);
-		HashMap source2UniqueConceptCountHashMap = getSource2UniqueConceptCountHashMap(v);
-
-*/
     public static Vector createValueSetSourceTableData(
             HashMap source2ValueSetCountHashMap,
             HashMap source2ConceptCountHashMap,
@@ -1795,7 +1787,9 @@ public class EVSStatistics {
 
 	public String addTableNumber(String tableName) {
 		table_number++;
-		return "Table " + table_number + ". " + tableName;
+		String str = "Table " + table_number + ". " + tableName;
+		System.out.println("Generating " + str);
+		return str;
 	}
 
     public void generateTableData() {
