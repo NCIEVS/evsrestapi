@@ -1489,9 +1489,13 @@ public class EVSStatistics {
         int total2 = 0; // concepts excl retired
         int total3 = 0;
         int total4 = 0;
+        Vector active_retired_concepts = new Vector();
+        HashSet active_retired_concepts_hset = new HashSet();
 		for (int i=0; i<roots.size(); i++) {
-		    String root = (String) roots.elementAt(i);
-		    String label = hh.getLabel(root);
+			String root = (String) roots.elementAt(i);
+			String root_label = hh.getLabel(root);
+			String label = hh.getLabel(root);
+			System.out.println("Processing " + label + " (" + root + ")");
 			int count = hh.get_transitive_closure(root); //number of nodes
 			Vector v3 = hh.get_transitive_closure_v3(root);
 			HashSet hset = new HashSet();
@@ -1499,9 +1503,17 @@ public class EVSStatistics {
 			for (int j=0; j<v3.size(); j++) {
 				String t = (String) v3.elementAt(j);
 				if (is_retired(t)) {
+					if (root.compareTo("C28428") != 0) {
+						String s = hh.getLabel(t);
+						String str = root + "|" + root_label + "|" + t + "|" + s;
+						if (!active_retired_concepts_hset.contains(str)) {
+							active_retired_concepts.add(str);
+							active_retired_concepts_hset.add(str);
+						}
+					}
 					retired++;
 				}
-                hset.add(t);
+				hset.add(t);
 			}
 			int count2 = hset.size() - retired;
 			int count3 = retired;
@@ -1513,14 +1525,13 @@ public class EVSStatistics {
 
 			total = total + count;
 			v0.add(hh.getLabel(root) + " (" + root + ")|" + count + "|" + count2 + "|" + count3 + "|" + count4);
-
 		}
 		v0 = new SortUtils().quickSort(v0);
 		v0.add("Total|" + total + "|" + total2 + "|" + total3 + "|" + total4);
+		active_retired_concepts = new SortUtils().quickSort(active_retired_concepts);
+		Utils.dumpVector("active_retired_concepts.txt", active_retired_concepts);
 		return v0;
 	}
-
-////ACC/AHA EHR Terminology|C167405|Contributing_Source|ACC/AHA|Publish_Value_Set|Yes
 
     public Vector generateValueSetTableData() {
 		Vector ret_vec = new Vector();
@@ -1646,29 +1657,6 @@ public class EVSStatistics {
 		w.add("Total|" + total_valueset_count + "|" + total_concept_count + "|" + total_unique_concept_count);
 		return w;
     }
-
-
-/*
-HAQ-DI With VAS - Able to Get On and Off Toilet|C106833|Concept_In_Subset|Clinical Data Interchange Standards Consortium Terminology|C61410|Contributing_Source|CDISC|Publish_Value_Set|Yes
-Large Unstained Cells to Leukocytes Ratio Measurement|C79467|Concept_In_Subset|Clinical Data Interchange Standards Consortium Terminology|C61410|Contributing_Source|CDISC|Publish_Value_Set|Yes
-HAQ-DI With VAS - Able to Reach and Get Down Object From Above Head|C106834|Concept_In_Subset|Clinical Data Interchange Standards Consortium Terminology|C61410|Contributing_Source|CDISC|Publish_Value_Set|Yes
-
-0: HAQ-DI With VAS - Help From Another Person - Arising
-1: C106828
-2: Concept_In_Subset
-3: Clinical Data Interchange Standards Consortium Terminology
-4: C61410
-5: Contributing_Source
-6: CDISC
-7: Publish_Value_Set
-8: Yes
-
-
-Contributing Source
-Value Set Count
-Concept Count Total
-Unique Concept Count
-*/
 
     public HashMap getSource2valueSetCountHashMap(Vector v) {
         HashMap hmap = new HashMap();
@@ -2000,24 +1988,5 @@ Unique Concept Count
 	    evsStatistics.generate();
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
-
-	public static void main1(String[] args) {
-		long ms = System.currentTimeMillis();
-		String serviceUrl = args[0];
-		String named_graph = args[1];
-		String username = args[2];
-		String password = args[3];
-		EVSStatistics evsStatistics = new EVSStatistics(serviceUrl, named_graph, username, password);
-
-Vector w = evsStatistics.getSupportedProperties(named_graph);
-
-	    Utils.dumpVector("getSupportedProperties", w);
-
-
-
-        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-	}
-
-
 }
 
