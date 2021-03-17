@@ -1607,49 +1607,135 @@ public class EVSStatistics {
 		return w0;
     }
 
-    public static Vector createValueSetSourceTableData(HashMap valuesetCountHashMap, HashMap hmap) {
+/*
+		HashMap valuesetCountHashMap = new HashMap();
+		HashMap source2valueSetHashMap = new HashMap();
+		HashMap source2ConceptCountHashMap = new HashMap();
+		HashMap source2ValueSetCountHashMap = getSource2valueSetCountHashMap(v);
+		HashMap source2UniqueConceptCountHashMap = getSource2UniqueConceptCountHashMap(v);
+
+*/
+    public static Vector createValueSetSourceTableData(
+            HashMap source2ValueSetCountHashMap,
+            HashMap source2ConceptCountHashMap,
+            HashMap source2UniqueConceptCountHashMap) {
         Vector w = new Vector();
         Vector keys = new Vector();
-        Iterator it = hmap.keySet().iterator();
+        Iterator it = source2ValueSetCountHashMap.keySet().iterator();
         while (it.hasNext()) {
 			String t = (String) it.next();
 			keys.add(t);
 		}
-		int total = 0;
-		int sub_total = 0;
+		int total_valueset_count = 0;
+		int total_concept_count = 0;
+		int total_unique_concept_count = 0;
+
 		HashMap countMap = new HashMap();
 		keys = new SortUtils().quickSort(keys);
 		for (int i=0; i<keys.size(); i++) {
 			String key = (String) keys.elementAt(i);
-			Vector values = (Vector) hmap.get(key);
-			values = new SortUtils().quickSort(values);
-			sub_total = 0;
-			for (int k=0; k<values.size(); k++) {
-				String value = (String) values.elementAt(k);
-				Integer int_obj = (Integer) valuesetCountHashMap.get(value);
-				int count = Integer.valueOf(int_obj);
-				sub_total = sub_total + count;
-				int k1 = k+1;
-				total = total + count;
-			}
-			w.add(key + "|" + sub_total);
+			int valueset_count = ((Integer) source2ValueSetCountHashMap.get(key)).intValue();
+			int concept_count = ((Integer) source2ConceptCountHashMap.get(key)).intValue();
+			int unique_concept_count = ((Integer) source2UniqueConceptCountHashMap.get(key)).intValue();
+            total_valueset_count = total_valueset_count +  valueset_count;
+            total_concept_count = total_concept_count +  concept_count;
+            total_unique_concept_count = total_unique_concept_count +  unique_concept_count;
+			w.add(key + "|" + valueset_count + "|" + concept_count + "|" + unique_concept_count);
 		}
 		w = new SortUtils().quickSort(w);
-		w.add("Total|" + total);
+		w.add("Total|" + total_valueset_count + "|" + total_concept_count + "|" + total_unique_concept_count);
 		return w;
     }
 
 
+/*
+HAQ-DI With VAS - Able to Get On and Off Toilet|C106833|Concept_In_Subset|Clinical Data Interchange Standards Consortium Terminology|C61410|Contributing_Source|CDISC|Publish_Value_Set|Yes
+Large Unstained Cells to Leukocytes Ratio Measurement|C79467|Concept_In_Subset|Clinical Data Interchange Standards Consortium Terminology|C61410|Contributing_Source|CDISC|Publish_Value_Set|Yes
+HAQ-DI With VAS - Able to Reach and Get Down Object From Above Head|C106834|Concept_In_Subset|Clinical Data Interchange Standards Consortium Terminology|C61410|Contributing_Source|CDISC|Publish_Value_Set|Yes
+
+0: HAQ-DI With VAS - Help From Another Person - Arising
+1: C106828
+2: Concept_In_Subset
+3: Clinical Data Interchange Standards Consortium Terminology
+4: C61410
+5: Contributing_Source
+6: CDISC
+7: Publish_Value_Set
+8: Yes
+
+
+Contributing Source
+Value Set Count
+Concept Count Total
+Unique Concept Count
+*/
+
+    public HashMap getSource2valueSetCountHashMap(Vector v) {
+        HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String source = (String) u.elementAt(6);
+			HashSet hset = new HashSet();
+			if (hmap.containsKey(source)) {
+				hset = (HashSet) hmap.get(source);
+			}
+			String code = (String) u.elementAt(4);
+			if (!hset.contains(code)) {
+				hset.add(code);
+			}
+			hmap.put(source, hset);
+		}
+		HashMap source2valueSetCountHashMap = new HashMap();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String source = (String) it.next();
+			HashSet hset = (HashSet) hmap.get(source);
+			source2valueSetCountHashMap.put(source, new Integer(hset.size()));
+		}
+		hmap.clear();
+        return source2valueSetCountHashMap;
+	}
+
+    public HashMap getSource2UniqueConceptCountHashMap(Vector v) {
+        HashMap hmap = new HashMap();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String source = (String) u.elementAt(6);
+			HashSet hset = new HashSet();
+			if (hmap.containsKey(source)) {
+				hset = (HashSet) hmap.get(source);
+			}
+			String code = (String) u.elementAt(1);
+			if (!hset.contains(code)) {
+				hset.add(code);
+			}
+			hmap.put(source, hset);
+		}
+		HashMap source2UniqueConceptCountHashMap = new HashMap();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String source = (String) it.next();
+			HashSet hset = (HashSet) hmap.get(source);
+			source2UniqueConceptCountHashMap.put(source, new Integer(hset.size()));
+		}
+		hmap.clear();
+        return source2UniqueConceptCountHashMap;
+	}
+
 	public void run_valuse_set() {
 		Vector v = getValueSetData(named_graph);
+
 		int number_of_valueses = 0;
 		int number_of_sources = 0;
 		HashSet sourceHashSet = new HashSet();
 		HashSet valuesets = new HashSet();
 		HashMap valuesetCountHashMap = new HashMap();
-
 		HashMap source2valueSetHashMap = new HashMap();
 		HashMap source2ConceptCountHashMap = new HashMap();
+		HashMap source2ValueSetCountHashMap = getSource2valueSetCountHashMap(v);
+		HashMap source2UniqueConceptCountHashMap = getSource2UniqueConceptCountHashMap(v);
 
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
@@ -1697,16 +1783,25 @@ public class EVSStatistics {
         Vector v1 = createValueSetTableData(valuesetCountHashMap, source2valueSetHashMap);
 	    String tableName = addTableNumber("Concepts In Value Set Grouped by Contributing Source");
 	    Vector th_vec = new Vector();
+
 	    th_vec.add("Contributing Source");
 	    th_vec.add("Value Set");
 	    th_vec.add("Count");
+
 	    addTable(tableName, th_vec, v1);
 
-        Vector v2 = createValueSetSourceTableData(valuesetCountHashMap, source2valueSetHashMap);
+        Vector v2 = createValueSetSourceTableData(
+            source2ValueSetCountHashMap,
+            source2ConceptCountHashMap,
+            source2UniqueConceptCountHashMap);
+
 	    tableName = addTableNumber("Concepts In Value Set Grouped by Contributing Source Summary");
 	    th_vec = new Vector();
 	    th_vec.add("Contributing Source");
-	    th_vec.add("Count");
+		th_vec.add("Value Set Count");
+		th_vec.add("Concept Count");
+        th_vec.add("Unique Concept Count");
+
 	    addTable(tableName, th_vec, v2);
 	}
 
@@ -1761,6 +1856,7 @@ public class EVSStatistics {
 	    addTable(tableName, th_vec, ret_vec);
 
 	    run_valuse_set();
+
 	    v = getPropertyValueCounts(named_graph, "Semantic_Type");
 	    tableName = addTableNumber("Semantic_Type");
 	    th_vec = new Vector();
