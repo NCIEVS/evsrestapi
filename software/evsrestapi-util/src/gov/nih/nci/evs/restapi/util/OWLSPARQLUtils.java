@@ -6001,6 +6001,82 @@ Term Type
         return new SortUtils().quickSort(v);
 	}
 
+
+	public String construct_get_value_set_data(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select distinct ?y_label ?y_code ?p0_label ?x_label ?x_code ?p1_label ?p1_value ?p2_label ?p2_value ").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("                ?y a owl:Class .").append("\n");
+		buf.append("                ?y :NHC0 ?y_code .").append("\n");
+		buf.append("                ?y rdfs:label ?y_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?p0 a owl:AnnotationProperty .").append("\n");
+		buf.append("                ?p0 :NHC0 ?p0_code .").append("\n");
+		buf.append("                ?p0 rdfs:label ?p0_label .").append("\n");
+		buf.append("                ?p0 rdfs:label \"Concept_In_Subset\"^^xsd:string .  ").append("\n");
+		buf.append(" ").append("\n");
+		buf.append("                ?x a owl:Class .").append("\n");
+		buf.append("                ?x :NHC0 ?x_code .").append("\n");
+		buf.append("                ?x rdfs:label ?x_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?y ?p0 ?x .   ").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?p1 a owl:AnnotationProperty .").append("\n");
+		buf.append("                ?p1 :NHC0 ?p1_code .").append("\n");
+		buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
+		buf.append("                ?p1 rdfs:label \"Contributing_Source\"^^xsd:string .").append("\n");
+
+		buf.append("                OPTIONAL {").append("\n");
+		buf.append("                ?x  ?p1 ?p1_value .").append("\n");
+		buf.append("                }").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?p2 a owl:AnnotationProperty .").append("\n");
+		buf.append("                ?p2 :NHC0 ?p2_code .").append("\n");
+		buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
+		buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
+		buf.append("                ").append("\n");
+		buf.append("                ?x ?p2 ?p2_value .").append("\n");
+		buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getValueSetData(String named_graph) {
+		System.out.println("executeQuery");
+		Vector v = executeQuery(construct_get_value_set_data(named_graph));
+		System.out.println("v: " + v.size());
+		v = new ParserUtils().getResponseValues(v);
+		System.out.println("v: " + v.size());
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			if (line.endsWith("null|Yes")) {
+				Vector u = StringUtils.parseData(line, '|');
+				String name = (String) u.elementAt(0);
+				String code = (String) u.elementAt(1);
+				String Concept_In_Subset = (String) u.elementAt(2);
+				String subset_name = (String) u.elementAt(3);
+				String subset_code = (String) u.elementAt(4);
+				String Contributing_Source = (String) u.elementAt(5);
+				String Publish_Value_Set = (String) u.elementAt(6);
+				String Contributing_Source_value = (String) u.elementAt(7);
+				String Publish_Value_Set_value = (String) u.elementAt(8);
+				String t = name + "|" + code + "|" + Concept_In_Subset + "|" + subset_name + "|" + subset_code
+				    + "|Contributing_Source|No External Source|"
+				    + Publish_Value_Set + "|" + Publish_Value_Set_value;
+				w.add(t);
+			} else {
+				w.add(line);
+			}
+		}
+		return w;
+	}
+
+
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String restURL = args[0];
