@@ -778,18 +778,22 @@ public class HierarchyHelper implements Serializable {
 		return w;
 	}
 
-    public void printPath2Roots(String line) {
+    public void printPath2Roots(PrintWriter pw, String line) {
         Vector v = StringUtils.parseData(line, '|');
         String indent = "";
 		for (int i=0; i<v.size(); i++) {
 			String code = (String) v.elementAt(i);
 			String label = getLabel(code);
-			System.out.println(indent + label + " (" + code + ")");
+			if (pw != null) {
+				pw.println(indent + label + " (" + code + ")");
+			} else {
+				System.out.println(indent + label + " (" + code + ")");
+			}
 			indent = indent + "\t";
 		}
 	}
 
-	public void path2Roots(String code) {
+	public void path2Roots(PrintWriter pw, String code) {
 		Stack stack = new Stack();
 		stack.push(code);
 		while (!stack.isEmpty()) {
@@ -804,9 +808,13 @@ public class HierarchyHelper implements Serializable {
 					stack.push(nextLine);
 				}
 			} else {
-				printPath2Roots(line);
+				printPath2Roots(pw, line);
 			}
 		}
+	}
+
+	public void path2Roots(String code) {
+		path2Roots(null, code);
 	}
 
     public static void main(String[] args) {
