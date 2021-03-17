@@ -778,6 +778,36 @@ public class HierarchyHelper implements Serializable {
 		return w;
 	}
 
+    public void printPath2Roots(String line) {
+        Vector v = StringUtils.parseData(line, '|');
+        String indent = "";
+		for (int i=0; i<v.size(); i++) {
+			String code = (String) v.elementAt(i);
+			String label = getLabel(code);
+			System.out.println(indent + label + " (" + code + ")");
+			indent = indent + "\t";
+		}
+	}
+
+	public void path2Roots(String code) {
+		Stack stack = new Stack();
+		stack.push(code);
+		while (!stack.isEmpty()) {
+            String line = (String) stack.pop();
+            Vector u = StringUtils.parseData(line, '|');
+            String next_code = (String) u.elementAt(u.size()-1);
+            Vector v = getSuperclassCodes(next_code);
+            if (v != null) {
+                for (int i=0; i<v.size(); i++) {
+					String sup = (String) v.elementAt(i);
+					String nextLine = line + "|" + sup;
+					stack.push(nextLine);
+				}
+			} else {
+				printPath2Roots(line);
+			}
+		}
+	}
 
     public static void main(String[] args) {
 		Vector v = Utils.readFile("tvs_rel.txt");
