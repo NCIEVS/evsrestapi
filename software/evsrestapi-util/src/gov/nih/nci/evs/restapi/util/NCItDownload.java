@@ -59,8 +59,14 @@ import java.util.*;
 
 public class NCItDownload {
 
-    public static String NCIt_URI = "https://evs.nci.nih.gov/ftp1/upload/";
+    public static String NCIt_UPLOAD_URL = "https://evs.nci.nih.gov/ftp1/upload/";
     public static String NCIT_ZIP_FILE = "ThesaurusInferred_forTS.zip";
+
+    public static String generatePrescrubFilename(String serviceUrl, String username, String password) {
+		MetadataUtils metadataUtils = new MetadataUtils(serviceUrl, username, password);
+		String version = metadataUtils.getLatestVersion("NCI_Thesaurus");
+		return "CTRPThesaurusInferred-" + version + ".owl-lvg.owl.zip";
+	}
 
 	public static void download(String uri, String outputfile) {
 		try (BufferedInputStream in = new BufferedInputStream(new URL(uri).openStream());
@@ -71,14 +77,16 @@ public class NCItDownload {
 				fileOutputStream.write(dataBuffer, 0, bytesRead);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			// handle exception
 		}
 	}
 
     public static void unzip(String zipFilePath, String destDir) {
         File dir = new File(destDir);
+        // create output directory if it doesn't exist
         if(!dir.exists()) dir.mkdirs();
         FileInputStream fis;
+        //buffer for read and write data to file
         byte[] buffer = new byte[1024];
         try {
             fis = new FileInputStream(zipFilePath);
@@ -88,22 +96,26 @@ public class NCItDownload {
                 String fileName = ze.getName();
                 File newFile = new File(destDir + File.separator + fileName);
                 System.out.println("Unzipping to "+newFile.getAbsolutePath());
+                //create directories for sub directories in zip
                 new File(newFile.getParent()).mkdirs();
                 FileOutputStream fos = new FileOutputStream(newFile);
                 int len;
                 while ((len = zis.read(buffer)) > 0) {
-                	fos.write(buffer, 0, len);
+                fos.write(buffer, 0, len);
                 }
                 fos.close();
+                //close this ZipEntry
                 zis.closeEntry();
                 ze = zis.getNextEntry();
             }
+            //close last ZipEntry
             zis.closeEntry();
             zis.close();
             fis.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     public static Vector listFilesInDirectory() {
@@ -128,23 +140,43 @@ public class NCItDownload {
 
     public static void download() {
 		String currentWorkingDirectory = System.getProperty("user.dir");
-        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
+        download(NCIt_UPLOAD_URL + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
         String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
         unzip(zipFilePath, currentWorkingDirectory);
 	}
 
     public static void main(String[] args) {
-		String currentWorkingDirectory = System.getProperty("user.dir");
+		String serviceUrl = null;
+		String named_graph = null;
+		String username = null;
+		String password = null;
+		String URL = NCIt_UPLOAD_URL;
+		String target = NCIT_ZIP_FILE;
 
-        if (args.length == 1) {
-			NCIt_URI = args[0];
+		if (args.length > 0) {
+			serviceUrl = args[0];
+			named_graph = args[1];
+			username = args[2];
+			password = args[3];
+			if (args.length == 5) {
+				target = args[4];
+			}
 		}
-        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
 
-        String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
-        unzip(zipFilePath, currentWorkingDirectory);
-        Vector files = listFilesInDirectory();
-        Utils.dumpVector("listFilesInDirectory", files);
+	    try {
+			System.out.println("Downloading " + target + " from " + URL);
+			download(URL + target, target);
+			System.out.println("Completed.");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+        String currentWorkingDirectory = System.getProperty("user.dir");
+		String zipFilePath = currentWorkingDirectory + "/" + target;
+		unzip(zipFilePath, currentWorkingDirectory);
+		Vector files = listFilesInDirectory();
+		Utils.dumpVector("listFilesInDirectory", files);
+
 	}
 }
 
