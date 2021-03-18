@@ -2208,7 +2208,9 @@ public class OWLSPARQLUtils {
 		buf.append("            ?y a owl:AnnotationProperty .").append("\n");
 		buf.append("            ?x ?y ?z .").append("\n");
 		buf.append("            ?y rdfs:label ?y_label .").append("\n");
-		buf.append("            ?y rdfs:label " + "\"" + propertyName + "\"^^xsd:string ").append("\n");
+		if (propertyName != null) {
+			buf.append("            ?y rdfs:label " + "\"" + propertyName + "\"^^xsd:string ").append("\n");
+	    }
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
