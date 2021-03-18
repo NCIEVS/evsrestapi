@@ -160,6 +160,8 @@ public class NCItDownload {
 			password = args[3];
 			if (args.length == 5) {
 				target = args[4];
+			} else {
+				target = generatePrescrubFilename(serviceUrl, username, password);
 			}
 		}
 
