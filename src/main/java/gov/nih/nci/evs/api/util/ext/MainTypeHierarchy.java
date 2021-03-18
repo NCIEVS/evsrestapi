@@ -83,7 +83,6 @@ public class MainTypeHierarchy {
       extensions.setIsDisease(isDisease(concept));
       extensions.setIsSubtype(isSubtype(concept));
       extensions.setMainMenuAncestors(getMainMenuAncestors(concept));
-      logger.info("XXX   extensions = " + concept.getCode() + ", " + extensions);
       return extensions;
     } catch (Exception e) {
       throw new RuntimeException(e);

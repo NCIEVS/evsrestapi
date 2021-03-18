@@ -2,7 +2,9 @@
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -129,23 +131,54 @@ public class Paths extends BaseModel {
       rewritePath.setConcepts(new ArrayList<>());
       rewritePath.setDirection(path.getDirection());
       int level = 0;
-      final StringBuffer key = new StringBuffer();
+      final StringBuffer keysb = new StringBuffer();
       for (final Concept concept : path.getConcepts()) {
         if (ancestors.contains(concept.getCode())) {
           final Concept copy = new Concept(concept);
           copy.setLevel(level++);
           rewritePath.getConcepts().add(copy);
-          key.append(copy.getCode()).append(",");
+          keysb.append(copy.getCode()).append(",");
         }
       }
       // Only if we found something do we add it
-      if (level > 0 && !map.containsKey(key.toString())) {
-        map.put(key.toString(), new ArrayList<>(2));
-        map.get(key.toString()).add(rewritePath);
+      final String key = keysb.toString().replaceFirst(",$", "");
+      if (level > 0 && !map.containsKey(key)) {
+        map.put(key, new ArrayList<>(2));
+        map.get(key).add(rewritePath);
       }
     }
-    return map.values().stream().map(l -> new Paths(l)).collect(Collectors.toList());
+    // Keep the longest key that starts with a particular concept
+    // see C104034
+    final List<Paths> paths = new ArrayList<>();
+    final Set<String> seen = new HashSet<>();
+    // Sort keys from longest to shortest
+    for (final String key : map.keySet().stream().sorted((a, b) -> b.length() - a.length())
+        .collect(Collectors.toList())) {
+      // Skip if this key is already accounted for
+      if (seen.contains(key)) {
+        continue;
+      }
+      // Skip if all parts have each been individually seen
+      final String[] parts = key.split("\\,");
+      if (Arrays.asList(parts).stream().filter(p -> seen.contains(p)).count() == parts.length) {
+        continue;
+      }
 
+      paths.add(new Paths(map.get(key)));
+
+      // Add all parts and subkeys to seen (so longest paths cover matching shorter ones)
+      // but different paths get their own entries
+      final StringBuilder keyPartSb = new StringBuilder();
+      for (final String part : parts) {
+        seen.add(part);
+        if (keyPartSb.length() > 0) {
+          keyPartSb.append(",");
+        }
+        keyPartSb.append(part);
+        seen.add(keyPartSb.toString());
+      }
+    }
+    return paths;
   }
 
 }
