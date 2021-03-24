@@ -202,7 +202,7 @@ public class MainTypeHierarchy {
     final boolean isDiseaseGrade =
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
     if (isDiseaseGrade) {
-      if (concept.getName().indexOf("grade") == -1) {
+      if (concept.getName().toLowerCase().indexOf("grade") == -1) {
         return true;
       }
       return false;
