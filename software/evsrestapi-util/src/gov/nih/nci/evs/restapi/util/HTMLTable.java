@@ -93,7 +93,7 @@ public class HTMLTable {
 		out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">");
 		out.println("<html xmlns:c=\"http://java.sun.com/jsp/jstl/core\">");
 		out.println("<head>");
-		out.println("<title>NCIt Properties and Relationships</title>");
+		out.println("<title>" + pageTitle + "</title>");
 		out.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
 		out.println("<style>");
 		out.println("table {");
