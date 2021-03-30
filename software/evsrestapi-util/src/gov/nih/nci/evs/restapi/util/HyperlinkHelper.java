@@ -23,6 +23,34 @@ public class HyperlinkHelper {
 		return buf.toString();
 	}
 
+	public static void addHyperlinks(String filename, String hyperlinkfile) {
+	    Vector v = Utils.readFile(filename);
+	    Vector v2 = Utils.readFile(hyperlinkfile);
+	    String t = (String) v2.elementAt(0);
+	    Vector hyperlinks = StringUtils.parseData(t, '|');
+	    Vector w0 = new Vector();
+	    w0.add((String) v.elementAt(0));
+	    Vector w = new Vector();
+	    for (int i=1; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			StringBuffer buf = new StringBuffer();
+			Vector u = StringUtils.parseData(line, '|');
+			for (int j=0; j<u.size(); j++) {
+				buf.append(toHyperlink((String) hyperlinks.elementAt(j),
+				                       (String) u.elementAt(j)));
+
+				if (j < u.size()-1) {
+				    buf.append("|");
+				}
+			}
+			w.add(buf.toString());
+		}
+		w = new SortUtils().quickSort(w);
+		w0.addAll(w);
+		Utils.saveToFile(filename, w0);
+	}
+
+
 	public static void main(String[] args) {
 		String code = "C12345";
 		System.out.println(toHyperlink(code));
