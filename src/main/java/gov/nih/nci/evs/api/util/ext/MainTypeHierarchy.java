@@ -28,6 +28,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 public class MainTypeHierarchy {
 
   /** The Constant logger. */
+  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(StardogElasticLoadServiceImpl.class);
 
   /** The sparql query manager service. */
@@ -81,7 +82,12 @@ public class MainTypeHierarchy {
     try {
       final Extensions extensions = new Extensions();
       extensions.setIsDisease(isDisease(concept));
+      extensions.setIsDiseaseStage(isDiseaseStage(concept));
+      extensions.setIsDiseaseGrade(isDiseaseGrade(concept));
+      extensions.setIsMainType(isMainType(concept));
       extensions.setIsSubtype(isSubtype(concept));
+      extensions.setIsBiomarker(isBiomarker(concept));
+      extensions.setIsReferenceGene(isReferenceGene(concept));
       extensions.setMainMenuAncestors(getMainMenuAncestors(concept));
       return extensions;
     } catch (Exception e) {
@@ -99,6 +105,109 @@ public class MainTypeHierarchy {
     if (!"ncit".equals(terminology)) {
       throw new Exception("Requires 'ncit' terminology = " + terminology);
     }
+  }
+
+  /**
+   * Indicates whether or not disease stage is the case.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   * @throws Exception the exception
+   */
+  public boolean isDiseaseStage(Concept concept) throws Exception {
+    terminologyCheck(concept.getTerminology());
+    // concept starts with Recurrent
+    // OR has a "Disease_Is_Stage" role
+    boolean recurrentFlag = concept.getName().toLowerCase().startsWith("recurrent");
+    if (recurrentFlag) {
+      logger.info("QA CASE isDiseaseStage: starts with Recurrent = " + concept.getCode());
+    }
+    boolean diseaseIsStageFlag =
+        concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Stage")).count() > 0;
+    if (diseaseIsStageFlag) {
+      logger
+          .info("QA CASE isDiseaseStage: member of Disease_Is_Stage subset = " + concept.getCode());
+    }
+    return recurrentFlag || diseaseIsStageFlag;
+  }
+
+  /**
+   * Indicates whether or not disease grade is the case.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   * @throws Exception the exception
+   */
+  public boolean isDiseaseGrade(Concept concept) throws Exception {
+    terminologyCheck(concept.getTerminology());
+    // has a "Disease_Is_Grade" role
+    boolean flag =
+        concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
+    if (flag) {
+      logger
+          .info("QA CASE isDiseaseGrade: member of Disease_Is_Grade subset = " + concept.getCode());
+    }
+    return flag;
+  }
+
+  /**
+   * Indicates whether or not main type is the case.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   * @throws Exception the exception
+   */
+  public boolean isMainType(Concept concept) throws Exception {
+    terminologyCheck(concept.getTerminology());
+    // Has "Concept_In_Subset" association to C138190 | CTS-API Disease Main
+    // Type Terminology |
+    boolean flag = concept.getAssociations().stream().filter(
+        r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C138190"))
+        .count() > 0;
+    if (flag) {
+      logger.info("QA CASE isMainType: member of Main_Type subset = " + concept.getCode());
+    }
+    return flag;
+  }
+
+  /**
+   * Indicates whether or not biomarker is the case.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   * @throws Exception the exception
+   */
+  public boolean isBiomarker(Concept concept) throws Exception {
+    terminologyCheck(concept.getTerminology());
+    // Has "Concept_In_Subset" association to C142799 | CTRP Biomarker
+    // Termionlogy
+    boolean flag = concept.getAssociations().stream().filter(
+        r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142799"))
+        .count() > 0;
+    if (flag) {
+      logger.info("QA CASE isMainType: member of Biomarker subset = " + concept.getCode());
+    }
+    return flag;
+  }
+
+  /**
+   * Indicates whether or not reference gene is the case.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   * @throws Exception the exception
+   */
+  public boolean isReferenceGene(Concept concept) throws Exception {
+    terminologyCheck(concept.getTerminology());
+    // Has "Concept_In_Subset" association to C142801 | CTRP Reference Gene
+    // Terminology |
+    boolean flag = concept.getAssociations().stream().filter(
+        r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142801"))
+        .count() > 0;
+    if (flag) {
+      logger.info("QA CASE isMainType: member of Reference Gene subset = " + concept.getCode());
+    }
+    return flag;
   }
 
   /**
@@ -124,11 +233,15 @@ public class MainTypeHierarchy {
     final String code = concept.getCode();
 
     // Disease, Disorder, or Finding
-    if (code.compareTo("C7057") == 0)
+    if (code.compareTo("C7057") == 0) {
+      logger.info("QA CASE isDisease: top level disease concept = " + concept.getCode());
       return false;
+    }
     // Diseases and Disorders
-    if (code.compareTo("C2991") == 0)
+    if (code.compareTo("C2991") == 0) {
+      logger.info("QA CASE isDisease: top level disease concept = " + concept.getCode());
       return false;
+    }
 
     // Check "concept in subset" association to
     // CTS_API_Disease_Broad_Category_Terminology_Code = "C138189"
@@ -136,13 +249,16 @@ public class MainTypeHierarchy {
         .filter(
             a -> a.getType().equals("Concept_In_Subset") && a.getRelatedCode().equals("C138189"))
         .count() > 0) {
+      logger.info("QA CASE isDisease: broad category concept = " + concept.getCode());
       return false;
     }
 
     List<Paths> mma = concept.getPaths().rewritePathsForAncestors(mainTypeSet);
     if (mma == null || mma.isEmpty()) {
+      logger.info("QA CASE !isDisease: does not have main menu ancestors = " + concept.getCode());
       return true;
     }
+    logger.info("QA CASE isDisease: has main menu ancestors = " + concept.getCode());
     return false;
   }
 
@@ -159,14 +275,17 @@ public class MainTypeHierarchy {
 
     // Disease, Disorder, or Finding
     if (code.equals("C7057")) {
+      logger.info("QA CASE !isSubtype: top level concept = " + concept.getCode());
       return false;
     }
     if (isNotDisease(concept)) {
+      logger.info("QA CASE !isSubtype: is not disease = " + concept.getCode());
       return false;
     }
 
     // Does not qualify if it starts with "recurrent"
     if (concept.getName().toLowerCase().startsWith("recurrent")) {
+      logger.info("QA CASE !isSubtype: starts with Recurrent = " + concept.getCode());
       return false;
     }
 
@@ -175,8 +294,12 @@ public class MainTypeHierarchy {
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Stage")).count() > 0;
     if (isDiseaseStage) {
       // if it doesn't have the word "stage"
-      if (!concept.getName().toLowerCase().contains("stage"))
+      if (!concept.getName().toLowerCase().contains("stage")) {
+        logger.info(
+            "QA CASE isSubtype: Disease_Is_Stage not containing 'stage' = " + concept.getCode());
         return true;
+      }
+      logger.info("QA CASE !isSubtype: Disease_Is_Stage containing 'stage' = " + concept.getCode());
       return false;
     }
 
@@ -192,8 +315,11 @@ public class MainTypeHierarchy {
       // If there are parents that are not main type codes,
       // then it qualifies
       if (parents.stream().filter(c -> !mainTypeSet.contains(code)).count() > 0) {
+        logger
+            .info("QA CASE isSubtype: Main Type with non-main-type parent = " + concept.getCode());
         return true;
       } else {
+        logger.info("QA CASE !isSubtype: Main Type with main-type parent = " + concept.getCode());
         return false;
       }
     }
@@ -203,11 +329,14 @@ public class MainTypeHierarchy {
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
     if (isDiseaseGrade) {
       if (concept.getName().toLowerCase().indexOf("grade") == -1) {
+        logger.info("QA CASE isSubtype: Disease_Is_Grade without 'grade' = " + concept.getCode());
         return true;
       }
+      logger.info("QA CASE !isSubtype: Disease_Is_Grade with the 'grade' = " + concept.getCode());
       return false;
     }
 
+    logger.info("QA CASE isSubtype: default case = " + concept.getCode());
     return true;
   }
 
@@ -226,13 +355,41 @@ public class MainTypeHierarchy {
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
     final boolean isDiseaseStage =
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Stage")).count() > 0;
-    if (!isSubtype(concept) && !isDiseaseStage && !isDiseaseGrade) {
+    final boolean subtypeFlag = isSubtype(concept);
+    if (!subtypeFlag && !isDiseaseStage && !isDiseaseGrade) {
+      logger
+          .info("QA CASE !mainMenuAncestors: !subtype && !stage && !grade = " + concept.getCode());
       return new ArrayList<>();
     }
 
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
     List<Paths> paths = concept.getPaths().rewritePathsForAncestors(mainTypeSet);
+
+    if (subtypeFlag) {
+      logger.info("QA CASE mainMenuAncestors: subtype = " + concept.getCode());
+    }
+    if (isDiseaseStage) {
+      logger.info("QA CASE mainMenuAncestors: Disease_Is_Stage = " + concept.getCode());
+    }
+    if (isDiseaseGrade) {
+      logger.info("QA CASE mainMenuAncestors: Disease_Is_Grade = " + concept.getCode());
+    }
+
+    if (paths.size() == 0) {
+      logger.info("QA CASE !mainMenuAncestors: default no paths = " + concept.getCode());
+    } else if (paths.size() == 1) {
+      if (paths.get(0).getPaths().size() == 0) {
+        throw new Exception("This condition should not happen");
+      } else if (paths.get(0).getPaths().size() == 1) {
+        logger.info("QA CASE !mainMenuAncestors: default single paths = " + concept.getCode());
+      } else if (paths.get(0).getPaths().size() > 1) {
+        logger.info("QA CASE !mainMenuAncestors: default multipe paths = " + concept.getCode());
+      }
+    } else if (paths.size() > 1) {
+      logger
+          .info("QA CASE !mainMenuAncestors: default multiple paths lists = " + concept.getCode());
+    }
     return paths;
   }
 

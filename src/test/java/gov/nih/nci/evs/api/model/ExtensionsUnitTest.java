@@ -35,17 +35,11 @@ public class ExtensionsUnitTest {
   /** The model object to test. */
   private Extensions object;
 
-  /** The ps 1. */
-  private Paths ps1;
-
-  /** The ps 2. */
-  private Paths ps2;
-
   /** The lp 1. */
-  private List<Path> lp1;
+  private List<Paths> lp1;
 
   /** The lp 2. */
-  private List<Path> lp2;
+  private List<Paths> lp2;
 
   /**
    * Setup.
@@ -63,16 +57,17 @@ public class ExtensionsUnitTest {
     final Path p3 = (Path) tester.createObject(3);
     p3.getConcepts().add(new Concept("3"));
     lp1 = new ArrayList<>();
-    lp1.add(p1);
+    Paths ps1 = new Paths();
+    ps1.getPaths().add(p1);
+    lp1.add(ps1);
     lp2 = new ArrayList<>();
-    lp2.add(p2);
-    lp2.add(p3);
+    Paths ps2 = new Paths();
+    ps2.getPaths().add(p2);
+    lp2.add(ps2);
+    Paths ps3 = new Paths();
+    ps3.getPaths().add(p3);
+    lp2.add(ps3);
 
-    final ProxyTester tester2 = new ProxyTester(new Paths());
-    tester2.proxy("paths", 1, lp1);
-    tester2.proxy("paths", 2, lp2);
-    ps1 = (Paths) tester2.createObject(1);
-    ps2 = (Paths) tester2.createObject(2);
   }
 
   /**
@@ -83,8 +78,8 @@ public class ExtensionsUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
-    tester.proxy(Paths.class, 1, ps1);
-    tester.proxy(Paths.class, 2, ps2);
+    tester.proxy("mainMenuAncestors", 1, lp1);
+    tester.proxy("mainMenuAncestors", 2, lp2);
     tester.test();
   }
 
@@ -97,10 +92,15 @@ public class ExtensionsUnitTest {
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("isDisease");
+    tester.include("isDiseaseStage");
+    tester.include("isDiseaseGrade");
+    tester.include("isMaintype");
     tester.include("isSubtype");
+    tester.include("isBiomarker");
+    tester.include("isReferenceGene");
     tester.include("mainMenuAncestors");
-    tester.proxy(Paths.class, 1, ps1);
-    tester.proxy(Paths.class, 2, ps2);
+    tester.proxy("mainMenuAncestors", 1, lp1);
+    tester.proxy("mainMenuAncestors", 2, lp2);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -118,8 +118,8 @@ public class ExtensionsUnitTest {
   @Test
   public void testModelCopy() throws Exception {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
-    tester.proxy(Paths.class, 1, ps1);
-    tester.proxy(Paths.class, 2, ps2);
+    tester.proxy("mainMenuAncestors", 1, lp1);
+    tester.proxy("mainMenuAncestors", 2, lp2);
     assertTrue(tester.testCopyConstructor(Extensions.class));
   }
 
@@ -131,7 +131,8 @@ public class ExtensionsUnitTest {
   @Test
   public void testModelSerialization() throws Exception {
     final SerializationTester tester = new SerializationTester(object);
-    tester.proxy(Paths.class, 1, ps1);
+    tester.proxy("mainMenuAncestors", 1, lp1);
     assertTrue(tester.testJsonSerialization());
   }
+
 }
