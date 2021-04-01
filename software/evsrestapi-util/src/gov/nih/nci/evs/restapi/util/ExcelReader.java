@@ -113,12 +113,15 @@ public class ExcelReader {
         while (rowIterator.hasNext()) {
 			StringBuffer buf = new StringBuffer();
             Row row = rowIterator.next();
-            Iterator<Cell> cellIterator = row.cellIterator();
-            while (cellIterator.hasNext()) {
-                Cell cell = cellIterator.next();
-                String cellValue = getCellValue(cell);
+            int lastCellNumber = row.getLastCellNum();
+            for (int lcv=0; lcv<lastCellNumber; lcv++) {
+				Cell cell = row.getCell(lcv);
+				String cellValue = "";
+				if (cell != null) {
+					cellValue = getCellValue(cell);
+				}
                 buf.append(cellValue).append(delim);
-            }
+			}
             String line = buf.toString();
             line = line.substring(0, line.length()-1);
             w.add(line);
