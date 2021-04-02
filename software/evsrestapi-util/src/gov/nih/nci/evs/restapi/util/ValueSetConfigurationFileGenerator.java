@@ -140,20 +140,37 @@ public class ValueSetConfigurationFileGenerator {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
+
 				if (vsc != null && published != null && published.compareTo("Yes") == 0) {
 					try {
-						if (vsc.getUri().indexOf("http") == -1) {
+						String line = vsc.getUri();
+						Vector u = StringUtils.parseData(line, '|');
+						if (u.size() == 1) {
 							vsc.setUri(VALUESET_URI + vsc.getUri());
+							w.add(vsc);
+						} else {
+							String clsId = (String) u.elementAt(0);
+							for (int k=1; k<u.size(); k++) {
+								String src = (String) u.elementAt(k);
+								ValueSetConfig vsc_clone = new ValueSetConfig(
+									vsc.getName(),
+									vsc.getUri(),
+									vsc.getReportURI(),
+									vsc.getExtractionRule());
+
+								vsc_clone.setUri(VALUESET_URI + src + "/" + clsId);
+								w.add(vsc_clone);
+							}
 						}
-						w.add(vsc);
 					} catch (Exception ex) {
 
 					}
 				}
 
+				classId = t.substring(1, n);
 				vsc = new ValueSetConfig();
 				vsc.setUri(classId);
+				//vsc.setUri(classId);
 				published = null;
 				if (istart0) {
 					istart = true;
@@ -197,8 +214,8 @@ public class ValueSetConfigurationFileGenerator {
 								}
 								vsc.setExtractionRule((String) u.elementAt(2));
 							} else if (code.compareTo("P322") == 0) {
-								vsc.setUri(VALUESET_URI +
-								    (String) u.elementAt(1) + "/" + vsc.getUri());
+							    vsc.setUri(vsc.getUri() + "|" + (String) u.elementAt(1));
+
 							} else if (code.compareTo("P372") == 0) {
 								published = (String) u.elementAt(1);
 							}
@@ -209,10 +226,25 @@ public class ValueSetConfigurationFileGenerator {
 		}
 		if (vsc != null && published != null && published.compareTo("Yes") == 0) {
 			try {
-				if (vsc.getUri().indexOf("http") == -1) {
+				String line = vsc.getUri();
+				Vector u = StringUtils.parseData(line, '|');
+				if (u.size() == 1) {
 					vsc.setUri(VALUESET_URI + vsc.getUri());
+					w.add(vsc);
+				} else {
+					String clsId = (String) u.elementAt(0);
+					for (int k=1; k<u.size(); k++) {
+						String src = (String) u.elementAt(k);
+						ValueSetConfig vsc_clone = new ValueSetConfig(
+							vsc.getName(),
+							vsc.getUri(),
+							vsc.getReportURI(),
+							vsc.getExtractionRule());
+
+						vsc_clone.setUri(VALUESET_URI + src + "/" + clsId);
+						w.add(vsc_clone);
+					}
 				}
-				w.add(vsc);
 			} catch (Exception ex) {
 
 			}
