@@ -124,7 +124,7 @@ public class Paths extends BaseModel {
    */
   public List<Paths> rewritePathsForAncestors(final Set<String> ancestors) {
 
-    final Map<String, List<Path>> map = new HashMap<>();
+    final Map<String, Path> map = new HashMap<>();
 
     for (final Path path : paths) {
       final Path rewritePath = new Path();
@@ -143,13 +143,12 @@ public class Paths extends BaseModel {
       // Only if we found something do we add it
       final String key = keysb.toString().replaceFirst(",$", "");
       if (level > 0 && !map.containsKey(key)) {
-        map.put(key, new ArrayList<>(2));
-        map.get(key).add(rewritePath);
+        map.put(key, rewritePath);
       }
     }
     // Keep the longest key that starts with a particular concept
     // see C104034
-    final List<Paths> paths = new ArrayList<>();
+    final Paths paths = new Paths();
     final Set<String> seen = new HashSet<>();
     // Sort keys from longest to shortest
     for (final String key : map.keySet().stream().sorted((a, b) -> b.length() - a.length())
@@ -164,10 +163,10 @@ public class Paths extends BaseModel {
         continue;
       }
 
-      paths.add(new Paths(map.get(key)));
+      paths.getPaths().add(map.get(key));
 
-      // Add all parts and subkeys to seen (so longest paths cover matching shorter ones)
-      // but different paths get their own entries
+      // Add all parts and subkeys to seen (so longest paths cover matching
+      // shorter ones) but different paths get their own entries
       final StringBuilder keyPartSb = new StringBuilder();
       for (final String part : parts) {
         seen.add(part);
@@ -178,7 +177,9 @@ public class Paths extends BaseModel {
         seen.add(keyPartSb.toString());
       }
     }
-    return paths;
+    final List<Paths> wrapper = new ArrayList<>();
+    wrapper.add(paths);
+    return wrapper;
   }
 
 }

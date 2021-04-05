@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.util.ext;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -185,7 +184,7 @@ public class MainTypeHierarchy {
         r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142799"))
         .count() > 0;
     if (flag) {
-      logger.info("QA CASE isMainType: member of Biomarker subset = " + concept.getCode());
+      logger.info("QA CASE isBiomarker: member of Biomarker subset = " + concept.getCode());
     }
     return flag;
   }
@@ -205,7 +204,8 @@ public class MainTypeHierarchy {
         r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142801"))
         .count() > 0;
     if (flag) {
-      logger.info("QA CASE isMainType: member of Reference Gene subset = " + concept.getCode());
+      logger
+          .info("QA CASE isReferenceGene: member of Reference Gene subset = " + concept.getCode());
     }
     return flag;
   }
@@ -359,7 +359,7 @@ public class MainTypeHierarchy {
     if (!subtypeFlag && !isDiseaseStage && !isDiseaseGrade) {
       logger
           .info("QA CASE !mainMenuAncestors: !subtype && !stage && !grade = " + concept.getCode());
-      return new ArrayList<>();
+      return null;
     }
 
     // Get concept paths and check if any end at "main type" concepts
@@ -384,7 +384,7 @@ public class MainTypeHierarchy {
       } else if (paths.get(0).getPaths().size() == 1) {
         logger.info("QA CASE !mainMenuAncestors: default single paths = " + concept.getCode());
       } else if (paths.get(0).getPaths().size() > 1) {
-        logger.info("QA CASE !mainMenuAncestors: default multipe paths = " + concept.getCode());
+        logger.info("QA CASE !mainMenuAncestors: default multiple paths = " + concept.getCode());
       }
     } else if (paths.size() > 1) {
       logger
