@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2323,7 +2322,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     List<Concept> children = new ArrayList<>();
     for (Concept child : concept.getChildren()) {
       Concept childFull =
-          getConcept(child.getCode(), terminology, new IncludeParam("summary,children"));
+          getConcept(child.getCode(), terminology, new IncludeParam("summary,children,properties"));
+      boolean valInSubset = false;
+      // log.info("properties = " + childFull.getProperties());
+      for (Property prop : childFull.getProperties()) {
+        if (prop.getType().equals("Publish_Value_Set") && prop.getValue().equals("Yes")) {
+          valInSubset = true;
+          break;
+        }
+      }
+      if (!valInSubset) {
+        continue;
+      }
+      childFull.setProperties(null);
       children.add(childFull);
       getSubsetsHelper(childFull, terminology, level + 1);
     }
