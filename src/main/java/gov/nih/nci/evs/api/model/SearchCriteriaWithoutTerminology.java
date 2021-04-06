@@ -416,6 +416,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @return the subsetGroup
    */
   public List<String> getSubsetGroup() {
+    if (subsetGroup == null) {
+      subsetGroup = new ArrayList<>();
+    }
     return subsetGroup;
   }
 
