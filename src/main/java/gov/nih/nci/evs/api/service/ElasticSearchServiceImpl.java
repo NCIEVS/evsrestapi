@@ -437,11 +437,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     if (subsets.size() == 1) {
       subsetListQuery = subsetListQuery
-          .must(QueryBuilders.matchQuery("associations.relatedName", subsets.get(0)));
+          .must(QueryBuilders.matchQuery("associations.relatedCode", subsets.get(0)));
     } else {
       for (String subset : subsets) {
         subsetListQuery =
-            subsetListQuery.should(QueryBuilders.matchQuery("associations.relatedName", subset));
+            subsetListQuery.should(QueryBuilders.matchQuery("associations.relatedCode", subset));
       }
     }
 
