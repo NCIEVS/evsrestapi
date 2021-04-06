@@ -62,6 +62,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The synonym term group. */
   private List<String> synonymTermGroup;
 
+  /** The subset group */
+  private List<String> subsetGroup;
+
   /** The inverse. */
   // private Boolean inverse = null;
 
@@ -109,6 +112,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     synonymTermGroup = new ArrayList<>(other.getSynonymTermGroup());
     term = other.getTerm();
     type = other.getType();
+    subsetGroup = new ArrayList<>(other.getSubsetGroup());
   }
 
   /**
@@ -409,6 +413,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   // }
 
   /**
+   * @return the subsetGroup
+   */
+  public List<String> getSubsetGroup() {
+    return subsetGroup;
+  }
+
+  /**
+   * @param subsetGroup the subsetGroup to set
+   */
+  public void setSubsetGroup(List<String> subsetGroup) {
+    this.subsetGroup = subsetGroup;
+  }
+
+  /**
    * Compute include param.
    *
    * @return the include param
@@ -469,10 +487,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void validate(final Terminology terminology, final MetadataService metadataService)
     throws Exception {
-//    if (getTerm() == null) {
-//      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-//          "Required parameter 'term' is missing");
-//    }
+    // if (getTerm() == null) {
+    // throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+    // "Required parameter 'term' is missing");
+    // }
 
     if (!TerminologyUtils
         .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
@@ -561,6 +579,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((synonymTermGroup == null) ? 0 : synonymTermGroup.hashCode());
     result = prime * result + ((term == null) ? 0 : term.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
+    result = prime * result + ((subsetGroup == null) ? 0 : subsetGroup.hashCode());
     return result;
   }
 
@@ -658,6 +677,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!synonymTermGroup.equals(other.synonymTermGroup)) {
+      return false;
+    }
+    if (subsetGroup == null) {
+      if (other.subsetGroup != null) {
+        return false;
+      }
+    } else if (!subsetGroup.equals(other.subsetGroup)) {
       return false;
     }
     if (term == null) {
