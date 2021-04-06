@@ -132,7 +132,7 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "subsetGroup",
+      @ApiImplicitParam(name = "subset",
           value = "Comma-separated list of subset Groups to restrict search results to, e.g. CBDD Terminology.",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
@@ -219,7 +219,7 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "subsetGroup",
+      @ApiImplicitParam(name = "subset",
           value = "Comma-separated list of subset Groups to restrict search results to, e.g. CBDD Terminology.",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported

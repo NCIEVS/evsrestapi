@@ -63,7 +63,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   private List<String> synonymTermGroup;
 
   /** The subset group */
-  private List<String> subsetGroup;
+  private List<String> subset;
 
   /** The inverse. */
   // private Boolean inverse = null;
@@ -112,7 +112,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     synonymTermGroup = new ArrayList<>(other.getSynonymTermGroup());
     term = other.getTerm();
     type = other.getType();
-    subsetGroup = new ArrayList<>(other.getSubsetGroup());
+    subset = new ArrayList<>(other.getSubset());
   }
 
   /**
@@ -413,20 +413,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   // }
 
   /**
-   * @return the subsetGroup
+   * @return the
    */
-  public List<String> getSubsetGroup() {
-    if (subsetGroup == null) {
-      subsetGroup = new ArrayList<>();
+  public List<String> getSubset() {
+    if (subset == null) {
+      subset = new ArrayList<>();
     }
-    return subsetGroup;
+    return subset;
   }
 
   /**
-   * @param subsetGroup the subsetGroup to set
+   * @param the to set
    */
-  public void setSubsetGroup(List<String> subsetGroup) {
-    this.subsetGroup = subsetGroup;
+  public void setSubset(List<String> subset) {
+    this.subset = subset;
   }
 
   /**
@@ -582,7 +582,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((synonymTermGroup == null) ? 0 : synonymTermGroup.hashCode());
     result = prime * result + ((term == null) ? 0 : term.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
-    result = prime * result + ((subsetGroup == null) ? 0 : subsetGroup.hashCode());
+    result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     return result;
   }
 
@@ -682,11 +682,11 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     } else if (!synonymTermGroup.equals(other.synonymTermGroup)) {
       return false;
     }
-    if (subsetGroup == null) {
-      if (other.subsetGroup != null) {
+    if (subset == null) {
+      if (other.subset != null) {
         return false;
       }
-    } else if (!subsetGroup.equals(other.subsetGroup)) {
+    } else if (!subset.equals(other.subset)) {
       return false;
     }
     if (term == null) {

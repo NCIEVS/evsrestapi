@@ -371,9 +371,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       queries.add(definitionTypeQuery);
     }
 
-    QueryBuilder subsetGroupQuery = getSubsetGroupValueQueryBuilder(searchCriteria);
-    if (subsetGroupQuery != null) {
-      queries.add(subsetGroupQuery);
+    QueryBuilder subsetQuery = getSubsetValueQueryBuilder(searchCriteria);
+    if (subsetQuery != null) {
+      queries.add(subsetQuery);
     }
 
     return queries;
@@ -428,11 +428,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return the nested query
    */
-  private QueryBuilder getSubsetGroupValueQueryBuilder(SearchCriteria searchCriteria) {
-    if (searchCriteria.getSubsetGroup().size() == 0)
+  private QueryBuilder getSubsetValueQueryBuilder(SearchCriteria searchCriteria) {
+    if (searchCriteria.getSubset().size() == 0)
       return null;
 
-    List<String> subsets = searchCriteria.getSubsetGroup();
+    List<String> subsets = searchCriteria.getSubset();
     BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();
 
     if (subsets.size() == 1) {
