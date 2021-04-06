@@ -431,20 +431,25 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   private QueryBuilder getSubsetGroupValueQueryBuilder(SearchCriteria searchCriteria) {
     if (searchCriteria.getSubsetGroup().size() == 0)
       return null;
+
     List<String> subsets = searchCriteria.getSubsetGroup();
-    BoolQueryBuilder subsetQuery = QueryBuilders.boolQuery()
-        .must((QueryBuilders.matchQuery("associations.type", "Concept_In_Subset")));
+    BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();
 
     if (subsets.size() == 1) {
-      subsetQuery =
-          subsetQuery.must(QueryBuilders.matchQuery("associations.relatedName", subsets.get(0)));
+      subsetListQuery = subsetListQuery
+          .must(QueryBuilders.matchQuery("associations.relatedName", subsets.get(0)));
     } else {
       for (String subset : subsets) {
-        subsetQuery =
-            subsetQuery.should(QueryBuilders.matchQuery("associations.relatedName", subset));
+        subsetListQuery =
+            subsetListQuery.should(QueryBuilders.matchQuery("associations.relatedName", subset));
       }
     }
-    return subsetQuery;
+
+    BoolQueryBuilder subsetQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.matchQuery("associations.type", "Concept_In_Subset"))
+        .must(subsetListQuery);
+
+    return QueryBuilders.nestedQuery("associations", subsetQuery, ScoreMode.Total);
   }
 
   /**

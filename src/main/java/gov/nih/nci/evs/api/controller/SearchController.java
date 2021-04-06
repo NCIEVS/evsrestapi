@@ -134,7 +134,7 @@ public class SearchController extends BaseController {
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subsetGroup",
           value = "Comma-separated list of subset Groups to restrict search results to, e.g. CBDD Terminology.",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+          required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
       // or \"roles\" when true to indicate that inverse associations or roles
@@ -221,7 +221,7 @@ public class SearchController extends BaseController {
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subsetGroup",
           value = "Comma-separated list of subset Groups to restrict search results to, e.g. CBDD Terminology.",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+          required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
       // or \"roles\" when true to indicate that inverse associations or roles
