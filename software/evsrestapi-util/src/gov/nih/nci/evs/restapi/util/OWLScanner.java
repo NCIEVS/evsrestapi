@@ -2478,17 +2478,25 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
 			t = t.trim();
-
 			if (t.indexOf("// Classes") != -1) {
 				istart = true;
 			}
 
 			if (istart) {
 			    if (t.indexOf("<" + prop_code + ">") != -1) {
-					String retstr = parseProperty(t);
-					Vector u = split(retstr);
-					prop_value = (String) u.elementAt(1);
-					buf.append("|" + prop_value);
+					while (t.indexOf("</" + prop_code + ">") == -1) {
+						i++;
+						String s = (String) owl_vec.elementAt(i);
+						t = t.substring(0, t.length()-1) + s;
+					}
+					try {
+						String retstr = parseProperty(t);
+						Vector u = split(retstr);
+						prop_value = (String) u.elementAt(1);
+						buf.append("|" + prop_value);
+					} catch (Exception ex) {
+						System.out.println("Error parsing: " + t);
+					}
 
 				} else if (t.startsWith("<owl:Class ")) {
 
@@ -2502,10 +2510,9 @@ C4910|<NHC0>C4910</NHC0>
 
 					buf = new StringBuffer();
 					int m = t.lastIndexOf("#");
-					String value = t.substring(m+1, t.length()-3);
+					String value = t.substring(m+1, t.length()-2);
 					classId = value;
 					buf.append(classId);
-
 				}
 			}
         }
