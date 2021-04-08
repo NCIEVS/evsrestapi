@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Axiom;
@@ -2037,7 +2038,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
         int j = 0;
         for (int i = idx; i >= 0; i--) {
-          Concept c = new Concept();
+          final Concept c = new Concept();
           c.setCode(concepts.get(i).getCode());
           c.setName(concepts.get(i).getName());
           c.setLevel(j);
@@ -2168,6 +2169,124 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonParseException, JsonMappingException, IOException {
     List<String> parentchild = self.getHierarchy(terminology);
     return new HierarchyUtils(parentchild);
+  }
+
+  /* see superclass */
+  @Override
+  public HierarchyUtils getMainTypeHierarchy(final Terminology terminology, Set<String> mainTypeSet,
+    Set<String> broadCategorySet) throws JsonParseException, JsonMappingException, IOException {
+
+    final HierarchyUtils hierarchy = self.getHierarchyUtils(terminology);
+
+    // Prep a map to capture paths for a given code
+    final Map<String, Paths> map = new HashMap<>();
+
+    final Set<String> combinedSet = Sets.union(mainTypeSet, broadCategorySet);
+    final Set<String> combinedSetMinusDisease = new HashSet<>(combinedSet);
+    combinedSetMinusDisease.remove("C2991");
+
+    // Iterate through all main type codes
+    for (final String code : mainTypeSet) {
+      // Lookup the paths
+      final Paths paths = self.getPathToRoot(code, terminology);
+
+      // Prep candidates
+
+      final List<Path> candidates = new ArrayList<>();
+      // Iterate through paths to keep non-blocked paths
+      for (int i = 0; i < paths.getPaths().size(); i++) {
+        final Path path = paths.getPaths().get(i);
+        final String broadCategory = path.getConcepts().stream().map(c -> c.getCode())
+            .filter(c -> !c.equals(code) && broadCategorySet.contains(c)).findFirst().get();
+
+        boolean keep = true;
+
+        // Iterate through paths to look for a blocking path
+        for (int j = 0; j < paths.getPaths().size(); j++) {
+          // skip where they are the same
+          if (i == j) {
+            continue;
+          }
+          final Path path2 = paths.getPaths().get(j);
+          final String broadCategory2 = path2.getConcepts().stream().map(c -> c.getCode())
+              .filter(c -> !c.equals(code) && broadCategorySet.contains(c)).findFirst().get();
+          final String mainTypeAncestor2 = path2.getConcepts().stream().map(c -> c.getCode())
+              .filter(c -> !c.equals(code) && mainTypeSet.contains(c)).findFirst().orElse(null);
+
+          final boolean isDescendant = hierarchy.getDescendants(broadCategory2).stream()
+              .map(c -> c.getCode()).filter(c -> c.equals(broadCategory)).count() > 0;
+
+          // if broadCategory is a descendant of broadCategory2
+          // and hasMainTypeAncestor is true, then skip this one
+          if (isDescendant && mainTypeAncestor2 != null) {
+            if (isDescendant) {
+              log.info(
+                  "XXX desc = " + code + ", " + broadCategory + " is desc of " + broadCategory2);
+            }
+            log.info("XXX main type anc2 = " + code + ", " + mainTypeAncestor2);
+            keep = false;
+            break;
+          }
+        }
+
+        if (keep) {
+          log.info("XXX keep path = " + code + ", " + path);
+          candidates.add(path);
+        } else {
+          log.info("XXX skip path = " + code + ", " + path);
+        }
+      }
+
+      // Now, keep shortest path(s) from main type ancestor to root
+      paths.setPaths(candidates);
+
+      // NOTE: determine the lowest index at which a main type is encountered
+      // (from the concept itself)
+      // THEN find the min path length from that thing to the root
+      // Then keep paths that have that min path length from that node.
+      
+      // Choose shortest paths among the candidate paths
+      final int minPathLength = paths.getPaths().stream()
+          .map(p -> p.getPathLengthFromAncestor(combinedSet)).mapToInt(v -> v).min().getAsInt();
+      log.info("YYY min path length = " + code + ", " + minPathLength);
+      final Set<String> seen = new HashSet<>();
+      paths.setPaths(paths.getPaths().stream()
+          .filter(p -> p.getPathLengthFromAncestor(combinedSet) == minPathLength)
+          // Remove paths already seen
+          .filter(p -> !seen.contains(p.getConcepts().stream().map(c -> c.getCode())
+              .collect(Collectors.toList()).toString()))
+          // Add to seen
+          .peek(p -> seen.add(p.getConcepts().stream().map(c -> c.getCode())
+              .collect(Collectors.toList()).toString()))
+          .peek(p -> log.info("YYY shortest path = " + code + ", " + p))
+          .collect(Collectors.toList()));
+
+      // Rewrite the paths for just combined set concepts
+      seen.clear();
+      paths.setPaths(paths.getPaths().stream().map(p -> p.rewritePath(combinedSet))
+          // Remove paths already seen
+          .filter(p -> !seen.contains(p.getConcepts().stream().map(c -> c.getCode())
+              .collect(Collectors.toList()).toString()))
+          // Add to seen
+          .peek(p -> seen.add(p.getConcepts().stream().map(c -> c.getCode())
+              .collect(Collectors.toList()).toString()))
+          .peek(p -> log.info("YYY shortest path = " + code + ", " + p))
+          .collect(Collectors.toList()));
+      log.info("ZZZ (rewritten paths) = " + code + ", " + paths);
+
+      map.put(code, paths);
+
+    }
+
+    // Re-render as par/chd relationships
+    final Set<String> parentchild = new HashSet<>();
+    for (final Paths paths : map.values()) {
+      for (final Path path : paths.getPaths()) {
+        parentchild.addAll(path.toParentChild());
+      }
+    }
+    log.info("ZZZ" + parentchild);
+    return new HierarchyUtils(new ArrayList<>(parentchild));
   }
 
   /* see superclass */

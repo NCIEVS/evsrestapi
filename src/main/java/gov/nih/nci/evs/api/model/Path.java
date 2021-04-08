@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -24,6 +25,7 @@ public class Path extends BaseModel {
    * Instantiates an empty {@link Path}.
    */
   public Path() {
+    // n/a
   }
 
   /**
@@ -72,7 +74,6 @@ public class Path extends BaseModel {
   public List<Concept> getConcepts() {
     return this.concepts;
   }
-  
 
   /* see superclass */
   @Override
@@ -104,4 +105,74 @@ public class Path extends BaseModel {
     return true;
   }
 
+  /**
+   * Rewrite path.
+   *
+   * @param include the include
+   * @return the path
+   */
+  public Path rewritePath(final Set<String> include) {
+    final Path path = new Path();
+    path.setDirection(getDirection());
+    path.setConcepts(new ArrayList<>());
+    path.setDirection(path.getDirection());
+    int level = 0;
+    for (final Concept concept : getConcepts()) {
+      if (include.contains(concept.getCode())) {
+        final Concept copy = new Concept(concept);
+        copy.setLevel(level++);
+        path.getConcepts().add(copy);
+      }
+    }
+    if (path.getConcepts().size() > 0) {
+      return path;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the parent child.
+   *
+   * @return the parent child
+   */
+  public List<String> toParentChild() {
+    int i = 0;
+    final List<String> parentchild = new ArrayList<>();
+    for (final Concept concept : getConcepts()) {
+      if (i++ == 0) {
+        continue;
+      }
+      final Concept parent = concept;
+      final Concept child = getConcepts().get(i - 1);
+      StringBuffer str = new StringBuffer();
+      str.append(parent.getCode());
+      str.append("\t");
+      str.append(parent.getName());
+      str.append("\t");
+      str.append(child.getCode());
+      str.append("\t");
+      str.append(child.getName());
+      str.append("\n");
+      parentchild.add(str.toString());
+    }
+    return parentchild;
+  }
+
+  /**
+   * Returns the path length from ancestor.
+   *
+   * @param ancestors the ancestors
+   * @return the path length from ancestor
+   */
+  public int getPathLengthFromAncestor(final Set<String> ancestors) {
+    int i = 0;
+    for (final Concept concept : getConcepts()) {
+      // Skip the first one
+      if (i > 0 && ancestors.contains(concept.getCode())) {
+        break;
+      }
+      i++;
+    }
+    return getConcepts().size() - i;
+  }
 }

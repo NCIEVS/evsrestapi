@@ -2,17 +2,18 @@
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.elasticsearch.common.util.set.Sets;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * Represents a list of paths.
@@ -119,67 +120,36 @@ public class Paths extends BaseModel {
   /**
    * Rewrite paths for ancestor. This method is for the CTRP "main menu
    * ancestors" computation.
-   * @param ancestors the ancestors
+   *
+   * @param mainTypeHierarchy the main type hierarchy
+   * @param mainTypeSet the ancestors
+   * @param broadCategorySet the broad category set
    * @return the list
    */
-  public List<Paths> rewritePathsForAncestors(final Set<String> ancestors) {
+  public List<Paths> rewritePaths(final HierarchyUtils mainTypeHierarchy,
+    final Set<String> mainTypeSet) {
 
-    final Map<String, Path> map = new HashMap<>();
+    final Paths rewritePaths = null;
+    
+    
+    Main Menu Ancestors
+    Given a disease concept that is not a main type concept, it is desirable to find main menu ancestors of the concept that meet the following conditions.
+       A main menu ancestor is a main type concept.
+       A main menu ancestor is an ancestor of the given concept according to the NCI Thesaurus.
+       A main menu ancestor of a concept cannot have a child concept that is a main menu ancestor of the same concept
 
-    for (final Path path : paths) {
-      final Path rewritePath = new Path();
-      rewritePath.setConcepts(new ArrayList<>());
-      rewritePath.setDirection(path.getDirection());
-      int level = 0;
-      final StringBuffer keysb = new StringBuffer();
-      for (final Concept concept : path.getConcepts()) {
-        if (ancestors.contains(concept.getCode())) {
-          final Concept copy = new Concept(concept);
-          copy.setLevel(level++);
-          rewritePath.getConcepts().add(copy);
-          keysb.append(copy.getCode()).append(",");
-        }
-      }
-      // Only if we found something do we add it
-      final String key = keysb.toString().replaceFirst(",$", "");
-      if (level > 0 && !map.containsKey(key)) {
-        map.put(key, rewritePath);
-      }
-    }
-    // Keep the longest key that starts with a particular concept
-    // see C104034
-    final Paths paths = new Paths();
-    final Set<String> seen = new HashSet<>();
-    // Sort keys from longest to shortest
-    for (final String key : map.keySet().stream().sorted((a, b) -> b.length() - a.length())
-        .collect(Collectors.toList())) {
-      // Skip if this key is already accounted for
-      if (seen.contains(key)) {
-        continue;
-      }
-      // Skip if all parts have each been individually seen
-      final String[] parts = key.split("\\,");
-      if (Arrays.asList(parts).stream().filter(p -> seen.contains(p)).count() == parts.length) {
-        continue;
-      }
+    
+    
+    // Go through paths and find leaf node main type ancestors
+    // From that, construct paths from the main type hierarchy
+    mainTypeHierarchy.getsup
 
-      paths.getPaths().add(map.get(key));
-
-      // Add all parts and subkeys to seen (so longest paths cover matching
-      // shorter ones) but different paths get their own entries
-      final StringBuilder keyPartSb = new StringBuilder();
-      for (final String part : parts) {
-        seen.add(part);
-        if (keyPartSb.length() > 0) {
-          keyPartSb.append(",");
-        }
-        keyPartSb.append(part);
-        seen.add(keyPartSb.toString());
-      }
-    }
     final List<Paths> wrapper = new ArrayList<>();
-    wrapper.add(paths);
-    return wrapper;
+    if (rewritePaths.getPaths().size() > 0) {
+      wrapper.add(rewritePaths);
+      return wrapper;
+    }
+    return null;
   }
 
 }
