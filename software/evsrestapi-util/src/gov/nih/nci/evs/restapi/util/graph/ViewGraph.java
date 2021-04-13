@@ -113,6 +113,14 @@ public class ViewGraph {
         return knt;
 	}
 
+    public String verify_group_node_data(String node_id, String group_node_data) {
+        int n = group_node_data.indexOf("Node ");
+        int m = group_node_data.indexOf(" content:");
+        String group_node_id = group_node_data.substring(n+5, m);
+        String s1 = group_node_data.substring(0, n+5);
+        String s2 = group_node_data.substring(m, group_node_data.length());
+        return s1 + node_id + s2;
+	}
 
     public void generate(PrintWriter out, String code, String type) {
 	  HashMap hmap = visUtils.getRelationshipHashMap(code);
@@ -146,7 +154,6 @@ public class ViewGraph {
 		  int group_node_id_int = Integer.parseInt(group_node_id);
 		  group_node_id_2 = new Integer(group_node_id_int+1).toString();
 		  Vector w = graphReductionUtils.reduce_graph(v, direction);
-
 		  boolean graph_reduced = graphReductionUtils.graph_reduced(v, w);
 		  if (graph_reduced) {
 			  group_node_data = graphReductionUtils.get_removed_node_str(v, direction);
@@ -154,17 +161,18 @@ public class ViewGraph {
 			  if (group_node_ids == null) return;
 			  for (int k=0; k<group_node_ids.size(); k++) {
 				  String node_id = (String) group_node_ids.elementAt(k);
+				  String content = verify_group_node_data(node_id, group_node_data);
+				  if (content.compareTo(group_node_data) != 0) {
+					  group_node_data = content;
+				  }
 				  if (!group_node_id2dataMap.containsKey(node_id)) {
 					  group_node_id2dataMap.put(node_id, group_node_data);
 					  break;
 				  }
 			  }
-
 			  nodes_and_edges =  GraphUtils.generateGraphScript(w);
 			  v = (Vector) w.clone();
 		  }
-
-
 		  direction = false;
 		  w = graphReductionUtils.reduce_graph(v, direction);
 		  graph_reduced = graphReductionUtils.graph_reduced(v, w);
@@ -174,6 +182,10 @@ public class ViewGraph {
 			  if (group_node_ids == null) return;
 			  for (int k=0; k<group_node_ids.size(); k++) {
 				  String node_id = (String) group_node_ids.elementAt(k);
+				  String content = verify_group_node_data(node_id, group_node_data_2);
+				  if (content.compareTo(group_node_data_2) != 0) {
+					  group_node_data_2 = content;
+				  }
 				  if (!group_node_id2dataMap.containsKey(node_id)) {
 					  group_node_id2dataMap.put(node_id, group_node_data_2);
 					  break;
@@ -346,6 +358,7 @@ public class ViewGraph {
 
       out.println("    }");
       out.println("  </script>");
+      //out.println("<script>(function(i,s,o,g,r,a,m){i[\"GoogleAnalyticsObject\"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,\"script\",\"//www.google-analytics.com/analytics.js\",\"ga\");ga(\"create\", \"UA-150112876-1\", {\"cookieDomain\":\"auto\"});ga(\"send\", \"pageview\");</script>");
 
       out.println("</head>");
       out.println("");

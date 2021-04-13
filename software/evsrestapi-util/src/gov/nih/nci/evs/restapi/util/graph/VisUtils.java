@@ -141,7 +141,8 @@ public class VisUtils {
 			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
 			String concept_label = (String) u.elementAt(2);
 			String concept_code = (String) u.elementAt(3);
-			list.add("is_a" + "|" + concept_label + "|" + concept_code);
+			//list.add("is_a" + "|" + concept_label + "|" + concept_code);
+			list.add(concept_label + "|" + concept_code);
 		}
 		relMap.put("type_superconcept", list);
 		list = new ArrayList();
@@ -152,7 +153,8 @@ public class VisUtils {
 			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
 			String concept_label = (String) u.elementAt(0);
 			String concept_code = (String) u.elementAt(1);
-			list.add("inverse_is_a" + "|" + concept_label + "|" + concept_code);
+			//list.add("inverse_is_a" + "|" + concept_label + "|" + concept_code);
+			list.add(concept_label + "|" + concept_code);
 		}
 		relMap.put("type_subconcept", list);
 		list = new ArrayList();
@@ -228,10 +230,6 @@ public class VisUtils {
 
     public String getFieldValue(String line, int index) {
         Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line);
-
-        System.out.println(line);
-        System.out.println("index: " + index);
-
         return (String) u.elementAt(index);
 	}
 
@@ -242,7 +240,7 @@ public class VisUtils {
 	}
 
     public String generateDiGraph(String scheme, String version, String namespace, String code) {
-		String name = "<NO DESCRIPTION>";
+		String name = owlSPARQLUtils.getLabel(code);
 		StringBuffer buf = new StringBuffer();
         buf.append("\ndigraph {").append("\n");
         buf.append("node [shape=oval fontsize=16]").append("\n");
@@ -505,7 +503,7 @@ public class VisUtils {
 		}
 		*/
 
-		String name = "<NO DESCRIPTION>";
+		String name = owlSPARQLUtils.getLabel(code);
 		String focused_node_label = getLabel(name, code);
 		//HashMap relMap = null;
 

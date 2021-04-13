@@ -321,20 +321,5 @@ public class GraphUtils {
 		return generateGraphScriptVector(nodes, edge_map, option);
     }
 
-
-/*
-    public static void main(String [] args) {
-		Vector graphData = readFile("graph.txt");
-        String t = generateGraphScript(graphData, NODES_ONLY);
-        System.out.println("\n" + t);
-
-        t = generateGraphScript(graphData, EDGES_ONLY);
-        System.out.println("\n" + t);
-
-        t = generateGraphScript(graphData, NODES_AND_EDGES);
-        System.out.println("\n" + t);
-
-	}
-*/
 }
 

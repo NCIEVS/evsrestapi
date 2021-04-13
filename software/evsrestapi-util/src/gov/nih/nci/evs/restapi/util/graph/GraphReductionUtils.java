@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.restapi.util.graph;
-
 import gov.nih.nci.evs.restapi.util.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -752,7 +752,6 @@ public class GraphReductionUtils {
 		//int source_max = getHighestFreqSourceEdgeCount(hmap);
 		String max_source_edge_str = getHighestFreqSourceEdge(hmap);
 		Vector v1 = getCandidateTargetNodesToRemove(hmap);
-		//dumpVector("CandidateTargetNodesToRemove:", v1);
 		Vector nodes_to_remove = getTargetNodesToRemove(v, max_source_edge_str, v1);
 		return nodes_to_remove;
 	}
@@ -764,8 +763,9 @@ public class GraphReductionUtils {
 		Vector w = null;
 		String removed_nodes_str = "";
 		Vector nodes_to_remove = get_nodes_to_remove(v, hmap);
-		if (nodes_to_remove.size() == 0) return removed_nodes_str;
-		//String max_source_edge_str =  getHighestFreqSourceEdge(hmap);
+		if (nodes_to_remove.size() == 0) {
+			return removed_nodes_str;
+		}
 		w = removeNodes(v, nodes_to_remove);
 		Vector removed_nodes = vec_difference(v, w);
 		Vector removed_node_ids = extractNodeIDs(removed_nodes);
@@ -778,9 +778,6 @@ public class GraphReductionUtils {
 	}
 
 	public Vector reduceGraph(Vector v, HashMap hmap, boolean forward) {
-
-		//int n1 = getNodeCount(v);
-		//String groupNodeId = new Integer(n1+1).toString();
 		int n1 = getGroupNodeID();
 		String groupNodeId = new Integer(n1).toString();
 		String groupNodeLabel = "Node " + groupNodeId;
@@ -793,7 +790,15 @@ public class GraphReductionUtils {
 				w = removeNodes(v, nodes_to_remove);
 				Vector removed_nodes = vec_difference(v, w);
 				Vector removed_node_ids = extractNodeIDs(removed_nodes);
+
+
 				removed_nodes_str = get_removed_node_str(removed_node_ids, groupNodeId);
+
+
+
+
+
+
 				w = removeEdges(w, nodes_to_remove);
 				Vector u = StringUtils.parseData(max_source_edge_str);
 				String max_node = (String) u.elementAt(0);
