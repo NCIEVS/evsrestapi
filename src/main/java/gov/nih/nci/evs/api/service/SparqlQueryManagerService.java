@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.http.util.VersionInfo;
 
@@ -588,19 +587,6 @@ public interface SparqlQueryManagerService {
    */
   public HierarchyUtils getHierarchyUtils(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
-
-  /**
-   * Returns the minimum spanning tree.
-   *
-   * @param terminology the terminology
-   * @param codes the codes
-   * @return the hierarchy utils
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public HierarchyUtils getMainTypeHierarchy(Terminology terminology, Set<String> mainTypeSet,
-    Set<String> broadCategorySet) throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Get paths.

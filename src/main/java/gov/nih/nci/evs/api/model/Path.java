@@ -117,7 +117,13 @@ public class Path extends BaseModel {
     path.setConcepts(new ArrayList<>());
     path.setDirection(path.getDirection());
     int level = 0;
+    boolean first = true;
     for (final Concept concept : getConcepts()) {
+      // Skip first concept
+      if (first) {
+        first = false;
+        continue;
+      }
       if (include.contains(concept.getCode())) {
         final Concept copy = new Concept(concept);
         copy.setLevel(level++);
@@ -166,12 +172,17 @@ public class Path extends BaseModel {
    */
   public int getPathLengthFromAncestor(final Set<String> ancestors) {
     int i = 0;
+    boolean found = false;
     for (final Concept concept : getConcepts()) {
       // Skip the first one
       if (i > 0 && ancestors.contains(concept.getCode())) {
+        found = true;
         break;
       }
       i++;
+    }
+    if (!found) {
+      return -1;
     }
     return getConcepts().size() - i;
   }

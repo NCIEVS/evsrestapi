@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.util.ext;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,8 +20,6 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.service.StardogElasticLoadServiceImpl;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.PathFinder;
 
 /**
  * Handler for the main type hierarchy CTRP extension computations.
@@ -43,13 +40,10 @@ public class MainTypeHierarchy {
   ElasticQueryService elasticQueryService;
 
   /** The main type set. */
-  private Set<String> mainTypeSet = new HashSet<>();
+  private Set<String> mainTypeSet = null;
 
   /** The broad category set. */
-  private Set<String> broadCategorySet = new HashSet<>();
-
-  /** The hierarchy. */
-  private HierarchyUtils mainTypeHierarchy = null;
+  private Set<String> broadCategorySet = null;
 
   /**
    * Instantiates an empty {@link MainTypeHierarchy}.
@@ -66,7 +60,7 @@ public class MainTypeHierarchy {
    */
   public void initialize(Terminology terminology) throws Exception {
 
-    if (terminology.getTerminology().equals("ncit") && mainTypeHierarchy == null) {
+    if (terminology.getTerminology().equals("ncit") && broadCategorySet == null) {
 
       broadCategorySet = service.getSubsetMembers("C138189", terminology).stream()
           .map(c -> c.getCode()).collect(Collectors.toSet());
@@ -78,9 +72,6 @@ public class MainTypeHierarchy {
       logger.info("  Main Type Set:");
       logCodes(mainTypeSet, terminology);
 
-      mainTypeHierarchy = service.getMainTypeHierarchy(terminology, mainTypeSet, broadCategorySet);
-
-      logger.info("WWW paths = " + new PathFinder(mainTypeHierarchy).findPaths());
     }
   }
 
@@ -268,8 +259,7 @@ public class MainTypeHierarchy {
       return false;
     }
 
-    List<Paths> mma =
-        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
+    List<Paths> mma = concept.getPaths().rewritePaths(mainTypeSet, broadCategorySet);
     if (mma == null || mma.isEmpty()) {
       logger.info("QA CASE !isDisease: does not have main menu ancestors = " + concept.getCode());
       return true;
@@ -300,7 +290,7 @@ public class MainTypeHierarchy {
     }
 
     // Does not qualify if it starts with "recurrent"
-    if (concept.getName().toLowerCase().startsWith("recurrent")) {
+    if (concept.getName().toLowerCase().contains("recurrent")) {
       logger.info("QA CASE !isSubtype: starts with Recurrent = " + concept.getCode());
       return false;
     }
@@ -319,30 +309,11 @@ public class MainTypeHierarchy {
       return false;
     }
 
-    // Check participation in the main types set
-    final boolean isMainType = concept.getAssociations().stream()
-        .filter(
-            a -> a.getType().equals("Concept_In_Subset") && a.getRelatedCode().equals("C138190"))
-        .count() > 0;
-
-    // Only leaf node main types should be considered
-    // Thus if looking at "main type hierarchy", only parents need to be checked
-    if (isMainType) {
-      final List<String> parents = mainTypeHierarchy.getSuperclassCodes(code);
-      if (parents.stream().filter(c -> !mainTypeSet.contains(code)).count() > 0) {
-        logger.info("QA CASE isSubtype: Main Type has parent = " + concept.getCode());
-        return true;
-      } else {
-        logger.info("QA CASE !isSubtype: Main Type does not have parent = " + concept.getCode());
-        return false;
-      }
-    }
-
     // Member of "Disease_Is_Grade" subset
     final boolean isDiseaseGrade =
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
     if (isDiseaseGrade) {
-      if (concept.getName().toLowerCase().indexOf("grade") == -1) {
+      if (!concept.getName().toLowerCase().contains("grade")) {
         logger.info("QA CASE isSubtype: Disease_Is_Grade without 'grade' = " + concept.getCode());
         return true;
       }
@@ -378,8 +349,9 @@ public class MainTypeHierarchy {
 
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
-    List<Paths> paths =
-        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
+    List<Paths> paths = concept.getPaths().rewritePaths(mainTypeSet, broadCategorySet);
+    logger.info("BBB = " + concept.getCode());
+    logger.info("BBB = " + paths);
 
     if (subtypeFlag) {
       logger.info("QA CASE mainMenuAncestors: subtype = " + concept.getCode());
@@ -402,13 +374,9 @@ public class MainTypeHierarchy {
       } else if (paths.get(0).getPaths().size() > 1) {
         logger.info("QA CASE !mainMenuAncestors: default multiple paths = " + concept.getCode());
       }
-      logger.info("AAA = " + concept.getCode());
-      logger.info("AAA = " + paths);
     } else if (paths.size() > 1) {
       logger
           .info("QA CASE !mainMenuAncestors: default multiple paths lists = " + concept.getCode());
-      logger.info("BBB = " + concept.getCode());
-      logger.info("BBB = " + paths);
     }
     return paths;
   }

@@ -2,24 +2,28 @@
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.elasticsearch.common.util.set.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * Represents a list of paths.
  */
 @JsonInclude(Include.NON_EMPTY)
 public class Paths extends BaseModel {
+
+  @SuppressWarnings("unused")
+  private static final Logger logger = LoggerFactory.getLogger(Paths.class);
 
   /** The paths. */
   private List<Path> paths = null;
@@ -126,30 +130,76 @@ public class Paths extends BaseModel {
    * @param broadCategorySet the broad category set
    * @return the list
    */
-  public List<Paths> rewritePaths(final HierarchyUtils mainTypeHierarchy,
-    final Set<String> mainTypeSet) {
+  public List<Paths> rewritePaths(final Set<String> mainTypeSet,
+    final Set<String> broadCategorySet) {
 
-    final Paths rewritePaths = null;
-    
-    
-    Main Menu Ancestors
-    Given a disease concept that is not a main type concept, it is desirable to find main menu ancestors of the concept that meet the following conditions.
-       A main menu ancestor is a main type concept.
-       A main menu ancestor is an ancestor of the given concept according to the NCI Thesaurus.
-       A main menu ancestor of a concept cannot have a child concept that is a main menu ancestor of the same concept
+    final Paths rewritePaths = new Paths();
 
-    
-    
-    // Go through paths and find leaf node main type ancestors
-    // From that, construct paths from the main type hierarchy
-    mainTypeHierarchy.getsup
+    logger.info("XXX paths = " + paths);
+    for (final Path path : getPaths()) {
+      // Eliminate all paths that visits any disease broad category concept
+      // other than C2991 as an intermediate node (for example, the first path
+      // above visits the broad category concept, Neoplasm (C3262), so it should
+      // be eliminated.)
+      boolean hasBroadCategory = path.getConcepts().stream()
+          .filter(c -> broadCategorySet.contains(c.getCode()) && !c.getCode().equals("C2991"))
+          .count() > 0;
+      if (hasBroadCategory) {
+        continue;
+      }
 
-    final List<Paths> wrapper = new ArrayList<>();
-    if (rewritePaths.getPaths().size() > 0) {
-      wrapper.add(rewritePaths);
-      return wrapper;
+      //  Trim each path by removing all concepts (or nodes) in the path that
+      // are not main types (as well as this concept itself)
+      Path rewritePath = path.rewritePath(mainTypeSet);
+      if (rewritePath != null) {
+        rewritePaths.getPaths().add(rewritePath);
+      } else {
+        // If the path is null, rewrite just to broad category
+        // paths to satisfy cases where the main menu ancestor just says
+        // "disease"
+        rewritePath = path.rewritePath(mainTypeSet);
+        if (rewritePath != null) {
+          rewritePaths.getPaths().add(rewritePath);
+        }
+
+      }
     }
-    return null;
+
+    // Sort paths in length order (longest first)
+    rewritePaths.setPaths(rewritePaths.getPaths().stream()
+        .sorted((a, b) -> b.getConcepts().size() - a.getConcepts().size())
+        .collect(Collectors.toList()));
+    logger.info("YYY (sorted) rewritePaths = " + paths);
+
+    final Map<String, Paths> map = new HashMap<>();
+    final Set<String> seen = new HashSet<>();
+    // Iterate through sorted paths
+    for (final Path path : rewritePaths.getPaths()) {
+
+      final String mma = path.getConcepts().get(0).getCode();
+      final Paths paths = map.containsKey(mma) ? map.get(mma) : new Paths();
+
+      // If not all concepts in the path have been seen, then add the path
+      if (path.getConcepts().stream().filter(c -> !seen.contains(c.getCode())).count() > 0) {
+        paths.getPaths().add(path);
+
+        // Only if we've added a path do we add "paths" to the map.
+        map.put(mma, paths);
+
+        // Add all concepts to seen
+        path.getConcepts().stream().peek(c -> seen.add(c.getCode())).count();
+      }
+
+    }
+
+    // Sort paths by name of first concept
+    final List<Paths> sortedPaths = map.values().stream()
+        .sorted((a, b) -> a.getPaths().get(0).getConcepts().get(0).getName()
+            .compareTo(b.getPaths().get(0).getConcepts().get(0).getName()))
+        .collect(Collectors.toList());
+    logger.info("ZZZ mma paths = " + paths);
+
+    return sortedPaths;
   }
 
 }
