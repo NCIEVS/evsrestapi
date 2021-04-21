@@ -112,25 +112,25 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
           required = false, dataType = "string", paramType = "query", defaultValue = "10"),
       @ApiImplicitParam(name = "conceptStatus",
-          value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
-          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
+          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties</a>. The properties can be specified as code or name.  NOTE: when specifying a property, the 'type' parameter will not function as expected because properties are indexed to only support exact matches.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
-          value = "Comma-separated list of definition sources to restrict search results to. <a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of definition sources to restrict search results to. <a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionType",
-          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION. <a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION. <a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
-          value = "Comma-separated list of synonym sources to restrict search results to. <a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of synonym sources to restrict search results to. <a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymType",
-          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN. <a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN. <a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Single synonym term group value to restrict search results to. <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Single synonym term group value to restrict search results to. <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -140,12 +140,12 @@ public class SearchController extends BaseController {
       // @ApiImplicitParam(name = "association", value = "Comma-separated list
       // of associations to search. e.g A10,A215. <a
       // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
-      // a list of NCI Thesaurus associations.</a>. The associations can be
+      // a list of NCI Thesaurus associations</a>. The associations can be
       // specified as code or name", required = false, dataType = "string",
       // paramType = "query", defaultValue = ""),
       // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
       // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
-      // target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The
+      // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
       // roles can be specified as code or name", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
@@ -196,25 +196,25 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
           required = false, dataType = "string", paramType = "query", defaultValue = "10"),
       @ApiImplicitParam(name = "conceptStatus",
-          value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
-          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties.</a>.The properties can be specified as code or name",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+      value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties</a>. The properties can be specified as code or name.  NOTE: when specifying a property, the 'type' parameter will not function as expected because properties are indexed to only support exact matches.",
+      required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
-          value = "Comma-separated list of definition sources to restrict search results to. <a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of definition sources to restrict search results to. <a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionType",
-          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION. <a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of definition types to restrict search results to, e.g. ALT_DEFINITION. <a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
-          value = "Comma-separated list of synonym sources to restrict search results to. <a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of synonym sources to restrict search results to. <a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymType",
-          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN. <a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Comma-separated list of synonym types to restrict search results to, e.g. FULL_SYN. <a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Single synonym term group value to restrict search results to. <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values.</a>",
+          value = "Single synonym term group value to restrict search results to. <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -224,12 +224,12 @@ public class SearchController extends BaseController {
       // @ApiImplicitParam(name = "association", value = "Comma-separated list
       // of associations to search. e.g A10,A215. <a
       // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
-      // a list of NCI Thesaurus associations.</a>. The associations can be
+      // a list of NCI Thesaurus associations</a>. The associations can be
       // specified as code or name", required = false, dataType = "string",
       // paramType = "query", defaultValue = ""),
       // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
       // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
-      // target='_blank'>Click here for a list of NCI Thesaurus roles.</a>. The
+      // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
       // roles can be specified as code or name", required = false, dataType =
       // "string", paramType = "query", defaultValue = "")
   })
