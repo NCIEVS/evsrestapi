@@ -663,6 +663,9 @@ public class TerminologyMetadata extends BaseModel {
    * @return the subset
    */
   public Set<String> getSubset() {
+    if (subset == null) {
+      subset = new HashSet<>();
+    }
     return subset;
   }
 

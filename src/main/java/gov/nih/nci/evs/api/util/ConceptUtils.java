@@ -185,8 +185,7 @@ public final class ConceptUtils {
    * @return the result concepts
    */
   public static void applyInclude(Concept concept, final IncludeParam ip) {
-    log.info(concept.toString());
-    log.info(ip.toString());
+
     if (concept == null)
       return;
 

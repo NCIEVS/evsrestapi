@@ -101,6 +101,7 @@ public class TerminologyMetadataUnitTest {
     tester.include("sources");
     tester.include("sourcesToRemove");
     tester.include("synonym");
+    tester.include("subset");
     tester.include("synonymCode");
     tester.include("synonymSource");
     tester.include("synonymSubSource");
