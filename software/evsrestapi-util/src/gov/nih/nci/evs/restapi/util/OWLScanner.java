@@ -2360,6 +2360,166 @@ C4910|<NHC0>C4910</NHC0>
 		return t;
 	}
 
+    public boolean isNull(String str) {
+		if (str == null) return true;
+		if (str.compareTo("null") == 0) return true;
+		return false;
+	}
+
+
+    public Vector extractAxiomData(String prop_code) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+        boolean switch_off = false;
+
+        String def_curator_data = null;
+        boolean axiom_property = false;
+        boolean hasDefCurator = false; //<P318>drug-team</P318> (*)
+        String curator = null;
+        boolean ncidef = false;
+
+        w = new Vector();
+        StringBuffer buf = null;
+
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			t = t.trim();
+
+			if (t.indexOf("// Classes") != -1) {
+				istart = true;
+			}
+
+			if (istart) {
+
+			    if (t.indexOf("<" + prop_code + ">") != -1) { //P318
+					String retstr = parseProperty(t);
+					Vector u = split(retstr);
+					curator = (String) u.elementAt(1);
+				}
+
+				//<owl:Class rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C127714">
+				if (t.startsWith("<owl:Class ")) {
+					buf = new StringBuffer();
+					curator = null;
+
+				} else if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+
+
+				} else if (t.startsWith("<owl:Axiom>")) {
+                    buf = new StringBuffer();
+                    buf.append(curator);
+
+				} else if (t.startsWith("</owl:Class>")) {
+
+                } else if (t.startsWith("<!--")) {
+
+
+				} else if (t.startsWith("</owl:Axiom>")) {
+					if (!isNull(curator)) w.add(buf.toString());
+					buf = new StringBuffer();
+
+				} else if (t.startsWith("<owl:annotatedSource")) {
+					int m = t.lastIndexOf("#");
+					String value = t.substring(m+1, t.length()-3);
+					buf.append("|" + value);
+					classId = value;
+				} else if (t.startsWith("<owl:annotatedProperty")) {
+					int m = t.lastIndexOf("#");
+					String value = t.substring(m+1, t.length()-3);
+					buf.append("|" + value);
+				} else if (t.startsWith("<owl:annotatedTarget")) {
+					int n = t.indexOf(">");
+					int m = t.lastIndexOf("<");
+					String value = t.substring(n+1, m);
+					buf.append("|" + value);
+
+				} else if (t.startsWith("<") && t.endsWith(">")) {
+					//if (t.indexOf("subClassOf") == -1 && t.indexOf("Restriction") == -1 && t.indexOf("equivalentClass") == -1) {
+						String retstr = t;
+						try {
+							retstr = parseProperty(t);
+							Vector u = split(retstr);
+
+							buf.append("|" + (String) u.elementAt(0) + "$" + (String) u.elementAt(1));
+						} catch (Exception ex) {
+							//System.out.println(retstr);
+						}
+					//}
+				}
+			}
+        }
+        if (!isNull(curator)) {
+			w.add(buf.toString());
+		}
+
+        //w = extractNCIDefData(w);
+        //w = removeRetired(w, 1);
+        return w;
+    }
+
+    public static Vector split(String t) {
+		return StringUtils.parseData(t, '|');
+	}
+
+    public static Vector split(String t, char ch) {
+		return StringUtils.parseData(t, ch);
+	}
+
+    public Vector extractPropertyData(String prop_code) {
+        Vector w = new Vector();
+        boolean istart = false;
+        String classId = null;
+        String prop_value = null;
+        w = new Vector();
+        StringBuffer buf = null;
+
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			t = t.trim();
+			if (t.indexOf("// Classes") != -1) {
+				istart = true;
+			}
+
+			if (istart) {
+			    if (t.indexOf("<" + prop_code + ">") != -1) {
+					while (t.indexOf("</" + prop_code + ">") == -1) {
+						i++;
+						String s = (String) owl_vec.elementAt(i);
+						t = t.substring(0, t.length()-1) + s;
+					}
+					try {
+						String retstr = parseProperty(t);
+						Vector u = split(retstr);
+						prop_value = (String) u.elementAt(1);
+						buf.append("|" + prop_value);
+					} catch (Exception ex) {
+						System.out.println("Error parsing: " + t);
+					}
+
+				} else if (t.startsWith("<owl:Class ")) {
+
+					if (buf != null){
+						String str = buf.toString();
+						Vector u = split(str);
+						if (u.size() > 1) {
+							if (!w.contains(str)) w.add(str);
+						}
+					}
+
+					buf = new StringBuffer();
+					int m = t.lastIndexOf("#");
+					String value = t.substring(m+1, t.length()-2);
+					classId = value;
+					buf.append(classId);
+				}
+			}
+        }
+        return w;
+    }
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*

@@ -351,6 +351,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		return keywords.contains(word);
 	}
 
+//3' Flank Mutation|C63431|Downstream Gene Variant|NCI|SY
     public HashMap create_name_data_hmap(Vector name_data) {
 		HashMap hmap = new HashMap();
 		for (int i=0; i<name_data.size(); i++) {
@@ -359,6 +360,17 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			String key = (String) u.elementAt(0);
 			key = key.toLowerCase();
 			Vector w = new Vector();
+			if (hmap.containsKey(key)) {
+			    w = (Vector) hmap.get(key);
+			}
+			if (!w.contains(line)) {
+				w.add(line);
+			}
+			hmap.put(key, w);
+			//KLO, 03022021
+			key = (String) u.elementAt(2);
+			key = key.toLowerCase();
+			w = new Vector();
 			if (hmap.containsKey(key)) {
 			    w = (Vector) hmap.get(key);
 			}

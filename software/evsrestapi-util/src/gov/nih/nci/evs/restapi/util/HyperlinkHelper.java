@@ -5,13 +5,14 @@ import java.text.*;
 import java.util.*;
 
 public class HyperlinkHelper {
-	private static String HYPER_LINK = "https://nciterms65.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI_Thesaurus&version=20.11e&ns=ncit&code=";
+	private static String HYPER_LINK = "https://nciterms65.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI_Thesaurus&code=";
 
 	public static String toHyperlink(String code) {
 		return toHyperlink(HYPER_LINK, code);
 	}
 
 	public static String toHyperlink(String hyperlink, String code) {
+		if (hyperlink == null) return code;
 		StringBuffer buf = new StringBuffer();
 		buf.append("<a ");
 		buf.append("href=");
@@ -21,6 +22,37 @@ public class HyperlinkHelper {
 		buf.append(code);
 		buf.append("</a>");
 		return buf.toString();
+	}
+
+	public static void addHyperlinks(String filename, String hyperlinkfile) {
+	    Vector v = Utils.readFile(filename);
+	    Vector v2 = Utils.readFile(hyperlinkfile);
+	    addHyperlinks(filename, v2);
+	}
+
+	public static void addHyperlinks(String filename, Vector v2) {
+	    Vector v = Utils.readFile(filename);
+	    String t = (String) v2.elementAt(0);
+	    Vector hyperlinks = StringUtils.parseData(t, '|');
+	    Vector w0 = new Vector();
+	    w0.add((String) v.elementAt(0));
+	    Vector w = new Vector();
+	    for (int i=1; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			StringBuffer buf = new StringBuffer();
+			Vector u = StringUtils.parseData(line, '|');
+			for (int j=0; j<u.size(); j++) {
+				buf.append(toHyperlink((String) hyperlinks.elementAt(j),
+				                       (String) u.elementAt(j)));
+				if (j < u.size()-1) {
+				    buf.append("|");
+				}
+			}
+			w.add(buf.toString());
+		}
+		w = new SortUtils().quickSort(w);
+		w0.addAll(w);
+		Utils.saveToFile(filename, w0);
 	}
 
 	public static void main(String[] args) {

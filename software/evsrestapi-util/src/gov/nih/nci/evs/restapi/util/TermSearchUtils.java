@@ -236,14 +236,23 @@ public class TermSearchUtils {
 		if (restricted_value_set_code != null) {
 			restricted_codes = getMemberConceptsCodes(restricted_value_set_code);
 		}
-		//restricted_codes = getMemberConceptsCodes(FDA_Established_Names_and_Unique_Ingredient_Identifier_Codes_Terminology_Code);
-		Vector w = retrievePropertyData("FULL_SYN");
+		Vector w = new Vector();
+		if (FileUtils.fileExists(full_syn_file)) {
+			w = Utils.readFile(full_syn_file);
+		} else {
+		    w = retrievePropertyData("FULL_SYN");
+		    Utils.saveToFile(full_syn_file, w);
+		}
+
 		Vector full_syn_vec = new Vector();
+
 		for (int i=0; i<w.size(); i++) {
 			String t = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
 			String code = (String) u.elementAt(1);
-			if (restricted_codes != null && restricted_codes.contains(code)) {
+			if (restricted_codes == null) {
+				full_syn_vec.add(t);
+			} else if (restricted_codes != null && restricted_codes.contains(code)) {
 				full_syn_vec.add(t);
 			}
 		}
@@ -255,12 +264,9 @@ public class TermSearchUtils {
 	}
 
 	public HashMap createTermMap(Vector v) {
+
 		HashMap termMap = new HashMap();
-/*
-Fluorodopa F 18|C95766|FULL_SYN|FLUORODOPA F-18
-Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
-*/
-        //Vector v = Utils.readFile(filename);
+
 		for (int i=1; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, "|");
@@ -311,36 +317,63 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 	}
 
 	public void match(String datafile) {
+		int number_matches = 0;
 		Vector output_vec = new Vector();
         Vector v = Utils.readFile(datafile);
 		for (int i=0; i<v.size(); i++) {
 			int j = i+1;
 			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, "\t");
-			String term0 = (String) u.elementAt(0);
-
-			Vector tmp = new Vector();
-			tmp.add("(" + j + ") " + term0);
-			output_vec.addAll(tmp);
-
-			String term = removeSuffix(term0);
-			String term_lc = term.toLowerCase();
-			if (termMap.containsKey(term_lc)) {
-				Vector w = (Vector) termMap.get(term_lc);
-				output_vec.addAll(w);
-                Utils.dumpVector("(" + j + ") " + term0 , w);
+			System.out.println("(" + j + ") " + line);
+			Vector u = StringUtils.parseData(line, "|");
+			if (u.size() == 1) {
+				String term0 = (String) u.elementAt(0);
+				String term = removeSuffix(term0);
+				String term_lc = term.toLowerCase();
+				if (termMap.containsKey(term_lc)) {
+					Vector w = (Vector) termMap.get(term_lc);
+					StringBuffer buf = new StringBuffer();
+					for (int k=0; k<w.size(); k++) {
+						String t = (String) w.elementAt(k);
+						Vector u2 = StringUtils.parseData(t, '|');
+						buf.append((String) u2.elementAt(0) + "|" + (String) u2.elementAt(1));
+						if (k < w.size()-1) {
+							buf.append("$");
+						}
+					}
+					output_vec.add(term0 + "|" + buf.toString());
+					number_matches++;
+				} else {
+					output_vec.add(term0 + "|No match");
+				}
 			} else {
-				System.out.println("(" + j + ") " + term0);
-				System.out.println("\tNo match");
-				tmp = new Vector();
-				tmp.add("\tNo match");
-				output_vec.addAll(tmp);
+				String term0 = (String) u.elementAt(0);
+				String vbt = (String) u.elementAt(1);
+				String term = removeSuffix(term0);
+				String term_lc = term.toLowerCase();
+				if (termMap.containsKey(term_lc)) {
+					Vector w = (Vector) termMap.get(term_lc);
+					StringBuffer buf = new StringBuffer();
+					for (int k=0; k<w.size(); k++) {
+						String t = (String) w.elementAt(k);
+						Vector u2 = StringUtils.parseData(t, '|');
+						buf.append((String) u2.elementAt(0) + "|" + (String) u2.elementAt(1));
+						if (k < w.size()-1) {
+							buf.append("$");
+						}
+					}
+					output_vec.add(vbt + "|" + buf.toString());
+					number_matches++;
+				} else {
+					output_vec.add(vbt + "|No match");
+				}
 			}
 		}
-		int n = datafile.lastIndexOf(datafile);
-		String outputfile = datafile.substring(0, n) + "_" + StringUtils.getToday() + ".txt";
+		int n = datafile.lastIndexOf(".");
+		String outputfile = datafile.substring(0, n) + ".txt";
 		Utils.saveToFile(outputfile, output_vec);
+		System.out.println("number_matches: " + number_matches);
 	}
+
 
     public String findMatchedConcepts(String term) {
 		String term_lc = term.toLowerCase();
@@ -445,4 +478,31 @@ Fluorodopa F 18|C95766|FULL_SYN|L-6-(18F)Fluoro-DOPA
 	public Vector findConceptsWithPropertyMatching(String property_name, String property_value) {
 		return owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
 	}
+
+    public static void main(String [] args) {
+		long ms = System.currentTimeMillis();
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String vbtfile = args[4];
+        TermSearchUtils termSearchUtils = new TermSearchUtils(serviceUrl, named_graph, username, password);
+        termSearchUtils.initialize();
+
+		Vector vbts = Utils.readFile(vbtfile);
+		Vector w = new Vector();
+		for (int i=0; i<vbts.size(); i++) {
+			String vbt = (String) vbts.elementAt(i);
+			String s = vbt;
+			if (vbt.indexOf("[WHO") != -1) {
+				int n = vbt.lastIndexOf("[");
+				s = vbt.substring(0, n);
+				s = s.trim();
+			}
+			w.add(s + "|" + vbt);
+		}
+		Utils.saveToFile("mod_" + vbtfile, w);
+        termSearchUtils.match("mod_" + vbtfile);
+	}
+
 }
