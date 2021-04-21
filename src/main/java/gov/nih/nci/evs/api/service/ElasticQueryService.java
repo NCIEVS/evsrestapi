@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
@@ -416,5 +417,16 @@ public interface ElasticQueryService {
    */
   List<Concept> getSubsets(Terminology term, IncludeParam ip)
     throws JsonMappingException, JsonProcessingException;
+   * returns a list of association entries
+   * 
+   * @param terminology the terminology
+   * @param ip the ip
+   * @param fromRecord the starting record for the search
+   * @param pageSize the size of pages in returned result
+   * @return the association entry list
+   * @throws Exception Signals that an exception has occurred.
+   */
+  AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,
+    int pageSize) throws Exception;
 
 }

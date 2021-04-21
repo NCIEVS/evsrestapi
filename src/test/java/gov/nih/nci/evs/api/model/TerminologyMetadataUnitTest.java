@@ -107,6 +107,7 @@ public class TerminologyMetadataUnitTest {
     tester.include("synonymSubSource");
     tester.include("synonymTermType");
     tester.include("termTypes");
+    tester.include("subsetMember");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
