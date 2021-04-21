@@ -328,6 +328,64 @@ public class ConceptController extends BaseController {
   }
 
   /**
+   * Returns the subsets.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the subsets
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get subsets for the specified terminology and code",
+      response = Association.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
+          required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataType = "string", paramType = "query"),
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
+      produces = "application/json")
+  public @ResponseBody List<Concept> getSubsetMembers(@PathVariable(value = "terminology")
+  final String terminology, final Optional<Integer> pageSize, @PathVariable(value = "code")
+  final String code) throws Exception {
+    try {
+      final Terminology term = termUtils.getTerminology(terminology, true);
+
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+
+      List<Concept> subsets = new ArrayList<>();
+      int associationListSize = concept.get().getInverseAssociations().size();
+
+      if (associationListSize > 0) {
+        logger.info("associationListSize > 0");
+        for (Association assn : concept.get().getInverseAssociations().subList(0,
+            pageSize.orElse(associationListSize - 1))) {
+          subsets.add(new Concept("ncit", assn.getRelatedCode(), assn.getRelatedName()));
+        }
+      }
+
+      return subsets;
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+
+  }
+
+  /**
    * Returns the roles.
    *
    * @param terminology the terminology

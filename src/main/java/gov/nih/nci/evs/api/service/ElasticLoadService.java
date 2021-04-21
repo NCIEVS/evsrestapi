@@ -2,7 +2,6 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 
-import org.apache.commons.cli.CommandLine;
 import org.springframework.context.ApplicationContext;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -39,13 +38,12 @@ public interface ElasticLoadService {
    * @param config the load config from command line input
    * @param terminology the terminology
    * @param hierarchy the hierarchy object
-   * @param cmd command line objext
    * @return number of concepts loaded
    * @throws IOException the io exception
    * @throws Exception
    */
-  int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy,
-    CommandLine cmd) throws IOException, Exception;
+  int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws IOException, Exception;
 
   /**
    * Clean stale indexes.

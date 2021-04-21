@@ -2335,4 +2335,50 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return entries;
   }
 
+  /**
+   * gets all subsets.
+   *
+   * @param terminology the terminology
+   * @return list of concept objects
+   * @throws IOException
+   * @throws JsonParseException
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  @Override
+  public List<Concept> getAllSubsets(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    List<Concept> subsets = new ArrayList<>();
+    for (String code : terminology.getMetadata().getSubset()) {
+      Concept concept = getConcept(code, terminology, new IncludeParam("summary,children"));
+      getSubsetsHelper(concept, terminology, 0);
+      subsets.add(concept);
+    }
+    return subsets.stream().flatMap(c -> c.getChildren().stream()).collect(Collectors.toList());
+  }
+
+  private void getSubsetsHelper(Concept concept, Terminology terminology, int level)
+    throws JsonParseException, JsonMappingException, IOException {
+    List<Concept> children = new ArrayList<>();
+    for (Concept child : concept.getChildren()) {
+      Concept childFull =
+          getConcept(child.getCode(), terminology, new IncludeParam("summary,children,properties"));
+      boolean valInSubset = false;
+      // log.info("properties = " + childFull.getProperties());
+      for (Property prop : childFull.getProperties()) {
+        if (prop.getType().equals("Publish_Value_Set") && prop.getValue().equals("Yes")) {
+          valInSubset = true;
+          break;
+        }
+      }
+      if (!valInSubset) {
+        continue;
+      }
+      childFull.setProperties(null);
+      children.add(childFull);
+      getSubsetsHelper(childFull, terminology, level + 1);
+    }
+    concept.setChildren(children);
+  }
+
 }

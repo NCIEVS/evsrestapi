@@ -418,4 +418,17 @@ public interface ElasticQueryService {
   AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,
     int pageSize) throws Exception;
 
+  /**
+   * Returns subsets.
+   *
+   * @param terminology the terminology
+   * @return the list of subsets
+   * @throws JsonProcessingException
+   * @throws JsonMappingException
+   * @throws ClassNotFoundException the class not found exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<Concept> getSubsets(Terminology term, IncludeParam ip)
+    throws JsonMappingException, JsonProcessingException;
+
 }

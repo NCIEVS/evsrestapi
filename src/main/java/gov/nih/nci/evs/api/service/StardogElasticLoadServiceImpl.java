@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,10 +75,14 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
 
+  /** the sparql query service impl */
+  @Autowired
+  private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
+
   /* see superclass */
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy, CommandLine cmd) throws IOException {
+    HierarchyUtils hierarchy) throws IOException {
 
     logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}",
         terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE);
@@ -280,6 +283,14 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
           ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     }
     logger.info("  Association Entries loaded");
+
+    // subsets
+    List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
+    ElasticObject subsetsObject = new ElasticObject("subsets");
+    subsetsObject.setConcepts(subsets);
+    operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Subsets loaded");
 
     logger.info("Done loading Elastic Objects!");
   }

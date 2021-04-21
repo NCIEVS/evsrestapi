@@ -635,4 +635,17 @@ public interface SparqlQueryManagerService {
    * @return list of AssociationEntries
    */
   public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association);
+
+  /**
+   * gets all subsets.
+   *
+   * @param terminology the terminology
+   * @return list of concept objects
+   * @throws IOException
+   * @throws JsonParseException
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  List<Concept> getAllSubsets(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException;
 }

@@ -325,6 +325,52 @@ public class MetadataController extends BaseController {
   }
 
   /**
+   * Returns the subsets.
+   *
+   * @param terminology the terminology
+   * @param include the include
+   * @param list the list
+   * @return the properties
+   * @throws Exception the exception
+   */
+  @ApiOperation(
+      value = "Get all subsets (or those specified by list parameter) for the specified terminology",
+      response = Concept.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets",
+      produces = "application/json")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "list",
+          value = "List of codes or labels to return subsets for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
+          required = false, dataType = "string", paramType = "query")
+  })
+  @RecordMetric
+  public @ResponseBody List<Concept> getSubsets(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam("include")
+  final Optional<String> include, @RequestParam("list")
+  final Optional<String> list) throws Exception {
+    try {
+      return metadataService.getSubsets(terminology, include, list);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
    * Returns the qualifiers.
    *
    * @param terminology the terminology
@@ -505,6 +551,57 @@ public class MetadataController extends BaseController {
       if (!concept.isPresent())
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
 
+      return concept.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the subset.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the subset
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get the subset for the specified terminology and code/name",
+      response = Concept.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code", value = "Subset code", required = true, dataType = "string",
+          paramType = "path"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subset/{code}",
+      produces = "application/json")
+  public @ResponseBody Concept getSubset(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
+    try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+      }
+      Optional<Concept> concept = metadataService.getSubset(terminology, code, include);
+      if (!concept.isPresent())
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
       return concept.get();
     } catch (Exception e) {
       handleException(e);

@@ -82,6 +82,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The subsetMembers for association entries */
   private Set<String> subsetMember;
 
+  /** The subset. */
+  private Set<String> subset;
+
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
    */
@@ -126,6 +129,7 @@ public class TerminologyMetadata extends BaseModel {
     termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getTermTypes());
     subsetMember = new HashSet<>(other.getSubsetMember());
+    subset = new HashSet<>(other.getSubset());
   }
 
   /* see superclass */
@@ -152,6 +156,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
     result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
     result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
+    result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     return result;
   }
 
@@ -249,6 +254,11 @@ public class TerminologyMetadata extends BaseModel {
       if (other.subsetMember != null)
         return false;
     } else if (!subsetMember.equals(other.subsetMember))
+      return false;
+    if (subset == null) {
+      if (other.subset != null)
+        return false;
+    } else if (!subset.equals(other.subset))
       return false;
     return true;
   }
@@ -674,6 +684,20 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setSubsetMember(Set<String> subsetMember) {
     this.subsetMember = subsetMember;
+  }
+
+  /**
+   * @return the subset
+   */
+  public Set<String> getSubset() {
+    return subset;
+  }
+
+  /**
+   * @param subset the subset to set
+   */
+  public void setSubset(Set<String> subset) {
+    this.subset = subset;
   }
 
   /**
