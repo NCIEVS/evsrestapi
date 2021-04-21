@@ -30,6 +30,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
@@ -1124,6 +1126,92 @@ public class ConceptControllerTests {
     for (Definition def : concept.getDefinitions()) {
       assertFalse(def.getDefinition().contains("arrhythmia"));
     }
+  }
+
+  /**
+   * Test association entries API call
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testAssociationEntries() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    AssociationEntryResultList resultList = null;
+
+    // Test with valid association label
+    url = baseUrl + "/ncit/associations/Has_Target";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    assertThat(resultList).isNotNull();
+    assertThat(resultList.getTimeTaken() > 0);
+    assertThat(resultList.getTotal() > 0);
+    assertThat(resultList.getParameters().getTerminology().contains("Has_Target"));
+    for (AssociationEntry assoc : resultList.getAssociationEntrys()) {
+      assertThat(assoc.getAssociation().equals("Has_Target"));
+    }
+
+    // Test with valid code -> label
+    url = baseUrl + "/ncit/associations/A7";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    assertThat(resultList).isNotNull();
+    assertThat(resultList.getTimeTaken() > 0);
+    assertThat(resultList.getTotal() > 0);
+    assertThat(resultList.getParameters().getTerminology().contains("Has_Target"));
+    for (AssociationEntry assoc : resultList.getAssociationEntrys()) {
+      assertThat(assoc.getAssociation().equals("Has_Target"));
+    }
+
+    // Test with association with no data
+    url = baseUrl + "/ncit/associations/Has_CDRH_Parent";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    assertThat(resultList).isNotNull();
+    assertThat(resultList.getTimeTaken() > 0);
+    assertThat(resultList.getTotal() == 0);
+    assertThat(resultList.getParameters().getTerminology().contains("Has_CDRH_Parent"));
+
+    // Test that concept subset is properly 404'd
+    url = baseUrl + "/ncit/associations/A8";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+
+    // Test pageSize
+    url = baseUrl + "/ncit/associations/Has_Target?pageSize=12";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    assertThat(resultList).isNotNull();
+    assertThat(resultList.getTotal() > 0);
+    assertThat(resultList.getParameters().getTerminology().contains("12"));
+    assertThat(resultList.getAssociationEntrys().size() == 12);
+
+    // Test fromRecord
+    url = baseUrl + "/ncit/associations/Has_Target?fromRecord=1";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    assertThat(resultList).isNotNull();
+    assertThat(resultList.getTotal() > 0);
+    assertThat(resultList.getParameters().getTerminology().contains("1"));
+    assertThat(resultList.getAssociationEntrys().get(0).getCode() == "C125718");
+    assertThat(resultList.getAssociationEntrys().get(0).getRelatedCode() == "C128784");
+
   }
 
   /**

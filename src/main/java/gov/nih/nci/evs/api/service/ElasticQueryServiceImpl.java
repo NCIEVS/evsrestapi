@@ -28,12 +28,15 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptMultiGetResultMapper;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
@@ -41,6 +44,7 @@ import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The implementation for {@link ElasticQueryService}}.
@@ -56,6 +60,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /** the elasticsearch operations *. */
   @Autowired
   ElasticsearchOperations operations;
+
+  /** the term utils */
+  @Autowired
+  TerminologyUtils termUtils;
 
   /**
    * see superclass *.
@@ -607,6 +615,42 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     throws JsonMappingException, JsonParseException, IOException {
     List<Concept> associations = getAssociations(terminology, ip);
     return associations.stream().filter(a -> a.getCode().equals(code)).findFirst();
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @param fromRecord the starting record for the search
+   * @param pageSize the size of pages in returned result
+   * @return the association entry list
+   * @throws Exception Signals that an exception has occurred.
+   */
+  public AssociationEntryResultList getAssociationEntries(String terminology, String label,
+    int fromRecord, int pageSize) throws Exception {
+    AssociationEntryResultList al = new AssociationEntryResultList();
+    Optional<ElasticObject> esObject = getElasticObject("associationEntries_" + label,
+        termUtils.getTerminology(terminology, true));
+    // set params in object
+    List<String> params =
+        Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));
+    SearchCriteria criteria = new SearchCriteria();
+    criteria.setTerminology(params);
+    al.setParameters(criteria);
+    // check for results
+    if (!esObject.isPresent()) {
+      al.setTotal(0);
+      return al;
+    }
+    List<AssociationEntry> list = esObject.get().getAssociationEntries();
+    int from = Math.min(fromRecord, list.size());
+    int to = Math.min(fromRecord + pageSize, list.size());
+    // package up as AssociationEntryResultList
+    al.setAssociationEntrys(list.subList(from, to));
+    al.setTotal(list.size());
+    logger.info("al = " + al);
+    return al;
   }
 
   /**

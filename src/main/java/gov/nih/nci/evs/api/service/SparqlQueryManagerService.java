@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -625,6 +626,15 @@ public interface SparqlQueryManagerService {
    */
   List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * gets association entries.
+   *
+   * @param terminology the terminology
+   * @param association the association
+   * @return list of AssociationEntries
+   */
+  public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association);
 
   /**
    * gets all subsets.
