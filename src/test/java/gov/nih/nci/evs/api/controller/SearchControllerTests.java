@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
@@ -1992,6 +1993,36 @@ public class SearchControllerTests {
       // assertThat(list.getConcepts()).isEmpty();
       // }
 
+    }
+
+  }
+
+  /**
+   * Test search of subset only.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchBySubsetOnly() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    ConceptResultList list = null;
+    log.info("Testing url - " + url + "?include=associations&subset=C167405&terminology=ncit");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("subset", "C167405")
+        .param("include", "associations")).andExpect(status().isOk()).andReturn();
+    list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
+        ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    boolean found = false;
+    for (Concept conc : list.getConcepts()) {
+      found = false;
+      for (Association assoc : conc.getAssociations()) {
+        if (assoc.getRelatedCode().equals("C167405")) {
+          found = true;
+          break;
+        }
+      }
+      assertThat(found).isTrue();
     }
 
   }
