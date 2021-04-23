@@ -2340,6 +2340,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       getSubsetsHelper(childFull, terminology, level + 1);
     }
     concept.setChildren(children);
+
+  }
+
+  /**
    * gets association entries.
    *
    * @param terminology the terminology

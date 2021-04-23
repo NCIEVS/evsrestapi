@@ -418,6 +418,12 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   /* see superclass */
+  public AssociationEntryResultList getAssociationEntries(String terminology, String label,
+    Integer fromRecord, Integer pageSize) throws Exception {
+    return esQueryService.getAssociationEntries(terminology, label, fromRecord, pageSize);
+  }
+
+  /* see superclass */
   @Override
   public List<Concept> getSubsets(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
@@ -453,9 +459,6 @@ public class MetadataServiceImpl implements MetadataService {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found (2)");
     }
     return Optional.empty();
-  public AssociationEntryResultList getAssociationEntries(String terminology, String label,
-    Integer fromRecord, Integer pageSize) throws Exception {
-    return esQueryService.getAssociationEntries(terminology, label, fromRecord, pageSize);
   }
 
 }

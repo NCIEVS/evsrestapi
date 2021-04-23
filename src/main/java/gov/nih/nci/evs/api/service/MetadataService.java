@@ -229,6 +229,8 @@ public interface MetadataService {
    */
   Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
     throws Exception;
+
+  /**
    * Returns the association entries.
    *
    * @param terminology the terminology

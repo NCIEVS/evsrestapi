@@ -639,6 +639,8 @@ public interface SparqlQueryManagerService {
    */
   List<Concept> getAllSubsets(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
+
+  /**
    * gets association entries.
    *
    * @param terminology the terminology

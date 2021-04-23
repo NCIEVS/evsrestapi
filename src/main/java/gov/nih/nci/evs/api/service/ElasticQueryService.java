@@ -417,6 +417,8 @@ public interface ElasticQueryService {
    */
   List<Concept> getSubsets(Terminology term, IncludeParam ip)
     throws JsonMappingException, JsonProcessingException;
+
+  /*
    * returns a list of association entries
    * 
    * @param terminology the terminology

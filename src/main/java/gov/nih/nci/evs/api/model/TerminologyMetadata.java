@@ -79,6 +79,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
 
+  /** The subsetMembers for association entries */
+  private Set<String> subsetMember;
+
   /** The subset. */
   private Set<String> subset;
 
@@ -125,6 +128,7 @@ public class TerminologyMetadata extends BaseModel {
     synonymTermType = other.getSynonymTermType();
     termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getTermTypes());
+    subsetMember = new HashSet<>(other.getSubsetMember());
     subset = new HashSet<>(other.getSubset());
   }
 
@@ -151,6 +155,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((synonymSubSource == null) ? 0 : synonymSubSource.hashCode());
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
     result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
+    result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     return result;
   }
@@ -244,6 +249,11 @@ public class TerminologyMetadata extends BaseModel {
       if (other.termTypes != null)
         return false;
     } else if (!termTypes.equals(other.termTypes))
+      return false;
+    if (subsetMember == null) {
+      if (other.subsetMember != null)
+        return false;
+    } else if (!subsetMember.equals(other.subsetMember))
       return false;
     if (subset == null) {
       if (other.subset != null)
@@ -657,6 +667,23 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setSourcesToRemove(Set<String> sourcesToRemove) {
     this.sourcesToRemove = sourcesToRemove;
+  }
+
+  /**
+   * @return the subsetMember
+   */
+  public Set<String> getSubsetMember() {
+    if (subsetMember == null) {
+      subsetMember = new HashSet<>();
+    }
+    return subsetMember;
+  }
+
+  /**
+   * @param subsetMember the subsetMember to set
+   */
+  public void setSubsetMember(Set<String> subsetMember) {
+    this.subsetMember = subsetMember;
   }
 
   /**
