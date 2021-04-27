@@ -1454,7 +1454,7 @@ public class EVSStatistics {
 		    Utils.saveToFile(PARENT_CHILD_FILE, v);
 		}
 		hh = new HierarchyHelper(v, 1);
-		return generateBranchSizeTableData(v);
+		return generate_branch_size_table_data();
 	}
 
     public Vector convert(Vector v) {
@@ -1474,7 +1474,7 @@ public class EVSStatistics {
 		return w;
 	}
 
-    public Vector generateBranchSizeTableData(Vector v) {
+    public Vector generate_branch_size_table_data() {
 		Vector roots = hh.getRoots();
 		Vector w = new Vector();
 		for (int i=0; i<roots.size(); i++) {
