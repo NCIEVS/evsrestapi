@@ -92,10 +92,11 @@ public class MainTypeHierarchy {
       extensions.setIsDiseaseStage(isDiseaseStage(concept));
       extensions.setIsDiseaseGrade(isDiseaseGrade(concept));
       extensions.setIsMainType(isMainType(concept));
-      extensions.setIsSubtype(isSubtype(concept));
       extensions.setIsBiomarker(isBiomarker(concept));
       extensions.setIsReferenceGene(isReferenceGene(concept));
       extensions.setMainMenuAncestors(getMainMenuAncestors(concept));
+      // The concept has at least one main menu ancestor.
+      extensions.setIsSubtype(isSubtype(concept) && !extensions.getMainMenuAncestors().isEmpty());
       return extensions;
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -350,8 +351,6 @@ public class MainTypeHierarchy {
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
     List<Paths> paths = concept.getPaths().rewritePaths(mainTypeSet, broadCategorySet);
-    logger.info("BBB = " + concept.getCode());
-    logger.info("BBB = " + paths);
 
     if (subtypeFlag) {
       logger.info("QA CASE mainMenuAncestors: subtype = " + concept.getCode());

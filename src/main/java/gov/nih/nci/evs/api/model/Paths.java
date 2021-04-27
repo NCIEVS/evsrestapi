@@ -135,7 +135,6 @@ public class Paths extends BaseModel {
 
     final Paths rewritePaths = new Paths();
 
-    logger.info("XXX paths = " + paths);
     for (final Path path : getPaths()) {
       // Eliminate all paths that visits any disease broad category concept
       // other than C2991 as an intermediate node (for example, the first path
@@ -157,7 +156,7 @@ public class Paths extends BaseModel {
         // If the path is null, rewrite just to broad category
         // paths to satisfy cases where the main menu ancestor just says
         // "disease"
-        rewritePath = path.rewritePath(mainTypeSet);
+        rewritePath = path.rewritePath(broadCategorySet);
         if (rewritePath != null) {
           rewritePaths.getPaths().add(rewritePath);
         }
@@ -169,7 +168,6 @@ public class Paths extends BaseModel {
     rewritePaths.setPaths(rewritePaths.getPaths().stream()
         .sorted((a, b) -> b.getConcepts().size() - a.getConcepts().size())
         .collect(Collectors.toList()));
-    logger.info("YYY (sorted) rewritePaths = " + paths);
 
     final Map<String, Paths> map = new HashMap<>();
     final Set<String> seen = new HashSet<>();
@@ -179,6 +177,12 @@ public class Paths extends BaseModel {
       final String mma = path.getConcepts().get(0).getCode();
       final Paths paths = map.containsKey(mma) ? map.get(mma) : new Paths();
 
+      // Avoid keeping a path of just "C2991 Disease or Disorder" if there are
+      // other paths. Longest paths are seen first, so this will always come
+      // after a "real" one
+      if (!seen.isEmpty() && path.getConcepts().size() == 1 && mma.contentEquals("C2991")) {
+        continue;
+      }
       // If not all concepts in the path have been seen, then add the path
       if (path.getConcepts().stream().filter(c -> !seen.contains(c.getCode())).count() > 0) {
         paths.getPaths().add(path);
@@ -197,7 +201,6 @@ public class Paths extends BaseModel {
         .sorted((a, b) -> a.getPaths().get(0).getConcepts().get(0).getName()
             .compareTo(b.getPaths().get(0).getConcepts().get(0).getName()))
         .collect(Collectors.toList());
-    logger.info("ZZZ mma paths = " + paths);
 
     return sortedPaths;
   }

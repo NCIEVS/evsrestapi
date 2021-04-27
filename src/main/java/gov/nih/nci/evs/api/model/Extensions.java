@@ -13,8 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * Represents a synonym of a concept.
  */
-// Show empty "mainMenuAncestors" rather than nothing.
-@JsonInclude(Include.NON_NULL)
+@JsonInclude(Include.NON_EMPTY)
 public class Extensions extends BaseModel implements Comparable<Extensions> {
 
   /** CTRP "is disease" flag. */
