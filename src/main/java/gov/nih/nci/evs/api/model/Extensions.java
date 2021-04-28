@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * Represents a synonym of a concept.
  */
-@JsonInclude(Include.NON_EMPTY)
+@JsonInclude(Include.NON_NULL)
 public class Extensions extends BaseModel implements Comparable<Extensions> {
 
   /** CTRP "is disease" flag. */

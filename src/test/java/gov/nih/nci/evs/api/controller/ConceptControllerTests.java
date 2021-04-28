@@ -1147,4 +1147,22 @@ public class ConceptControllerTests {
     return false;
   }
 
+  @Test
+  public void testExtensions() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    url = "/api/v1/extensions/C111020";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    log.info(" extensions = " + concept.getExtensions());
+    assertThat(concept).isNotNull();
+
+  }
+
 }

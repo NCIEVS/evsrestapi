@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.util.VersionInfo;
 
@@ -562,6 +564,18 @@ public interface SparqlQueryManagerService {
    */
   ArrayList<String> getHierarchy(Terminology terminology)
     throws JsonMappingException, JsonParseException, IOException;
+
+  /**
+   * Returns the main type hierarchy.
+   *
+   * @param terminology the terminology
+   * @return the main type hierarchy
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  Map<String, Paths> getMainTypeHierarchy(Terminology terminology, Set<String> mainTypeSet,
+    Set<String> broadCategorySet) throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the all child nodes.

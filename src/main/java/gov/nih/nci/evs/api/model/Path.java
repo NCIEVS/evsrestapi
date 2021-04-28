@@ -112,6 +112,16 @@ public class Path extends BaseModel {
    * @return the path
    */
   public Path rewritePath(final Set<String> include) {
+    return rewritePath(include, false);
+  }
+
+  /**
+   * Rewrite path.
+   *
+   * @param include the include
+   * @return the path
+   */
+  public Path rewritePath(final Set<String> include, final boolean keepFirst) {
     final Path path = new Path();
     path.setDirection(getDirection());
     path.setConcepts(new ArrayList<>());
@@ -120,7 +130,7 @@ public class Path extends BaseModel {
     boolean first = true;
     for (final Concept concept : getConcepts()) {
       // Skip first concept
-      if (first) {
+      if (!keepFirst && first) {
         first = false;
         continue;
       }

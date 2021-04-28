@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Axiom;
@@ -1653,6 +1654,81 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return parentchild;
+  }
+
+  /* see superclass */
+  public Map<String, Paths> getMainTypeHierarchy(Terminology terminology,
+    final Set<String> mainTypeSet, final Set<String> broadCategorySet)
+    throws JsonMappingException, JsonParseException, IOException {
+
+    final Set<String> combined = Sets.union(mainTypeSet, broadCategorySet);
+    // For each mainTypeSet concept find "shortest paths" to root
+    final Map<String, Paths> map = new HashMap<>();
+    for (final Map.Entry<String, Paths> entry : this
+        .getPathToRoot(new ArrayList<>(combined), terminology).entrySet()) {
+      final String code = entry.getKey();
+      final Paths paths = entry.getValue();
+      // log.debug("CODE = " + code);
+      // for (final Path path : paths.getPaths()) {
+      // log.debug(" path = "
+      // + path.getConcepts().stream().map(c ->
+      // c.getCode()).collect(Collectors.toList()));
+      // }
+      // Rewrite paths
+      final Paths rewritePaths = new Paths();
+      rewritePaths.setPaths(paths.getPaths().stream().map(p -> p.rewritePath(combined, true))
+          .collect(Collectors.toList()));
+      // for (final Path path : rewritePaths.getPaths()) {
+      // log.debug(" rewrite = "
+      // + path.getConcepts().stream().map(c ->
+      // c.getCode()).collect(Collectors.toList()));
+      // }
+
+      // Remove all but the longest paths
+      final Paths longestPaths = new Paths();
+      final int longest = rewritePaths.getPaths().stream().map(p -> p.getConcepts().size())
+          .max(Integer::compare).get();
+      // log.debug(" longest = " + longest);
+      final Set<String> seen = new HashSet<>();
+      longestPaths.setPaths(
+          rewritePaths.getPaths().stream().filter(p -> !seen.contains(p.getConcepts().toString()))
+              .filter(p -> p.getConcepts().size() == longest)
+              .peek(p -> seen.add(p.getConcepts().toString())).collect(Collectors.toList()));
+      // for (final Path path : longestPaths.getPaths()) {
+      // log.debug(" longest = "
+      // + path.getConcepts().stream().map(c ->
+      // c.getCode()).collect(Collectors.toList()));
+      // }
+
+      // Trim paths to remove broad category concepts if there are main type
+      // concepts
+      final Paths trimmedPaths = new Paths();
+      for (final Path path : longestPaths.getPaths()) {
+        // If the path contains main type concepts, remove broad category
+        // concepts
+        if (path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode()))
+            .count() > 0) {
+          path.getConcepts().removeIf(c -> broadCategorySet.contains(c.getCode()));
+        }
+        // If there is more than one broad category concept, keep only the first
+        if (path.getConcepts().stream().filter(c -> broadCategorySet.contains(c.getCode()))
+            .count() > 1) {
+          path.getConcepts()
+              .removeIf(c -> !c.getCode().equals(path.getConcepts().get(0).getCode()));
+        }
+
+        trimmedPaths.getPaths().add(path);
+      }
+      // for (final Path path : trimmedPaths.getPaths()) {
+      // log.debug(" trimmed = "
+      // + path.getConcepts().stream().map(c ->
+      // c.getCode()).collect(Collectors.toList()));
+      // }
+
+      map.put(code, trimmedPaths);
+    }
+
+    return map;
   }
 
   /* see superclass */

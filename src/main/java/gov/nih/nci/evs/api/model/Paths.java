@@ -3,7 +3,6 @@ package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.google.common.collect.Sets;
 
 /**
  * Represents a list of paths.
@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class Paths extends BaseModel {
 
+  /** The Constant logger. */
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(Paths.class);
 
@@ -130,12 +131,14 @@ public class Paths extends BaseModel {
    * @param broadCategorySet the broad category set
    * @return the list
    */
-  public List<Paths> rewritePaths(final Set<String> mainTypeSet,
-    final Set<String> broadCategorySet) {
+  public List<Paths> rewritePaths(final Map<String, Paths> mainTypeHierarchy,
+    final Set<String> mainTypeSet, final Set<String> broadCategorySet) {
 
     final Paths rewritePaths = new Paths();
-
+    final Set<String> combined = Sets.union(mainTypeSet, broadCategorySet);
     for (final Path path : getPaths()) {
+//      logger.info("XXX = "
+//          + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       // Eliminate all paths that visits any disease broad category concept
       // other than C2991 as an intermediate node (for example, the first path
       // above visits the broad category concept, Neoplasm (C3262), so it should
@@ -144,56 +147,37 @@ public class Paths extends BaseModel {
           .filter(c -> broadCategorySet.contains(c.getCode()) && !c.getCode().equals("C2991"))
           .count() > 0;
       if (hasBroadCategory) {
+//        logger.info("    SKIP (has broad category) = " + path.getConcepts().stream()
+//            .filter(c -> broadCategorySet.contains(c.getCode()) && !c.getCode().equals("C2991"))
+//            .findFirst().get());
         continue;
       }
 
       //  Trim each path by removing all concepts (or nodes) in the path that
       // are not main types (as well as this concept itself)
-      Path rewritePath = path.rewritePath(mainTypeSet);
-      if (rewritePath != null) {
-        rewritePaths.getPaths().add(rewritePath);
-      } else {
-        // If the path is null, rewrite just to broad category
-        // paths to satisfy cases where the main menu ancestor just says
-        // "disease"
-        rewritePath = path.rewritePath(broadCategorySet);
-        if (rewritePath != null) {
-          rewritePaths.getPaths().add(rewritePath);
-        }
+      final Path rewritePath = path.rewritePath(combined);
 
+      if (rewritePath != null) {
+//        logger.info("    rewrite (combined set) = " + rewritePath.getConcepts().stream()
+//            .map(c -> c.getCode()).collect(Collectors.toList()));
+        rewritePaths.getPaths().add(rewritePath);
       }
     }
 
-    // Sort paths in length order (longest first)
-    rewritePaths.setPaths(rewritePaths.getPaths().stream()
-        .sorted((a, b) -> b.getConcepts().size() - a.getConcepts().size())
-        .collect(Collectors.toList()));
-
+    // For each main menu ancestor, get the corresponding paths
     final Map<String, Paths> map = new HashMap<>();
-    final Set<String> seen = new HashSet<>();
-    // Iterate through sorted paths
-    for (final Path path : rewritePaths.getPaths()) {
-
-      final String mma = path.getConcepts().get(0).getCode();
-      final Paths paths = map.containsKey(mma) ? map.get(mma) : new Paths();
-
-      // Avoid keeping a path of just "C2991 Disease or Disorder" if there are
-      // other paths. Longest paths are seen first, so this will always come
-      // after a "real" one
-      if (!seen.isEmpty() && path.getConcepts().size() == 1 && mma.contentEquals("C2991")) {
-        continue;
+    for (final String mma : rewritePaths.getPaths().stream()
+        .map(p -> p.getConcepts().get(0).getCode()).collect(Collectors.toSet())) {
+      // if mma has another concept that is a child, it does not qualify
+      // if mma is in a path and isn't the first concept, it's a parent
+      boolean isMmaAncestor = rewritePaths.getPaths().stream()
+          .filter(p -> p.getConcepts().stream().filter(c -> c.getCode().equals(mma)).count() > 0
+              && !p.getConcepts().get(0).getCode().equals(mma))
+          .count() > 0;
+      if (!isMmaAncestor) {
+//        logger.info("   mma = " + mma);
+        map.put(mma, mainTypeHierarchy.get(mma));
       }
-      // If not all concepts in the path have been seen, then add the path
-      if (path.getConcepts().stream().filter(c -> !seen.contains(c.getCode())).count() > 0) {
-        paths.getPaths().add(path);
-
-        // Only if we've added a path do we add "paths" to the map.
-        map.put(mma, paths);
-
-        // Add all concepts to seen
-        path.getConcepts().stream().peek(c -> seen.add(c.getCode())).count();
-      }
-
     }
 
     // Sort paths by name of first concept
