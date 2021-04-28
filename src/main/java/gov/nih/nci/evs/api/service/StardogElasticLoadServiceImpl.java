@@ -160,7 +160,10 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
         logger.info("    finish reading {} to {}", start + 1, end);
 
         logger.info("    start computing extensions {} to {}", start + 1, end);
-        concepts.stream().peek(c -> c.setExtensions(mainTypeHierarchy.getExtensions(c))).count();
+        concepts.stream()
+            .peek(c -> logger.info("      concept = " + c.getCode() + " " + c.getName()))
+            .peek(c -> c.setExtensions(mainTypeHierarchy.getExtensions(c)))
+            .peek(c -> logger.info("        extensions = " + c.getExtensions())).count();
         logger.info("    finish computing extensions {} to {}", start + 1, end);
 
         int indexStart = 0;

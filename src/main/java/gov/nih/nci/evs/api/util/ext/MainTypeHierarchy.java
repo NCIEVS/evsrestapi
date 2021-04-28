@@ -82,6 +82,16 @@ public class MainTypeHierarchy {
    * @return the extensions
    */
   public Extensions getExtensions(final Concept concept) {
+
+    // Identify cases where something is wrong with concept
+    if (concept == null) {
+      throw new RuntimeException("Unexpectedly null concept");
+    }
+    if (concept.getName() == null) {
+      logger.error("Unexpectedly null concept name = " + concept.getCode());
+      return null;
+    }
+
     // Skip for non-NCIT terminologies
     if (!concept.getTerminology().equals("ncit")) {
       return null;
