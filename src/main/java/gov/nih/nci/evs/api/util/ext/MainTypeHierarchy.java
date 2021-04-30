@@ -281,15 +281,12 @@ public class MainTypeHierarchy {
       return false;
     }
 
-    // Check "concept in subset" association to
-    // CTS_API_Disease_Broad_Category_Terminology_Code = "C138189"
-    if (concept.getAssociations().stream()
-        .filter(
-            a -> a.getType().equals("Concept_In_Subset") && a.getRelatedCode().equals("C138189"))
-        .count() > 0) {
-      // logger.info("QA CASE isDisease: broad category concept = " +
+    // CTRP Disease Finding
+    // NOTE: CTRP is like this, but it probably <i>should</i> be a disease
+    if (code.compareTo("C173902") == 0) {
+      // logger.info("QA CASE !isDisease: broad category exclusion = " +
       // concept.getCode());
-      return false;
+      return true;
     }
 
     if (mainTypeSet.contains(concept.getCode())) {

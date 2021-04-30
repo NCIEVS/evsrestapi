@@ -1,0 +1,44 @@
+CONCEPT C2916
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C173902
+{
+  "isDisease" : false,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C2991
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3262
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : true,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}

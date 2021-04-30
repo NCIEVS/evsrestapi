@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * Represents a synonym of a concept.
  */
+// Show the empty brackets because it's clearer what happened
 @JsonInclude(Include.NON_NULL)
 public class Extensions extends BaseModel implements Comparable<Extensions> {
 
@@ -20,13 +21,13 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
   @Field(type = FieldType.Boolean)
   private Boolean isDisease;
 
-  /** The is disease stage. */
-  @Field(type = FieldType.Boolean)
-  private Boolean isDiseaseStage;
-
   /** The is disease grade. */
   @Field(type = FieldType.Boolean)
   private Boolean isDiseaseGrade;
+
+  /** The is disease stage. */
+  @Field(type = FieldType.Boolean)
+  private Boolean isDiseaseStage;
 
   /** The is main type. */
   @Field(type = FieldType.Boolean)

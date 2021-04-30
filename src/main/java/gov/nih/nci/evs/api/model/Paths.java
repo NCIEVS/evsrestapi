@@ -149,9 +149,15 @@ public class Paths extends BaseModel {
         removeFirstPath.setDirection(path.getDirection());
         removeFirstPath.setConcepts(new ArrayList<>(path.getConcepts()));
         removeFirstPath.getConcepts().removeIf(c -> c.getCode().equals(code));
-        copy.getPaths().add(removeFirstPath);
+        // if there are any concepts left in the path, add it
+        if (removeFirstPath.getConcepts().size() > 0) {
+          copy.getPaths().add(removeFirstPath);
+        }
       }
-      paths.add(copy);
+      // Only add if there are actually any paths
+      if (copy.getPaths().size() > 0) {
+        paths.add(copy);
+      }
       return paths;
     }
 
