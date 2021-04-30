@@ -1154,6 +1154,7 @@ public class ConceptControllerTests {
     String content = null;
     Concept concept = null;
 
+//    url = "/api/v1/extensions/C111020";
     url = "/api/v1/extensions/C111020";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();

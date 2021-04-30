@@ -136,9 +136,30 @@ public class Paths extends BaseModel {
 
     final Paths rewritePaths = new Paths();
     final Set<String> combined = Sets.union(mainTypeSet, broadCategorySet);
+    final Map<String, Paths> map = new HashMap<>();
+    final String code = getPaths().get(0).getConcepts().get(0).getCode();
+
+    // IF this is a main/broad code, just look up the paths and return
+    if (combined.contains(code)) {
+      final List<Paths> paths = new ArrayList<>();
+      // Remove first concept from each path because this is just ancestors
+      final Paths copy = new Paths();
+      for (final Path path : mainTypeHierarchy.get(code).getPaths()) {
+        final Path removeFirstPath = new Path();
+        removeFirstPath.setDirection(path.getDirection());
+        removeFirstPath.setConcepts(new ArrayList<>(path.getConcepts()));
+        removeFirstPath.getConcepts().removeIf(c -> c.getCode().equals(code));
+        copy.getPaths().add(removeFirstPath);
+      }
+      paths.add(copy);
+      return paths;
+    }
+
     for (final Path path : getPaths()) {
-//      logger.info("XXX = "
-//          + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      // logger.info("XXX = "
+      // + path.getConcepts().stream().map(c ->
+      // c.getCode()).collect(Collectors.toList()));
+
       // Eliminate all paths that visits any disease broad category concept
       // other than C2991 as an intermediate node (for example, the first path
       // above visits the broad category concept, Neoplasm (C3262), so it should
@@ -147,9 +168,11 @@ public class Paths extends BaseModel {
           .filter(c -> broadCategorySet.contains(c.getCode()) && !c.getCode().equals("C2991"))
           .count() > 0;
       if (hasBroadCategory) {
-//        logger.info("    SKIP (has broad category) = " + path.getConcepts().stream()
-//            .filter(c -> broadCategorySet.contains(c.getCode()) && !c.getCode().equals("C2991"))
-//            .findFirst().get());
+        // logger.info(" SKIP (has broad category) = " +
+        // path.getConcepts().stream()
+        // .filter(c -> broadCategorySet.contains(c.getCode()) &&
+        // !c.getCode().equals("C2991"))
+        // .findFirst().get());
         continue;
       }
 
@@ -158,14 +181,14 @@ public class Paths extends BaseModel {
       final Path rewritePath = path.rewritePath(combined);
 
       if (rewritePath != null) {
-//        logger.info("    rewrite (combined set) = " + rewritePath.getConcepts().stream()
-//            .map(c -> c.getCode()).collect(Collectors.toList()));
+        // logger.info(" rewrite (combined set) = " +
+        // rewritePath.getConcepts().stream()
+        // .map(c -> c.getCode()).collect(Collectors.toList()));
         rewritePaths.getPaths().add(rewritePath);
       }
     }
 
     // For each main menu ancestor, get the corresponding paths
-    final Map<String, Paths> map = new HashMap<>();
     for (final String mma : rewritePaths.getPaths().stream()
         .map(p -> p.getConcepts().get(0).getCode()).collect(Collectors.toSet())) {
       // if mma has another concept that is a child, it does not qualify
@@ -174,8 +197,12 @@ public class Paths extends BaseModel {
           .filter(p -> p.getConcepts().stream().filter(c -> c.getCode().equals(mma)).count() > 0
               && !p.getConcepts().get(0).getCode().equals(mma))
           .count() > 0;
-      if (!isMmaAncestor) {
-//        logger.info("   mma = " + mma);
+      // If the mma is a "broad category code" and the code is a "main type
+      // code" then skip
+      boolean flag = broadCategorySet.contains(mma) && mainTypeSet.contains(code);
+
+      if (!isMmaAncestor && !flag) {
+        // logger.info(" mma = " + mma);
         map.put(mma, mainTypeHierarchy.get(mma));
       }
     }

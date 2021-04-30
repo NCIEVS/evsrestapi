@@ -20,7 +20,6 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.service.StardogElasticLoadServiceImpl;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * Handler for the main type hierarchy CTRP extension computations.
@@ -192,14 +191,16 @@ public class MainTypeHierarchy {
    */
   public boolean isMainType(Concept concept) throws Exception {
     terminologyCheck(concept.getTerminology());
-    // main type or broad category
-    boolean flag =
-        mainTypeSet.contains(concept.getCode()) || broadCategorySet.contains(concept.getCode());
-    if (flag) {
-      // logger.info("QA CASE isMainType: member of Main_Type subset = " +
+
+    if (mainTypeSet.contains(concept.getCode())) {
+      // logger.info("QA CASE isMainType: member of main type subset = " +
       // concept.getCode());
     }
-    return flag;
+    if (broadCategorySet.contains(concept.getCode())) {
+      // logger.info("QA CASE isMainType: member of broad category subset = " +
+      // concept.getCode());
+    }
+    return mainTypeSet.contains(concept.getCode()) || broadCategorySet.contains(concept.getCode());
   }
 
   /**
@@ -287,6 +288,17 @@ public class MainTypeHierarchy {
             a -> a.getType().equals("Concept_In_Subset") && a.getRelatedCode().equals("C138189"))
         .count() > 0) {
       // logger.info("QA CASE isDisease: broad category concept = " +
+      // concept.getCode());
+      return false;
+    }
+
+    if (mainTypeSet.contains(concept.getCode())) {
+      // logger.info("QA CASE !isDisease: is main type = " + concept.getCode());
+      return false;
+    }
+
+    if (broadCategorySet.contains(concept.getCode())) {
+      // logger.info("QA CASE !isDisease: is broad category = " +
       // concept.getCode());
       return false;
     }

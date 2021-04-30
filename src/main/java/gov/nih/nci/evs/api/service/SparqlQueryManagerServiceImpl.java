@@ -1668,7 +1668,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         .getPathToRoot(new ArrayList<>(combined), terminology).entrySet()) {
       final String code = entry.getKey();
       final Paths paths = entry.getValue();
-      // log.debug("CODE = " + code);
+      log.debug("  Main type hierarchy = " + code);
       // for (final Path path : paths.getPaths()) {
       // log.debug(" path = "
       // + path.getConcepts().stream().map(c ->
@@ -1684,6 +1684,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // c.getCode()).collect(Collectors.toList()));
       // }
 
+      // TODO: try this alternatively as the shortest path but going through a
+      // broad category concept (if possible)
       // Remove all but the longest paths
       final Paths longestPaths = new Paths();
       final int longest = rewritePaths.getPaths().stream().map(p -> p.getConcepts().size())
@@ -1719,11 +1721,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         trimmedPaths.getPaths().add(path);
       }
-      // for (final Path path : trimmedPaths.getPaths()) {
-      // log.debug(" trimmed = "
-      // + path.getConcepts().stream().map(c ->
-      // c.getCode()).collect(Collectors.toList()));
-      // }
+      for (final Path path : trimmedPaths.getPaths()) {
+        log.debug("    trimmed = "
+            + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      }
 
       map.put(code, trimmedPaths);
     }
