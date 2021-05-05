@@ -144,6 +144,10 @@ public class Paths extends BaseModel {
       final List<Paths> paths = new ArrayList<>();
       // Remove first concept from each path because this is just ancestors
       final Paths copy = new Paths();
+      // Identify the skipped main type concepts
+      if (mainTypeHierarchy.containsKey(code) && mainTypeHierarchy.get(code) == null) {
+        return paths;
+      }
       for (final Path path : mainTypeHierarchy.get(code).getPaths()) {
         final Path removeFirstPath = new Path();
         removeFirstPath.setDirection(path.getDirection());
@@ -179,6 +183,14 @@ public class Paths extends BaseModel {
         // .filter(c -> broadCategorySet.contains(c.getCode()) &&
         // !c.getCode().equals("C2991"))
         // .findFirst().get());
+        continue;
+      }
+
+      // Determine if paths go through C2991 "Diseases and Disorders"
+      boolean diseaseFlag =
+          path.getConcepts().stream().filter(c -> c.getCode().equals("C2991")).count() > 0;
+      if (!diseaseFlag) {
+        // logger.info(" SKIP (is not a disease)");
         continue;
       }
 

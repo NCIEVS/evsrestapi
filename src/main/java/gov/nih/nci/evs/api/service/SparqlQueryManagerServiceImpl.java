@@ -1668,6 +1668,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         .getPathToRoot(new ArrayList<>(combined), terminology).entrySet()) {
       final String code = entry.getKey();
       final Paths paths = entry.getValue();
+
+      // Determine if paths go through C2991 "Diseases and Disorders"
+      boolean diseaseFlag = paths.getPaths().stream().flatMap(p -> p.getConcepts().stream())
+          .filter(c -> c.getCode().equals("C2991")).count() > 0;
+      if (!diseaseFlag) {
+        log.debug("  SKIP Main type hierarchy = " + code);
+        map.put(code, null);
+        continue;
+      }
+
       log.debug("  Main type hierarchy = " + code);
       // for (final Path path : paths.getPaths()) {
       // log.debug(" path = "

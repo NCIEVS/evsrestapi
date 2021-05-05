@@ -25,6 +25,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
@@ -136,13 +137,37 @@ public class ConceptControllerExtensionTests {
       fail("Map size does not match comparison map size = " + map.size() + ", " + cmpMap.size());
     }
     for (final String code : map.keySet()) {
-      if (!getComparableJson(map.get(code)).equals(getComparableJson(cmpMap.get(code)))) {
-        error = true;
+      final ObjectMapper mapper = new ObjectMapper();
+      final JsonNode node = mapper.readTree(map.get(code));
+      final JsonNode cmpNode = mapper.readTree(cmpMap.get(code));
+      final StringBuilder sb = new StringBuilder();
+      sb.append("\n");
+      boolean match = true;
+      for (final String field : new String[] {
+          "isDisease", "isDiseaseGrade", "isDiseaseStage", "isMainType", "isSubtype", "isBiomarker",
+          "isReferenceGene"
+      }) {
+        final String val = node.get(field).asText();
+        final String cmpVal = cmpNode.get(field).asText();
+        if (!val.equals(cmpVal)) {
+          sb.append("  " + field + " = " + val + ", " + cmpVal);
+          match = false;
+        }
+      }
+      final String val = node.get("mainMenuAncestors").asText();
+      final String cmpVal = cmpNode.get("mainMenuAncestors").asText();
+      if (!val.equals(cmpVal)) {
+        final String pretty = mapper.writerWithDefaultPrettyPrinter()
+            .writeValueAsString(node.get("mainMenuAncestors"));
+        final String cmpPretty = mapper.writerWithDefaultPrettyPrinter()
+            .writeValueAsString(cmpNode.get("mainMenuAncestors"));
+        sb.append("  MISMATCH mainMenuAncestors = \n").append("<<< map\n").append(pretty)
+            .append(">>> cmpMap\n").append(cmpPretty).append("\n");
+        match = false;
+      }
+      if (!match) {
         log.error("  MISMATCH = " + code);
-        log.error("<<< map " + map.get(code).length());
-        log.error(map.get(code));
-        log.error(">>> cmpMap " + cmpMap.get(code).length());
-        log.error(cmpMap.get(code));
+        log.error(sb.toString());
       } else {
         log.info("  MATCH = " + code);
       }
@@ -150,18 +175,6 @@ public class ConceptControllerExtensionTests {
     if (error) {
       fail("Unexpected mismatches, see log");
     }
-  }
-
-  /**
-   * Returns the comparable json.
-   *
-   * @param json the json
-   * @return the comparable json
-   */
-  private String getComparableJson(final String json) {
-    final String fix = json.replaceAll("(?s)[\\s]{1,}", " ");
-    log.info("XXX = " + fix);
-    return fix;
   }
 
   /**
@@ -207,15 +220,20 @@ public class ConceptControllerExtensionTests {
     String content = null;
     Concept concept = null;
 
-    // url = "/api/v1/extensions/C111020";
-    url = "/api/v1/extensions/C3510";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
-    log.info(" extensions = " + concept.getExtensions());
-    assertThat(concept).isNotNull();
+    // Test a few codes to make sure they're not null
+    for (final String code : new String[] {
+        "C4896", "C4897", "C111020"
+    }) {
+      url = "/api/v1/extensions/" + code;
+
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info(" content = " + content);
+      concept = new ObjectMapper().readValue(content, Concept.class);
+      log.info(" extensions = " + concept.getExtensions());
+      assertThat(concept).isNotNull();
+    }
 
   }
 }
