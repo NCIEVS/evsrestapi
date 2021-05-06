@@ -1674,7 +1674,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           .filter(c -> c.getCode().equals("C2991")).count() > 0;
       if (!diseaseFlag) {
         log.debug("  SKIP Main type hierarchy = " + code);
-        map.put(code, null);
+        // Leave the return value empty for this code
         continue;
       }
 

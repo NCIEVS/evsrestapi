@@ -42,6 +42,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Controller for /concept endpoints.
@@ -917,6 +918,7 @@ public class ConceptController extends BaseController {
 
   @RequestMapping(method = RequestMethod.GET, value = "/extensions/{code}",
       produces = "application/json")
+  @ApiIgnore
   public @ResponseBody Concept calculateExtensions(@PathVariable(value = "code")
   final String code) throws Exception {
     try {

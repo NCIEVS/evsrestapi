@@ -222,7 +222,10 @@ public class ConceptControllerExtensionTests {
 
     // Test a few codes to make sure they're not null
     for (final String code : new String[] {
-        "C4896", "C4897", "C111020"
+        // "C6772"
+        // "C5141"
+        "C111020"
+        // "C4896", "C4897", "C111020"
     }) {
       url = "/api/v1/extensions/" + code;
 

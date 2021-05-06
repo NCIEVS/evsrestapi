@@ -108,6 +108,7 @@ public class MainTypeHierarchy {
       return null;
     }
     try {
+      logger.info("XXX CODE = " + concept.getCode());
       final Extensions extensions = new Extensions();
       extensions.setIsDisease(isDisease(concept));
       extensions.setIsDiseaseStage(isDiseaseStage(concept));
@@ -118,6 +119,7 @@ public class MainTypeHierarchy {
       extensions.setMainMenuAncestors(getMainMenuAncestors(concept));
       // The concept has at least one main menu ancestor.
       extensions.setIsSubtype(isSubtype(concept) && !extensions.getMainMenuAncestors().isEmpty());
+      logger.info("XXX extensions = " + extensions);
       return extensions;
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -294,7 +296,7 @@ public class MainTypeHierarchy {
 
     List<Paths> mma =
         concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
-    if (mma == null || mma.isEmpty()) {
+    if (mma.isEmpty()) {
       logger.info("QA CASE !isDisease: does not have main menu ancestors = " + concept.getCode());
       return true;
     }
