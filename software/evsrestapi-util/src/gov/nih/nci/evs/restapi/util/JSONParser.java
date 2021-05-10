@@ -127,7 +127,7 @@ public class JSONParser {
 					}
 				} else {
 					System.out.println("KEY: " + key + " VALUE: String");
-					System.out.println("\t" + (String) obj);
+					System.out.println("\t" + obj.toString());
 				}
 			}
 		} catch (Exception ex) {
