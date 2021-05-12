@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.util.ext;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Extensions;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
@@ -77,6 +79,7 @@ public class MainTypeHierarchy {
 
       logger.info("  Compute main type hierarchy");
       mainTypeHierarchy = service.getMainTypeHierarchy(terminology, mainTypeSet, broadCategorySet);
+
     }
   }
 
@@ -108,7 +111,6 @@ public class MainTypeHierarchy {
       return null;
     }
     try {
-      logger.info("XXX CODE = " + concept.getCode());
       final Extensions extensions = new Extensions();
       extensions.setIsDisease(isDisease(concept));
       extensions.setIsDiseaseStage(isDiseaseStage(concept));
@@ -119,7 +121,6 @@ public class MainTypeHierarchy {
       extensions.setMainMenuAncestors(getMainMenuAncestors(concept));
       // The concept has at least one main menu ancestor.
       extensions.setIsSubtype(isSubtype(concept) && !extensions.getMainMenuAncestors().isEmpty());
-      logger.info("XXX extensions = " + extensions);
       return extensions;
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -294,8 +295,8 @@ public class MainTypeHierarchy {
       return false;
     }
 
-    List<Paths> mma =
-        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
+    List<Paths> mma = concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet,
+        broadCategorySet);
     if (mma.isEmpty()) {
       logger.info("QA CASE !isDisease: does not have main menu ancestors = " + concept.getCode());
       return true;
@@ -385,8 +386,8 @@ public class MainTypeHierarchy {
 
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
-    List<Paths> paths =
-        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
+    List<Paths> paths = concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet,
+        broadCategorySet);
 
     if (subtypeFlag) {
       logger.info("QA CASE mainMenuAncestors: subtype = " + concept.getCode());
