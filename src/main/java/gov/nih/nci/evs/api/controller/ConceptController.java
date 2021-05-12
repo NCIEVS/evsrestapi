@@ -300,7 +300,7 @@ public class ConceptController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3224'",
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. 'C3910'",
           required = true, dataType = "string", paramType = "path")
   })
   @RecordMetric
