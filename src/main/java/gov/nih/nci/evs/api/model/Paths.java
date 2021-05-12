@@ -288,7 +288,9 @@ public class Paths extends BaseModel {
       if (mainTypeHierarchy.containsKey(mma)) {
         // logger.info("YYY mma = " + mma);
         map.put(mma, mainTypeHierarchy.get(mma));
-      } else {
+      } 
+      // Fail unless it's the "CTRP Disease Finding" concept
+      else if (!mma.equals("C173902")) {
         throw new RuntimeException("Main type hierarchy missing expected code = " + mma);
       }
     }
