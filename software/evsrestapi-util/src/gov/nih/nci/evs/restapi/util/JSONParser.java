@@ -139,6 +139,12 @@ public class JSONParser {
 	}
 
 	public static Vector run(String json) {
+		boolean sort = true;
+		return run(json, sort);
+	}
+
+
+	public static Vector run(String json, boolean sort) {
 		Vector v = new Vector();
 		try {
 			Map map = parse(json);
@@ -194,6 +200,9 @@ public class JSONParser {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return new SortUtils().quickSort(v);
+		if (sort) {
+			return new SortUtils().quickSort(v);
+		}
+		return v;
 	}
 }
