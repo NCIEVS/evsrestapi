@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.util.ext;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Extensions;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
@@ -283,20 +281,22 @@ public class MainTypeHierarchy {
       return true;
     }
 
-    // Main types are not necessarily diseases (Leukemia in remission)
-    // rely on finding main menu ancestors
-    // if (mainTypeSet.contains(concept.getCode())) {
-    // logger.info("QA CASE !isDisease: is main type = " + concept.getCode());
-    // return false;
-    // }
+    // Main type concept descendants of C2991
+    if (mainTypeSet.contains(concept.getCode()) && concept
+        .getPaths().getPaths().stream().filter(p -> p.getConcepts().stream()
+            .filter(c -> c.getCode().equals("C2991")).findFirst().orElse(null) != null)
+        .findFirst().orElse(null) != null) {
+      logger.info("QA CASE !isDisease: is disease main type = " + concept.getCode());
+      return false;
+    }
 
     if (broadCategorySet.contains(concept.getCode())) {
       logger.info("QA CASE !isDisease: is broad category = " + concept.getCode());
       return false;
     }
 
-    List<Paths> mma = concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet,
-        broadCategorySet);
+    List<Paths> mma =
+        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
     if (mma.isEmpty()) {
       logger.info("QA CASE !isDisease: does not have main menu ancestors = " + concept.getCode());
       return true;
@@ -386,8 +386,8 @@ public class MainTypeHierarchy {
 
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
-    List<Paths> paths = concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet,
-        broadCategorySet);
+    List<Paths> paths =
+        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
 
     if (subtypeFlag) {
       logger.info("QA CASE mainMenuAncestors: subtype = " + concept.getCode());
