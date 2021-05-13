@@ -129,7 +129,6 @@ public class Paths extends BaseModel {
    * @param mainTypeHierarchy the main type hierarchy
    * @param mainTypeSet the ancestors
    * @param broadCategorySet the broad category set
-   * @param mthAncestors the mma ancestors
    * @return the list
    */
   public List<Paths> rewritePaths(final Map<String, Paths> mainTypeHierarchy,
@@ -175,19 +174,10 @@ public class Paths extends BaseModel {
     boolean mtFlag = getPaths().stream().flatMap(p -> p.getConcepts().stream())
         .filter(c -> mainTypeSet.contains(c.getCode())).findFirst().orElse(null) != null;
 
-    // TODO:::
-    // direct path available in paths to C2991 not through neoplasm (for this
-    // mma)
-    // boolean directFlag = getPaths().stream()
-    // .filter(p -> p.getConcepts().stream().filter(c ->
-    // c.getCode().equals("C3262")).count() == 0
-    // && p.getConcepts().stream().filter(c ->
-    // c.getCode().equals("C2991")).count() > 0)
-    // .findFirst().orElse(null) != null;
-
-    // Keep only qualifying candidate paths (starting with only paths that go
-    // through broad category concepts)
-    final List<Path> candidatePaths = new ArrayList<>();
+    // * Find all paths from the given concept to Disease or Disorder (Code
+    // C2991) and concepts belonging to the broad category.
+    long longestLength = -1;
+    final List<Path> longestPathsRewritten = new ArrayList<>();
     for (final Path path : getPaths()
         .stream().filter(p -> p.getConcepts().stream()
             .filter(c -> broadCategorySet.contains(c.getCode())).count() > 0)
@@ -197,53 +187,13 @@ public class Paths extends BaseModel {
       // + path.getConcepts().stream().map(c ->
       // c.getCode()).collect(Collectors.toList()));
 
-      // Skip paths that don't go through a main type concept if there are paths
-      // that do
+      // If there are paths through main type concepts, skip paths that don't
+      // have them
       if (mtFlag && path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode()))
           .findFirst().orElse(null) == null) {
         // logger.info("XXX SKIP mtFlag ");
         continue;
       }
-
-      // TODO:
-      // ALSO: if the "mma" here has direct paths to C2991 and this path goes
-      // through neoplasms, skip
-      // final String mma = path.getConcepts().stream().filter(c ->
-      // combined.contains(c.getCode()))
-      // .findFirst().get().getCode();
-
-      // direct path available in paths to C2991 not through neoplasm (for this
-      // mma)
-      // boolean directFlag = getPaths().stream()
-      // .filter(
-      // p -> p.getConcepts().stream().filter(c ->
-      // c.getCode().equals("C3262")).count() == 0
-      // && p.getConcepts().stream().filter(c ->
-      // c.getCode().equals("C2991")).count() > 0
-      // && p.getConcepts().stream().filter(c ->
-      // c.getCode().equals(mma)).count() > 0)
-      // .findFirst().orElse(null) != null;
-
-      // Skip paths that go through neoplasm if there are direct paths to C2991
-      // if (directFlag && path.getConcepts().stream().filter(c ->
-      // c.getCode().equals("C3262"))
-      // .findFirst().orElse(null) != null) {
-      // logger.info("XXX SKIP neoplasm ");
-      // continue;
-      // }
-
-      candidatePaths.add(path);
-    }
-
-    // * Find all paths from the given concept to Disease or Disorder (Code
-    // C2991) and concepts belonging to the broad category.
-    long shortestLength = 100;
-    final List<Path> shortestPathsRewritten = new ArrayList<>();
-    for (final Path path : candidatePaths) {
-
-      // logger.info("YYY path = "
-      // + path.getConcepts().stream().map(c ->
-      // c.getCode()).collect(Collectors.toList()));
 
       // Find the first main menu ancestor concept
       final String mma = path.getConcepts().stream().filter(c -> combined.contains(c.getCode()))
@@ -251,47 +201,45 @@ public class Paths extends BaseModel {
 
       // if mma is an ancestor of another main type concept that's in one of the
       // candidate paths, then skip it
-      if (isMthAncestor(mma, combined, candidatePaths)) {
-        // logger.info("YYY SKIP mth ancestor = " + mma);
+      if (isMthAncestor(mma, combined, getPaths())) {
+        // logger.info("XXX SKIP mth ancestor = " + mma);
         continue;
       }
 
-      // * Find the length of the first mma concept to the top node in the main
-      // type hierarchy
-      int length = getDistance(path, mma, broadCategorySet);
+      // * Find the length of the first mma concept in the main type hierarchy
+      // or 0 if it's not there
+      int length = mainTypeHierarchy.containsKey(mma)
+          ? mainTypeHierarchy.get(mma + "-FULL").getPaths().get(0).getConcepts().size() : 0;
 
-      // logger.info("YYY length = " + length);
-      if (length <= shortestLength) {
-        if (length < shortestLength) {
-          shortestLength = length;
-          shortestPathsRewritten.clear();
+      // logger.info("XXX length = " + length);
+      if (length >= longestLength) {
+        if (length > longestLength) {
+          longestLength = length;
+          longestPathsRewritten.clear();
         }
         // * Trim each path by removing all concepts (or nodes) in the path that
         // are not main types (as well as this concept itself)
         final Path rewritePath = path.rewritePath(combined);
         if (rewritePath != null) {
-          shortestPathsRewritten.add(rewritePath);
+          longestPathsRewritten.add(rewritePath);
         }
       }
 
     }
-    // logger.info("YYY shortest length = " + shortestLength);
-    // logger.info("YYY shortest paths = " + shortestPathsRewritten);
+    // logger.info("XXX longest length = " + longestLength);
+    // logger.info("XXX longest paths = " + longestPathsRewritten);
 
     final Paths rewritePaths = new Paths();
-    rewritePaths.getPaths().addAll(shortestPathsRewritten);
+    rewritePaths.getPaths().addAll(longestPathsRewritten);
 
     // For each main menu ancestor, get the corresponding paths
     for (final String mma : rewritePaths.getPaths().stream()
         .map(p -> p.getConcepts().get(0).getCode()).collect(Collectors.toSet())) {
 
+      // Proceed if the main type hierarchy has an entry for mma
+      // An example of a mma that does not is: C173902 "CTRP Disease Finding"
       if (mainTypeHierarchy.containsKey(mma)) {
-        // logger.info("YYY mma = " + mma);
         map.put(mma, mainTypeHierarchy.get(mma));
-      } 
-      // Fail unless it's the "CTRP Disease Finding" concept
-      else if (!mma.equals("C173902")) {
-        throw new RuntimeException("Main type hierarchy missing expected code = " + mma);
       }
     }
 

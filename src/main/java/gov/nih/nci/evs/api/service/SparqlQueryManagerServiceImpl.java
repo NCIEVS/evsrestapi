@@ -1694,8 +1694,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // c.getCode()).collect(Collectors.toList()));
       // }
 
-      // TODO: try this alternatively as the shortest path but going through a
-      // broad category concept (if possible)
       // Remove all but the longest paths
       final Paths longestPaths = new Paths();
       final int longest = rewritePaths.getPaths().stream().map(p -> p.getConcepts().size())
@@ -1706,11 +1704,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           rewritePaths.getPaths().stream().filter(p -> !seen.contains(p.getConcepts().toString()))
               .filter(p -> p.getConcepts().size() == longest)
               .peek(p -> seen.add(p.getConcepts().toString())).collect(Collectors.toList()));
-      // for (final Path path : longestPaths.getPaths()) {
-      // log.debug(" longest = "
-      // + path.getConcepts().stream().map(c ->
-      // c.getCode()).collect(Collectors.toList()));
-      // }
+      for (final Path path : longestPaths.getPaths()) {
+        log.debug("    longest = "
+            + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      }
+      // Save the pre-trimmed paths, this is the full hierarchy
+      map.put(code + "-FULL", longestPaths);
 
       // Trim paths to remove broad category concepts if there are main type
       // concepts
@@ -1735,7 +1734,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         log.debug("    trimmed = "
             + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       }
-
+     
+      // Save the trimmed paths (this is where mma comes from)
       map.put(code, trimmedPaths);
     }
 

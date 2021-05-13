@@ -89,6 +89,21 @@ public class ConceptControllerExtensionTests {
     testHelper("extensions-test-main-type-set.txt", "extensions-test-main-type-result.txt");
   }
 
+  @Test
+  public void testTargetedSet() throws Exception {
+    testHelper("extensions-test-targeted-set.txt", "extensions-test-targeted-result.txt");
+  }
+
+  /**
+   * Test full set.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testFullSet() throws Exception {
+    testHelper("extensions-test-full-set.txt", "extensions-test-full-result.txt");
+  }
+
   /**
    * Test helper.
    *
@@ -136,6 +151,8 @@ public class ConceptControllerExtensionTests {
     if (map.size() != cmpMap.size()) {
       fail("Map size does not match comparison map size = " + map.size() + ", " + cmpMap.size());
     }
+    int matchCt = 0;
+    int mismatchCt = 0;
     for (final String code : map.keySet()) {
       final ObjectMapper mapper = new ObjectMapper();
       final JsonNode node = mapper.readTree(map.get(code));
@@ -167,11 +184,15 @@ public class ConceptControllerExtensionTests {
       }
       if (!match) {
         log.error("  MISMATCH = " + code);
+        mismatchCt++;
         log.error(sb.toString());
       } else {
         log.info("  MATCH = " + code);
+        matchCt++;
       }
     }
+    log.error("  MISMATCH CT = " + mismatchCt);
+    log.error("  MATCH CT = " + matchCt);
     if (error) {
       fail("Unexpected mismatches, see log");
     }
@@ -223,12 +244,13 @@ public class ConceptControllerExtensionTests {
     // Test a few codes to make sure they're not null
     for (final String code : new String[] {
         // "C111020"
-        "C6772"
-        //         "C5141"
+        // "C6772"
+        // "C5141"
         // "C4896",
         // "C4897"
         // Need an example like "gout" and it's child
         // "C34650"
+        "C2980"
     }) {
       url = "/api/v1/extensions/" + code;
 
