@@ -94,12 +94,12 @@ public class MainTypeHierarchy {
       throw new RuntimeException("Unexpectedly null concept");
     }
     if (concept.getName() == null) {
-      // If this is a retired concept, we're good, just return null
+      // If this is a retired concept, we're good, just return blank extensions
       if (concept.getProperties().stream()
           .filter(
               p -> p.getType().equals("Concept_Status") && p.getValue().equals("Retired_Concept"))
           .count() > 0) {
-        return null;
+        return new Extensions();
       }
       throw new RuntimeException("Unexpectedly null concept name = " + concept.getCode());
     }
@@ -343,7 +343,7 @@ public class MainTypeHierarchy {
     }
 
     // Does not qualify if it starts with "recurrent"
-    if (concept.getName().toLowerCase().contains("recurrent")) {
+    if (concept.getName().toLowerCase().startsWith("recurrent")) {
       // logger.info("QA CASE !isSubtype: starts with Recurrent = " +
       // concept.getCode());
       return false;

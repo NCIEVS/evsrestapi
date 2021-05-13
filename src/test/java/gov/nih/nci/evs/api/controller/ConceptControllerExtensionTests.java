@@ -195,6 +195,7 @@ public class ConceptControllerExtensionTests {
       if (!match) {
         log.error("  MISMATCH = " + code);
         mismatchCt++;
+        error = true;
         log.error(sb.toString());
       } else {
         log.info("  MATCH = " + code);
@@ -260,7 +261,7 @@ public class ConceptControllerExtensionTests {
         // "C4897"
         // Need an example like "gout" and it's child
         // "C34650"
-        "C2980"
+        "C7280"
     }) {
       url = "/api/v1/extensions/" + code;
 
