@@ -118,6 +118,7 @@ public class ConceptControllerExtensionTests {
     Concept concept = null;
     final Map<String, String> map = new HashMap<>();
     final ObjectMapper mapper = new ObjectMapper();
+    int ct = 0;
     for (final String code : IOUtils
         .readLines(getClass().getClassLoader().getResourceAsStream(codeSetPath), "UTF-8")) {
       url = baseUrl + "/ncit/" + code + "?include=extensions";
@@ -133,6 +134,9 @@ public class ConceptControllerExtensionTests {
       final String pretty = mapper.writerWithDefaultPrettyPrinter()
           .writeValueAsString(concept.getExtensions()).replaceAll("\r", "") + "\n";
       map.put(code, pretty);
+      if (++ct % 1000 == 0) {
+        log.info("  count = " + ct);
+      }
     }
 
     // Test the result
@@ -164,15 +168,21 @@ public class ConceptControllerExtensionTests {
           "isDisease", "isDiseaseGrade", "isDiseaseStage", "isMainType", "isSubtype", "isBiomarker",
           "isReferenceGene"
       }) {
-        final String val = node.get(field).asText();
-        final String cmpVal = cmpNode.get(field).asText();
+        final String val = node.get(field) == null ? "null" : node.get(field).asText();
+        final String cmpVal = cmpNode.get(field) == null ? "null" : cmpNode.get(field).asText();
         if (!val.equals(cmpVal)) {
           sb.append("  " + field + " = " + val + ", " + cmpVal);
           match = false;
         }
+        if (node.get(field) == null) {
+          sb.append("  " + field + " = val IS NULL, " + cmpVal);
+          match = false;
+        }
       }
-      final String val = node.get("mainMenuAncestors").asText();
-      final String cmpVal = cmpNode.get("mainMenuAncestors").asText();
+
+      final String field = "mainMenuAncestors";
+      final String val = node.get(field) == null ? "null" : node.get(field).asText();
+      final String cmpVal = cmpNode.get(field) == null ? "null" : cmpNode.get(field).asText();
       if (!val.equals(cmpVal)) {
         final String pretty = mapper.writerWithDefaultPrettyPrinter()
             .writeValueAsString(node.get("mainMenuAncestors"));
