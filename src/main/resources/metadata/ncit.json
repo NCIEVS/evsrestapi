@@ -2,7 +2,7 @@
   "code": "NHC0",
   "conceptStatus": "P310",
   "preferredName": "P108",
-  "synonym": [ "P90", "P107", "P108", "P366" ],
+  "synonym": [ "P90", "P107", "P108" ],
   "synonymTermType": "P383",
   "synonymSource": "P384",
   "synonymCode": "P385",
@@ -27,6 +27,7 @@
   	"rdfs:label" : "label",
   	"P375": "Maps_To"
   },
+  "subsetMember": [ "A8" ],
   "sources": {
     "ACC": "American College of Cardiology",
     "ACC/AHA": "American College of Cardiology / American Heart Association",

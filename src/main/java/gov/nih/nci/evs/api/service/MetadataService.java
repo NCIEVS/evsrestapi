@@ -4,6 +4,7 @@ package gov.nih.nci.evs.api.service;
 import java.util.List;
 import java.util.Optional;
 
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 
@@ -204,5 +205,18 @@ public interface MetadataService {
    */
   Optional<Concept> getDefinitionType(final String terminology, final String code,
     final Optional<String> include) throws Exception;
+
+  /**
+   * Returns the association entries.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param orElse the starting record
+   * @param orElse2 the page size of the results list
+   * @return the association entry list
+   * @throws Exception the exception
+   */
+  AssociationEntryResultList getAssociationEntries(String terminology, String label,
+    Integer fromRecord, Integer pageSize) throws Exception;
 
 }

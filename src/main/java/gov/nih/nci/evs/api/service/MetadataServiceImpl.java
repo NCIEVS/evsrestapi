@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -84,7 +85,6 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getAssociation(String terminology, String code, Optional<String> include)
     throws Exception {
-
     // Verify that it is an association
     final List<Concept> list = self.getAssociations(terminology,
         Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
@@ -415,6 +415,12 @@ public class MetadataServiceImpl implements MetadataService {
           "Definition type " + code + " not found (2)");
     }
     return Optional.empty();
+  }
+
+  /* see superclass */
+  public AssociationEntryResultList getAssociationEntries(String terminology, String label,
+    Integer fromRecord, Integer pageSize) throws Exception {
+    return esQueryService.getAssociationEntries(terminology, label, fromRecord, pageSize);
   }
 
 }
