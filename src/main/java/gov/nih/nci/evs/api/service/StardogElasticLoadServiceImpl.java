@@ -268,6 +268,14 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
         ElasticObject.class);
     logger.info("  Definition Types loaded");
 
+    // subsets
+    List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
+    ElasticObject subsetsObject = new ElasticObject("subsets");
+    subsetsObject.setConcepts(subsets);
+    operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Subsets loaded");
+    
     // associationEntries
     for (Concept association : associations) {
       logger.info(association.getName());
@@ -283,14 +291,6 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
           ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     }
     logger.info("  Association Entries loaded");
-
-    // subsets
-    List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
-    ElasticObject subsetsObject = new ElasticObject("subsets");
-    subsetsObject.setConcepts(subsets);
-    operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
-    logger.info("  Subsets loaded");
 
     logger.info("Done loading Elastic Objects!");
   }

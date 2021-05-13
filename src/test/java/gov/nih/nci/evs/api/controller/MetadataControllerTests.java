@@ -1015,4 +1015,42 @@ public class MetadataControllerTests {
     assertThat(Sets.intersection(synonymTypes, definitionTypes)).isEmpty();
 
   }
+
+  /**
+   * Test top level of subsets.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTopLevelSubsetSearch() throws Exception {
+    String url = baseUrl + "/ncit/subsets";
+    MvcResult result = null;
+    List<Concept> list = null;
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list != null && list.size() > 0).isTrue();
+
+  }
+
+  /**
+   * Test specific subset search.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSpecificSubsetSearch() throws Exception {
+    String url = baseUrl + "/ncit/subset/C167405";
+    MvcResult result = null;
+    Concept list = null;
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(list != null && list.getChildren().size() > 0).isTrue();
+
+  }
 }

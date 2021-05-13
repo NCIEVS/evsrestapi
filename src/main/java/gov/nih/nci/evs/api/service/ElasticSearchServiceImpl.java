@@ -371,6 +371,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       queries.add(definitionTypeQuery);
     }
 
+    QueryBuilder subsetQuery = getSubsetValueQueryBuilder(searchCriteria);
+    if (subsetQuery != null) {
+      queries.add(subsetQuery);
+    }
+
     return queries;
   }
 
@@ -415,6 +420,36 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // nested query on properties
     return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
+  }
+
+  /**
+   * builds nested query for subset criteria on value field for given types.
+   *
+   * @param searchCriteria the search criteria
+   * @return the nested query
+   */
+  private QueryBuilder getSubsetValueQueryBuilder(SearchCriteria searchCriteria) {
+    if (searchCriteria.getSubset().size() == 0)
+      return null;
+
+    List<String> subsets = searchCriteria.getSubset();
+    BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();
+
+    if (subsets.size() == 1) {
+      subsetListQuery = subsetListQuery
+          .must(QueryBuilders.matchQuery("associations.relatedCode", subsets.get(0)));
+    } else {
+      for (String subset : subsets) {
+        subsetListQuery =
+            subsetListQuery.should(QueryBuilders.matchQuery("associations.relatedCode", subset));
+      }
+    }
+
+    BoolQueryBuilder subsetQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.matchQuery("associations.type", "Concept_In_Subset"))
+        .must(subsetListQuery);
+
+    return QueryBuilders.nestedQuery("associations", subsetQuery, ScoreMode.Total);
   }
 
   /**

@@ -207,19 +207,6 @@ public interface MetadataService {
     final Optional<String> include) throws Exception;
 
   /**
-   * Returns the association entries.
-   *
-   * @param terminology the terminology
-   * @param code the code
-   * @param orElse the starting record
-   * @param orElse2 the page size of the results list
-   * @return the association entry list
-   * @throws Exception the exception
-   */
-  AssociationEntryResultList getAssociationEntries(String terminology, String label,
-    Integer fromRecord, Integer pageSize) throws Exception;
-
-  /**
    * Returns the subsets.
    *
    * @param terminology the terminology
@@ -242,5 +229,18 @@ public interface MetadataService {
    */
   Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
     throws Exception;
+
+  /**
+   * Returns the association entries.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param orElse the starting record
+   * @param orElse2 the page size of the results list
+   * @return the association entry list
+   * @throws Exception the exception
+   */
+  AssociationEntryResultList getAssociationEntries(String terminology, String label,
+    Integer fromRecord, Integer pageSize) throws Exception;
 
 }
