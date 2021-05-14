@@ -99,11 +99,11 @@ public class ConceptControllerExtensionTests {
   }
 
   /**
-   * Test full set.
-   *
+   * Test full set. This doesn't need to be kept around as an actively running
+   * test The other tests are sufficient.
    * @throws Exception the exception
    */
-  @Test
+  // @Test
   public void testFullSet() throws Exception {
     testHelper("extensions-test-full-set.txt", "extensions-test-full-result.txt");
   }
