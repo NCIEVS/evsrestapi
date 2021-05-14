@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -89,6 +88,11 @@ public class ConceptControllerExtensionTests {
     testHelper("extensions-test-main-type-set.txt", "extensions-test-main-type-result.txt");
   }
 
+  /**
+   * Test targeted set.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testTargetedSet() throws Exception {
     testHelper("extensions-test-targeted-set.txt", "extensions-test-targeted-result.txt");
@@ -240,39 +244,55 @@ public class ConceptControllerExtensionTests {
     return map;
   }
 
-  /**
-   * Test extensions.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testExtensions() throws Exception {
-    String url = null;
-    MvcResult result = null;
-    String content = null;
-    Concept concept = null;
+  // For testing computation of extensions - no longer needed
+  // @Test
+  // public void testExtensions() throws Exception {
+  // String url = null;
+  // MvcResult result = null;
+  // String content = null;
+  // Concept concept = null;
+  //
+  // // Test a few codes to make sure they're not null
+  // for (final String code : new String[] {
+  // "C7280"
+  // }) {
+  // url = "/api/v1/extensions/" + code;
+  //
+  // log.info("Testing url - " + url);
+  // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+  // content = result.getResponse().getContentAsString();
+  // log.info(" content = " + content);
+  // concept = new ObjectMapper().readValue(content, Concept.class);
+  // log.info(" extensions = " + concept.getExtensions());
+  // assertThat(concept).isNotNull();
+  // }
+  //
+  // }
 
-    // Test a few codes to make sure they're not null
-    for (final String code : new String[] {
-        // "C111020"
-        // "C6772"
-        // "C5141"
-        // "C4896",
-        // "C4897"
-        // Need an example like "gout" and it's child
-        // "C34650"
-        "C7280"
-    }) {
-      url = "/api/v1/extensions/" + code;
-
-      log.info("Testing url - " + url);
-      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-      content = result.getResponse().getContentAsString();
-      log.info(" content = " + content);
-      concept = new ObjectMapper().readValue(content, Concept.class);
-      log.info(" extensions = " + concept.getExtensions());
-      assertThat(concept).isNotNull();
-    }
-
-  }
+  // TO USE THE ABOVE TEST
+  // put this code back at the end of concept controller
+  //
+  // @Autowired
+  // MainTypeHierarchy mainTypeHierarchy;
+  //
+  // @RequestMapping(method = RequestMethod.GET, value = "/extensions/{code}",
+  // produces = "application/json")
+  // @ApiIgnore
+  // public @ResponseBody Concept calculateExtensions(@PathVariable(value =
+  // "code")
+  // final String code) throws Exception {
+  // try {
+  // final Terminology term = termUtils.getTerminology("ncit", true);
+  // mainTypeHierarchy.initialize(term);
+  // final IncludeParam ip = new IncludeParam("full");
+  // final Concept concept = sparqlQueryManagerService.getConcept(code, term,
+  // ip);
+  // concept.setPaths(sparqlQueryManagerService.getPathToRoot(code, term));
+  // concept.setExtensions(mainTypeHierarchy.getExtensions(concept));
+  // return concept;
+  // } catch (Exception e) {
+  // handleException(e);
+  // return null;
+  // }
+  // }
 }

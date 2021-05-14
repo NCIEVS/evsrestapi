@@ -37,14 +37,12 @@ import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import gov.nih.nci.evs.api.util.ext.MainTypeHierarchy;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * Controller for /concept endpoints.
@@ -71,6 +69,7 @@ public class ConceptController extends BaseController {
   @Autowired
   TerminologyUtils termUtils;
 
+  /** The metadata service. */
   /* The metadata service */
   @Autowired
   MetadataService metadataService;
@@ -234,7 +233,9 @@ public class ConceptController extends BaseController {
    * Returns the association entries.
    *
    * @param terminology the terminology
-   * @param code the code
+   * @param codeOrLabel the code or label
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the association antries
    * @throws Exception the exception
    */
@@ -972,25 +973,4 @@ public class ConceptController extends BaseController {
     }
   }
 
-  @Autowired
-  MainTypeHierarchy mainTypeHierarchy;
-
-  @RequestMapping(method = RequestMethod.GET, value = "/extensions/{code}",
-      produces = "application/json")
-  @ApiIgnore
-  public @ResponseBody Concept calculateExtensions(@PathVariable(value = "code")
-  final String code) throws Exception {
-    try {
-      final Terminology term = termUtils.getTerminology("ncit", true);
-      mainTypeHierarchy.initialize(term);
-      final IncludeParam ip = new IncludeParam("full");
-      final Concept concept = sparqlQueryManagerService.getConcept(code, term, ip);
-      concept.setPaths(sparqlQueryManagerService.getPathToRoot(code, term));
-      concept.setExtensions(mainTypeHierarchy.getExtensions(concept));
-      return concept;
-    } catch (Exception e) {
-      handleException(e);
-      return null;
-    }
-  }
 }
