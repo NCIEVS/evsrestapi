@@ -35,8 +35,8 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import gov.nih.nci.evs.api.util.ext.MainTypeHierarchy;
 
 /**
  * The implementation for {@link ElasticLoadService}.
