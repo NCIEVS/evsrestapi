@@ -6073,7 +6073,30 @@ Term Type
 		return w;
 	}
 
+	public String construct_get_datatypes(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select ?dt ?element ?elementType ").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("   ?dt a rdfs:Datatype ;").append("\n");
+		buf.append("   owl:oneOf/rdf:rest*/rdf:first ?element .").append("\n");
+		buf.append("   bind(datatype(?element) as ?elementType)").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
 
+    public Vector getDatatypes(String named_graph) {
+	    String query = construct_get_datatypes(named_graph);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -6081,10 +6104,8 @@ Term Type
 		String namedGraph = args[1];
 		String username = args[2];
 		String password = args[3];
-		//String code = args[5];
 	    OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(restURL, username, password);
 	    owlSPARQLUtils.set_named_graph(namedGraph);
-
 
 		Vector v = owlSPARQLUtils.getSubclassesByCode(namedGraph, "C168547");
 		Utils.dumpVector("v", v);
