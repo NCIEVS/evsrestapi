@@ -47,10 +47,10 @@ export EVS_SERVER_PORT="8082"
 /usr/local/jdk1.8/bin/java -jar ../lib/evsrestapi.jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/    /'
 
 # Set the indexes to have a larger max_result_window
-echo "  Set max result window to 100000"
+echo "  Set max result window to 150000"
 fv=`echo $version | perl -pe 's/\.//;'`
 curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
-  -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 100000 } }'
+  -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }'
 
 # The part to remove the old version indexes for things no longer in stardog
 # is unnecessary as it is implemented by the reindexing process.  To see an example
