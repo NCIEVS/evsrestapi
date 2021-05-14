@@ -82,6 +82,8 @@ public class OWLScanner {
 	static String pt_code = "P108";
 	static String pt_tag_open = "<P108>";
 
+	static String SUBSET_MEMBERSHIP = "<A8 rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#CCODE\"/>";
+
 	public HashMap code2LabelMap = null;
 
     public OWLScanner() {
@@ -2519,6 +2521,28 @@ C4910|<NHC0>C4910</NHC0>
         return w;
     }
 
+	public Vector extract_value_set(Vector class_vec, String subset_code) {
+		Vector v = new Vector();
+        Vector w = new Vector();
+        String classId = null;
+		String target = SUBSET_MEMBERSHIP;
+		target = target.replace("CCODE", subset_code);
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+			} else {
+				if (t.indexOf(target) != -1) {
+					v.add(classId);
+				}
+			}
+		}
+		return v;
+	}
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
