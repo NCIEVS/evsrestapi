@@ -372,7 +372,7 @@ public class ConceptController extends BaseController {
       if (associationListSize > 0) {
         logger.info("associationListSize > 0");
         for (Association assn : concept.get().getInverseAssociations().subList(0,
-            pageSize.orElse(associationListSize - 1))) {
+            Math.min(pageSize.orElse(associationListSize - 1), associationListSize - 1))) {
           subsets.add(new Concept("ncit", assn.getRelatedCode(), assn.getRelatedName()));
         }
       }
