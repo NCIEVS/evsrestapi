@@ -2419,7 +2419,16 @@ C4910|<NHC0>C4910</NHC0>
 
 
 				} else if (t.startsWith("</owl:Axiom>")) {
-					if (!isNull(curator)) w.add(buf.toString());
+					if (!isNull(curator)) {
+						String s = buf.toString();
+						Vector u = StringUtils.parseData(s, '|');
+						if (u.size() > 3) {
+							String propCode = (String) u.elementAt(2);
+							if (propCode.compareTo(prop_code) == 0) {
+								w.add(s);
+							}
+						}
+					}
 					buf = new StringBuffer();
 
 				} else if (t.startsWith("<owl:annotatedSource")) {
@@ -2453,8 +2462,20 @@ C4910|<NHC0>C4910</NHC0>
 			}
         }
         if (!isNull(curator)) {
-			w.add(buf.toString());
+			String t = buf.toString();
+			Vector u = StringUtils.parseData(t, '|');
+			if (u.size() > 3) {
+				String propCode = (String) u.elementAt(2);
+				if (propCode.compareTo(prop_code) == 0) {
+					w.add(t);
+				}
+		    }
 		}
+/*
+Interferon Gamma-1b|C100089|P375|Interferon Gamma-1b|P393$Has Synonym|P394$PT|P395$therapeutic_agents|P396$GDC
+Interferon Gamma-1b|C100089|P90|Actimmune|P383$BR|P384$NCI
+Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
+*/
 
         //w = extractNCIDefData(w);
         //w = removeRetired(w, 1);
