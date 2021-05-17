@@ -2325,10 +2325,72 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+
+
+    public List getSynonyms(Vector axiom_data) {
+		if (axiom_data == null) return null;
+		HashMap hmap = new HashMap();
+		for (int i=0; i<axiom_data.size(); i++) {
+			String t = (String) axiom_data.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String axiom_id = (String) u.elementAt(0); //bnode_21e4bb1f_2fc9_480b_bbdb_0d116398d610_2156686
+			String label = (String) u.elementAt(1);
+			String code = (String) u.elementAt(2);
+			String propertyName = (String) u.elementAt(3); // FULL_SYN
+			//String propertyCode = (String) u.elementAt(4); // P90
+			String term_name = (String) u.elementAt(4); //P90
+			String qualifier_name = (String) u.elementAt(5);
+			//String qualifier_code = (String) u.elementAt(7);
+			String qualifier_value = (String) u.elementAt(6);
+            Synonym syn = (Synonym) hmap.get(axiom_id);
+            if (syn == null) {
+				syn = new Synonym(
+							code,
+							label,
+							term_name,
+							null, //termGroup,
+							null, //termSource,
+							null, //sourceCode,
+							null, //subSourceName,
+		                    null); //subSourceCode
+			}
+			if (qualifier_name.compareTo("Term Type") == 0 ||
+			           qualifier_name.compareTo("tem-type") == 0 ||
+			           qualifier_name.compareTo("P383") == 0) {
+				syn.setTermGroup(qualifier_value);
+			} else if (qualifier_name.compareTo("Term Source") == 0 ||
+			           qualifier_name.compareTo("tem-source") == 0 ||
+			           qualifier_name.compareTo("P384") == 0) {
+				syn.setTermSource(qualifier_value);
+			} else if (qualifier_name.compareTo("Source Code") == 0 ||
+			           qualifier_name.compareTo("source-code") == 0 ||
+			           qualifier_name.compareTo("P385") == 0) {
+				syn.setSourceCode(qualifier_value);
+			} else if (qualifier_name.compareTo("Subsource Name") == 0 ||
+			           qualifier_name.compareTo("subsource-name") == 0 ||
+			           qualifier_name.compareTo("P386") == 0) {
+				syn.setSubSourceName(qualifier_value);
+			} else if (qualifier_name.compareTo("Subsource Code") == 0 ||
+			           qualifier_name.compareTo("subsource-name") == 0) {
+				syn.setSubSourceCode(qualifier_value);
+			}
+			hmap.put(axiom_id, syn);
+		}
+		List syn_list = new ArrayList();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String axiom_id = (String) it.next();
+			Synonym syn = (Synonym) hmap.get(axiom_id);
+			syn_list.add(syn);
+		}
+		return syn_list;
+	}
+
+
     public List extractFULLSyns() {
 		Vector w = scanAxioms();
 		w = filterAxiomData(w, "P90");
-		List list = new AxiomUtils().getSynonyms(w);
+		List list = getSynonyms(w);
 		return list;
 	}
 
