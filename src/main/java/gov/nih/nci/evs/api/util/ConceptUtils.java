@@ -167,6 +167,9 @@ public final class ConceptUtils {
       if (ip.isPaths()) {
         newConcept.setPaths(concept.getPaths());
       }
+      if (ip.isExtensions()) {
+        newConcept.setExtensions(concept.getExtensions());
+      }
       if (ip.isDescendants()) {
         newConcept.setDescendants(concept.getDescendants());
       }

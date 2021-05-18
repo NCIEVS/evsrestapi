@@ -10,7 +10,7 @@ echo "  Setup configuration"
 APP_HOME=/local/content/evsrestapi
 CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
 CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
-echo "    config = $CONFIG_EVS_FILE"
+echo "    config = $CONFIG_ENV_FILE"
 . $CONFIG_ENV_FILE
 
 # Prep query to read all version info

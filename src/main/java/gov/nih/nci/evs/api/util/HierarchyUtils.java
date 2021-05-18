@@ -262,7 +262,7 @@ public class HierarchyUtils {
    * @param code the code
    * @return the label
    */
-  public String getLabel(String code) {
+  public String getName(String code) {
     if (this.code2label.containsKey(code)) {
       return code2label.get(code);
     }

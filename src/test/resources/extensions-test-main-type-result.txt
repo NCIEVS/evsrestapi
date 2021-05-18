@@ -1,0 +1,1576 @@
+CONCEPT C3167
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C7539"
+            },
+            {
+              "code" : "C3161"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3171
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3172"
+            },
+            {
+              "code" : "C9290"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        },
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3172"
+            },
+            {
+              "code" : "C3161"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9325
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C7352"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3908
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C9291
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3088
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9118"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9330
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C60781
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3059"
+            },
+            {
+              "code" : "C9293"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C6906
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : true,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9293"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C27814
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C4912
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C9312
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9118"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C4016"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C4872
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C9293
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9039
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C4436
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C27814"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C2946
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9118"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C2947
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3264"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C4016"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C2948
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3422"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C4715
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : true,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9293"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3163
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C7539"
+            },
+            {
+              "code" : "C3161"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3174
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3172"
+            },
+            {
+              "code" : "C3161"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C4345"
+            },
+            {
+              "code" : "C9290"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3178
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9290"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C2955
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C38661
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3208"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C171133
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3510
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3224"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C7109
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C27814"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C2996
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3708"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3752
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3708"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3264
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3017
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : true,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3059"
+            },
+            {
+              "code" : "C9293"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3513
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C4817
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9118"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3264"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3867
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3844
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3790
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3716"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        },
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3716"
+            },
+            {
+              "code" : "C3264"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C4911
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3868
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3708
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3753
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3708"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C4699
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3422"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3058
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : true,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3059"
+            },
+            {
+              "code" : "C9293"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3059
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9293"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C35850
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C27134
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3728
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3264"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3099
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C7927"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9357
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3208"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9465
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9466"
+            },
+            {
+              "code" : "C35850"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9087
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9306"
+            },
+            {
+              "code" : "C9118"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9384
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C4855
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C35850"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3158
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9118"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C4896
+{
+  "isDisease" : false,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3161
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C9315
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C35850"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3194
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9118"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C7927
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C4878
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C2926
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C4878"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C4917
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : true,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C4878"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C7539
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3161"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3208
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C4016
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C4767
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C7251
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3224
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C3230
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9293"
+            },
+            {
+              "code" : "C3268"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3234
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : false,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [ ]
+}
+CONCEPT C4290
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3708"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3247
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : true,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9290"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+CONCEPT C3172
+{
+  "isDisease" : true,
+  "isDiseaseGrade" : false,
+  "isDiseaseStage" : false,
+  "isMainType" : true,
+  "isSubtype" : true,
+  "isBiomarker" : false,
+  "isReferenceGene" : false,
+  "mainMenuAncestors" : [
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C3161"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "paths" : [
+        {
+          "direction" : 1,
+          "concepts" : [
+            {
+              "code" : "C9290"
+            },
+            {
+              "code" : "C27134"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

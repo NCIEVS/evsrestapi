@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.util.VersionInfo;
 
@@ -109,6 +111,19 @@ public interface SparqlQueryManagerService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public List<String> getQualifierValues(String propertyCode, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException;
+
+  /**
+   * Returns the subset members.
+   *
+   * @param subsetCode the subset code
+   * @param terminology the terminology
+   * @return the subset members
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public List<Concept> getSubsetMembers(String subsetCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -552,6 +567,18 @@ public interface SparqlQueryManagerService {
     throws JsonMappingException, JsonParseException, IOException;
 
   /**
+   * Returns the main type hierarchy.
+   *
+   * @param terminology the terminology
+   * @return the main type hierarchy
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonParseException the json parse exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  Map<String, Paths> getMainTypeHierarchy(Terminology terminology, Set<String> mainTypeSet,
+    Set<String> broadCategorySet) throws JsonMappingException, JsonParseException, IOException;
+
+  /**
    * Returns the all child nodes.
    *
    * @param parent the parent
@@ -565,7 +592,7 @@ public interface SparqlQueryManagerService {
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
-   * Get hiearchy for a given terminology.
+   * Get hierarchy for a given terminology.
    *
    * @param terminology the terminology
    * @return the hierarchy
