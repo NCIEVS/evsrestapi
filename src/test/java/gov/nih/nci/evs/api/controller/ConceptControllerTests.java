@@ -1235,4 +1235,50 @@ public class ConceptControllerTests {
     return false;
   }
 
+  /**
+   * Test getting subsets members for code and terminology
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubsetMembers() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> subsetMembers;
+
+    url = baseUrl + "/ncit/subsetMembers/C2991";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    subsetMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+
+    assertThat(subsetMembers.size() > 0);
+
+    url = baseUrl + "/ncit/subsetMembers/C2991?pageSize=10";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    subsetMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+
+    assertThat(subsetMembers.size() == 10);
+
+    url = baseUrl + "/ncit/subsetMembers/C136564?pageSize=10";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    subsetMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+
+    assertThat(subsetMembers.size() == 0);
+  }
+
 }
