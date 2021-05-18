@@ -2627,6 +2627,18 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		return v;
 	}
 
+	public Vector extract_value_set(Vector class_vec, Vector subset_codes) {
+		Vector v = new Vector();
+		for (int i=0; i<subset_codes.size(); i++) {
+			String subset_code = (String) subset_codes.elementAt(i);
+			Vector w = extract_value_set(class_vec, subset_code);
+			if (w != null && w.size() > 0) {
+				v.addAll(w);
+			}
+		}
+		return v;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		/*
