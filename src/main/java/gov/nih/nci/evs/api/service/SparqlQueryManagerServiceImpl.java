@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
@@ -1657,6 +1658,92 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   /* see superclass */
+  public Map<String, Paths> getMainTypeHierarchy(Terminology terminology,
+    final Set<String> mainTypeSet, final Set<String> broadCategorySet)
+    throws JsonMappingException, JsonParseException, IOException {
+
+    final Set<String> combined = Sets.union(mainTypeSet, broadCategorySet);
+    // For each mainTypeSet concept find "shortest paths" to root
+    final Map<String, Paths> map = new HashMap<>();
+    for (final Map.Entry<String, Paths> entry : this
+        .getPathToRoot(new ArrayList<>(combined), terminology).entrySet()) {
+      final String code = entry.getKey();
+      final Paths paths = entry.getValue();
+
+      // Determine if paths go through C2991 "Diseases and Disorders"
+      boolean diseaseFlag = paths.getPaths().stream().flatMap(p -> p.getConcepts().stream())
+          .filter(c -> c.getCode().equals("C2991")).count() > 0;
+      if (!diseaseFlag) {
+        log.debug("  SKIP Main type hierarchy = " + code);
+        // Leave the return value empty for this code
+        continue;
+      }
+
+      log.debug("  Main type hierarchy = " + code);
+      // for (final Path path : paths.getPaths()) {
+      // log.debug(" path = "
+      // + path.getConcepts().stream().map(c ->
+      // c.getCode()).collect(Collectors.toList()));
+      // }
+      // Rewrite paths
+      final Paths rewritePaths = new Paths();
+      rewritePaths.setPaths(paths.getPaths().stream().map(p -> p.rewritePath(combined, true))
+          .collect(Collectors.toList()));
+      // for (final Path path : rewritePaths.getPaths()) {
+      // log.debug(" rewrite = "
+      // + path.getConcepts().stream().map(c ->
+      // c.getCode()).collect(Collectors.toList()));
+      // }
+
+      // Remove all but the longest paths
+      final Paths longestPaths = new Paths();
+      final int longest = rewritePaths.getPaths().stream().map(p -> p.getConcepts().size())
+          .max(Integer::compare).get();
+      // log.debug(" longest = " + longest);
+      final Set<String> seen = new HashSet<>();
+      longestPaths.setPaths(
+          rewritePaths.getPaths().stream().filter(p -> !seen.contains(p.getConcepts().toString()))
+              .filter(p -> p.getConcepts().size() == longest)
+              .peek(p -> seen.add(p.getConcepts().toString())).collect(Collectors.toList()));
+      for (final Path path : longestPaths.getPaths()) {
+        log.debug("    longest = "
+            + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      }
+      // Save the pre-trimmed paths, this is the full hierarchy
+      map.put(code + "-FULL", longestPaths);
+
+      // Trim paths to remove broad category concepts if there are main type
+      // concepts
+      final Paths trimmedPaths = new Paths();
+      for (final Path path : longestPaths.getPaths()) {
+        // If the path contains main type concepts, remove broad category
+        // concepts
+        if (path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode()))
+            .count() > 0) {
+          path.getConcepts().removeIf(c -> broadCategorySet.contains(c.getCode()));
+        }
+        // If there is more than one broad category concept, keep only the first
+        if (path.getConcepts().stream().filter(c -> broadCategorySet.contains(c.getCode()))
+            .count() > 1) {
+          path.getConcepts()
+              .removeIf(c -> !c.getCode().equals(path.getConcepts().get(0).getCode()));
+        }
+
+        trimmedPaths.getPaths().add(path);
+      }
+      for (final Path path : trimmedPaths.getPaths()) {
+        log.debug("    trimmed = "
+            + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      }
+     
+      // Save the trimmed paths (this is where mma comes from)
+      map.put(code, trimmedPaths);
+    }
+
+    return map;
+  }
+
+  /* see superclass */
   @Override
   // @Cacheable(value = "terminology",
   // key = "{#root.methodName, #terminology.getTerminologyVersion(),
@@ -1796,6 +1883,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return propertyValues;
+  }
+
+  /* see superclass */
+  public List<Concept> getSubsetMembers(String subsetCode, Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    final String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+    final Map<String, String> values =
+        ConceptUtils.asMap("conceptCode", subsetCode, "namedGraph", terminology.getGraph());
+    final String query = queryBuilderService.constructQuery("subset", values);
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final List<Concept> subsetMembers = new ArrayList<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (Bindings b : bindings) {
+      final String code = b.getConceptCode().getValue();
+      final String name = b.getConceptLabel().getValue();
+      subsetMembers.add(new Concept(terminology.getTerminology(), code, name));
+    }
+
+    return subsetMembers;
   }
 
   /* see superclass */
@@ -2014,7 +2125,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
         int j = 0;
         for (int i = idx; i >= 0; i--) {
-          Concept c = new Concept();
+          final Concept c = new Concept();
           c.setCode(concepts.get(i).getCode());
           c.setName(concepts.get(i).getName());
           c.setLevel(j);

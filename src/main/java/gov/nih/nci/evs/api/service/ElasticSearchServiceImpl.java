@@ -222,7 +222,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (s == null) {
       return "";
     }
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < s.length(); i++) {
       char c = s.charAt(i);
       // These characters are part of the query syntax and must be escaped
@@ -233,7 +233,25 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
       sb.append(c);
     }
-    return sb.toString();
+
+    // Escape "and", "or", and "not" - escape each char of the word
+    final String q1 = sb.toString();
+    final StringBuilder sb2 = new StringBuilder();
+    boolean first = true;
+    for (final String word : q1.split(" ")) {
+      if (!first) {
+        sb2.append(" ");
+      }
+      first = false;
+      if (word.toLowerCase().matches("(and|or|not)")) {
+        for (final String c : word.split("")) {
+          sb2.append("\\").append(c);
+        }
+      } else {
+        sb2.append(word);
+      }
+    }
+    return sb2.toString();
   }
 
   /**

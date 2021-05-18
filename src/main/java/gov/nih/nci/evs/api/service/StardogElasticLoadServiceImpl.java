@@ -34,6 +34,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
@@ -74,6 +75,10 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   /** The sparql query manager service. */
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
+
+  /** The main type hierarchy. */
+  @Autowired
+  MainTypeHierarchy mainTypeHierarchy;
 
   /** the sparql query service impl */
   @Autowired
@@ -133,6 +138,9 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
       return;
     }
 
+    logger.info("  Initialize main type hierarchy");
+    mainTypeHierarchy.initialize(terminology);
+
     logger.info("  Total concepts to load: {}", allConcepts.size());
 
     Double total = (double) allConcepts.size();
@@ -154,6 +162,15 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
         List<Concept> concepts = sparqlQueryManagerService
             .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
         logger.info("    finish reading {} to {}", start + 1, end);
+
+        logger.info("    start computing extensions {} to {}", start + 1, end);
+        concepts.stream()
+            // .peek(c -> logger.info(" concept = " + c.getCode() + " " +
+            // c.getName()))
+            .peek(c -> c.setExtensions(mainTypeHierarchy.getExtensions(c)))
+            // .peek(c -> logger.info(" extensions = " + c.getExtensions()))
+            .count();
+        logger.info("    finish computing extensions {} to {}", start + 1, end);
 
         int indexStart = 0;
         int indexEnd = INDEX_BATCH_SIZE;

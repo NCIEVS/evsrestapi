@@ -66,7 +66,7 @@ public class Concept extends ConceptMinimal {
   @JsonDeserialize
   private java.util.Map<String, String> highlights;
 
-  /** The normName */
+  /** The normName. */
   @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
@@ -93,19 +93,19 @@ public class Concept extends ConceptMinimal {
 
   /** The children. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "parents", "children", "descendants", "paths"
+      "parents", "children", "descendants", "paths", "extensions"
   })
   private List<Concept> children;
 
   /** The parents. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "parents", "children", "descendants", "paths"
+      "parents", "children", "descendants", "paths", "extensions"
   })
   private List<Concept> parents;
 
   /** The descendants. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "parents", "children", "descendants", "paths"
+      "parents", "children", "descendants", "paths", "extensions"
   })
   private List<Concept> descendants;
 
@@ -138,6 +138,10 @@ public class Concept extends ConceptMinimal {
       "paths"
   })
   private Paths paths;
+
+  /** The paths to root. */
+  @Field(type = FieldType.Nested)
+  private Extensions extensions;
 
   /**
    * Instantiates an empty {@link Concept}.
@@ -218,6 +222,7 @@ public class Concept extends ConceptMinimal {
     if (other.getPaths() != null) {
       paths = other.getPaths();
     }
+    extensions = other.getExtensions();
   }
 
   /**
@@ -567,8 +572,8 @@ public class Concept extends ConceptMinimal {
 
   /**
    * Returns the paths.
-   * 
-   * @return
+   *
+   * @return the paths
    */
   public Paths getPaths() {
     return paths;
@@ -581,6 +586,24 @@ public class Concept extends ConceptMinimal {
    */
   public void setPaths(Paths paths) {
     this.paths = paths;
+  }
+
+  /**
+   * Returns the extensions.
+   *
+   * @return the extensions
+   */
+  public Extensions getExtensions() {
+    return extensions;
+  }
+
+  /**
+   * Sets the extensions.
+   *
+   * @param extensions the extensions
+   */
+  public void setExtensions(Extensions extensions) {
+    this.extensions = extensions;
   }
 
   /**

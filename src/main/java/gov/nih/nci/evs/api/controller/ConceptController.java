@@ -61,7 +61,6 @@ public class ConceptController extends BaseController {
   SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The elastic query service. */
-  /* The elasticsearch query service */
   @Autowired
   ElasticQueryService elasticQueryService;
 
@@ -70,6 +69,7 @@ public class ConceptController extends BaseController {
   @Autowired
   TerminologyUtils termUtils;
 
+  /** The metadata service. */
   /* The metadata service */
   @Autowired
   MetadataService metadataService;
@@ -233,7 +233,9 @@ public class ConceptController extends BaseController {
    * Returns the association entries.
    *
    * @param terminology the terminology
-   * @param code the code
+   * @param codeOrLabel the code or label
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the association antries
    * @throws Exception the exception
    */

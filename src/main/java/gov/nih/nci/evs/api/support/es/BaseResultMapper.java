@@ -53,5 +53,8 @@ public abstract class BaseResultMapper {
     if (!ip.isPaths()) {
       sourceMap.put("paths", null);
     }
+    if (!ip.isExtensions()) {
+      sourceMap.put("extensions", null);
+    }
   }
 }

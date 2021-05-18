@@ -51,6 +51,9 @@ public class IncludeParam extends BaseModel {
   /** The paths. */
   private boolean paths;
 
+  /** The extensions. */
+  private boolean extensions;
+
   /**
    * Instantiates an empty {@link IncludeParam}.
    */
@@ -103,6 +106,8 @@ public class IncludeParam extends BaseModel {
           disjointWith = true;
         } else if (part.equals("paths")) {
           paths = true;
+        } else if (part.equals("extensions")) {
+          extensions = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
@@ -140,7 +145,7 @@ public class IncludeParam extends BaseModel {
     highlights = other.isHighlights();
     disjointWith = other.isDisjointWith();
     paths = other.isPaths();
-
+    extensions = other.isExtensions();
   }
 
   /**
@@ -190,7 +195,7 @@ public class IncludeParam extends BaseModel {
   public boolean hasAnyTrue() {
     return synonyms || definitions || properties || children || descendants || parents
         || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
-        || paths;
+        || paths || extensions;
   }
 
   /**
@@ -439,9 +444,27 @@ public class IncludeParam extends BaseModel {
   /**
    * Sets the disjoint.
    *
-   * @param disjoint the disjoint
+   * @param paths the paths
    */
   public void setPaths(boolean paths) {
     this.paths = paths;
+  }
+
+  /**
+   * Indicates whether or not extensions is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isExtensions() {
+    return extensions;
+  }
+
+  /**
+   * Sets the extensions.
+   *
+   * @param extensions the extensions
+   */
+  public void setExtensions(boolean extensions) {
+    this.extensions = extensions;
   }
 }
