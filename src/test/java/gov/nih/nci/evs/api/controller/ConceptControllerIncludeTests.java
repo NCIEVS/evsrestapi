@@ -25,7 +25,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
- * Integration tests for MetadataController.
+ * Integration tests for ConceptController for "include" flag.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)

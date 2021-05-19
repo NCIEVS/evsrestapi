@@ -1735,7 +1735,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         log.debug("    trimmed = "
             + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       }
-     
+
       // Save the trimmed paths (this is where mma comes from)
       map.put(code, trimmedPaths);
     }

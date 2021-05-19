@@ -34,7 +34,7 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
- * The Class SearchControllerTests.
+ * Integration tests for SearchController.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
