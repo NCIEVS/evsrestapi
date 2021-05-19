@@ -75,17 +75,17 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies(@RequestParam("latest")
-  final boolean latest, @RequestParam("tag")
+  final Optional<Boolean> latest, @RequestParam("tag")
   final Optional<String> tag) throws Exception {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
       List<Terminology> terms = termUtils.getTerminologies(true);
-      logger.info("terminology latest = " + terms.get(0).getLatest().toString());
-      logger.info("given param = " + latest);
-      logger.info("match = " + "true".equals(terms.get(0).getLatest().toString()));
+      if (latest.isPresent())
+        logger.info("match = "
+            + Boolean.toString(latest.get()).equals(terms.get(0).getLatest().toString()));
 
-      if (latest)
-        terms.stream().filter(f -> latest == f.getLatest()).collect(Collectors.toList());
+      if (latest.isPresent())
+        terms.stream().filter(f -> latest.get() == f.getLatest()).collect(Collectors.toList());
 
       if (tag.isPresent() && tagList.contains(tag.get())) {
         terms.stream().filter(f -> f.getTags().get(tag.get()) == "true")
