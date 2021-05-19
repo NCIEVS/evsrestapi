@@ -82,9 +82,6 @@ public class MetadataController extends BaseController {
       List<Terminology> terms = termUtils.getTerminologies(true);
 
       if (latest.isPresent()) {
-        for (Terminology term : terms) {
-          logger.info("match = " + (latest.get() == term.getLatest()));
-        }
         terms = terms.stream().filter(f -> f.getLatest().equals(latest.get()))
             .collect(Collectors.toList());
       }
