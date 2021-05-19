@@ -2351,7 +2351,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             terminology.getMetadata().getDefinitionSource(), "conceptStatusCode",
             terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
             terminology.getMetadata().getRetiredStatusValue()));
-    log.info("XXX = " + query);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();

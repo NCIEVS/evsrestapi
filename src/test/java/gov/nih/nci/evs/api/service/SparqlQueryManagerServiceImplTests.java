@@ -25,7 +25,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class SparqlQueryManagerImplTests {
+public class SparqlQueryManagerServiceImplTests {
 
   /** The logger. */
   // private static final Logger logger =
