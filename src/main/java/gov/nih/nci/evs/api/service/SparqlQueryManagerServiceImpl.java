@@ -2273,8 +2273,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<ConceptMinimal> getSynonymSources(Terminology terminology)
     throws JsonMappingException, JsonProcessingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
+
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
-        terminology.getMetadata().getSynonymSource(), terminology.getGraph());
+        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
+            terminology.getMetadata().getSynonymSource(), "conceptStatusCode",
+            terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
+            terminology.getMetadata().getRetiredStatusValue()));
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -2307,7 +2311,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonMappingException, JsonProcessingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
-        terminology.getMetadata().getSynonymTermType(), terminology.getGraph());
+        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
+            terminology.getMetadata().getSynonymTermType(), "conceptStatusCode",
+            terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
+            terminology.getMetadata().getRetiredStatusValue()));
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -2340,7 +2347,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonMappingException, JsonProcessingException, IOException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
-        terminology.getMetadata().getDefinitionSource(), terminology.getGraph());
+        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
+            terminology.getMetadata().getDefinitionSource(), "conceptStatusCode",
+            terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
+            terminology.getMetadata().getRetiredStatusValue()));
+    log.info("XXX = " + query);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();

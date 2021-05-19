@@ -126,7 +126,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
       }
     }
     String query = getResolvedProperty(queryProp, values);
-    // log.debug("construct " + queryProp + " - " + query);
+    log.debug("construct " + queryProp + " - " + query);
+    log.debug("construct map " + values);
     return query;
   }
 
