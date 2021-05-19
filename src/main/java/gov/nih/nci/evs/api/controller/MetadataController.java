@@ -1,8 +1,10 @@
 
 package gov.nih.nci.evs.api.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,12 +65,33 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "latest", value = "latest terminology: 'true' or 'false'",
+          required = false, dataType = "boolean", paramType = "query", defaultValue = "true"),
+      @ApiImplicitParam(name = "tag", value = "tag for terminology: 'monthly' or 'weekly'",
+          required = false, dataType = "string", paramType = "query")
+  })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
-  public @ResponseBody List<Terminology> getTerminologies() throws Exception {
+  public @ResponseBody List<Terminology> getTerminologies(@RequestParam("latest")
+  final boolean latest, @RequestParam("tag")
+  final Optional<String> tag) throws Exception {
+    List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
-      return termUtils.getTerminologies(true);
+      List<Terminology> terms = termUtils.getTerminologies(true);
+      logger.info("terminology latest = " + terms.get(0).getLatest().toString());
+      logger.info("given param = " + latest);
+      logger.info("match = " + "true".equals(terms.get(0).getLatest().toString()));
+
+      if (latest)
+        terms.stream().filter(f -> latest == f.getLatest()).collect(Collectors.toList());
+
+      if (tag.isPresent() && tagList.contains(tag.get())) {
+        terms.stream().filter(f -> f.getTags().get(tag.get()) == "true")
+            .collect(Collectors.toList());
+      }
+      return terms;
     } catch (Exception e) {
       handleException(e);
       return null;
