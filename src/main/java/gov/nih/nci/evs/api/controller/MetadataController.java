@@ -80,17 +80,20 @@ public class MetadataController extends BaseController {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
       List<Terminology> terms = termUtils.getTerminologies(true);
-      if (latest.isPresent())
-        logger.info("match = "
-            + Boolean.toString(latest.get()).equals(terms.get(0).getLatest().toString()));
 
-      if (latest.isPresent())
-        terms.stream().filter(f -> latest.get() == f.getLatest()).collect(Collectors.toList());
-
-      if (tag.isPresent() && tagList.contains(tag.get())) {
-        terms.stream().filter(f -> f.getTags().get(tag.get()) == "true")
+      if (latest.isPresent()) {
+        for (Terminology term : terms) {
+          logger.info("match = " + (latest.get() == term.getLatest()));
+        }
+        terms = terms.stream().filter(f -> f.getLatest().equals(latest.get()))
             .collect(Collectors.toList());
       }
+
+      if (tag.isPresent() && tagList.contains(tag.get())) {
+        terms = terms.stream().filter(f -> f.getTags().get(tag.get()) == "true")
+            .collect(Collectors.toList());
+      }
+
       return terms;
     } catch (Exception e) {
       handleException(e);
