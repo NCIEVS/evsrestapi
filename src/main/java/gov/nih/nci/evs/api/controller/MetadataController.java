@@ -69,14 +69,17 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "latest", value = "latest terminology: 'true' or 'false'",
           required = false, dataType = "boolean", paramType = "query", defaultValue = "true"),
       @ApiImplicitParam(name = "tag", value = "tag for terminology: 'monthly' or 'weekly'",
-          required = false, dataType = "string", paramType = "query")
+          required = false, dataType = "string", paramType = "query"),
+      @ApiImplicitParam(name = "terminology", value = "terminology name", required = false,
+          dataType = "string", paramType = "query")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies(@RequestParam("latest")
   final Optional<Boolean> latest, @RequestParam("tag")
-  final Optional<String> tag) throws Exception {
+  final Optional<String> tag, @RequestParam("terminology")
+  final Optional<String> terminology) throws Exception {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
       List<Terminology> terms = termUtils.getTerminologies(true);
@@ -88,6 +91,11 @@ public class MetadataController extends BaseController {
 
       if (tag.isPresent() && tagList.contains(tag.get())) {
         terms = terms.stream().filter(f -> f.getTags().get(tag.get()) == "true")
+            .collect(Collectors.toList());
+      }
+
+      if (terminology.isPresent()) {
+        terms = terms.stream().filter(f -> f.getTerminology().equals(terminology.get()))
             .collect(Collectors.toList());
       }
 

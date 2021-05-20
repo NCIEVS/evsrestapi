@@ -90,7 +90,7 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
 
-    url = baseUrl + "/terminologies/?latest=true&tags=weekly";
+    url = baseUrl + "/terminologies?terminology=ncit&latest=true";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -101,10 +101,10 @@ public class MetadataControllerTests {
     });
     for (Terminology term : list) {
       assertThat(term.getLatest() == true);
-      assertThat(term.getTags().get("weekly") == "true");
+      assertThat(term.getTerminology() == "ncit");
     }
 
-    url = baseUrl + "/terminologies/?latest=false&tags=monthly";
+    url = baseUrl + "/terminologies?terminology=ncit&tags=monthly";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -114,8 +114,37 @@ public class MetadataControllerTests {
       // n/a
     });
     for (Terminology term : list) {
-      assertThat(term.getLatest() == false);
       assertThat(term.getTags().get("monthly") == "true");
+      assertThat(term.getTerminology() == "ncit");
+    }
+
+    url = baseUrl + "/terminologies?tags=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    for (Terminology term : list) {
+      assertThat(term.getTags().get("monthly") == "true");
+      assertThat(term.getLatest() == true);
+    }
+
+    url = baseUrl + "/terminologies?terminology=ncit&tags=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    for (Terminology term : list) {
+      assertThat(term.getTags().get("monthly") == "true");
+      assertThat(term.getLatest() == true);
+      assertThat(term.getTerminology() == "ncit");
     }
   }
 
