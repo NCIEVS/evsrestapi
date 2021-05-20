@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -924,13 +926,29 @@ public class MetadataControllerTests {
     Concept concept = null;
     String content = null;
 
+    // Test all
+    url = baseUrl + "/ncit/qualifiers?include=minimal";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+
+    // test unpublished isn't in the list
+    assertThat(list).isNotEmpty();
+    List<String> unpublished = Arrays.asList("P379", "P380");
+    List<String> properties = list.stream().map(Concept::getCode).collect(Collectors.toList());
+    assertThat(Collections.disjoint(properties, unpublished));
+
     // Test with P389
     url = baseUrl + "/ncit/qualifiers?include=summary&list=P389";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
     assertThat(list).isNotEmpty();
