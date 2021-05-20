@@ -1850,8 +1850,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final TerminologyMetadata md = terminology.getMetadata();
     for (String code : qualifiers) {
       // Exclude properties that are redefined as synonyms or definitions
-      log.info(code);
-      log.info("unpublished = " + md.getUnpublished());
       if (md.isRemodeledQualifier(code)) {
         continue;
       }
