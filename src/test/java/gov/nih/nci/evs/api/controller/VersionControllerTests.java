@@ -29,7 +29,7 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.support.ApplicationVersion;
 
 /**
- * The Class VersionControllerTests.
+ * Integration tests for VersionController.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
