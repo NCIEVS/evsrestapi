@@ -1880,25 +1880,29 @@ public class EVSStatistics {
 	    th_vec.add("Count");
 	    addTable(tableName, th_vec, association_knt_vec);
 
-        if (checkIfFileExists(RESTRICTION_FILE)) {
-			v = Utils.readFile(RESTRICTION_FILE);
-		} else{
-        	v = getRoleTargets(named_graph);
-		}
+        try {
+			if (checkIfFileExists(RESTRICTION_FILE)) {
+				v = Utils.readFile(RESTRICTION_FILE);
+			} else{
+				v = getRoleTargets(named_graph);
+			}
 
-		String firstLine = (String) v.elementAt(0);
-		Vector u = StringUtils.parseData(firstLine, '|');
-		if (u.size() == 3) {
-			v = convert(v);
-			Utils.saveToFile(RESTRICTION_FILE, v);
-		}
+			String firstLine = (String) v.elementAt(0);
+			Vector u = StringUtils.parseData(firstLine, '|');
+			if (u.size() == 3) {
+				v = convert(v);
+				Utils.saveToFile(RESTRICTION_FILE, v);
+			}
 
-		Vector role_vec = getRelationsipCounts(v);
-	    tableName = addTableNumber("Roles");
-	    th_vec = new Vector();
-	    th_vec.add("Role");
-	    th_vec.add("Count");
-	    addTable(tableName, th_vec, role_vec);
+			Vector role_vec = getRelationsipCounts(v);
+			tableName = addTableNumber("Roles");
+			th_vec = new Vector();
+			th_vec.add("Role");
+			th_vec.add("Count");
+			addTable(tableName, th_vec, role_vec);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	    addFooter();
 	}
 
