@@ -106,6 +106,7 @@
     "SN": "Chemical structure name",
     "SY": "Synonym"
   },
+  "unpublished": [ "P379", "P380" ],
   "sourcesToRemove": [
     "cadsr",
     "CADSR",
