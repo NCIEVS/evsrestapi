@@ -82,6 +82,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The subsetMembers for association entries */
   private Set<String> subsetMember;
 
+  /** The unpublished codes */
+  private Set<String> unpublished;
+
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
    */
@@ -126,6 +129,7 @@ public class TerminologyMetadata extends BaseModel {
     termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getTermTypes());
     subsetMember = new HashSet<>(other.getSubsetMember());
+    unpublished = new HashSet<>(other.getUnpublished());
   }
 
   /* see superclass */
@@ -152,6 +156,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
     result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
     result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
+    result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
     return result;
   }
 
@@ -249,6 +254,11 @@ public class TerminologyMetadata extends BaseModel {
       if (other.subsetMember != null)
         return false;
     } else if (!subsetMember.equals(other.subsetMember))
+      return false;
+    if (unpublished == null) {
+      if (other.unpublished != null)
+        return false;
+    } else if (!unpublished.equals(other.unpublished))
       return false;
     return true;
   }
@@ -677,6 +687,23 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * @return the unpublished
+   */
+  public Set<String> getUnpublished() {
+    if (unpublished == null) {
+      unpublished = new HashSet<>();
+    }
+    return unpublished;
+  }
+
+  /**
+   * @param unpublished the unpublished to set
+   */
+  public void setUnpublished(Set<String> unpublished) {
+    this.unpublished = unpublished;
+  }
+
+  /**
    * Indicates whether or not property exclusion is the case.
    *
    * @param code the code
@@ -701,6 +728,16 @@ public class TerminologyMetadata extends BaseModel {
         || code.equals(synonymSubSource) || code.equals(definitionSource)
         || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
         || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
+  }
+
+  /**
+   * Indicates whether code is unpublished
+   *
+   * @param code the code
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isUnpublished(final String code) {
+    return getUnpublished().contains(code);
   }
 
 }

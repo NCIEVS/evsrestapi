@@ -1735,7 +1735,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         log.debug("    trimmed = "
             + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       }
-     
+
       // Save the trimmed paths (this is where mma comes from)
       map.put(code, trimmedPaths);
     }
@@ -1851,6 +1851,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (String code : qualifiers) {
       // Exclude properties that are redefined as synonyms or definitions
       if (md.isRemodeledQualifier(code)) {
+        continue;
+      }
+      if (md.isUnpublished(code)) {
         continue;
       }
 
