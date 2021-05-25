@@ -77,18 +77,75 @@ public class MetadataControllerTests {
   @Test
   public void testGetTerminologies() throws Exception {
 
-    final String url = baseUrl + "/terminologies";
+    String url = baseUrl + "/terminologies";
     log.info("Testing url - " + url);
 
-    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
+    MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Terminology> list =
+    List<Terminology> list =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
           // n/a
         });
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
+
+    url = baseUrl + "/terminologies?terminology=ncit&latest=true";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    for (Terminology term : list) {
+      assertThat(term.getLatest() == true);
+      assertThat(term.getTerminology() == "ncit");
+    }
+
+    url = baseUrl + "/terminologies?terminology=ncit&tags=monthly";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    for (Terminology term : list) {
+      assertThat(term.getTags().get("monthly") == "true");
+      assertThat(term.getTerminology() == "ncit");
+    }
+
+    url = baseUrl + "/terminologies?tags=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    for (Terminology term : list) {
+      assertThat(term.getTags().get("monthly") == "true");
+      assertThat(term.getLatest() == true);
+    }
+
+    url = baseUrl + "/terminologies?terminology=ncit&tags=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    for (Terminology term : list) {
+      assertThat(term.getTags().get("monthly") == "true");
+      assertThat(term.getLatest() == true);
+      assertThat(term.getTerminology() == "ncit");
+    }
   }
 
   /**
