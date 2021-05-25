@@ -42,7 +42,7 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
- * Integration tests for MetadataController.
+ * Integration tests for ConceptController.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)

@@ -22,6 +22,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The concept status. */
   private String conceptStatus;
 
+  /** The retired status value. */
+  private String retiredStatusValue;
+
   /** The preferred name. */
   private String preferredName;
 
@@ -79,7 +82,7 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
 
-  /** The subsetMembers for association entries */
+  /** The subsetMembers for association entries. */
   private Set<String> subsetMember;
 
   /** The unpublished codes */
@@ -112,6 +115,7 @@ public class TerminologyMetadata extends BaseModel {
   public void populateFrom(final TerminologyMetadata other) {
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
+    retiredStatusValue = other.getRetiredStatusValue();
     definitionSource = other.getDefinitionSource();
     definition = new HashSet<>(other.getDefinition());
     mapRelation = other.getMapRelation();
@@ -325,6 +329,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setConceptStatus(String conceptStatus) {
     this.conceptStatus = conceptStatus;
+  }
+
+  /**
+   * Returns the retired status value.
+   *
+   * @return the retired status value
+   */
+  public String getRetiredStatusValue() {
+    return retiredStatusValue;
+  }
+
+  /**
+   * Sets the retired status value.
+   *
+   * @param retiredStatusValue the retired status value
+   */
+  public void setRetiredStatusValue(String retiredStatusValue) {
+    this.retiredStatusValue = retiredStatusValue;
   }
 
   /**
@@ -680,6 +702,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the subset member.
+   *
    * @return the subsetMember
    */
   public Set<String> getSubsetMember() {
@@ -690,6 +714,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Sets the subset member.
+   *
    * @param subsetMember the subsetMember to set
    */
   public void setSubsetMember(Set<String> subsetMember) {
