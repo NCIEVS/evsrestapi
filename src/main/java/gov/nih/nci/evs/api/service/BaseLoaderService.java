@@ -114,8 +114,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       String objectIndexName = iMeta.getObjectIndexName();
 
       // objectIndexName will be NULL if terminology object is not part of
-      // IndexMetadata
-      // temporarily required to accommodate change in IndexMetadata object
+      // IndexMetadata temporarily required to accommodate change in
+      // IndexMetadata object
       if (objectIndexName == null) {
         objectIndexName = "evs_object_" + indexName.replace("concept_", "");
       }

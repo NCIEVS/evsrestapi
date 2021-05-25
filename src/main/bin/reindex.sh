@@ -1,4 +1,27 @@
-#!/bin/sh -f
+#!/bin/bash -f
+
+config=1
+while [[ "$#" -gt 0 ]]; do case $1 in
+  --noconfig) config=0;;
+  *) arr=( "${arr[@]}" "$1" );;
+esac; shift; done
+
+if [ ${#arr[@]} -ne 0 ]; then
+  echo "Usage: $0 [--noconfig]"
+  echo "  e.g. $0"
+  echo "  e.g. $0 --noconfig"
+  exit 1
+fi
+
+# Test for jq
+jq --help >> /dev/null 2>&1
+if [[ $? -eq 0 ]]; then
+	echo "jq"
+	jq="jq ."
+else
+	echo "python"
+	jq="python -m json.tool"
+fi
 
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
@@ -7,11 +30,45 @@ set -e
 
 # Setup configuration
 echo "  Setup configuration"
-APP_HOME=/local/content/evsrestapi
-CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
-CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
-echo "    config = $CONFIG_ENV_FILE"
-. $CONFIG_ENV_FILE
+if [[ $config -eq 1 ]]; then
+	APP_HOME=/local/content/evsrestapi
+	CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
+	CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
+	echo "    config = $CONFIG_ENV_FILE"
+	. $CONFIG_ENV_FILE
+elif [[ -z $STARDOG_HOST ]]; then
+    echo "ERROR: STARDOG_HOST is not set"
+    exit 1
+elif [[ -z $STARDOG_PORT ]]; then
+    echo "ERROR: STARDOG_PORT is not set"
+    exit 1
+elif [[ -z $STARDOG_USERNAME ]]; then
+    echo "ERROR: STARDOG_USERNAME is not set"
+    exit 1
+elif [[ -z $STARDOG_PASSWORD ]]; then
+    echo "ERROR: STARDOG_PASSWORD is not set"
+    exit 1
+elif [[ -z $ES_SCHEME ]]; then
+    echo "ERROR: ES_SCHEME is not set"
+    exit 1
+elif [[ -z $ES_HOST ]]; then
+    echo "ERROR: ES_HOST is not set"
+    exit 1
+elif [[ -z $ES_PORT ]]; then
+    echo "ERROR: ES_PORT is not set"
+    exit 1
+fi
+
+curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
+    "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" |\
+    $jq | perl -ne 's/\r//; $x=0 if /\]/; if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
+                    $x=1 if/\[/;' > /tmp/db.$$.txt
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected problem listing databases"
+    exit 1
+fi
+
+echo "  databases: " `cat /tmp/db.$$.txt`
 
 # Prep query to read all version info
 echo "  Lookup version info for latest terminology in stardog"
@@ -32,29 +89,86 @@ select ?graphName ?version where {
 }
 EOF
 query=`cat /tmp/x.$$.txt`
-version=`curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" http://${STARDOG_HOST}:${STARDOG_PORT}/${STARDOG_DB}/query  --data-urlencode "$query" -H "Accept: application/sparql-results+json" | perl -ne 's/.*"version".*"value":"(\d[\d\.abcde]+)".*/$1/; print "$_\n";' | sort | tail -1`
-/bin/rm -f /tmp/x.$$.txt
 
-echo "    version = $version"
-if [[ -z $version ]]; then
-    echo "ERROR: version is unknown"
-    exit 1
-fi
+# Run the query against each of the databases
+/bin/rm -f /tmp/y.$$.txt
+touch /tmp/y.$$.txt
+for db in `cat /tmp/db.$$.txt`; do
+	curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
+    	http://${STARDOG_HOST}:${STARDOG_PORT}/NCIT2/query \
+    	--data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
+    	$jq | perl -ne 'chop; $x=1 if /"version"/; $x=0 if /\}/; if ($x && /"value"/) { 
+    		s/.* "//; s/".*//; print "$_|'$db'\n"; } ' >> /tmp/y.$$.txt
+	if [[ $? -ne 0 ]]; then
+	    echo "ERROR: unexpected problem obtaining NCIT2 versions from stardog"
+    	exit 1
+	fi	
+done
 
-# Run reindexing process (choose a port other than the one that it runs on)
-echo "  Generate indexes"
-export EVS_SERVER_PORT="8082"
-/usr/local/jdk1.8/bin/java -jar ../lib/evsrestapi.jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/    /'
+# Sort-unique the versions
+/bin/sort -u -o /tmp/y.$$.txt /tmp/y.$$.txt
+cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
-# Set the indexes to have a larger max_result_window
-echo "  Set max result window to 150000"
-fv=`echo $version | perl -pe 's/\.//;'`
-curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
-  -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }'
+# For each DB|version, check whether indexes already exist for that version
+echo ""
+export PATH="/usr/local/jdk1.8/bin/:$PATH"
+for x in `cat /tmp/y.$$.txt`; do
+    echo "  Check indexes for $x"
+	version=`echo $x | cut -d\| -f 1`
+	fv=`echo $version | perl -pe 's/\.//;'`
+	db=`echo $x | cut -d\| -f 2`
 
-# The part to remove the old version indexes for things no longer in stardog
-# is unnecessary as it is implemented by the reindexing process.  To see an example
-# of the code, see ncim.sh
+    exists=1
+    for y in `echo "evs_metadata concept_ncit_$fv evs_object_ncit_$fv"`; do
+
+	    # Check for index
+	    curl -s -o /tmp/x.$$.txt ${ES_SCHEME}://${ES_HOST}:${ES_PORT}/_cat/indices    
+		if [[ $? -ne 0 ]]; then
+			echo "ERROR: unexpected problem attempting to list indexes"
+			exit 1
+		fi
+		# handle the no indexes case
+		ct=`grep $y /tmp/x.$$.txt | wc -l`
+    	if [[ $ct -eq 0 ]]; then
+        	echo "    MISSING $y index"
+			exists=0
+	    fi
+		
+    done
+    
+    if [[ $exists -eq 1 ]]; then
+		echo "    FOUND indexes for $version, continue"
+	else
+
+		# Run reindexing process (choose a port other than the one that it runs on)
+		export STARDOG_DB=$db
+		export EVS_SERVER_PORT="8083"
+		echo "    Generate indexes for $STARDOG_DB $version"
+
+		# Handle the local setup
+		local=""
+		jar="../lib/evsrestapi.jar"
+		if [[ $config -eq 0 ]]; then
+			local="-Dspring.profiles.active=local"
+			jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+		fi
+		echo java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
+		java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
+
+		# Set the indexes to have a larger max_result_window
+		echo "    Set max result window to 150000 for concept_ncit_$fv"
+		curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
+	 		-H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }'
+
+	fi
+
+done
+
+# Stale indexes are automatically cleaned up by the indexing process
+# It checks against stardog and reconciles everything.  No action needed here.
+
+# Cleanup
+/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt
 
 echo ""
 echo "--------------------------------------------------"

@@ -64,7 +64,7 @@ nci:
     stardog:
       host: ${STARDOG_HOST:localhost}
       port: ${STARDOG_PORT:5820}
-      queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/NCIT2/query
+      queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${STARDOG_DB:NCIT2}/query
       username: admin
       password: admin
       readTimeout: 30000
