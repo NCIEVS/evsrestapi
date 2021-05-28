@@ -159,10 +159,9 @@ public class LoaderServiceImpl {
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
-      throw new RuntimeException(e);
-    } finally {
-      SpringApplication.exit(app);
+      System.exit(1);
     }
+    SpringApplication.exit(app);
 
   }
 

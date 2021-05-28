@@ -13,13 +13,11 @@ if [ ${#arr[@]} -ne 0 ]; then
   exit 1
 fi
 
-# Test for jq
+# Set up ability to format json
 jq --help >> /dev/null 2>&1
 if [[ $? -eq 0 ]]; then
-	echo "jq"
 	jq="jq ."
 else
-	echo "python"
 	jq="python -m json.tool"
 fi
 
@@ -105,8 +103,10 @@ for db in `cat /tmp/db.$$.txt`; do
 	fi	
 done
 
-# Sort-unique the versions
-/bin/sort -u -o /tmp/y.$$.txt /tmp/y.$$.txt
+# Sort by version then reverse by DB (NCIT2 goes before CTRP)
+# this is because we need "monthly" to be indexed from the "monthlyDb"
+# defined in ncit.json
+/bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
 # For each DB|version, check whether indexes already exist for that version
@@ -153,12 +153,20 @@ for x in `cat /tmp/y.$$.txt`; do
 			jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 		fi
 		echo java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
-		java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
+		java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex 
+		if [[ $? -ne 0 ]]; then
+			echo "ERROR: unexpected error building indexes"
+			exit 1
+		fi
 
 		# Set the indexes to have a larger max_result_window
 		echo "    Set max result window to 150000 for concept_ncit_$fv"
 		curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
 	 		-H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }'
+		if [[ $? -ne 0 ]]; then
+			echo "ERROR: unexpected error setting max_result_window"
+			exit 1
+		fi
 
 	fi
 

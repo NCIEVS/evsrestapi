@@ -234,31 +234,45 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws ParseException the parse exception
    */
   private void setTags(final Terminology terminology, final DateFormat fmt) throws ParseException {
-    final Date d = fmt.parse(terminology.getDate());
-    Calendar cal = GregorianCalendar.getInstance();
-    cal.setTime(d);
 
-    // Count days of week; for NCI, this should be max Mondays in month
-    int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
-
-    String version = terminology.getVersion();
-    char weekIndicator = version.charAt(version.length() - 1);
-
+    // Compute "monthly"
     boolean monthly = false;
 
-    switch (weekIndicator) {
-      case 'e':
-        monthly = true;// has to be monthly version
-        break;
-      case 'd':// monthly version, if month has only 4 days of week (for ex:
-               // Monday) only
-        if (maxDayOfWeek == 4)
-          monthly = true;
-        break;
-      default:// case a,b,c
-        break;
+    // If the stardogProperties "db" matches the terminology metadata
+    // "monthlyDb"
+    // then continue, we're good.
+    if (terminology.getMetadata() != null
+        && stardogProperties.getDb().equals(terminology.getMetadata().getMonthlyDb())) {
+      log.info("  stardog monthly db found = " + stardogProperties.getDb());
+      monthly = true;
     }
 
+    // If the ncit.json "monthlyDb" isn't set, then calculate
+    // NOTE: this wont' handle exceptions like 20210531 being
+    // the 5th Monday of May in 2021 but also a holiday
+    else if (terminology.getMetadata() == null
+        || terminology.getMetadata().getMonthlyDb() == null) {
+      final Date d = fmt.parse(terminology.getDate());
+      Calendar cal = GregorianCalendar.getInstance();
+      cal.setTime(d);
+      // Count days of week; for NCI, this should be max Mondays in month
+      int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
+
+      String version = terminology.getVersion();
+      char weekIndicator = version.charAt(version.length() - 1);
+      switch (weekIndicator) {
+        case 'e':
+          monthly = true;// has to be monthly version
+          break;
+        case 'd':// monthly version, if month has only 4 days of week (for ex:
+                 // Monday) only
+          if (maxDayOfWeek == 4)
+            monthly = true;
+          break;
+        default:// case a,b,c
+          break;
+      }
+    }
     if (monthly) {
       terminology.getTags().put("monthly", "true");
     }

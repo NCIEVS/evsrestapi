@@ -17,6 +17,7 @@
   "mapTargetTerminology": "P396",
   "mapTargetTerminologyVersion": "P397",
   "relationshipToTarget": "P393",
+  "monthlyDb": "NCIT2",
   "propertyNames" : {
     "NHC0": "code",
     "P107": "Display_Name",

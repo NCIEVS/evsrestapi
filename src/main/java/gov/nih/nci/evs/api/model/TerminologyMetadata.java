@@ -85,8 +85,11 @@ public class TerminologyMetadata extends BaseModel {
   /** The subsetMembers for association entries. */
   private Set<String> subsetMember;
 
-  /** The unpublished codes */
+  /** The unpublished codes. */
   private Set<String> unpublished;
+
+  /** The monthly db. */
+  private String monthlyDb;
 
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
@@ -134,6 +137,7 @@ public class TerminologyMetadata extends BaseModel {
     propertyNames = new HashMap<>(other.getTermTypes());
     subsetMember = new HashSet<>(other.getSubsetMember());
     unpublished = new HashSet<>(other.getUnpublished());
+    monthlyDb = other.getMonthlyDb();
   }
 
   /* see superclass */
@@ -161,6 +165,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
     result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
     result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
+    result = prime * result + ((monthlyDb == null) ? 0 : monthlyDb.hashCode());
     return result;
   }
 
@@ -263,6 +268,11 @@ public class TerminologyMetadata extends BaseModel {
       if (other.unpublished != null)
         return false;
     } else if (!unpublished.equals(other.unpublished))
+      return false;
+    if (monthlyDb == null) {
+      if (other.monthlyDb != null)
+        return false;
+    } else if (!monthlyDb.equals(other.monthlyDb))
       return false;
     return true;
   }
@@ -713,6 +723,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the unpublished.
+   *
    * @return the unpublished
    */
   public Set<String> getUnpublished() {
@@ -723,10 +735,30 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Sets the unpublished.
+   *
    * @param unpublished the unpublished to set
    */
   public void setUnpublished(Set<String> unpublished) {
     this.unpublished = unpublished;
+  }
+
+  /**
+   * Returns the monthly db.
+   *
+   * @return the monthly db
+   */
+  public String getMonthlyDb() {
+    return monthlyDb;
+  }
+
+  /**
+   * Sets the monthly db.
+   *
+   * @param monthlyDb the monthly db
+   */
+  public void setMonthlyDb(String monthlyDb) {
+    this.monthlyDb = monthlyDb;
   }
 
   /**
@@ -757,7 +789,7 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Indicates whether code is unpublished
+   * Indicates whether code is unpublished.
    *
    * @param code the code
    * @return <code>true</code> if so, <code>false</code> otherwise
