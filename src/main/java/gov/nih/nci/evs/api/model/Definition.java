@@ -38,7 +38,6 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   private String source;
 
   /** The qualifiers. */
-  @Field(index = false)
   private List<Qualifier> qualifiers;
 
   /**
