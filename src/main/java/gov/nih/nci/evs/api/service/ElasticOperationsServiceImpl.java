@@ -70,10 +70,22 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     if (metric == null)
       return;
 
-    final IndexQuery query =
-        new IndexQueryBuilder().withObject(metric).withIndexName(index).withType("_doc").build();
-    operations.putMapping(index, ElasticOperationsService.METRIC_TYPE, Metric.class);
-    operations.index(query);
+    final IndexQuery query = new IndexQueryBuilder().withObject(metric).withIndexName(index)
+        .withType(ElasticOperationsService.METRIC_TYPE).build();
+    // BAC: removed this, we do not need to put the mapping on each request
+    // operations.putMapping(index, ElasticOperationsService.METRIC_TYPE,
+    // Metric.class);
+    try {
+      operations.index(query);
+    } catch (Exception e) {
+      // This happens on monthly switch-over and we need to create a new index
+      if (e.getMessage().contains("index_not_found_exception")) {
+        boolean result = operations.createIndex(index, false);
+        if (result) {
+          operations.putMapping(index, ElasticOperationsService.METRIC_TYPE, Metric.class);
+        }
+      }
+    }
   }
 
   /* see superclass */
