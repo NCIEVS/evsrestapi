@@ -79,6 +79,12 @@ public class TerminologyMetadata extends BaseModel {
   /** The property names. */
   private Map<String, String> propertyNames;
 
+  /** The value set link prefix. */
+  private String valueSetPrefix;
+
+  /** The value set links. */
+  private Map<String, String> valueSetLinks;
+
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
 
@@ -133,8 +139,10 @@ public class TerminologyMetadata extends BaseModel {
     synonymSource = other.getSynonymSource();
     synonymSubSource = other.getSynonymSubSource();
     synonymTermType = other.getSynonymTermType();
+    valueSetPrefix = other.getValueSetPrefix();
     termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getTermTypes());
+    valueSetLinks = new HashMap<>(other.getValueSetLinks());
     subsetMember = new HashSet<>(other.getSubsetMember());
     unpublished = new HashSet<>(other.getUnpublished());
     subset = new HashSet<>(other.getSubset());
@@ -166,6 +174,8 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
     result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
+    result = prime * result + ((valueSetLinks == null) ? 0 : valueSetLinks.hashCode());
+    result = prime * result + ((valueSetPrefix == null) ? 0 : valueSetPrefix.hashCode());
     return result;
   }
 
@@ -273,6 +283,16 @@ public class TerminologyMetadata extends BaseModel {
       if (other.subset != null)
         return false;
     } else if (!subset.equals(other.subset))
+      return false;
+    if (valueSetLinks == null) {
+      if (other.valueSetLinks != null)
+        return false;
+    } else if (!valueSetLinks.equals(other.valueSetLinks))
+      return false;
+    if (valueSetPrefix == null) {
+      if (other.valueSetPrefix != null)
+        return false;
+    } else if (!valueSetPrefix.equals(other.valueSetPrefix))
       return false;
     return true;
   }
@@ -678,6 +698,37 @@ public class TerminologyMetadata extends BaseModel {
    */
   public String getPropertyName(String code) {
     return getPropertyNames().get(code);
+  }
+
+  /**
+   * @return the valueSetLinks
+   */
+  public Map<String, String> getValueSetLinks() {
+    if (valueSetLinks == null) {
+      valueSetLinks = new HashMap<>();
+    }
+    return valueSetLinks;
+  }
+
+  /**
+   * @param valueSetLinks the valueSetLinks to set
+   */
+  public void setValueSetLinks(Map<String, String> valueSetLinks) {
+    this.valueSetLinks = valueSetLinks;
+  }
+
+    /**
+   * @return the valueSetPrefix
+   */
+  public String getValueSetPrefix() {
+    return valueSetPrefix;
+  }
+
+  /**
+   * @param valueSetPrefix the valueSetPrefix to set
+   */
+  public void setValueSetPrefix(String valueSetPrefix) {
+    this.valueSetPrefix = valueSetPrefix;
   }
 
   /**

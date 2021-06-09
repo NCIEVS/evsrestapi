@@ -4,6 +4,7 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -212,6 +213,18 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     logger.info("Done loading concepts!");
   }
 
+  /**
+   * add value set links to subset hierarchy
+   */
+  private void addValueSetLinks(Concept subset, Map<String, String> valueSetLinks, String valueSetPrefix) {
+    if (valueSetLinks.containsKey(subset.getCode())) {
+      subset.setValueSetLink(valueSetPrefix + valueSetLinks.get(subset.getCode()));
+    }
+    for (Concept child : subset.getChildren()) {
+      addValueSetLinks(child, valueSetLinks, valueSetPrefix);
+    }
+  }
+
   /* see superclass */
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
@@ -288,6 +301,8 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     ElasticObject subsetsObject = new ElasticObject("subsets");
+    for (Concept subset : subsets)
+      addValueSetLinks(subset, terminology.getMetadata().getValueSetLinks(), terminology.getMetadata().getValueSetPrefix());
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);

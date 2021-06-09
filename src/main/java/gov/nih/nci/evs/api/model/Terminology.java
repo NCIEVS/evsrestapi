@@ -77,6 +77,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   private String objectIndexName;
 
   /** The metadata. */
+  @Field(type = FieldType.Object)
   private TerminologyMetadata metadata;
 
   /** The flag for using sparql searches. */

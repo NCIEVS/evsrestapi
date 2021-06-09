@@ -249,6 +249,11 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     iMeta.setCompleted(true); // won't make it this far if it isn't complete
     iMeta.setTerminology(term);
 
+    operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+
+    operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.METADATA_INDEX,
+          ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
 

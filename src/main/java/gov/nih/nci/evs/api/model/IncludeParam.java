@@ -54,6 +54,9 @@ public class IncludeParam extends BaseModel {
   /** The extensions. */
   private boolean extensions;
 
+  /** The value set links */
+  private boolean valueSetLink;
+
   /**
    * Instantiates an empty {@link IncludeParam}.
    */
@@ -108,6 +111,8 @@ public class IncludeParam extends BaseModel {
           paths = true;
         } else if (part.equals("extensions")) {
           extensions = true;
+        } else if (part.equals("valueSetLink")) {
+          valueSetLink = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
@@ -146,6 +151,7 @@ public class IncludeParam extends BaseModel {
     disjointWith = other.isDisjointWith();
     paths = other.isPaths();
     extensions = other.isExtensions();
+    valueSetLink = other.isValueSetLink();
   }
 
   /**
@@ -181,6 +187,7 @@ public class IncludeParam extends BaseModel {
     maps = true;
     highlights = true;
     disjointWith = true;
+    valueSetLink = true;
 
     // Full doesn't include descendants and paths
     // descendants = true;
@@ -466,5 +473,23 @@ public class IncludeParam extends BaseModel {
    */
   public void setExtensions(boolean extensions) {
     this.extensions = extensions;
+  }
+
+  /**
+   * Indicates whether or not ValueSetLink is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isValueSetLink() {
+    return valueSetLink;
+  }
+
+  /**
+   * Sets the valueSetLink.
+   *
+   * @param valueSetLink the valueSetLink
+   */
+  public void setValueSetLink(boolean valueSetLink) {
+    this.valueSetLink = valueSetLink;
   }
 }

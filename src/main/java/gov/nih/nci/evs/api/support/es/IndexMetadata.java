@@ -35,7 +35,6 @@ public class IndexMetadata {
   private boolean completed;
 
   /** The terminology. */
-  /* the terminology */
   @Field(type = FieldType.Object)
   private Terminology terminology;
 

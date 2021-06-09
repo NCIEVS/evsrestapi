@@ -173,6 +173,10 @@ public final class ConceptUtils {
       if (ip.isDescendants()) {
         newConcept.setDescendants(concept.getDescendants());
       }
+      if (ip.isValueSetLink()) {
+        log.info("value set link = " + concept.getValueSetLink());
+        newConcept.setValueSetLink(concept.getValueSetLink());
+      }
 
       result.add(newConcept);
     }
