@@ -1123,9 +1123,23 @@ public class MetadataControllerTests {
     Concept list = null;
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
+    String content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, Concept.class);
     assertThat(list != null && list.getChildren().size() > 0).isTrue();
+    // check that no subsetLink (no valid download)
+    assertThat(list.getSubsetLink() == null);
+
+    url = baseUrl + "/ncit/subset/C116977";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, Concept.class);
+    List<Property> sources = list.getProperties();
+    for (Property source : sources) {
+      if (source.getType() == "Contributing_Source") {
+        assertThat(source.getValue() == "CTRP");
+        break;
+      }
+    }
 
   }
 }

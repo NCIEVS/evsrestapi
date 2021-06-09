@@ -717,7 +717,7 @@ public class TerminologyMetadata extends BaseModel {
     this.subsetLinks = subsetLinks;
   }
 
-    /**
+  /**
    * @return the subsetPrefix
    */
   public String getSubsetPrefix() {
