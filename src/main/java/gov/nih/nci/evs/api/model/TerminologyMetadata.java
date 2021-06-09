@@ -79,10 +79,10 @@ public class TerminologyMetadata extends BaseModel {
   /** The property names. */
   private Map<String, String> propertyNames;
 
-  /** The value set link prefix. */
+  /** The subset link prefix. */
   private String subsetPrefix;
 
-  /** The value set links. */
+  /** The subset links. */
   private Map<String, String> subsetLinks;
 
   /** The sources to remove. */

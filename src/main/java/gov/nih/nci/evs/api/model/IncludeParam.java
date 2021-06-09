@@ -54,7 +54,7 @@ public class IncludeParam extends BaseModel {
   /** The extensions. */
   private boolean extensions;
 
-  /** The value set links */
+  /** The subset links */
   private boolean subsetLink;
 
   /**

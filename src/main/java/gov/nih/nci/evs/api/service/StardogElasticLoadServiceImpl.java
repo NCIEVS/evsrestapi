@@ -214,7 +214,7 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * add value set links to subset hierarchy
+   * add subset links to subset hierarchy
    */
   private void addSubsetLinks(Concept subset, Map<String, String> subsetLinks, String subsetPrefix) {
     if (subsetLinks.containsKey(subset.getCode())) {

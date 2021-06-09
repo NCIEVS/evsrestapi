@@ -2435,7 +2435,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonParseException, JsonMappingException, IOException {
     List<Concept> subsets = new ArrayList<>();
     for (String code : terminology.getMetadata().getSubset()) {
-      Concept concept = getConcept(code, terminology, new IncludeParam("summary,children"));
+      Concept concept = getConcept(code, terminology, new IncludeParam("summary,children,properties"));
       getSubsetsHelper(concept, terminology, 0);
       subsets.add(concept);
     }
@@ -2449,7 +2449,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       Concept childFull =
           getConcept(child.getCode(), terminology, new IncludeParam("summary,children,properties"));
       boolean valInSubset = false;
-      // log.info("properties = " + childFull.getProperties());
       for (Property prop : childFull.getProperties()) {
         if (prop.getType().equals("Publish_Value_Set") && prop.getValue().equals("Yes")) {
           valInSubset = true;
@@ -2459,7 +2458,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (!valInSubset) {
         continue;
       }
-      childFull.setProperties(null);
       children.add(childFull);
       getSubsetsHelper(childFull, terminology, level + 1);
     }
