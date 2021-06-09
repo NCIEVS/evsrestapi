@@ -216,12 +216,12 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * add value set links to subset hierarchy
    */
-  private void addValueSetLinks(Concept subset, Map<String, String> valueSetLinks, String valueSetPrefix) {
-    if (valueSetLinks.containsKey(subset.getCode())) {
-      subset.setValueSetLink(valueSetPrefix + valueSetLinks.get(subset.getCode()));
+  private void addSubsetLinks(Concept subset, Map<String, String> subsetLinks, String subsetPrefix) {
+    if (subsetLinks.containsKey(subset.getCode())) {
+      subset.setSubsetLink(subsetPrefix + subsetLinks.get(subset.getCode()));
     }
     for (Concept child : subset.getChildren()) {
-      addValueSetLinks(child, valueSetLinks, valueSetPrefix);
+      addSubsetLinks(child, subsetLinks, subsetPrefix);
     }
   }
 
@@ -302,7 +302,7 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     ElasticObject subsetsObject = new ElasticObject("subsets");
     for (Concept subset : subsets)
-      addValueSetLinks(subset, terminology.getMetadata().getValueSetLinks(), terminology.getMetadata().getValueSetPrefix());
+      addSubsetLinks(subset, terminology.getMetadata().getSubsetLinks(), terminology.getMetadata().getSubsetPrefix());
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);

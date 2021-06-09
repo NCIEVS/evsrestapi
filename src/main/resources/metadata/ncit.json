@@ -119,8 +119,8 @@
     "CAdsr",
     "caDSR"
   ],
-  "valueSetPrefix": "ftp://ftp1.nci.nih.gov/pub/cacore/",
-  "valueSetLinks": {
+  "subsetPrefix": "ftp://ftp1.nci.nih.gov/pub/cacore/",
+  "subsetLinks": {
     "C100129": "EVS/CDISC/SDTM/SDTM Terminology.xls",
     "C100130": "EVS/CDISC/SDTM/SDTM Terminology.xls",
     "C100131": "EVS/CDISC/SDTM/SDTM Terminology.xls",

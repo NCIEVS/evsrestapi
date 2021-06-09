@@ -55,7 +55,7 @@ public class IncludeParam extends BaseModel {
   private boolean extensions;
 
   /** The value set links */
-  private boolean valueSetLink;
+  private boolean subsetLink;
 
   /**
    * Instantiates an empty {@link IncludeParam}.
@@ -111,8 +111,8 @@ public class IncludeParam extends BaseModel {
           paths = true;
         } else if (part.equals("extensions")) {
           extensions = true;
-        } else if (part.equals("valueSetLink")) {
-          valueSetLink = true;
+        } else if (part.equals("subsetLink")) {
+          subsetLink = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
@@ -151,7 +151,7 @@ public class IncludeParam extends BaseModel {
     disjointWith = other.isDisjointWith();
     paths = other.isPaths();
     extensions = other.isExtensions();
-    valueSetLink = other.isValueSetLink();
+    subsetLink = other.isSubsetLink();
   }
 
   /**
@@ -187,7 +187,7 @@ public class IncludeParam extends BaseModel {
     maps = true;
     highlights = true;
     disjointWith = true;
-    valueSetLink = true;
+    subsetLink = true;
 
     // Full doesn't include descendants and paths
     // descendants = true;
@@ -476,20 +476,20 @@ public class IncludeParam extends BaseModel {
   }
 
   /**
-   * Indicates whether or not ValueSetLink is the case.
+   * Indicates whether or not SubsetLink is the case.
    *
    * @return <code>true</code> if so, <code>false</code> otherwise
    */
-  public boolean isValueSetLink() {
-    return valueSetLink;
+  public boolean isSubsetLink() {
+    return subsetLink;
   }
 
   /**
-   * Sets the valueSetLink.
+   * Sets the subsetLink.
    *
-   * @param valueSetLink the valueSetLink
+   * @param subsetLink the subsetLink
    */
-  public void setValueSetLink(boolean valueSetLink) {
-    this.valueSetLink = valueSetLink;
+  public void setSubsetLink(boolean subsetLink) {
+    this.subsetLink = subsetLink;
   }
 }

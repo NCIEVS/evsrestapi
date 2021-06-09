@@ -73,7 +73,7 @@ public class Concept extends ConceptMinimal {
 
   /** The normName. */
   @Field(type = FieldType.Keyword)
-  private String valueSetLink;
+  private String subsetLink;
 
   /** The level. */
   @Field(type = FieldType.Integer)
@@ -212,7 +212,7 @@ public class Concept extends ConceptMinimal {
     level = other.getLevel();
     leaf = other.getLeaf();
     normName = other.getNormName();
-    valueSetLink = other.getValueSetLink();
+    subsetLink = other.getSubsetLink();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
@@ -288,17 +288,17 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
-   * @return the valueSetLink
+   * @return the subsetLink
    */
-  public String getValueSetLink() {
-    return valueSetLink;
+  public String getSubsetLink() {
+    return subsetLink;
   }
 
   /**
-   * @param valueSetLink the valueSetLink to set
+   * @param subsetLink the subsetLink to set
    */
-  public void setValueSetLink(String valueSetLink) {
-    this.valueSetLink = valueSetLink;
+  public void setSubsetLink(String subsetLink) {
+    this.subsetLink = subsetLink;
   }
 
   /**
