@@ -173,6 +173,9 @@ public final class ConceptUtils {
       if (ip.isDescendants()) {
         newConcept.setDescendants(concept.getDescendants());
       }
+      if (ip.isSubsetLink()) {
+        newConcept.setSubsetLink(concept.getSubsetLink());
+      }
 
       result.add(newConcept);
     }

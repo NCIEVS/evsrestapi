@@ -54,6 +54,9 @@ public class IncludeParam extends BaseModel {
   /** The extensions. */
   private boolean extensions;
 
+  /** The subset links */
+  private boolean subsetLink;
+
   /**
    * Instantiates an empty {@link IncludeParam}.
    */
@@ -108,6 +111,8 @@ public class IncludeParam extends BaseModel {
           paths = true;
         } else if (part.equals("extensions")) {
           extensions = true;
+        } else if (part.equals("subsetLink")) {
+          subsetLink = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
@@ -146,6 +151,7 @@ public class IncludeParam extends BaseModel {
     disjointWith = other.isDisjointWith();
     paths = other.isPaths();
     extensions = other.isExtensions();
+    subsetLink = other.isSubsetLink();
   }
 
   /**
@@ -181,6 +187,7 @@ public class IncludeParam extends BaseModel {
     maps = true;
     highlights = true;
     disjointWith = true;
+    subsetLink = true;
 
     // Full doesn't include descendants and paths
     // descendants = true;
@@ -466,5 +473,23 @@ public class IncludeParam extends BaseModel {
    */
   public void setExtensions(boolean extensions) {
     this.extensions = extensions;
+  }
+
+  /**
+   * Indicates whether or not SubsetLink is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isSubsetLink() {
+    return subsetLink;
+  }
+
+  /**
+   * Sets the subsetLink.
+   *
+   * @param subsetLink the subsetLink
+   */
+  public void setSubsetLink(boolean subsetLink) {
+    this.subsetLink = subsetLink;
   }
 }

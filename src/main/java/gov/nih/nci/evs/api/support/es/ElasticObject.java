@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Paths;
@@ -25,7 +26,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
  */
 @Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
 @JsonInclude(content = Include.NON_EMPTY)
-public class ElasticObject {
+public class ElasticObject extends BaseModel {
 
   @Id
   private String name;
