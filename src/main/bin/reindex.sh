@@ -93,12 +93,12 @@ query=`cat /tmp/x.$$.txt`
 touch /tmp/y.$$.txt
 for db in `cat /tmp/db.$$.txt`; do
 	curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-    	http://${STARDOG_HOST}:${STARDOG_PORT}/NCIT2/query \
+    	http://${STARDOG_HOST}:${STARDOG_PORT}/$db/query \
     	--data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
     	$jq | perl -ne 'chop; $x=1 if /"version"/; $x=0 if /\}/; if ($x && /"value"/) { 
     		s/.* "//; s/".*//; print "$_|'$db'\n"; } ' >> /tmp/y.$$.txt
 	if [[ $? -ne 0 ]]; then
-	    echo "ERROR: unexpected problem obtaining NCIT2 versions from stardog"
+	    echo "ERROR: unexpected problem obtaining $db versions from stardog"
     	exit 1
 	fi	
 done
@@ -109,9 +109,27 @@ done
 /bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
+# set the max number of fields higher
+# we can probably remove this when we figure a better answer
+echo "  Set index.mapping.total_fields.limit = 5000"  
+curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_settings" \
+		-H "Content-type: application/json" -d '{ "index.mapping.total_fields.limit": 5000 }' >> /dev/null
+if [[ $? -ne 0 ]]; then
+	echo "ERROR: unexpected error setting index.mapping.total_fields in evs_metadata"
+	exit 1
+fi
+
 # For each DB|version, check whether indexes already exist for that version
 echo ""
 export PATH="/usr/local/jdk1.8/bin/:$PATH"
+# Handle the local setup
+local=""
+jar="../lib/evsrestapi.jar"
+if [[ $config -eq 0 ]]; then
+	local="-Dspring.profiles.active=local"
+	jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+fi
+export EVS_SERVER_PORT="8083"
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
 	version=`echo $x | cut -d\| -f 1`
@@ -145,15 +163,8 @@ for x in `cat /tmp/y.$$.txt`; do
 		export EVS_SERVER_PORT="8083"
 		echo "    Generate indexes for $STARDOG_DB $version"
 
-		# Handle the local setup
-		local=""
-		jar="../lib/evsrestapi.jar"
-		if [[ $config -eq 0 ]]; then
-			local="-Dspring.profiles.active=local"
-			jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
-		fi
-		echo java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
-		java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex 
+		echo "java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+		java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex  | sed 's/^/      /'
 		if [[ $? -ne 0 ]]; then
 			echo "ERROR: unexpected error building indexes"
 			exit 1
@@ -173,7 +184,15 @@ for x in `cat /tmp/y.$$.txt`; do
 done
 
 # Stale indexes are automatically cleaned up by the indexing process
-# It checks against stardog and reconciles everything.  No action needed here.
+# It checks against stardog and reconciles everything and updates latest flags
+# regardless of whether there was new data
+echo "  Reconcile stale indexes and update flags"
+echo "    java -jar $local $jar --terminology ncit --skip-load"
+java -jar $local $jar --terminology ncit --skip-load | sed 's/^/      /'
+if [[ $? -ne 0 ]]; then
+	echo "ERROR: unexpected error building indexes"
+	exit 1
+fi
 
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt

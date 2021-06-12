@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,8 @@ public class EVSUtils {
   public static List<Synonym> getSynonyms(Terminology terminology, List<Axiom> axioms) {
     final List<Synonym> results = new ArrayList<>();
     final Set<String> syCode = terminology.getMetadata().getSynonym();
-    // If 'axioms' is null here, it's likely because the "main" query didn't finish
+    // If 'axioms' is null here, it's likely because the "main" query didn't
+    // finish
     for (Axiom axiom : axioms) {
       final String axiomCode = axiom.getAnnotatedProperty();
       if (syCode.contains(axiomCode)) {
@@ -108,7 +110,10 @@ public class EVSUtils {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
         definition.setSource(axiom.getDefSource());
-        definition.getQualifiers().addAll(axiom.getQualifiers());
+        // Only keep qualifiers without null types (this happend when loading
+        // weird owl)
+        definition.getQualifiers().addAll(axiom.getQualifiers().stream()
+            .filter(q -> q.getType() != null).collect(Collectors.toList()));
         definition.setType(terminology.getMetadata().getPropertyName(axiomCode));
         if (definition.getType() == null) {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);

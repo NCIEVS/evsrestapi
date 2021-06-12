@@ -2,16 +2,11 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -98,6 +93,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Autowired
   ElasticQueryService elasticQueryService;
 
+  @Autowired
+  TerminologyUtils utils;
+
   /** The rest utils. */
   private RESTUtils restUtils = null;
 
@@ -165,12 +163,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology", key = "#root.methodName")
-  public List<Terminology> getTerminologies()
+  // @Cacheable(value = "terminology", key = "{#root.methodName, #db}")
+  public List<Terminology> getTerminologies(final String db)
     throws JsonParseException, JsonMappingException, IOException, ParseException {
     String queryPrefix = queryBuilderService.contructPrefix(null);
     String query = queryBuilderService.constructQuery("all.graphs.and.versions", new HashMap<>());
-    String queryURL = getQueryURL();
+    // NOTE: this is not a hardened approach
+    String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
     if (log.isDebugEnabled())
@@ -200,7 +199,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (CollectionUtils.isEmpty(termList))
       return Collections.<Terminology> emptyList();
 
-    final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
     final List<Terminology> results = new ArrayList<>();
 
     Collections.sort(termList, new Comparator<Terminology>() {
@@ -215,7 +213,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // Only set weekly/monthly for NCIt
       if (term.getTerminology().equals("ncit")) {
-        setTags(term, fmt);
+        utils.setTags(term, stardogProperties.getDb());
       }
 
       // set latest tag for the most recent version
@@ -224,61 +222,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return results;
-  }
-
-  /**
-   * Sets monthly/weekly tags based on date on the given terminology object.
-   *
-   * @param terminology the terminology
-   * @param fmt the date format
-   * @throws ParseException the parse exception
-   */
-  private void setTags(final Terminology terminology, final DateFormat fmt) throws ParseException {
-
-    // Compute "monthly"
-    boolean monthly = false;
-
-    // If the stardogProperties "db" matches the terminology metadata
-    // "monthlyDb"
-    // then continue, we're good.
-    if (terminology.getMetadata() != null
-        && stardogProperties.getDb().equals(terminology.getMetadata().getMonthlyDb())) {
-      log.info("  stardog monthly db found = " + stardogProperties.getDb());
-      monthly = true;
-    }
-
-    // If the ncit.json "monthlyDb" isn't set, then calculate
-    // NOTE: this wont' handle exceptions like 20210531 being
-    // the 5th Monday of May in 2021 but also a holiday
-    else if (terminology.getMetadata() == null
-        || terminology.getMetadata().getMonthlyDb() == null) {
-      final Date d = fmt.parse(terminology.getDate());
-      Calendar cal = GregorianCalendar.getInstance();
-      cal.setTime(d);
-      // Count days of week; for NCI, this should be max Mondays in month
-      int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
-
-      String version = terminology.getVersion();
-      char weekIndicator = version.charAt(version.length() - 1);
-      switch (weekIndicator) {
-        case 'e':
-          monthly = true;// has to be monthly version
-          break;
-        case 'd':// monthly version, if month has only 4 days of week (for ex:
-                 // Monday) only
-          if (maxDayOfWeek == 4)
-            monthly = true;
-          break;
-        default:// case a,b,c
-          break;
-      }
-    }
-    if (monthly) {
-      terminology.getTags().put("monthly", "true");
-    }
-
-    // Every version is also a weekly
-    terminology.getTags().put("weekly", "true");
   }
 
   /* see superclass */

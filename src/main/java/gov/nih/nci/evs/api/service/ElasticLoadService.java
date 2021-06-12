@@ -56,12 +56,10 @@ public interface ElasticLoadService {
 
   /**
    * Update latest flag.
-   * 
-   * @param term the terminology object
    *
    * @throws Exception the exception
    */
-  void updateLatestFlag(Terminology term) throws Exception;
+  void updateLatestFlag() throws Exception;
 
   /**
    * Get Terminology object

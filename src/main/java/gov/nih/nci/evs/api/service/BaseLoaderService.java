@@ -2,6 +2,10 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -12,6 +16,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Terminology;
@@ -47,6 +52,10 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   /** The client. */
   @Autowired
   private RestHighLevelClient client;
+
+  /** The dbs. */
+  @Value("${nci.evs.bulkload.stardogDbs}")
+  private String dbs;
 
   /**
    * build config object from command line options.
@@ -99,17 +108,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    */
   @Override
   public void cleanStaleIndexes() throws Exception {
-    List<IndexMetadata> iMetas = null;
 
-    iMetas = termUtils.getStaleTerminologies();
-    logger.info("Removing stale terminologies: " + iMetas);
-
+    List<IndexMetadata> iMetas = termUtils.getStaleTerminologies(Arrays.asList(dbs.split(",")));
     if (CollectionUtils.isEmpty(iMetas)) {
+      logger.info("NO stale terminologies to remove");
       return;
     }
 
+    logger.info("Removing stale terminologies");
     for (IndexMetadata iMeta : iMetas) {
-      logger.info("stale term = " + iMeta.getTerminology());
+      logger.info("stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
 
@@ -148,7 +156,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   @Override
-  public void updateLatestFlag(Terminology term) throws Exception {
+  public void updateLatestFlag() throws Exception {
     // update latest flag
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
@@ -156,39 +164,51 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     if (CollectionUtils.isEmpty(iMetas))
       return;
 
-    // Make sure the new latest is set as latest and any others with matching
-    // terminology are set to "false". Skip anything with non-matching
-    // terminology.
-    Terminology latest = termUtils.getLatestTerminology(true, term);
-    boolean latestWeeklyOnly =
-        !latest.getTags().containsKey("monthly") && latest.getTags().containsKey("weekly");
-
-    for (IndexMetadata iMeta : iMetas) {
-      boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
-
-      // only change latest flag of terminologies that match latest one
-      if (iMeta.getTerminology().getTerminology().equals(latest.getTerminology())) {
-
-        // If latest is a weekly update, remove the "weekly" tag from
-        // the monthly, but leave "latest" flag unchanged
-        if (latestWeeklyOnly && monthly && iMeta.getTerminology().getLatest()) {
-          logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
-          iMeta.getTerminology().getTags().remove("weekly");
-        } else {
-          boolean flag = iMeta.getTerminology().equals(latest);
-          logger.info("  " + iMeta.getTerminologyVersion() + " = " + flag);
-          iMeta.getTerminology().setLatest(flag);
-        }
-      } else {
-        // If latest is a weekly update, remove the "weekly" tag from
-        // the latest monthly, but leave "latest" flag unchanged
-        if (latestWeeklyOnly && monthly && iMeta.getTerminology().getLatest()) {
-          logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
-          iMeta.getTerminology().getTags().remove("weekly");
-        } else {
-          logger.info("  " + iMeta.getTerminologyVersion() + " = unchanged");
-        }
+    // Copy to allow modification
+    iMetas = new ArrayList<>(iMetas);
+    // Reverse sort (latest versions first)
+    Collections.sort(iMetas, new Comparator<IndexMetadata>() {
+      @Override
+      public int compare(IndexMetadata o1, IndexMetadata o2) {
+        return -1 * o1.getTerminology().getVersion().compareTo(o2.getTerminology().getVersion());
       }
+    });
+
+    boolean latestMonthlyFound = false;
+    boolean latestWeeklyFound = false;
+
+    for (final IndexMetadata iMeta : iMetas) {
+
+      final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
+      final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
+
+      // Set latest monthly
+      if (!latestMonthlyFound && monthly) {
+        // Remove weekly tag if another thing was the latest weekly
+        if (latestWeeklyFound) {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
+          iMeta.getTerminology().getTags().remove("weekly");
+        } else {
+          logger.info("  " + iMeta.getTerminologyVersion() + " = add weekly tag");
+          iMeta.getTerminology().getTags().put("weekly", "true");
+        }
+        logger.info("  " + iMeta.getTerminologyVersion() + " = latest true");
+        iMeta.getTerminology().setLatest(true);
+        latestMonthlyFound = true;
+        latestWeeklyFound = true;
+      }
+      // Set latest weekly
+      else if (!latestWeeklyFound && weekly) {
+        logger.info("  " + iMeta.getTerminologyVersion() + " = latest true");
+        iMeta.getTerminology().setLatest(true);
+        latestWeeklyFound = true;
+      }
+      // Else change nothing
+      else {
+        logger.info("  " + iMeta.getTerminologyVersion() + " = latest false");
+        iMeta.getTerminology().setLatest(false);
+      }
+
     }
 
     operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
@@ -199,7 +219,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   /**
    * check load status.
    *
-   * @param total the total
+   * @param total the iMeta.getTerminology().setLatest(true); total
    * @param term the terminology object
    * @throws IOException Signals that an I/O exception has occurred.
    */
