@@ -22,6 +22,7 @@ import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
@@ -97,6 +98,16 @@ public class MetadataController extends BaseController {
       if (terminology.isPresent()) {
         terms = terms.stream().filter(f -> f.getTerminology().equals(terminology.get()))
             .collect(Collectors.toList());
+      }
+
+      for (Terminology term : terms) {
+        TerminologyMetadata meta = term.getMetadata();
+        meta.setSources(null);
+        meta.setTermTypes(null);
+        meta.setSourcesToRemove(null);
+        meta.setUnpublished(null);
+        meta.setSubsetPrefix(null);
+        meta.setSubsetLinks(null);
       }
 
       return terms;
