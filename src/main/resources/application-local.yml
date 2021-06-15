@@ -61,10 +61,12 @@ nci:
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
       downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
       indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}
+      stardogDbs: ${STARDOG_DBS:CTRP,NCIT2}
     stardog:
       host: ${STARDOG_HOST:localhost}
       port: ${STARDOG_PORT:5820}
-      queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/NCIT2/query
+      db: ${STARDOG_DB:NCIT2}
+      queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${nci.evs.stardog.db}/query
       username: admin
       password: admin
       readTimeout: 30000

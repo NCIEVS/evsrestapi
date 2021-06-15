@@ -307,6 +307,10 @@ public class MainTypeHierarchy {
       return false;
     }
 
+    // Escape hatch for possibly bad data - needs research
+    if (concept.getPaths() == null) {
+      return false;
+    }
     List<Paths> mma =
         concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
     if (mma.isEmpty()) {
@@ -406,6 +410,9 @@ public class MainTypeHierarchy {
       return null;
     }
 
+    if (concept.getPaths() == null) {
+      return null;
+    }
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
     List<Paths> paths =
