@@ -163,8 +163,8 @@ for x in `cat /tmp/y.$$.txt`; do
 		export EVS_SERVER_PORT="8083"
 		echo "    Generate indexes for $STARDOG_DB $version"
 
-		echo "java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-		java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex  | sed 's/^/      /'
+		echo "java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+		java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
 		if [[ $? -ne 0 ]]; then
 			echo "ERROR: unexpected error building indexes"
 			exit 1
@@ -187,8 +187,8 @@ done
 # It checks against stardog and reconciles everything and updates latest flags
 # regardless of whether there was new data
 echo "  Reconcile stale indexes and update flags"
-echo "    java -jar $local $jar --terminology ncit --skip-load"
-java -jar $local $jar --terminology ncit --skip-load | sed 's/^/      /'
+echo "    java $local -jar $jar --terminology ncit --skip-load"
+java $local -jar $jar --terminology ncit --skip-load | sed 's/^/      /'
 if [[ $? -ne 0 ]]; then
 	echo "ERROR: unexpected error building indexes"
 	exit 1
