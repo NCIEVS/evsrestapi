@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 public class JSONParser {
 
@@ -84,6 +85,7 @@ public class JSONParser {
 
 
 	public static void explore(String json) {
+		System.out.println(json);
 		try {
 			Map map = JSONParser.parse(json);
 			System.out.println(map.toString());
@@ -97,14 +99,14 @@ public class JSONParser {
 					if (list != null && list.size() > 0) {
 						Object obj1 = list.get(0);
 						if (obj1 instanceof String) {
-							System.out.println("KEY: " + key + " VALUE: List  OBJECT: String");
+							//System.out.println("KEY: " + key + " VALUE: List  OBJECT: String");
 							for (int i=0; i<list.size(); i++) {
 								String t = (String) list.get(i);
-								System.out.println("\t" + t);
+								System.out.println("\t" + key + ": " +  t);
 							}
 						}
 					} else {
-						System.out.println("KEY: " + key + " VALUE: List");
+						//System.out.println("KEY: " + key + " VALUE: List");
 					}
 
 				} else if (obj instanceof Map) {
@@ -114,20 +116,21 @@ public class JSONParser {
 						Object map_obj_key1 = it2.next();
 						Object map_obj_value1 = map_obj.get(map_obj_key1);
 						if (map_obj_value1 instanceof String) {
-							System.out.println("KEY: " + key + " VALUE: Map  OBJECT: String");
+							//System.out.println(key + " VALUE: Map  OBJECT: String");
 							Iterator it3 = map_obj.keySet().iterator();
 							while (it3.hasNext()) {
 								String key3 = (String) it3.next();
 								String value = (String) map_obj.get(key3);
-								System.out.println("\t" + key3 + " --> " + value);
+								//System.out.println("\t" + key3 + " --> " + value);
+								System.out.println("\t" + key3 + ": " + value);
 							}
 						}
 					} else {
 						System.out.println("KEY: " + key + " value: Map");
 					}
 				} else {
-					System.out.println("KEY: " + key + " VALUE: String");
-					System.out.println("\t" + (String) obj);
+					//System.out.println("KEY: " + key + " VALUE: String");
+					System.out.println("\t" + key + ": " + obj.toString());
 				}
 			}
 		} catch (Exception ex) {
@@ -135,4 +138,71 @@ public class JSONParser {
 		}
 	}
 
+	public static Vector run(String json) {
+		boolean sort = true;
+		return run(json, sort);
+	}
+
+
+	public static Vector run(String json, boolean sort) {
+		Vector v = new Vector();
+		try {
+			Map map = parse(json);
+			Iterator it = map.keySet().iterator();
+			while (it.hasNext()) {
+				String key = (String) it.next();
+				Object obj = map.get(key);
+				if (obj instanceof List) {
+					List list = (List) map.get(key);
+					if (list != null && list.size() > 0) {
+						Object obj1 = list.get(0);
+						if (obj1 instanceof String) {
+							for (int i=0; i<list.size(); i++) {
+								String t = (String) list.get(i);
+								v.add(key + ": " +  t);
+							}
+						} else {
+							for (int i=0; i<list.size(); i++) {
+								Object t = list.get(i);
+								v.add(key + ": " +  t.toString());
+							}
+						}
+					}
+
+				} else if (obj instanceof Map) {
+					Map map_obj = (Map) map.get(key);
+					if (map_obj != null && map_obj.keySet().size() > 0) {
+						Iterator it2 = map_obj.keySet().iterator();
+						Object map_obj_key1 = it2.next();
+						Object map_obj_value1 = map_obj.get(map_obj_key1);
+						if (map_obj_value1 instanceof String) {
+							Iterator it3 = map_obj.keySet().iterator();
+							while (it3.hasNext()) {
+								String key3 = (String) it3.next();
+								String value = (String) map_obj.get(key3);
+								//v.add(key3 + " --> " + value);
+								v.add(key3 + ": " + value);
+							}
+						} else {
+							Iterator it3 = map_obj.keySet().iterator();
+							while (it3.hasNext()) {
+								String key3 = (String) it3.next();
+								Object value = map_obj.get(key3);
+								//v.add(key3 + " --> " + value);
+								v.add(key3 + ": " + value.toString());
+							}
+						}
+					}
+				} else {
+					v.add(key + ": " + obj.toString());
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		if (sort) {
+			return new SortUtils().quickSort(v);
+		}
+		return v;
+	}
 }

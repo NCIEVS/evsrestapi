@@ -112,4 +112,8 @@ public class EditAction
 		}
 		return buf.toString();
 	}
+
+	public String to_string() {
+		return this.label + "|" + this.code + "|" + this.action + "|" + this.type + "|" + this.value;
+    }
 }

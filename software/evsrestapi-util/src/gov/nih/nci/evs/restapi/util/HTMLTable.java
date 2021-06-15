@@ -6,7 +6,7 @@ import java.util.*;
 
 public class HTMLTable {
 
-	public static void generate(Vector v) {
+	public static String generate(Vector v) {
 		String title = null;
 		String table = null;
 		String outputfile = null;
@@ -56,6 +56,8 @@ public class HTMLTable {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		return outputfile;
 	}
 
 	public static void printBanner(PrintWriter out) {
@@ -91,7 +93,7 @@ public class HTMLTable {
 		out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">");
 		out.println("<html xmlns:c=\"http://java.sun.com/jsp/jstl/core\">");
 		out.println("<head>");
-		out.println("<title>NCIt Properties and Relationships</title>");
+		out.println("<title>" + pageTitle + "</title>");
 		out.println("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
 		out.println("<style>");
 		out.println("table {");
@@ -135,14 +137,49 @@ public class HTMLTable {
 		out.println("</center>");
 	}
 
+	public static boolean isWideField(String th) {
+		th = th.toLowerCase();
+		if (th.indexOf("label") != -1 || th.indexOf("term") != -1
+		   || th.indexOf("name") != -1 || th.indexOf("description") != -1
+		   || th.indexOf("definition") != -1) {
+			return true;
+		}
+		return false;
+	}
+
+	public static int calculateWideFieldWidth(int numFields, int numWideFields) {
+		int total = 100;
+		int width = 10;
+		int remaining_width = 100 - 10 * (numFields - numWideFields);
+		return (int) (remaining_width / numWideFields + 0.5);
+	}
+
+	public static int getWidth(int numFields, int numWideFields, String th) {
+		if (!isWideField(th)) return 10;
+		return calculateWideFieldWidth(numFields, numWideFields);
+	}
+
     public static void printTable(PrintWriter out,
         String tableLabel,
         Vector th_vec,
         Vector data_vec) {
 
-			if (out == null) {
-				System.out.println("out is NULL???");
+		int num_wide_fields = 0;
+		int num_fields = th_vec.size();
+		for (int i=0; i<th_vec.size(); i++) {
+			String th = (String) th_vec.elementAt(i);
+		    th = th.toLowerCase();
+		    if (th.indexOf("label") != -1 || th.indexOf("term") != -1
+		       || th.indexOf("name") != -1 || th.indexOf("description") != -1
+		       || th.indexOf("definition") != -1) {
+				num_wide_fields++;
 			}
+		}
+
+		if (out == null) {
+			System.out.println("out is NULL???");
+		}
+
 		out.println("");
 		out.println("<div>");
 		out.println("<center>");
@@ -161,9 +198,11 @@ public class HTMLTable {
 			String data = (String) data_vec.elementAt(i);
 			out.println("<tr>");
 			Vector u = StringUtils.parseData(data, '|');
+
 			for (int j=0; j<u.size(); j++) {
 				String value = (String) u.elementAt(j);
-				out.println("<td>");
+				int percent = getWidth(num_fields, num_wide_fields, (String) th_vec.elementAt(j));
+				out.println("<td width=\"" + percent + "%\">");
 				out.println(value);
 				out.println("</td>");
 			}
@@ -207,10 +246,23 @@ public class HTMLTable {
 		out.println("</html>");
     }
 
+/*
 	public static void main(String[] args) {
 		String filename = args[0];
 		Vector v = Utils.readFile(filename);
 		generate(v);
 	}
-
+*/
+	public static void main(String[] args) {
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String inputfile = args[4];
+		String outputfile = new HTMLTableDataConverter(serviceUrl, named_graph, username, password).convert(inputfile);
+		System.out.println(outputfile + " generated.");
+		Vector v = Utils.readFile(outputfile);
+		outputfile = new HTMLTable().generate(v);
+		System.out.println(outputfile + " generated.");
+	}
 }

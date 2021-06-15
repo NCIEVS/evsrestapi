@@ -130,9 +130,11 @@ public class ExcelUtils {
 			ex.printStackTrace();
 		}
 
-		Sheet sheet  = null;//
+		Sheet sheet = null;
 		try {
 			sheet = workbook.getSheetAt(sheetIndex);
+			textfile = sheet.getSheetName() + ".txt";
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -466,11 +468,13 @@ public class ExcelUtils {
 
 	public static void main(String[] args) {
 		String excelfile = args[0];
+		String sheetNumStr = args[1];
+	    int sheet_number = Integer.parseInt(sheetNumStr);
 		System.out.println("excelfile: " + excelfile);
-		//Vector data = excel2Text(excelfile, 0);
+		Vector data = excel2Text(excelfile, sheet_number);
         //generateTemplate(excelfile, 0);
         //write("template_" + excelfile, "v2_" + excelfile, 0, data, '\t');
-        String target_file = clone(excelfile);
+        //String target_file = clone(excelfile);
 
 	}
 }

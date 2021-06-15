@@ -126,7 +126,6 @@ public class ValueSetUtils {
 
 		this.sparql_endpoint = serviceUrl + "?query=";
 
-		//this.relSearchUtils = new RelationSearchUtils(sparql_endpoint);
 		System.out.println(serviceUrl);
 
 		System.out.println("Instantiating MetadataUtils ...");
@@ -222,24 +221,7 @@ System.out.println("Step 2: " + PARENT_CHILD_FILE);
 		}
 		System.out.println("Total processing " + PARENT_CHILD_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 3: " + CONCEPT_IN_SUBSET_FILE);
-        ms = System.currentTimeMillis();
-        boolean concept_in_subset_file_exists = checkIfFileExists(CONCEPT_IN_SUBSET_FILE);
-        concept_in_subset_vec = null;
-        if (!concept_in_subset_file_exists) {
-			System.out.println("Generating " + CONCEPT_IN_SUBSET_FILE + "...");
-			concept_in_subset_vec = generate_concept_in_subset_vec();
-			saveToFile(CONCEPT_IN_SUBSET_FILE, concept_in_subset_vec);
-			System.out.println(CONCEPT_IN_SUBSET_FILE + " size: " + concept_in_subset_vec.size());
-	    } else {
-			System.out.println("Loading " + CONCEPT_IN_SUBSET_FILE + "...");
-			concept_in_subset_vec = readFile(CONCEPT_IN_SUBSET_FILE);
-		}
-		//searchUtils = new ValueSetSearchUtils(serviceUrl + "?query=", named_graph, concept_in_subset_vec);
-		//searchUtils = new ValueSetSearchUtils(serviceUrl, named_graph, username, password, concept_in_subset_vec);
-		System.out.println("Total processing " + CONCEPT_IN_SUBSET_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
-
-System.out.println("Step 4: " + VS_HEADER_CONCEPT_FILE);
+System.out.println("Step 3: " + VS_HEADER_CONCEPT_FILE);
         ms = System.currentTimeMillis();
         boolean vs_header_concept_file_exists = checkIfFileExists(VS_HEADER_CONCEPT_FILE);
         vs_header_concept_vec = null;
@@ -254,7 +236,7 @@ System.out.println("Step 4: " + VS_HEADER_CONCEPT_FILE);
 		}
 		System.out.println("Total processing " + VS_HEADER_CONCEPT_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 5: " + EMBEDDED_VALUE_SET_HIERARCHY_FILE);
+System.out.println("Step 4: " + EMBEDDED_VALUE_SET_HIERARCHY_FILE);
         ms = System.currentTimeMillis();
         embedded_value_set_hierarchy_vec = null;
         boolean embedded_value_set_hierarchy_file_exists = checkIfFileExists(EMBEDDED_VALUE_SET_HIERARCHY_FILE);
@@ -268,7 +250,7 @@ System.out.println("Step 5: " + EMBEDDED_VALUE_SET_HIERARCHY_FILE);
 		}
 		System.out.println("Total processing " + EMBEDDED_VALUE_SET_HIERARCHY_FILE + " run time (ms): " + (System.currentTimeMillis() - ms));
 
-System.out.println("Step 6: generating AssertedValueSetTree ...");
+System.out.println("Step 5: generating AssertedValueSetTree ...");
         assertedValueSetTree = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
 		System.out.println("Total processing run time (ms): " + (System.currentTimeMillis() - ms_0));
 	}
@@ -316,6 +298,15 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		return orphan_nodes;
 	}
 
+	public HashSet vector2HashSet(Vector v) {
+		HashSet hset = new HashSet();
+		for (int i=0;i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			hset.add(t);
+		}
+		return hset;
+	}
+
     public void contructSourceAssertedTree(String outputfile) {
 		long ms = System.currentTimeMillis();
 		Vector parent_child_vec = Utils.readFile(PARENT_CHILD_FILE);
@@ -324,7 +315,11 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
         String label = eh.getLabel(rootCode);
         System.out.println("Root: " + label + " (" + rootCode + ")");
         Vector vs_header_concept_vec = Utils.readFile(VS_HEADER_CONCEPT_FILE);
-        HashSet nodeSet = eh.getPublishedValueSetHeaderConceptCodes(vs_header_concept_vec);
+
+        //HashSet nodeSet = eh.getPublishedValueSetHeaderConceptCodes(vs_header_concept_vec);
+        HashSet nodeSet = vector2HashSet(vs_header_concept_vec);
+
+
         Vector v = eh.getEmbeddedHierarchy(rootCode, nodeSet);
 
         Vector embedded_hierarchy_parent_child_vec = v;
@@ -564,7 +559,7 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 	}
 
 	public Vector generate_value_set_header_concept_vec() {
-		Vector vs_header_concept_vec = getConceptsWithAnnotationProperty(PUBLISH_VALUE_SET);
+		Vector vs_header_concept_vec = owlSPARQLUtils.getPublishedValueSets(named_graph, true);
 		return vs_header_concept_vec;
 	}
 
@@ -591,12 +586,12 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
         EmbeddedHierarchy eh = new EmbeddedHierarchy(parent_child_vec);
         String rootCode = TERMINOLOGY_SUBSET_CODE;
         String label = eh.getLabel(rootCode);
-        HashSet nodeSet = eh.getPublishedValueSetHeaderConceptCodes(vs_header_concept_vec);
 
+        //HashSet nodeSet = eh.getPublishedValueSetHeaderConceptCodes(vs_header_concept_vec);
+        HashSet nodeSet = vector2HashSet(vs_header_concept_vec);
         Vector v = eh.getEmbeddedHierarchy(rootCode, nodeSet);
         Vector embedded_hierarchy_parent_child_vec = v;
         HashMap code2LableMap = eh.createEmbeddedHierarchyCode2LabelHashMap(v);
-
         Iterator it = nodeSet.iterator();
         int lcv = 0;
         Vector orphans = new Vector();
@@ -660,23 +655,9 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 	public void run() {
 		Vector embedded_value_set_hierarchy_vec = generate_embedded_value_set_hierarchy_vec(get_parent_child_vec(),
 		    get_vs_header_concept_vec());
-		//Utils.saveToFile("embedded_value_set_hierarchy_vec_" + StringUtils.getToday() + ".txt", embedded_value_set_hierarchy_vec);
 		saveToFile("embedded_value_set_hierarchy_vec_" + ".txt", embedded_value_set_hierarchy_vec);
 		TreeItem ti = generateAssertedValueSetTree(embedded_value_set_hierarchy_vec);
 		TreeItem.printTree(ti, 0, false); // print code first = false
-		/*
-		String json = treeItem2Json(ti);
-		System.out.println(json);
-
-        HashSet codes = getPublishedValueSetHeaderConceptCodes(get_vs_header_concept_vec());
-        Vector w = hashSet2Vector(codes);
-        w = new SortUtils().quickSort(w);
-        StringUtils.dumpVector("codes", w);
-
-        String vs_code = "C77527";
-        ValueSetDefinition vsd = getValueSetDefinition(vs_code);
-        System.out.println(vsd.toXML());
-        */
 	}
 
     public TreeItem loadTree(String filename) {
@@ -747,7 +728,7 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		return stu.getValueSetTreeStringBuffer(sourceValueSetTree);
 	}
 
-
+/*
 	public HashSet vector2HashSet(Vector v) {
 		HashSet hset = new HashSet();
 		for (int i=0; i<v.size(); i++) {
@@ -758,6 +739,7 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		}
 		return hset;
 	}
+*/
 
     public Vector generate_embedded_value_set_hierarchy_vec(Vector parent_child_vec, String rootCode, Vector vs_header_concept_vec) {
 		long ms = System.currentTimeMillis();
@@ -815,8 +797,6 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		}
 	}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
@@ -824,11 +804,9 @@ System.out.println("Step 6: generating AssertedValueSetTree ...");
 		String password = args[3];
 		System.out.println("serviceUrl: " + serviceUrl);
 		System.out.println("named_graph: " + named_graph);
-
         ValueSetUtils vsu = new ValueSetUtils(serviceUrl, named_graph, username, password);
 	    vsu.initialize();
 	    TreeItem assertedValueSetTree = vsu.getAssertedValueSetTree();
 	    TreeItem.printTree(assertedValueSetTree, 0, false); // print code first = false
-
 	}
 }

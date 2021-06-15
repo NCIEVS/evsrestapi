@@ -673,6 +673,150 @@ public class HierarchyHelper implements Serializable {
 		return this.code2LabelMap;
 	}
 
+	public Vector dumpTallies(HashMap hmap) {
+		Vector v = new Vector();
+		v.add("Root|Size");
+		int count = 0;
+		Vector keys = new Vector();
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			keys.add(key);
+		}
+		keys = new SortUtils().quickSort(keys);
+		it = hmap.keySet().iterator();
+		for (int i=0; i<keys.size(); i++) {
+			String key = (String) keys.elementAt(i);
+			Integer int_obj = (Integer) hmap.get(key);
+			v.add(key + "|" + Integer.valueOf(int_obj));
+			count = count + Integer.valueOf(int_obj);
+		}
+		v.add("Total|" + count);
+		return v;
+	}
+
+
+   	public HashMap getBranchSizes() {
+		HashMap hmap = new HashMap();
+		for (int i=0; i<roots.size(); i++) {
+			String root = (String) roots.elementAt(i);
+			String label = getLabel(root);
+			String key = label + " (" + root + ")";
+			Vector v = getTransitiveClosure(root, true);
+			hmap.put(key, new Integer(v.size()));
+		}
+
+		return hmap;
+	}
+
+    public int get_transitive_closure(String code) {
+		int count = 0;
+		Vector v = null;
+		Stack stack = new Stack();
+		stack.push(code);
+		while (!stack.isEmpty()) {
+			String next_code = (String) stack.pop();
+			count++;
+			v = getSubclassCodes(next_code);
+			if (v != null) {
+				for (int i=0; i<v.size(); i++) {
+					String child_code = (String) v.elementAt(i);
+					stack.push(child_code);
+				}
+			}
+		}
+		return count;
+	}
+
+    public int get_transitive_closure_v2(String code) {
+		int count = 0;
+		Vector v = null;
+		Stack stack = new Stack();
+		stack.push(code);
+		HashSet hset = new HashSet();
+
+		while (!stack.isEmpty()) {
+			String next_code = (String) stack.pop();
+			if (!hset.contains(next_code)) {
+				hset.add(next_code);
+				count++;
+			}
+			v = getSubclassCodes(next_code);
+			if (v != null) {
+				for (int i=0; i<v.size(); i++) {
+					String child_code = (String) v.elementAt(i);
+					stack.push(child_code);
+				}
+			}
+		}
+		hset.clear();
+		return count;
+	}
+
+    public Vector get_transitive_closure_v3(String code) {
+		Vector w = new Vector();
+		Vector v = null;
+		Stack stack = new Stack();
+		stack.push(code);
+		w.add(code);
+		HashSet hset = new HashSet();
+		while (!stack.isEmpty()) {
+			String next_code = (String) stack.pop();
+			if (!hset.contains(next_code)) {
+				hset.add(next_code);
+				w.add(next_code);
+			}
+			v = getSubclassCodes(next_code);
+			if (v != null) {
+				for (int i=0; i<v.size(); i++) {
+					String child_code = (String) v.elementAt(i);
+					stack.push(child_code);
+				}
+			}
+		}
+		hset.clear();
+		return w;
+	}
+
+    public void printPath2Roots(PrintWriter pw, String line) {
+        Vector v = StringUtils.parseData(line, '|');
+        String indent = "";
+		for (int i=0; i<v.size(); i++) {
+			String code = (String) v.elementAt(i);
+			String label = getLabel(code);
+			if (pw != null) {
+				pw.println(indent + label + " (" + code + ")");
+			} else {
+				System.out.println(indent + label + " (" + code + ")");
+			}
+			indent = indent + "\t";
+		}
+	}
+
+	public void path2Roots(PrintWriter pw, String code) {
+		Stack stack = new Stack();
+		stack.push(code);
+		while (!stack.isEmpty()) {
+            String line = (String) stack.pop();
+            Vector u = StringUtils.parseData(line, '|');
+            String next_code = (String) u.elementAt(u.size()-1);
+            Vector v = getSuperclassCodes(next_code);
+            if (v != null) {
+                for (int i=0; i<v.size(); i++) {
+					String sup = (String) v.elementAt(i);
+					String nextLine = line + "|" + sup;
+					stack.push(nextLine);
+				}
+			} else {
+				printPath2Roots(pw, line);
+			}
+		}
+	}
+
+	public void path2Roots(String code) {
+		path2Roots(null, code);
+	}
+
     public static void main(String[] args) {
 		Vector v = Utils.readFile("tvs_rel.txt");
 		HierarchyHelper test = new HierarchyHelper(v, 1);
