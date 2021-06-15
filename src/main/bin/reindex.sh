@@ -1,15 +1,23 @@
 #!/bin/bash -f
-
+#
+# This script reconciles the elasticsearch indexes against what is loded
+# into stardog.  The --noconfig flag is for running in the dev environment
+# where the setenv.sh file does not exist.  The --force flag is used
+# to recompute indexes that already exist rather than skipping them.
+#
 config=1
+force=false
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
+  --force) force=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
 if [ ${#arr[@]} -ne 0 ]; then
-  echo "Usage: $0 [--noconfig]"
+  echo "Usage: $0 [--noconfig] [--force]"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
+  echo "  e.g. $0 --force"
   exit 1
 fi
 
@@ -24,6 +32,9 @@ fi
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
+if [[ $force -eq 1 ]]; then
+	echo "  force = 1"
+fi
 set -e
 
 # Setup configuration
@@ -154,9 +165,12 @@ for x in `cat /tmp/y.$$.txt`; do
 		
     done
     
-    if [[ $exists -eq 1 ]]; then
+    if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
 		echo "    FOUND indexes for $version, continue"
 	else
+        if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
+			echo "    FOUND indexes for $version, force reindex anyway"        
+        fi
 
 		# Run reindexing process (choose a port other than the one that it runs on)
 		export STARDOG_DB=$db
