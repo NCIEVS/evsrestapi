@@ -601,7 +601,7 @@ public class EVSStatistics {
 	public Vector getRoleTargets(String named_graph, boolean savefile) {
         Vector v = getRoleTargets(named_graph, null, null);
         if (savefile) {
-        	Utils.saveToFile("role_data.txt", v);
+        	Utils.saveToFile(RESTRICTION_FILE, v);
 		}
         return v;
 	}
@@ -1454,7 +1454,7 @@ public class EVSStatistics {
 		    Utils.saveToFile(PARENT_CHILD_FILE, v);
 		}
 		hh = new HierarchyHelper(v, 1);
-		return generateBranchSizeTableData(v);
+		return generate_branch_size_table_data();
 	}
 
     public Vector convert(Vector v) {
@@ -1474,7 +1474,7 @@ public class EVSStatistics {
 		return w;
 	}
 
-    public Vector generateBranchSizeTableData(Vector v) {
+    public Vector generate_branch_size_table_data() {
 		Vector roots = hh.getRoots();
 		Vector w = new Vector();
 		for (int i=0; i<roots.size(); i++) {
@@ -1798,6 +1798,18 @@ public class EVSStatistics {
 		Vector th_vec = null;
 		addTitle("NCI Thesaurus Statistics");
 
+		if (checkIfFileExists(RESTRICTION_FILE)) {
+			v = Utils.readFile(RESTRICTION_FILE);
+		} else{
+			v = getRoleTargets(named_graph);
+		}
+		String firstLine = (String) v.elementAt(0);
+		Vector u = StringUtils.parseData(firstLine, '|');
+		if (u.size() == 3) {
+			v = convert(v);
+			Utils.saveToFile(RESTRICTION_FILE, v);
+		}
+
         v = generateBranchSizeTableData();
 	    tableName = addTableNumber("Branch Size");
 	    th_vec = new Vector();
@@ -1880,25 +1892,14 @@ public class EVSStatistics {
 	    th_vec.add("Count");
 	    addTable(tableName, th_vec, association_knt_vec);
 
-        if (checkIfFileExists(RESTRICTION_FILE)) {
-			v = Utils.readFile(RESTRICTION_FILE);
-		} else{
-        	v = getRoleTargets(named_graph);
-		}
-
-		String firstLine = (String) v.elementAt(0);
-		Vector u = StringUtils.parseData(firstLine, '|');
-		if (u.size() == 3) {
-			v = convert(v);
-			Utils.saveToFile(RESTRICTION_FILE, v);
-		}
-
+		v = Utils.readFile(RESTRICTION_FILE);
 		Vector role_vec = getRelationsipCounts(v);
-	    tableName = addTableNumber("Roles");
-	    th_vec = new Vector();
-	    th_vec.add("Role");
-	    th_vec.add("Count");
-	    addTable(tableName, th_vec, role_vec);
+		tableName = addTableNumber("Roles");
+		th_vec = new Vector();
+		th_vec.add("Role");
+		th_vec.add("Count");
+		addTable(tableName, th_vec, role_vec);
+
 	    addFooter();
 	}
 

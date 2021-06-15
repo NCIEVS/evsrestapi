@@ -576,46 +576,42 @@ public class OWLSPARQLUtils {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("SELECT ?y_label ?y_code").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
-		buf.append("  {").append("\n");
-		buf.append("  {").append("\n");
-		buf.append("	  {").append("\n");
-		buf.append("	    ?x a owl:Class .").append("\n");
-		if (code != null) {
-			buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		}
-		buf.append("	    ?y rdfs:subClassOf ?x .").append("\n");
-		buf.append("	    ?y a owl:Class .").append("\n");
-		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
-		buf.append("	    ?y :NHC0 ?y_code .").append("\n");
-		buf.append("	  }").append("\n");
-		buf.append("	  FILTER (?x != ?y)").append("\n");
-		buf.append("  }").append("\n");
-		buf.append("  UNION").append("\n");
-		buf.append("  {").append("\n");
-		buf.append("	  {").append("\n");
-		buf.append("	    ?y a owl:Class .").append("\n");
-		buf.append("	    ?y :NHC0 ?y_code .").append("\n");
-		buf.append("	    ?y rdfs:label ?y_label .").append("\n");
+		buf.append("SELECT ?subclassLabel ?subclassCode\n");
+		buf.append("{ GRAPH <" + named_graph + ">");
+		buf.append("		{\n");
+		buf.append("		  {\n");
+		buf.append("		    {\n");
+		buf.append("		      ?superclass a owl:Class .\n");
+		buf.append("		      ?superclass :NHC0 \"" + code + "\" .\n");
+		buf.append("		      ?subclass rdfs:subClassOf ?superclass .\n");
+		buf.append("		      ?subclass a owl:Class .\n");
+		buf.append("		      ?subclass rdfs:label ?subclassLabel .\n");
+		buf.append("		      ?subclass :NHC0 ?subclassCode\n");
+		buf.append("		    }\n");
+		buf.append("		    FILTER (?superclass != ?subclass)\n");
+		buf.append("		  }\n");
+		buf.append("		  UNION\n");
+		buf.append("		  {\n");
+		buf.append("		    {\n");
+		buf.append("		      ?superclass a owl:Class .\n");
+		buf.append("		      ?superclass :NHC0 \"" + code + "\" .\n");
+		buf.append("		      ?equiv_concept owl:intersectionOf ?list .\n");
+		buf.append("		      ?list rdf:rest*/rdf:first ?superclass .\n");
+		buf.append("		      ?subclass owl:equivalentClass ?equiv_concept .\n");
+		buf.append("		      ?subclass a owl:Class .\n");
+		buf.append("		      ?subclass rdfs:label ?subclassLabel .\n");
+		buf.append("		      ?subclass :NHC0 ?subclassCode\n");
+		buf.append("		    }\n");
+		buf.append("		    FILTER (?superclass != ?subclass)\n");
+		buf.append("		  }\n");
+		buf.append("		}\n");
+		buf.append("}\n");
+		buf.append("ORDER by ?subclassLabel\n");
 
-		buf.append("		?y owl:equivalentClass ?z0 .").append("\n");
-		buf.append("		?z0 a owl:Class .").append("\n");
-		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
-
-		buf.append("	    ?list rdf:rest*/rdf:first ?x .").append("\n");
-		buf.append("	    ?x a owl:Class .").append("\n");
-		if (code != null) {
-			buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		}
-		buf.append("	  }").append("\n");
-		buf.append("	  FILTER (?x != ?y)").append("\n");
-		buf.append("  }").append("\n");
-		buf.append("  }").append("\n");
-		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
+
 
     public boolean isLeaf(String named_graph, String code) {
 		Vector v = getSubclassesByCode(named_graph, code);
@@ -6077,7 +6073,30 @@ Term Type
 		return w;
 	}
 
+	public String construct_get_datatypes(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select ?dt ?element ?elementType ").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("   ?dt a rdfs:Datatype ;").append("\n");
+		buf.append("   owl:oneOf/rdf:rest*/rdf:first ?element .").append("\n");
+		buf.append("   bind(datatype(?element) as ?elementType)").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
 
+    public Vector getDatatypes(String named_graph) {
+	    String query = construct_get_datatypes(named_graph);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -6085,10 +6104,8 @@ Term Type
 		String namedGraph = args[1];
 		String username = args[2];
 		String password = args[3];
-		//String code = args[5];
 	    OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(restURL, username, password);
 	    owlSPARQLUtils.set_named_graph(namedGraph);
-
 
 		Vector v = owlSPARQLUtils.getSubclassesByCode(namedGraph, "C168547");
 		Utils.dumpVector("v", v);
