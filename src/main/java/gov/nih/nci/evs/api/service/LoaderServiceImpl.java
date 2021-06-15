@@ -142,7 +142,7 @@ public class LoaderServiceImpl {
         Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
             cmd.getOptionValue("t"), config.isForceDeleteIndex());
         HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
-        int totalConcepts = loadService.loadConcepts(config, term, hierarchy, cmd);
+        int totalConcepts = loadService.loadConcepts(config, term, hierarchy);
         loadService.checkLoadStatus(totalConcepts, term);
         loadService.loadIndexMetadata(totalConcepts, term);
         loadService.loadObjects(config, term, hierarchy);

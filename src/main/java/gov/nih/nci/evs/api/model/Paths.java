@@ -183,7 +183,7 @@ public class Paths extends BaseModel {
             .filter(c -> broadCategorySet.contains(c.getCode())).count() > 0)
         .collect(Collectors.toList())) {
 
-      // logger.info("  path = "
+      // logger.info(" path = "
       // + path.getConcepts().stream().map(c ->
       // c.getCode()).collect(Collectors.toList()));
 
@@ -191,7 +191,7 @@ public class Paths extends BaseModel {
       // have them
       if (mtFlag && path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode()))
           .findFirst().orElse(null) == null) {
-        // logger.info("  SKIP mtFlag ");
+        // logger.info(" SKIP mtFlag ");
         continue;
       }
 
@@ -202,7 +202,7 @@ public class Paths extends BaseModel {
       // if mma is an ancestor of another main type concept that's in one of the
       // candidate paths, then skip it
       if (isMthAncestor(mma, combined, getPaths())) {
-        // logger.info("  SKIP mth ancestor = " + mma);
+        // logger.info(" SKIP mth ancestor = " + mma);
         continue;
       }
 
@@ -211,7 +211,7 @@ public class Paths extends BaseModel {
       int length = mainTypeHierarchy.containsKey(mma)
           ? mainTypeHierarchy.get(mma + "-FULL").getPaths().get(0).getConcepts().size() : 0;
 
-      // logger.info("  length = " + length);
+      // logger.info(" length = " + length);
       if (length >= longestLength) {
         if (length > longestLength) {
           longestLength = length;
@@ -226,8 +226,8 @@ public class Paths extends BaseModel {
       }
 
     }
-    // logger.info("  longest length = " + longestLength);
-    // logger.info("  longest paths = " + longestPathsRewritten);
+    // logger.info(" longest length = " + longestLength);
+    // logger.info(" longest paths = " + longestPathsRewritten);
 
     final Paths rewritePaths = new Paths();
     rewritePaths.getPaths().addAll(longestPathsRewritten);
@@ -289,6 +289,7 @@ public class Paths extends BaseModel {
    * @param codes the codes
    * @return the distance
    */
+  @SuppressWarnings("unused")
   private int getDistance(final Path path, final String code, final Set<String> codes) {
     // ASSUMPTION, there is at least one code matching code.
     // ASSUMPTION, there is at least one code matching codes.
