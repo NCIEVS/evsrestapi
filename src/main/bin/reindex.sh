@@ -1,15 +1,23 @@
 #!/bin/bash -f
-
+#
+# This script reconciles the elasticsearch indexes against what is loded
+# into stardog.  The --noconfig flag is for running in the dev environment
+# where the setenv.sh file does not exist.  The --force flag is used
+# to recompute indexes that already exist rather than skipping them.
+#
 config=1
+force=false
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
+  --force) force=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
 if [ ${#arr[@]} -ne 0 ]; then
-  echo "Usage: $0 [--noconfig]"
+  echo "Usage: $0 [--noconfig] [--force]"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
+  echo "  e.g. $0 --force"
   exit 1
 fi
 
@@ -24,6 +32,9 @@ fi
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
+if [[ $force -eq 1 ]]; then
+	echo "  force = 1"
+fi
 set -e
 
 # Setup configuration
@@ -154,17 +165,20 @@ for x in `cat /tmp/y.$$.txt`; do
 		
     done
     
-    if [[ $exists -eq 1 ]]; then
+    if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
 		echo "    FOUND indexes for $version, continue"
 	else
+        if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
+			echo "    FOUND indexes for $version, force reindex anyway"        
+        fi
 
 		# Run reindexing process (choose a port other than the one that it runs on)
 		export STARDOG_DB=$db
 		export EVS_SERVER_PORT="8083"
 		echo "    Generate indexes for $STARDOG_DB $version"
 
-		echo "java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-		java -jar $local $jar --terminology ncit_$version --realTime --forceDeleteIndex  | sed 's/^/      /'
+		echo "java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+		java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
 		if [[ $? -ne 0 ]]; then
 			echo "ERROR: unexpected error building indexes"
 			exit 1
@@ -187,8 +201,8 @@ done
 # It checks against stardog and reconciles everything and updates latest flags
 # regardless of whether there was new data
 echo "  Reconcile stale indexes and update flags"
-echo "    java -jar $local $jar --terminology ncit --skip-load"
-java -jar $local $jar --terminology ncit --skip-load | sed 's/^/      /'
+echo "    java $local -jar $jar --terminology ncit --skip-load"
+java $local -jar $jar --terminology ncit --skip-load | sed 's/^/      /'
 if [[ $? -ne 0 ]]; then
 	echo "ERROR: unexpected error building indexes"
 	exit 1
