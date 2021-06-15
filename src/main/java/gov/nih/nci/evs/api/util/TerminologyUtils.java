@@ -1,13 +1,17 @@
 
 package gov.nih.nci.evs.api.util;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,6 +24,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
@@ -44,6 +49,10 @@ public final class TerminologyUtils {
   @Autowired
   ElasticQueryService esQueryService;
 
+  /** The stardog properties. */
+  @Autowired
+  StardogProperties stardogProperties;
+
   /**
    * Returns all terminologies.
    * 
@@ -56,7 +65,7 @@ public final class TerminologyUtils {
     if (indexed) {
       return getIndexedTerminologies();
     }
-    return sparqlQueryManagerService.getTerminologies();
+    return sparqlQueryManagerService.getTerminologies(stardogProperties.getDb());
   }
 
   /**
@@ -75,21 +84,26 @@ public final class TerminologyUtils {
   }
 
   /**
-   * Returns terminologies loaded to elasticsearch and not in Stardog.
-   * 
-   * @return the list of {@link IndexMetadata} objects
-   * @throws Exception Signals that an exception has occurred.
+   * Returns the stale terminologies.
+   *
+   * @param dbs the dbs
+   * @return the stale terminologies
+   * @throws Exception the exception
    */
-  public List<IndexMetadata> getStaleTerminologies() throws Exception {
+  public List<IndexMetadata> getStaleTerminologies(final List<String> dbs) throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
-    if (CollectionUtils.isEmpty(iMetas))
+    if (CollectionUtils.isEmpty(iMetas)) {
       return Collections.emptyList();
+    }
 
-    // get all terminologies and organize in a map by terminologyVersion as key
-    List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies();
     final Map<String, Terminology> termMap = new HashMap<>();
-    terminologies.stream().forEach(t -> termMap.putIfAbsent(t.getTerminologyVersion(), t));
+    for (final String db : dbs) {
+      // get all terminologies and organize in a map by terminologyVersion as
+      // key
+      List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies(db);
+      terminologies.stream().forEach(t -> termMap.putIfAbsent(t.getTerminologyVersion(), t));
+    }
 
     // collect stale terminologies loaded in es
     return iMetas.stream().filter(m -> !termMap.containsKey(m.getTerminologyVersion()))
@@ -131,37 +145,6 @@ public final class TerminologyUtils {
   }
 
   /**
-   * Returns the latest terminology.
-   *
-   * @param indexed use {@literal true} to lookup in indexed terminologies as
-   *          opposed to stardog
-   * @return the terminology
-   * @throws Exception the exception
-   */
-  public Terminology getLatestTerminology(boolean indexed, Terminology term) throws Exception {
-
-    List<Terminology> terminologies = getTerminologies(indexed);
-    terminologies = terminologies.stream()
-        .filter(t -> t.getTerminology().equals(term.getTerminology())).collect(Collectors.toList());
-    if (CollectionUtils.isEmpty(terminologies))
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No terminology found!");
-
-    Collections.sort(terminologies, new Comparator<Terminology>() {
-      @Override
-      public int compare(Terminology o1, Terminology o2) {
-        return -1 * o1.getVersion().compareTo(o2.getVersion());
-      }
-    });
-
-    Optional<Terminology> latest = terminologies.stream().filter(t -> t.getLatest()).findFirst();
-    if (!latest.isPresent())
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          "No terminology found with latest flag!");
-
-    return latest.get();
-  }
-
-  /**
    * As set.
    *
    * @param <T> the
@@ -188,6 +171,62 @@ public final class TerminologyUtils {
    */
   public static String constructName(String comment, String version) {
     return comment.substring(0, comment.indexOf(",")) + " " + version;
+  }
+
+  /**
+   * Sets monthly/weekly tags based on date on the given terminology object.
+   *
+   * @param terminology the terminology
+   * @param db the db
+   * @throws ParseException the parse exception
+   */
+  public void setTags(final Terminology terminology, final String db) throws ParseException {
+
+    // Compute "monthly"
+    final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
+    boolean monthly = false;
+
+    // If the stardogProperties "db" matches the terminology metadata
+    // "monthlyDb"
+    // then continue, we're good.
+    if (terminology.getMetadata() != null && db != null
+        && db.equals(terminology.getMetadata().getMonthlyDb())) {
+      logger.info("  stardog monthly db found = " + db);
+      monthly = true;
+    }
+
+    // If the ncit.json "monthlyDb" isn't set, then calculate
+    // NOTE: this wont' handle exceptions like 20210531 being
+    // the 5th Monday of May in 2021 but also a holiday
+    else if (terminology.getMetadata() == null
+        || terminology.getMetadata().getMonthlyDb() == null) {
+      final Date d = fmt.parse(terminology.getDate());
+      Calendar cal = GregorianCalendar.getInstance();
+      cal.setTime(d);
+      // Count days of week; for NCI, this should be max Mondays in month
+      int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
+
+      String version = terminology.getVersion();
+      char weekIndicator = version.charAt(version.length() - 1);
+      switch (weekIndicator) {
+        case 'e':
+          monthly = true;// has to be monthly version
+          break;
+        case 'd':// monthly version, if month has only 4 days of week (for ex:
+                 // Monday) only
+          if (maxDayOfWeek == 4)
+            monthly = true;
+          break;
+        default:// case a,b,c
+          break;
+      }
+    }
+    if (monthly) {
+      terminology.getTags().put("monthly", "true");
+    }
+
+    // Every version is also a weekly
+    terminology.getTags().put("weekly", "true");
   }
 
 }

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -36,18 +37,6 @@ public class LoaderServiceImpl {
   @Value("${nci.evs.bulkload.conceptsDir}")
   private static String CONCEPTS_OUT_DIR;
 
-  /** the lock file name *. */
-  @Value("${nci.evs.bulkload.lockFile}")
-  private String LOCK_FILE;
-
-  /** download batch size *. */
-  @Value("${nci.evs.bulkload.downloadBatchSize}")
-  private int DOWNLOAD_BATCH_SIZE;
-
-  /** index batch size *. */
-  @Value("${nci.evs.bulkload.indexBatchSize}")
-  private int INDEX_BATCH_SIZE;
-
   /** the environment *. */
   @Autowired
   Environment env;
@@ -69,7 +58,9 @@ public class LoaderServiceImpl {
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
-    options.addOption("d", "directory", true, "load concepts from the given directory");
+    options.addOption("d", "directory", true, "Load concepts from the given directory");
+    options.addOption("s", "skip-load", false,
+        "Skip loading data, just clean stale terminologies and update latest flags");
 
     return options;
   }
@@ -147,22 +138,38 @@ public class LoaderServiceImpl {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
       ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
-      Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
-          cmd.getOptionValue("t"), config.isForceDeleteIndex());
-      HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
-      int totalConcepts = loadService.loadConcepts(config, term, hierarchy);
-      loadService.checkLoadStatus(totalConcepts, term);
-      loadService.loadIndexMetadata(totalConcepts, term);
-      loadService.loadObjects(config, term, hierarchy);
+      if (!cmd.hasOption('s')) {
+        Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
+            cmd.getOptionValue("t"), config.isForceDeleteIndex());
+        HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+        int totalConcepts = loadService.loadConcepts(config, term, hierarchy, cmd);
+        loadService.checkLoadStatus(totalConcepts, term);
+        loadService.loadIndexMetadata(totalConcepts, term);
+        loadService.loadObjects(config, term, hierarchy);
+      }
       loadService.cleanStaleIndexes();
-      loadService.updateLatestFlag(term);
+      loadService.updateLatestFlag();
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
-      throw new RuntimeException(e);
-    } finally {
-      SpringApplication.exit(app);
+      int exitCode = SpringApplication.exit(app, new ExitCodeGenerator() {
+        @Override
+        public int getExitCode() {
+          // return the error code
+          return 1;
+        }
+      });
+      System.exit(exitCode);
     }
+
+    int exitCode = SpringApplication.exit(app, new ExitCodeGenerator() {
+      @Override
+      public int getExitCode() {
+        // return the error code
+        return 0;
+      }
+    });
+    System.exit(exitCode);
 
   }
 

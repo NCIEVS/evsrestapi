@@ -32,6 +32,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -76,6 +77,10 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   /** The sparql query manager service. */
   @Autowired
   private SparqlQueryManagerService sparqlQueryManagerService;
+
+  /** The stardog properties. */
+  @Autowired
+  StardogProperties stardogProperties;
 
   /** The main type hierarchy. */
   @Autowired
@@ -417,6 +422,11 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     } catch (Exception e) {
       throw new Exception("Unexpected error trying to load = " + resource, e);
     }
+
+    // Compute tags because this is the new terminology
+    // Do this AFTER setting terminology metadata, which is needed
+    termUtils.setTags(term, stardogProperties.getDb());
+
     return term;
   }
 

@@ -409,7 +409,7 @@ public interface SparqlQueryManagerService {
    * @throws IOException Signals that an I/O exception has occurred.
    * @throws ParseException the parse exception
    */
-  public List<Terminology> getTerminologies()
+  public List<Terminology> getTerminologies(String db)
     throws JsonParseException, JsonMappingException, IOException, ParseException;
 
   /**
