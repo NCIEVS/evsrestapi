@@ -37,7 +37,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   private String version;
 
   /** The date. */
-  @Field(type = FieldType.Date)
+  @Field(type = FieldType.Keyword)
   private String date;
 
   /** The name. */
