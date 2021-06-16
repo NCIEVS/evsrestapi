@@ -34,6 +34,9 @@ echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 if [[ $force -eq 1 ]]; then
 	echo "  force = 1"
+elif [[ $ES_CLEAN == "true" ]]; then
+	echo "  force = 1 (ES_CLEAN=true)"
+	force=1
 fi
 set -e
 
@@ -176,7 +179,6 @@ for x in `cat /tmp/y.$$.txt`; do
         	echo "    MISSING $y index"
 			exists=0
 	    fi
-		
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
