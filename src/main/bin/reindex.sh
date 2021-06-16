@@ -178,7 +178,7 @@ for x in `cat /tmp/y.$$.txt`; do
 		echo "    Generate indexes for $STARDOG_DB $version"
 
 		echo "java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-		java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex | sed 's/^/      /'
+		java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex
 		if [[ $? -ne 0 ]]; then
 			echo "ERROR: unexpected error building indexes"
 			exit 1
@@ -202,7 +202,7 @@ done
 # regardless of whether there was new data
 echo "  Reconcile stale indexes and update flags"
 echo "    java $local -jar $jar --terminology ncit --skip-load"
-java $local -jar $jar --terminology ncit --skip-load | sed 's/^/      /'
+java $local -jar $jar --terminology ncit --skip-load
 if [[ $? -ne 0 ]]; then
 	echo "ERROR: unexpected error building indexes"
 	exit 1
