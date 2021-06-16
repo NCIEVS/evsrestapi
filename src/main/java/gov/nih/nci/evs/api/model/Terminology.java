@@ -45,7 +45,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   private String name;
 
   /** The description. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String description;
 
   /** The graph. */
@@ -65,7 +65,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   private Boolean latest;
 
   /** The tags. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Object)
   private Map<String, String> tags;
 
   /** The index name for concepts. */

@@ -120,6 +120,20 @@ done
 /bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
+if [[ $ES_CLEAN == "true" ]]; then
+    echo "  Remove and recreate evs_metadata index"
+    curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
+	if [[ $? -ne 0 ]]; then
+		echo "ERROR: unexpected error deleting evs_metadata index"
+		exit 1
+	fi
+    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
+	if [[ $? -ne 0 ]]; then
+		echo "ERROR: unexpected error creating evs_metadata index"
+		exit 1
+	fi
+fi
+
 # set the max number of fields higher
 # we can probably remove this when we figure a better answer
 echo "  Set index.mapping.total_fields.limit = 5000"  
@@ -186,8 +200,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
 		# Set the indexes to have a larger max_result_window
 		echo "    Set max result window to 150000 for concept_ncit_$fv"
-		curl -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
-	 		-H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }'
+		curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
+	 		-H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
 		if [[ $? -ne 0 ]]; then
 			echo "ERROR: unexpected error setting max_result_window"
 			exit 1
