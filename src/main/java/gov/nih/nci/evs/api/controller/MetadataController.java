@@ -91,7 +91,7 @@ public class MetadataController extends BaseController {
       }
 
       if (tag.isPresent() && tagList.contains(tag.get())) {
-        terms = terms.stream().filter(f -> f.getTags().get(tag.get()).equals("true"))
+        terms = terms.stream().filter(f -> "true".equals(f.getTags().get(tag.get())))
             .collect(Collectors.toList());
       }
 
