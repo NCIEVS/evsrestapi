@@ -4,6 +4,7 @@ package gov.nih.nci.evs.api.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -436,14 +437,14 @@ public class MetadataServiceImpl implements MetadataService {
     ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
 
-
     if (!list.isPresent()) {
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
       return subsets;
     }
 
-    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null));
+    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
+        .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream().flatMap(Concept::streamSelfAndChildren)
         .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
     return subsets;
@@ -454,8 +455,7 @@ public class MetadataServiceImpl implements MetadataService {
   public Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
     throws Exception {
     // Verify that it is a property
-    final List<Concept> list =
-        self.getSubsets(terminology, include, Optional.ofNullable(code));
+    final List<Concept> list = self.getSubsets(terminology, include, Optional.ofNullable(code));
     if (list.size() == 1) {
       return Optional.of(list.get(0));
     } else if (list.size() > 1) {
