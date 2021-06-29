@@ -133,7 +133,7 @@ public class SearchController extends BaseController {
           value = "Single synonym term group value to restrict search results to. <a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",
-          value = "Comma-separated list of subsets to restrict search results to, e.g. CBDD Terminology.",
+          value = "Comma-separated list of subsets to restrict search results to, e.g. C157225.",
           required = false, dataType = "string", paramType = "query", defaultValue = "")
       // These are commented out because they are currently not supported
       // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
