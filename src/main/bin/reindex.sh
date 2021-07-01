@@ -162,11 +162,18 @@ export EVS_SERVER_PORT="8083"
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
 	version=`echo $x | cut -d\| -f 1`
-	fv=`echo $version | perl -pe 's/\.//;'`
+	cv=`echo $version | perl -pe 's/\.//;'`
 	db=`echo $x | cut -d\| -f 2`
 
+	# if previous version and current version match, then skip
+	# this is a monthly that's in both NCIT2 and CTRP databases
+	if [[ $cv -eq $pv ]]; then
+        echo "    SEEN $cv, continue"
+		continue
+	fi
+
     exists=1
-    for y in `echo "evs_metadata concept_ncit_$fv evs_object_ncit_$fv"`; do
+    for y in `echo "evs_metadata concept_ncit_$cv evs_object_ncit_$cv"`; do
 
 	    # Check for index
 	    curl -s -o /tmp/x.$$.txt ${ES_SCHEME}://${ES_HOST}:${ES_PORT}/_cat/indices    
@@ -202,8 +209,8 @@ for x in `cat /tmp/y.$$.txt`; do
 		fi
 
 		# Set the indexes to have a larger max_result_window
-		echo "    Set max result window to 150000 for concept_ncit_$fv"
-		curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$fv/_settings" \
+		echo "    Set max result window to 150000 for concept_ncit_$cv"
+		curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$cv/_settings" \
 	 		-H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
 		if [[ $? -ne 0 ]]; then
 			echo "ERROR: unexpected error setting max_result_window"
@@ -212,6 +219,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
 	fi
 
+    # track previous version, if next one is the same, don't index again.
+	pv=$cv
 done
 
 # Stale indexes are automatically cleaned up by the indexing process
