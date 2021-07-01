@@ -6,7 +6,7 @@
 # to recompute indexes that already exist rather than skipping them.
 #
 config=1
-force=false
+force=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
@@ -32,12 +32,6 @@ fi
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
-if [[ $force -eq 1 ]]; then
-	echo "  force = 1"
-elif [[ $ES_CLEAN == "true" ]]; then
-	echo "  force = 1 (ES_CLEAN=true)"
-	force=1
-fi
 set -e
 
 # Setup configuration
@@ -71,6 +65,13 @@ elif [[ -z $ES_PORT ]]; then
     exit 1
 fi
 
+if [[ $force -eq 1 ]]; then
+	echo "  force = 1"
+elif [[ $ES_CLEAN == "true" ]]; then
+	echo "  force = 1 (ES_CLEAN=true)"
+	force=1
+fi
+
 curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
     "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" |\
     $jq | perl -ne 's/\r//; $x=0 if /\]/; if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
@@ -80,7 +81,7 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "  databases: " `cat /tmp/db.$$.txt`
+echo "  databases = " `cat /tmp/db.$$.txt`
 
 # Prep query to read all version info
 echo "  Lookup version info for latest terminology in stardog"
