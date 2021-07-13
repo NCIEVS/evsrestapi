@@ -2028,6 +2028,38 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test that search deboosts retired concepts
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchDeboostRetired() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    ConceptResultList list = null;
+    log.info("Testing url - " + url + "?term=grey&terminology=ncit&include=properties");
+    result = mvc.perform(
+        get(url).param("terminology", "ncit").param("term", "grey").param("include", "properties"))
+        .andExpect(status().isOk()).andReturn();
+    list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
+        ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    boolean found = false;
+    for (Concept conc : list.getConcepts()) {
+      found = false;
+      for (Property prop : conc.getProperties()) {
+        if (prop.getValue() != null && prop.getValue().equals("Retired_Concept")) {
+          found = true;
+          break;
+        }
+      }
+
+      assertThat(found).isFalse();
+    }
+
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response

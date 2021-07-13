@@ -667,8 +667,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final Collection<String> commonProperties =
           terminology.getMetadata().getPropertyNames().values();
       final Set<String> syCode = terminology.getMetadata().getSynonym();
+      concept.setConceptStatus("DEFAULT");
       for (Property property : properties) {
 
+        if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
+          concept.setConceptStatus(property.getValue());
+          log.info("retired concept: " + concept.getCode() + "is "
+              + terminology.getMetadata().getRetiredStatusValue());
+        }
         // Handle synonyms without extra axioms
         final String type = property.getType();
         final String name = property.getValue();
@@ -692,6 +698,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getProperties().add(property);
         }
       }
+      if(concept.getConceptStatus().equals(terminology.getMetadata().getRetiredStatusValue()))
+          log.info(concept.getCode() + " is now " + concept.getConceptStatus());
 
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
@@ -2392,7 +2400,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonParseException, JsonMappingException, IOException {
     List<Concept> subsets = new ArrayList<>();
     for (String code : terminology.getMetadata().getSubset()) {
-      Concept concept = getConcept(code, terminology, new IncludeParam("summary,children,properties"));
+      Concept concept =
+          getConcept(code, terminology, new IncludeParam("summary,children,properties"));
       getSubsetsHelper(concept, terminology, 0);
       subsets.add(concept);
     }
