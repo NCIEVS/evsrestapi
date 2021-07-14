@@ -75,6 +75,11 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Keyword)
   private String subsetLink;
 
+  /** The concept status. */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
+  private String conceptStatus;
+
   /** The level. */
   @Field(type = FieldType.Integer)
   private Integer level;
@@ -299,6 +304,20 @@ public class Concept extends ConceptMinimal {
    */
   public void setSubsetLink(String subsetLink) {
     this.subsetLink = subsetLink;
+  }
+
+  /**
+   * @return the conceptStatus
+   */
+  public String getConceptStatus() {
+    return conceptStatus;
+  }
+
+  /**
+   * @param conceptStatus the conceptStatus to set
+   */
+  public void setConceptStatus(String conceptStatus) {
+    this.conceptStatus = conceptStatus;
   }
 
   /**

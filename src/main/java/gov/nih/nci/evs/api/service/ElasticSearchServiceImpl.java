@@ -155,6 +155,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
 
       boolQuery.must(boolQuery2);
+      boolQuery.should(QueryBuilders.matchQuery("conceptStatus", "Retired_Concept").boost(-200f));
     }
 
     // append terminology query
