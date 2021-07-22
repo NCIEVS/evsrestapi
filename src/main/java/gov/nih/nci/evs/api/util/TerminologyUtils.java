@@ -124,7 +124,11 @@ public final class TerminologyUtils {
    */
   public Terminology getTerminology(final String terminology, boolean indexed) throws Exception {
     List<Terminology> terminologies = getTerminologies(indexed);
-    for (final Terminology t : terminologies) {
+    // Go through terminologies in (reverse) version order - most recent first
+    // ASSUMPTION: versions are alphabetically sortable
+    for (final Terminology t : terminologies.stream()
+        .sorted((a, b) -> b.getTerminologyVersion().compareTo(a.getTerminologyVersion()))
+        .collect(Collectors.toList())) {
 
       // For "ncit", choose the "latest monthly" before latest weekly
       if (t.getTerminology().equals(terminology) && "ncit".equals(terminology)
