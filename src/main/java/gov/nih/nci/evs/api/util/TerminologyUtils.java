@@ -129,19 +129,23 @@ public final class TerminologyUtils {
     for (final Terminology t : terminologies.stream()
         .sorted((a, b) -> b.getTerminologyVersion().compareTo(a.getTerminologyVersion()))
         .collect(Collectors.toList())) {
+      logger.info("XXX = " + t.getTerminologyVersion());
 
       // For "ncit", choose the "latest monthly" before latest weekly
       if (t.getTerminology().equals(terminology) && "ncit".equals(terminology)
           && "true".equals(t.getTags().get("monthly")) && t.getLatest() != null && t.getLatest()) {
+        logger.info("XXX1 FOUND");
         return t;
       }
       // Otherwise choose the latest (in general) - this works for both the ncim
       // case and the ncit case where only a weekly is loaded.
       else if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
+        logger.info("XXX2 FOUND");
         return t;
       }
       // Otherwise choose the matching terminology+version
       else if (t.getTerminologyVersion().equals(terminology)) {
+        logger.info("XXX3 FOUND");
         return t;
       }
     }
