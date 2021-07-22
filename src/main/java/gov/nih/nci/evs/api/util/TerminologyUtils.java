@@ -124,31 +124,32 @@ public final class TerminologyUtils {
    */
   public Terminology getTerminology(final String terminology, boolean indexed) throws Exception {
     List<Terminology> terminologies = getTerminologies(indexed);
-    // Go through terminologies in (reverse) version order - most recent first
-    // ASSUMPTION: versions are alphabetically sortable
-    for (final Terminology t : terminologies.stream()
-        .sorted((a, b) -> b.getTerminologyVersion().compareTo(a.getTerminologyVersion()))
-        .collect(Collectors.toList())) {
-      logger.info("XXX = " + t.getTerminologyVersion());
 
-      // For "ncit", choose the "latest monthly" before latest weekly
-      if (t.getTerminology().equals(terminology) && "ncit".equals(terminology)
-          && "true".equals(t.getTags().get("monthly")) && t.getLatest() != null && t.getLatest()) {
-        logger.info("XXX1 FOUND");
-        return t;
-      }
-      // Otherwise choose the latest (in general) - this works for both the ncim
-      // case and the ncit case where only a weekly is loaded.
-      else if (t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()) {
-        logger.info("XXX2 FOUND");
-        return t;
-      }
-      // Otherwise choose the matching terminology+version
-      else if (t.getTerminologyVersion().equals(terminology)) {
-        logger.info("XXX3 FOUND");
-        return t;
-      }
+    // Find latest monthly match
+    final Terminology latestMonthly = terminologies.stream()
+        .filter(t -> t.getTerminology().equals(terminology) && "ncit".equals(terminology)
+            && "true".equals(t.getTags().get("monthly")) && t.getLatest() != null && t.getLatest())
+        .findFirst().orElse(null);
+    if (latestMonthly != null) {
+      return latestMonthly;
     }
+
+    // Find terminologyVersion match
+    final Terminology tv = terminologies.stream()
+        .filter(t -> t.getTerminologyVersion().equals(terminology)).findFirst().orElse(null);
+    if (tv != null) {
+      return tv;
+    }
+
+    // Find "latest" match
+    final Terminology latest = terminologies.stream()
+        .filter(
+            t -> t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest())
+        .findFirst().orElse(null);
+    if (latest != null) {
+      return latest;
+    }
+
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, terminology + " not found");
   }
 
