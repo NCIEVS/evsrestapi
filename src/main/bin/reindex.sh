@@ -24,9 +24,9 @@ fi
 # Set up ability to format json
 jq --help >> /dev/null 2>&1
 if [[ $? -eq 0 ]]; then
-	jq="jq ."
+    jq="jq ."
 else
-	jq="python -m json.tool"
+    jq="python -m json.tool"
 fi
 
 echo "--------------------------------------------------"
@@ -37,11 +37,11 @@ set -e
 # Setup configuration
 echo "  Setup configuration"
 if [[ $config -eq 1 ]]; then
-	APP_HOME=/local/content/evsrestapi
-	CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
-	CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
-	echo "    config = $CONFIG_ENV_FILE"
-	. $CONFIG_ENV_FILE
+    APP_HOME=/local/content/evsrestapi
+    CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
+    CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
+    echo "    config = $CONFIG_ENV_FILE"
+    . $CONFIG_ENV_FILE
 elif [[ -z $STARDOG_HOST ]]; then
     echo "ERROR: STARDOG_HOST is not set"
     exit 1
@@ -66,10 +66,10 @@ elif [[ -z $ES_PORT ]]; then
 fi
 
 if [[ $force -eq 1 ]]; then
-	echo "  force = 1"
+    echo "  force = 1"
 elif [[ $ES_CLEAN == "true" ]]; then
-	echo "  force = 1 (ES_CLEAN=true)"
-	force=1
+    echo "  force = 1 (ES_CLEAN=true)"
+    force=1
 fi
 
 curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
@@ -107,15 +107,15 @@ query=`cat /tmp/x.$$.txt`
 /bin/rm -f /tmp/y.$$.txt
 touch /tmp/y.$$.txt
 for db in `cat /tmp/db.$$.txt`; do
-	curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-    	http://${STARDOG_HOST}:${STARDOG_PORT}/$db/query \
-    	--data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
-    	$jq | perl -ne 'chop; $x=1 if /"version"/; $x=0 if /\}/; if ($x && /"value"/) { 
-    		s/.* "//; s/".*//; print "$_|'$db'\n"; } ' >> /tmp/y.$$.txt
-	if [[ $? -ne 0 ]]; then
-	    echo "ERROR: unexpected problem obtaining $db versions from stardog"
-    	exit 1
-	fi	
+    curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
+        http://${STARDOG_HOST}:${STARDOG_PORT}/$db/query \
+        --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
+        $jq | perl -ne 'chop; $x=1 if /"version"/; $x=0 if /\}/; if ($x && /"value"/) { 
+            s/.* "//; s/".*//; print "$_|'$db'\n"; } ' >> /tmp/y.$$.txt
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected problem obtaining $db versions from stardog"
+        exit 1
+    fi    
 done
 
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
@@ -127,25 +127,25 @@ cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 if [[ $ES_CLEAN == "true" ]]; then
     echo "  Remove and recreate evs_metadata index"
     curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
-	if [[ $? -ne 0 ]]; then
-		echo "ERROR: unexpected error deleting evs_metadata index"
-		exit 1
-	fi
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error deleting evs_metadata index"
+        exit 1
+    fi
     curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
-	if [[ $? -ne 0 ]]; then
-		echo "ERROR: unexpected error creating evs_metadata index"
-		exit 1
-	fi
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error creating evs_metadata index"
+        exit 1
+    fi
 fi
 
 # set the max number of fields higher
 # we can probably remove this when we figure a better answer
 echo "  Set index.mapping.total_fields.limit = 5000"  
 curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_settings" \
-		-H "Content-type: application/json" -d '{ "index.mapping.total_fields.limit": 5000 }' >> /dev/null
+        -H "Content-type: application/json" -d '{ "index.mapping.total_fields.limit": 5000 }' >> /dev/null
 if [[ $? -ne 0 ]]; then
-	echo "ERROR: unexpected error setting index.mapping.total_fields in evs_metadata"
-	exit 1
+    echo "ERROR: unexpected error setting index.mapping.total_fields in evs_metadata"
+    exit 1
 fi
 
 # For each DB|version, check whether indexes already exist for that version
@@ -155,72 +155,72 @@ export PATH="/usr/local/jdk1.8/bin/:$PATH"
 local=""
 jar="../lib/evsrestapi.jar"
 if [[ $config -eq 0 ]]; then
-	local="-Dspring.profiles.active=local"
-	jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+    local="-Dspring.profiles.active=local"
+    jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 fi
 export EVS_SERVER_PORT="8083"
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
-	version=`echo $x | cut -d\| -f 1`
-	cv=`echo $version | perl -pe 's/\.//;'`
-	db=`echo $x | cut -d\| -f 2`
+    version=`echo $x | cut -d\| -f 1`
+    cv=`echo $version | perl -pe 's/\.//;'`
+    db=`echo $x | cut -d\| -f 2`
 
-	# if previous version and current version match, then skip
-	# this is a monthly that's in both NCIT2 and CTRP databases
-	if [[ $cv == $pv ]]; then
+    # if previous version and current version match, then skip
+    # this is a monthly that's in both NCIT2 and CTRP databases
+    if [[ $cv == $pv ]]; then
         echo "    SEEN $cv, continue"
-		continue
-	fi
+        continue
+    fi
 
     exists=1
     for y in `echo "evs_metadata concept_ncit_$cv evs_object_ncit_$cv"`; do
 
-	    # Check for index
-	    curl -s -o /tmp/x.$$.txt ${ES_SCHEME}://${ES_HOST}:${ES_PORT}/_cat/indices    
-		if [[ $? -ne 0 ]]; then
-			echo "ERROR: unexpected problem attempting to list indexes"
-			exit 1
-		fi
-		# handle the no indexes case
-		ct=`grep $y /tmp/x.$$.txt | wc -l`
-    	if [[ $ct -eq 0 ]]; then
-        	echo "    MISSING $y index"
-			exists=0
-	    fi
+        # Check for index
+        curl -s -o /tmp/x.$$.txt ${ES_SCHEME}://${ES_HOST}:${ES_PORT}/_cat/indices    
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: unexpected problem attempting to list indexes"
+            exit 1
+        fi
+        # handle the no indexes case
+        ct=`grep $y /tmp/x.$$.txt | wc -l`
+        if [[ $ct -eq 0 ]]; then
+            echo "    MISSING $y index"
+            exists=0
+        fi
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-		echo "    FOUND indexes for $version, continue"
-	else
+        echo "    FOUND indexes for $version, continue"
+    else
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-			echo "    FOUND indexes for $version, force reindex anyway"        
+            echo "    FOUND indexes for $version, force reindex anyway"        
         fi
 
-		# Run reindexing process (choose a port other than the one that it runs on)
-		export STARDOG_DB=$db
-		export EVS_SERVER_PORT="8083"
-		echo "    Generate indexes for $STARDOG_DB $version"
+        # Run reindexing process (choose a port other than the one that it runs on)
+        export STARDOG_DB=$db
+        export EVS_SERVER_PORT="8083"
+        echo "    Generate indexes for $STARDOG_DB $version"
 
-		echo "java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-		java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex
-		if [[ $? -ne 0 ]]; then
-			echo "ERROR: unexpected error building indexes"
-			exit 1
-		fi
+        echo "java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+        java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: unexpected error building indexes"
+            exit 1
+        fi
 
-		# Set the indexes to have a larger max_result_window
-		echo "    Set max result window to 150000 for concept_ncit_$cv"
-		curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$cv/_settings" \
-	 		-H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
-		if [[ $? -ne 0 ]]; then
-			echo "ERROR: unexpected error setting max_result_window"
-			exit 1
-		fi
+        # Set the indexes to have a larger max_result_window
+        echo "    Set max result window to 150000 for concept_ncit_$cv"
+        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$cv/_settings" \
+             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: unexpected error setting max_result_window"
+            exit 1
+        fi
 
-	fi
+    fi
 
     # track previous version, if next one is the same, don't index again.
-	pv=$cv
+    pv=$cv
 done
 
 # Stale indexes are automatically cleaned up by the indexing process
@@ -230,8 +230,8 @@ echo "  Reconcile stale indexes and update flags"
 echo "    java $local -jar $jar --terminology ncit --skip-load"
 java $local -jar $jar --terminology ncit --skip-load
 if [[ $? -ne 0 ]]; then
-	echo "ERROR: unexpected error building indexes"
-	exit 1
+    echo "ERROR: unexpected error building indexes"
+    exit 1
 fi
 
 # Cleanup
