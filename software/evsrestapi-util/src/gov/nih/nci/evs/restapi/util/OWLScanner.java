@@ -2666,61 +2666,39 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		return v;
 	}
 
+    public Vector extractNonRetiredConcepts(Vector class_vec, HashSet retiredConcepts) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        boolean toSave = true;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			String t0 = t;
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (retiredConcepts.contains(classId)) {
+					toSave = false;
+				} else {
+					toSave = true;
+				}
+			}
+
+			if (toSave) {
+				w.add(t0);
+			}
+		}
+		return w;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
-/*
-		Vector w = scanner.extractAnnotationProperties(scanner.get_owl_vec());
-        Utils.dumpVector("w", w);
-
-		w = scanner.extractObjectProperties(scanner.get_owl_vec());
-        Utils.dumpVector("w", w);
-*/
-        Vector w = scanner.extractProperties(scanner.get_owl_vec(), "P108");
-        Utils.dumpVector("w", w);
-
-
-		//Vector v = scanner.extractOWLRestrictions(scanner.get_owl_vec());
-		//Utils.dumpVector("v", v);
-
-		/*
-        String owlfile = args[0];
-		OWLScanner scanner = new OWLScanner(owlfile);
-		int n = owlfile.lastIndexOf(".");
-		String outputfile = owlfile.substring(0, n) + "_" + getToday() + ".owl";
-		*/
-		/*
-		Vector w = scanner.scanAxioms();
-		Vector v = new Vector();
-		for (int i=0; i<w.size(); i++) {
-			OWLAxiom axiom = (OWLAxiom) w.elementAt(i);
-			//v.add(axiom.toJson());
-			v.add(axiom.toString());
-		}
-		Utils.saveToFile(outputfile, v);
-		Vector synoym_vec = scanner.parseSynonymData(v);
-		v = new Vector();
-		for (int i=0; i<synoym_vec.size(); i++) {
-			Synonym syn = (Synonym) synoym_vec.elementAt(i);
-			v.add(syn.toJson());
-		}
-		String syn_file = "syn_" + owlfile.substring(0, n) + "_" + getToday() + ".owl";
-		Utils.saveToFile(syn_file, v);
-		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-		*/
-        //Vector v = scanner.scanOwlTags();
-        //v = scanner.fileterTagData(v, "owl:Restriction");
-        //Utils.dumpVector("fileterTagData", v);
-        //scanner.printPaths(v);
-        /*
-        Vector class_vec = Utils.readFile("ThesaurusInferred_forTS.owl");
-        Vector w = new OWLScanner().extractProperties(class_vec);
-        for (int i=0; i<w.size(); i++) {
-			String p = (String) w.elementAt(i);
-			System.out.println(p);
-		}
-		*/
     }
 }
 
