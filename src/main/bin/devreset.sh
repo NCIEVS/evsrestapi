@@ -1,7 +1,11 @@
 #!/bin/bash -f
 #
-# This script requires a download of the "UnitTestData"
-# (https://drive.google.com/drive/u/0/folders/1kXIr9J3jgO-8fN01LJwhNkOuZbAfaQBh).
+# PREREQUISITE: This script requires a download of the "UnitTestData"
+# (https://drive.google.com/drive/u/0/folders/1kXIr9J3jgO-8fN01LJwhNkOuZbAfaQBh)
+# to a directory called "UnitTestData" that must live under whatever 
+# directory is mounted as /data within the stardog container.  Thus, while in
+# the stardog container the path /data/UnitTestData must be available.
+#
 # It resets the stardog and elasticsearch data sets locally to update to
 # the latest dev testing data set at that google drive URL.
 #
@@ -12,7 +16,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 esac; shift; done
 
 if [ ${#arr[@]} -ne 1 ]; then
-  echo "Usage: src/main/bin/devreset.sh c:/data/UnitTestData"
+  echo "Usage: src/main/bin/devreset.sh \"c:/data/UnitTestData\""
   echo "  e.g. src/main/bin/devreset.sh /data/UnitTestData"
   exit 1
 fi
@@ -177,18 +181,18 @@ echo "  Remove stardog databases and load monthly/weekly"
 cat > $dir/x.sh << EOF
 #!/bin/bash
 echo "    drop databases"
-/opt/stardog/bin/stardog-admin db drop CTRP | sed 's/^/    '
-/opt/stardog/bin/stardog-admin db drop NCIT2 | sed 's/^/    '
+/opt/stardog/bin/stardog-admin db drop CTRP | sed 's/^/      /'
+/opt/stardog/bin/stardog-admin db drop NCIT2 | sed 's/^/      /'
 echo "    create databases"
-/opt/stardog/bin/stardog-admin db create -n CTRP | sed 's/^/    '
-/opt/stardog/bin/stardog-admin db create -n NCIT2 | sed 's/^/    '
+/opt/stardog/bin/stardog-admin db create -n CTRP | sed 's/^/      /'
+/opt/stardog/bin/stardog-admin db create -n NCIT2 | sed 's/^/      /'
 echo "    load data"
-/opt/stardog/bin/stardog data add --named-graph http://NCI_T_weekly CTRP /data/UnitTestData/ThesaurusInferred_+1weekly.owl | sed 's/^/    '
-/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly CTRP /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/    '
-/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly NCIT2 /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/    '
+/opt/stardog/bin/stardog data add --named-graph http://NCI_T_weekly CTRP /data/UnitTestData/ThesaurusInferred_+1weekly.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly CTRP /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly NCIT2 /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/     /'
 echo "    optimize databases"
-/opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/    '
-/opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/    '
+/opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
+/opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
 EOF
 chmod 755 $dir/x.sh
 chmod ag+rwx $dir
