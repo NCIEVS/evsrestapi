@@ -132,12 +132,13 @@ echo "    verify docker stardog can run a script"
 /bin/rm -f $dir/x.txt
 cat > $dir/x.sh << EOF
 #!/bin/bash
-ls /data/UnitTestData > /data/UnitTestData/x.txt
+ls /data/UnitTestData > //data/UnitTestData/x.txt
 EOF
 chmod 755 $dir/x.sh
 chmod ag+rwx $dir
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
-docker exec -it $pid /data/UnitTestData/x.sh
+# note: //data is required for gitbash
+docker exec -it $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem connecting to docker elasticsearch"
     exit 1
@@ -148,6 +149,8 @@ if [[ $ct -eq 0 ]]; then
     exit 1
 fi
 /bin/rm -f $dir/x.txt
+
+
 
 # Remove elasticsearch indexes
 echo "  Remove elasticsearch indexes"
@@ -197,7 +200,8 @@ EOF
 chmod 755 $dir/x.sh
 chmod ag+rwx $dir
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
-docker exec -it $pid /data/UnitTestData/x.sh
+# note: //data is required for gitbash
+docker exec -it $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem loading stardog"
     exit 1
