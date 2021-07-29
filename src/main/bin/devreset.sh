@@ -35,7 +35,7 @@ echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo "dir = $dir"
 echo ""
-set -e
+#set -e
 
 # Check configuration
 if [[ -z $STARDOG_HOST ]]; then
@@ -151,7 +151,7 @@ fi
 
 # Remove elasticsearch indexes
 echo "  Remove elasticsearch indexes"
-curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs"> /tmp/x.$$.txt
+curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs" | cat > /tmp/x.$$.txt
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem connecting to docker elasticsearch"
     exit 1
@@ -199,19 +199,18 @@ chmod ag+rwx $dir
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
 docker exec -it $pid /data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem connecting to docker elasticsearch"
+    echo "ERROR: problem loading stardog"
     exit 1
 fi
 /bin/rm -f $dir/x.sh
 
 # Reindex ncit
 echo "  Reindex ncit weekly/monthly"
-src/main/bin/reindex.sh --noconfig $dir/NCIM | sed 's/^/    /'
+src/main/bin/reindex.sh --noconfig | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem running reindex.sh script"
     exit 1
 fi
-
 
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}
