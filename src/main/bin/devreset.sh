@@ -101,7 +101,7 @@ fi
 # Verify docker stardog has a volume mounted that contains UnitTestData
 echo "    verify docker stardog has /data/UnitTestData mounted"
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
-datadir=`docker inspect -f '{{ .Mounts }}' $pid | perl -ne '/.*bind\s+([^\s]+)\s+\/data\s+.*/; print $1' | perl -pe 's/\/host_mnt\/c/c:\//'`
+datadir=`docker inspect -f '{{ .Mounts }}' $pid | perl -ne '/.*bind\s+([^\s]+)\s+\/data\s+.*/; print $1' | perl -pe 's/\/host_mnt\/([cde])/$1:\//'`
 if [[ -z "$datadir" ]]; then
     echo "ERROR: unable to determine volume mounted to /data in docker $pid"
     exit 1
