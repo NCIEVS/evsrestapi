@@ -353,10 +353,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       term.setIndexName("concept_" + term.getTerminologyVersion());
       term.setLatest(true);
       term.setSparqlFlag(false);
-      if (forceDelete) {
-        logger.info("  DELETE TERMINOLOGY = " + term.getIndexName());
-        findAndDeleteTerminology(term.getIndexName());
-      }
+//      if (forceDelete) {
+//        logger.info("  DELETE TERMINOLOGY = " + term.getIndexName());
+//        findAndDeleteTerminology(term.getIndexName());
+//      }
 
       logger.info("  ADD terminology = " + term);
       return term;

@@ -32,7 +32,8 @@ fi
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
-set -e
+echo ""
+#set -e
 
 # Setup configuration
 echo "  Setup configuration"

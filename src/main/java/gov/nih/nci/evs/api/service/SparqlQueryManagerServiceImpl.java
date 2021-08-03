@@ -672,8 +672,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
           concept.setConceptStatus(property.getValue());
-          log.info("retired concept: " + concept.getCode() + "is "
-              + terminology.getMetadata().getRetiredStatusValue());
         }
         // Handle synonyms without extra axioms
         final String type = property.getType();
@@ -698,8 +696,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getProperties().add(property);
         }
       }
-      if(concept.getConceptStatus().equals(terminology.getMetadata().getRetiredStatusValue()))
-          log.info(concept.getCode() + " is now " + concept.getConceptStatus());
 
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
