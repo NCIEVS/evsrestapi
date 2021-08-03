@@ -138,17 +138,17 @@ public class LoaderServiceImpl {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
       ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
+          cmd.getOptionValue("t"), config.isForceDeleteIndex());
       if (!cmd.hasOption('s')) {
-        Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
-            cmd.getOptionValue("t"), config.isForceDeleteIndex());
         HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
         int totalConcepts = loadService.loadConcepts(config, term, hierarchy);
         loadService.checkLoadStatus(totalConcepts, term);
         loadService.loadIndexMetadata(totalConcepts, term);
         loadService.loadObjects(config, term, hierarchy);
       }
-      loadService.cleanStaleIndexes();
-      loadService.updateLatestFlag();
+      loadService.cleanStaleIndexes(term);
+      loadService.updateLatestFlag(term);
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -199,6 +203,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    *
    * @param type the property type
    * @param value the property value
+   * @param source the source
+   * @return the property
    */
   private Property buildProperty(String type, String value, String source) {
     Property newProp = new Property();
@@ -214,6 +220,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    *
    * @param definition the definition text
    * @param source the definition source
+   * @return the definition
    */
   private Definition buildDefinition(String definition, String source) {
     Definition newDef = new Definition();
@@ -225,15 +232,16 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Handle building MRDOC property metadata.
    *
-   * @param property info the property info
+   * @param propertyInfo the property info
+   * @return the concept
    */
-  private Concept buildMRDOCMetadata(String propertyInfo) {
+  private Concept buildMRDOCMetadata(final Terminology terminology, final String propertyInfo) {
     Concept propMeta = new Concept();
     String[] splitPropInfo = propertyInfo.split("\\|", -1);
     propMeta.setCode(splitPropInfo[1]);
     propMeta.setName(splitPropInfo[3]);
-    propMeta.setTerminology("ncim");
-    propMeta.setVersion("202008");
+    propMeta.setTerminology(terminology.getTerminology());
+    propMeta.setVersion(terminology.getVersion());
 
     // property synonym info
     Synonym propMetaSyn = new Synonym();
@@ -256,7 +264,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
     // first level property info
     Concept semType = new Concept("ncim", "STY", "Semantic_Type");
-    semType.setVersion("202008");
+    semType.setTerminology(terminology.getTerminology());
+    semType.setVersion(terminology.getVersion());
+
     // property synonym info
     Synonym semTypeSyn = new Synonym();
     semTypeSyn.setName("Semantic_Type");
@@ -284,7 +294,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
     propsMeta.forEach((key, value) -> {
       // add properties to the list
-      propertiesMetaDataList.add(buildMRDOCMetadata(value));
+      propertiesMetaDataList.add(buildMRDOCMetadata(terminology, value));
     });
     propertiesObject = new ElasticObject("properties");
     propertiesObject.setConcepts(propertiesMetaDataList);
@@ -301,8 +311,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param flag the flag
    * @param indexName the index name
    * @param synList the syn list
-   * @param defList
-   * @param propList
+   * @param defList the def list
+   * @param propList the prop list
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName,
@@ -353,10 +363,22 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       term.setIndexName("concept_" + term.getTerminologyVersion());
       term.setLatest(true);
       term.setSparqlFlag(false);
-//      if (forceDelete) {
-//        logger.info("  DELETE TERMINOLOGY = " + term.getIndexName());
-//        findAndDeleteTerminology(term.getIndexName());
-//      }
+      // if (forceDelete) {
+      // logger.info(" DELETE TERMINOLOGY = " + term.getIndexName());
+      // findAndDeleteTerminology(term.getIndexName());
+      // }
+
+      // Attempt to read the config, if anything goes wrong
+      // the config file is probably not there
+      final String resource = "metadata/" + term.getTerminology() + ".json";
+      try {
+        TerminologyMetadata metadata = new ObjectMapper().readValue(
+            IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
+            TerminologyMetadata.class);
+        term.setMetadata(metadata);
+      } catch (Exception e) {
+        throw new Exception("Unexpected error trying to load = " + resource, e);
+      }
 
       logger.info("  ADD terminology = " + term);
       return term;
@@ -376,10 +398,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Clean stale indexes.
    *
+   * @param terminology the terminology
    * @throws Exception the exception
    */
   @Override
-  public void cleanStaleIndexes() throws Exception {
-    // do nothing
+  public void cleanStaleIndexes(final Terminology terminology) throws Exception {
+    // do nothing - override superclass behavior
   }
+
 }
