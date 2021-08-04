@@ -1145,7 +1145,7 @@ public class MetadataControllerTests {
 
   
   /**
-   * Test terminology calls.
+   * Test terminology metadata calls.
    *
    * @throws Exception the exception
    */
