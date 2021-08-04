@@ -1142,7 +1142,6 @@ public class MetadataControllerTests {
     }
 
   }
-
   
   /**
    * Test terminology metadata calls.
