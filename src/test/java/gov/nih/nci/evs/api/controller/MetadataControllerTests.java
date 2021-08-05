@@ -1142,7 +1142,7 @@ public class MetadataControllerTests {
     }
 
   }
-  
+
   /**
    * Test terminology metadata calls.
    *
@@ -1353,6 +1353,128 @@ public class MetadataControllerTests {
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
     assertThat(terminologies != null && terminologies.size() == 3).isTrue();
+
+  }
+
+  /**
+   * Test terminology versions
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTerminologyVersion() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    url = "/api/v1/metadata/";
+    result =
+        mvc.perform(get(url + "terminologies").param("terminology", "ncit").param("tag", "weekly"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        }).get(0);
+    String weeklyTerm = terminology.getTerminologyVersion();
+    String baseWeeklyUrl = url + weeklyTerm;
+
+    result = mvc.perform(get(baseWeeklyUrl + "/associations").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    List<Concept> metadataResults =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/definitionType/P325").param("include", "summary"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Concept metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(metadataConcept.getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/definitionTypes").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/properties").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/property/P216").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(metadataConcept.getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/qualifier/P390").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(metadataConcept.getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/qualifiers").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/qualifier/P390").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(metadataConcept.getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/role/R123").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(metadataConcept.getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/roles").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/subset/C167405").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(metadataConcept.getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/subsets").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/synonymType/P90").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(metadataConcept.getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/synonymTypes").param("include", "minimal"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
 
   }
 
