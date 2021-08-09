@@ -1301,7 +1301,8 @@ public class ConceptControllerTests {
         }).get(0);
     String weeklyTerm = terminology.getTerminologyVersion();
     String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;
-    result = mvc.perform(get(url).param("list", "C3224")).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     List<Concept> conceptResults =
         new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -1309,15 +1310,13 @@ public class ConceptControllerTests {
         });
     assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
 
-    result = mvc.perform(get(url).param("code", "C3224")).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(baseWeeklyUrl + "/C3224")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
+    Concept concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getVersion() == terminology.getVersion());
 
-    result = mvc.perform(get(url + "/children").param("code", "C3224")).andExpect(status().isOk())
-        .andReturn();
+    result =
+        mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
