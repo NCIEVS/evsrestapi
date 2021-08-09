@@ -59,7 +59,11 @@ public class LoaderServiceImpl {
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
     options.addOption("d", "directory", true, "Load concepts from the given directory");
-    options.addOption("s", "skip-load", false,
+    options.addOption("xc", "skipConcepts", false,
+        "Skip loading metadata, just clean stale terminologies, concepts, and update latest flags");
+    options.addOption("xm", "skipMetadata", false,
+        "Skip loading data, just clean stale terminologies and update latest flags");
+    options.addOption("xl", "skipLoad", false,
         "Skip loading data, just clean stale terminologies and update latest flags");
 
     return options;
@@ -138,17 +142,21 @@ public class LoaderServiceImpl {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
       ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
-      if (!cmd.hasOption('s')) {
-        Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
-            cmd.getOptionValue("t"), config.isForceDeleteIndex());
-        HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
-        int totalConcepts = loadService.loadConcepts(config, term, hierarchy);
-        loadService.checkLoadStatus(totalConcepts, term);
-        loadService.loadIndexMetadata(totalConcepts, term);
-        loadService.loadObjects(config, term, hierarchy);
+      if (!cmd.hasOption("xl")) {
+        if (!cmd.hasOption("xc")) {
+          Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
+              cmd.getOptionValue("t"), config.isForceDeleteIndex());
+          HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+          int totalConcepts = loadService.loadConcepts(config, term, hierarchy);
+          loadService.checkLoadStatus(totalConcepts, term);
+          loadService.loadIndexMetadata(totalConcepts, term);
+          loadService.loadObjects(config, term, hierarchy);
+        }
+        if (!cmd.hasOption("xm")) {
+          loadService.cleanStaleIndexes();
+          loadService.updateLatestFlag();
+        }
       }
-      loadService.cleanStaleIndexes();
-      loadService.updateLatestFlag();
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
