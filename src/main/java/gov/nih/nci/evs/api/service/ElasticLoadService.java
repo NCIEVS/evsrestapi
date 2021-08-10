@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
@@ -48,16 +49,18 @@ public interface ElasticLoadService {
   /**
    * Clean stale indexes.
    *
+   * @param terminology the terminology
    * @throws Exception the exception
    */
-  void cleanStaleIndexes() throws Exception;
+  void cleanStaleIndexes(Terminology terminology) throws Exception;
 
   /**
    * Update latest flag.
    *
+   * @param terminology the terminology
    * @throws Exception the exception
    */
-  void updateLatestFlag() throws Exception;
+  void updateLatestFlag(Terminology terminology) throws Exception;
 
   /**
    * Get Terminology object
