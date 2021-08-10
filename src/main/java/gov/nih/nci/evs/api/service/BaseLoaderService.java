@@ -107,7 +107,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   @Override
-  public void cleanStaleIndexes() throws Exception {
+  public void cleanStaleIndexes(final Terminology terminology) throws Exception {
 
     List<IndexMetadata> iMetas = termUtils.getStaleTerminologies(Arrays.asList(dbs.split(",")));
     if (CollectionUtils.isEmpty(iMetas)) {
@@ -117,6 +117,12 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     logger.info("Removing stale terminologies");
     for (IndexMetadata iMeta : iMetas) {
+
+      // Skip terminologies for a different loader
+      if (!iMeta.getTerminology().getTerminology().equals(terminology.getTerminology())) {
+        continue;
+      }
+      
       logger.info("stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
@@ -156,7 +162,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   @Override
-  public void updateLatestFlag() throws Exception {
+  public void updateLatestFlag(final Terminology terminology) throws Exception {
     // update latest flag
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
@@ -176,8 +182,14 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     boolean latestMonthlyFound = false;
     boolean latestWeeklyFound = false;
+    boolean latestFound = false;
 
     for (final IndexMetadata iMeta : iMetas) {
+
+      // Skip terminologies for a different loader
+      if (!iMeta.getTerminology().getTerminology().equals(terminology.getTerminology())) {
+        continue;
+      }
 
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
@@ -202,6 +214,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         logger.info("  " + iMeta.getTerminologyVersion() + " = latest true");
         iMeta.getTerminology().setLatest(true);
         latestWeeklyFound = true;
+      }
+      // Else if we're dealing with non-monthly/non-weekly and latest hasn't
+      // been found
+      else if (!latestFound && !monthly && !weekly) {
+        logger.info("  " + iMeta.getTerminologyVersion() + " = latest true");
+        iMeta.getTerminology().setLatest(true);
+        latestFound = true;
       }
       // Else change nothing
       else {
@@ -271,8 +290,9 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
 
-    operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.METADATA_INDEX,
-          ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+    operationsService.getElasticsearchOperations().putMapping(
+        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
+        IndexMetadata.class);
 
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);

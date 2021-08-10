@@ -138,18 +138,18 @@ public class NCIMControllerTests {
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
 
-    // test NOCODES properly applying
-    url = baseUrl + "/ncim/C0000985";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0000985");
+    // test concept with only NOCODE atoms
+    url = baseUrl + "/ncim/C0738563";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0738563");
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0000985");
-    assertThat(concept.getName()).isEqualTo("Acetic Acids");
+    assertThat(concept.getCode()).isEqualTo("C0738563");
+    assertThat(concept.getName()).isEqualTo("Entire subregion of abdomen");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
-    assertThat(concept.getSynonyms().get(1).getCode()).isNull();
+    assertThat(concept.getSynonyms().get(0).getCode()).isNull();
 
   }
 
@@ -206,20 +206,20 @@ public class NCIMControllerTests {
     assertThat(concept.getDefinitions()).isEmpty();
 
     // test random concept with definition
-    url = baseUrl + "/ncim/C0030920";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0030920");
+    url = baseUrl + "/ncim/C0030274";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0030274");
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0030920");
-    assertThat(concept.getName()).isEqualTo("Peptic Ulcer");
+    assertThat(concept.getCode()).isEqualTo("C0030274");
+    assertThat(concept.getName()).isEqualTo("Pancreas");
     assertThat(concept.getDefinitions()).isNotNull();
     assertThat(concept.getDefinitions().size()).isEqualTo(8);
-    assertThat(concept.getDefinitions().get(1).getDefinition())
-        .isEqualTo("An ulcer of the gastrointestinal tract. [HPO:probinson]");
-    assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("HPO");
+    assertThat(concept.getDefinitions().get(0).getDefinition())
+        .startsWith("Lobular organ the parenchyma of which consists of glandular acini which communicate via a duct system with the duodenum.");
+    assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("NCI");
 
     // test random concept with no definition
     url = baseUrl + "/ncim/C0426679";
@@ -276,18 +276,18 @@ public class NCIMControllerTests {
     assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
 
     // test penultimate concept with property
-    url = baseUrl + "/ncim/CL990131";
-    log.info("Testing url - " + url + "?terminology=ncim&code=CL990131");
+    url = baseUrl + "/ncim/CL988042";
+    log.info("Testing url - " + url + "?terminology=ncim&code=CL988042");
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("CL990131");
-    assertThat(concept.getName()).isEqualTo("HUGO Gene Nomenclature Committee, 2019_03");
+    assertThat(concept.getCode()).isEqualTo("CL988042");
+    assertThat(concept.getName()).isEqualTo("Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
     assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Intellectual Product");
+    assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Clinical Attribute");
 
     // last concept in MRCONSO with one property
     url = baseUrl + "/ncim/CL990362";
@@ -331,24 +331,15 @@ public class NCIMControllerTests {
     assertThat(properties.get(0).getCode()).isEqualTo("STY");
     assertThat(properties.get(0).getName()).isEqualTo("Semantic_Type");
     assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
-    assertThat(properties.get(0).getVersion()).isEqualTo("202008");
+    assertThat(properties.get(0).getVersion()).isEqualTo("202102");
     assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo("Semantic_Type");
 
     // check other properties from MRDOC
     assertThat(properties.get(2).getCode()).isEqualTo("ACCEPTABILITYID");
     assertThat(properties.get(2).getName()).isEqualTo("Acceptability ID");
     assertThat(properties.get(2).getTerminology()).isEqualTo("ncim");
-    assertThat(properties.get(2).getVersion()).isEqualTo("202008");
+    assertThat(properties.get(2).getVersion()).isEqualTo("202102");
     assertThat(properties.get(2).getSynonyms().get(0).getName()).isEqualTo("Acceptability ID");
-
-    // one more property check
-    assertThat(properties.get(5).getCode()).isEqualTo("ANDA");
-    assertThat(properties.get(5).getName())
-        .isEqualTo("Abbreviated New (Generic) Drug application number for the MTHSPL drug");
-    assertThat(properties.get(5).getTerminology()).isEqualTo("ncim");
-    assertThat(properties.get(5).getVersion()).isEqualTo("202008");
-    assertThat(properties.get(5).getSynonyms().get(0).getName())
-        .isEqualTo("Abbreviated New (Generic) Drug application number for the MTHSPL drug");
 
   }
 

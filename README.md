@@ -94,3 +94,4 @@ In a terminal/Cygwin window, run the following to have an elasticsearch instance
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=50
         java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $term --forceDeleteIndex -d $dir
 
+

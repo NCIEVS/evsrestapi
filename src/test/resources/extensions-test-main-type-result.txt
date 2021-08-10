@@ -651,30 +651,6 @@ CONCEPT C7109
     }
   ]
 }
-CONCEPT C2996
-{
-  "isDisease" : true,
-  "isDiseaseGrade" : false,
-  "isDiseaseStage" : false,
-  "isMainType" : true,
-  "isSubtype" : true,
-  "isBiomarker" : false,
-  "isReferenceGene" : false,
-  "mainMenuAncestors" : [
-    {
-      "paths" : [
-        {
-          "direction" : 1,
-          "concepts" : [
-            {
-              "code" : "C3708"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
 CONCEPT C3752
 {
   "isDisease" : true,
@@ -879,30 +855,6 @@ CONCEPT C3708
   "isBiomarker" : false,
   "isReferenceGene" : false,
   "mainMenuAncestors" : [ ]
-}
-CONCEPT C3753
-{
-  "isDisease" : true,
-  "isDiseaseGrade" : false,
-  "isDiseaseStage" : false,
-  "isMainType" : true,
-  "isSubtype" : true,
-  "isBiomarker" : false,
-  "isReferenceGene" : false,
-  "mainMenuAncestors" : [
-    {
-      "paths" : [
-        {
-          "direction" : 1,
-          "concepts" : [
-            {
-              "code" : "C3708"
-            }
-          ]
-        }
-      ]
-    }
-  ]
 }
 CONCEPT C4699
 {
