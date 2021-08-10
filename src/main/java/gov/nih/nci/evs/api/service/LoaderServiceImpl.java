@@ -143,9 +143,9 @@ public class LoaderServiceImpl {
       }
       ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
       if (!cmd.hasOption("xl")) {
+        Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
+            cmd.getOptionValue("t"), config.isForceDeleteIndex());
         if (!cmd.hasOption("xc")) {
-          Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
-              cmd.getOptionValue("t"), config.isForceDeleteIndex());
           HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
           int totalConcepts = loadService.loadConcepts(config, term, hierarchy);
           loadService.checkLoadStatus(totalConcepts, term);
@@ -153,8 +153,8 @@ public class LoaderServiceImpl {
           loadService.loadObjects(config, term, hierarchy);
         }
         if (!cmd.hasOption("xm")) {
-          loadService.cleanStaleIndexes();
-          loadService.updateLatestFlag();
+          loadService.cleanStaleIndexes(term);
+          loadService.updateLatestFlag(term);
         }
       }
 
