@@ -10,7 +10,7 @@ esac; shift; done
 
 if [ ${#arr[@]} -ne 2 ]; then
   echo "Usage: $0 <terminology> <version>"
-  echo "  e.g. $0 ncit 20.09d"
+  echo "  e.g. $0 ncit 2009d"
   echo "  e.g. $0 ncim 202102"
   exit 1
 fi

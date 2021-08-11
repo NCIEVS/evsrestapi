@@ -33,7 +33,6 @@ echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo ""
-#set -e
 
 # Setup configuration
 echo "  Setup configuration"
@@ -43,6 +42,10 @@ if [[ $config -eq 1 ]]; then
     CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
     echo "    config = $CONFIG_ENV_FILE"
     . $CONFIG_ENV_FILE
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
+        exit 1
+    fi
 elif [[ -z $STARDOG_HOST ]]; then
     echo "ERROR: STARDOG_HOST is not set"
     exit 1
@@ -83,6 +86,12 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "  databases = " `cat /tmp/db.$$.txt`
+ct=`cat /tmp/db.$$.txt | wc -l`
+if [[ $ct -eq 0 ]]; then
+    echo "ERROR: no stardog databases, this is unexpected"
+    exit 1
+fi
+
 
 # Prep query to read all version info
 echo "  Lookup version info for latest terminology in stardog"
