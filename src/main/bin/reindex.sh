@@ -228,8 +228,8 @@ done
 # It checks against stardog and reconciles everything and updates latest flags
 # regardless of whether there was new data
 echo "  Reconcile stale indexes and update flags"
-echo "    java $local -jar $jar --terminology ncit --skip-load"
-java $local -jar $jar --terminology ncit --skip-load
+echo "    java $local -jar $jar --terminology ncit --skipConcepts"
+java $local -jar $jar --terminology ncit --skipConcepts
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building indexes"
     exit 1
