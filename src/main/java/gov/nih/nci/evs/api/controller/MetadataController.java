@@ -102,12 +102,15 @@ public class MetadataController extends BaseController {
 
       for (Terminology term : terms) {
         TerminologyMetadata meta = term.getMetadata();
-        meta.setSources(null);
-        meta.setTermTypes(null);
-        meta.setSourcesToRemove(null);
-        meta.setUnpublished(null);
-        meta.setSubsetPrefix(null);
-        meta.setSubsetLinks(null);
+        // Some terminologies may not have metadata
+        if (meta != null) {
+          meta.setSources(null);
+          meta.setTermTypes(null);
+          meta.setSourcesToRemove(null);
+          meta.setUnpublished(null);
+          meta.setSubsetPrefix(null);
+          meta.setSubsetLinks(null);
+        }
       }
 
       return terms;

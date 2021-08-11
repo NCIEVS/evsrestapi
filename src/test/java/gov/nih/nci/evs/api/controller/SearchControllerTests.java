@@ -703,7 +703,7 @@ public class SearchControllerTests {
 
     // Provisional_Concept
     result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "blood")
+        .perform(get(url).param("terminology", "ncit").param("term", "Lymphoid")
             .param("conceptStatus", "Provisional_Concept").param("include", "properties"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

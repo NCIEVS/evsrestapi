@@ -215,9 +215,11 @@ public class Concept extends ConceptMinimal {
     highlight = other.getHighlight();
     highlights = new HashMap<>(other.getHighlights());
     level = other.getLevel();
+    conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
     normName = other.getNormName();
     subsetLink = other.getSubsetLink();
+    conceptStatus = other.getConceptStatus();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
