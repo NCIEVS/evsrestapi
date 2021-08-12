@@ -1,20 +1,31 @@
 #!/bin/sh -f
 
 config=1
+download=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
+  --download) download=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
-
-if [ ${#arr[@]} -ne 1 ]; then
-  echo "Usage: $0 [--noconfig] <dir>"
+ok=0
+if [ ${#arr[@]} -eq 1 ]; then
+  ok=1
+elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
+  ok=1
+fi
+if [ $ok -eq 0 ]; then
+  echo "Usage: $0 [--noconfig] [--download] [<dir>]"
   echo "  e.g. $0 /data/evs/ncim"
   echo "  e.g. $0 --noconfig /data/evs/ncim"
+  echo "  e.g. $0 --download"
+  echo "  e.g. $0 --noconfig --download"
   exit 1
 fi
 
-dir=${arr[0]}
+if [ ${#arr[@]} -ne 1 ]; then
+  dir=${arr[0]}
+fi
 terminology=ncim
 
 echo "--------------------------------------------------"
@@ -22,8 +33,13 @@ echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo "terminology = $terminology"
 echo "dir = $dir"
+echo "config = $config"
+if [[ $download -eq 1 ]]; then
+  echo "download = $DOWNLOAD_DIR"
+else
+  echo "download = $download"
+fi
 echo ""
-#set -e
 
 # Setup configuration
 echo "  Setup configuration"
@@ -58,6 +74,45 @@ elif [[ -z $ES_HOST ]]; then
 elif [[ -z $ES_PORT ]]; then
     echo "ERROR: ES_PORT is not set"
     exit 1
+elif [[ -z $DOWNLOAD_DIR ]]; then
+	export DOWNLOAD_DIR=.
+fi
+
+# Check if downloading NCIM data
+if [[ $download -eq 1 ]]; then
+ 
+    if [[ ! -e $DOWNLOAD_DIR ]]; then
+        echo "ERROR: \$DOWNLOAD_DIR does not exist = $DOWNLOAD_DIR"
+        exit 1
+    fi
+
+    echo "  Cleanup download directory"
+    /bin/rm -rf $DOWNLOAD_DIR/*
+	if [[ $? -ne 0 ]]; then
+	    echo "ERROR: problem cleaning up \$DOWNLOAD_DIR = $DOWNLOAD_DIR"
+	    exit 1
+	fi
+    
+    url=https://evs.nci.nih.gov/sites/default/files/assets/metathesaurus/Metathesaurus.RRF.zip
+	echo "  Download latest NCI Metathesaurus"
+    echo "    url = $url"
+    curl -o $DOWNLOAD_DIR/Metathesaurus.RRF.zip $url
+	if [[ $? -ne 0 ]]; then
+	    echo "ERROR: problem downloading metathesaurus"
+	    exit 1
+	fi
+    
+    echo "  Unpack NCI Metathesaurus"
+    unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR > /tmp/x.$$ 2>&1
+	if [[ $? -ne 0 ]]; then
+	    cat /tmp/x.$$
+	    echo "ERROR: problem unpacking $DOWNLOAD_DIR/Metathesaurus.RRF.zip"
+	    exit 1
+	fi
+
+    # Set $dir for later steps    
+    dir=$DOWNLOAD_DIR
+
 fi
 
 # set the max number of fields higher
@@ -106,6 +161,7 @@ for i in `cat /tmp/x.$$`; do
         exit 1
     fi
 done
+
 /bin/rm -f /tmp/x.$$
 
 echo ""
