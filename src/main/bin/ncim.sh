@@ -33,6 +33,10 @@ if [[ $config -eq 1 ]]; then
     CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
     echo "    config = $CONFIG_ENV_FILE"
     . $CONFIG_ENV_FILE
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
+        exit 1
+    fi
 elif [[ -z $STARDOG_HOST ]]; then
     echo "ERROR: STARDOG_HOST is not set"
     exit 1
