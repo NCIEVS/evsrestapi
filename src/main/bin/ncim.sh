@@ -87,11 +87,12 @@ if [[ $download -eq 1 ]]; then
     fi
 
     echo "  Cleanup download directory"
-    /bin/rm -rf $DOWNLOAD_DIR/*
+    /bin/rm -rf $DOWNLOAD_DIR/Metathesaurus.RRF.zip $DOWNLOAD_DIR/NCIM
 	if [[ $? -ne 0 ]]; then
 	    echo "ERROR: problem cleaning up \$DOWNLOAD_DIR = $DOWNLOAD_DIR"
 	    exit 1
 	fi
+	mkdir $DOWNLOAD_DIR/NCIM
     
     url=https://evs.nci.nih.gov/sites/default/files/assets/metathesaurus/Metathesaurus.RRF.zip
 	echo "  Download latest NCI Metathesaurus"
@@ -103,7 +104,7 @@ if [[ $download -eq 1 ]]; then
 	fi
     
     echo "  Unpack NCI Metathesaurus"
-    unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR > /tmp/x.$$ 2>&1
+    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM > /tmp/x.$$ 2>&1
 	if [[ $? -ne 0 ]]; then
 	    cat /tmp/x.$$
 	    echo "ERROR: problem unpacking $DOWNLOAD_DIR/Metathesaurus.RRF.zip"
@@ -111,7 +112,7 @@ if [[ $download -eq 1 ]]; then
 	fi
 
     # Set $dir for later steps    
-    dir=$DOWNLOAD_DIR
+    dir=$DOWNLOAD_DIR/NCIM/META
 
 fi
 
@@ -162,7 +163,8 @@ for i in `cat /tmp/x.$$`; do
     fi
 done
 
-/bin/rm -f /tmp/x.$$
+echo "  Cleanup"
+/bin/rm -f /tmp/x.$$ $DOWNLOAD_DIR/NCIM $DOWNLOAD_DIR/Metathesaurus.RRF.zip
 
 echo ""
 echo "--------------------------------------------------"
