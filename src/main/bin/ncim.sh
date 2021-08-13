@@ -146,20 +146,31 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "  Remove old version indexes"
+echo "  Remove any older versions indexes"
 version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
-curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | perl -pe 's/^.* open ([^ ]+).*/$1/' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
-for i in `cat /tmp/x.$$`; do
+curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
+   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
+for i in `cat /tmp/x.$$`; do    
+    lv=`echo $i | perl -pe 's/.*_//;'`
+    if [[ $lv -ge $version ]]; then
+        echo "    skip $lv - later than $version"
+        continue
+    fi
+
     echo "    delete $i"
     curl -s -X DELETE https://$ES_HOST:$ES_PORT/$i
     if [[ $? -ne 0 ]]; then
         echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/$i"
         exit 1
     fi
-    curl -s -X DELETE https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
-        exit 1
+
+    # do this if it starts with "concept_"
+    if [[ $i =~ ^concept_.* ]]; then
+        curl -s -X DELETE https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
+            exit 1
+        fi
     fi
 done
 
