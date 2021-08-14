@@ -175,7 +175,7 @@ for i in `cat /tmp/x.$$`; do
 done
 
 echo "  Cleanup"
-/bin/rm -f /tmp/x.$$ $DOWNLOAD_DIR/NCIM $DOWNLOAD_DIR/Metathesaurus.RRF.zip
+/bin/rm -rf /tmp/x.$$ $DOWNLOAD_DIR/NCIM $DOWNLOAD_DIR/Metathesaurus.RRF.zip
 
 echo ""
 echo "--------------------------------------------------"
