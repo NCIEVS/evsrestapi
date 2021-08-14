@@ -23,7 +23,7 @@ if [ $ok -eq 0 ]; then
   exit 1
 fi
 
-if [ ${#arr[@]} -ne 1 ]; then
+if [ ${#arr[@]} -eq 1 ]; then
   dir=${arr[0]}
 fi
 terminology=ncim
@@ -74,7 +74,10 @@ elif [[ -z $ES_HOST ]]; then
 elif [[ -z $ES_PORT ]]; then
     echo "ERROR: ES_PORT is not set"
     exit 1
-elif [[ -z $DOWNLOAD_DIR ]]; then
+fi
+
+# Set download dir if not set (regardless of mode)
+if [[ -z $DOWNLOAD_DIR ]]; then
 	export DOWNLOAD_DIR=.
 fi
 
@@ -158,17 +161,19 @@ for i in `cat /tmp/x.$$`; do
     fi
 
     echo "    delete $i"
-    curl -s -X DELETE https://$ES_HOST:$ES_PORT/$i
+    curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/$i > /tmp/x.$$
     if [[ $? -ne 0 ]]; then
-        echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/$i"
+        cat /tmp/x.$$ | sed 's/^/    /'
+        echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/$i"
         exit 1
     fi
 
     # do this if it starts with "concept_"
     if [[ $i =~ ^concept_.* ]]; then
-        curl -s -X DELETE https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i
+        curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i > /tmp/x.$$
         if [[ $? -ne 0 ]]; then
-            echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
+            cat /tmp/x.$$ | sed 's/^/    /'
+            echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
             exit 1
         fi
     fi
