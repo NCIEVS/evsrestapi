@@ -28,15 +28,20 @@ if [ ${#arr[@]} -eq 1 ]; then
 fi
 terminology=ncim
 
+# Set download dir if not set (regardless of mode)
+if [[ -z $DOWNLOAD_DIR ]]; then
+	export DOWNLOAD_DIR=.
+fi
+
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo "terminology = $terminology"
-echo "dir = $dir"
 echo "config = $config"
 if [[ $download -eq 1 ]]; then
   echo "download = $DOWNLOAD_DIR"
 else
+  echo "dir = $dir"
   echo "download = $download"
 fi
 echo ""
@@ -74,11 +79,6 @@ elif [[ -z $ES_HOST ]]; then
 elif [[ -z $ES_PORT ]]; then
     echo "ERROR: ES_PORT is not set"
     exit 1
-fi
-
-# Set download dir if not set (regardless of mode)
-if [[ -z $DOWNLOAD_DIR ]]; then
-	export DOWNLOAD_DIR=.
 fi
 
 # Check if downloading NCIM data
