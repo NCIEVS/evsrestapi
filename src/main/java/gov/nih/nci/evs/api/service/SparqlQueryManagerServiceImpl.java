@@ -2117,7 +2117,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    */
   private Map<String, Paths> getPathToRoot(List<String> codes, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
+    log.debug("  Get paths for " + codes.size());
     List<Path> paths = self.getPaths(terminology).getPaths();
+    log.debug("    paths = " + paths.size());
     Map<String, Paths> conceptPaths = new HashMap<>();
     Map<String, Boolean> codeMap = new HashMap<>();
     codes.stream().forEach(c -> codeMap.put(c, true));

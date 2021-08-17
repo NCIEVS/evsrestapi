@@ -142,8 +142,8 @@ export EVS_SERVER_PORT="8083"
 
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"
-echo "java $local -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-java $local -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+echo "java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building indexes"
     exit 1

@@ -8,6 +8,9 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
@@ -16,6 +19,8 @@ import gov.nih.nci.evs.api.model.Paths;
  * The Class PathFinder.
  */
 public class PathFinder {
+  /** The Constant log. */
+  private static final Logger log = LoggerFactory.getLogger(PathFinder.class);
 
   /** The hierarchy. */
   private HierarchyUtils hierarchy;
@@ -108,6 +113,7 @@ public class PathFinder {
     for (String root : roots) {
       stack.push(root);
     }
+    int ct = 0;
     while (!stack.isEmpty()) {
       String path = stack.pop();
       String[] values = path.trim().split("\\|");
@@ -118,50 +124,56 @@ public class PathFinder {
         paths.add(createPath(path));
       } else {
         for (String subclass : subclasses) {
+          if (path.contains(subclass + "|")) {
+            log.error("  unexpected cycle = " + path + ", " + subclass);
+          }
           stack.push(path + "|" + subclass);
         }
+      }
+      if (++ct % 100000 == 0) {
+        log.debug("    count = " + ct);
       }
     }
 
     return paths;
   }
-//
-//  /**
-//   * Find paths to roots.
-//   *
-//   * @param code the code
-//   * @param hset the hset
-//   * @return the paths
-//   */
-//  public Paths findPathsToRoots(String code, HashSet<String> hset) {
-//    Paths paths = new Paths();
-//    Stack<String> stack = new Stack<>();
-//    stack.push(code);
-//    while (!stack.isEmpty()) {
-//      String path = (String) stack.pop();
-//      Vector<String> u = parseData(path, '|');
-//      String last_code = (String) u.elementAt(u.size() - 1);
-//      List<String> sups = hierarchy.getSuperclassCodes(last_code);
-//      if (sups == null) {
-//        paths.add(createPath(path));
-//      } else {
-//        Vector<String> w = new Vector<>();
-//        for (int i = 0; i < sups.size(); i++) {
-//          String sup = (String) sups.get(i);
-//          if (!hset.contains(sup)) {
-//            w.add(sup);
-//          }
-//        }
-//        if (w.size() == 0) {
-//          paths.add(createPath(path));
-//        } else {
-//          for (int k = 0; k < w.size(); k++) {
-//            String s = (String) w.elementAt(k);
-//            stack.push(path + "|" + s);
-//          }
-//        }
-//      }
-//    }
-//    return paths;
-//  }
+  //
+  // /**
+  // * Find paths to roots.
+  // *
+  // * @param code the code
+  // * @param hset the hset
+  // * @return the paths
+  // */
+  // public Paths findPathsToRoots(String code, HashSet<String> hset) {
+  // Paths paths = new Paths();
+  // Stack<String> stack = new Stack<>();
+  // stack.push(code);
+  // while (!stack.isEmpty()) {
+  // String path = (String) stack.pop();
+  // Vector<String> u = parseData(path, '|');
+  // String last_code = (String) u.elementAt(u.size() - 1);
+  // List<String> sups = hierarchy.getSuperclassCodes(last_code);
+  // if (sups == null) {
+  // paths.add(createPath(path));
+  // } else {
+  // Vector<String> w = new Vector<>();
+  // for (int i = 0; i < sups.size(); i++) {
+  // String sup = (String) sups.get(i);
+  // if (!hset.contains(sup)) {
+  // w.add(sup);
+  // }
+  // }
+  // if (w.size() == 0) {
+  // paths.add(createPath(path));
+  // } else {
+  // for (int k = 0; k < w.size(); k++) {
+  // String s = (String) w.elementAt(k);
+  // stack.push(path + "|" + s);
+  // }
+  // }
+  // }
+  // }
+  // return paths;
+  // }
 }
