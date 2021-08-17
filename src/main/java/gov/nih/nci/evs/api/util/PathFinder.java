@@ -110,6 +110,7 @@ public class PathFinder {
     Paths paths = new Paths();
     Deque<String> stack = new ArrayDeque<String>();
     ArrayList<String> roots = this.hierarchy.getHierarchyRoots();
+    log.debug("    roots = " + roots.size());
     for (String root : roots) {
       stack.push(root);
     }
