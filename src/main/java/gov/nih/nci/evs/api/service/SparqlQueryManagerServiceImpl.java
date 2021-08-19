@@ -2226,8 +2226,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+  @Cacheable(value = "terminology",
+      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public Paths getPaths(Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     HierarchyUtils hierarchy = self.getHierarchyUtils(terminology);

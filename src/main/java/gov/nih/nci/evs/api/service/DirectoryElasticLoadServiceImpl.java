@@ -98,6 +98,15 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws Exception {
+
+    // Put the mapping
+    boolean result =
+        operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
+    if (result) {
+      operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
+          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+    }
+
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRCONSO);
@@ -372,8 +381,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       // the config file is probably not there
       final String resource = "metadata/" + term.getTerminology() + ".json";
       try {
-        TerminologyMetadata metadata = new ObjectMapper().readValue(
-            IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
+        TerminologyMetadata metadata = new ObjectMapper().readValue(IOUtils
+            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
             TerminologyMetadata.class);
         term.setMetadata(metadata);
       } catch (Exception e) {

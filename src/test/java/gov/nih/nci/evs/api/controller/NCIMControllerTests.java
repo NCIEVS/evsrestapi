@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -217,8 +219,8 @@ public class NCIMControllerTests {
     assertThat(concept.getName()).isEqualTo("Pancreas");
     assertThat(concept.getDefinitions()).isNotNull();
     assertThat(concept.getDefinitions().size()).isEqualTo(8);
-    assertThat(concept.getDefinitions().get(0).getDefinition())
-        .startsWith("Lobular organ the parenchyma of which consists of glandular acini which communicate via a duct system with the duodenum.");
+    assertThat(concept.getDefinitions().get(0).getDefinition()).startsWith(
+        "Lobular organ the parenchyma of which consists of glandular acini which communicate via a duct system with the duodenum.");
     assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("NCI");
 
     // test random concept with no definition
@@ -284,7 +286,8 @@ public class NCIMControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL988042");
-    assertThat(concept.getName()).isEqualTo("Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
+    assertThat(concept.getName()).isEqualTo(
+        "Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
     assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
     assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Clinical Attribute");
@@ -400,6 +403,36 @@ public class NCIMControllerTests {
     assertThat(concept.getProperties().get(4).getType()).isEqualTo("IMAGING_DOCUMENT_VALUE_SET");
     assertThat(concept.getProperties().get(4).getValue()).isEqualTo("LNC");
     assertThat(concept.getProperties().get(4).getSource()).isEqualTo("TRUE");
+
+  }
+
+  /**
+   * Test ncim search contains.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNcimSearchContains() throws Exception {
+    String url = "/api/v1/concept/search";
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Valid test
+    log.info("Testing url - " + url
+        + "?fromRecord=0&include=synonyms&pageSize=100&term=aspirin&type=contains");
+    result = mvc
+        .perform(get(url).param("terminology", "ncim").param("term", "aspirin")
+            .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list).isNotNull();
+    // Look for the Aspirin CUI.
+    assertThat(list.getConcepts().stream().filter(c -> c.getCode().equals("C0004057"))
+        .collect(Collectors.toList()).size()).isEqualTo(1);
 
   }
 
