@@ -31,6 +31,10 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   @Field(type = FieldType.Text)
   private String relatedName;
 
+  /** The source. */
+  @Field(type = FieldType.Text)
+  private String source;
+
   /** The highlight. */
   @Transient
   @JsonSerialize
@@ -65,6 +69,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
     type = other.getType();
     relatedCode = other.getRelatedCode();
     relatedName = other.getRelatedName();
+    source = other.getSource();
     highlight = other.getHighlight();
     qualifiers = new ArrayList<>(other.getQualifiers());
   }
@@ -124,6 +129,24 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   }
 
   /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source
+   */
+  public void setSource(final String source) {
+    this.source = source;
+  }
+
+  /**
    * Returns the highlight.
    *
    * @return the highlight
@@ -169,6 +192,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
     int result = 1;
     result = prime * result + ((relatedCode == null) ? 0 : relatedCode.hashCode());
     result = prime * result + ((relatedName == null) ? 0 : relatedName.hashCode());
+    result = prime * result + ((source == null) ? 0 : source.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
@@ -200,6 +224,13 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
     } else if (!relatedName.equals(other.relatedName)) {
       return false;
     }
+    if (source == null) {
+      if (other.source != null) {
+        return false;
+      }
+    } else if (!source.equals(other.source)) {
+      return false;
+    }
     if (type == null) {
       if (other.type != null) {
         return false;
@@ -213,7 +244,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   /* see superclass */
   @Override
   public int compareTo(Relationship o) {
-    return (relatedName + relatedCode + type)
+    return (relatedName + source + relatedCode + type)
         .compareToIgnoreCase(o.getRelatedName() + o.getRelatedCode() + o.getType());
   }
 

@@ -59,6 +59,16 @@ public class Property extends BaseModel implements Comparable<Property> {
   /**
    * Instantiates a {@link Property} from the specified parameters.
    *
+   * @param type the type
+   * @param value the value
+   */
+  public Property(final String type, final String value) {
+    // n/a
+  }
+
+  /**
+   * Instantiates a {@link Property} from the specified parameters.
+   *
    * @param other the other
    */
   public Property(final Property other) {
