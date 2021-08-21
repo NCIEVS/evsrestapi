@@ -47,6 +47,7 @@ public class Property extends BaseModel implements Comparable<Property> {
   private List<Qualifier> qualifiers;
 
   /** The source. */
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /**

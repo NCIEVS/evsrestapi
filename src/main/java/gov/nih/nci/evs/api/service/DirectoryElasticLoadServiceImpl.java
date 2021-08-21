@@ -479,6 +479,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     concept2.getQualifiers().add(new Qualifier("RG", rg));
     concept2.getQualifiers().add(new Qualifier("DIR", dir));
     concept2.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+
+    logger.info("XXX par/child = " + concept2);
     return concept2;
   }
 
@@ -554,6 +556,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getInverseAssociations().add(iassociation);
 
+    logger.info("YYY assn = " + association);
+    logger.info("YYY iassn = " + iassociation);
+
   }
 
   /**
@@ -563,7 +568,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param propertyInfo the property info
    * @return the concept
    */
-  private Concept buildMRDOCMetadata(final Terminology terminology, final String propertyInfo) {
+  private Concept buildMetadata(final Terminology terminology, final String propertyInfo) {
     Concept propMeta = new Concept();
     String[] splitPropInfo = propertyInfo.split("\\|", -1);
     propMeta.setCode(splitPropInfo[1]);
@@ -584,48 +589,45 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws Exception {
-    String indexName = terminology.getObjectIndexName();
+
+    final String indexName = terminology.getObjectIndexName();
+
     logger.info("Loading Elastic Objects");
-    logger.info("object index name: {}", indexName);
+    logger.debug("object index name: {}", indexName);
+
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
 
     // first level property info
-    Concept semType = new Concept("ncim", "STY", "Semantic_Type");
+    final Concept semType = new Concept("ncim", "STY", "Semantic_Type");
     semType.setTerminology(terminology.getTerminology());
     semType.setVersion(terminology.getVersion());
-
-    // property synonym info
-    Synonym semTypeSyn = new Synonym();
+    final Synonym semTypeSyn = new Synonym();
     semTypeSyn.setName("Semantic_Type");
     semTypeSyn.setType("Preferred_Name");
-    // add synonym as list to property
     semType.setSynonyms(Arrays.asList(semTypeSyn));
 
-    ElasticObject propertiesObject = new ElasticObject("properties");
-    List<Concept> propertiesMetaDataList = new ArrayList<>();
-    propertiesMetaDataList.add(semType);
+    final ElasticObject propertiesObject = new ElasticObject("properties");
+    propertiesObject.getConcepts().add(semType);
 
     // add the MRDOC properties
-    RrfReaders readers = new RrfReaders(this.getFilepath());
+    final RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
-    String MRDOCMetaLine = null;
-    LinkedHashMap<String, String> propsMeta = new LinkedHashMap<>();
-    try (final PushBackReader MRDOCMeta = readers.getReader(RrfReaders.Keys.MRDOC);) {
-      while ((MRDOCMetaLine = MRDOCMeta.readLine()) != null) {
-        if (!propsMeta.containsKey(MRDOCMetaLine.split("\\|", -1)[1])) {
+    String line = null;
+    final LinkedHashMap<String, String> propsMeta = new LinkedHashMap<>();
+    try (final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);) {
+      while ((line = mrdoc.readLine()) != null) {
+        if (!propsMeta.containsKey(line.split("\\|", -1)[1])) {
           // only get unique properties
-          propsMeta.put(MRDOCMetaLine.split("\\|", -1)[1], MRDOCMetaLine);
+          propsMeta.put(line.split("\\|", -1)[1], line);
         }
       }
     }
 
     propsMeta.forEach((key, value) -> {
       // add properties to the list
-      propertiesMetaDataList.add(buildMRDOCMetadata(terminology, value));
+      propertiesObject.getConcepts().add(buildMetadata(terminology, value));
     });
-    propertiesObject = new ElasticObject("properties");
-    propertiesObject.setConcepts(propertiesMetaDataList);
 
     operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);

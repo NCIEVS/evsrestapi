@@ -308,6 +308,29 @@ public class NCIMControllerTests {
 
   }
 
+  @Test
+  public void testMRREL() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // first concept in MRCONSO, three properties
+    url = baseUrl + "/ncim/C0000005";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000005");
+    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+    assertThat(concept.getProperties().size()).isGreaterThan(1);
+    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
+    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
+
+  }
+
   /**
    * Metadata property tests.
    *

@@ -23,9 +23,11 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   private String code;
 
   /** The type. */
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The value. */
+  @Field(type = FieldType.Keyword)
   private String value;
 
   /**

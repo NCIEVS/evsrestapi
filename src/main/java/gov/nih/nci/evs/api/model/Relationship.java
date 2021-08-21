@@ -32,7 +32,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   private String relatedName;
 
   /** The source. */
-  @Field(type = FieldType.Text)
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /** The highlight. */
