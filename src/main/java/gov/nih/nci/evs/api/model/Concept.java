@@ -85,6 +85,10 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Integer)
   private Integer level;
 
+  /** The source - only used by parent/child references for NCIM. */
+  @Field(type = FieldType.Keyword)
+  private String source;
+
   /** The leaf. */
   @Field(type = FieldType.Boolean)
   private Boolean leaf;
@@ -105,9 +109,6 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
 
-  /** The source - only used by parent/child references for NCIM. */
-  @Field(type = FieldType.Keyword)
-  private String source;
 
   /** The children. */
   @Field(type = FieldType.Nested, ignoreFields = {

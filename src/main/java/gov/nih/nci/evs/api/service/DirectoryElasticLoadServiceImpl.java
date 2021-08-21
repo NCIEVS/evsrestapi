@@ -466,7 +466,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       concept2.getQualifiers().add(new Qualifier("AUI1", aui1));
       concept2.getQualifiers().add(new Qualifier("STYPE1", stype1));
     }
-    concept2.getQualifiers().add(new Qualifier("RELA", rela));
+    if (!rela.isEmpty()) {
+      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+    }
     if (!aui2.isEmpty()) {
       concept2.getQualifiers().add(new Qualifier("AUI2", aui2));
       concept2.getQualifiers().add(new Qualifier("STYPE2", stype2));
@@ -476,8 +478,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // if (!srui.isEmpty()) {
     // concept2.getQualifiers().add(new Qualifier("SRUI", srui));
     // }
-    concept2.getQualifiers().add(new Qualifier("RG", rg));
-    concept2.getQualifiers().add(new Qualifier("DIR", dir));
+    if (!rg.isEmpty()) {
+      concept2.getQualifiers().add(new Qualifier("RG", rg));
+    }
+    if (!dir.isEmpty()) {
+      concept2.getQualifiers().add(new Qualifier("DIR", dir));
+    }
     concept2.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
 
     logger.info("XXX par/child = " + concept2);
@@ -525,13 +531,19 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       association.getQualifiers().add(new Qualifier("AUI2", aui1));
       association.getQualifiers().add(new Qualifier("STYPE2", stype2));
     }
-    association.getQualifiers().add(new Qualifier("RELA", rela));
+    if (!rela.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("RELA", rela));
+    }
     // association.getQualifiers().add(new Qualifier("RUI", rui));
     // if (!srui.isEmpty()) {
     // association.getQualifiers().add(new Qualifier("SRUI", srui));
     // }
-    association.getQualifiers().add(new Qualifier("RG", rg));
-    association.getQualifiers().add(new Qualifier("DIR", dir));
+    if (!rg.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("RG", rg));
+    }
+    if (!dir.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("DIR", dir));
+    }
     association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getAssociations().add(association);
 
