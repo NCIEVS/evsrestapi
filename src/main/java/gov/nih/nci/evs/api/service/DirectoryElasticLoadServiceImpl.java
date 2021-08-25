@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -779,12 +780,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     throws IOException {
     batch.add(concept);
     if (concept.toString().length() > 10000000) {
-      logger.info("XXX BIG " + concept.getCode() + " = " + concept.toString().length());
+      logger.info("    BIG concept = " + concept.getCode() + " = " + concept.toString().length());
     }
     // IF we've reached the index batch size, send it to elasticsearch
     if (flag || batch.size() == INDEX_BATCH_SIZE) {
       if (new ArrayList<>(batch).toString().length() > 10000000) {
-        logger.info("XXX batch size = " + new ArrayList<>(batch).toString().length());
+        logger.info("    BIG batch size = "
+            + batch.stream().map(c -> c.getCode()).collect(Collectors.toList()) + ", "
+            + batch.toString().length());
       }
       operationsService.bulkIndex(new ArrayList<>(batch), indexName,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
