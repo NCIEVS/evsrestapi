@@ -206,6 +206,17 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "    FOUND indexes for $version, force reindex anyway"        
         fi
 
+        # Remove if this already exists
+        version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+        echo "    Remove indexes for ncit $version"
+        DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+        $DIR/remove.sh ncit $version > /tmp/x.$$ 2>&1
+        if [[ $? -ne 0 ]]; then
+            cat /tmp/x.$$ | sed 's/^/    /'
+            echo "ERROR: removing ncit $version indexes"
+            exit 1
+        fi
+
         # Run reindexing process (choose a port other than the one that it runs on)
         export STARDOG_DB=$db
         export EVS_SERVER_PORT="8083"
@@ -245,7 +256,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Cleanup
-/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt
+/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
 
 echo ""
 echo "--------------------------------------------------"

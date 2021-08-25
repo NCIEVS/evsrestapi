@@ -122,7 +122,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       if (!iMeta.getTerminology().getTerminology().equals(terminology.getTerminology())) {
         continue;
       }
-      
+
       logger.info("stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
@@ -286,14 +286,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     iMeta.setIndexName(term.getIndexName());
     iMeta.setTotalConcepts(total);
     iMeta.setCompleted(true); // won't make it this far if it isn't complete
+    logger.info("  ADD terminology = " + term);
     iMeta.setTerminology(term);
 
-    operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
-
-    operationsService.getElasticsearchOperations().putMapping(
-        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
-        IndexMetadata.class);
-
+    boolean created = operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+    if (created) {
+      operationsService.getElasticsearchOperations().putMapping(
+          ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
+          IndexMetadata.class);
+    }
+    
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
 

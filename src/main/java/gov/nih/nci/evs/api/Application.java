@@ -16,12 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class Application extends SpringBootServletInitializer {
 
-  /**
-   * Configure.
-   *
-   * @param application the application
-   * @return the spring application builder
-   */
+  /* see superclass */
   @Override
   protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     return application.sources(Application.class);

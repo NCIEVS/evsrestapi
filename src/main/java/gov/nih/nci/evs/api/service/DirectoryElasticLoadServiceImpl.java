@@ -8,12 +8,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -42,8 +42,6 @@ import gov.nih.nci.evs.api.util.RrfReaders;
 
 /**
  * The implementation for {@link DirectoryElasticLoadServiceImpl}.
- *
- * @author Arun
  */
 @Service
 public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
@@ -80,6 +78,27 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The rela inverse map. */
   private Map<String, String> relaInverseMap = new HashMap<>();
+
+  /** The tty map. */
+  private Map<String, String> ttyMap = new HashMap<>();
+
+  /** The rel map. */
+  private Map<String, String> relMap = new HashMap<>();
+
+  /** The atn map. */
+  private Map<String, String> atnMap = new HashMap<>();
+
+  /** The source map. */
+  private Map<String, String> sourceMap = new HashMap<>();
+
+  /** The column map. */
+  private Map<String, String> colMap = new HashMap<>();
+
+  /** The atn set. */
+  private Set<String> atnSet = new HashSet<>();
+
+  /** The rel set. */
+  private Set<String> relSet = new HashSet<>();
 
   /** the environment *. */
   @Autowired
@@ -118,7 +137,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
-        final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);) {
+        final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
+        final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
 
       String line = null;
       // Loop through concept lines until we reach "the end"
@@ -139,9 +159,22 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
           relInverseMap.put(fields[1], fields[3]);
         } else if (fields[2].equals("rela_inverse")) {
           relaInverseMap.put(fields[1], fields[3]);
+        } else if (fields[0].equals("TTY") && fields[2].equals("expanded_form")) {
+          ttyMap.put(fields[1], fields[3]);
+        } else if (fields[0].equals("REL") && fields[2].equals("expanded_form")) {
+          relMap.put(fields[1], fields[3]);
+        } else if (fields[0].equals("ATN") && fields[2].equals("expanded_form")) {
+          atnMap.put(fields[1], fields[3]);
         }
       }
       relaInverseMap.put("", "");
+
+      // Column Metadata
+      while ((line = mrcols.readLine()) != null) {
+        final String[] fields = line.split("\\|", -1);
+        // ATN|Attribute name||2|10.94|62|MRSAT.RRF|varchar(100)|
+        colMap.put(fields[0], fields[1]);
+      }
 
     } finally {
       readers.closeReaders();
@@ -198,10 +231,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         if (!cui.equals(prevCui)) {
 
           // Process data
-          handleDefinitions(concept, mrdef, prevCui);
+          handleDefinitions(terminology, concept, mrdef, prevCui);
           handleSemanticTypes(concept, mrsty, prevCui);
           handleAttributes(concept, mrsat, prevCui);
           handleRelationships(concept, mrrel, prevCui);
+          // There are not useful mappings in the UMLS at this point in time
+          // handleMapping(concept, mrmap, prevCui);
           handleConcept(concept, batch, false, terminology.getIndexName());
 
           if (totalConcepts++ % 5000 == 0) {
@@ -224,21 +259,24 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // Each line of MRCONSO is a synonym
-        final Synonym syn = new Synonym();
+        final Synonym sy = new Synonym();
+        sy.setType(fields[14].equals(concept.getName()) ? "Preferred_Name" : "Synonym");
         if (!fields[13].equals("NOCODE")) {
-          syn.setCode(fields[10]);
+          sy.setCode(fields[10]);
         }
-        syn.setSource(fields[11]);
-        syn.setTermGroup(fields[12]);
-        syn.setName(fields[14]);
-        concept.getSynonyms().add(syn);
+        sy.setSource(fields[11]);
+        terminology.getMetadata().getSynonymSourceSet().add(fields[11]);
+        sy.setTermGroup(fields[12]);
+        terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
+        sy.setName(fields[14]);
+        concept.getSynonyms().add(sy);
 
         // Save prev cui for next round
         prevCui = cui;
       }
 
       // Process the final concept and all it's connected data
-      handleDefinitions(concept, mrdef, prevCui);
+      handleDefinitions(terminology, concept, mrdef, prevCui);
       handleSemanticTypes(concept, mrsty, prevCui);
       handleAttributes(concept, mrsat, prevCui);
       handleRelationships(concept, mrrel, prevCui);
@@ -312,6 +350,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     final Property prop = new Property();
     prop.setValue(value);
     prop.setType(type);
+    atnSet.add(type);
     if (source != null) {
       prop.setSource(source.toString());
     }
@@ -321,13 +360,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Handle definitions.
    *
+   * @param terminology the terminology
    * @param concept the concept
    * @param mrdef the mrdef
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  private void handleDefinitions(final Concept concept, final PushBackReader mrdef,
-    final String prevCui) throws Exception {
+  private void handleDefinitions(final Terminology terminology, final Concept concept,
+    final PushBackReader mrdef, final String prevCui) throws Exception {
     String line;
     while ((line = mrdef.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -336,25 +376,29 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         break;
       }
       // handle definitions
-      buildDefinition(concept, fields);
+      buildDefinition(terminology, concept, fields);
     }
   }
 
   /**
    * Handle building concept definition.
    *
+   * @param terminology the terminology
    * @param concept the concept
    * @param fields the fields
    * @return the definition
    */
-  private void buildDefinition(final Concept concept, final String[] fields) {
+  private void buildDefinition(final Terminology terminology, final Concept concept,
+    final String[] fields) {
     final String definition = fields[5];
     final String source = fields[4];
 
-    final Definition newDef = new Definition();
-    newDef.setDefinition(definition);
-    newDef.setSource(source);
-    concept.getDefinitions().add(newDef);
+    final Definition def = new Definition();
+    def.setDefinition(definition);
+    def.setSource(source);
+    def.setType("DEFINITION");
+    terminology.getMetadata().getDefinitionSourceSet().add(source);
+    concept.getDefinitions().add(def);
   }
 
   /**
@@ -382,7 +426,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       final String toCode = fields[0];
 
       // Skip certain situations
-      if (fromCode.equals(toCode) || rel.equals("SY")) {
+      if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
+          || rel.equals("BRO")) {
         continue;
       }
       // CUI1 has parent CUI2
@@ -486,7 +531,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     }
     concept2.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
 
-    logger.info("XXX par/child = " + concept2);
     return concept2;
   }
 
@@ -520,6 +564,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // Build and add association
     final Association association = new Association();
     association.setType(rel);
+    relSet.add(rel);
+
     association.setRelatedCode(cui2);
     association.setRelatedName(nameMap.get(cui2));
     association.setSource(sab);
@@ -568,32 +614,30 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getInverseAssociations().add(iassociation);
 
-    logger.info("YYY assn = " + association);
-    logger.info("YYY iassn = " + iassociation);
-
   }
 
   /**
    * Handle building MRDOC property metadata.
    *
    * @param terminology the terminology
-   * @param propertyInfo the property info
+   * @param code the code
+   * @param name the name
    * @return the concept
    */
-  private Concept buildMetadata(final Terminology terminology, final String propertyInfo) {
-    Concept propMeta = new Concept();
-    String[] splitPropInfo = propertyInfo.split("\\|", -1);
-    propMeta.setCode(splitPropInfo[1]);
-    propMeta.setName(splitPropInfo[3]);
+  private Concept buildMetadata(final Terminology terminology, final String code,
+    final String name) {
+    final Concept propMeta = new Concept();
+    propMeta.setCode(code);
+    propMeta.setName(name);
     propMeta.setTerminology(terminology.getTerminology());
     propMeta.setVersion(terminology.getVersion());
 
     // property synonym info
-    Synonym propMetaSyn = new Synonym();
-    propMetaSyn.setName(splitPropInfo[3]);
+    final Synonym propMetaSyn = new Synonym();
     propMetaSyn.setType("Preferred_Name");
+    propMetaSyn.setName(name);
     // add synonym as list to property
-    propMeta.setSynonyms(Arrays.asList(propMetaSyn));
+    propMeta.getSynonyms().add(propMetaSyn);
     return propMeta;
   }
 
@@ -607,60 +651,107 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     logger.info("Loading Elastic Objects");
     logger.debug("object index name: {}", indexName);
 
+    // Create index
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
 
-    // first level property info
-    final Concept semType = new Concept("ncim", "STY", "Semantic_Type");
+    // Use default elasticsearch mapping
+
+    // Set the "sources" map of the terminology metadata
+    terminology.getMetadata().setSources(sourceMap);
+
+    //
+    // Handle associations
+    //
+    final ElasticObject associations = new ElasticObject("associations");
+    // MRSAT: association metadata for MRREL
+    for (final String rel : relSet) {
+      associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
+    }
+    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+
+    // Hanlde "concept statuses" - n/a
+
+    //
+    // Handle definitionSources - n/a - handled inline
+    //
+
+    //
+    // Handle definitionTypes
+    //
+    final ElasticObject defTypes = new ElasticObject("definitionTypes");
+    defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
+    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+
+    //
+    // Handle properties
+    //
+    final ElasticObject properties = new ElasticObject("properties");
+
+    // MRSTY: Semantic_Type property
+    final Concept semType = new Concept(terminology.getTerminology(), "STY", "Semantic_Type");
     semType.setTerminology(terminology.getTerminology());
     semType.setVersion(terminology.getVersion());
-    final Synonym semTypeSyn = new Synonym();
-    semTypeSyn.setName("Semantic_Type");
-    semTypeSyn.setType("Preferred_Name");
-    semType.setSynonyms(Arrays.asList(semTypeSyn));
+    final Synonym semTypeSy = new Synonym();
+    semTypeSy.setType("Preferred_Name");
+    semTypeSy.setName("Semantic_Type");
+    semType.getSynonyms().add(semTypeSy);
+    properties.getConcepts().add(semType);
 
-    final ElasticObject propertiesObject = new ElasticObject("properties");
-    propertiesObject.getConcepts().add(semType);
-
-    // add the MRDOC properties
-    final RrfReaders readers = new RrfReaders(this.getFilepath());
-    readers.openOriginalReaders("MR");
-    String line = null;
-    final LinkedHashMap<String, String> propsMeta = new LinkedHashMap<>();
-    try (final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);) {
-      while ((line = mrdoc.readLine()) != null) {
-        if (!propsMeta.containsKey(line.split("\\|", -1)[1])) {
-          // only get unique properties
-          propsMeta.put(line.split("\\|", -1)[1], line);
-        }
-      }
+    // MRSAT: property metadata for MRSAT
+    for (final String atn : atnSet) {
+      properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    propsMeta.forEach((key, value) -> {
-      // add properties to the list
-      propertiesObject.getConcepts().add(buildMetadata(terminology, value));
-    });
-
-    operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
 
-    // TODO: additional qualifiers to build - from relationships
-    final ElasticObject qualifiersObject = new ElasticObject("qualifiers");
-    // if (!aui1.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("AUI1", aui1));
-    // association.getQualifiers().add(new Property("STYPE1", stype1));
-    // }
-    // if (!aui2.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("AUI2", aui1));
-    // association.getQualifiers().add(new Qualifier("STYPE2", stype2));
-    // }
-    // association.getQualifiers().add(new Qualifier("RELA", rela));
-    // association.getQualifiers().add(new Qualifier("RG", rg));
-    // association.getQualifiers().add(new Qualifier("DIR", dir));
-    // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+    //
+    // Handle qualifiers
+    //
+    final ElasticObject qualifiers = new ElasticObject("qualifiers");
 
-    operationsService.index(qualifiersObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+    // qualifiers to build - from relationships
+    for (final String col : new String[] {
+        "AUI1", "STYPE1", "AUI2", "STYPE2", "RELA", "RG", "DIR", "SUPPRESS"
+    }) {
+      qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
+    }
+    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
+
+    //
+    // Handle roles - n/a
+    //
+    final ElasticObject roles = new ElasticObject("roles");
+    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+
+    //
+    // Handle subsets - n/a
+    //
+    final ElasticObject subsets = new ElasticObject("subsets");
+    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+
+    //
+    // Handle synonymSources - n/a - handled inline
+    //
+
+    //
+    // Handle synonymTypes
+    //
+    final ElasticObject syTypes = new ElasticObject("synonymTypes");
+    syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
+    syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
+    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+
+    //
+    // Handle termTypes - n/a - handled inline
+    //
 
   }
 
@@ -699,31 +790,35 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
             new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
 
       String line;
+      Terminology term = new Terminology();
       while ((line = in.readLine()) != null) {
-        if (line.split("\\|", -1)[3].equals("NCIMTH")) {
-          break;
+        // VCUI,RCUI,VSAB,RSAB,SON,SF,SVER,VSTART,VEND,IMETA,RMETA,SLC,SCC,SRL,
+        // TFR,CFR,CXTY,TTYL,ATNL,LAT,CENC,CURVER,SABIN,SSN,SCIT
+        final String[] fields = line.split("\\|", -1);
+        sourceMap.put(fields[3], fields[4]);
+
+        if (fields[3].equals("NCIMTH")) {
+          Properties p = new Properties();
+          p.load(input);
+          term.setTerminology(terminology);
+          term.setVersion(p.getProperty("umls.release.name"));
+          term.setDate(p.getProperty("umls.release.date"));
+          if (line != null) {
+            term.setName(line.split("\\|", -1)[4]);
+            term.setDescription(line.split("\\|", -1)[24]);
+          }
+          term.setGraph(null);
+          term.setSource(null);
+          term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
+          term.setIndexName("concept_" + term.getTerminologyVersion());
+          term.setLatest(true);
+          term.setSparqlFlag(false);
+          // if (forceDelete) {
+          // logger.info(" DELETE TERMINOLOGY = " + term.getIndexName());
+          // findAndDeleteTerminology(term.getIndexName());
+          // }
         }
       }
-      Properties p = new Properties();
-      p.load(input);
-      Terminology term = new Terminology();
-      term.setTerminology(terminology);
-      term.setVersion(p.getProperty("umls.release.name"));
-      term.setDate(p.getProperty("umls.release.date"));
-      if (line != null) {
-        term.setName(line.split("\\|", -1)[4]);
-        term.setDescription(line.split("\\|", -1)[24]);
-      }
-      term.setGraph(null);
-      term.setSource(null);
-      term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
-      term.setIndexName("concept_" + term.getTerminologyVersion());
-      term.setLatest(true);
-      term.setSparqlFlag(false);
-      // if (forceDelete) {
-      // logger.info(" DELETE TERMINOLOGY = " + term.getIndexName());
-      // findAndDeleteTerminology(term.getIndexName());
-      // }
 
       // Attempt to read the config, if anything goes wrong
       // the config file is probably not there
@@ -737,7 +832,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         throw new Exception("Unexpected error trying to load = " + resource, e);
       }
 
-      logger.info("  ADD terminology = " + term);
       return term;
     } catch (IOException ex) {
       throw new Exception("Could not load terminology ncim");

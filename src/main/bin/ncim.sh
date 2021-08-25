@@ -140,8 +140,22 @@ if [[ $config -eq 0 ]]; then
 fi
 export EVS_SERVER_PORT="8083"
 
+# Remove if this already exists
+version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+echo "  Remove indexes for $terminology $version"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+$DIR/remove.sh $terminology $version > /tmp/x.$$ 2>&1
+if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$ | sed 's/^/    /'
+    echo "ERROR: removing $terminology $version indexes"
+    exit 1
+fi
+
+
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"
+# need to override this setting to make sure it's not too big
+export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=10
 echo "java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
 java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
 if [[ $? -ne 0 ]]; then
@@ -150,7 +164,6 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "  Remove any older versions indexes"
-version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
    perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
 for i in `cat /tmp/x.$$`; do    

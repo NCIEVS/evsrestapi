@@ -89,6 +89,8 @@ public class NCIMControllerTests {
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
         });
@@ -332,44 +334,6 @@ public class NCIMControllerTests {
   }
 
   /**
-   * Metadata property tests.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testMetadataProperty() throws Exception {
-
-    String url = null;
-    MvcResult result = null;
-    String content = null;
-    List<Concept> properties = null;
-
-    // Semantic_Type property url = baseUrl + "/ncim/properties";
-    url = baseUrlMetadata + "/ncim/properties?include=synonyms";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-
-    properties = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-    });
-
-    assertThat(properties.get(0).getCode()).isEqualTo("STY");
-    assertThat(properties.get(0).getName()).isEqualTo("Semantic_Type");
-    assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
-    assertThat(properties.get(0).getVersion()).isEqualTo("202102");
-    assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo("Semantic_Type");
-
-    // check other properties from MRDOC
-    assertThat(properties.get(2).getCode()).isEqualTo("ACCEPTABILITYID");
-    assertThat(properties.get(2).getName()).isEqualTo("Acceptability ID");
-    assertThat(properties.get(2).getTerminology()).isEqualTo("ncim");
-    assertThat(properties.get(2).getVersion()).isEqualTo("202102");
-    assertThat(properties.get(2).getSynonyms().get(0).getName()).isEqualTo("Acceptability ID");
-
-  }
-
-  /**
    * MRDEF basic tests.
    *
    * @throws Exception the exception
@@ -459,4 +423,162 @@ public class NCIMControllerTests {
 
   }
 
+  /**
+   * Test ncim metadata.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNcimMetadata() throws Exception {
+
+    String base = "/api/v1/metadata/ncim";
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    // Handle associations
+    url = base + "/associations";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RO");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RN");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RQ");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("SY");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRO");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("AQ");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("QB");
+
+    // Handle concept statuses
+    url = base + "/conceptStatuses";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // Handle definitionSources
+    url = base + "/definitionSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(10);
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("CDISC");
+
+    // Handle definitionTypes
+    url = base + "/definitionTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.get(0).getCode()).isEqualTo("DEFINITION");
+
+    // Handle properties
+    url = base + "/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .contains("Semantic_Type");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RANK");
+
+    // Handle qualifiers
+    url = base + "/qualifiers";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AUI1");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("STYPE1");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AUI2");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("STYPE2");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RG");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("DIR");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .contains("SUPPRESS");
+
+    // Handle subsets - n/a
+    url = base + "/subsets";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // Handle synonymSources - n/a - handled inline
+    url = base + "/synonymSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(20);
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("MSH");
+
+    // Handle synonymTypes
+    url = base + "/synonymTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.get(0).getCode()).isEqualTo("Preferred_Name");
+    assertThat(list.get(1).getCode()).isEqualTo("Synonym");
+
+    // Handle termTypes - n/a - handled inline
+    url = base + "/termTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(30);
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
+
+  }
 }
