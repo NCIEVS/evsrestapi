@@ -187,7 +187,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws Exception {
-    logger.info("Loading Concepts");
+    logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
     // Put the mapping
     boolean result =
@@ -422,14 +422,24 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       // e.g.
       // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
       final String rel = fields[3];
-      final String fromCode = fields[4];
-      final String toCode = fields[0];
+      final String fromCode = fields[0];
+      final String toCode = fields[4];
 
       // Skip certain situations
       if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
           || rel.equals("BRO")) {
         continue;
       }
+      // Skip AUI-AUI relationships
+      else if (fields[2].equals("AUI") && fields[6].equals("AUI")) {
+        continue;
+      }
+
+      // SPECIAL EXCEPTION FOR SIZE
+      if (fromCode.equals("C0205447") && fields[10].startsWith("SNOMED")) {
+        continue;
+      }
+
       // CUI1 has parent CUI2
       else if (rel.equals("PAR")) {
         buildParent(concept, fields);
@@ -507,17 +517,17 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setTerminology(concept.getTerminology());
     concept2.setVersion(concept2.getVersion());
     concept2.setLeaf(false);
-    if (!aui1.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("AUI1", aui1));
-      concept2.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    }
+    // if (!aui1.isEmpty()) {
+    // concept2.getQualifiers().add(new Qualifier("AUI1", aui1));
+    // concept2.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    // }
     if (!rela.isEmpty()) {
       concept2.getQualifiers().add(new Qualifier("RELA", rela));
     }
-    if (!aui2.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("AUI2", aui2));
-      concept2.getQualifiers().add(new Qualifier("STYPE2", stype2));
-    }
+    // if (!aui2.isEmpty()) {
+    // concept2.getQualifiers().add(new Qualifier("AUI2", aui2));
+    // concept2.getQualifiers().add(new Qualifier("STYPE2", stype2));
+    // }
     concept2.setSource(sab);
     // concept2.getQualifiers().add(new Qualifier("RUI", rui));
     // if (!srui.isEmpty()) {
@@ -529,7 +539,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     if (!dir.isEmpty()) {
       concept2.getQualifiers().add(new Qualifier("DIR", dir));
     }
-    concept2.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+    // concept2.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
 
     return concept2;
   }
@@ -558,7 +568,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     final String sab = fields[10];
     final String rg = fields[12];
     final String dir = fields[13];
-    final String suppress = fields[14];
+    // final String suppress = fields[14];
     // final String cvf = fields[15];
 
     // Build and add association
@@ -569,14 +579,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     association.setRelatedCode(cui2);
     association.setRelatedName(nameMap.get(cui2));
     association.setSource(sab);
-    if (!aui1.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("AUI1", aui1));
-      association.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    }
-    if (!aui2.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("AUI2", aui1));
-      association.getQualifiers().add(new Qualifier("STYPE2", stype2));
-    }
+    // if (!aui1.isEmpty()) {
+    // association.getQualifiers().add(new Qualifier("AUI1", aui1));
+    // association.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    // }
+    // if (!aui2.isEmpty()) {
+    // association.getQualifiers().add(new Qualifier("AUI2", aui1));
+    // association.getQualifiers().add(new Qualifier("STYPE2", stype2));
+    // }
     if (!rela.isEmpty()) {
       association.getQualifiers().add(new Qualifier("RELA", rela));
     }
@@ -590,7 +600,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     if (!dir.isEmpty()) {
       association.getQualifiers().add(new Qualifier("DIR", dir));
     }
-    association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+    // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getAssociations().add(association);
 
     // Build and add an inverse association
@@ -600,18 +610,18 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     iassociation.setRelatedName(nameMap.get(cui2));
     iassociation.setSource(sab);
     if (!aui1.isEmpty()) {
-      iassociation.getQualifiers().add(new Qualifier("AUI1", aui2));
-      iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
+      // iassociation.getQualifiers().add(new Qualifier("AUI1", aui2));
+      // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
     }
     if (!aui2.isEmpty()) {
-      iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
-      iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
+      // iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
+      // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
     }
     iassociation.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     // RUI and SRUI in the other direction are different.
     iassociation.getQualifiers().add(new Qualifier("RG", rg));
     iassociation.getQualifiers().add(new Qualifier("DIR", dir));
-    iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+    // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getInverseAssociations().add(iassociation);
 
   }
@@ -714,8 +724,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject qualifiers = new ElasticObject("qualifiers");
 
     // qualifiers to build - from relationships
+    // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
     for (final String col : new String[] {
-        "AUI1", "STYPE1", "AUI2", "STYPE2", "RELA", "RG", "DIR", "SUPPRESS"
+        "RELA", "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
@@ -767,9 +778,14 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
     batch.add(concept);
-
+    if (concept.toString().length() > 10000000) {
+      logger.info("XXX BIG " + concept.getCode() + " = " + concept.toString().length());
+    }
     // IF we've reached the index batch size, send it to elasticsearch
     if (flag || batch.size() == INDEX_BATCH_SIZE) {
+      if (new ArrayList<>(batch).toString().length() > 10000000) {
+        logger.info("XXX batch size = " + new ArrayList<>(batch).toString().length());
+      }
       operationsService.bulkIndex(new ArrayList<>(batch), indexName,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       batch.clear();
