@@ -41,7 +41,9 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   @JsonDeserialize
   private String highlight;
 
-  /** The qualifiers - not NCIT, but could be other terminologies. */
+  /** The qualifiers. */
+  // Really, we want to just ignore these
+  @Field(type = FieldType.Nested, index = false)
   private List<Qualifier> qualifiers;
 
   /**

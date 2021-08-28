@@ -244,6 +244,13 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
             logger.info("    count = " + totalConcepts);
           }
 
+          // Every 100000 concepts, pause for a minute to let ES catch up
+          if (totalConcepts++ % 100000 == 0) {
+            final int wait = 120000;
+            logger.info("    wait = " + wait);
+            Thread.sleep(wait);
+          }
+
           // Prep concept for the next CUI
           concept = new Concept();
 
@@ -497,19 +504,19 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
     // C2584594|A9570455|SCUI|PAR|C0203464|A3803453|SCUI|inverse_isa|R105418833|4727926024|SNOMEDCT_US|SNOMEDCT_US||N|N||
     // final String cui1 = fields[0];
-    final String aui1 = fields[1];
-    final String stype1 = fields[2];
+    // final String aui1 = fields[1];
+    // final String stype1 = fields[2];
     // final String rel = fields[3];
     final String cui2 = fields[4];
-    final String aui2 = fields[5];
-    final String stype2 = fields[6];
+    // final String aui2 = fields[5];
+    // final String stype2 = fields[6];
     final String rela = fields[7];
     // final String rui = fields[8];
     // final String srui = fields[9];
     final String sab = fields[10];
     final String rg = fields[12];
     final String dir = fields[13];
-    final String suppress = fields[14];
+    // final String suppress = fields[14];
     // final String cvf = fields[15];
 
     final Concept concept2 = new Concept();
@@ -558,11 +565,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
     // final String cui1 = fields[0];
     final String aui1 = fields[1];
-    final String stype1 = fields[2];
+    // final String stype1 = fields[2];
     final String rel = fields[3];
     final String cui2 = fields[4];
     final String aui2 = fields[5];
-    final String stype2 = fields[6];
+    // final String stype2 = fields[6];
     final String rela = fields[7];
     // final String rui = fields[8];
     // final String srui = fields[9];

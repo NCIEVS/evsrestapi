@@ -43,7 +43,8 @@ public class Property extends BaseModel implements Comparable<Property> {
   @JsonDeserialize
   private String highlight;
 
-  /** The qualifiers. */
+ /** The qualifiers. */
+ @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
 
   /** The source. */
