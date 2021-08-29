@@ -340,7 +340,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         break;
       }
       // handle properties (include dynamic type)
-      buildProperty(concept, fields[8], fields[9], fields[10]);
+      // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF|
+      final String atn = fields[8];
+      final String sab = fields[9];
+      final String atv = fields[10];
+      buildProperty(concept, atn, atv, sab);
     }
   }
 
