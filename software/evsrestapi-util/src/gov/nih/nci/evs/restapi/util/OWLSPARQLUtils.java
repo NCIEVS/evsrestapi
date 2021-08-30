@@ -6098,6 +6098,61 @@ Term Type
 		return new SortUtils().quickSort(v);
 	}
 
+	public String construct_get_cdisc_submission_value(String named_graph, String subsetCode, String code) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select distinct ?x2_code ?x2_label ?x1_code ?x1_label ?a1_target ?a2_target ?q7_value").append("\n");
+		buf.append("from <" + named_graph + "> ").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("            	?x1 a owl:Class .").append("\n");
+		buf.append("            	?x1 :NHC0 ?x1_code .").append("\n");
+		buf.append("            	?x1 :NHC0 \"" + subsetCode + "\"^^xsd:string .").append("\n");
+		buf.append("            	?x1 rdfs:label ?x1_label .").append("\n");
+		buf.append("           	").append("\n");
+		buf.append("                ?x2 a owl:Class .").append("\n");
+		buf.append("             	?x2 :NHC0 ?x2_code .").append("\n");
+		buf.append("             	?x2 :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		buf.append("            	?x2 rdfs:label ?x2_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?a1 a owl:Axiom .").append("\n");
+		buf.append("                ?a1 owl:annotatedSource ?x1 .").append("\n");
+		buf.append("                ?a1 owl:annotatedProperty ?p4 .").append("\n");
+		buf.append("                ?a1 owl:annotatedTarget ?a1_target .").append("\n");
+		buf.append("                ?p4 :NHC0 \"P90\"^^xsd:string .").append("\n");
+		buf.append("                ?a1 ?q3 \"NCI\"^^xsd:string .").append("\n");
+		buf.append("                ?q3 :NHC0 \"P384\"^^xsd:string .").append("\n");
+		buf.append("                ?a1 ?q4 \"AB\"^^xsd:string .").append("\n");
+		buf.append("                ?q4 :NHC0 \"P383\"^^xsd:string .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?a2 a owl:Axiom .").append("\n");
+		buf.append("                ?a2 owl:annotatedSource ?x2 .").append("\n");
+		buf.append("                ?a2 owl:annotatedProperty ?p5 .").append("\n");
+		buf.append("                ?a2 owl:annotatedTarget ?a2_target .").append("\n");
+		buf.append("                ?p5 :NHC0 \"P90\"^^xsd:string .").append("\n");
+		buf.append("                ?a2 ?q5 \"CDISC\"^^xsd:string .").append("\n");
+		buf.append("                ?q5 :NHC0 \"P384\"^^xsd:string .").append("\n");
+		buf.append("                ?a2 ?q6 \"PT\"^^xsd:string .").append("\n");
+		buf.append("                ?q6 :NHC0 \"P383\"^^xsd:string .").append("\n");
+		buf.append("                ?a2 ?q7 ?q7_value .").append("\n");
+		buf.append("                ?q7 :NHC0 \"P385\"^^xsd:string .   ").append("\n");
+		buf.append("                ").append("\n");
+		buf.append("                FILTER(str(?a1_target) = str(?q7_value))").append("\n");
+		buf.append("}").append("\n");
+		buf.append("").append("\n");
+		return buf.toString();
+	}
+
+
+	public Vector getCdiscSubmissionValue(String named_graph, String subsetCode, String code) {
+		String query = construct_get_cdisc_submission_value(named_graph, subsetCode, code);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String restURL = args[0];
