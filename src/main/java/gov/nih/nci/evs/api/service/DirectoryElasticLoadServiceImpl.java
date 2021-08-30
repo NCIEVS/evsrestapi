@@ -464,6 +464,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
       // Other "association" and "inverse association"
       else {
+
+        // TEMP: skip SNOMED relationships
+        if (fields[10].equals("SNOMEDCT_US")) {
+          continue;
+        }
         buildAssociations(concept, fields);
       }
 
@@ -529,13 +534,21 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setTerminology(concept.getTerminology());
     concept2.setVersion(concept2.getVersion());
     concept2.setLeaf(false);
+    if (!rela.isEmpty()) {
+      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+    }
+
+    // if (!rg.isEmpty()) {
+    // concept2.getQualifiers().add(new Qualifier("RG", rg));
+    // }
+    // if (!dir.isEmpty()) {
+    // concept2.getQualifiers().add(new Qualifier("DIR", dir));
+    // }
+
     // if (!aui1.isEmpty()) {
     // concept2.getQualifiers().add(new Qualifier("AUI1", aui1));
     // concept2.getQualifiers().add(new Qualifier("STYPE1", stype1));
     // }
-    if (!rela.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RELA", rela));
-    }
     // if (!aui2.isEmpty()) {
     // concept2.getQualifiers().add(new Qualifier("AUI2", aui2));
     // concept2.getQualifiers().add(new Qualifier("STYPE2", stype2));
@@ -545,12 +558,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // if (!srui.isEmpty()) {
     // concept2.getQualifiers().add(new Qualifier("SRUI", srui));
     // }
-    if (!rg.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RG", rg));
-    }
-    if (!dir.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("DIR", dir));
-    }
     // concept2.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
 
     return concept2;
@@ -591,6 +598,17 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     association.setRelatedCode(cui2);
     association.setRelatedName(nameMap.get(cui2));
     association.setSource(sab);
+    if (!rela.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("RELA", rela));
+    }
+
+    // if (!rg.isEmpty()) {
+    // association.getQualifiers().add(new Qualifier("RG", rg));
+    // }
+    // if (!dir.isEmpty()) {
+    // association.getQualifiers().add(new Qualifier("DIR", dir));
+    // }
+
     // if (!aui1.isEmpty()) {
     // association.getQualifiers().add(new Qualifier("AUI1", aui1));
     // association.getQualifiers().add(new Qualifier("STYPE1", stype1));
@@ -599,19 +617,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // association.getQualifiers().add(new Qualifier("AUI2", aui1));
     // association.getQualifiers().add(new Qualifier("STYPE2", stype2));
     // }
-    if (!rela.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("RELA", rela));
-    }
     // association.getQualifiers().add(new Qualifier("RUI", rui));
     // if (!srui.isEmpty()) {
     // association.getQualifiers().add(new Qualifier("SRUI", srui));
     // }
-    if (!rg.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("RG", rg));
-    }
-    if (!dir.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("DIR", dir));
-    }
     // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getAssociations().add(association);
 

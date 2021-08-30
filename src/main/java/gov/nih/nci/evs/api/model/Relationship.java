@@ -42,8 +42,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   private String highlight;
 
   /** The qualifiers. */
-  // Really, we want to just ignore these
-  @Field(type = FieldType.Nested, index = false)
+  @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
 
   /**
