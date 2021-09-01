@@ -44,15 +44,27 @@ public class Property extends BaseModel implements Comparable<Property> {
   private String highlight;
 
   /** The qualifiers. */
+  @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
 
   /** The source. */
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /**
    * Instantiates an empty {@link Property}.
    */
   public Property() {
+    // n/a
+  }
+
+  /**
+   * Instantiates a {@link Property} from the specified parameters.
+   *
+   * @param type the type
+   * @param value the value
+   */
+  public Property(final String type, final String value) {
     // n/a
   }
 
@@ -131,7 +143,13 @@ public class Property extends BaseModel implements Comparable<Property> {
    * @param value the value
    */
   public void setValue(final String value) {
-    this.value = value;
+    // There's really a max value limit in elasticsearch
+    // If we've got something that's > 30k, then just chop to 30k
+    if (value.length() > 30000) {
+      this.value = value.substring(0, 30000);
+    } else {
+      this.value = value;
+    }
   }
 
   /**

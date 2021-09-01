@@ -62,6 +62,8 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
           .withType(type).build());
     }
 
+    // operations.bulkIndex(indexQueries,
+    // BulkOptions.builder().withRefreshPolicy(RefreshPolicy.WAIT_UNTIL).build());
     operations.bulkIndex(indexQueries);
   }
 
@@ -90,8 +92,8 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public void index(Object object, String index, String type,
-    @SuppressWarnings("rawtypes") Class clazz) throws IOException {
+  public void index(Object object, String index, String type, @SuppressWarnings("rawtypes")
+  Class clazz) throws IOException {
     IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object)).withIndexName(index)
         .withType(type).build();
 
