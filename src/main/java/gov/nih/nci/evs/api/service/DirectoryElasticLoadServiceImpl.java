@@ -318,11 +318,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         break;
       }
 
-      // Skip AUI attributes (or make them sy qualifiers)
-      if (fields[4].equals("AUI")) {
-        continue;
-      }
-
       // hard code to Semantic_Type for now
       buildProperty(concept, "Semantic_Type", fields[3], null);
     }
@@ -345,6 +340,35 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         mrsat.push(line);
         break;
       }
+
+      // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF
+
+      // Skip SUBSET_MEMBER
+      if (fields[8].equals("SUBSET_MEMBER")) {
+        continue;
+      }
+
+      // Skip AUI attributes (or make them sy qualifiers)
+      if (fields[4].equals("AUI")) {
+
+        final boolean rxnormKeep =
+            fields[9].equals("RXNORM") && !fields[8].equals("RXAUI") && !fields[8].equals("RXAUI");
+        final boolean mthsplKeep = fields[9].equals("MTHSPL");
+
+        if (!rxnormKeep && !mthsplKeep) {
+          continue;
+        }
+      }
+
+      // SKIP certain high-volume SNOMED attributes
+      if (fields[9].equals("SNOMEDCT_US") && (fields[8].equals("EFFECTIVE_TIME")
+          || fields[8].equals("ACTIVE") || fields[8].equals("CTV3ID")
+          || fields[8].equals("MODIFIEDR_ID") || fields[8].equals("CHARACTERISTIC_TYPE_ID"))) {
+        continue;
+      }
+
+      // consider skipping MDR - SMQ*, PT_IN_VERSION
+
       // handle properties (include dynamic type)
       // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF|
       final String atn = fields[8];
