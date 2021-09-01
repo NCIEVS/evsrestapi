@@ -25,7 +25,6 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   @Field(type = FieldType.Text)
   private String name;
 
-  /** The norm name. */
   @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
@@ -57,7 +56,6 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
 
   /**

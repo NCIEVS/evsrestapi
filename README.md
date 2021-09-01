@@ -14,22 +14,49 @@ Information on the build and deployment process for the EVSRESTAPI project
 * mkdir -p $dir/elasticsearch/data
 * Download latest ThesaurusInf_*OWL.zip, unpack to $dir/ThesaurusInferred.owl (see [https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/](https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/))
 
-### Steps for Loading NCI Thesaurus Data and Indexes Locally
+### Steps for Loading Data and Indexes Locally
 
 * Launch Stardog and load NCI Thesaurus data - (see [Stardog Resources](STARDOG.md))
-* Launch Elasticsearch docker container - (see [Elasticsearch Resources](ELASTICSEARCH.md))
+* Launch Elasticsearch docker container 
+In a terminal/Cygwin window, run the following to have an elasticsearch instance running. Keep this window open to keep the server running.
 
-* Load/Compute Indexes (for NCI Thesaurus)
+      docker pull docker.elastic.co/elasticsearch/elasticsearch:6.7.0
+      # Choose a directory for your elasticsearch data to live
+      dir=c:/evsrestapi/elasticsearch/data
+      docker run -d --name=es_evs --rm -p 9200:9200 -v "$dir":/usr/share/elasticsearch/data  -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms1g -Xmx3g"  docker.elastic.co/elasticsearch/elasticsearch:6.7.0
 
-    # Build the project - From the root of cloned https://github.com/NCIEVS/evsrestapi
-    gradlew clean build -x test
 
-    version=ncit_21.08d
-    export EVS_SERVER_PORT=8083
-    export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
-    export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
-    java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --forceDeleteIndex > log 2>&1 &
-    tail -f log
+* Load/Compute Indexes - Run from the "elasticsearch/scripts" folder of the cloned https://github.com/NCIEVS/evsrestapi repo.
+
+      # Check properties in application-local.yml (local profile) or application.yml (otherwise)
+      # and make sure the following properties are properly configured 
+      ? nci.evs.stardog.host (the stardog host; default is localhost) 
+      ? nci.evs.elasticsearch.server.host (the elasticsearch host; default is localhost)
+      ? nci.evs.bulkload.downloadBatchSize (the batch size for download from stardog; default is 1000)
+      ? nci.evs.bulkload.indexBatchSize (the batch size for upload to Elasticsearch; default is 1000)
+
+      # Build the project - From the root of cloned https://github.com/NCIEVS/evsrestapi
+      gradlew clean build -x test
+      
+      ** Usage
+      
+        usage: java -jar $DIR/evsrestapi-*.jar
+        -h,--help                Show this help information and exit.
+        -r,--realTime            Keep for backwards compatibility. No effect.
+        -t,--terminology <arg>   The terminology (ex: ncit_20.02d) to load.
+
+        # To print help information
+        java -jar <path/to/spring-boot-fat-jar> --help 
+        
+        example: java -jar build/libs/evsrestapi-*.jar --help
+      
+      *** To run and build indexes against a docker stardog/elasticsearch:
+
+        version=ncit_21.04d
+        export EVS_SERVER_PORT=8083
+        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
+        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
+        java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --forceDeleteIndex > log 2>&1 &
 
 
 ### Steps for Building and Running EVSRESTAPI locally
@@ -55,13 +82,16 @@ Information on the build and deployment process for the EVSRESTAPI project
 
     * Test that it's up by looking for swagger docs: [http://localhost:8080/swagger-ui.html#/](http://localhost:8080/swagger-ui.html#/)
 
-### Steps for Loading NCI Metathesaurus Indexes Locally
+### Steps for Loading NCI Metathesaurus
 
 * Download the NCI Metathesaurus to a local directory
-* Properly configure the environment variables needed by ncim.sh
-* Run `ncim.sh`
+
+* Run the elasticsearch loader in directory mode.
 
         dir=c:/evsrestapi/NCIM_202008/META
+        term=ncim
         export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=50
-        src/main/bin/ncim.sh --noconfig $dir
+        java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $term --forceDeleteIndex -d $dir
+
+
