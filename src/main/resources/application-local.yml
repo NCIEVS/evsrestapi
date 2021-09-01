@@ -76,4 +76,3 @@ nci:
         host: ${ES_HOST:localhost}
         port: ${ES_PORT:9200}
         scheme: ${ES_SCHEME:http}
-      timeout: 200000

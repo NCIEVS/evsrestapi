@@ -30,17 +30,11 @@ public class RrfReaders {
     /** The mrdef. */
     MRDEF,
 
-    /** The mrcols. */
-    MRCOLS,
-
     /** The mrdoc. */
     MRDOC,
 
     /** The mrmap. */
     MRMAP,
-
-    /** The mrsmap. */
-    MRSMAP,
 
     /** The mrrank. */
     MRRANK,
@@ -87,7 +81,23 @@ public class RrfReaders {
    * @throws Exception the exception
    */
   public void openReaders() throws Exception {
-    // n/a
+
+    // N/A - sorting is assumed
+
+    // readers.put(Keys.MRCONSO, getReader("consoByConcept.sort"));
+    // readers.put(Keys.MRDEF, getReader("defByConcept.sort"));
+    // readers.put(Keys.MRDOC, getReader("docByKey.sort"));
+    // readers.put(Keys.MRMAP, getReader("mapByConcept.sort"));
+    // readers.put(Keys.MRRANK, getReader("rankByRank.sort"));
+    // readers.put(Keys.MRREL, getReader("relByConcept.sort"));
+    // readers.put(Keys.MRHIER, getReader("relByConcept.sort"));
+    // readers.put(Keys.MRSAB, getReader("sabBySab.sort"));
+    // readers.put(Keys.MRSAT, getReader("satByConcept.sort"));
+    // readers.put(Keys.MRSTY, getReader("styByConcept.sort"));
+    // readers.put(Keys.SRDEF, getReader("srdef.sort"));
+    // readers.put(Keys.MRCUI, getReader("cuiHistory.sort"));
+    // readers.put(Keys.MRAUI, getReader("auiHistory.sort"));
+
   }
 
   /**

@@ -84,10 +84,6 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Integer)
   private Integer level;
 
-  /** The source - only used by parent/child references for NCIM. */
-  @Field(type = FieldType.Keyword)
-  private String source;
-
   /** The leaf. */
   @Field(type = FieldType.Boolean)
   private Boolean leaf;
@@ -101,68 +97,49 @@ public class Concept extends ConceptMinimal {
   private List<Definition> definitions;
 
   /** The properties. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
-  private List<Property> properties;
-
-  /** The qualifiers - only used by parent/child references for NCIM. */
   @Field(type = FieldType.Nested)
-  private List<Qualifier> qualifiers;
+  private List<Property> properties;
 
   /** The children. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles",
-      "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith"
+      "parents", "children", "descendants", "paths", "extensions"
   })
   private List<Concept> children;
 
   /** The parents. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles",
-      "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith"
+      "parents", "children", "descendants", "paths", "extensions"
   })
   private List<Concept> parents;
 
   /** The descendants. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles",
-      "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith"
+      "parents", "children", "descendants", "paths", "extensions"
   })
   private List<Concept> descendants;
 
   /** The associations. */
-  @Field(type = FieldType.Object)
+  @Field(type = FieldType.Nested)
   private List<Association> associations;
 
   /** The inverse associations. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
+  @Field(type = FieldType.Nested)
   private List<Association> inverseAssociations;
 
   /** The roles. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
+  @Field(type = FieldType.Nested)
   private List<Role> roles;
 
   /** The disjoint with. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
+  @Field(type = FieldType.Nested)
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
+  @Field(type = FieldType.Nested)
   private List<Role> inverseRoles;
 
   /** The maps. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
+  @Field(type = FieldType.Nested)
   private List<Map> maps;
 
   /** The paths to root. */
@@ -246,8 +223,6 @@ public class Concept extends ConceptMinimal {
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
-    qualifiers = new ArrayList<>(other.getQualifiers());
-    source = other.getSource();
     children = new ArrayList<>(other.getChildren());
     parents = new ArrayList<>(other.getParents());
     associations = new ArrayList<>(other.getAssociations());
@@ -320,8 +295,6 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
-   * Returns the subset link.
-   *
    * @return the subsetLink
    */
   public String getSubsetLink() {
@@ -329,8 +302,6 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
-   * Sets the subset link.
-   *
    * @param subsetLink the subsetLink to set
    */
   public void setSubsetLink(String subsetLink) {
@@ -338,8 +309,6 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
-   * Returns the concept status.
-   *
    * @return the conceptStatus
    */
   public String getConceptStatus() {
@@ -347,8 +316,6 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
-   * Sets the concept status.
-   *
    * @param conceptStatus the conceptStatus to set
    */
   public void setConceptStatus(String conceptStatus) {
@@ -452,45 +419,6 @@ public class Concept extends ConceptMinimal {
    */
   public void setProperties(final List<Property> properties) {
     this.properties = properties;
-  }
-
-  /**
-   * Returns the qualifiers.
-   *
-   * @return the qualifiers
-   */
-  public List<Qualifier> getQualifiers() {
-    if (qualifiers == null) {
-      qualifiers = new ArrayList<>();
-    }
-    return qualifiers;
-  }
-
-  /**
-   * Sets the qualifiers.
-   *
-   * @param qualifiers the qualifiers
-   */
-  public void setQualifiers(final List<Qualifier> qualifiers) {
-    this.qualifiers = qualifiers;
-  }
-
-  /**
-   * Returns the source.
-   *
-   * @return the source
-   */
-  public String getSource() {
-    return source;
-  }
-
-  /**
-   * Sets the source.
-   *
-   * @param source the source
-   */
-  public void setSource(final String source) {
-    this.source = source;
   }
 
   /**
@@ -732,9 +660,6 @@ public class Concept extends ConceptMinimal {
     if (properties != null) {
       Collections.sort(properties);
     }
-    if (qualifiers != null) {
-      Collections.sort(qualifiers);
-    }
     if (children != null) {
       Collections.sort(children);
     }
@@ -765,9 +690,7 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
-   * stream children.
-   *
-   * @return the stream
+   * stream children
    */
   public Stream<Concept> streamSelfAndChildren() {
     return Stream.concat(Stream.of(this),

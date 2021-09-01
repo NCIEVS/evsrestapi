@@ -73,12 +73,6 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources. */
   private Map<String, String> sources;
 
-  /** The definition source set. */
-  private Set<String> definitionSourceSet;
-
-  /** The synonym source set. */
-  private Set<String> synonymSourceSet;
-
   /** The term types. */
   private Map<String, String> termTypes;
 
@@ -149,8 +143,6 @@ public class TerminologyMetadata extends BaseModel {
     synonymSubSource = other.getSynonymSubSource();
     synonymTermType = other.getSynonymTermType();
     subsetPrefix = other.getSubsetPrefix();
-    definitionSourceSet = new HashSet<>(other.getDefinitionSourceSet());
-    synonymSourceSet = new HashSet<>(other.getSynonymSourceSet());
     termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getTermTypes());
     subsetLinks = new HashMap<>(other.getSubsetLinks());
@@ -182,8 +174,6 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
     result = prime * result + ((synonymSubSource == null) ? 0 : synonymSubSource.hashCode());
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
-    result = prime * result + ((definitionSourceSet == null) ? 0 : definitionSourceSet.hashCode());
-    result = prime * result + ((synonymSourceSet == null) ? 0 : synonymSourceSet.hashCode());
     result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
     result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
     result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
@@ -278,16 +268,6 @@ public class TerminologyMetadata extends BaseModel {
       if (other.synonymTermType != null)
         return false;
     } else if (!synonymTermType.equals(other.synonymTermType))
-      return false;
-    if (definitionSourceSet == null) {
-      if (other.definitionSourceSet != null)
-        return false;
-    } else if (!definitionSourceSet.equals(other.definitionSourceSet))
-      return false;
-    if (synonymSourceSet == null) {
-      if (other.synonymSourceSet != null)
-        return false;
-    } else if (!synonymSourceSet.equals(other.synonymSourceSet))
       return false;
     if (termTypes == null) {
       if (other.termTypes != null)
@@ -679,48 +659,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the definition source set.
-   *
-   * @return the definition source set
-   */
-  public Set<String> getDefinitionSourceSet() {
-    if (definitionSourceSet == null) {
-      definitionSourceSet = new HashSet<>();
-    }
-    return definitionSourceSet;
-  }
-
-  /**
-   * Sets the definition source set.
-   *
-   * @param definitionSourceSet the definition source set
-   */
-  public void setDefinitionSourceSet(Set<String> definitionSourceSet) {
-    this.definitionSourceSet = definitionSourceSet;
-  }
-
-  /**
-   * Returns the synonym source set.
-   *
-   * @return the synonym source set
-   */
-  public Set<String> getSynonymSourceSet() {
-    if (synonymSourceSet == null) {
-      synonymSourceSet = new HashSet<>();
-    }
-    return synonymSourceSet;
-  }
-
-  /**
-   * Sets the synonym source set.
-   *
-   * @param synonymSourceSet the synonym source set
-   */
-  public void setSynonymSourceSet(Set<String> synonymSourceSet) {
-    this.synonymSourceSet = synonymSourceSet;
-  }
-
-  /**
    * Returns the term types.
    *
    * @return the term types
@@ -773,8 +711,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the subset links.
-   *
    * @return the subsetLinks
    */
   public Map<String, String> getSubsetLinks() {
@@ -785,8 +721,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the subset links.
-   *
    * @param subsetLinks the subsetLinks to set
    */
   public void setSubsetLinks(Map<String, String> subsetLinks) {
@@ -794,8 +728,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the subset prefix.
-   *
    * @return the subsetPrefix
    */
   public String getSubsetPrefix() {
@@ -803,8 +735,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the subset prefix.
-   *
    * @param subsetPrefix the subsetPrefix to set
    */
   public void setSubsetPrefix(String subsetPrefix) {
@@ -893,8 +823,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the subset.
-   *
    * @return the subset
    */
   public Set<String> getSubset() {
@@ -905,8 +833,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the subset.
-   *
    * @param subset the subset to set
    */
   public void setSubset(Set<String> subset) {

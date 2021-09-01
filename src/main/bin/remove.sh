@@ -10,7 +10,7 @@ esac; shift; done
 
 if [ ${#arr[@]} -ne 2 ]; then
   echo "Usage: $0 <terminology> <version>"
-  echo "  e.g. $0 ncit 2009d"
+  echo "  e.g. $0 ncit 20.09d"
   echo "  e.g. $0 ncim 202102"
   exit 1
 fi
@@ -41,7 +41,6 @@ for i in `cat /tmp/x.$$`; do
     echo "    delete $i"
     curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/$i > /tmp/x.$$
     if [[ $? -ne 0 ]]; then
-        cat /tmp/x.$$ | sed 's/^/    /'
         echo "ERROR: unexpected error removing index $i"
         exit 1
     fi
@@ -50,7 +49,6 @@ done
 echo "  Remove ${terminology}_$version from evs_metadata"
 curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${terminology}_$version > /tmp/x.$$
 if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$ | sed 's/^/    /'
     echo "ERROR: unexpected error removing concept_${terminology}_$version from evs_metadata index"
     exit 1
 fi

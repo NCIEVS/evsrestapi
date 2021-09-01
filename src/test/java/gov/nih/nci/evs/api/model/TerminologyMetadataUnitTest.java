@@ -106,8 +106,6 @@ public class TerminologyMetadataUnitTest {
     tester.include("synonymSource");
     tester.include("synonymSubSource");
     tester.include("synonymTermType");
-    tester.include("definitionSourceSet");
-    tester.include("synonymSourceSet");
     tester.include("termTypes");
     tester.include("subsetMember");
     tester.include("subsetLinks");

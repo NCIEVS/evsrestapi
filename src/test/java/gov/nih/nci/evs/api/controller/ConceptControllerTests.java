@@ -39,7 +39,6 @@ import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -1280,49 +1279,6 @@ public class ConceptControllerTests {
     });
 
     assertThat(subsetMembers.size() == 0);
-  }
-
-  /**
-   * Test terminology versions
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTerminologyVersion() throws Exception {
-    String url = null;
-    MvcResult result = null;
-    String content = null;
-    url = "/api/v1/metadata/terminologies";
-    result = mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    Terminology terminology =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-        }).get(0);
-    String weeklyTerm = terminology.getTerminologyVersion();
-    String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;
-    result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk())
-        .andReturn();
-    content = result.getResponse().getContentAsString();
-    List<Concept> conceptResults =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
-    assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
-
-    result = mvc.perform(get(baseWeeklyUrl + "/C3224")).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    Concept concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept.getVersion() == terminology.getVersion());
-
-    result =
-        mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
-
   }
 
 }
