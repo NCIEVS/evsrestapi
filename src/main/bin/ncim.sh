@@ -155,7 +155,7 @@ fi
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"
 # need to override this setting to make sure it's not too big
-export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=5
+export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=3
 echo "java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
 java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
 if [[ $? -ne 0 ]]; then

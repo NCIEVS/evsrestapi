@@ -270,7 +270,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         final Synonym sy = new Synonym();
         sy.setType(fields[14].equals(concept.getName()) ? "Preferred_Name" : "Synonym");
         if (!fields[13].equals("NOCODE")) {
-          sy.setCode(fields[10]);
+          sy.setCode(fields[13]);
         }
         sy.setSource(fields[11]);
         terminology.getMetadata().getSynonymSourceSet().add(fields[11]);
@@ -317,6 +317,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         mrsty.push(line);
         break;
       }
+
+      // Skip AUI attributes (or make them sy qualifiers)
+      if (fields[4].equals("AUI")) {
+        continue;
+      }
+
       // hard code to Semantic_Type for now
       buildProperty(concept, "Semantic_Type", fields[3], null);
     }
@@ -442,9 +448,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
           || rel.equals("BRO")) {
         continue;
       }
-      // Skip AUI-AUI relationships
+      // Skip AUI-AUI relationships (except for RXNORM)
       else if (fields[2].equals("AUI") && fields[6].equals("AUI")) {
-        continue;
+        if (!fields[10].equals("RXNORM")) {
+          continue;
+        }
       }
 
       // SPECIAL EXCEPTION FOR SIZE
