@@ -213,6 +213,8 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     } catch (Exception e) {
       logger.info("  shutdown now");
       executor.shutdownNow();
+      logger.info("  await termination");
+      executor.awaitTermination(30, TimeUnit.SECONDS);
       throw e;
     }
     logger.info("Done loading concepts!");

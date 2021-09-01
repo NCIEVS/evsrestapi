@@ -2,8 +2,12 @@
 package gov.nih.nci.evs.api.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -263,8 +267,10 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public Optional<List<String>> getConceptStatuses(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return Optional.empty();
+    if (!term.getTerminology().equals("ncit")) {
+      // TODO: handle this like definition sources (via terminology metadata)
+      return Optional.of(new ArrayList<>());
+    }
 
     final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term,
         term.getMetadata().getConceptStatus());
@@ -278,8 +284,11 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return new ArrayList<>();
+    if (!term.getTerminology().equals("ncit")) {
+      // Build the list from terminology metadata
+      return buildList(term, term.getMetadata().getDefinitionSourceSet(),
+          term.getMetadata().getSources());
+    }
 
     return sparqlQueryManagerService.getDefinitionSources(term);
   }
@@ -296,8 +305,11 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return new ArrayList<>();
+    if (!term.getTerminology().equals("ncit")) {
+      // Build the list from terminology metadata
+      return buildList(term, term.getMetadata().getSynonymSourceSet(),
+          term.getMetadata().getSources());
+    }
 
     return esQueryService.getSynonymSources(term);
   }
@@ -344,8 +356,11 @@ public class MetadataServiceImpl implements MetadataService {
   public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return new ArrayList<>();
+    if (!term.getTerminology().equals("ncit")) {
+      // Build the list from terminology metadata
+      return buildList(term, term.getMetadata().getTermTypes().keySet(),
+          term.getMetadata().getTermTypes());
+    }
 
     return sparqlQueryManagerService.getTermTypes(term);
   }
@@ -464,4 +479,33 @@ public class MetadataServiceImpl implements MetadataService {
     return Optional.empty();
   }
 
+  /**
+   * Builds the list.
+   *
+   * @param terminology the terminology
+   * @param values the values
+   * @param nameMap the name map
+   * @return the list
+   */
+  private List<ConceptMinimal> buildList(final Terminology terminology, final Set<String> values,
+    final Map<String, String> nameMap) {
+    final List<ConceptMinimal> list = new ArrayList<>();
+    for (final String value : values) {
+      final ConceptMinimal concept = new ConceptMinimal();
+      concept.setCode(value);
+      concept.setName(nameMap.get(value));
+      concept.setTerminology(terminology.getTerminology());
+      concept.setVersion(terminology.getVersion());
+      list.add(concept);
+    }
+    Collections.sort(list, new Comparator<ConceptMinimal>() {
+
+      @Override
+      public int compare(final ConceptMinimal c1, final ConceptMinimal c2) {
+        return c1.getCode().compareTo(c2.getCode());
+      }
+
+    });
+    return list;
+  }
 }
