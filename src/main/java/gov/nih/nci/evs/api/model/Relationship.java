@@ -246,7 +246,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   @Override
   public int compareTo(Relationship o) {
     return (relatedName + source + relatedCode + type)
-        .compareToIgnoreCase(o.getRelatedName() + o.getRelatedCode() + o.getType());
+        .compareToIgnoreCase(o.getRelatedName() + source + o.getRelatedCode() + o.getType());
   }
 
 }
