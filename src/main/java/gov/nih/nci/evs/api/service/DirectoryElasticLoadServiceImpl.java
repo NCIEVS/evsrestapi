@@ -74,6 +74,15 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
 
+  /** The scui cui map. */
+  private Map<String, String> codeCuiMap = new HashMap<>();
+
+  /** The mapsets. */
+  private Map<String, String> mapsets = new HashMap<>();
+
+  /** The maps. */
+  private Map<String, Set<gov.nih.nci.evs.api.model.Map>> maps = new HashMap<>();
+
   /** The rel inverse map. */
   private Map<String, String> relInverseMap = new HashMap<>();
 
@@ -138,6 +147,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
+        final PushBackReader mrmap = readers.getReader(RrfReaders.Keys.MRMAP);
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
 
@@ -146,11 +156,70 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       while ((line = mrconso.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
 
+        // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,SAB,TTY,CODE,STR,SRL,SUPPRESS,CVF
+
+        // Cache concept preferred names
         if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
             && fields[6].equalsIgnoreCase("Y")) {
           // Save the name map to dereference it while processing relationships
           nameMap.put(fields[0], fields[14]);
         }
+
+        // Cache ICD10CM PT names for mapping data
+        if (fields[11].equals("ICD10CM") && fields[12].equals("PT")) {
+          nameMap.put(fields[13], fields[14]);
+        }
+
+        // Cache SNOMEDCT_US/PT SCUI -> CUI for maps
+        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("PT") && fields[16].equals("N")) {
+          codeCuiMap.put(fields[13], fields[0]);
+        }
+
+        // Cache mapsets
+        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM")
+            && fields[14].contains("ICD10CM")) {
+          // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
+          mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+        }
+
+      }
+
+      // Loop through map lines and cache map objects
+      while ((line = mrmap.readLine()) != null) {
+        // MAPSETCUI,MAPSETSAB,MAPSUBSETID,MAPRANK,MAPID,MAPSID,FROMID,FROMSID,
+        // FROMEXPR,FROMTYPE,FROMRULE,FROMRES,REL,RELA,TOID,TOSID,TOEXPR,TOTYPE,
+        // TORULE,TORES,MAPRULE,MAPRES,MAPTYPE,MAPATN,MAPATV,CVF
+        final String[] fields = line.split("\\|", -1);
+
+        // Skip map sets not being tracked
+        if (!mapsets.containsKey(fields[0])) {
+          continue;
+        }
+
+        // Skip empty maps (or maps to the empty target: 100051
+        if (fields[16].isEmpty() || fields[16].equals("100051")) {
+          continue;
+        }
+
+        final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
+        map.setSourceCode(fields[8]);
+        map.setTargetCode(fields[16]);
+        map.setTargetName(nameMap.get(fields[16]));
+        map.setTargetTermGroup("PT");
+        map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
+        map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
+        map.setType(fields[12]);
+
+        // Fix target name if null
+        if (map.getTargetName() == null) {
+          map.setTargetName("Unable to determine name, code not present");
+        }
+
+        final String cui = codeCuiMap.get(fields[8]);
+        if (!maps.containsKey(cui)) {
+          maps.put(cui, new HashSet<>());
+        }
+        maps.get(cui).add(map);
       }
 
       // read inverses from MRDOC
@@ -236,6 +305,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
           handleSemanticTypes(concept, mrsty, prevCui);
           handleAttributes(concept, mrsat, prevCui);
           handleRelationships(concept, mrrel, prevCui);
+
+          if (maps.containsKey(cui)) {
+            concept.getMaps().addAll(maps.get(cui));
+          }
+
           // There are not useful mappings in the UMLS at this point in time
           // handleMapping(concept, mrmap, prevCui);
           handleConcept(concept, batch, false, terminology.getIndexName());
@@ -333,6 +407,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    */
   public void handleAttributes(final Concept concept, final PushBackReader mrsat,
     final String prevCui) throws Exception {
+
+    // Track seen to avoid duplicates
+    final Set<String> seen = new HashSet<>();
+
     String line;
     while ((line = mrsat.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -374,6 +452,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       final String atn = fields[8];
       final String sab = fields[9];
       final String atv = fields[10];
+      if (seen.contains(atn + sab + atv)) {
+        continue;
+      }
+      seen.add(atn + sab + atv);
       buildProperty(concept, atn, atv, sab);
     }
   }
@@ -555,8 +637,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // final String rui = fields[8];
     // final String srui = fields[9];
     final String sab = fields[10];
-    final String rg = fields[12];
-    final String dir = fields[13];
+    // final String rg = fields[12];
+    // final String dir = fields[13];
     // final String suppress = fields[14];
     // final String cvf = fields[15];
 
@@ -617,8 +699,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // final String rui = fields[8];
     // final String srui = fields[9];
     final String sab = fields[10];
-    final String rg = fields[12];
-    final String dir = fields[13];
+    // final String rg = fields[12];
+    // final String dir = fields[13];
     // final String suppress = fields[14];
     // final String cvf = fields[15];
 
@@ -672,8 +754,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     }
     iassociation.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     // RUI and SRUI in the other direction are different.
-    iassociation.getQualifiers().add(new Qualifier("RG", rg));
-    iassociation.getQualifiers().add(new Qualifier("DIR", dir));
+    // iassociation.getQualifiers().add(new Qualifier("RG", rg));
+    // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
     // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getInverseAssociations().add(iassociation);
 

@@ -344,7 +344,8 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    */
   @Override
   public int compareTo(Synonym other) {
-    return (type + name).compareToIgnoreCase(other.getType() + other.getName());
+    return (source + type + name)
+        .compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
 
   }
 
