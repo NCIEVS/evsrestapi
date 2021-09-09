@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,25 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     // operations.bulkIndex(indexQueries,
     // BulkOptions.builder().withRefreshPolicy(RefreshPolicy.WAIT_UNTIL).build());
     operations.bulkIndex(indexQueries);
+  }
+
+  /* see superclass */
+  @SuppressWarnings("rawtypes")
+  @Override
+  public void bulkIndexAndWait(List objects, String index, String type, Class clazz)
+    throws IOException {
+    if (CollectionUtils.isEmpty(objects))
+      return;
+    List<IndexQuery> indexQueries = new ArrayList<>();
+
+    for (Object obj : objects) {
+      indexQueries.add(new IndexQueryBuilder().withObject(clazz.cast(obj)).withIndexName(index)
+          .withType(type).build());
+    }
+
+    operations.bulkIndex(indexQueries,
+        BulkOptions.builder().withRefreshPolicy(RefreshPolicy.WAIT_UNTIL).build());
+
   }
 
   /* see superclass */

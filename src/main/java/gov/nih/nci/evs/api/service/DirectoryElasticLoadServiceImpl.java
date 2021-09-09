@@ -110,6 +110,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /** The rel set. */
   private Set<String> relSet = new HashSet<>();
 
+  private int batchSize = 0;
+
   /** the environment *. */
   @Autowired
   Environment env;
@@ -318,13 +320,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
             logger.info("    count = " + totalConcepts);
           }
 
-          // Every 100000 concepts, pause for a minute to let ES catch up
-          if (totalConcepts++ % 100000 == 0) {
-            final int wait = 120000;
-            logger.info("    wait = " + wait);
-            Thread.sleep(wait);
-          }
-
           // Prep concept for the next CUI
           concept = new Concept();
 
@@ -423,6 +418,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
       // Skip SUBSET_MEMBER
       if (fields[8].equals("SUBSET_MEMBER")) {
+        continue;
+      }
+
+      // Skip RUI Attributes
+      if (fields[4].equals("RUI")) {
         continue;
       }
 
@@ -580,9 +580,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       else {
 
         // TEMP: skip SNOMED relationships
-        if (fields[10].equals("SNOMEDCT_US")) {
-          continue;
-        }
+        // if (fields[10].equals("SNOMEDCT_US")) {
+        // continue;
+        // }
         buildAssociations(concept, fields);
       }
 
@@ -913,20 +913,23 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
     batch.add(concept);
-    if (concept.toString().length() > 10000000) {
+
+    int conceptSize = concept.toString().length();
+    if (conceptSize > 10000000) {
       logger.info("    BIG concept = " + concept.getCode() + " = " + concept.toString().length());
     }
-    // IF we've reached the index batch size, send it to elasticsearch
-    if (flag || batch.size() == INDEX_BATCH_SIZE) {
-      if (new ArrayList<>(batch).toString().length() > 10000000) {
-        logger.info("    BIG batch size = "
-            + batch.stream().map(c -> c.getCode()).collect(Collectors.toList()) + ", "
-            + batch.toString().length());
-      }
+
+    // Send to elasticsearch if the overall batch size > 9M
+    if (batchSize > 9000000) {
+      // Log the bytes and number of concepts
+      logger.info("    BATCH index = " + batchSize + ", " + batch.size());
       operationsService.bulkIndex(new ArrayList<>(batch), indexName,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       batch.clear();
+      batchSize = 0;
     }
+    batchSize += concept.toString().length();
+
   }
 
   /* see superclass */

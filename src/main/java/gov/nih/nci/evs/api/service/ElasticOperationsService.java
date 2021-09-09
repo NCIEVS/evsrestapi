@@ -53,6 +53,18 @@ public interface ElasticOperationsService {
   void bulkIndex(List objects, String index, String type, Class clazz) throws IOException;
 
   /**
+   * Bulk index and wait.
+   *
+   * @param objects the objects
+   * @param index the index
+   * @param type the type
+   * @param clazz the clazz
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @SuppressWarnings("rawtypes")
+  void bulkIndexAndWait(List objects, String index, String type, Class clazz) throws IOException;
+
+  /**
    * load object.
    *
    * @param object the object
@@ -61,8 +73,8 @@ public interface ElasticOperationsService {
    * @param clazz the clazz
    * @throws IOException the io exception
    */
-  void index(Object object, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
-    throws IOException;
+  void index(Object object, String index, String type, @SuppressWarnings("rawtypes")
+  Class clazz) throws IOException;
 
   /**
    * load metrics.
