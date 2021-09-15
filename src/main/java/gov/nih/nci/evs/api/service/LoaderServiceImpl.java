@@ -141,22 +141,24 @@ public class LoaderServiceImpl {
       } else {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
-      ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
+          cmd.getOptionValue("t"), config.isForceDeleteIndex());
+      final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+      int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
-        Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
-            cmd.getOptionValue("t"), config.isForceDeleteIndex());
         if (!cmd.hasOption("xc")) {
-          HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
-          int totalConcepts = loadService.loadConcepts(config, term, hierarchy);
+          totalConcepts = loadService.loadConcepts(config, term, hierarchy);
           loadService.checkLoadStatus(totalConcepts, term);
-          loadService.loadIndexMetadata(totalConcepts, term);
-          loadService.loadObjects(config, term, hierarchy);
         }
         if (!cmd.hasOption("xm")) {
-          loadService.cleanStaleIndexes(term);
-          loadService.updateLatestFlag(term);
+          // Give load objects a chance to update terminology metadata
+          loadService.loadObjects(config, term, hierarchy);
         }
       }
+      loadService.loadIndexMetadata(totalConcepts, term);
+      loadService.cleanStaleIndexes(term);
+      loadService.updateLatestFlag(term);
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);

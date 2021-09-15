@@ -204,6 +204,17 @@ for x in `cat /tmp/y.$$.txt`; do
     else
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
             echo "    FOUND indexes for $version, force reindex anyway"        
+
+            # Remove if this already exists
+            version=`echo $cv | perl -pe 's/.*_//;'`
+            echo "    Remove indexes for ncit $version"
+            DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+            $DIR/remove.sh ncit $version > /tmp/x.$$ 2>&1
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$ | sed 's/^/    /'
+                echo "ERROR: removing ncit $version indexes"
+                exit 1
+            fi
         fi
 
         # Run reindexing process (choose a port other than the one that it runs on)
@@ -245,7 +256,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Cleanup
-/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt
+/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
 
 echo ""
 echo "--------------------------------------------------"

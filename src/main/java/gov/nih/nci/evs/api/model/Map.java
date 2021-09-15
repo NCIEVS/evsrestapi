@@ -10,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class Map extends BaseModel implements Comparable<Map> {
 
+  /** The source code. */
+  private String sourceCode;
+
   /** The type. */
   private String type;
 
@@ -53,6 +56,7 @@ public class Map extends BaseModel implements Comparable<Map> {
     type = other.getType();
     targetName = other.getTargetName();
     targetTermGroup = other.getTargetTermGroup();
+    sourceCode = other.getSourceCode();
     targetCode = other.getTargetCode();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
@@ -131,6 +135,24 @@ public class Map extends BaseModel implements Comparable<Map> {
   }
 
   /**
+   * Returns the source code.
+   *
+   * @return the source code
+   */
+  public String getSourceCode() {
+    return sourceCode;
+  }
+
+  /**
+   * Sets the source code.
+   *
+   * @param sourceCode the source code
+   */
+  public void setSourceCode(final String sourceCode) {
+    this.sourceCode = sourceCode;
+  }
+
+  /**
    * Returns the target terminology.
    *
    * @return the target terminology
@@ -176,6 +198,7 @@ public class Map extends BaseModel implements Comparable<Map> {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + ((sourceCode == null) ? 0 : sourceCode.hashCode());
     result = prime * result + ((targetCode == null) ? 0 : targetCode.hashCode());
     result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
     result = prime * result + ((targetTermGroup == null) ? 0 : targetTermGroup.hashCode());
@@ -205,6 +228,13 @@ public class Map extends BaseModel implements Comparable<Map> {
       return false;
     }
     final Map other = (Map) obj;
+    if (sourceCode == null) {
+      if (other.sourceCode != null) {
+        return false;
+      }
+    } else if (!sourceCode.equals(other.sourceCode)) {
+      return false;
+    }
     if (targetCode == null) {
       if (other.targetCode != null) {
         return false;
@@ -253,7 +283,8 @@ public class Map extends BaseModel implements Comparable<Map> {
   /* see superclass */
   @Override
   public int compareTo(Map o) {
-    return (targetName + targetCode).compareToIgnoreCase(o.getTargetName() + o.getTargetCode());
+    return (sourceCode + targetName + targetCode)
+        .compareToIgnoreCase(o.getSourceCode() + o.getTargetName() + o.getTargetCode());
   }
 
 }
