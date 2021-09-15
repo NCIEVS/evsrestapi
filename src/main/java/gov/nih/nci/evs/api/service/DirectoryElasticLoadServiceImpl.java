@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -441,7 +440,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       // SKIP certain high-volume SNOMED attributes
       if (fields[9].equals("SNOMEDCT_US") && (fields[8].equals("EFFECTIVE_TIME")
           || fields[8].equals("ACTIVE") || fields[8].equals("CTV3ID")
-          || fields[8].equals("MODIFIEDR_ID") || fields[8].equals("CHARACTERISTIC_TYPE_ID"))) {
+          || fields[8].equals("MODIFIER_ID") || fields[8].equals("CHARACTERISTIC_TYPE_ID"))) {
         continue;
       }
 
@@ -918,9 +917,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     if (conceptSize > 10000000) {
       logger.info("    BIG concept = " + concept.getCode() + " = " + concept.toString().length());
     }
+    batchSize += conceptSize;
 
     // Send to elasticsearch if the overall batch size > 9M
-    if (batchSize > 9000000) {
+    if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
       operationsService.bulkIndex(new ArrayList<>(batch), indexName,
@@ -928,7 +928,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       batch.clear();
       batchSize = 0;
     }
-    batchSize += concept.toString().length();
 
   }
 

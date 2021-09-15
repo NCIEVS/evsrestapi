@@ -55,9 +55,6 @@ public class NCIMControllerTests {
   /** The base url. */
   private String baseUrl = "";
 
-  /** The base url for metadata tests. */
-  private String baseUrlMetadata = "";
-
   /**
    * Sets the up.
    */
@@ -70,7 +67,7 @@ public class NCIMControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
-    baseUrlMetadata = "/api/v1/metadata";
+    // baseUrlMetadata = "/api/v1/metadata";
   }
 
   /**
@@ -346,19 +343,20 @@ public class NCIMControllerTests {
     Concept concept = null;
 
     // first concept in MRSAT
-    url = baseUrl + "/ncim/C0000005";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    url = baseUrl + "/ncim/C0000052";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0000052");
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0000005");
-    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+    assertThat(concept.getCode()).isEqualTo("C0000052");
+    assertThat(concept.getName()).isEqualTo("1,4-alpha-Glucan Branching Enzyme");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(4).getType()).isEqualTo("RN");
-    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("MSH");
-    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("0");
+    assertThat(concept.getProperties().stream()
+        .filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
+            && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008"))
+        .count()).isEqualTo(1);
 
     // random concept in MRSAT
     url = baseUrl + "/ncim/C0436993";
@@ -371,25 +369,31 @@ public class NCIMControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0436993");
     assertThat(concept.getName()).isEqualTo("On examination - abdominal mass - regular shape");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(4).getType()).isEqualTo("CASE_SIGNIFICANCE_ID");
-    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("SNOMEDCT_US");
-    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("900000000000448009");
+    assertThat(concept.getProperties().stream()
+        .filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
+            && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008"))
+        .count()).isEqualTo(1);
 
     // last concept in MRSTY/MRSAT
-    url = baseUrl + "/ncim/CL988043";
-    log.info("Testing url - " + url + "?terminology=ncim&code=CL988043");
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("CL988043");
-    assertThat(concept.getName()).isEqualTo(
-        "Guidance for drainage+placement of drainage catheter^W contrast IV:Find:Pt:Abdomen:Doc:CT");
-    assertThat(concept.getProperties().size()).isGreaterThan(0);
-    assertThat(concept.getProperties().get(4).getType()).isEqualTo("IMAGING_DOCUMENT_VALUE_SET");
-    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("LNC");
-    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("TRUE");
+    // TODO: we're ignoring AUI attributes so for the moment this turns up
+    // nothing
+    // url = baseUrl + "/ncim/CL988043";
+    // log.info("Testing url - " + url + "?terminology=ncim&code=CL988043");
+    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    // concept = new ObjectMapper().readValue(content, Concept.class);
+    // assertThat(concept).isNotNull();
+    // assertThat(concept.getCode()).isEqualTo("CL988043");
+    // assertThat(concept.getName()).isEqualTo(
+    // "Guidance for drainage+placement of drainage catheter^W contrast
+    // IV:Find:Pt:Abdomen:Doc:CT");
+    // assertThat(concept.getProperties().size()).isGreaterThan(0);
+    // assertThat(
+    // concept.getProperties().stream()
+    // .filter(p -> p.getType().equals("IMAGING_DOCUMENT_VALUE_SET")
+    // && p.getSource().equals("LNC") && p.getValue().equals("TRUE"))
+    // .count() > 0).isTrue();
 
   }
 
@@ -450,7 +454,8 @@ public class NCIMControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RO");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RB");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RN");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RQ");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("RQ");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("SY");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
@@ -508,7 +513,7 @@ public class NCIMControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("Semantic_Type");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RANK");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("SCORE");
 
     // Handle qualifiers
     url = base + "/qualifiers";
@@ -520,14 +525,21 @@ public class NCIMControllerTests {
       // n/a
     });
     assertThat(list).isNotEmpty();
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AUI1");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("STYPE1");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AUI2");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("STYPE2");
+    // NOTE: some quaifiers are not actually used
+     assertThat(list.stream().map(c ->
+     c.getCode()).collect(Collectors.toSet())).doesNotContain("AUI1");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("STYPE1");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("AUI2");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("STYPE2");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RELA");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RG");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("DIR");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .contains("SUPPRESS");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet()))
+    // .contains("SUPPRESS");
 
     // Handle subsets - n/a
     url = base + "/subsets";

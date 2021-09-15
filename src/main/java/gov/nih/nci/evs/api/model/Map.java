@@ -188,11 +188,6 @@ public class Map extends BaseModel implements Comparable<Map> {
     this.targetTerminologyVersion = targetTerminologyVersion;
   }
 
-  /**
-   * Hash code.
-   *
-   * @return the int
-   */
   /* see superclass */
   @Override
   public int hashCode() {
@@ -209,12 +204,6 @@ public class Map extends BaseModel implements Comparable<Map> {
     return result;
   }
 
-  /**
-   * Equals.
-   *
-   * @param obj the obj
-   * @return true, if successful
-   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {

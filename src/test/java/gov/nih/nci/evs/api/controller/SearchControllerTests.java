@@ -2043,10 +2043,10 @@ public class SearchControllerTests {
         .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
+    log.info("  list = " + list);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     boolean found = false;
     for (Concept conc : list.getConcepts()) {
-      found = false;
       for (Property prop : conc.getProperties()) {
         if (prop.getValue() != null && prop.getValue().equals("Retired_Concept")) {
           found = true;

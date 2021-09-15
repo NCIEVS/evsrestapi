@@ -259,9 +259,10 @@ public class ConceptController extends BaseController {
       value = "/concept/{terminology}/associations/{codeOrLabel}", produces = "application/json")
   public @ResponseBody AssociationEntryResultList getAssociationEntries(
     @PathVariable(value = "terminology")
-    final String terminology, @PathVariable(value = "codeOrLabel") String codeOrLabel,
-    @RequestParam("fromRecord") Optional<Integer> fromRecord,
-    @RequestParam("pageSize") Optional<Integer> pageSize) throws Exception {
+    final String terminology, @PathVariable(value = "codeOrLabel")
+    String codeOrLabel, @RequestParam("fromRecord")
+    Optional<Integer> fromRecord, @RequestParam("pageSize")
+    Optional<Integer> pageSize) throws Exception {
     // Get the association "label"
     Long startTime = System.currentTimeMillis();
 
@@ -770,12 +771,15 @@ public class ConceptController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       final List<Concept> list = elasticQueryService.getRootNodes(term, ip);
-      // "leaf" should be set to false for all roots
-      list.stream().peek(c -> c.setLeaf(false)).count();
       if (list == null || list.isEmpty()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,
             "No roots for found for terminology = " + terminology);
       }
+      // "leaf" should be set to false for all roots
+      for (final Concept c : list) {
+        c.setLeaf(false);
+      }
+
       return list;
     } catch (Exception e) {
       handleException(e);
