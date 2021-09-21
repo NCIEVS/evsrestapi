@@ -607,7 +607,7 @@ public class ExcelReadWriteUtils {
 		}
 		for (int i=0; i<w1.size(); i++) {
 			String line1 = (String) w1.elementAt(i);
-			String line2 = (String) w1.elementAt(i);
+			String line2 = (String) w2.elementAt(i);
 			if (line1.compareTo(line2) != 0) {
 				System.out.println(file1 + ": "+ line1);
 				System.out.println(file2 + ": "+ line1);

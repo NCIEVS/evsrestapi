@@ -82,28 +82,29 @@ public class FileUtils
 		}
 	}
 
-    public static Vector getFilesInDirectory(String dirpathname) {
-        File f = new File(dirpathname);
-        Vector v = new Vector();
-        String[] pathnames = f.list();
-        for (String pathname : pathnames) {
-            v.add(pathname);
+    public static Vector listFiles(String path) {
+		Vector w = new Vector();
+        File root = new File( path );
+        File[] list = root.listFiles();
+        if (list == null) return w;
+        for (File f : list) {
+            if (f.isDirectory()) {
+                w.addAll(listFiles( f.getAbsolutePath()));
+            } else {
+                w.add(f.getAbsoluteFile());
+            }
         }
-        return v;
+        return w;
     }
 
-    public static void copyAll(String sourceDir, String targetDir) {
-		copyFile(sourceDir, targetDir, getFilesInDirectory(sourceDir));
-	}
-
-    public static void main1(String[] args) {
-		String currentWirkingDir = getCurrentWorkingDirectory();
-		System.out.println("getCurrentWorkingDirectory: " + currentWirkingDir);
+    public static void main(String[] args) {
+		String currentWorkingDir = getCurrentWorkingDirectory();
+		System.out.println("getCurrentWorkingDirectory: " + currentWorkingDir);
 		String today = getToday("MMddyy");
 		System.out.println("getToday: " + today);
 		boolean exists = directoryExists(today);
 		System.out.println("directory exist? " + exists);
-		String dirname = currentWirkingDir + File.separator + today + File.separator;
+		String dirname = currentWorkingDir + File.separator + today + File.separator;
 		if (!exists) {
 			System.out.println(dirname);
     		boolean created = createDirectory(dirname);
@@ -114,12 +115,6 @@ public class FileUtils
 		Vector filesToCopy = new Vector();
 		filesToCopy.add("cmd.exe");
 		filesToCopy.add("run.bat");
-		copyFile(currentWirkingDir, dirname, filesToCopy);
-	}
-
-	public static void main(String[] args) {
-		String sourceDir = args[4];
-		String targetDir = args[5];
-		copyAll(sourceDir, targetDir);
+		copyFile(currentWorkingDir, dirname, filesToCopy);
 	}
 }
