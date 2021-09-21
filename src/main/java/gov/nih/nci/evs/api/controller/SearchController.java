@@ -202,7 +202,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of concept status values to restrict search results to. <a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
-          value = "Comma-separated list of properties to search. e.g P107,P108. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties</a>. The properties can be specified as code or name.  NOTE: when specifying a property, the 'type' parameter will not function as expected because properties are indexed to only support exact matches.",
+          value = "Comma-separated list of properties to search. e.g P210,P216. <a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a list of NCI Thesaurus properties</a>. The properties can be specified as code or name.  NOTE: when specifying a property, the 'type' parameter will not function as expected because properties are indexed to only support exact matches.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to. <a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a list of NCI Thesaurus values</a>.",
