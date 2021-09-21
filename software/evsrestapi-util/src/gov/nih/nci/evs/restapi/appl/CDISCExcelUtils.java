@@ -43,6 +43,7 @@ import org.apache.poi.xssf.usermodel.XSSFHyperlink;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 
 public class CDISCExcelUtils {
+
 	public static void run(String[] args) throws IOException {
 	    Workbook workbook = new XSSFWorkbook();
 	    Sheet sheet = workbook.createSheet("Color Test");
