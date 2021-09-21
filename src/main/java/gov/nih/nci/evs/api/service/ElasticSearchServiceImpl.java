@@ -74,26 +74,29 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Escape the term in case it has special characters
     final String term = escape(searchCriteria.getTerm());
+    final String termEscapedSpaces = escape(searchCriteria.getTerm()).replaceAll(" ", "\\\\");
     logger.debug("query string [{}]", term);
 
     BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
     boolean blankTermFlag = "".equalsIgnoreCase(term);
     boolean startsWithFlag = "startsWith".equalsIgnoreCase(searchCriteria.getType());
-    boolean matchFlag = "match".equalsIgnoreCase(searchCriteria.getType());
+    boolean exactMatchFlag = "match".equalsIgnoreCase(searchCriteria.getType());
+
+    // Normalized term with escaped spaces for exact matching
+    final String normTerm =
+        escape(ConceptUtils.normalize(searchCriteria.getTerm())).replaceAll(" ", "\\\\ ")
+            + (startsWithFlag ? "*" : "");
 
     if (blankTermFlag) {
       // don't create anything
-    } else if (matchFlag || startsWithFlag) {
-      // only search normName in concept/synonym or value in property
-      final String normTerm =
-          ConceptUtils.normalize(searchCriteria.getTerm()).replaceAll(" ", "\\\\ ")
-              + (startsWithFlag ? "*" : "");
+    } else if (exactMatchFlag || startsWithFlag) {
 
-      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder().should(
-          QueryBuilders.queryStringQuery("normName:" + normTerm).analyzeWildcard(true).boost(20f))
-          .should(QueryBuilders.queryStringQuery("code:" + term.replaceAll(" ", "\\\\ "))
-              .analyzeWildcard(true).boost(20f))
+      // "Exact" clauses (with normTerm)
+      // Only search name, code, properties and synonyms
+      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
+          .should(QueryBuilders.queryStringQuery("normName:" + normTerm).analyzeWildcard(true)
+              .boost(20f))
           .should(
               QueryBuilders.nestedQuery("properties",
                   QueryBuilders.queryStringQuery("properties.value:" + normTerm)
@@ -103,12 +106,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
               QueryBuilders.queryStringQuery("synonyms.normName:" + normTerm).analyzeWildcard(true),
               ScoreMode.Max).boost(20f));
 
+      // NOTE: this only supports uppercase codes
+      boolQuery2.should(
+          QueryBuilders.queryStringQuery("code:" + termEscapedSpaces.toUpperCase()).boost(20f));
+
       if (startsWithFlag) {
         // Boost exact name match to top of list
         boolQuery2 = boolQuery2.should(QueryBuilders
             .matchQuery("normName", ConceptUtils.normalize(searchCriteria.getTerm())).boost(40f))
-            .should(QueryBuilders
-                .queryStringQuery("code:" + term.toUpperCase().replaceAll(" ", "\\\\ ") + "*")
+            // NOTE: this only supports uppercase codes
+            .should(QueryBuilders.queryStringQuery("code:" + termEscapedSpaces.toUpperCase() + "*")
                 .analyzeWildcard(true).boost(15f));
       }
       boolQuery.must(boolQuery2);
@@ -132,26 +139,35 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
       // prepare bool query
       BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
+          // Exact name 20f
+          .should(QueryBuilders.queryStringQuery("normName:" + normTerm).boost(20f))
+          // Name generally 10f
           .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
-              .field("name", 2f).boost(10f)
-              .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-          .should(QueryBuilders.queryStringQuery(term.toUpperCase()).field("code", 2f).boost(10f)
-              .defaultOperator(queryStringQueryBuilder.defaultOperator()))
+              .field("name").boost(10f).defaultOperator(queryStringQueryBuilder.defaultOperator()))
+          // Uppercase code 20f
+          .should(QueryBuilders.queryStringQuery(term.toUpperCase().replaceAll(" ", "\\\\"))
+              .field("code").boost(20f).defaultOperator(queryStringQueryBuilder.defaultOperator()))
+          // Exact synonym name 20f
+          .should(QueryBuilders
+              .nestedQuery("synonyms",
+                  QueryBuilders.queryStringQuery("synonyms.normName:" + normTerm), ScoreMode.Max)
+              .boost(20f))
+          // Synonyms generally 10f
+          .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
+              .boost(10f))
+          // Properties generally 5f
           .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
               .boost(5f))
-          .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
-              .boost(20f))
+          // definitions generally 1f
           .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max));
 
       // For "contains", also search without wildcards
       if ("contains".equalsIgnoreCase(searchCriteria.getType())) {
         QueryStringQueryBuilder termBuilder = QueryBuilders.queryStringQuery(term);
-        boolQuery2 =
-            boolQuery2
-                .should(QueryBuilders.queryStringQuery(term).field("name", 3f).boost(10f)
-                    .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-                .should(
-                    QueryBuilders.nestedQuery("synonyms", termBuilder, ScoreMode.Max).boost(25f));
+        boolQuery2
+            .should(QueryBuilders.queryStringQuery(term).field("name", 3f).boost(10f)
+                .defaultOperator(queryStringQueryBuilder.defaultOperator()))
+            .should(QueryBuilders.nestedQuery("synonyms", termBuilder, ScoreMode.Max).boost(25f));
       }
 
       boolQuery.must(boolQuery2);

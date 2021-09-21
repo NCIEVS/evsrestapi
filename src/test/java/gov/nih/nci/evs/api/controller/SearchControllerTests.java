@@ -2060,6 +2060,33 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test ncit browser match.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNcitBrowserMatch() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Fuzzy search
+    log.info("Testing url - " + url + "?terminology=ncit&term=bone+cancer&type=contains");
+
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "bone cancer")
+        .param("type", "contains")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // test first result is Malignant Bone Neoplasm
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Malignant Bone Neoplasm");
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
