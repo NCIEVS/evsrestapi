@@ -153,7 +153,7 @@ public class ConceptControllerTests {
 
     // Test lookup of >500 codes
     url = baseUrl + "/ncit?list="
-        + IntStream.range(1, 502).mapToObj(String::valueOf).collect(Collectors.joining(","));
+        + IntStream.range(1, 1002).mapToObj(String::valueOf).collect(Collectors.joining(","));
     log.info("Testing url - " + url);
     mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc

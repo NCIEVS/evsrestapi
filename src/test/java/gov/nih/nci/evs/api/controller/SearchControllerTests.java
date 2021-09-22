@@ -198,16 +198,16 @@ public class SearchControllerTests {
 
     // Page size too big
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=blood&pageSize=101");
+    log.info("Testing url - " + url + "?terminology=ncit&term=blood&pageSize=1001");
     mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "blood").param("pageSize", "101"))
+        get(url).param("terminology", "ncit").param("term", "blood").param("pageSize", "1001"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
     // Page size too big - 2
     url = baseUrl;
-    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
-    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "101"))
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=1001");
+    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "1001"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
@@ -393,11 +393,11 @@ public class SearchControllerTests {
             get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "0"))
         .andExpect(status().isBadRequest()).andReturn();
 
-    // Bad page size = 101
+    // Bad page size = 1001
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=101");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=1001");
     result = mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "101"))
+        get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "1001"))
         .andExpect(status().isBadRequest()).andReturn();
 
     // Bad from record = -1
@@ -897,10 +897,10 @@ public class SearchControllerTests {
     // Test synonymSource + synonymTermGroup
     // ?include=summary&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY&term=blood
     log.info("Testing url - " + url
-        + "?include=summary&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY&term=blood");
+        + "?include=summary&pageSize=1000&synonymSource=CDISC&synonymTermGroup=SY&term=blood");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "blood")
-            .param("synonymSource", "CDISC").param("pageSize", "100")
+            .param("synonymSource", "CDISC").param("pageSize", "1000")
             .param("synonymTermGroup", "SY").param("include", "summary"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -917,10 +917,10 @@ public class SearchControllerTests {
 
     // Test synonymSource + synonymTermGroup without a term
     log.info("Testing url - " + url
-        + "?include=synonyms&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY");
+        + "?include=synonyms&pageSize=10&synonymSource=CDISC&synonymTermGroup=SY");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("synonymSource", "CDISC")
-            .param("pageSize", "100").param("synonymTermGroup", "SY").param("include", "synonyms"))
+            .param("pageSize", "10").param("synonymTermGroup", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
