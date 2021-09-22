@@ -117,9 +117,9 @@ public class ConceptController extends BaseController {
 
       final String[] codes = list.split(",");
       // Impose a maximum number at a time
-      if (codes.length > 500) {
+      if (codes.length > 1000) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            "Maximum number of concepts to request at a time is 500 = " + codes.length);
+            "Maximum number of concepts to request at a time is 1000 = " + codes.length);
       }
 
       final List<Concept> concepts =
