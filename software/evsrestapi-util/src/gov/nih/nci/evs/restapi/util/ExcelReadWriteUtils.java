@@ -600,6 +600,7 @@ public class ExcelReadWriteUtils {
 	public static boolean fileDiff(String file1, String file2) {
 		Vector w1 = Utils.readFile(file1);
 		Vector w2 = Utils.readFile(file2);
+
 		if (w1.size() != w2.size()) {
 			System.out.println(file1 + ": "+ w1.size());
 			System.out.println(file2 + ": "+ w2.size());
@@ -609,12 +610,69 @@ public class ExcelReadWriteUtils {
 			String line1 = (String) w1.elementAt(i);
 			String line2 = (String) w2.elementAt(i);
 			if (line1.compareTo(line2) != 0) {
-				System.out.println(file1 + ": "+ line1);
-				System.out.println(file2 + ": "+ line1);
+				System.out.println(file1 + ": " + line1);
+				System.out.println(file2 + ": " + line1);
 				return false;
 			}
 		}
 		return true;
+	}
+
+	public static String writeXLSXFile(String excelFileName, Vector<String> textfiles, Vector<String> sheetNames, char delim) throws IOException {
+		XSSFWorkbook wb = new XSSFWorkbook();
+		for (int i=0; i<textfiles.size(); i++) {
+			String textfile = (String) textfiles.elementAt(i);
+			String sheetName = (String) sheetNames.elementAt(i);
+			XSSFSheet sheet = wb.createSheet(sheetName);
+			Vector w = new Vector();
+			Vector v = readFile(textfile);
+			for (int j=0; j<v.size(); j++) {
+				String line = (String) v.elementAt(j);
+				Vector u = parseData(line, delim);
+				XSSFRow row = sheet.createRow(j);
+				for (int c=0; c<u.size(); c++ )
+				{
+					XSSFCell cell = row.createCell(c);
+					String value = (String) u.elementAt(c);
+					cell.setCellValue(value);
+				}
+			}
+		}
+		FileOutputStream fileOut = new FileOutputStream(excelFileName);
+		//write this workbook to an Outputstream.
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
+		return excelFileName;
+	}
+
+	public static String writeXLSFile(String excelFileName, Vector<String> textfiles, Vector<String> sheetNames, char delim) throws IOException {
+		HSSFWorkbook wb = new HSSFWorkbook();
+		for (int i=0; i<textfiles.size(); i++) {
+			String textfile = (String) textfiles.elementAt(i);
+			String sheetName = (String) sheetNames.elementAt(i);
+			HSSFSheet sheet = wb.createSheet(sheetName) ;
+			//iterating r number of rows
+			Vector w = new Vector();
+			Vector v = readFile(textfile);
+			for (int j=0; j<v.size(); j++) {
+				String line = (String) v.elementAt(j);
+				Vector u = parseData(line, delim);
+				HSSFRow row = sheet.createRow(j);
+				for (int c=0;c < u.size(); c++ )
+				{
+					HSSFCell cell = row.createCell(c);
+					String value = (String) u.elementAt(c);
+					cell.setCellValue(value);
+				}
+			}
+		}
+		FileOutputStream fileOut = new FileOutputStream(excelFileName);
+		//write this workbook to an Outputstream.
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
+		return excelFileName;
 	}
 
 	public static void main(String[] args) throws IOException {
