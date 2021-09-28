@@ -140,7 +140,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -183,10 +183,10 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Association code (or name), e.g. 'A10' or 'Has_CDRH_Parent'", required = true,
+          value = "Association code (or name), e.g. ‘A10’ or ‘Has_CDRH_Parent’ for NCIt, ‘RB’ or ‘has a broader relationship’ for NCIm", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -242,7 +242,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -285,7 +285,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
           value = "Role code (or name), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'",
@@ -342,7 +342,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -389,7 +389,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -435,7 +435,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -479,7 +479,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
           value = "Qualifier code (or name), e.g. 'P390' or 'go-source'", required = true,
@@ -534,7 +534,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
@@ -565,10 +565,10 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Property code (or name), e.g. 'P216' or 'BioCarta_ID'", required = true,
+          value = "Property code (or name), e.g. ‘P216’ or ‘BioCarta_ID’ for NCIt, ‘BioCarta_ID’ or ‘‘BioCarta ID’ for NCIm", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -620,7 +620,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Subset code", required = true, dataType = "string",
           paramType = "path"),
@@ -669,7 +669,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
@@ -705,7 +705,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
@@ -737,7 +737,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
@@ -769,10 +769,10 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Qualifier code (or name), e.g. 'P383' or 'term-group'", required = true,
+          value = "Qualifier code (or name), e.g. ‘P390’ or ‘go-source’ for NCIt ‘RG’ or ‘Relationship group’ for NCIm", required = true,
           dataType = "string", paramType = "path")
   })
   @RecordMetric
@@ -819,7 +819,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymTypes",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -854,10 +854,10 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Synonym type code (or name), e.g. 'P90' or 'FULL_SYN'", required = true,
+          value = "Synonym type code (or name), e.g. ‘P90’ or ‘FULL_SYN’ for NCIt, 'Preferred_Name' or 'Preferred name' for NCIm", required = true,
           dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -914,7 +914,7 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionTypes",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -958,7 +958,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. ‘ncit’ or ‘ncim’", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
           value = "Definition type code (or name), e.g. 'P325' or 'DEFINITION'", required = true,
