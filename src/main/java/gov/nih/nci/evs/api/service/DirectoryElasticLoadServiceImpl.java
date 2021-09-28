@@ -36,6 +36,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
@@ -328,6 +329,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         if (concept.getCode() == null) {
           concept.setCode(cui);
           concept.setName(nameMap.get(cui));
+          concept.setNormName(ConceptUtils.normalize(nameMap.get(cui)));
           concept.setTerminology(terminology.getTerminology());
           concept.setVersion(terminology.getVersion());
           // NO hierarchies for NCIM concepts, so set leaf to null
@@ -345,6 +347,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         sy.setTermGroup(fields[12]);
         terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
         sy.setName(fields[14]);
+        sy.setNormName(ConceptUtils.normalize(fields[14]));
         concept.getSynonyms().add(sy);
 
         // Save prev cui for next round

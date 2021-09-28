@@ -2065,16 +2065,15 @@ public class SearchControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testNcitBrowserMatch() throws Exception {
+  public void testBrowserMatch() throws Exception {
 
     String url = baseUrl;
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
 
-    // Fuzzy search
+    // Browser match on bone cancer (ncit)
     log.info("Testing url - " + url + "?terminology=ncit&term=bone+cancer&type=contains");
-
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "bone cancer")
         .param("type", "contains")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -2084,7 +2083,19 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // test first result is Malignant Bone Neoplasm
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Malignant Bone Neoplasm");
-  }
+
+    // Browser match on bone cancer (ncim)
+    log.info("Testing url - " + url + "?terminology=ncim&term=digestive+cancer&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncim").param("term", "digestive cancer")
+        .param("type", "contains")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // test first result is Malignant Digestive System Neoplasm
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C0685938");
+}
 
   /**
    * Removes the time taken.
