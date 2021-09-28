@@ -836,6 +836,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
     // MRSTY: Semantic_Type property
     final Concept semType = new Concept(terminology.getTerminology(), "STY", "Semantic_Type");
+    semType.setName("Semantic Type");
     semType.setTerminology(terminology.getTerminology());
     semType.setVersion(terminology.getVersion());
     final Synonym semTypeSy = new Synonym();
