@@ -748,6 +748,7 @@ public class OWLSPARQLUtils {
 		buf.append("            ?z_axiom ?y ?z ").append("\n");
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
+		buf.append("ORDER BY ?z_axiom").append("\n");
 		return buf.toString();
 	}
 
@@ -835,7 +836,7 @@ public class OWLSPARQLUtils {
 		buf.append("        }").append("\n");
 		buf.append("     }").append("\n");
 		buf.append("}").append("\n");
-		//buf.append("LIMIT " + Constants.DEFAULT_LIMIT).append("\n");
+		buf.append("ORDER BY ?z_axiom").append("\n");
 		return buf.toString();
 	}
 
@@ -4031,6 +4032,7 @@ public class OWLSPARQLUtils {
 		buf.append("     }").append("\n");
 		buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\")").append("\n");
 		buf.append("}").append("\n");
+		buf.append("ORDER BY ?z_axiom").append("\n");
 		return buf.toString();
 	}
 
@@ -4082,6 +4084,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		buf.append("     }").append("\n");
 		buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\" && str(?z) = \"" + prop_value + "\")").append("\n");
 		buf.append("}").append("\n");
+		buf.append("ORDER BY ?z_axiom").append("\n");
 		return buf.toString();
 	}
 
@@ -4586,7 +4589,7 @@ Term Type
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("").append("\n");
-		buf.append("SELECT distinct ?z_axiom ?x_label ?x_code ?p_label ?p_code ?z_target ?y_label ?y_code ?z").append("\n");
+		buf.append("SELECT f ?x_label ?x_code ?p_label ?p_code ?z_target ?y_label ?y_code ?z").append("\n");
 		//buf.append("SELECT distinct ?x_label ?x_code ?p_label ?p_code ?z_target ?y_label ?y_code ?z").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
@@ -4622,6 +4625,7 @@ Term Type
 		buf.append("     }").append("\n");
 		//buf.append("    FILTER (str(?p_label) = \"" + prop_label + "\")").append("\n");
 		buf.append("}").append("\n");
+		buf.append("ORDER BY ?z_axiom").append("\n");
 		return buf.toString();
 	}
 
@@ -4675,6 +4679,7 @@ Term Type
 			buf.append("    FILTER (str(?z) = \"" + qualifier_value + "\")").append("\n");
 		}
 		buf.append("}").append("\n");
+		buf.append("ORDER BY ?z_axiom").append("\n");
 		return buf.toString();
 	}
 
@@ -5690,6 +5695,7 @@ Term Type
 		buf.append("            ?q :NHC0 ?q_code .").append("\n");
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
+		buf.append("ORDER BY ?z_axiom").append("\n");
 		return buf.toString();
 	}
 
