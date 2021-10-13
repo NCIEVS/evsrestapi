@@ -132,7 +132,9 @@ public class Concept extends ConceptMinimal {
   private List<Concept> descendants;
 
   /** The associations. */
-  @Field(type = FieldType.Object)
+  @Field(type = FieldType.Nested, ignoreFields = {
+      "qualifiers"
+  })
   private List<Association> associations;
 
   /** The inverse associations. */
