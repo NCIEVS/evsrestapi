@@ -6281,6 +6281,31 @@ Term Type
 		return new SortUtils().quickSort(v);
 	}
 
+	public String construct_get_semantictypes(String named_graph) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select ?element ").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("   ?dt a rdfs:Datatype .").append("\n");
+		buf.append("   ?dt ?x ?x_value .").append("\n");
+		buf.append("   ?x_value ?p ?e .").append("\n");
+		buf.append("   ?x_value ?p \"Acquired Abnormality\" .").append("\n");
+        buf.append("   ?dt owl:oneOf/rdf:rest*/rdf:first ?element .").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+    public Vector getSemanticTypes(String named_graph) {
+	    String query = construct_get_semantictypes(named_graph);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String restURL = args[0];
