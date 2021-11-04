@@ -258,7 +258,7 @@ public class ConceptController extends BaseController {
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrLabel",
           value = "Code/label in the specified terminology, e.g. "
-              + "'A8' or 'Has_CDRH_Parent' for <i>ncit</i>."
+              + "'A5' or 'Has_Salt_Form' for <i>ncit</i>."
               + " This call is only meaningful for <i>ncit</i>.",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
@@ -294,6 +294,7 @@ public class ConceptController extends BaseController {
     AssociationEntryResultList list = metadataService.getAssociationEntries(terminology, label,
         fromRecord.orElse(0), pageSize.orElse(10));
     list.setTimeTaken(System.currentTimeMillis() - startTime);
+
     return list;
   }
 
@@ -374,8 +375,8 @@ public class ConceptController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
       produces = "application/json")
   public @ResponseBody List<Concept> getSubsetMembers(@PathVariable(value = "terminology")
-  final String terminology, @PathVariable(value = "fromRecord")
-  final Optional<Integer> fromRecord, @PathVariable(value = "pageSize")
+  final String terminology, @RequestParam("fromRecord")
+  final Optional<Integer> fromRecord, @RequestParam(value = "pageSize")
   final Optional<Integer> pageSize, @PathVariable(value = "code")
   final String code) throws Exception {
     try {
@@ -392,8 +393,11 @@ public class ConceptController extends BaseController {
       int associationListSize = concept.get().getInverseAssociations().size();
 
       if (associationListSize > 0) {
-        for (Association assn : concept.get().getInverseAssociations().subList(fromRecord.orElse(0),
-            Math.min(pageSize.orElse(associationListSize - 1), associationListSize - 1))) {
+        final int fromIndex = fromRecord.orElse(0);
+        final int toIndex =
+            Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
+        for (Association assn : concept.get().getInverseAssociations().subList(fromIndex,
+            toIndex)) {
           subsets.add(new Concept("ncit", assn.getRelatedCode(), assn.getRelatedName()));
         }
       }
