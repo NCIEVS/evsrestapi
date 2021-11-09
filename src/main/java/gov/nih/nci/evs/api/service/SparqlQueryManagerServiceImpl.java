@@ -1435,8 +1435,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       String axiom = b.getAxiom().getValue();
       String property = b.getAxiomProperty().getValue().split("#")[1];
       String value = b.getAxiomValue().getValue();
+      // If value contains #, take everything after the #
       if (value.contains("#")) {
-        value = value.split("#")[1];
+        log.info("XXX = " + value);
+        // value = value.split("#")[1];
+        value = value.substring(value.indexOf("#") + 1);        
       }
 
       if (sw && !axiom.equals(oldAxiom)) {
@@ -1506,15 +1509,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         Axiom axiomObject = axiomMap.get(axiom);
         String property = b.getAxiomProperty().getValue().split("#")[1];
         String value = b.getAxiomValue().getValue();
+        // If value contains #, take everything after the #
         if (value.contains("#")) {
-          final String[] tokens = value.split("#");
-          if (tokens.length == 2) {
-            value = value.split("#")[1];
-          } else {
-            log.warn("WARNING: Unexpected axiom value without 2 fields = " + code + ", " + property
-                + ", " + value);
-            value = "";
-          }
+          log.info("YYY = " + value);
+          // value = value.split("#")[1];
+          value = value.substring(value.indexOf("#") + 1);
+          // final String[] tokens = value.split("#");
+          // if (tokens.length == 2) {
+          // value = value.split("#")[1];
+          // } else {
+          // log.warn("WARNING: Unexpected axiom value without 2 fields = " +
+          // code + ", " + property
+          // + ", " + value);
+          // value = "";
+          // }
         }
 
         setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
