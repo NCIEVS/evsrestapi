@@ -119,6 +119,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
     public static String PHRASE = "Phrase";
     public static String FUZZY = "Fuzzy";
     public static String BOOLEAN_AND = "AND";
+    public static String BOOLEAN_OR = "OR";
 
     public static String NAMES = "names";
     public static String PROPERTIES = "properties";
@@ -1309,6 +1310,75 @@ public Vector getPropertyValues(String named_graph, String propertyName) {
 		return hset.size();
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////
+
+	public String construct_search(String named_graph, String term, String algorithm) {
+		term = term.toLowerCase();
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select distinct ?x1_label ?x1_code ").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("                    ?x1 a owl:Class .").append("\n");
+		buf.append("                    ?x1 :NHC0 ?x1_code .").append("\n");
+		buf.append("                    ?x1 rdfs:label ?x1_label .").append("\n");
+		buf.append(" ").append("\n");
+		buf.append("                ?a1 a owl:Axiom .").append("\n");
+		buf.append("                ?a1 owl:annotatedSource ?x1 .").append("\n");
+		buf.append("                ?a1 owl:annotatedProperty ?p2 .").append("\n");
+		buf.append("                ").append("\n");
+		buf.append("                ?a1 owl:annotatedTarget ?a2_target .").append("\n");
+		buf.append("                ?p2 :NHC0 \"P90\"^^xsd:string .").append("\n");
+		buf.append("                ").append("\n");
+		if (algorithm.compareTo(STARTS_WITH) == 0) {
+			buf.append("                FILTER( REGEX( lcase(?a2_target), \"^" + term + "\" ) ) .").append("\n");
+		} else if (algorithm.compareTo(ENDS_WITH) == 0) {
+			buf.append("                FILTER( strends( lcase(?a2_target), \"" + term + "\" ) ) .").append("\n");
+		} else if (algorithm.compareTo(EXACT_MATCH) == 0) {
+			buf.append("                FILTER( lcase(?a2_target) = \"" + term + "\" )  .").append("\n");
+		} else if (algorithm.compareTo(CONTAINS) == 0) {
+			buf.append("                FILTER( contains( lcase(?a2_target), \"" + term + "\" ) ) .").append("\n");
+		} else if (algorithm.compareTo(BOOLEAN_AND) == 0) {
+
+			String[] terms = term.split(" ");
+			List list = Arrays.asList(terms);
+			buf.append("FILTER(");
+			for (int i=0; i<list.size(); i++) {
+				String token = (String) list.get(i);
+				token = token.toLowerCase();
+				buf.append("contains( lcase(?a2_target), \"" + token + "\" )");
+				if (i < list.size()-1) {
+					buf.append(" && ");
+				}
+			}
+			buf.append(") .").append("\n");
+		} else if (algorithm.compareTo(BOOLEAN_OR) == 0) {
+
+			String[] terms = term.split(" ");
+			List list = Arrays.asList(terms);
+			buf.append("FILTER(");
+			for (int i=0; i<list.size(); i++) {
+				String token = (String) list.get(i);
+				token = token.toLowerCase();
+				buf.append("contains( lcase(?a2_target), \"" + token + "\" )");
+				if (i < list.size()-1) {
+					buf.append(" || ");
+				}
+			}
+			buf.append(") .").append("\n");
+		}
+		buf.append("} ").append("\n");
+		return buf.toString();
+	}
+
+	public Vector search(String named_graph, String term, String algorithm) {
+		String query = construct_search(named_graph, term, algorithm);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
