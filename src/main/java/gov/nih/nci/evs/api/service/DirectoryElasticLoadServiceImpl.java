@@ -428,24 +428,27 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // Skip AUI attributes (or make them sy qualifiers)
-      if (fields[4].equals("AUI")) {
+      // ALLOW AUI attributes
+      // if (fields[4].equals("AUI")) {
+      //
+      // final boolean rxnormKeep =
+      // fields[9].equals("RXNORM") && !fields[8].equals("RXAUI") &&
+      // !fields[8].equals("RXAUI");
+      // final boolean mthsplKeep = fields[9].equals("MTHSPL");
+      //
+      // if (!rxnormKeep && !mthsplKeep) {
+      // continue;
+      // }
+      // }
 
-        final boolean rxnormKeep =
-            fields[9].equals("RXNORM") && !fields[8].equals("RXAUI") && !fields[8].equals("RXAUI");
-        final boolean mthsplKeep = fields[9].equals("MTHSPL");
-
-        if (!rxnormKeep && !mthsplKeep) {
-          continue;
-        }
-      }
-
-      // SKIP certain high-volume SNOMED attributes
-      if (fields[9].equals("SNOMEDCT_US") && (fields[8].equals("EFFECTIVE_TIME")
-          || fields[8].equals("ACTIVE") || fields[8].equals("CTV3ID")
-          || fields[8].equals("MODIFIER_ID") || fields[8].equals("CHARACTERISTIC_TYPE_ID"))) {
-        continue;
-      }
+      // ALLOW certain high-volume SNOMED attributes
+      // if (fields[9].equals("SNOMEDCT_US") &&
+      // (fields[8].equals("EFFECTIVE_TIME")
+      // || fields[8].equals("ACTIVE") || fields[8].equals("CTV3ID")
+      // || fields[8].equals("MODIFIER_ID") ||
+      // fields[8].equals("CHARACTERISTIC_TYPE_ID"))) {
+      // continue;
+      // }
 
       // consider skipping MDR - SMQ*, PT_IN_VERSION
 
@@ -556,17 +559,18 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
           || rel.equals("BRO")) {
         continue;
       }
-      // Skip AUI-AUI relationships (except for RXNORM)
-      else if (fields[2].equals("AUI") && fields[6].equals("AUI")) {
-        if (!fields[10].equals("RXNORM")) {
-          continue;
-        }
-      }
 
-      // SPECIAL EXCEPTION FOR SIZE
-      if (fromCode.equals("C0205447") && fields[10].startsWith("SNOMED")) {
-        continue;
-      }
+      // ALLOW AUI-AUI relationships
+      // else if (fields[2].equals("AUI") && fields[6].equals("AUI")) {
+      // if (!fields[10].equals("RXNORM")) {
+      // continue;
+      // }
+      // }
+
+      // ALLOW - SPECIAL EXCEPTION FOR SIZE
+      // if (fromCode.equals("C0205447") && fields[10].startsWith("SNOMED")) {
+      // continue;
+      // }
 
       // CUI1 has parent CUI2
       else if (rel.equals("PAR")) {
