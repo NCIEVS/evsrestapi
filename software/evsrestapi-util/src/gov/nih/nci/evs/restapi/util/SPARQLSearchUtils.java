@@ -220,6 +220,10 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+	public HashMap getSignature2Codes_hmap() {
+		return signature2Codes_hmap;
+	}
+
     public void initialize() {
         code2Label_hmap = new HashMap();
         kwd_freq_hmap = new HashMap();
@@ -1378,6 +1382,114 @@ public Vector getPropertyValues(String named_graph, String propertyName) {
 		if (v.size() == 0) return v;
 		v = new ParserUtils().getResponseValues(v);
 		return new SortUtils().quickSort(v);
+	}
+
+	public static Vector term2Keywords(String term) {
+		Vector v = new Vector();
+		term = term.trim();
+		term = term.replace("\"", "");
+		term = term.trim();
+		if (term.length() > 0) {
+			term = term.toLowerCase();
+			term = replace(term, '/', ' ');
+			String[] tokens = term.split(" ");
+			for (int j=0; j<tokens.length; j++) {
+				String token = tokens[j];
+				if (token.length() > 1) {
+					char firstChar = token.charAt(0);
+					char lastChar = token.charAt(token.length()-1);
+					if (specialCharsHashSet.contains("" + firstChar) &&
+						specialCharsHashSet.contains("" + lastChar)) {
+						token = token.substring(1, token.length()-1);
+					} else if (specialCharsHashSet.contains("" + lastChar)) {
+						token = token.substring(0, token.length()-1);
+					} else if (specialCharsHashSet.contains("" + firstChar)) {
+						token = token.substring(1, token.length());
+					}
+					if (token.length() > 0) {
+						v.add(token);
+					}
+				}
+			}
+		}
+		return v;
+	}
+
+	public Vector indexTerm(String term) {
+		Vector w = new Vector();
+        Vector words = term2Keywords(term);
+        Utils.dumpVector(term, words);
+        Vector v0 = new Vector();
+        if (words == null || words.size() == 0) return w;
+        String vbt = "";
+        Vector v = null;
+        String prevword = "";
+        String nextword = "";
+        while (words.size() > 0) {
+			nextword = (String) words.remove(0);
+			boolean cooccur = true;
+			if (prevword.length() > 0) {
+				cooccur = cooccurrent(prevword, nextword);
+			}
+			if (cooccur) {
+				vbt = vbt + " " + nextword;
+			} else {
+				if (v0 != null && v0.size() > 0) {
+					w.addAll(v0);
+					v0 = null;
+			    }
+				vbt = nextword;
+			}
+			v = matchBySignature(vbt);
+			if (v != null && v.size() > 0) {
+				v0 = v;
+			}
+			prevword = nextword;
+		}
+		if (v0 != null && v0.size() > 0) {
+			w.addAll(v0);
+			v0 = null;
+		}
+		Vector w1 = new Vector();
+		if (w == null || w.size() == 0) return w1;
+		for (int i=0; i<w.size(); i++) {
+			String code = (String) w.elementAt(i);
+			String label = get_label(code);
+			w1.add(label + "|" + code);
+		}
+		return new SortUtils().quickSort(w1);
+	}
+
+    public String getSignature(String term) {
+		Vector words = toKeywords(term);
+		return getSignature(words);
+	}
+
+	public String get_label(String code) {
+	    Vector w = getLabelByCode(code);
+	    w = new ParserUtils().getResponseValues(w);
+	    return (String) w.elementAt(0);
+	}
+
+	public Vector matchBySignature(Vector words) {
+		String signature = getSignature(words);
+		return getCodeBySignature(signature);
+	}
+
+	public Vector matchBySignature(String term) {
+		String signature = getSignature(term);
+		return getCodeBySignature(signature);
+	}
+
+	public boolean cooccurrent(String word1, String word2) {
+		Vector words = new Vector();
+		words.add(word1);
+		words.add(word2);
+		Vector w = matchBySignature(words);
+		if (w != null && w.size() > 0) {
+			return true;
+		}
+		return false;
 	}
 
 	public static void main(String[] args) {

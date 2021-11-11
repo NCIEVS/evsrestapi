@@ -427,6 +427,10 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+	public Vector getLabelByCode(String code) {
+		return executeQuery(construct_get_label_by_code(this.named_graph, code));
+	}
+
 	public Vector getLabelByCode(String named_graph, String code) {
 		return executeQuery(construct_get_label_by_code(named_graph, code));
 	}
