@@ -1418,7 +1418,6 @@ public Vector getPropertyValues(String named_graph, String propertyName) {
 	public Vector indexTerm(String term) {
 		Vector w = new Vector();
         Vector words = term2Keywords(term);
-        Utils.dumpVector(term, words);
         Vector v0 = new Vector();
         if (words == null || words.size() == 0) return w;
         String vbt = "";
