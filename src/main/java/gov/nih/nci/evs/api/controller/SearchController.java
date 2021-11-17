@@ -93,7 +93,7 @@ public class SearchController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
           value = "Single terminology to search, e.g. 'ncit' or 'ncim'", required = true,
-          dataType = "string", paramType = "query", defaultValue = "ncit"),
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "term",
           value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = false,
           dataType = "string", paramType = "query", defaultValue = ""),
@@ -108,7 +108,7 @@ public class SearchController extends BaseController {
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
-      required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+          required = false, dataType = "string", paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
           required = false, dataType = "string", paramType = "query", defaultValue = "10"),
       @ApiImplicitParam(name = "conceptStatus",
@@ -214,7 +214,7 @@ public class SearchController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
           value = "Comma-separated list of terminologies to search, e.g. 'ncit' or 'ncim'",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = false, dataType = "string", paramType = "query", defaultValue = "ncit"),
       @ApiImplicitParam(name = "term",
           value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = false,
           dataType = "string", paramType = "query", defaultValue = ""),
