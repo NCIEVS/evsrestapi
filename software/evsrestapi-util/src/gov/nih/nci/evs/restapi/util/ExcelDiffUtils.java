@@ -252,11 +252,30 @@ public class ExcelDiffUtils {
 		}
 	}
 
+
+    public static String exportExcelSheet(String excelfile) {
+        int n = excelfile.lastIndexOf(".");
+        String textfile = excelfile.substring(0, n) + ".txt";
+        int sheet_num = 0;
+		Vector w = ExcelReader.toDelimited(excelfile, sheet_num, '\t');
+		Utils.saveToFile(textfile, w);
+	    return textfile;
+    }
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String datafile1 = args[0];
 		String datafile2 = args[1];
-		ExcelDiffUtils pdfAnalyzer = new ExcelDiffUtils(datafile1, datafile2);
+
+		if (datafile1.endsWith(".xls")) {
+			datafile1 = exportExcelSheet(datafile1);
+		}
+		if (datafile2.endsWith(".xls")) {
+			datafile2 = exportExcelSheet(datafile2);
+		}
+
+		ExcelDiffUtils diffUtils = new ExcelDiffUtils(datafile1, datafile2);
 
 		PrintWriter pw = null;
 		int n1 = datafile1.lastIndexOf(".");
@@ -264,7 +283,7 @@ public class ExcelDiffUtils {
 		String outputfile = datafile1.substring(0, n1) + "_" + datafile2.substring(0, n2) + ".txt";
 		try {
 			pw = new PrintWriter(outputfile, "UTF-8");
-            pdfAnalyzer.run(pw);
+            diffUtils.run(pw);
 
 		} catch (Exception ex) {
 
