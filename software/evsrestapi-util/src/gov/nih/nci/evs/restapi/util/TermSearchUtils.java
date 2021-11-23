@@ -150,22 +150,22 @@ public class TermSearchUtils {
 			Synonym syn = (Synonym) list.get(i);
             boolean matched = true;
 			if (pattern.getTermGroup() != null) {
-				if (syn.getTermGroup() == null || syn.getTermGroup().compareTo(pattern.getTermGroup()) != 0) {
+				if (syn.getTermGroup() == null || syn.getTermGroup().compareToIgnoreCase(pattern.getTermGroup()) != 0) {
 					matched = false;
 				}
 			}
 			if (pattern.getTermSource() != null) {
-				if (syn.getTermSource() == null || syn.getTermSource().compareTo(pattern.getTermSource()) != 0) {
+				if (syn.getTermSource() == null || syn.getTermSource().compareToIgnoreCase(pattern.getTermSource()) != 0) {
 					matched = false;
 				}
 			}
 			if (pattern.getSourceCode() != null) {
-				if (syn.getSourceCode() == null || syn.getSourceCode().compareTo(pattern.getSourceCode()) != 0) {
+				if (syn.getSourceCode() == null || syn.getSourceCode().compareToIgnoreCase(pattern.getSourceCode()) != 0) {
 					matched = false;
 				}
 			}
 			if (pattern.getSubSourceName() != null) {
-				if (syn.getSubSourceName() == null || syn.getSubSourceName().compareTo(pattern.getSubSourceName()) != 0) {
+				if (syn.getSubSourceName() == null || syn.getSubSourceName().compareToIgnoreCase(pattern.getSubSourceName()) != 0) {
 					matched = false;
 				}
 			}
@@ -256,6 +256,9 @@ public class TermSearchUtils {
 				full_syn_vec.add(t);
 			}
 		}
+
+		System.out.println("full_syn_vec: " + full_syn_vec.size());
+
 		termMap = createTermMap(full_syn_vec);
 	}
 
@@ -316,6 +319,25 @@ public class TermSearchUtils {
 		return str;
 	}
 
+
+    public String matchTerm(String term0) {
+		String term = removeSuffix(term0);
+		String term_lc = term.toLowerCase();
+		StringBuffer buf = new StringBuffer();
+		if (termMap.containsKey(term_lc)) {
+			Vector w = (Vector) termMap.get(term_lc);
+			for (int k=0; k<w.size(); k++) {
+				String t = (String) w.elementAt(k);
+				Vector u2 = StringUtils.parseData(t, '|');
+				buf.append((String) u2.elementAt(0) + "|" + (String) u2.elementAt(1));
+				if (k < w.size()-1) {
+					buf.append("$");
+				}
+			}
+		}
+		return buf.toString();
+	}
+
 	public void match(String datafile) {
 		int number_matches = 0;
 		Vector output_vec = new Vector();
@@ -323,8 +345,11 @@ public class TermSearchUtils {
 		for (int i=0; i<v.size(); i++) {
 			int j = i+1;
 			String line = (String) v.elementAt(i);
+
 			System.out.println("(" + j + ") " + line);
+
 			Vector u = StringUtils.parseData(line, "|");
+
 			if (u.size() == 1) {
 				String term0 = (String) u.elementAt(0);
 				String term = removeSuffix(term0);
@@ -489,20 +514,28 @@ public class TermSearchUtils {
         TermSearchUtils termSearchUtils = new TermSearchUtils(serviceUrl, named_graph, username, password);
         termSearchUtils.initialize();
 
+        HashMap vbt_map = new HashMap();
 		Vector vbts = Utils.readFile(vbtfile);
 		Vector w = new Vector();
 		for (int i=0; i<vbts.size(); i++) {
-			String vbt = (String) vbts.elementAt(i);
+			String line = (String) vbts.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String vbt = (String) u.elementAt(0);
+			String unii = (String) u.elementAt(1);
 			String s = vbt;
 			if (vbt.indexOf("[WHO") != -1) {
 				int n = vbt.lastIndexOf("[");
 				s = vbt.substring(0, n);
 				s = s.trim();
 			}
-			w.add(s + "|" + vbt);
+			String retstr = termSearchUtils.matchTerm(s);
+			if (retstr.length() == 0) {
+				w.add(vbt + "|" + unii + "|" + "No match");
+			} else {
+				w.add(vbt + "|" + unii + "|" + retstr);
+			}
 		}
-		Utils.saveToFile("mod_" + vbtfile, w);
-        termSearchUtils.match("mod_" + vbtfile);
+		Utils.saveToFile("result_" + vbtfile, w);
 	}
 
 }

@@ -119,6 +119,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
     public static String PHRASE = "Phrase";
     public static String FUZZY = "Fuzzy";
     public static String BOOLEAN_AND = "AND";
+    public static String BOOLEAN_OR = "OR";
 
     public static String NAMES = "names";
     public static String PROPERTIES = "properties";
@@ -217,6 +218,10 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			}
 		}
 		return buf.toString();
+	}
+
+	public HashMap getSignature2Codes_hmap() {
+		return signature2Codes_hmap;
 	}
 
     public void initialize() {
@@ -1309,6 +1314,182 @@ public Vector getPropertyValues(String named_graph, String propertyName) {
 		return hset.size();
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////
+
+	public String construct_search(String named_graph, String term, String algorithm) {
+		term = term.toLowerCase();
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select distinct ?x1_label ?x1_code ").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("                    ?x1 a owl:Class .").append("\n");
+		buf.append("                    ?x1 :NHC0 ?x1_code .").append("\n");
+		buf.append("                    ?x1 rdfs:label ?x1_label .").append("\n");
+		buf.append(" ").append("\n");
+		buf.append("                ?a1 a owl:Axiom .").append("\n");
+		buf.append("                ?a1 owl:annotatedSource ?x1 .").append("\n");
+		buf.append("                ?a1 owl:annotatedProperty ?p2 .").append("\n");
+		buf.append("                ").append("\n");
+		buf.append("                ?a1 owl:annotatedTarget ?a2_target .").append("\n");
+		buf.append("                ?p2 :NHC0 \"P90\"^^xsd:string .").append("\n");
+		buf.append("                ").append("\n");
+		if (algorithm.compareTo(STARTS_WITH) == 0) {
+			buf.append("                FILTER( REGEX( lcase(?a2_target), \"^" + term + "\" ) ) .").append("\n");
+		} else if (algorithm.compareTo(ENDS_WITH) == 0) {
+			buf.append("                FILTER( strends( lcase(?a2_target), \"" + term + "\" ) ) .").append("\n");
+		} else if (algorithm.compareTo(EXACT_MATCH) == 0) {
+			buf.append("                FILTER( lcase(?a2_target) = \"" + term + "\" )  .").append("\n");
+		} else if (algorithm.compareTo(CONTAINS) == 0) {
+			buf.append("                FILTER( contains( lcase(?a2_target), \"" + term + "\" ) ) .").append("\n");
+		} else if (algorithm.compareTo(BOOLEAN_AND) == 0) {
+
+			String[] terms = term.split(" ");
+			List list = Arrays.asList(terms);
+			buf.append("FILTER(");
+			for (int i=0; i<list.size(); i++) {
+				String token = (String) list.get(i);
+				token = token.toLowerCase();
+				buf.append("contains( lcase(?a2_target), \"" + token + "\" )");
+				if (i < list.size()-1) {
+					buf.append(" && ");
+				}
+			}
+			buf.append(") .").append("\n");
+		} else if (algorithm.compareTo(BOOLEAN_OR) == 0) {
+
+			String[] terms = term.split(" ");
+			List list = Arrays.asList(terms);
+			buf.append("FILTER(");
+			for (int i=0; i<list.size(); i++) {
+				String token = (String) list.get(i);
+				token = token.toLowerCase();
+				buf.append("contains( lcase(?a2_target), \"" + token + "\" )");
+				if (i < list.size()-1) {
+					buf.append(" || ");
+				}
+			}
+			buf.append(") .").append("\n");
+		}
+		buf.append("} ").append("\n");
+		return buf.toString();
+	}
+
+	public Vector search(String named_graph, String term, String algorithm) {
+		String query = construct_search(named_graph, term, algorithm);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
+	public static Vector term2Keywords(String term) {
+		Vector v = new Vector();
+		term = term.trim();
+		term = term.replace("\"", "");
+		term = term.trim();
+		if (term.length() > 0) {
+			term = term.toLowerCase();
+			term = replace(term, '/', ' ');
+			String[] tokens = term.split(" ");
+			for (int j=0; j<tokens.length; j++) {
+				String token = tokens[j];
+				if (token.length() > 1) {
+					char firstChar = token.charAt(0);
+					char lastChar = token.charAt(token.length()-1);
+					if (specialCharsHashSet.contains("" + firstChar) &&
+						specialCharsHashSet.contains("" + lastChar)) {
+						token = token.substring(1, token.length()-1);
+					} else if (specialCharsHashSet.contains("" + lastChar)) {
+						token = token.substring(0, token.length()-1);
+					} else if (specialCharsHashSet.contains("" + firstChar)) {
+						token = token.substring(1, token.length());
+					}
+					if (token.length() > 0) {
+						v.add(token);
+					}
+				}
+			}
+		}
+		return v;
+	}
+
+	public Vector indexTerm(String term) {
+		Vector w = new Vector();
+        Vector words = term2Keywords(term);
+        Vector v0 = new Vector();
+        if (words == null || words.size() == 0) return w;
+        String vbt = "";
+        Vector v = null;
+        String prevword = "";
+        String nextword = "";
+        while (words.size() > 0) {
+			nextword = (String) words.remove(0);
+			boolean cooccur = true;
+			if (prevword.length() > 0) {
+				cooccur = cooccurrent(prevword, nextword);
+			}
+			if (cooccur) {
+				vbt = vbt + " " + nextword;
+			} else {
+				if (v0 != null && v0.size() > 0) {
+					w.addAll(v0);
+					v0 = null;
+			    }
+				vbt = nextword;
+			}
+			v = matchBySignature(vbt);
+			if (v != null && v.size() > 0) {
+				v0 = v;
+			}
+			prevword = nextword;
+		}
+		if (v0 != null && v0.size() > 0) {
+			w.addAll(v0);
+			v0 = null;
+		}
+		Vector w1 = new Vector();
+		if (w == null || w.size() == 0) return w1;
+		for (int i=0; i<w.size(); i++) {
+			String code = (String) w.elementAt(i);
+			String label = get_label(code);
+			w1.add(label + "|" + code);
+		}
+		return new SortUtils().quickSort(w1);
+	}
+
+    public String getSignature(String term) {
+		Vector words = toKeywords(term);
+		return getSignature(words);
+	}
+
+	public String get_label(String code) {
+	    Vector w = getLabelByCode(code);
+	    w = new ParserUtils().getResponseValues(w);
+	    return (String) w.elementAt(0);
+	}
+
+	public Vector matchBySignature(Vector words) {
+		String signature = getSignature(words);
+		return getCodeBySignature(signature);
+	}
+
+	public Vector matchBySignature(String term) {
+		String signature = getSignature(term);
+		return getCodeBySignature(signature);
+	}
+
+	public boolean cooccurrent(String word1, String word2) {
+		Vector words = new Vector();
+		words.add(word1);
+		words.add(word2);
+		Vector w = matchBySignature(words);
+		if (w != null && w.size() > 0) {
+			return true;
+		}
+		return false;
+	}
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
