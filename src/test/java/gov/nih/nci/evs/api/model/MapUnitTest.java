@@ -63,6 +63,7 @@ public class MapUnitTest {
     tester.include("type");
     tester.include("targetName");
     tester.include("sourceCode");
+    tester.include("sourceTerminology");
     tester.include("targetCode");
     tester.include("targetTermGroup");
     tester.include("targetTerminology");

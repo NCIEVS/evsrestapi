@@ -205,6 +205,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
         final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
         map.setSourceCode(fields[8]);
+        map.setSourceTerminology(fields[8]);
         map.setTargetCode(fields[16]);
         map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermGroup("PT");
