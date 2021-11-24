@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -53,9 +55,6 @@ public class NCIMControllerTests {
   /** The base url. */
   private String baseUrl = "";
 
-  /** The base url for metadata tests. */
-  private String baseUrlMetadata = "";
-
   /**
    * Sets the up.
    */
@@ -68,7 +67,7 @@ public class NCIMControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
-    baseUrlMetadata = "/api/v1/metadata";
+    // baseUrlMetadata = "/api/v1/metadata";
   }
 
   /**
@@ -87,6 +86,8 @@ public class NCIMControllerTests {
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
         });
@@ -217,8 +218,8 @@ public class NCIMControllerTests {
     assertThat(concept.getName()).isEqualTo("Pancreas");
     assertThat(concept.getDefinitions()).isNotNull();
     assertThat(concept.getDefinitions().size()).isEqualTo(8);
-    assertThat(concept.getDefinitions().get(0).getDefinition())
-        .startsWith("Lobular organ the parenchyma of which consists of glandular acini which communicate via a duct system with the duodenum.");
+    assertThat(concept.getDefinitions().get(0).getDefinition()).startsWith(
+        "Lobular organ the parenchyma of which consists of glandular acini which communicate via a duct system with the duodenum.");
     assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("NCI");
 
     // test random concept with no definition
@@ -284,7 +285,8 @@ public class NCIMControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL988042");
-    assertThat(concept.getName()).isEqualTo("Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
+    assertThat(concept.getName()).isEqualTo(
+        "Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
     assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
     assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Clinical Attribute");
@@ -305,41 +307,26 @@ public class NCIMControllerTests {
 
   }
 
-  /**
-   * Metadata property tests.
-   *
-   * @throws Exception the exception
-   */
   @Test
-  public void testMetadataProperty() throws Exception {
-
+  public void testMRREL() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
-    List<Concept> properties = null;
+    Concept concept = null;
 
-    // Semantic_Type property url = baseUrl + "/ncim/properties";
-    url = baseUrlMetadata + "/ncim/properties?include=synonyms";
-    log.info("Testing url - " + url);
+    // first concept in MRCONSO, three properties
+    url = baseUrl + "/ncim/C0000005";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-
-    properties = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-    });
-
-    assertThat(properties.get(0).getCode()).isEqualTo("STY");
-    assertThat(properties.get(0).getName()).isEqualTo("Semantic_Type");
-    assertThat(properties.get(0).getTerminology()).isEqualTo("ncim");
-    assertThat(properties.get(0).getVersion()).isEqualTo("202102");
-    assertThat(properties.get(0).getSynonyms().get(0).getName()).isEqualTo("Semantic_Type");
-
-    // check other properties from MRDOC
-    assertThat(properties.get(2).getCode()).isEqualTo("ACCEPTABILITYID");
-    assertThat(properties.get(2).getName()).isEqualTo("Acceptability ID");
-    assertThat(properties.get(2).getTerminology()).isEqualTo("ncim");
-    assertThat(properties.get(2).getVersion()).isEqualTo("202102");
-    assertThat(properties.get(2).getSynonyms().get(0).getName()).isEqualTo("Acceptability ID");
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000005");
+    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+    assertThat(concept.getProperties().size()).isGreaterThan(1);
+    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
+    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
 
   }
 
@@ -356,19 +343,20 @@ public class NCIMControllerTests {
     Concept concept = null;
 
     // first concept in MRSAT
-    url = baseUrl + "/ncim/C0000005";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    url = baseUrl + "/ncim/C0000052";
+    log.info("Testing url - " + url + "?terminology=ncim&code=C0000052");
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0000005");
-    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
+    assertThat(concept.getCode()).isEqualTo("C0000052");
+    assertThat(concept.getName()).isEqualTo("1,4-alpha-Glucan Branching Enzyme");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(4).getType()).isEqualTo("RN");
-    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("MSH");
-    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("0");
+    assertThat(concept.getProperties().stream()
+        .filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
+            && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008"))
+        .count()).isEqualTo(1);
 
     // random concept in MRSAT
     url = baseUrl + "/ncim/C0436993";
@@ -381,26 +369,228 @@ public class NCIMControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0436993");
     assertThat(concept.getName()).isEqualTo("On examination - abdominal mass - regular shape");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(4).getType()).isEqualTo("CASE_SIGNIFICANCE_ID");
-    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("SNOMEDCT_US");
-    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("900000000000448009");
+    assertThat(concept.getProperties().stream()
+        .filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
+            && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008"))
+        .count()).isEqualTo(1);
 
     // last concept in MRSTY/MRSAT
-    url = baseUrl + "/ncim/CL988043";
-    log.info("Testing url - " + url + "?terminology=ncim&code=CL988043");
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("CL988043");
-    assertThat(concept.getName()).isEqualTo(
-        "Guidance for drainage+placement of drainage catheter^W contrast IV:Find:Pt:Abdomen:Doc:CT");
-    assertThat(concept.getProperties().size()).isGreaterThan(0);
-    assertThat(concept.getProperties().get(4).getType()).isEqualTo("IMAGING_DOCUMENT_VALUE_SET");
-    assertThat(concept.getProperties().get(4).getValue()).isEqualTo("LNC");
-    assertThat(concept.getProperties().get(4).getSource()).isEqualTo("TRUE");
+    // TODO: we're ignoring AUI attributes so for the moment this turns up
+    // nothing
+    // url = baseUrl + "/ncim/CL988043";
+    // log.info("Testing url - " + url + "?terminology=ncim&code=CL988043");
+    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    // content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    // concept = new ObjectMapper().readValue(content, Concept.class);
+    // assertThat(concept).isNotNull();
+    // assertThat(concept.getCode()).isEqualTo("CL988043");
+    // assertThat(concept.getName()).isEqualTo(
+    // "Guidance for drainage+placement of drainage catheter^W contrast
+    // IV:Find:Pt:Abdomen:Doc:CT");
+    // assertThat(concept.getProperties().size()).isGreaterThan(0);
+    // assertThat(
+    // concept.getProperties().stream()
+    // .filter(p -> p.getType().equals("IMAGING_DOCUMENT_VALUE_SET")
+    // && p.getSource().equals("LNC") && p.getValue().equals("TRUE"))
+    // .count() > 0).isTrue();
 
   }
 
+  /**
+   * Test ncim search contains.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNcimSearchContains() throws Exception {
+    String url = "/api/v1/concept/search";
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Valid test
+    log.info("Testing url - " + url
+        + "?fromRecord=0&include=synonyms&pageSize=100&term=aspirin&type=contains");
+    result = mvc
+        .perform(get(url).param("terminology", "ncim").param("term", "aspirin")
+            .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list).isNotNull();
+    // Look for the Aspirin CUI.
+    assertThat(list.getConcepts().stream().filter(c -> c.getCode().equals("C0004057"))
+        .collect(Collectors.toList()).size()).isEqualTo(1);
+
+  }
+
+  /**
+   * Test ncim metadata.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNcimMetadata() throws Exception {
+
+    String base = "/api/v1/metadata/ncim";
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    // Handle associations
+    url = base + "/associations";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RO");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RN");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("RQ");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("SY");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRO");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("AQ");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("QB");
+
+    // Handle concept statuses
+    url = base + "/conceptStatuses";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // Handle definitionSources
+    url = base + "/definitionSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(10);
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("CDISC");
+
+    // Handle definitionTypes
+    url = base + "/definitionTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.get(0).getCode()).isEqualTo("DEFINITION");
+
+    // Handle properties
+    url = base + "/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .contains("Semantic_Type");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("SCORE");
+
+    // Handle qualifiers
+    url = base + "/qualifiers";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    // NOTE: some quaifiers are not actually used
+     assertThat(list.stream().map(c ->
+     c.getCode()).collect(Collectors.toSet())).doesNotContain("AUI1");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("STYPE1");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("AUI2");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("STYPE2");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RELA");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RG");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("DIR");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet()))
+    // .contains("SUPPRESS");
+
+    // Handle subsets - n/a
+    url = base + "/subsets";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // Handle synonymSources - n/a - handled inline
+    url = base + "/synonymSources";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(20);
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("MSH");
+
+    // Handle synonymTypes
+    url = base + "/synonymTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.get(0).getCode()).isEqualTo("Preferred_Name");
+    assertThat(list.get(1).getCode()).isEqualTo("Synonym");
+
+    // Handle termTypes - n/a - handled inline
+    url = base + "/termTypes";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(30);
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
+
+  }
 }

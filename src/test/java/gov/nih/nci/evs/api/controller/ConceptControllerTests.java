@@ -39,6 +39,7 @@ import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -152,7 +153,7 @@ public class ConceptControllerTests {
 
     // Test lookup of >500 codes
     url = baseUrl + "/ncit?list="
-        + IntStream.range(1, 502).mapToObj(String::valueOf).collect(Collectors.joining(","));
+        + IntStream.range(1, 1002).mapToObj(String::valueOf).collect(Collectors.joining(","));
     log.info("Testing url - " + url);
     mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
@@ -1149,9 +1150,9 @@ public class ConceptControllerTests {
     resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTimeTaken() > 0);
-    assertThat(resultList.getTotal() > 0);
+    assertThat(resultList.getTotal() > 2500);
     assertThat(resultList.getParameters().getTerminology().contains("Has_Target"));
-    for (AssociationEntry assoc : resultList.getAssociationEntrys()) {
+    for (AssociationEntry assoc : resultList.getAssociationEntries()) {
       assertThat(assoc.getAssociation().equals("Has_Target"));
     }
 
@@ -1164,9 +1165,9 @@ public class ConceptControllerTests {
     resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTimeTaken() > 0);
-    assertThat(resultList.getTotal() > 0);
+    assertThat(resultList.getTotal() > 2500);
     assertThat(resultList.getParameters().getTerminology().contains("Has_Target"));
-    for (AssociationEntry assoc : resultList.getAssociationEntrys()) {
+    for (AssociationEntry assoc : resultList.getAssociationEntries()) {
       assertThat(assoc.getAssociation().equals("Has_Target"));
     }
 
@@ -1197,7 +1198,7 @@ public class ConceptControllerTests {
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTotal() > 0);
     assertThat(resultList.getParameters().getTerminology().contains("12"));
-    assertThat(resultList.getAssociationEntrys().size() == 12);
+    assertThat(resultList.getAssociationEntries().size() == 12);
 
     // Test fromRecord
     url = baseUrl + "/ncit/associations/Has_Target?fromRecord=1";
@@ -1209,8 +1210,8 @@ public class ConceptControllerTests {
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTotal() > 0);
     assertThat(resultList.getParameters().getTerminology().contains("1"));
-    assertThat(resultList.getAssociationEntrys().get(0).getCode() == "C125718");
-    assertThat(resultList.getAssociationEntrys().get(0).getRelatedCode() == "C128784");
+    assertThat(resultList.getAssociationEntries().get(0).getCode() == "C125718");
+    assertThat(resultList.getAssociationEntries().get(0).getRelatedCode() == "C128784");
 
   }
 
@@ -1255,8 +1256,7 @@ public class ConceptControllerTests {
     subsetMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-
-    assertThat(subsetMembers.size() > 0);
+    assertThat(subsetMembers.size()).isEqualTo(40);
 
     url = baseUrl + "/ncit/subsetMembers/C2991?pageSize=10";
     log.info("Testing url - " + url);
@@ -1279,6 +1279,49 @@ public class ConceptControllerTests {
     });
 
     assertThat(subsetMembers.size() == 0);
+  }
+
+  /**
+   * Test terminology versions
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTerminologyVersion() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    url = "/api/v1/metadata/terminologies";
+    result = mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        }).get(0);
+    String weeklyTerm = terminology.getTerminologyVersion();
+    String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;
+    result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk())
+        .andReturn();
+    content = result.getResponse().getContentAsString();
+    List<Concept> conceptResults =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
+
+    result = mvc.perform(get(baseWeeklyUrl + "/C3224")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Concept concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getVersion() == terminology.getVersion());
+
+    result =
+        mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
+
   }
 
 }

@@ -25,7 +25,6 @@ import gov.nih.nci.evs.api.configuration.TestConfiguration;
  * Unit test for {@link Concept}.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestConfiguration.class)
 public class ConceptUnitTest {
 
   /** The logger. */

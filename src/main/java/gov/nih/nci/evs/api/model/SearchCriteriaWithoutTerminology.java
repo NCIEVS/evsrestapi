@@ -457,9 +457,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @throws Exception the exception
    */
   public void checkPagination() throws Exception {
-    if (pageSize < 1 || pageSize > 100) {
+    if (pageSize < 1 || pageSize > 1000) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
+          "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
 
     }
 
@@ -509,12 +509,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     if (pageSize < 1) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
+          "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
     }
 
-    if (pageSize > 100) {
+    if (pageSize > 1000) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 100 = " + pageSize);
+          "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
     }
 
     // Validate concept status

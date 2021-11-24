@@ -27,8 +27,12 @@ public class ElasticConfiguration {
     String esHost = env.getProperty("nci.evs.elasticsearch.server.host");
     int esPort = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.server.port"));
     String esScheme = env.getProperty("nci.evs.elasticsearch.server.scheme");
+    int timeout = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.timeout"));
     logger.info(String.format("Configuring es client for host %s", esHost));
-    return new RestHighLevelClient(RestClient.builder(new HttpHost(esHost, esPort, esScheme)));
+    return new RestHighLevelClient(
+        RestClient.builder(new HttpHost(esHost, esPort, esScheme)).setRequestConfigCallback(
+            builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
+
     // ClientConfiguration clientConfiguration =
     // ClientConfiguration.builder().connectedTo(esHost)..build();
     // return RestClients.create(clientConfiguration).rest();

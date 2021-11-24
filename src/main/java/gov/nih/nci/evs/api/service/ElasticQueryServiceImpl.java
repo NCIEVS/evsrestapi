@@ -637,6 +637,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
         Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));
     SearchCriteria criteria = new SearchCriteria();
     criteria.setTerminology(params);
+    criteria.setFromRecord(fromRecord);
+    criteria.setPageSize(pageSize);
     al.setParameters(criteria);
     // check for results
     if (!esObject.isPresent()) {
@@ -647,9 +649,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     int from = Math.min(fromRecord, list.size());
     int to = Math.min(fromRecord + pageSize, list.size());
     // package up as AssociationEntryResultList
-    al.setAssociationEntrys(list.subList(from, to));
+    al.setAssociationEntries(list.subList(from, to));
     al.setTotal(list.size());
-    logger.info("al = " + al);
+
     return al;
   }
 

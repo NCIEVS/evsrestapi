@@ -1,29 +1,50 @@
 #!/bin/sh -f
 
 config=1
+download=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
+  --download) download=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
-
-if [ ${#arr[@]} -ne 1 ]; then
-  echo "Usage: $0 [--noconfig] <dir>"
+ok=0
+if [ ${#arr[@]} -eq 1 ]; then
+  ok=1
+elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
+  ok=1
+fi
+if [ $ok -eq 0 ]; then
+  echo "Usage: $0 [--noconfig] [--download] [<dir>]"
   echo "  e.g. $0 /data/evs/ncim"
   echo "  e.g. $0 --noconfig /data/evs/ncim"
+  echo "  e.g. $0 --download"
+  echo "  e.g. $0 --noconfig --download"
   exit 1
 fi
 
-dir=${arr[0]}
+if [ ${#arr[@]} -eq 1 ]; then
+  dir=${arr[0]}
+fi
 terminology=ncim
+
+# Set download dir if not set (regardless of mode)
+if [[ -z $DOWNLOAD_DIR ]]; then
+	export DOWNLOAD_DIR=.
+fi
 
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo "terminology = $terminology"
-echo "dir = $dir"
+echo "config = $config"
+if [[ $download -eq 1 ]]; then
+  echo "download = $DOWNLOAD_DIR"
+else
+  echo "dir = $dir"
+  echo "download = $download"
+fi
 echo ""
-#set -e
 
 # Setup configuration
 echo "  Setup configuration"
@@ -33,6 +54,10 @@ if [[ $config -eq 1 ]]; then
     CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
     echo "    config = $CONFIG_ENV_FILE"
     . $CONFIG_ENV_FILE
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
+        exit 1
+    fi
 elif [[ -z $STARDOG_HOST ]]; then
     echo "ERROR: STARDOG_HOST is not set"
     exit 1
@@ -56,6 +81,44 @@ elif [[ -z $ES_PORT ]]; then
     exit 1
 fi
 
+# Check if downloading NCIM data
+if [[ $download -eq 1 ]]; then
+ 
+    if [[ ! -e $DOWNLOAD_DIR ]]; then
+        echo "ERROR: \$DOWNLOAD_DIR does not exist = $DOWNLOAD_DIR"
+        exit 1
+    fi
+
+    echo "  Cleanup download directory"
+    /bin/rm -rf $DOWNLOAD_DIR/Metathesaurus.RRF.zip $DOWNLOAD_DIR/NCIM
+	if [[ $? -ne 0 ]]; then
+	    echo "ERROR: problem cleaning up \$DOWNLOAD_DIR = $DOWNLOAD_DIR"
+	    exit 1
+	fi
+	mkdir $DOWNLOAD_DIR/NCIM
+    
+    url=https://evs.nci.nih.gov/sites/default/files/assets/metathesaurus/Metathesaurus.RRF.zip
+	echo "  Download latest NCI Metathesaurus"
+    echo "    url = $url"
+    curl -o $DOWNLOAD_DIR/Metathesaurus.RRF.zip $url
+	if [[ $? -ne 0 ]]; then
+	    echo "ERROR: problem downloading metathesaurus"
+	    exit 1
+	fi
+    
+    echo "  Unpack NCI Metathesaurus"
+    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM > /tmp/x.$$ 2>&1
+	if [[ $? -ne 0 ]]; then
+	    cat /tmp/x.$$
+	    echo "ERROR: problem unpacking $DOWNLOAD_DIR/Metathesaurus.RRF.zip"
+	    exit 1
+	fi
+
+    # Set $dir for later steps    
+    dir=$DOWNLOAD_DIR/NCIM/META
+
+fi
+
 # set the max number of fields higher
 # we can probably remove this when we figure a better answer
 echo "  Set index.mapping.total_fields.limit = 5000"  
@@ -77,32 +140,60 @@ if [[ $config -eq 0 ]]; then
 fi
 export EVS_SERVER_PORT="8083"
 
+# Remove if this already exists
+version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+echo "  Remove indexes for $terminology $version"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+$DIR/remove.sh $terminology $version > /tmp/x.$$ 2>&1
+if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$ | sed 's/^/    /'
+    echo "ERROR: removing $terminology $version indexes"
+    exit 1
+fi
+
+
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"
-echo "java $local -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-java $local -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+# need to override this setting to make sure it's not too big
+export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
+echo "java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+java $local -Xmx4096M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building indexes"
     exit 1
 fi
 
-echo "  Remove old version indexes"
-version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
-curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | perl -pe 's/^.* open ([^ ]+).*/$1/' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
-for i in `cat /tmp/x.$$`; do
+echo "  Remove any older versions indexes"
+curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
+   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
+for i in `cat /tmp/x.$$`; do    
+    lv=`echo $i | perl -pe 's/.*_//;'`
+    if [[ $lv -ge $version ]]; then
+        echo "    skip $lv - later than $version"
+        continue
+    fi
+
     echo "    delete $i"
-    curl -s -X DELETE https://$ES_HOST:$ES_PORT/$i
+    curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/$i > /tmp/x.$$
     if [[ $? -ne 0 ]]; then
-        echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/$i"
+        cat /tmp/x.$$ | sed 's/^/    /'
+        echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/$i"
         exit 1
     fi
-    curl -s -X DELETE https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: problem deleting https://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
-        exit 1
+
+    # do this if it starts with "concept_"
+    if [[ $i =~ ^concept_.* ]]; then
+        curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i > /tmp/x.$$
+        if [[ $? -ne 0 ]]; then
+            cat /tmp/x.$$ | sed 's/^/    /'
+            echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
+            exit 1
+        fi
     fi
 done
-/bin/rm -f /tmp/x.$$
+
+echo "  Cleanup"
+/bin/rm -rf /tmp/x.$$ $DOWNLOAD_DIR/NCIM $DOWNLOAD_DIR/Metathesaurus.RRF.zip
 
 echo ""
 echo "--------------------------------------------------"

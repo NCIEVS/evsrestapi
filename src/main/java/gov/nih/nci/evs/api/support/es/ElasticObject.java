@@ -1,5 +1,7 @@
+
 package gov.nih.nci.evs.api.support.es;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -77,7 +79,15 @@ public class ElasticObject extends BaseModel {
     this.paths = paths;
   }
 
+  /**
+   * Returns the concepts.
+   *
+   * @return the concepts
+   */
   public List<Concept> getConcepts() {
+    if (concepts == null) {
+      concepts = new ArrayList<>();
+    }
     return concepts;
   }
 
@@ -86,6 +96,9 @@ public class ElasticObject extends BaseModel {
   }
 
   public List<ConceptMinimal> getConceptMinimals() {
+    if (conceptMinimals == null) {
+      conceptMinimals = new ArrayList<>();
+    }
     return conceptMinimals;
   }
 
