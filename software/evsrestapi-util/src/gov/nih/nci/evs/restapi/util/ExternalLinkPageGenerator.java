@@ -1,4 +1,6 @@
-package gov.nih.nci.evs.restapi.util;
+
+import gov.nih.nci.evs.restapi.util.*;
+import gov.nih.nci.evs.restapi.bean.*;
 
 import java.io.*;
 import java.io.BufferedReader;
@@ -12,7 +14,6 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
-//import org.apache.commons.codec.binary.Base64;
 import java.nio.charset.Charset;
 
 import java.time.Duration;
@@ -69,6 +70,7 @@ import java.time.Duration;
 
 
 public class ExternalLinkPageGenerator {
+	static String NCI_BROWSER_PROPERTYES_XML = "NCItBrowserProperties.xml";
 	String restURL = null;
 	String namedGraph = null;
 	String username = null;
@@ -93,7 +95,6 @@ public class ExternalLinkPageGenerator {
 			String code = (String) u.elementAt(1);
 			propertyCode2labelHashMap.put(code, label);
 		}
-
 	}
 
 	public String getPropertyLabel(String code) {
@@ -103,7 +104,6 @@ public class ExternalLinkPageGenerator {
 	public Vector executeQuery(String query) {
 		return owlSPARQLUtils.executeQuery(query);
 	}
-//P93
 
 	public String construct_get_concepts_with_property(String named_graph, String propertyCode) {
 		String prefixes = owlSPARQLUtils.getPrefixes();
@@ -142,7 +142,25 @@ public class ExternalLinkPageGenerator {
 		return "<a href=\"" + url + code + "\">" + code + "</a>";
 	}
 
-    public void run(String url, String propertyCode) {
+    public void run(String propertyCode) {
+		run(NCI_BROWSER_PROPERTYES_XML, propertyCode);
+	}
+
+	public String external_hyperlink_url = null;
+
+	public String get_external_hyperlink_url() {
+		return external_hyperlink_url;
+	}
+
+	public void set_external_hyperlink_url(String external_hyperlink_url) {
+		System.out.println("external_hyperlink_url: " + external_hyperlink_url);
+		this.external_hyperlink_url = external_hyperlink_url;
+	}
+
+    public void run(String xmlfile, String propertyCode) {
+		String propertyName = getPropertyLabel(propertyCode);
+		String url = getUri(propertyName);
+
         Vector w = getConceptsWithProperty(namedGraph, propertyCode);
         Vector w1 = new Vector();
 		for (int i=0; i<w.size(); i++) {
@@ -152,7 +170,6 @@ public class ExternalLinkPageGenerator {
 			    + hyperlink(url, (String) u.elementAt(2)));
 		}
         Vector w0 = new Vector();
-        String propertyName = getPropertyLabel(propertyCode);
         w0.add("Label|Code|" + propertyName);
         w0.addAll(w1);
         Utils.saveToFile(propertyName + ".txt", w0);
@@ -162,6 +179,31 @@ public class ExternalLinkPageGenerator {
 		System.out.println(outputfile + " generated.");
 	}
 
+	//NCI_BROWSER_PROPERTYES_XML
+	public String getUri(String propertyName) {
+		if (external_hyperlink_url != null) {
+			return external_hyperlink_url;
+		}
+		return getUri(NCI_BROWSER_PROPERTYES_XML, propertyName);
+	}
+
+	public String getUri(String xmlfile, String propertyName) {
+		String mod_propertyName = propertyName.replace("_", " ");
+        PropertyFileParser parser = new PropertyFileParser(xmlfile);
+        parser.run();
+        Iterator it = parser.getDisplayItemList().iterator();
+        if (it == null) return null;
+        while (it.hasNext()) {
+            DisplayItem item = (DisplayItem) it.next();
+			String s = item.getItemLabel().replace("_", " ");
+            if (item.getItemLabel().compareTo(propertyName) == 0 || s.compareTo(propertyName) == 0 ||
+                item.getItemLabel().compareTo(mod_propertyName) == 0 || s.compareTo(mod_propertyName) == 0) {
+				return item.getUrl();
+			}
+        }
+        return null;
+	}
+
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -169,12 +211,16 @@ public class ExternalLinkPageGenerator {
 		String namedGraph = args[1];
 		String username = args[2];
 		String password = args[3];
+		String propertyCode = args[4];
         ExternalLinkPageGenerator generator = new ExternalLinkPageGenerator(
 			restURL, namedGraph, username, password);
 
-		String propertyCode = "P93";
-        String url = "https://www.uniprot.org/uniprot/";
-        generator.run(url, propertyCode);
+		//String propertyCode = "P93";
+        //String xmlfile = "NCItBrowserProperties.xml";
+        if (args.length == 6) {
+			generator.set_external_hyperlink_url(args[5]);
+		}
+		generator.run(propertyCode);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
