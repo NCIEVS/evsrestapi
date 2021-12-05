@@ -1,5 +1,4 @@
-
-import gov.nih.nci.evs.restapi.util.*;
+package gov.nih.nci.evs.restapi.util;
 import gov.nih.nci.evs.restapi.bean.*;
 
 import java.io.*;
