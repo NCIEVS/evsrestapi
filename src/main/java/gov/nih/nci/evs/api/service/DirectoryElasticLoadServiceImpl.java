@@ -790,11 +790,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     propMetaSyn.setName(code);
     // add synonym as list to property
     propMeta.getSynonyms().add(propMetaSyn);
-    final Synonym expandedFormSyn = new Synonym();
-    expandedFormSyn.setType("Synonym");
-    expandedFormSyn.setName(name);
-    // add synonym as list to property
-    propMeta.getSynonyms().add(expandedFormSyn);
+    final Definition def = new Definition();
+    def.setType("DEFINITION");
+    def.setDefinition(name);
+    // add definition
+    propMeta.getDefinitions().add(def);
+
     return propMeta;
   }
 
@@ -848,19 +849,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject properties = new ElasticObject("properties");
 
     // MRSTY: Semantic_Type property
-    final Concept semType = new Concept(terminology.getTerminology(), "Semantic_Type", "Semantic_Type");
-    semType.setName("Semantic Type");
-    semType.setTerminology(terminology.getTerminology());
-    semType.setVersion(terminology.getVersion());
-    final Synonym semTypePn = new Synonym();
-    semTypePn.setType("Preferred_Name");
-    semTypePn.setName("Semantic_Type");
-    semType.getSynonyms().add(semTypePn);
-    final Synonym semTypeSy = new Synonym();
-    semTypeSy.setType("Synonym");
-    semTypeSy.setName("Semantic Type");
-    semType.getSynonyms().add(semTypeSy);
-    properties.getConcepts().add(semType);
+    properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
 
     // MRSAT: property metadata for MRSAT
     for (final String atn : atnSet) {
