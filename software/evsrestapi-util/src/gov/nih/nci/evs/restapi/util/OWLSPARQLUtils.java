@@ -6385,6 +6385,85 @@ Term Type
 		return new SortUtils().quickSort(v);
 	}
 
+	public String construct_get_maps_to(String named_graph, String terminology, String terminologyVersion) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		if (terminologyVersion != null) {
+			buf.append("select distinct ?x1_label ?x1_code ?p2_label ?a2_target ?q1_label ?q1_value ?q2_label ?q2_value ?q3_label ?q3_value ?q4_label ?q4_value ?q5_label ?q5_value").append("\n");
+		} else {
+			buf.append("select distinct ?x1_label ?x1_code ?p2_label ?a2_target ?q1_label ?q1_value ?q2_label ?q2_value ?q3_label ?q3_value ?q4_label ?q4_value").append("\n");
+		}
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  {").append("\n");
+		buf.append("                ?x1 a owl:Class .").append("\n");
+		buf.append("                ?x1 :NHC0 ?x1_code .").append("\n");
+		buf.append("                ?x1 rdfs:label ?x1_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?a1 a owl:Axiom .").append("\n");
+		buf.append("                ?a1 owl:annotatedSource ?x1 .").append("\n");
+		buf.append("                ?a1 owl:annotatedProperty ?p2 .").append("\n");
+		buf.append("                ?a1 owl:annotatedTarget ?a2_target .").append("\n");
+		buf.append("                ?p2 :NHC0 \"P375\"^^xsd:string .").append("\n");
+		buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?q1 :NHC0 \"P393\"^^xsd:string .").append("\n");
+		buf.append("                ?q1 rdfs:label ?q1_label .").append("\n");
+		buf.append("                ?a1 ?q1 ?q1_value .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?q2 :NHC0 \"P394\"^^xsd:string .").append("\n");
+		buf.append("                ?q2 rdfs:label ?q2_label .").append("\n");
+		buf.append("                ?a1 ?q2 ?q2_value .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?q3 :NHC0 \"P395\"^^xsd:string .").append("\n");
+		buf.append("                ?q3 rdfs:label ?q3_label .").append("\n");
+		buf.append("                ?a1 ?q3 ?q3_value .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?q4 :NHC0 \"P396\"^^xsd:string .").append("\n");
+		buf.append("                ?q4 rdfs:label ?q4_label .").append("\n");
+		buf.append("                ?a1 ?q4 \"" + terminology + "\"^^xsd:string .").append("\n");
+		buf.append("                ?a1 ?q4 ?q4_value .").append("\n");
+		buf.append("").append("\n");
+		if (terminologyVersion != null) {
+			buf.append("                ?q5 :NHC0 \"P397\"^^xsd:string .").append("\n");
+			buf.append("                ?q5 rdfs:label ?q5_label .").append("\n");
+			buf.append("                ?a1 ?q5 \"" + terminologyVersion + "\"^^xsd:string .").append("\n");
+			buf.append("                ?a1 ?q5 ?q5_value .").append("\n");
+	    }
+		buf.append("").append("\n");
+		buf.append("}").append("\n");
+
+		return buf.toString();
+	}
+
+	public Vector getMapsTo(String named_graph, String terminology, String terminologyVersion) {
+		String query = construct_get_maps_to(named_graph, terminology, terminologyVersion);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
+    public String getLatestVersionOfCodingScheme(String codingScheme) {
+		HashMap nameVersion2NamedGraphMap = getNameVersion2NamedGraphMap();
+		if (nameVersion2NamedGraphMap == null) return null;
+		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
+		Vector versions = new Vector();
+		while (it.hasNext()) {
+			String nameVersion = (String) it.next();
+			System.out.println(nameVersion);
+			Vector u = StringUtils.parseData(nameVersion);
+			String codingSchemeName = (String) u.elementAt(0);
+			if (codingSchemeName.compareTo(codingScheme) == 0) {
+				String version = (String) u.elementAt(1);
+				versions.add(version);
+			}
+		}
+		versions = new SortUtils().quickSort(versions);
+        return (String) versions.elementAt(versions.size()-1);
+	}
+
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
