@@ -50,7 +50,7 @@ apply plugin: 'maven-publish'
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "1.5.0.RELEASE"
+version = "1.6.0.RELEASE"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
