@@ -780,16 +780,21 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     final String name) {
     final Concept propMeta = new Concept();
     propMeta.setCode(code);
-    propMeta.setName(name);
+    propMeta.setName(code);
     propMeta.setTerminology(terminology.getTerminology());
     propMeta.setVersion(terminology.getVersion());
 
     // property synonym info
     final Synonym propMetaSyn = new Synonym();
     propMetaSyn.setType("Preferred_Name");
-    propMetaSyn.setName(name);
+    propMetaSyn.setName(code);
     // add synonym as list to property
     propMeta.getSynonyms().add(propMetaSyn);
+    final Synonym expandedFormSyn = new Synonym();
+    expandedFormSyn.setType("Synonym");
+    expandedFormSyn.setName(name);
+    // add synonym as list to property
+    propMeta.getSynonyms().add(expandedFormSyn);
     return propMeta;
   }
 
@@ -843,13 +848,17 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject properties = new ElasticObject("properties");
 
     // MRSTY: Semantic_Type property
-    final Concept semType = new Concept(terminology.getTerminology(), "STY", "Semantic_Type");
+    final Concept semType = new Concept(terminology.getTerminology(), "Semantic_Type", "Semantic_Type");
     semType.setName("Semantic Type");
     semType.setTerminology(terminology.getTerminology());
     semType.setVersion(terminology.getVersion());
+    final Synonym semTypePn = new Synonym();
+    semTypePn.setType("Preferred_Name");
+    semTypePn.setName("Semantic_Type");
+    semType.getSynonyms().add(semTypePn);
     final Synonym semTypeSy = new Synonym();
-    semTypeSy.setType("Preferred_Name");
-    semTypeSy.setName("Semantic_Type");
+    semTypeSy.setType("Synonym");
+    semTypeSy.setName("Semantic Type");
     semType.getSynonyms().add(semTypeSy);
     properties.getConcepts().add(semType);
 
