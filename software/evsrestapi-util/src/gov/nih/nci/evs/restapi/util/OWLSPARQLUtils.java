@@ -6310,6 +6310,40 @@ Term Type
 		return new SortUtils().quickSort(v);
 	}
 
+	public String construct_get_axiom_qualifier_values(String named_graph, String propertyCode, String qualifierCode) {
+		String prefixes = getPrefixes();
+		StringBuffer buf = new StringBuffer();
+		buf.append(prefixes);
+		buf.append("select distinct ?p2_label ?q1_label ?q1_value").append("\n");
+		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("where  { ").append("\n");
+		buf.append("                    ?x1 a owl:Class .").append("\n");
+		buf.append("                    ?x1 :NHC0 ?x1_code .").append("\n");
+		buf.append("                    ?x1 rdfs:label ?x1_label .").append("\n");
+		buf.append("").append("\n");
+		buf.append("                ?a1 a owl:Axiom .").append("\n");
+		buf.append("                ?a1 owl:annotatedSource ?x1 .").append("\n");
+		buf.append("                ?a1 owl:annotatedProperty ?p2 .").append("\n");
+		buf.append("                ?a1 owl:annotatedTarget ?a2_target .").append("\n");
+		buf.append("                ?p2 :NHC0 \"" + propertyCode + "\"^^xsd:string .").append("\n");
+		buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
+		buf.append("                ?q1 :NHC0 \"" + qualifierCode + "\"^^xsd:string .").append("\n");
+		buf.append("                ?q1 rdfs:label ?q1_label .").append("\n");
+		buf.append("                ?a1 ?q1 ?q1_value .").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
+	public Vector getAxiomQualifierValues(String named_graph, String propertyCode, String qualifierCode) {
+		String query = construct_get_axiom_qualifier_values(named_graph, propertyCode, qualifierCode);
+		Vector v = executeQuery(query);
+		if (v == null) return null;
+		if (v.size() == 0) return v;
+		v = new ParserUtils().getResponseValues(v);
+		return new SortUtils().quickSort(v);
+	}
+
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String restURL = args[0];
