@@ -34,6 +34,7 @@ ext {
      */
      swaggerversion = "2.9.2"
 }
+ext['log4j2.version'] = '2.15.0'
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -59,8 +60,6 @@ springBoot {
     // generate file META-INF/build-info.properties during the build
     buildInfo()          
 }
-
-ext['log4j2.version'] = '2.15.0'
 
 dependencies {
    
