@@ -50,7 +50,7 @@ apply plugin: 'maven-publish'
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "1.6.0.RELEASE"
+version = "1.5.0.RELEASE"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -80,6 +80,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.4'
     compile 'cglib:cglib:2.2.2'
     compile 'com.maxmind.geoip2:geoip2:2.15.0'
+    // log4j upgrade for vulnerability CVE-2021-44228
     compile 'org.apache.logging.log4j:log4j-api:2.15.0'
 
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
