@@ -80,6 +80,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.4'
     compile 'cglib:cglib:2.2.2'
     compile 'com.maxmind.geoip2:geoip2:2.15.0'
+    compile 'org.apache.logging.log4j:log4j-api:2.15.0'
 
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
