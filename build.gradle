@@ -60,6 +60,8 @@ springBoot {
     buildInfo()          
 }
 
+ext['log4j2.version'] = '2.15.0'
+
 dependencies {
    
     compile 'org.springframework.boot:spring-boot-starter-web'       
