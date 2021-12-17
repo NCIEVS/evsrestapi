@@ -34,7 +34,7 @@ ext {
      */
      swaggerversion = "2.9.2"
 }
-ext['log4j2.version'] = '2.15.0'
+ext['log4j2.version'] = '2.16.0'
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -81,8 +81,6 @@ dependencies {
     compile 'commons-cli:commons-cli:1.4'
     compile 'cglib:cglib:2.2.2'
     compile 'com.maxmind.geoip2:geoip2:2.15.0'
-    // log4j upgrade for vulnerability CVE-2021-44228
-    compile 'org.apache.logging.log4j:log4j-api:2.15.0'
 
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
