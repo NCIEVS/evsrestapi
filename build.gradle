@@ -34,7 +34,7 @@ ext {
      */
      swaggerversion = "2.9.2"
 }
-ext['log4j2.version'] = '2.16.0'
+ext['log4j2.version'] = '2.17.0'
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
