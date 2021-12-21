@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import org.apache.commons.lang.*;
-import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
 
 
 /**
@@ -62,7 +62,7 @@ import org.apache.log4j.*;
 
 
 public class VisUtils {
-    private static Logger _logger = Logger.getLogger(VisUtils.class);
+    private static Logger _logger = LogManager.getLogger(VisUtils.class);
 
     public static final int NODES_ONLY = 1;
     public static final int EDGES_ONLY = 2;
