@@ -330,7 +330,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           handleDefinitions(terminology, codes, mrdef, prevCui);
           handleSemanticTypes(codes, mrsty, prevCui);
           handleAttributes(terminology, codes, mrsat, prevCui);
-          handleRelationships(concept, mrrel, prevCui);
+          handleRelationships(terminology, codes, mrrel, prevCui);
 
           if (maps.containsKey(cui)) {
             concept.getMaps().addAll(maps.get(cui));
@@ -403,7 +403,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       handleDefinitions(terminology, codes, mrdef, prevCui);
       handleSemanticTypes(codes, mrsty, prevCui);
       handleAttributes(terminology, codes, mrsat, prevCui);
-      handleRelationships(concept, mrrel, prevCui);
+      handleRelationships(terminology, codes, mrrel, prevCui);
 
       for (final String code : codes) {
         codeCuisMap.get(code).remove(prevCui);
@@ -673,12 +673,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       if (!fields[10].equals(terminology.getTerminology().toUpperCase())) {
         continue;
       }
-      
+
       // Determine concept 1
       Concept concept1 = null;
       for (final String code : codes) {
-        // if matching AUI attribute
-        if (codeAuisMap.get(code).contains(fields[2])) {
+        // if matching STYPE1/AUI1 attribute
+        if (terminology.getMetadata().getMetaConceptField().equals(fields[2])
+            && codeAuisMap.get(code).contains(fields[2])) {
           concept1 = codeConceptMap.get(code);
           break;
         }
@@ -689,15 +690,32 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       if (concept1 == null) {
         continue;
       }
-      
+
+      // Determine concept 2
+      Concept concept2 = null;
+      for (final String code : codes) {
+        // if matching STYPE2/AUI2 attribute
+        if (terminology.getMetadata().getMetaConceptField().equals(fields[2])
+            && codeAuisMap.get(code).contains(fields[2])) {
+          concept2 = codeConceptMap.get(code);
+          break;
+        }
+        // TODO: OTHERWISE, we are skipping it
+      }
+
+      // This can happen to an CODE relationship for an SCUI-based source
+      if (concept2 == null) {
+        continue;
+      }
+
       // CUI1 has parent CUI2
-       if (rel.equals("PAR")) {
-        buildParent(concept, fields);
+      if (rel.equals("PAR")) {
+        buildParent(concept1, concept2, fields);
       }
 
       // CUI1 has child CUI2
       else if (rel.equals("CHD")) {
-        buildChild(concept, fields);
+        buildChild(concept1, concept2, fields);
       }
 
       // Other "association" and "inverse association"
@@ -707,7 +725,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // if (fields[10].equals("SNOMEDCT_US")) {
         // continue;
         // }
-        buildAssociations(concept, fields);
+        buildAssociations(concept1, concept2, fields);
       }
 
     }
@@ -721,9 +739,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @return the property
    * @throws Exception the exception
    */
-  private void buildParent(final Concept concept, final String[] fields) throws Exception {
-    final Concept parent = buildParentChildHelper(concept, fields);
-    concept.getParents().add(parent);
+  private void buildParent(final Concept concept1, final Concept concept2, final String[] fields)
+    throws Exception {
+    final Concept parent = buildParentChildHelper(concept1, concept2, fields);
+    concept2.getParents().add(parent);
   }
 
   /**
@@ -733,9 +752,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @throws Exception the exception
    */
-  private void buildChild(final Concept concept, final String[] fields) throws Exception {
-    final Concept child = buildParentChildHelper(concept, fields);
-    concept.getChildren().add(child);
+  private void buildChild(final Concept concept1, final Concept concept2, final String[] fields)
+    throws Exception {
+    final Concept child = buildParentChildHelper(concept1, concept2, fields);
+    concept2.getChildren().add(child);
   }
 
   /**
@@ -746,59 +766,22 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @return the concept
    * @throws Exception the exception
    */
-  private Concept buildParentChildHelper(final Concept concept, final String[] fields)
-    throws Exception {
+  private Concept buildParentChildHelper(final Concept concept1, final Concept concept2,
+    final String[] fields) throws Exception {
 
     // C2584594|A9570455|SCUI|PAR|C0203464|A3803453|SCUI|inverse_isa|R105418833|4727926024|SNOMEDCT_US|SNOMEDCT_US||N|N||
-    // final String cui1 = fields[0];
-    // final String aui1 = fields[1];
-    // final String stype1 = fields[2];
-    // final String rel = fields[3];
-    final String cui2 = fields[4];
-    // final String aui2 = fields[5];
-    // final String stype2 = fields[6];
     final String rela = fields[7];
-    // final String rui = fields[8];
-    // final String srui = fields[9];
-    final String sab = fields[10];
-    // final String rg = fields[12];
-    // final String dir = fields[13];
-    // final String suppress = fields[14];
-    // final String cvf = fields[15];
 
-    final Concept concept2 = new Concept();
-    concept2.setCode(cui2);
-    concept2.setName(nameMap.get(cui2));
-    concept2.setTerminology(concept.getTerminology());
-    concept2.setVersion(concept2.getVersion());
-    concept2.setLeaf(false);
+    final Concept concept = new Concept();
+    concept.setCode(concept1.getCode());
+    concept.setName(nameMap.get(concept1.getCode()));
+    concept.setTerminology(concept1.getTerminology());
+    concept.setVersion(concept1.getVersion());
+    concept.setLeaf(false);
     if (!rela.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+      concept.getQualifiers().add(new Qualifier("RELA", rela));
     }
-
-    // if (!rg.isEmpty()) {
-    // concept2.getQualifiers().add(new Qualifier("RG", rg));
-    // }
-    // if (!dir.isEmpty()) {
-    // concept2.getQualifiers().add(new Qualifier("DIR", dir));
-    // }
-
-    // if (!aui1.isEmpty()) {
-    // concept2.getQualifiers().add(new Qualifier("AUI1", aui1));
-    // concept2.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    // }
-    // if (!aui2.isEmpty()) {
-    // concept2.getQualifiers().add(new Qualifier("AUI2", aui2));
-    // concept2.getQualifiers().add(new Qualifier("STYPE2", stype2));
-    // }
-    concept2.setSource(sab);
-    // concept2.getQualifiers().add(new Qualifier("RUI", rui));
-    // if (!srui.isEmpty()) {
-    // concept2.getQualifiers().add(new Qualifier("SRUI", srui));
-    // }
-    // concept2.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
-
-    return concept2;
+    return concept;
   }
 
   /**
@@ -808,80 +791,37 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @throws Exception the exception
    */
-  private void buildAssociations(final Concept concept, final String[] fields) throws Exception {
+  private void buildAssociations(final Concept concept1, final Concept concept2,
+    final String[] fields) throws Exception {
 
     // e.g.
     // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
-    // final String cui1 = fields[0];
-    final String aui1 = fields[1];
-    // final String stype1 = fields[2];
     final String rel = fields[3];
-    final String cui2 = fields[4];
-    final String aui2 = fields[5];
-    // final String stype2 = fields[6];
     final String rela = fields[7];
-    // final String rui = fields[8];
-    // final String srui = fields[9];
     final String sab = fields[10];
-    // final String rg = fields[12];
-    // final String dir = fields[13];
-    // final String suppress = fields[14];
-    // final String cvf = fields[15];
 
     // Build and add association
     final Association association = new Association();
     association.setType(rel);
     relSet.add(rel);
 
-    association.setRelatedCode(cui2);
-    association.setRelatedName(nameMap.get(cui2));
+    association.setRelatedCode(concept1.getCode());
+    association.setRelatedName(nameMap.get(concept1.getCode()));
     association.setSource(sab);
     if (!rela.isEmpty()) {
       association.getQualifiers().add(new Qualifier("RELA", rela));
     }
 
-    // if (!rg.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("RG", rg));
-    // }
-    // if (!dir.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("DIR", dir));
-    // }
-
-    // if (!aui1.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("AUI1", aui1));
-    // association.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    // }
-    // if (!aui2.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("AUI2", aui1));
-    // association.getQualifiers().add(new Qualifier("STYPE2", stype2));
-    // }
-    // association.getQualifiers().add(new Qualifier("RUI", rui));
-    // if (!srui.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("SRUI", srui));
-    // }
-    // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
-    concept.getAssociations().add(association);
+    concept2.getAssociations().add(association);
 
     // Build and add an inverse association
     final Association iassociation = new Association();
     iassociation.setType(relInverseMap.get(rel));
-    iassociation.setRelatedCode(cui2);
-    iassociation.setRelatedName(nameMap.get(cui2));
+    iassociation.setRelatedCode(concept2.getCode());
+    iassociation.setRelatedName(nameMap.get(concept2.getCode()));
     iassociation.setSource(sab);
-    if (!aui1.isEmpty()) {
-      // iassociation.getQualifiers().add(new Qualifier("AUI1", aui2));
-      // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    }
-    if (!aui2.isEmpty()) {
-      // iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
-      // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
-    }
     iassociation.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
-    // RUI and SRUI in the other direction are different.
-    // iassociation.getQualifiers().add(new Qualifier("RG", rg));
-    // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
-    // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
-    concept.getInverseAssociations().add(iassociation);
+    concept1.getInverseAssociations().add(iassociation);
 
   }
 
