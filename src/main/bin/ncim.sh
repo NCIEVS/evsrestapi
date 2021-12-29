@@ -5,6 +5,7 @@ download=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --download) download=1;;
+  --terminology) terminology="$2"; shift;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
@@ -16,17 +17,21 @@ elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
 fi
 if [ $ok -eq 0 ]; then
   echo "Usage: $0 [--noconfig] [--download] [<dir>]"
+  echo "Usage:    [--terminology <terminology, e.g. MDR>]
   echo "  e.g. $0 /data/evs/ncim"
   echo "  e.g. $0 --noconfig /data/evs/ncim"
   echo "  e.g. $0 --download"
   echo "  e.g. $0 --noconfig --download"
+  echo "  e.g. $0 --noconfig --download --terminology MDR"
   exit 1
 fi
 
 if [ ${#arr[@]} -eq 1 ]; then
   dir=${arr[0]}
 fi
-terminology=ncim
+if [[ -z $terminology ]]; then
+    terminology=ncim
+fi
 
 # Set download dir if not set (regardless of mode)
 if [[ -z $DOWNLOAD_DIR ]]; then
@@ -141,7 +146,11 @@ fi
 export EVS_SERVER_PORT="8083"
 
 # Remove if this already exists
-version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+if [[ $term == "ncim" ]]; then
+    version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+else
+    version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
+fi
 echo "  Remove indexes for $terminology $version"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 $DIR/remove.sh $terminology $version > /tmp/x.$$ 2>&1
@@ -150,7 +159,6 @@ if [[ $? -ne 0 ]]; then
     echo "ERROR: removing $terminology $version indexes"
     exit 1
 fi
-
 
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"

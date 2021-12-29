@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
@@ -42,15 +41,15 @@ import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
 
 /**
- * The implementation for {@link DirectoryElasticLoadServiceImpl}.
+ * The implementation for {@link MetaSourceElasticLoadServiceImpl}.
  */
 @Service
-public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
+public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
   @SuppressWarnings("unused")
   private static final Logger logger =
-      LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
+      LoggerFactory.getLogger(MetaSourceElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -74,10 +73,17 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
 
-  /** The scui cui map. */
-  private Map<String, String> codeCuiMap = new HashMap<>();
+  /** The code cuis map. */
+  private Map<String, Set<String>> codeCuisMap = new HashMap<>();
+
+  /** The code auis map. */
+  private Map<String, Set<String>> codeAuisMap = new HashMap<>();
+
+  /** The code concept map. */
+  private Map<String, Concept> codeConceptMap = new HashMap<>();
 
   /** The mapsets. */
+  @SuppressWarnings("unused")
   private Map<String, String> mapsets = new HashMap<>();
 
   /** The maps. */
@@ -110,6 +116,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /** The rel set. */
   private Set<String> relSet = new HashSet<>();
 
+  /** The batch size. */
   private int batchSize = 0;
 
   /** the environment *. */
@@ -141,9 +148,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Cache preferred names and REL/RELA inverses.
    *
+   * @param terminology the terminology
    * @throws Exception the exception
    */
-  private void cacheMaps() throws Exception {
+  private void cacheMaps(Terminology terminology) throws Exception {
 
     logger.info("  START cache maps");
     RrfReaders readers = new RrfReaders(this.getFilepath());
@@ -153,6 +161,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
 
+      if (terminology.getMetadata().getPreferredTermTypes().isEmpty()) {
+        throw new Exception(
+            "No preferred term types are specified, meaning no preferred names can be chosen");
+      }
+
       String line = null;
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
@@ -160,72 +173,77 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
         // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,SAB,TTY,CODE,STR,SRL,SUPPRESS,CVF
 
+        // Determine the code
+        final String code = getCode(terminology, fields);
+
+        // Skip NOCODE
+        if (code.equals("NOCODE")) {
+          continue;
+        }
+
         // Cache concept preferred names
-        if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
-            && fields[6].equalsIgnoreCase("Y")) {
-          // Save the name map to dereference it while processing relationships
-          nameMap.put(fields[0], fields[14]);
+        if (fields[11].equals(terminology.getTerminology().toUpperCase())
+            && terminology.getMetadata().getPreferredTermTypes().contains(fields[12])) {
+
+          // Save the name map to dereference it while processing rels
+          nameMap.put(code, fields[14]);
         }
 
-        // Cache ICD10CM PT names for mapping data
-        if (fields[11].equals("ICD10CM") && fields[12].equals("PT")) {
-          nameMap.put(fields[13], fields[14]);
-        }
-
-        // Cache SNOMEDCT_US/PT SCUI -> CUI for maps
-        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("PT") && fields[16].equals("N")) {
-          codeCuiMap.put(fields[13], fields[0]);
-        }
-
-        // Cache mapsets
-        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM")
-            && fields[14].contains("ICD10CM")) {
-          // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
-          mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+        // If this MRCONSO entry has a "code" in this CUI, remember it
+        if (fields[11].equals(terminology.getTerminology().toUpperCase())) {
+          if (!codeCuisMap.containsKey(code)) {
+            codeCuisMap.put(code, new HashSet<>());
+            codeAuisMap.put(code, new HashSet<>());
+          }
+          codeCuisMap.get(code).add(fields[0]);
+          codeAuisMap.get(code).add(fields[7]);
         }
 
       }
 
-      // Loop through map lines and cache map objects
-      while ((line = mrmap.readLine()) != null) {
-        // MAPSETCUI,MAPSETSAB,MAPSUBSETID,MAPRANK,MAPID,MAPSID,FROMID,FROMSID,
-        // FROMEXPR,FROMTYPE,FROMRULE,FROMRES,REL,RELA,TOID,TOSID,TOEXPR,TOTYPE,
-        // TORULE,TORES,MAPRULE,MAPRES,MAPTYPE,MAPATN,MAPATV,CVF
-        final String[] fields = line.split("\\|", -1);
+      // TODO: deal with MRMAP for SNOMED
+      // Loop through map lines and cache map objects (only in isMeta=true mode)
+      // while ((line = mrmap.readLine()) != null) {
+      // // MAPSETCUI,MAPSETSAB,MAPSUBSETID,MAPRANK,MAPID,MAPSID,FROMID,FROMSID,
+      // //
+      // FROMEXPR,FROMTYPE,FROMRULE,FROMRES,REL,RELA,TOID,TOSID,TOEXPR,TOTYPE,
+      // // TORULE,TORES,MAPRULE,MAPRES,MAPTYPE,MAPATN,MAPATV,CVF
+      // final String[] fields = line.split("\\|", -1);
+      //
+      // // Skip map sets not being tracked
+      // if (!mapsets.containsKey(fields[0])) {
+      // continue;
+      // }
+      //
+      // // Skip empty maps (or maps to the empty target: 100051
+      // if (fields[16].isEmpty() || fields[16].equals("100051")) {
+      // continue;
+      // }
+      //
+      // final gov.nih.nci.evs.api.model.Map map = new
+      // gov.nih.nci.evs.api.model.Map();
+      // map.setSourceCode(fields[8]);
+      // map.setSourceTerminology(fields[8]);
+      // map.setTargetCode(fields[16]);
+      // map.setTargetName(nameMap.get(fields[16]));
+      // map.setTargetTermGroup("PT");
+      // map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
+      // map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
+      // map.setType(fields[12]);
+      //
+      // // Fix target name if null
+      // if (map.getTargetName() == null) {
+      // map.setTargetName("Unable to determine name, code not present");
+      // }
+      //
+      // final String cui = codeCuiMap.get(fields[8]);
+      // if (!maps.containsKey(cui)) {
+      // maps.put(cui, new HashSet<>());
+      // }
+      // maps.get(cui).add(map);
+      // }
 
-        // Skip map sets not being tracked
-        if (!mapsets.containsKey(fields[0])) {
-          continue;
-        }
-
-        // Skip empty maps (or maps to the empty target: 100051
-        if (fields[16].isEmpty() || fields[16].equals("100051")) {
-          continue;
-        }
-
-        final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
-        map.setSourceCode(fields[8]);
-        map.setSourceTerminology(fields[8]);
-        map.setTargetCode(fields[16]);
-        map.setTargetName(nameMap.get(fields[16]));
-        map.setTargetTermGroup("PT");
-        map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
-        map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
-        map.setType(fields[12]);
-
-        // Fix target name if null
-        if (map.getTargetName() == null) {
-          map.setTargetName("Unable to determine name, code not present");
-        }
-
-        final String cui = codeCuiMap.get(fields[8]);
-        if (!maps.containsKey(cui)) {
-          maps.put(cui, new HashSet<>());
-        }
-        maps.get(cui).add(map);
-      }
-
-      // read inverses from MRDOC
+      // Always read inverses from MRDOC
       while ((line = mrdoc.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
         if (fields[2].equals("rel_inverse")) {
@@ -242,7 +260,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       }
       relaInverseMap.put("", "");
 
-      // Column Metadata
+      // Always read column Metadata
       while ((line = mrcols.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
         // ATN|Attribute name||2|10.94|62|MRSAT.RRF|varchar(100)|
@@ -272,7 +290,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
     // Cache the concept preferred names so when we resolve relationships we
     // know the "related" name
-    cacheMaps();
+    cacheMaps(terminology);
 
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
@@ -285,14 +303,19 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       // Set up vars
       String line = null;
       String prevCui = null;
-      Concept concept = new Concept();
+      Set<String> codes = new HashSet<>();
+      Concept concept = null;
       List<Concept> batch = new ArrayList<>();
       int totalConcepts = 0;
+
+      // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,SAB,TTY,CODE,STR,SRL,SUPPRESS,CVF
 
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
         final String cui = fields[0];
+        final String sab = fields[11];
+
         // Test assumption that the file is in order (when considering
         // |)
         if (prevCui != null && (cui + "|").compareTo(prevCui + "|") < 0) {
@@ -303,64 +326,103 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         // "prevCui"
         if (!cui.equals(prevCui)) {
 
-          // Process data
-          handleDefinitions(terminology, concept, mrdef, prevCui);
-          handleSemanticTypes(concept, mrsty, prevCui);
-          handleAttributes(concept, mrsat, prevCui);
+          // Process data from this CUI
+          handleDefinitions(terminology, codes, mrdef, prevCui);
+          handleSemanticTypes(codes, mrsty, prevCui);
+          handleAttributes(terminology, codes, mrsat, prevCui);
           handleRelationships(concept, mrrel, prevCui);
 
           if (maps.containsKey(cui)) {
             concept.getMaps().addAll(maps.get(cui));
           }
 
-          // There are not useful mappings in the UMLS at this point in time
-          // handleMapping(concept, mrmap, prevCui);
-          handleConcept(concept, batch, false, terminology.getIndexName());
+          // Remove the prevCui from the codeCuisMap because
+          // they have all been processed
+          for (final String code : codes) {
+            codeCuisMap.get(code).remove(prevCui);
 
-          if (totalConcepts++ % 5000 == 0) {
-            logger.info("    count = " + totalConcepts);
+            // If codeCuisMap is completely processed, handle the concept
+            if (codeCuisMap.get(code).isEmpty()) {
+
+              concept = codeConceptMap.get(code);
+              handleConcept(concept, batch, false, terminology.getIndexName());
+
+              if (totalConcepts++ % 5000 == 0) {
+                logger.info("    count = " + totalConcepts);
+              }
+
+              // Free up some memory
+              codeConceptMap.remove(code);
+              codeCuisMap.remove(code);
+              codeAuisMap.remove(code);
+
+            }
           }
 
-          // Prep concept for the next CUI
-          concept = new Concept();
+          // Start codes again for the next CUI
+          codes = new HashSet<>();
 
         }
 
-        // If we haven't set up the concept yet, do so now
-        if (concept.getCode() == null) {
-          concept.setCode(cui);
-          concept.setName(nameMap.get(cui));
-          concept.setNormName(ConceptUtils.normalize(nameMap.get(cui)));
-          concept.setTerminology(terminology.getTerminology());
-          concept.setVersion(terminology.getVersion());
-          // NO hierarchies for NCIM concepts, so set leaf to null
-          concept.setLeaf(null);
-        }
+        // If this is a line for the source we care about
+        if (sab.equals(terminology.getTerminology().toUpperCase())) {
 
-        // Each line of MRCONSO is a synonym
-        final Synonym sy = new Synonym();
-        sy.setType(fields[14].equals(concept.getName()) ? "Preferred_Name" : "Synonym");
-        if (!fields[13].equals("NOCODE")) {
-          sy.setCode(fields[13]);
+          // Lookup the code
+          final String code = getCode(terminology, fields);
+
+          // Skip NOCODE
+          if (code.equals("NOCODE")) {
+            continue;
+          }
+
+          if (!codeConceptMap.containsKey(code)) {
+            concept = new Concept();
+            concept.setCode(code);
+            concept.setName(nameMap.get(code));
+            concept.setNormName(ConceptUtils.normalize(nameMap.get(code)));
+            concept.setTerminology(terminology.getTerminology());
+            concept.setVersion(terminology.getVersion());
+            // TODO: deal with hierarchies later
+            concept.setLeaf(null);
+            codeConceptMap.put(code, concept);
+          }
+
+          // Each line of MRCONSO is a synonym
+          concept = codeConceptMap.get(code);
+          addSynonym(terminology, concept, fields);
+
+          codes.add(code);
+
         }
-        sy.setSource(fields[11]);
-        terminology.getMetadata().getSynonymSourceSet().add(fields[11]);
-        sy.setTermGroup(fields[12]);
-        terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
-        sy.setName(fields[14]);
-        sy.setNormName(ConceptUtils.normalize(fields[14]));
-        concept.getSynonyms().add(sy);
 
         // Save prev cui for next round
         prevCui = cui;
       }
 
       // Process the final concept and all it's connected data
-      handleDefinitions(terminology, concept, mrdef, prevCui);
-      handleSemanticTypes(concept, mrsty, prevCui);
-      handleAttributes(concept, mrsat, prevCui);
+      handleDefinitions(terminology, codes, mrdef, prevCui);
+      handleSemanticTypes(codes, mrsty, prevCui);
+      handleAttributes(terminology, codes, mrsat, prevCui);
       handleRelationships(concept, mrrel, prevCui);
-      handleConcept(concept, batch, true, terminology.getIndexName());
+
+      for (final String code : codes) {
+        codeCuisMap.get(code).remove(prevCui);
+
+        // If codeCuisMap is completely processed, handle the concept
+        if (codeCuisMap.get(code).isEmpty()) {
+
+          concept = codeConceptMap.get(code);
+          handleConcept(concept, batch, false, terminology.getIndexName());
+
+          if (totalConcepts++ % 5000 == 0) {
+            logger.info("    count = " + totalConcepts);
+          }
+        } else {
+          // If not, then something went wrong, should not be possible
+          throw new Exception(
+              "Unexpected additional CUIs for code not covered = " + codeCuisMap.get(code));
+        }
+      }
 
       totalConcepts++;
 
@@ -372,6 +434,23 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   }
 
+  public void addSynonym(final Terminology terminology, Concept concept, final String[] fields)
+    throws Exception {
+    // Each line of MRCONSO is a synonym
+    final Synonym sy = new Synonym();
+    sy.setType(fields[14].equals(concept.getName()) ? "Preferred_Name" : "Synonym");
+    if (!concept.getCode().equals(fields[13])) {
+      sy.setCode(fields[13]);
+    }
+    sy.setSource(fields[11]);
+    terminology.getMetadata().getSynonymSourceSet().add(fields[11]);
+    sy.setTermGroup(fields[12]);
+    terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
+    sy.setName(fields[14]);
+    sy.setNormName(ConceptUtils.normalize(fields[14]));
+    concept.getSynonyms().add(sy);
+  }
+
   /**
    * Handle semantic types.
    *
@@ -380,7 +459,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleSemanticTypes(final Concept concept, final PushBackReader mrsty,
+  public void handleSemanticTypes(final Set<String> codes, final PushBackReader mrsty,
     final String prevCui) throws Exception {
     String line;
     while ((line = mrsty.readLine()) != null) {
@@ -390,8 +469,13 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         break;
       }
 
-      // hard code to Semantic_Type for now
-      buildProperty(concept, "Semantic_Type", fields[3], null);
+      // For each concept related to this CUI, add the STY
+      for (final String code : codes) {
+        Concept concept = codeConceptMap.get(code);
+        // hard code to Semantic_Type for now
+        buildProperty(concept, "Semantic_Type", fields[3], null);
+      }
+
     }
   }
 
@@ -403,8 +487,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleAttributes(final Concept concept, final PushBackReader mrsat,
-    final String prevCui) throws Exception {
+  public void handleAttributes(final Terminology terminology, final Set<String> codes,
+    final PushBackReader mrsat, final String prevCui) throws Exception {
 
     // Track seen to avoid duplicates
     final Set<String> seen = new HashSet<>();
@@ -417,8 +501,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         break;
       }
 
-      // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF
-
       // Skip SUBSET_MEMBER
       if (fields[8].equals("SUBSET_MEMBER")) {
         continue;
@@ -429,29 +511,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // ALLOW AUI attributes
-      // if (fields[4].equals("AUI")) {
-      //
-      // final boolean rxnormKeep =
-      // fields[9].equals("RXNORM") && !fields[8].equals("RXAUI") &&
-      // !fields[8].equals("RXAUI");
-      // final boolean mthsplKeep = fields[9].equals("MTHSPL");
-      //
-      // if (!rxnormKeep && !mthsplKeep) {
-      // continue;
-      // }
-      // }
-
-      // ALLOW certain high-volume SNOMED attributes
-      // if (fields[9].equals("SNOMEDCT_US") &&
-      // (fields[8].equals("EFFECTIVE_TIME")
-      // || fields[8].equals("ACTIVE") || fields[8].equals("CTV3ID")
-      // || fields[8].equals("MODIFIER_ID") ||
-      // fields[8].equals("CHARACTERISTIC_TYPE_ID"))) {
-      // continue;
-      // }
-
-      // consider skipping MDR - SMQ*, PT_IN_VERSION
+      // Skip non-matching SAB lines
+      if (!fields[9].equals(terminology.getTerminology().toUpperCase())) {
+        continue;
+      }
 
       // handle properties (include dynamic type)
       // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF|
@@ -462,6 +525,29 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
       seen.add(atn + sab + atv);
+
+      // Determine which concept this definition applies to
+      Concept concept = null;
+      for (final String code : codes) {
+        // if matching AUI attribute
+        if ("AUI".equals(fields[3]) && codeAuisMap.get(code).contains(fields[2])) {
+          concept = codeConceptMap.get(code);
+          break;
+        }
+        // OR a matching "meta concept field" attribute
+        else if (terminology.getMetadata().getMetaConceptField().equals(fields[3])
+            && code.equals(fields[5])) {
+          concept = codeConceptMap.get(code);
+          break;
+        }
+        // TODO: OTHERWISE, we are skipping it
+      }
+
+      // This can happen to an CODE relationship for an SCUI-based source
+      if (concept == null) {
+        continue;
+      }
+
       buildProperty(concept, atn, atv, sab);
     }
   }
@@ -496,15 +582,37 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  private void handleDefinitions(final Terminology terminology, final Concept concept,
+  private void handleDefinitions(final Terminology terminology, final Set<String> codes,
     final PushBackReader mrdef, final String prevCui) throws Exception {
     String line;
+
+    // CUI,AUI,ATUI,SATUI,SAB,DEF,SUPPRESS,CVF
     while ((line = mrdef.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
       if (!fields[0].equals(prevCui)) {
         mrdef.push(line);
         break;
       }
+
+      // Skip non-matching SAB lines
+      if (!fields[4].equals(terminology.getTerminology().toUpperCase())) {
+        continue;
+      }
+
+      // Determine which concept this definition applies to
+      Concept concept = null;
+      for (final String code : codes) {
+        if (codeAuisMap.get(code).contains(fields[2])) {
+          concept = codeConceptMap.get(code);
+          break;
+        }
+      }
+
+      // should not be possible
+      if (concept == null) {
+        throw new Exception("Unable to find concept for MRDEF line = " + line);
+      }
+
       // handle definitions
       buildDefinition(terminology, concept, fields);
     }
@@ -539,8 +647,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleRelationships(final Concept concept, final PushBackReader mrrel,
-    final String prevCui) throws Exception {
+  public void handleRelationships(final Terminology terminology, final Set<String> codes,
+    final PushBackReader mrrel, final String prevCui) throws Exception {
     String line;
     while ((line = mrrel.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -549,32 +657,41 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         break;
       }
 
+      // CUI1,AUI1,STYPE1,REL,CUI2,AUI2,STYPE2,RELA,RUI,SRUI,SAB,SL,RG,DIR,SUPPRESS,CVF
       // e.g.
       // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
       final String rel = fields[3];
-      final String fromCode = fields[0];
-      final String toCode = fields[4];
+      final String fromAui = fields[1];
+      final String toAui = fields[5];
 
       // Skip certain situations
-      if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
-          || rel.equals("BRO")) {
+      if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")) {
         continue;
       }
 
-      // ALLOW AUI-AUI relationships
-      // else if (fields[2].equals("AUI") && fields[6].equals("AUI")) {
-      // if (!fields[10].equals("RXNORM")) {
-      // continue;
-      // }
-      // }
+      // Skip non-matching SAB lines
+      if (!fields[10].equals(terminology.getTerminology().toUpperCase())) {
+        continue;
+      }
+      
+      // Determine concept 1
+      Concept concept1 = null;
+      for (final String code : codes) {
+        // if matching AUI attribute
+        if (codeAuisMap.get(code).contains(fields[2])) {
+          concept1 = codeConceptMap.get(code);
+          break;
+        }
+        // TODO: OTHERWISE, we are skipping it
+      }
 
-      // ALLOW - SPECIAL EXCEPTION FOR SIZE
-      // if (fromCode.equals("C0205447") && fields[10].startsWith("SNOMED")) {
-      // continue;
-      // }
-
+      // This can happen to an CODE relationship for an SCUI-based source
+      if (concept1 == null) {
+        continue;
+      }
+      
       // CUI1 has parent CUI2
-      else if (rel.equals("PAR")) {
+       if (rel.equals("PAR")) {
         buildParent(concept, fields);
       }
 
@@ -959,12 +1076,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         final String[] fields = line.split("\\|", -1);
         sourceMap.put(fields[3], fields[4]);
 
-        if (fields[3].equals("NCIMTH")) {
-          Properties p = new Properties();
-          p.load(input);
-          term.setTerminology(terminology);
-          term.setVersion(p.getProperty("umls.release.name"));
-          term.setDate(p.getProperty("umls.release.date"));
+        if (terminology.equals(fields[3]) && !fields[0].isEmpty()) {
+          term.setTerminology(terminology.toLowerCase());
+          term.setVersion(fields[6]);
+          // No info about the date
+          term.setDate(null);
           if (line != null) {
             term.setName(line.split("\\|", -1)[4]);
             term.setDescription(line.split("\\|", -1)[24]);
@@ -975,10 +1091,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
           term.setIndexName("concept_" + term.getTerminologyVersion());
           term.setLatest(true);
           term.setSparqlFlag(false);
-          // if (forceDelete) {
-          // logger.info(" DELETE TERMINOLOGY = " + term.getIndexName());
-          // findAndDeleteTerminology(term.getIndexName());
-          // }
+          break;
         }
       }
 
@@ -1004,7 +1117,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) {
-    // Don't need hierarchy utils in this indexing
+    // TODO: if term != ncim, build hierarchy from MRREL
     return null;
   }
 
@@ -1017,6 +1130,27 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public void cleanStaleIndexes(final Terminology terminology) throws Exception {
     // do nothing - override superclass behavior
+  }
+
+  /**
+   * Returns the code.
+   *
+   * @param terminology the terminology
+   * @param fields the fields
+   * @return the code
+   * @throws Exception the exception
+   */
+  private String getCode(final Terminology terminology, final String[] fields) throws Exception {
+    if (terminology.getMetadata().getMetaConceptField().equals("CODE")) {
+      return fields[13];
+    } else if (terminology.getMetadata().getMetaConceptField().equals("SCUI")) {
+      return fields[9];
+    } else if (terminology.getMetadata().getMetaConceptField().equals("SDUI")) {
+      return fields[10];
+    } else {
+      throw new Exception("Missing or incorrect metaConceptField = "
+          + terminology.getMetadata().getMetaConceptField());
+    }
   }
 
 }

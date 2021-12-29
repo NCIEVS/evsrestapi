@@ -114,6 +114,7 @@ public class TerminologyMetadataUnitTest {
     tester.include("subsetPrefix");
     tester.include("unpublished");
     tester.include("monthlyDb");
+    tester.include("licenseText");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
