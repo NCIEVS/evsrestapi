@@ -191,7 +191,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         if (fields[11].equals("SRC")) {
           srcAuis.add(fields[7]);
         }
-        
+
         // Cache concept preferred names
         if (fields[11].toLowerCase().equals(terminology.getTerminology())
             && terminology.getMetadata().getPreferredTermTypes().contains(fields[12])) {
@@ -359,6 +359,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             if (codeCuisMap.get(code).isEmpty()) {
 
               concept = codeConceptMap.get(code);
+              concept.setLeaf(concept.getChildren().size() > 0);
               handleConcept(concept, batch, false, terminology.getIndexName());
 
               if (totalConcepts++ % 5000 == 0) {
@@ -396,8 +397,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept.setNormName(ConceptUtils.normalize(nameMap.get(code)));
             concept.setTerminology(terminology.getTerminology());
             concept.setVersion(terminology.getVersion());
-            // TODO: deal with hierarchies later
-            concept.setLeaf(null);
             if (concept.getName() == null) {
               throw new Exception(
                   "Unable to find preferred name, likely TTY issue (" + terminology.getTerminology()
@@ -432,6 +431,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           if (codeCuisMap.get(code).isEmpty()) {
 
             concept = codeConceptMap.get(code);
+            concept.setLeaf(concept.getChildren().size() > 0);
             handleConcept(concept, batch, true, terminology.getIndexName());
 
             if (totalConcepts++ % 5000 == 0) {
@@ -546,7 +546,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // Skip RUI Attributes
+      // TODO: handle RUI attributes as qualifiers on relationships
       if (fields[4].equals("RUI")) {
         continue;
       }
@@ -700,7 +700,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       if (!fields[10].toLowerCase().equals(terminology.getTerminology())) {
         continue;
       }
-      
+
       // Skip SRC AUI lines
       if (srcAuis.contains(fields[1]) || srcAuis.contains(fields[5])) {
         continue;
@@ -715,8 +715,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           concept1 = codeConceptMap.get(code);
           break;
         }
-      }      
-      
+      }
+
       // This is unexpected, except for cross-terminology mapping rels
       if (concept1 == null && !rela.contains("map")) {
         throw new Exception("AUI1 for relationship cannot be resolved = " + line);
@@ -737,13 +737,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // CUI2 "child of" CUI1
       // CUI1 has parent CUI2
       if (rel.equals("CHD")) {
-        buildParent(concept1, fields);
+        buildChild(concept1, fields);
       }
 
       // CUI2 "parent of" CUI1
       // CUI1 has child CUI2
       else if (rel.equals("PAR")) {
-        buildChild(concept1, fields);
+        buildParent(concept1, fields);
       }
 
       // Other "association" and "inverse association"
@@ -769,7 +769,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void buildParent(final Concept concept, final String[] fields) throws Exception {
     final Concept parent = buildParentChildHelper(concept, fields);
-    concept.getParents().add(parent);
+    if (!concept.getCode().equals(parent.getCode())) {
+      concept.getParents().add(parent);
+    }
   }
 
   /**
@@ -781,7 +783,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void buildChild(Concept concept, final String[] fields) throws Exception {
     final Concept child = buildParentChildHelper(concept, fields);
-    concept.getChildren().add(child);
+    if (!concept.getCode().equals(child.getCode())) {
+      concept.getChildren().add(child);
+    }
   }
 
   /**
@@ -804,7 +808,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setName(nameMap.get(auiCodeMap.get(aui2)));
     concept2.setTerminology(concept.getTerminology());
     concept2.setVersion(concept.getVersion());
-    // TODO: deal with hierarchies later
     concept2.setLeaf(null);
     if (!rela.isEmpty()) {
       concept2.getQualifiers().add(new Qualifier("RELA", rela));
@@ -831,26 +834,32 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
     // Build and add association
     final Association association = new Association();
-    association.setType(rel);
-    relSet.add(rel);
-
+    association.setType(relInverseMap.get(rel));
     association.setRelatedCode(auiCodeMap.get(aui2));
     association.setRelatedName(nameMap.get(auiCodeMap.get(aui2)));
     association.setSource(sab);
-    if (!rela.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("RELA", rela));
+    association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+
+    if (!association.getRelatedCode().equals(concept.getCode())) {
+      concept.getAssociations().add(association);
     }
-
-    concept.getAssociations().add(association);
-
+    
     // Build and add an inverse association
     final Association iassociation = new Association();
-    iassociation.setType(relInverseMap.get(rel));
+    iassociation.setType(rel);
+    relSet.add(rel);
+
     iassociation.setRelatedCode(auiCodeMap.get(aui2));
     iassociation.setRelatedName(nameMap.get(auiCodeMap.get(aui2)));
     iassociation.setSource(sab);
-    iassociation.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
-    concept.getInverseAssociations().add(iassociation);
+    if (!rela.isEmpty()) {
+      iassociation.getQualifiers().add(new Qualifier("RELA", rela));
+    }
+
+    if (!iassociation.getRelatedCode().equals(concept.getCode())) {
+      concept.getInverseAssociations().add(iassociation);
+    }
+
 
   }
 
@@ -1086,7 +1095,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) {
-    // TODO: if term != ncim, build hierarchy from MRREL
     return null;
   }
 
