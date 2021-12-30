@@ -653,7 +653,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setCode(cui2);
     concept2.setName(nameMap.get(cui2));
     concept2.setTerminology(concept.getTerminology());
-    concept2.setVersion(concept2.getVersion());
+    concept2.setVersion(concept.getVersion());
     concept2.setLeaf(false);
     if (!rela.isEmpty()) {
       concept2.getQualifiers().add(new Qualifier("RELA", rela));

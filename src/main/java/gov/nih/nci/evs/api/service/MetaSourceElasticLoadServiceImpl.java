@@ -79,6 +79,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The code auis map. */
   private Map<String, Set<String>> codeAuisMap = new HashMap<>();
 
+  /** The aui code map. */
+  private Map<String, String> auiCodeMap = new HashMap<>();
+
+  /** The src auis. */
+  private Set<String> srcAuis = new HashSet<>();
+
   /** The code concept map. */
   private Map<String, Concept> codeConceptMap = new HashMap<>();
 
@@ -181,8 +187,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           continue;
         }
 
+        // Cache SRC AUIs
+        if (fields[11].equals("SRC")) {
+          srcAuis.add(fields[7]);
+        }
+        
         // Cache concept preferred names
-        if (fields[11].equals(terminology.getTerminology().toUpperCase())
+        if (fields[11].toLowerCase().equals(terminology.getTerminology())
             && terminology.getMetadata().getPreferredTermTypes().contains(fields[12])) {
 
           // Save the name map to dereference it while processing rels
@@ -190,13 +201,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // If this MRCONSO entry has a "code" in this CUI, remember it
-        if (fields[11].equals(terminology.getTerminology().toUpperCase())) {
+        if (fields[11].toLowerCase().equals(terminology.getTerminology())) {
           if (!codeCuisMap.containsKey(code)) {
             codeCuisMap.put(code, new HashSet<>());
             codeAuisMap.put(code, new HashSet<>());
           }
           codeCuisMap.get(code).add(fields[0]);
+          // AUIs that are part of a code
           codeAuisMap.get(code).add(fields[7]);
+          // CODE for an AUI
+          auiCodeMap.put(fields[7], code);
         }
 
       }
@@ -365,7 +379,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // If this is a line for the source we care about
-        if (sab.equals(terminology.getTerminology().toUpperCase())) {
+        if (sab.toLowerCase().equals(terminology.getTerminology())) {
 
           // Lookup the code
           final String code = getCode(terminology, fields);
@@ -384,6 +398,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept.setVersion(terminology.getVersion());
             // TODO: deal with hierarchies later
             concept.setLeaf(null);
+            if (concept.getName() == null) {
+              throw new Exception(
+                  "Unable to find preferred name, likely TTY issue (" + terminology.getTerminology()
+                      + ".json) = " + terminology.getTerminology().toUpperCase() + ", " + code);
+            }
             codeConceptMap.put(code, concept);
           }
 
@@ -405,26 +424,36 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       handleAttributes(terminology, codes, mrsat, prevCui);
       handleRelationships(terminology, codes, mrrel, prevCui);
 
-      for (final String code : codes) {
-        codeCuisMap.get(code).remove(prevCui);
+      if (codes.size() > 0) {
+        for (final String code : codes) {
+          codeCuisMap.get(code).remove(prevCui);
 
-        // If codeCuisMap is completely processed, handle the concept
-        if (codeCuisMap.get(code).isEmpty()) {
+          // If codeCuisMap is completely processed, handle the concept
+          if (codeCuisMap.get(code).isEmpty()) {
 
-          concept = codeConceptMap.get(code);
-          handleConcept(concept, batch, false, terminology.getIndexName());
+            concept = codeConceptMap.get(code);
+            handleConcept(concept, batch, true, terminology.getIndexName());
 
-          if (totalConcepts++ % 5000 == 0) {
-            logger.info("    count = " + totalConcepts);
+            if (totalConcepts++ % 5000 == 0) {
+              logger.info("    count = " + totalConcepts);
+            }
+          } else {
+            // If not, then something went wrong, should not be possible
+            throw new Exception(
+                "Unexpected additional CUIs for code not covered = " + codeCuisMap.get(code));
           }
-        } else {
-          // If not, then something went wrong, should not be possible
-          throw new Exception(
-              "Unexpected additional CUIs for code not covered = " + codeCuisMap.get(code));
         }
+      }
+      // force index
+      else {
+        logger.info("    BATCH index = " + batchSize + ", " + batch.size());
+        operationsService.bulkIndex(new ArrayList<>(batch), terminology.getIndexName(),
+            ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       }
 
       totalConcepts++;
+
+      logger.info("TOTAL concepts = " + totalConcepts);
 
       return totalConcepts;
 
@@ -434,11 +463,21 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   }
 
+  /**
+   * Adds the synonym.
+   *
+   * @param terminology the terminology
+   * @param concept the concept
+   * @param fields the fields
+   * @throws Exception the exception
+   */
   public void addSynonym(final Terminology terminology, Concept concept, final String[] fields)
     throws Exception {
     // Each line of MRCONSO is a synonym
     final Synonym sy = new Synonym();
-    sy.setType(fields[14].equals(concept.getName()) ? "Preferred_Name" : "Synonym");
+    sy.setType(fields[14].equals(concept.getName())
+        && terminology.getMetadata().getPreferredTermTypes().contains(fields[12]) ? "Preferred_Name"
+            : "Synonym");
     if (!concept.getCode().equals(fields[13])) {
       sy.setCode(fields[13]);
     }
@@ -454,7 +493,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Handle semantic types.
    *
-   * @param concept the concept
+   * @param codes the codes
    * @param mrsty the mrsty
    * @param prevCui the prev cui
    * @throws Exception the exception
@@ -482,7 +521,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Handle attributes.
    *
-   * @param concept the concept
+   * @param terminology the terminology
+   * @param codes the codes
    * @param mrsat the mrsat
    * @param prevCui the prev cui
    * @throws Exception the exception
@@ -512,7 +552,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Skip non-matching SAB lines
-      if (!fields[9].equals(terminology.getTerminology().toUpperCase())) {
+      if (!fields[9].toLowerCase().equals(terminology.getTerminology())) {
         continue;
       }
 
@@ -530,22 +570,15 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       Concept concept = null;
       for (final String code : codes) {
         // if matching AUI attribute
-        if ("AUI".equals(fields[3]) && codeAuisMap.get(code).contains(fields[2])) {
+        if (codeAuisMap.get(code).contains(fields[3])) {
           concept = codeConceptMap.get(code);
           break;
         }
-        // OR a matching "meta concept field" attribute
-        else if (terminology.getMetadata().getMetaConceptField().equals(fields[3])
-            && code.equals(fields[5])) {
-          concept = codeConceptMap.get(code);
-          break;
-        }
-        // TODO: OTHERWISE, we are skipping it
       }
 
-      // This can happen to an CODE relationship for an SCUI-based source
+      // This is unexpected
       if (concept == null) {
-        continue;
+        throw new Exception("Concept for attribute cannot be resolved = " + line);
       }
 
       buildProperty(concept, atn, atv, sab);
@@ -577,7 +610,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * Handle definitions.
    *
    * @param terminology the terminology
-   * @param concept the concept
+   * @param codes the codes
    * @param mrdef the mrdef
    * @param prevCui the prev cui
    * @throws Exception the exception
@@ -595,18 +628,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Skip non-matching SAB lines
-      if (!fields[4].equals(terminology.getTerminology().toUpperCase())) {
+      if (!fields[4].toLowerCase().equals(terminology.getTerminology())) {
         continue;
       }
 
       // Determine which concept this definition applies to
-      Concept concept = null;
-      for (final String code : codes) {
-        if (codeAuisMap.get(code).contains(fields[2])) {
-          concept = codeConceptMap.get(code);
-          break;
-        }
-      }
+      final Concept concept = codeConceptMap.get(auiCodeMap.get(fields[1]));
 
       // should not be possible
       if (concept == null) {
@@ -642,7 +669,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Handle relationships.
    *
-   * @param concept the concept
+   * @param terminology the terminology
+   * @param codes the codes
    * @param mrrel the mrrel
    * @param prevCui the prev cui
    * @throws Exception the exception
@@ -661,8 +689,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // e.g.
       // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
       final String rel = fields[3];
-      final String fromAui = fields[1];
-      final String toAui = fields[5];
+      final String rela = fields[7];
 
       // Skip certain situations
       if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")) {
@@ -670,52 +697,53 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Skip non-matching SAB lines
-      if (!fields[10].equals(terminology.getTerminology().toUpperCase())) {
+      if (!fields[10].toLowerCase().equals(terminology.getTerminology())) {
+        continue;
+      }
+      
+      // Skip SRC AUI lines
+      if (srcAuis.contains(fields[1]) || srcAuis.contains(fields[5])) {
         continue;
       }
 
-      // Determine concept 1
+      // Determine concept1 (lookup the concept for the AUI and it must still be
+      // a code we are processing)
       Concept concept1 = null;
       for (final String code : codes) {
         // if matching STYPE1/AUI1 attribute
-        if (terminology.getMetadata().getMetaConceptField().equals(fields[2])
-            && codeAuisMap.get(code).contains(fields[2])) {
+        if (!fields[1].isEmpty() && codeAuisMap.get(code).contains(fields[1])) {
           concept1 = codeConceptMap.get(code);
           break;
         }
-        // TODO: OTHERWISE, we are skipping it
+      }      
+      
+      // This is unexpected, except for cross-terminology mapping rels
+      if (concept1 == null && !rela.contains("map")) {
+        throw new Exception("AUI1 for relationship cannot be resolved = " + line);
       }
 
-      // This can happen to an CODE relationship for an SCUI-based source
-      if (concept1 == null) {
-        continue;
-      }
+      // Determine concept2 (lookup the code for the AUI)
+      String concept2 = null;
+      // if matching STYPE2/AUI2 attribute
+      if (!fields[5].isEmpty() && auiCodeMap.containsKey(fields[5])) {
+        concept2 = auiCodeMap.get(fields[5]);
 
-      // Determine concept 2
-      Concept concept2 = null;
-      for (final String code : codes) {
-        // if matching STYPE2/AUI2 attribute
-        if (terminology.getMetadata().getMetaConceptField().equals(fields[2])
-            && codeAuisMap.get(code).contains(fields[2])) {
-          concept2 = codeConceptMap.get(code);
-          break;
+        // This is unexpected, except for cross-terminology mapping rels
+        if (concept2 == null && !rela.contains("map")) {
+          throw new Exception("AUI2 for relationship cannot be resolved = " + line);
         }
-        // TODO: OTHERWISE, we are skipping it
       }
 
-      // This can happen to an CODE relationship for an SCUI-based source
-      if (concept2 == null) {
-        continue;
-      }
-
+      // CUI2 "child of" CUI1
       // CUI1 has parent CUI2
-      if (rel.equals("PAR")) {
-        buildParent(concept1, concept2, fields);
+      if (rel.equals("CHD")) {
+        buildParent(concept1, fields);
       }
 
+      // CUI2 "parent of" CUI1
       // CUI1 has child CUI2
-      else if (rel.equals("CHD")) {
-        buildChild(concept1, concept2, fields);
+      else if (rel.equals("PAR")) {
+        buildChild(concept1, fields);
       }
 
       // Other "association" and "inverse association"
@@ -725,7 +753,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // if (fields[10].equals("SNOMEDCT_US")) {
         // continue;
         // }
-        buildAssociations(concept1, concept2, fields);
+        buildAssociations(concept1, fields);
       }
 
     }
@@ -739,10 +767,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @return the property
    * @throws Exception the exception
    */
-  private void buildParent(final Concept concept1, final Concept concept2, final String[] fields)
-    throws Exception {
-    final Concept parent = buildParentChildHelper(concept1, concept2, fields);
-    concept2.getParents().add(parent);
+  private void buildParent(final Concept concept, final String[] fields) throws Exception {
+    final Concept parent = buildParentChildHelper(concept, fields);
+    concept.getParents().add(parent);
   }
 
   /**
@@ -752,36 +779,38 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @throws Exception the exception
    */
-  private void buildChild(final Concept concept1, final Concept concept2, final String[] fields)
-    throws Exception {
-    final Concept child = buildParentChildHelper(concept1, concept2, fields);
-    concept2.getChildren().add(child);
+  private void buildChild(Concept concept, final String[] fields) throws Exception {
+    final Concept child = buildParentChildHelper(concept, fields);
+    concept.getChildren().add(child);
   }
 
   /**
-   * Builds the parent child helper.
+   * Builds the parent/child helper.
    *
    * @param concept the concept
    * @param fields the fields
    * @return the concept
    * @throws Exception the exception
    */
-  private Concept buildParentChildHelper(final Concept concept1, final Concept concept2,
-    final String[] fields) throws Exception {
+  private Concept buildParentChildHelper(final Concept concept, final String[] fields)
+    throws Exception {
 
     // C2584594|A9570455|SCUI|PAR|C0203464|A3803453|SCUI|inverse_isa|R105418833|4727926024|SNOMEDCT_US|SNOMEDCT_US||N|N||
+    final String aui2 = fields[5];
     final String rela = fields[7];
 
-    final Concept concept = new Concept();
-    concept.setCode(concept1.getCode());
-    concept.setName(nameMap.get(concept1.getCode()));
-    concept.setTerminology(concept1.getTerminology());
-    concept.setVersion(concept1.getVersion());
-    concept.setLeaf(false);
+    final Concept concept2 = new Concept();
+    concept2.setCode(auiCodeMap.get(aui2));
+    concept2.setName(nameMap.get(auiCodeMap.get(aui2)));
+    concept2.setTerminology(concept.getTerminology());
+    concept2.setVersion(concept.getVersion());
+    // TODO: deal with hierarchies later
+    concept2.setLeaf(null);
     if (!rela.isEmpty()) {
-      concept.getQualifiers().add(new Qualifier("RELA", rela));
+      concept2.getQualifiers().add(new Qualifier("RELA", rela));
     }
-    return concept;
+
+    return concept2;
   }
 
   /**
@@ -791,12 +820,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @throws Exception the exception
    */
-  private void buildAssociations(final Concept concept1, final Concept concept2,
-    final String[] fields) throws Exception {
+  private void buildAssociations(final Concept concept, final String[] fields) throws Exception {
 
     // e.g.
     // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
     final String rel = fields[3];
+    final String aui2 = fields[5];
     final String rela = fields[7];
     final String sab = fields[10];
 
@@ -805,23 +834,23 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     association.setType(rel);
     relSet.add(rel);
 
-    association.setRelatedCode(concept1.getCode());
-    association.setRelatedName(nameMap.get(concept1.getCode()));
+    association.setRelatedCode(auiCodeMap.get(aui2));
+    association.setRelatedName(nameMap.get(auiCodeMap.get(aui2)));
     association.setSource(sab);
     if (!rela.isEmpty()) {
       association.getQualifiers().add(new Qualifier("RELA", rela));
     }
 
-    concept2.getAssociations().add(association);
+    concept.getAssociations().add(association);
 
     // Build and add an inverse association
     final Association iassociation = new Association();
     iassociation.setType(relInverseMap.get(rel));
-    iassociation.setRelatedCode(concept2.getCode());
-    iassociation.setRelatedName(nameMap.get(concept2.getCode()));
+    iassociation.setRelatedCode(auiCodeMap.get(aui2));
+    iassociation.setRelatedName(nameMap.get(auiCodeMap.get(aui2)));
     iassociation.setSource(sab);
     iassociation.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
-    concept1.getInverseAssociations().add(iassociation);
+    concept.getInverseAssociations().add(iassociation);
 
   }
 

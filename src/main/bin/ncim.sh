@@ -17,7 +17,7 @@ elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
 fi
 if [ $ok -eq 0 ]; then
   echo "Usage: $0 [--noconfig] [--download] [<dir>]"
-  echo "Usage:    [--terminology <terminology, e.g. MDR>]
+  echo "Usage:    [--terminology <terminology, e.g. MDR>]"
   echo "  e.g. $0 /data/evs/ncim"
   echo "  e.g. $0 --noconfig /data/evs/ncim"
   echo "  e.g. $0 --download"
@@ -146,7 +146,7 @@ fi
 export EVS_SERVER_PORT="8083"
 
 # Remove if this already exists
-if [[ $term == "ncim" ]]; then
+if [[ $terminology == "ncim" ]]; then
     version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 else
     version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`

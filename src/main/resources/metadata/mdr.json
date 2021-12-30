@@ -4,7 +4,8 @@
 	"preferredTermTypes": [
 		"HG",
 		"HT",
-		"PT", 
-		"LT"
+		"LLT",
+		"SMQ",
+		"OL","OS"
 	]
 }
