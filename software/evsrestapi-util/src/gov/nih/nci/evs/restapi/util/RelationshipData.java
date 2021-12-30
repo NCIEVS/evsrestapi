@@ -106,7 +106,7 @@ public class RelationshipData {
 		String label = owlSPARQLUtils.getLabel(code);
 		w.add("<title>" + label + " (" + code + ")");
 
-		Vector v = getHierarchicallyRrelatedConcepts(named_graph, code, true);
+		Vector v = getHierarchicallyRelatedConcepts(named_graph, code, true);
 		w.add("<table>Superconcepts");
 		w.add("<th>Label");
 		w.add("<th>Code");
@@ -122,7 +122,7 @@ public class RelationshipData {
 		w.add("</data>");
 		w.add("</table>");
 
-		v = getHierarchicallyRrelatedConcepts(named_graph, code, false);
+		v = getHierarchicallyRelatedConcepts(named_graph, code, false);
 		w.add("<table>Subconcepts");
 		w.add("<th>Label");
 		w.add("<th>Code");
@@ -435,7 +435,7 @@ public class RelationshipData {
 	}
 
 
-	public Vector getHierarchicallyRrelatedConcepts(String named_graph, String code, boolean direction) {
+	public Vector getHierarchicallyRelatedConcepts(String named_graph, String code, boolean direction) {
 			String query = construct_get_hierarchically_related_concepts(named_graph, code, direction);
 			Vector v = owlSPARQLUtils.executeQuery(query);
 			if (v == null) return null;

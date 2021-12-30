@@ -135,7 +135,7 @@ public class VisUtils {
     public HashMap getRelationshipHashMap(String code) {
 		HashMap relMap = new HashMap();
 		List list = new ArrayList();
-		Vector v = relationshipData.getHierarchicallyRrelatedConcepts(named_graph, code, true);
+		Vector v = relationshipData.getHierarchicallyRelatedConcepts(named_graph, code, true);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
@@ -147,7 +147,7 @@ public class VisUtils {
 		relMap.put("type_superconcept", list);
 		list = new ArrayList();
 
-		v = relationshipData.getHierarchicallyRrelatedConcepts(named_graph, code, false);
+		v = relationshipData.getHierarchicallyRelatedConcepts(named_graph, code, false);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
