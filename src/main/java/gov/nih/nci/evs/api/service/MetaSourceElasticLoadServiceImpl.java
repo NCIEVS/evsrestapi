@@ -82,6 +82,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The aui code map. */
   private Map<String, String> auiCodeMap = new HashMap<>();
 
+  /** The rui qual map. */
+  private Map<String, Set<String>> ruiQualMap = new HashMap<>();
+
   /** The src auis. */
   private Set<String> srcAuis = new HashSet<>();
 
@@ -121,6 +124,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The rel set. */
   private Set<String> relSet = new HashSet<>();
+
+  /**  The qual set. */
+  private Set<String> qualSet = new HashSet<>();
 
   /** The batch size. */
   private int batchSize = 0;
@@ -501,6 +507,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   public void handleSemanticTypes(final Set<String> codes, final PushBackReader mrsty,
     final String prevCui) throws Exception {
     String line;
+    Set<String> seen = new HashSet<>();
     while ((line = mrsty.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
       if (!fields[0].equals(prevCui)) {
@@ -511,8 +518,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // For each concept related to this CUI, add the STY
       for (final String code : codes) {
         Concept concept = codeConceptMap.get(code);
-        // hard code to Semantic_Type for now
+        // hard code to Semantic_Typ
         buildProperty(concept, "Semantic_Type", fields[3], null);
+        if (!seen.contains(fields[0])) {
+          buildProperty(concept, "NCI_META_CUI", fields[0], null);
+        }
+        seen.add(fields[0]);
       }
 
     }
@@ -546,11 +557,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // TODO: handle RUI attributes as qualifiers on relationships
-      if (fields[4].equals("RUI")) {
-        continue;
-      }
-
       // Skip non-matching SAB lines
       if (!fields[9].toLowerCase().equals(terminology.getTerminology())) {
         continue;
@@ -566,22 +572,34 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
       seen.add(atn + sab + atv);
 
-      // Determine which concept this definition applies to
-      Concept concept = null;
-      for (final String code : codes) {
-        // if matching AUI attribute
-        if (codeAuisMap.get(code).contains(fields[3])) {
-          concept = codeConceptMap.get(code);
-          break;
+      // Handle RUI attributes as qualifiers on relationships
+      if (fields[4].equals("RUI")) {
+        qualSet.add(atn);
+        if (!ruiQualMap.containsKey(fields[3])) {
+          ruiQualMap.put(fields[3], new HashSet<>());
         }
+        ruiQualMap.get(fields[3]).add(atn + "|" + atv);
       }
 
-      // This is unexpected
-      if (concept == null) {
-        throw new Exception("Concept for attribute cannot be resolved = " + line);
-      }
+      // Handle other attributes
+      else {
+        // Determine which concept this definition applies to
+        Concept concept = null;
+        for (final String code : codes) {
+          // if matching AUI attribute
+          if (codeAuisMap.get(code).contains(fields[3])) {
+            concept = codeConceptMap.get(code);
+            break;
+          }
+        }
 
-      buildProperty(concept, atn, atv, sab);
+        // This is unexpected
+        if (concept == null) {
+          throw new Exception("Concept for attribute cannot be resolved = " + line);
+        }
+
+        buildProperty(concept, atn, atv, sab);
+      }
     }
   }
 
@@ -840,10 +858,18 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     association.setSource(sab);
     association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
 
+    if (ruiQualMap.containsKey(fields[8])) {
+      for (final String atnatv : ruiQualMap.get(fields[8])) {
+        final String[] parts = atnatv.split("\\|");
+        association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+      }
+      ruiQualMap.remove(fields[8]);
+    }
+
     if (!association.getRelatedCode().equals(concept.getCode())) {
       concept.getAssociations().add(association);
     }
-    
+
     // Build and add an inverse association
     final Association iassociation = new Association();
     iassociation.setType(rel);
@@ -859,7 +885,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (!iassociation.getRelatedCode().equals(concept.getCode())) {
       concept.getInverseAssociations().add(iassociation);
     }
-
 
   }
 
@@ -943,10 +968,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     final ElasticObject properties = new ElasticObject("properties");
 
+    // NCI_META_CUI
+    properties.getConcepts()
+        .add(buildMetadata(terminology, "NCI_META_CUI", "CUI assignment in the NCI Metatehsaurus"));
+
     // MRSTY: Semantic_Type property
     properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
 
     // MRSAT: property metadata for MRSAT
+    // Remove ATNs that are qualifiers
+    atnSet.removeAll(qualSet);
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -966,6 +997,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
+    for (final String qual : qualSet) {
+      qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
+    }
+
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
 

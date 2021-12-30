@@ -49,8 +49,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
   @SuppressWarnings("unused")
-  private static final Logger logger =
-      LoggerFactory.getLogger(MetaElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetaElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -76,6 +75,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The scui cui map. */
   private Map<String, String> codeCuiMap = new HashMap<>();
+
+  /** The rui qual map. */
+  private Map<String, Set<String>> ruiQualMap = new HashMap<>();
 
   /** The mapsets. */
   private Map<String, String> mapsets = new HashMap<>();
@@ -109,6 +111,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The rel set. */
   private Set<String> relSet = new HashSet<>();
+
+  /**  The qual set. */
+  private Set<String> qualSet = new HashSet<>();
 
   private int batchSize = 0;
 
@@ -424,10 +429,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // Skip RUI Attributes
-      if (fields[4].equals("RUI")) {
-        continue;
-      }
 
       // ALLOW AUI attributes
       // if (fields[4].equals("AUI")) {
@@ -462,7 +463,20 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
       seen.add(atn + sab + atv);
+
+      // RUI Attributes
+      if (fields[4].equals("RUI")) {
+        qualSet.add(atn);
+        if (!ruiQualMap.containsKey(fields[3])) {
+          ruiQualMap.put(fields[3], new HashSet<>());
+        }
+        ruiQualMap.get(fields[3]).add(atn + "|" + atv);
+      } 
+      
+      // Handle other attributes
+      else {
       buildProperty(concept, atn, atv, sab);
+      }
     }
   }
 
@@ -722,6 +736,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (!rela.isEmpty()) {
       association.getQualifiers().add(new Qualifier("RELA", rela));
     }
+    if (ruiQualMap.containsKey(fields[8])) {
+      for (final String atnatv : ruiQualMap.get(fields[8])) {
+        logger.info("XXX qual = " + fields[0] + ", " + fields[8] + ", " + atnatv);
+        final String[] parts = atnatv.split("\\|");
+        association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+      }
+      ruiQualMap.remove(fields[8]);
+    }
 
     // if (!rg.isEmpty()) {
     // association.getQualifiers().add(new Qualifier("RG", rg));
@@ -852,6 +874,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
 
     // MRSAT: property metadata for MRSAT
+    // Remove ATNs that are qualifiers
+    atnSet.removeAll(qualSet);
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -870,6 +894,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         "RELA", "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
+    }
+    for (final String qual : qualSet) {
+      qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
