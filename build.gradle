@@ -34,7 +34,7 @@ ext {
      */
      swaggerversion = "2.9.2"
 }
-ext['log4j2.version'] = '2.17.0'
+ext['log4j2.version'] = '2.17.1'
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -51,7 +51,7 @@ apply plugin: 'maven-publish'
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "1.5.0.RELEASE"
+version = "1.6.0.RELEASE"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

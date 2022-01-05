@@ -176,6 +176,14 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Reindex ncim - MDR
+echo "  Reindex ncim - MDR"
+src/main/bin/ncim.sh --noconfig $dir/NCIM --terminology MDR| sed 's/^/    /'
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: problem running ncim.sh for MDR"
+    exit 1
+fi
+
 # Clean and load stardog
 echo "  Remove stardog databases and load monthly/weekly"
 # TODO: if the following fails, there's nothing to catch it

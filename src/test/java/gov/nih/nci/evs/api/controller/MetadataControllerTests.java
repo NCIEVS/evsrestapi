@@ -90,7 +90,9 @@ public class MetadataControllerTests {
           // n/a
         });
     assertThat(list).isNotEmpty();
-    assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
+    assertThat(list.stream().map(t -> t.getTerminology())).contains("ncit");
+    assertThat(list.stream().map(t -> t.getTerminology())).contains("ncim");
+    assertThat(list.stream().map(t -> t.getTerminology())).contains("mdr");
 
     url = baseUrl + "/terminologies?terminology=ncit&latest=true";
     log.info("Testing url - " + url);
@@ -1172,7 +1174,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 3).isTrue();
+    assertThat(terminologies != null && terminologies.size() == 4).isTrue();
 
     result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1352,7 +1354,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 3).isTrue();
+    assertThat(terminologies != null && terminologies.size() == 4).isTrue();
 
   }
 

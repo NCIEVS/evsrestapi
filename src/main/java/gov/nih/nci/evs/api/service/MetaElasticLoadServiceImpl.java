@@ -42,15 +42,14 @@ import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
 
 /**
- * The implementation for {@link DirectoryElasticLoadServiceImpl}.
+ * The implementation for {@link MetaElasticLoadServiceImpl}.
  */
 @Service
-public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
+public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
   @SuppressWarnings("unused")
-  private static final Logger logger =
-      LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetaElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -76,6 +75,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The scui cui map. */
   private Map<String, String> codeCuiMap = new HashMap<>();
+
+  /** The rui qual map. */
+  private Map<String, Set<String>> ruiQualMap = new HashMap<>();
 
   /** The mapsets. */
   private Map<String, String> mapsets = new HashMap<>();
@@ -109,6 +111,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The rel set. */
   private Set<String> relSet = new HashSet<>();
+
+  /** The qual set. */
+  private Set<String> qualSet = new HashSet<>();
 
   private int batchSize = 0;
 
@@ -424,11 +429,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // Skip RUI Attributes
-      if (fields[4].equals("RUI")) {
-        continue;
-      }
-
       // ALLOW AUI attributes
       // if (fields[4].equals("AUI")) {
       //
@@ -462,7 +462,20 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
       seen.add(atn + sab + atv);
-      buildProperty(concept, atn, atv, sab);
+
+      // RUI Attributes
+      if (fields[4].equals("RUI")) {
+        qualSet.add(atn);
+        if (!ruiQualMap.containsKey(fields[3])) {
+          ruiQualMap.put(fields[3], new HashSet<>());
+        }
+        ruiQualMap.get(fields[3]).add(atn + "|" + atv);
+      }
+
+      // Handle other attributes
+      else {
+        buildProperty(concept, atn, atv, sab);
+      }
     }
   }
 
@@ -552,8 +565,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       // e.g.
       // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
       final String rel = fields[3];
-      final String fromCode = fields[0];
-      final String toCode = fields[4];
+      final String fromCode = fields[4];
+      final String toCode = fields[0];
 
       // Skip certain situations
       if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
@@ -653,7 +666,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setCode(cui2);
     concept2.setName(nameMap.get(cui2));
     concept2.setTerminology(concept.getTerminology());
-    concept2.setVersion(concept2.getVersion());
+    concept2.setVersion(concept.getVersion());
     concept2.setLeaf(false);
     if (!rela.isEmpty()) {
       concept2.getQualifiers().add(new Qualifier("RELA", rela));
@@ -713,14 +726,44 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
     // Build and add association
     final Association association = new Association();
-    association.setType(rel);
-    relSet.add(rel);
-
+    association.setType(relInverseMap.get(rel));
     association.setRelatedCode(cui2);
     association.setRelatedName(nameMap.get(cui2));
     association.setSource(sab);
+    if (!aui1.isEmpty()) {
+      // iassociation.getQualifiers().add(new Qualifier("AUI1", aui2));
+      // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    }
+    if (!aui2.isEmpty()) {
+      // iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
+      // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
+    }
     if (!rela.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("RELA", rela));
+      association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+    }
+    if (ruiQualMap.containsKey(fields[8])) {
+      for (final String atnatv : ruiQualMap.get(fields[8])) {
+        final String[] parts = atnatv.split("\\|");
+        association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+      }
+      ruiQualMap.remove(fields[8]);
+    }
+    // RUI and SRUI in the other direction are different.
+    // iassociation.getQualifiers().add(new Qualifier("RG", rg));
+    // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
+    // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+    concept.getAssociations().add(association);
+
+    // Build and add an inverse association
+    final Association iassociation = new Association();
+    iassociation.setType(rel);
+    relSet.add(rel);
+
+    iassociation.setRelatedCode(cui2);
+    iassociation.setRelatedName(nameMap.get(cui2));
+    iassociation.setSource(sab);
+    if (!rela.isEmpty()) {
+      iassociation.getQualifiers().add(new Qualifier("RELA", rela));
     }
 
     // if (!rg.isEmpty()) {
@@ -743,27 +786,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // association.getQualifiers().add(new Qualifier("SRUI", srui));
     // }
     // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
-    concept.getAssociations().add(association);
-
-    // Build and add an inverse association
-    final Association iassociation = new Association();
-    iassociation.setType(relInverseMap.get(rel));
-    iassociation.setRelatedCode(cui2);
-    iassociation.setRelatedName(nameMap.get(cui2));
-    iassociation.setSource(sab);
-    if (!aui1.isEmpty()) {
-      // iassociation.getQualifiers().add(new Qualifier("AUI1", aui2));
-      // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    }
-    if (!aui2.isEmpty()) {
-      // iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
-      // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
-    }
-    iassociation.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
-    // RUI and SRUI in the other direction are different.
-    // iassociation.getQualifiers().add(new Qualifier("RG", rg));
-    // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
-    // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getInverseAssociations().add(iassociation);
 
   }
@@ -852,6 +874,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
 
     // MRSAT: property metadata for MRSAT
+    // Remove ATNs that are qualifiers
+    atnSet.removeAll(qualSet);
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -867,9 +891,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // qualifiers to build - from relationships
     // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
     for (final String col : new String[] {
-        "RELA", "RG", "DIR"
+        "RELA" //, "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
+    }
+    for (final String qual : qualSet) {
+      qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
