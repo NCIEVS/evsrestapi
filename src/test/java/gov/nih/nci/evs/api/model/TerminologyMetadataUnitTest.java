@@ -90,6 +90,7 @@ public class TerminologyMetadataUnitTest {
   @Test
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
+    tester.include("uiLabel");
     tester.include("code");
     tester.include("definitionSource");
     tester.include("mapRelation");

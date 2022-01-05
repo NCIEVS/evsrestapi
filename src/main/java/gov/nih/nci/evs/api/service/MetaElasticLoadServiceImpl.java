@@ -738,7 +738,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
       // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
     }
-    association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+    if (!rela.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+    }
     if (ruiQualMap.containsKey(fields[8])) {
       for (final String atnatv : ruiQualMap.get(fields[8])) {
         final String[] parts = atnatv.split("\\|");
@@ -764,7 +766,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       iassociation.getQualifiers().add(new Qualifier("RELA", rela));
     }
 
-
     // if (!rg.isEmpty()) {
     // association.getQualifiers().add(new Qualifier("RG", rg));
     // }
@@ -786,7 +787,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // }
     // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getInverseAssociations().add(iassociation);
-
 
   }
 
@@ -891,7 +891,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // qualifiers to build - from relationships
     // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
     for (final String col : new String[] {
-        "RELA", "RG", "DIR"
+        "RELA" //, "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }

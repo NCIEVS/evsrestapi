@@ -16,6 +16,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class TerminologyMetadata extends BaseModel {
 
+  /** The ui label. */
+  private String uiLabel;
+
   /** The code. */
   private String code;
 
@@ -137,6 +140,7 @@ public class TerminologyMetadata extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final TerminologyMetadata other) {
+    uiLabel = other.getUiLabel();
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
     retiredStatusValue = other.getRetiredStatusValue();
@@ -177,6 +181,7 @@ public class TerminologyMetadata extends BaseModel {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + ((uiLabel == null) ? 0 : uiLabel.hashCode());
     result = prime * result + ((code == null) ? 0 : code.hashCode());
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
     result = prime * result + ((mapRelation == null) ? 0 : mapRelation.hashCode());
@@ -219,6 +224,11 @@ public class TerminologyMetadata extends BaseModel {
     if (getClass() != obj.getClass())
       return false;
     TerminologyMetadata other = (TerminologyMetadata) obj;
+    if (uiLabel == null) {
+      if (other.uiLabel != null)
+        return false;
+    } else if (!uiLabel.equals(other.uiLabel))
+      return false;
     if (code == null) {
       if (other.code != null)
         return false;
@@ -373,6 +383,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setRelationshipToTarget(String relationshipToTarget) {
     this.relationshipToTarget = relationshipToTarget;
+  }
+
+  /**
+   * Returns the ui label.
+   *
+   * @return the ui label
+   */
+  public String getUiLabel() {
+    return uiLabel;
+  }
+
+  /**
+   * Sets the ui label.
+   *
+   * @param uiLabel the ui label
+   */
+  public void setUiLabel(String uiLabel) {
+    this.uiLabel = uiLabel;
   }
 
   /**

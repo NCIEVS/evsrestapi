@@ -125,7 +125,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The rel set. */
   private Set<String> relSet = new HashSet<>();
 
-  /**  The qual set. */
+  /** The qual set. */
   private Set<String> qualSet = new HashSet<>();
 
   /** The batch size. */
@@ -856,7 +856,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     association.setRelatedCode(auiCodeMap.get(aui2));
     association.setRelatedName(nameMap.get(auiCodeMap.get(aui2)));
     association.setSource(sab);
-    association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+    if (!rela.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+    }
 
     if (ruiQualMap.containsKey(fields[8])) {
       for (final String atnatv : ruiQualMap.get(fields[8])) {
@@ -991,9 +993,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject qualifiers = new ElasticObject("qualifiers");
 
     // qualifiers to build - from relationships
-    // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
+    // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS", "RG", "DIR"
     for (final String col : new String[] {
-        "RELA", "RG", "DIR"
+        "RELA"//, "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
