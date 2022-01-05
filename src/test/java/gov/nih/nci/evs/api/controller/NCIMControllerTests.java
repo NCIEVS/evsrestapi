@@ -250,7 +250,7 @@ public class NCIMControllerTests {
 
     // first concept in MRCONSO, three properties
     url = baseUrl + "/ncim/C0000005";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -264,7 +264,7 @@ public class NCIMControllerTests {
 
     // test random concept with property
     url = baseUrl + "/ncim/C0718043";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0718043");
+    log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -278,7 +278,7 @@ public class NCIMControllerTests {
 
     // test penultimate concept with property
     url = baseUrl + "/ncim/CL988042";
-    log.info("Testing url - " + url + "?terminology=ncim&code=CL988042");
+    log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -307,6 +307,11 @@ public class NCIMControllerTests {
 
   }
 
+  /**
+   * Test MRREL.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testMRREL() throws Exception {
     String url = null;
@@ -314,19 +319,37 @@ public class NCIMControllerTests {
     String content = null;
     Concept concept = null;
 
-    // first concept in MRCONSO, three properties
-    url = baseUrl + "/ncim/C0000005";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    // Check associations
+    url = baseUrl + "/ncim/C0000005?include=full";
+    log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0000005");
-    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
-    assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
+    assertThat(concept.getAssociations().size()).isEqualTo(1);
+    assertThat(concept.getAssociations().get(0).getType()).isEqualTo("RN");
+    assertThat(concept.getAssociations().get(0).getRelatedCode()).isEqualTo("C0036775");
+    assertThat(concept.getInverseAssociations().size()).isEqualTo(1);
+    assertThat(concept.getInverseAssociations().get(0).getType()).isEqualTo("RB");
+    assertThat(concept.getInverseAssociations().get(0).getRelatedCode()).isEqualTo("C0036775");
+
+    // Check parents/children
+    url = baseUrl + "/ncim/C0242354?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0242354");
+    assertThat(concept.getChildren().size()).isEqualTo(4);
+    assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .contains("CL979355");
+    assertThat(concept.getParents().size()).isEqualTo(2);
+    assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .contains("C0012634");
 
   }
 
@@ -344,7 +367,7 @@ public class NCIMControllerTests {
 
     // first concept in MRSAT
     url = baseUrl + "/ncim/C0000052";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0000052");
+    log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -360,7 +383,7 @@ public class NCIMControllerTests {
 
     // random concept in MRSAT
     url = baseUrl + "/ncim/C0436993";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0436993");
+    log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -526,8 +549,8 @@ public class NCIMControllerTests {
     });
     assertThat(list).isNotEmpty();
     // NOTE: some quaifiers are not actually used
-     assertThat(list.stream().map(c ->
-     c.getCode()).collect(Collectors.toSet())).doesNotContain("AUI1");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("AUI1");
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet())).contains("STYPE1");
     // assertThat(list.stream().map(c ->

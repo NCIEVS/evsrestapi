@@ -1,4 +1,5 @@
 {
+  "uiLabel": "NCI Thesaurus",
   "code": "NHC0",
   "conceptStatus": "P310",
   "retiredStatusValue": "Retired_Concept",

@@ -16,6 +16,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class TerminologyMetadata extends BaseModel {
 
+  /** The ui label. */
+  private String uiLabel;
+
   /** The code. */
   private String code;
 
@@ -106,6 +109,15 @@ public class TerminologyMetadata extends BaseModel {
   /** The subset. */
   private Set<String> subset;
 
+  /** The license text. */
+  private String licenseText;
+
+  /** The meta concept field. */
+  private String metaConceptField;
+
+  /** The preferred term types. */
+  private Set<String> preferredTermTypes;
+
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
    */
@@ -128,6 +140,7 @@ public class TerminologyMetadata extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final TerminologyMetadata other) {
+    uiLabel = other.getUiLabel();
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
     retiredStatusValue = other.getRetiredStatusValue();
@@ -157,6 +170,9 @@ public class TerminologyMetadata extends BaseModel {
     subsetMember = new HashSet<>(other.getSubsetMember());
     unpublished = new HashSet<>(other.getUnpublished());
     monthlyDb = other.getMonthlyDb();
+    licenseText = other.getLicenseText();
+    metaConceptField = other.getMetaConceptField();
+    preferredTermTypes = new HashSet<>(other.getPreferredTermTypes());
     subset = new HashSet<>(other.getSubset());
   }
 
@@ -165,6 +181,7 @@ public class TerminologyMetadata extends BaseModel {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + ((uiLabel == null) ? 0 : uiLabel.hashCode());
     result = prime * result + ((code == null) ? 0 : code.hashCode());
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
     result = prime * result + ((mapRelation == null) ? 0 : mapRelation.hashCode());
@@ -188,6 +205,9 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
     result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
     result = prime * result + ((monthlyDb == null) ? 0 : monthlyDb.hashCode());
+    result = prime * result + ((licenseText == null) ? 0 : licenseText.hashCode());
+    result = prime * result + ((metaConceptField == null) ? 0 : metaConceptField.hashCode());
+    result = prime * result + ((preferredTermTypes == null) ? 0 : preferredTermTypes.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     result = prime * result + ((subsetLinks == null) ? 0 : subsetLinks.hashCode());
     result = prime * result + ((subsetPrefix == null) ? 0 : subsetPrefix.hashCode());
@@ -204,6 +224,11 @@ public class TerminologyMetadata extends BaseModel {
     if (getClass() != obj.getClass())
       return false;
     TerminologyMetadata other = (TerminologyMetadata) obj;
+    if (uiLabel == null) {
+      if (other.uiLabel != null)
+        return false;
+    } else if (!uiLabel.equals(other.uiLabel))
+      return false;
     if (code == null) {
       if (other.code != null)
         return false;
@@ -309,6 +334,21 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!monthlyDb.equals(other.monthlyDb))
       return false;
+    if (licenseText == null) {
+      if (other.licenseText != null)
+        return false;
+    } else if (!licenseText.equals(other.licenseText))
+      return false;
+    if (metaConceptField == null) {
+      if (other.metaConceptField != null)
+        return false;
+    } else if (!metaConceptField.equals(other.metaConceptField))
+      return false;
+    if (preferredTermTypes == null) {
+      if (other.preferredTermTypes != null)
+        return false;
+    } else if (!preferredTermTypes.equals(other.preferredTermTypes))
+      return false;
     if (subset == null) {
       if (other.subset != null)
         return false;
@@ -343,6 +383,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setRelationshipToTarget(String relationshipToTarget) {
     this.relationshipToTarget = relationshipToTarget;
+  }
+
+  /**
+   * Returns the ui label.
+   *
+   * @return the ui label
+   */
+  public String getUiLabel() {
+    return uiLabel;
+  }
+
+  /**
+   * Sets the ui label.
+   *
+   * @param uiLabel the ui label
+   */
+  public void setUiLabel(String uiLabel) {
+    this.uiLabel = uiLabel;
   }
 
   /**
@@ -890,6 +948,63 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setMonthlyDb(String monthlyDb) {
     this.monthlyDb = monthlyDb;
+  }
+
+  /**
+   * Returns the license text.
+   *
+   * @return the license text
+   */
+  public String getLicenseText() {
+    return licenseText;
+  }
+
+  /**
+   * Sets the license text.
+   *
+   * @param licenseText the license text
+   */
+  public void setLicenseText(String licenseText) {
+    this.licenseText = licenseText;
+  }
+
+  /**
+   * Returns the meta concept field.
+   *
+   * @return the meta concept field
+   */
+  public String getMetaConceptField() {
+    return metaConceptField;
+  }
+
+  /**
+   * Sets the meta concept field.
+   *
+   * @param metaConceptField the meta concept field
+   */
+  public void setMetaConceptField(String metaConceptField) {
+    this.metaConceptField = metaConceptField;
+  }
+
+  /**
+   * Returns the preferred term types.
+   *
+   * @return the preferred term types
+   */
+  public Set<String> getPreferredTermTypes() {
+    if (preferredTermTypes == null) {
+      preferredTermTypes = new HashSet<>();
+    }
+    return preferredTermTypes;
+  }
+
+  /**
+   * Sets the preferred term types.
+   *
+   * @param preferredTermTypes the preferred term types
+   */
+  public void setPreferredTermTypes(Set<String> preferredTermTypes) {
+    this.preferredTermTypes = preferredTermTypes;
   }
 
   /**

@@ -1,0 +1,13 @@
+{
+	"uiLabel": "MedDRA",
+	"licenseText": "The Medical Dictionary for Regulatory Activities (MedDRA) terminology is licensed for NCI work and may be viewed on NCI browsers. All other uses are prohibited, unless covered by separate subscription to MedDRA from the MedDRA MSSO (see http://www.meddra.org) or contact at mssohelp@meddra.org, 877.258.8280, or 7575 Colshire Drive McLean Virginia, 22102.",
+	"metaConceptField": "CODE",
+	"preferredTermTypes": [
+		"HG",
+		"HT",
+		"LLT",
+		"SMQ",
+		"OL",
+		"OS"
+	]
+}
