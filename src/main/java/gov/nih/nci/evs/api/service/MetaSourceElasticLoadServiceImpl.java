@@ -85,6 +85,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The rui qual map. */
   private Map<String, Set<String>> ruiQualMap = new HashMap<>();
 
+  /** The parent child. */
+  private List<String> parentChild = new ArrayList<>();
+
   /** The src auis. */
   private Set<String> srcAuis = new HashSet<>();
 
@@ -165,10 +168,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void cacheMaps(Terminology terminology) throws Exception {
 
+    // Don't run a second time
+    if (!colMap.isEmpty()) {
+      return;
+    }
+
     logger.info("  START cache maps");
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
+        final PushBackReader mrrel = readers.getReader(RrfReaders.Keys.MRREL);
         final PushBackReader mrmap = readers.getReader(RrfReaders.Keys.MRMAP);
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
@@ -285,6 +294,25 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         final String[] fields = line.split("\\|", -1);
         // ATN|Attribute name||2|10.94|62|MRSAT.RRF|varchar(100)|
         colMap.put(fields[0], fields[1]);
+      }
+
+      // Prepare parent/child relationships for getHierarchyUtils
+      while ((line = mrcols.readLine()) != null) {
+        final String[] fields = line.split("\\|", -1);
+        // e.g.
+        // C4229995|A5970983|AUI|PAR|C4229995|A5963886|AUI||R91875256||MDR|MDR|||N||
+        if (fields[10].toLowerCase().equals(terminology.getTerminology())
+            && fields[3].equals("PAR")) {
+          final StringBuffer str = new StringBuffer();
+          str.append(auiCodeMap.get(fields[5]));
+          str.append("\t");
+          str.append(nameMap.get(auiCodeMap.get(fields[5])));
+          str.append("\t");
+          str.append(auiCodeMap.get(fields[1]));
+          str.append("\t");
+          str.append(nameMap.get(auiCodeMap.get(fields[1])));
+          str.append("\n");
+        }
       }
 
     } finally {
@@ -753,13 +781,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // CUI2 "child of" CUI1
-      // CUI1 has parent CUI2
+      // CUI1 has child CUI2
       if (rel.equals("CHD")) {
         buildChild(concept1, fields);
       }
 
       // CUI2 "parent of" CUI1
-      // CUI1 has child CUI2
+      // CUI1 has parent CUI2
       else if (rel.equals("PAR")) {
         buildParent(concept1, fields);
       }
@@ -767,10 +795,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // Other "association" and "inverse association"
       else {
 
-        // TEMP: skip SNOMED relationships
-        // if (fields[10].equals("SNOMEDCT_US")) {
-        // continue;
-        // }
         buildAssociations(concept1, fields);
       }
 
@@ -936,9 +960,17 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     logger.debug("index result: {}", result);
 
     // Use default elasticsearch mapping
-
     // Set the "sources" map of the terminology metadata
     terminology.getMetadata().setSources(sourceMap);
+
+    //
+    // Handle hierarchy
+    //
+    ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+    hierarchyObject.setHierarchy(hierarchy);
+    operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Hierarchy loaded");
 
     //
     // Handle associations
@@ -993,9 +1025,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject qualifiers = new ElasticObject("qualifiers");
 
     // qualifiers to build - from relationships
-    // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS", "RG", "DIR"
+    // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS", "RG",
+    // "DIR"
     for (final String col : new String[] {
-        "RELA"//, "RG", "DIR"
+        "RELA"// , "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
@@ -1131,8 +1164,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public HierarchyUtils getHierarchyUtils(Terminology term) {
-    return null;
+  public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
+    cacheMaps(term);
+    final HierarchyUtils utils = new HierarchyUtils(parentChild);
+    parentChild = null;
+    return utils;
   }
 
   /**

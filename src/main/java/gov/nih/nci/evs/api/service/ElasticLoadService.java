@@ -5,9 +5,6 @@ import java.io.IOException;
 
 import org.springframework.context.ApplicationContext;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -97,15 +94,12 @@ public interface ElasticLoadService {
   void loadIndexMetadata(int totalConcepts, Terminology term) throws IOException;
 
   /**
-   * get hierarchy utils
-   * 
+   * get hierarchy utils.
+   *
    * @param term the terminology object
    * @return HierarchyUtils
-   * @throws IOException
-   * @throws JsonMappingException
-   * @throws JsonParseException
+   * @throws Exception the exception
    */
-  HierarchyUtils getHierarchyUtils(Terminology term)
-    throws JsonParseException, JsonMappingException, IOException;
+  HierarchyUtils getHierarchyUtils(Terminology term) throws Exception;
 
 }
