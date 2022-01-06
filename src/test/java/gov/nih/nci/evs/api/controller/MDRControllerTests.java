@@ -442,4 +442,25 @@ public class MDRControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
 
   }
+
+  @Test
+  public void testSubree() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // test /roots
+    // test /descendants
+    // test /subtree
+    // test /subtree/children
+    
+    // Random MDR code
+    url = baseUrl + "/mdr/10009802/subtree";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    //concept = new ObjectMapper().readValue(content, Concept.class);
+  }
 }

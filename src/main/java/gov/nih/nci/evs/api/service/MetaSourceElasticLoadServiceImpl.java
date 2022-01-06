@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -297,12 +298,17 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Prepare parent/child relationships for getHierarchyUtils
-      while ((line = mrcols.readLine()) != null) {
+      while ((line = mrrel.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
         // e.g.
         // C4229995|A5970983|AUI|PAR|C4229995|A5963886|AUI||R91875256||MDR|MDR|||N||
-        if (fields[10].toLowerCase().equals(terminology.getTerminology())
-            && fields[3].equals("PAR")) {
+        // Looking for matching terminology
+        // REL=PAR
+        // parent is not an SRC atom
+        // codes of AUI1 and AUI2 do not match (self-referential)
+        if (fields[10].toLowerCase().equals(terminology.getTerminology()) && fields[3].equals("PAR")
+            && !srcAuis.contains(fields[5])
+            && !auiCodeMap.get(fields[5]).equals(auiCodeMap.get(fields[1]))) {
           final StringBuffer str = new StringBuffer();
           str.append(auiCodeMap.get(fields[5]));
           str.append("\t");
@@ -312,6 +318,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           str.append("\t");
           str.append(nameMap.get(auiCodeMap.get(fields[1])));
           str.append("\n");
+          parentChild.add(str.toString());
         }
       }
 
@@ -339,6 +346,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     // Cache the concept preferred names so when we resolve relationships we
     // know the "related" name
     cacheMaps(terminology);
+    final Paths paths = hierarchy.getPaths(terminology);
 
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
@@ -394,6 +402,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
+              concept.setDescendants(hierarchy.getDescendants(code));
+              concept.setPaths(
+                  hierarchy.getPathsToRoot(concept.getCode(), terminology, paths.getPaths()));
               handleConcept(concept, batch, false, terminology.getIndexName());
 
               if (totalConcepts++ % 5000 == 0) {
@@ -466,6 +477,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
             concept = codeConceptMap.get(code);
             concept.setLeaf(concept.getChildren().size() > 0);
+            concept.setDescendants(hierarchy.getDescendants(code));
+            concept.setPaths(
+                hierarchy.getPathsToRoot(concept.getCode(), terminology, paths.getPaths()));
             handleConcept(concept, batch, true, terminology.getIndexName());
 
             if (totalConcepts++ % 5000 == 0) {
@@ -1083,6 +1097,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
+
+    logger.info(
+        "XXX = " + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(concept));
     batch.add(concept);
 
     int conceptSize = concept.toString().length();

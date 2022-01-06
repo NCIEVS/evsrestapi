@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.util;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,8 +18,14 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.Terminology;
 
 /**
  * Hierarchy utilities.
@@ -27,21 +34,21 @@ public class HierarchyUtils {
 
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(HierarchyUtils.class);
-  
+
   /** The parent 2 child. */
-//  @Field(type = FieldType.Object)
+  // @Field(type = FieldType.Object)
   @Transient
   private HashMap<String, ArrayList<String>> parent2child =
       new HashMap<String, ArrayList<String>>();
 
   /** The child 2 parent. */
-//  @Field(type = FieldType.Object)
+  // @Field(type = FieldType.Object)
   @Transient
   private HashMap<String, ArrayList<String>> child2parent =
       new HashMap<String, ArrayList<String>>();
 
   /** The code 2 label. */
-//  @Field(type = FieldType.Text)
+  // @Field(type = FieldType.Text)
   @Transient
   private HashMap<String, String> code2label = new HashMap<String, String>();
 
@@ -150,24 +157,26 @@ public class HierarchyUtils {
    * @param level the level
    * @return the transitive closure
    */
-//  public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts, String code,
-//    Integer level) {
-//    ArrayList<String> children = this.parent2child.get(code);
-//    if (children == null || children.size() == 0) {
-//      return concepts;
-//    }
-//    for (String child : children) {
-//      String indent = "";
-//      for (int i = 0; i < level; i++) {
-//        indent = indent + "    ";
-//      }
-//      System.out.println(indent + "Parent: " + code + ": " + code2label.get(code) + "  Child: "
-//          + child + ": " + code2label.get(child) + "  Level: " + level);
-//      // ArrayList<String> newChildren =
-//      getTransitiveClosure(concepts, child, level + 1);
-//    }
-//    return concepts;
-//  }
+  // public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts,
+  // String code,
+  // Integer level) {
+  // ArrayList<String> children = this.parent2child.get(code);
+  // if (children == null || children.size() == 0) {
+  // return concepts;
+  // }
+  // for (String child : children) {
+  // String indent = "";
+  // for (int i = 0; i < level; i++) {
+  // indent = indent + " ";
+  // }
+  // System.out.println(indent + "Parent: " + code + ": " + code2label.get(code)
+  // + " Child: "
+  // + child + ": " + code2label.get(child) + " Level: " + level);
+  // // ArrayList<String> newChildren =
+  // getTransitiveClosure(concepts, child, level + 1);
+  // }
+  // return concepts;
+  // }
 
   /**
    * Returns the roots.
@@ -204,7 +213,6 @@ public class HierarchyUtils {
     return child2parent.get(code);
   }
 
-
   /**
    * Returns the descendant nodes.
    *
@@ -212,21 +220,25 @@ public class HierarchyUtils {
    * @return the descendant nodes
    */
   public List<Concept> getDescendants(String code) {
-	ArrayList<Concept> descendants = new ArrayList<Concept>();
-  Map<String, Concept> descendantMap = new LinkedHashMap<>();
-  
-  getDescendantMapLevel(code, descendantMap, 1);
-    
-  descendants = new ArrayList<Concept>(descendantMap.values());
-  Collections.sort(descendants, new Comparator<Concept>() {
-	@Override
-	public int compare(Concept c1, Concept c2) {
-	    if (c1.getLevel() == c2.getLevel()) { return c1.getName().compareTo(c2.getName()); }
-	    else { return c1.getLevel() - c2.getLevel(); }
-	}});
-  return descendants;
+    ArrayList<Concept> descendants = new ArrayList<Concept>();
+    Map<String, Concept> descendantMap = new LinkedHashMap<>();
+
+    getDescendantMapLevel(code, descendantMap, 1);
+
+    descendants = new ArrayList<Concept>(descendantMap.values());
+    Collections.sort(descendants, new Comparator<Concept>() {
+      @Override
+      public int compare(Concept c1, Concept c2) {
+        if (c1.getLevel() == c2.getLevel()) {
+          return c1.getName().compareTo(c2.getName());
+        } else {
+          return c1.getLevel() - c2.getLevel();
+        }
+      }
+    });
+    return descendants;
   }
-  
+
   /**
    * Descendant nodes helper.
    *
@@ -237,25 +249,25 @@ public class HierarchyUtils {
    * @return void
    */
   public void getDescendantMapLevel(String code, Map<String, Concept> descendantMap, int level) {
-	List<String> children = parent2child.get(code);
-	if (children == null || children.size() == 0) {
-		return;
+    List<String> children = parent2child.get(code);
+    if (children == null || children.size() == 0) {
+      return;
     }
-	for (String child : children) {
-      if(descendantMap.get(child) == null) {
-    	  Concept conc = new Concept(child);
-    	  if(parent2child.containsKey(child))
-    		  conc.setLeaf(false);
-    	  else
-    		  conc.setLeaf(true);
-          conc.setLevel(level);
-          conc.setName(code2label.get(child));
-    	  descendantMap.put(child, conc);
+    for (String child : children) {
+      if (descendantMap.get(child) == null) {
+        Concept conc = new Concept(child);
+        if (parent2child.containsKey(child))
+          conc.setLeaf(false);
+        else
+          conc.setLeaf(true);
+        conc.setLevel(level);
+        conc.setName(code2label.get(child));
+        descendantMap.put(child, conc);
       }
-      getDescendantMapLevel(child, descendantMap, level+1);
+      getDescendantMapLevel(child, descendantMap, level + 1);
     }
   }
-  
+
   /**
    * Returns the label.
    *
@@ -272,7 +284,7 @@ public class HierarchyUtils {
   /*
    * This section to support the Hierarchy Browser
    */
-  
+
   /**
    * Returns the root nodes.
    *
@@ -391,5 +403,71 @@ public class HierarchyUtils {
     return childCodes.stream().distinct().collect(Collectors.toList());
     // return childCodes;
   }
-  
+
+  /**
+   * Returns the paths.
+   *
+   * @param terminology the terminology
+   * @return the paths
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public Paths getPaths(Terminology terminology)
+    throws JsonParseException, JsonMappingException, IOException {
+    return new PathFinder(this).findPaths();
+  }
+
+  /**
+   * Returns the path to root.
+   *
+   * @param code the code
+   * @param terminology the terminology
+   * @param paths the paths
+   * @return the path to root
+   * @throws JsonParseException the json parse exception
+   * @throws JsonMappingException the json mapping exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public Paths getPathsToRoot(String code, Terminology terminology, List<Path> paths)
+    throws JsonParseException, JsonMappingException, IOException {
+    Paths conceptPaths = new Paths();
+    Map<String, Boolean> codeMap = new HashMap<>();
+    codeMap.put(code, true);
+    for (Path path : paths) {
+      Boolean sw = false;
+      Map<String, Integer> idxMap = new HashMap<>();
+      List<Concept> concepts = path.getConcepts();
+      for (int i = 0; i < concepts.size(); i++) {
+        Concept concept = concepts.get(i);
+        if (codeMap.containsKey(concept.getCode())) {
+          sw = true;
+          idxMap.put(concept.getCode(), concept.getLevel());
+        }
+      }
+      if (sw) {
+        for (String codeKey : idxMap.keySet()) {
+          int idx = idxMap.get(codeKey);
+          List<Concept> trimed_concepts = new ArrayList<Concept>();
+          if (idx == -1) {
+            idx = concepts.size() - 1;
+          }
+          int j = 0;
+          for (int i = idx; i >= 0; i--) {
+            Concept c = new Concept();
+            c.setCode(concepts.get(i).getCode());
+            c.setName(concepts.get(i).getName());
+            c.setLevel(j);
+            c.setTerminology(terminology.getTerminology());
+            c.setVersion(terminology.getVersion());
+            j++;
+            trimed_concepts.add(c);
+          }
+          conceptPaths.add(new Path(1, trimed_concepts));
+        }
+      }
+    }
+
+    return PathUtils.removeDuplicatePaths(conceptPaths);
+  }
 }
