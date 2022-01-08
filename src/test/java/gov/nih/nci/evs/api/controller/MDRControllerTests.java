@@ -455,6 +455,8 @@ public class MDRControllerTests {
     // test /subtree
     // test /subtree/children
     
+    // TODO: add a test like this also for NCIM (where they should all work but return nothing)
+    
     // Random MDR code
     url = baseUrl + "/mdr/10009802/subtree";
     log.info("Testing url - " + url);
