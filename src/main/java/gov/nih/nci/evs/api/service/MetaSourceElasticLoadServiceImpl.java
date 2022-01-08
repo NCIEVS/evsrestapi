@@ -752,7 +752,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       final String rela = fields[7];
 
       // Skip certain situations
-      if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")) {
+      if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")
+          || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
 
@@ -1098,8 +1099,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
 
-    logger.info(
-        "XXX = " + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(concept));
     batch.add(concept);
 
     int conceptSize = concept.toString().length();

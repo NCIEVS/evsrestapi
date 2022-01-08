@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -539,6 +540,12 @@ public class NCIMControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("BRO");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRN");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("XR");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("AQ");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("QB");
@@ -613,8 +620,10 @@ public class NCIMControllerTests {
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet())).contains("STYPE2");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RELA");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RG");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("DIR");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("RG");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("DIR");
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet()))
     // .contains("SUPPRESS");
@@ -669,6 +678,65 @@ public class NCIMControllerTests {
     assertThat(list.size()).isGreaterThan(30);
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AB");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
+
+  }
+
+  /**
+   * Test subree.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubree() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+    List<HierarchyNode> list2 = null;
+
+    // test /roots
+    url = baseUrl + "/ncim/roots";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /descendants
+    url = baseUrl + "/ncim/C0004057/descendants";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /subtree
+    url = baseUrl + "/ncim/C0004057/subtree";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isEmpty();
+
+    // test /subtree/children - C0242354
+    url = baseUrl + "/ncim/C0242354/subtree/children";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isEmpty();
 
   }
 }

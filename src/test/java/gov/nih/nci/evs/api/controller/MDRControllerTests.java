@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -97,8 +98,8 @@ public class MDRControllerTests {
     final Terminology mdr =
         terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
-    assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
     assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA");
+    assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
     assertThat(mdr.getName())
         .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
     assertThat(mdr.getDescription()).isEqualTo(";;MedDRA MSSO;;MedDRA [electronic resource]"
@@ -307,6 +308,12 @@ public class MDRControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("BRO");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRN");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("XR");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("AQ");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("QB");
@@ -448,21 +455,53 @@ public class MDRControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-    Concept concept = null;
+    List<Concept> list = null;
+    List<HierarchyNode> list2 = null;
 
     // test /roots
-    // test /descendants
-    // test /subtree
-    // test /subtree/children
-    
-    // TODO: add a test like this also for NCIM (where they should all work but return nothing)
-    
-    // Random MDR code
-    url = baseUrl + "/mdr/10009802/subtree";
+    url = baseUrl + "/mdr/roots";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    //concept = new ObjectMapper().readValue(content, Concept.class);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    // Some things show up as roots because of nature of the data
+    assertThat(list.size()).isGreaterThan(0);
+
+    // test /descendants
+    url = baseUrl + "/mdr/10053567/descendants";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+
+    // test /subtree
+    url = baseUrl + "/mdr/10053567/subtree";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isNotEmpty();
+
+    // test /subtree/children
+    url = baseUrl + "/mdr/10053567/subtree/children";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isNotEmpty();
+
   }
 }

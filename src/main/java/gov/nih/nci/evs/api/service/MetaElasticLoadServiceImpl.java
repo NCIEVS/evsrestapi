@@ -570,7 +570,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // Skip certain situations
       if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
-          || rel.equals("BRO")) {
+          || rel.equals("BRO") || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
 
@@ -891,7 +891,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // qualifiers to build - from relationships
     // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
     for (final String col : new String[] {
-        "RELA" //, "RG", "DIR"
+        "RELA" // , "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
