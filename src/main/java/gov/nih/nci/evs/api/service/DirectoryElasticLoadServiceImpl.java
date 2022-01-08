@@ -656,7 +656,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setVersion(concept2.getVersion());
     concept2.setLeaf(false);
     if (!rela.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+      // Reverse the RELA
+      concept2.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
 
     // if (!rg.isEmpty()) {
@@ -712,59 +713,61 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // final String cvf = fields[15];
 
     // Build and add association
-    final Association association = new Association();
-    association.setType(rel);
+    final Association iassociation = new Association();
+    iassociation.setType(rel);
     relSet.add(rel);
 
-    association.setRelatedCode(cui2);
-    association.setRelatedName(nameMap.get(cui2));
-    association.setSource(sab);
-    if (!rela.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("RELA", rela));
-    }
-
-    // if (!rg.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("RG", rg));
-    // }
-    // if (!dir.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("DIR", dir));
-    // }
-
-    // if (!aui1.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("AUI1", aui1));
-    // association.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    // }
-    // if (!aui2.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("AUI2", aui1));
-    // association.getQualifiers().add(new Qualifier("STYPE2", stype2));
-    // }
-    // association.getQualifiers().add(new Qualifier("RUI", rui));
-    // if (!srui.isEmpty()) {
-    // association.getQualifiers().add(new Qualifier("SRUI", srui));
-    // }
-    // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
-    concept.getAssociations().add(association);
-
-    // Build and add an inverse association
-    final Association iassociation = new Association();
-    iassociation.setType(relInverseMap.get(rel));
     iassociation.setRelatedCode(cui2);
     iassociation.setRelatedName(nameMap.get(cui2));
     iassociation.setSource(sab);
-    if (!aui1.isEmpty()) {
-      // iassociation.getQualifiers().add(new Qualifier("AUI1", aui2));
-      // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    if (!rela.isEmpty()) {
+      iassociation.getQualifiers().add(new Qualifier("RELA", rela));
     }
-    if (!aui2.isEmpty()) {
-      // iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
-      // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
-    }
-    iassociation.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
-    // RUI and SRUI in the other direction are different.
+
+    // if (!rg.isEmpty()) {
     // iassociation.getQualifiers().add(new Qualifier("RG", rg));
+    // }
+    // if (!dir.isEmpty()) {
     // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
+    // }
+
+    // if (!aui1.isEmpty()) {
+    // iassociation.getQualifiers().add(new Qualifier("AUI1", aui1));
+    // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    // }
+    // if (!aui2.isEmpty()) {
+    // iassociation.getQualifiers().add(new Qualifier("AUI2", aui1));
+    // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype2));
+    // }
+    // iassociation.getQualifiers().add(new Qualifier("RUI", rui));
+    // if (!srui.isEmpty()) {
+    // iassociation.getQualifiers().add(new Qualifier("SRUI", srui));
+    // }
     // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getInverseAssociations().add(iassociation);
+
+    // Build and add an inverse association
+    final Association association = new Association();
+    association.setType(relInverseMap.get(rel));
+    association.setRelatedCode(cui2);
+    association.setRelatedName(nameMap.get(cui2));
+    association.setSource(sab);
+    if (!aui1.isEmpty()) {
+      // association.getQualifiers().add(new Qualifier("AUI1", aui2));
+      // association.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    }
+    if (!aui2.isEmpty()) {
+      // association.getQualifiers().add(new Qualifier("AUI2", aui2));
+      // association.getQualifiers().add(new Qualifier("STYPE2", stype1));
+    }
+    if (!rela.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+    }
+    // RUI and SRUI in the other direction are different.
+    // association.getQualifiers().add(new Qualifier("RG", rg));
+    // association.getQualifiers().add(new Qualifier("DIR", dir));
+    // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+    concept.getAssociations().add(association);
 
   }
 
