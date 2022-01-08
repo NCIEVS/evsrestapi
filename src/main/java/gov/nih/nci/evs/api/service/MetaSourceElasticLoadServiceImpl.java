@@ -866,7 +866,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setVersion(concept.getVersion());
     concept2.setLeaf(null);
     if (!rela.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+      concept2.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
 
     return concept2;

@@ -669,7 +669,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setVersion(concept.getVersion());
     concept2.setLeaf(false);
     if (!rela.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+      concept2.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
 
     // if (!rg.isEmpty()) {

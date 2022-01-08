@@ -354,6 +354,61 @@ public class NCIMControllerTests {
   }
 
   /**
+   * Test MRREL 2.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMRREL2() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // MRREL entry with parents and children
+    url = baseUrl + "/ncim/CL979355?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL979355");
+    assertThat(concept.getParents().size()).isGreaterThan(0);
+    // Verify that parents are "isa" and not "inverse isa"
+    assertThat(concept.getParents().stream()
+        .filter(
+            r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("isa"))
+        .count() > 0);
+    // Verify that children are "inverse isa" and not "isa"
+    assertThat(concept.getChildren().size()).isGreaterThan(0);
+    assertThat(concept.getChildren().stream().filter(r -> !r.getQualifiers().isEmpty()
+        && r.getQualifiers().get(0).getValue().equals("inverse_isa")).count() > 0);
+
+    // Read something with associations and inverse associations
+    url = baseUrl + "/ncim/C0000726?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000726");
+
+    // C0000726|A13537807|AUI|RO|CL565855|A15706523|AUI|analyzes|R123761621||LNC|LNC|||N||
+    // CL565855|A15706523|AUI|RO|C0000726|A13537807|AUI|analyzed_by|R123761622||LNC|LNC|||N||
+    assertThat(concept.getAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getAssociations().stream().filter(r -> !r.getQualifiers().isEmpty()
+        && r.getQualifiers().get(0).getValue().equals("analyzed_by")).count() > 0);
+    assertThat(concept.getInverseAssociations().stream().filter(
+        r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("analyzes"))
+        .count() > 0);
+
+    assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
+
+  }
+
+  /**
    * MRDEF basic tests.
    *
    * @throws Exception the exception
