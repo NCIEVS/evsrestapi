@@ -314,19 +314,45 @@ public class NCIMControllerTests {
     String content = null;
     Concept concept = null;
 
-    // first concept in MRCONSO, three properties
-    url = baseUrl + "/ncim/C0000005";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0000005");
+    // MRREL entry with parents and children
+    url = baseUrl + "/ncim/CL979355?include=full";
+    log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0000005");
-    assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
-    assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
+    assertThat(concept.getCode()).isEqualTo("CL979355");
+    assertThat(concept.getParents().size()).isGreaterThan(0);
+    // Verify that parents are "isa" and not "inverse isa"
+    assertThat(concept.getParents().stream()
+        .filter(
+            r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("isa"))
+        .count() > 0);
+    // Verify that children are "inverse isa" and not "isa"
+    assertThat(concept.getChildren().size()).isGreaterThan(0);
+    assertThat(concept.getChildren().stream().filter(r -> !r.getQualifiers().isEmpty()
+        && r.getQualifiers().get(0).getValue().equals("inverse_isa")).count() > 0);
+
+    // Read something with associations and inverse associations
+    url = baseUrl + "/ncim/C0000726?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000726");
+
+    // C0000726|A13537807|AUI|RO|CL565855|A15706523|AUI|analyzes|R123761621||LNC|LNC|||N||
+    // CL565855|A15706523|AUI|RO|C0000726|A13537807|AUI|analyzed_by|R123761622||LNC|LNC|||N||
+    assertThat(concept.getAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getAssociations().stream().filter(r -> !r.getQualifiers().isEmpty()
+        && r.getQualifiers().get(0).getValue().equals("analyzed_by")).count() > 0);
+    assertThat(concept.getInverseAssociations().stream().filter(r -> !r.getQualifiers().isEmpty()
+        && r.getQualifiers().get(0).getValue().equals("analyzes")).count() > 0);
+
+    assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
 
   }
 
@@ -526,8 +552,8 @@ public class NCIMControllerTests {
     });
     assertThat(list).isNotEmpty();
     // NOTE: some quaifiers are not actually used
-     assertThat(list.stream().map(c ->
-     c.getCode()).collect(Collectors.toSet())).doesNotContain("AUI1");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("AUI1");
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet())).contains("STYPE1");
     // assertThat(list.stream().map(c ->
