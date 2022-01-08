@@ -307,6 +307,11 @@ public class NCIMControllerTests {
 
   }
 
+  /**
+   * Test MRREL.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testMRREL() throws Exception {
     String url = null;
@@ -349,8 +354,9 @@ public class NCIMControllerTests {
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
     assertThat(concept.getAssociations().stream().filter(r -> !r.getQualifiers().isEmpty()
         && r.getQualifiers().get(0).getValue().equals("analyzed_by")).count() > 0);
-    assertThat(concept.getInverseAssociations().stream().filter(r -> !r.getQualifiers().isEmpty()
-        && r.getQualifiers().get(0).getValue().equals("analyzes")).count() > 0);
+    assertThat(concept.getInverseAssociations().stream().filter(
+        r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("analyzes"))
+        .count() > 0);
 
     assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
 
