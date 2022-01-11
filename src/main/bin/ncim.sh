@@ -15,14 +15,14 @@ echo "Wait for 8 seconds to start ..."
 sleep 8
 
 echo "Load ncim (download)"
-$DIR/ncim.sh --download --keepdir | sed 's/^/    /'
+$DIR/ncim-part.sh --download --keepdir | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: loading ncim"
     exit 1
 fi
 
 echo "Load MDR (from downloaded data)"
-$DIR/ncim.sh ./NCIM --terminology MDR | sed 's/^/    /'
+$DIR/ncim-part.sh ./NCIM --terminology MDR | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: loading ncim"
     exit 1
