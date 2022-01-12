@@ -205,7 +205,7 @@ done
 
 echo "  Cleanup"
 /bin/rm -rf /tmp/x.$$ $DOWNLOAD_DIR/Metathesaurus.RRF.zip
-if [[ $rm ]]; then
+if [[ $rm -eq 1 ]]; then
     /bin/rm -rf $DOWNLOAD_DIR/NCIM
 fi
 
