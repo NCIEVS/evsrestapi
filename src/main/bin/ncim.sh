@@ -15,7 +15,7 @@ echo "Wait for 8 seconds to start ..."
 sleep 8
 
 echo "Load ncim (download)"
-$DIR/ncim-part.sh --download --keepdir | sed 's/^/    /'
+$DIR/ncim-part.sh --download --keep | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: loading ncim"
     exit 1
