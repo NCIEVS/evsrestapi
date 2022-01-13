@@ -22,7 +22,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "Load MDR (from downloaded data)"
-$DIR/ncim-part.sh ./NCIM --terminology MDR | sed 's/^/    /'
+$DIR/ncim-part.sh ./NCIM/META --terminology MDR | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: loading ncim"
     exit 1
