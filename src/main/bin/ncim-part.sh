@@ -46,6 +46,7 @@ echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo "terminology = $terminology"
 echo "config = $config"
+echo "remove dir = $rm"
 if [[ $download -eq 1 ]]; then
   echo "download = $DOWNLOAD_DIR"
 else

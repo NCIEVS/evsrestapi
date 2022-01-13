@@ -737,6 +737,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   public void handleRelationships(final Terminology terminology, final Set<String> codes,
     final PushBackReader mrrel, final String prevCui) throws Exception {
+    Set<String> seen = new HashSet<>();
     String line;
     while ((line = mrrel.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -794,6 +795,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           throw new Exception("AUI2 for relationship cannot be resolved = " + line);
         }
       }
+
+      // Skip combinations already seen (all will have the same SAB here)
+      final String key = concept1.getCode() + "," + concept2 + "," + rela;
+      if (seen.contains(key)) {
+        continue;
+      }
+      seen.add(key);
 
       // CUI2 "child of" CUI1
       // CUI1 has child CUI2
