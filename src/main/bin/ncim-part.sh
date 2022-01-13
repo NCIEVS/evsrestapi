@@ -207,7 +207,10 @@ done
 echo "  Cleanup"
 /bin/rm -rf /tmp/x.$$ $DOWNLOAD_DIR/Metathesaurus.RRF.zip
 if [[ $rm -eq 1 ]]; then
+    echo "    remove $DOWNLOAD_DIR/NCIM"
     /bin/rm -rf $DOWNLOAD_DIR/NCIM
+else
+    echo "    keep $DOWNLOAD_DIR/NCIM"
 fi
 
 echo ""
