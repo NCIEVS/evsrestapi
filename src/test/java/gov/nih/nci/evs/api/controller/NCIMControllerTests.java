@@ -739,4 +739,51 @@ public class NCIMControllerTests {
     assertThat(list2).isEmpty();
 
   }
+
+  /**
+   * Test paths.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPaths() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<List<Concept>> list = null;
+
+    // test /pathsToRoot
+    url = baseUrl + "/ncim/C0242354/pathsToRoot";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /pathsFromRoot
+    url = baseUrl + "/ncim/C0242354/pathsFromRoot";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /pathsToAncestor
+    url = baseUrl + "/ncim/C0242354/pathsToAncestor/C0000005";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+  }
+
 }

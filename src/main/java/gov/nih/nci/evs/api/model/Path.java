@@ -15,11 +15,11 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class Path extends BaseModel {
 
-  /** The direction. */
+  /** The direction. 1 means from node to root. -1 means from root to node. */
   private int direction;
 
   /** The concepts. */
-  private List<Concept> concepts;
+  private List<ConceptMinimal> concepts;
 
   /**
    * Instantiates an empty {@link Path}.
@@ -34,7 +34,7 @@ public class Path extends BaseModel {
    * @param direction the direction
    * @param concepts the concepts
    */
-  public Path(int direction, List<Concept> concepts) {
+  public Path(int direction, List<ConceptMinimal> concepts) {
     this.direction = direction;
     this.concepts = new ArrayList<>(concepts);
   }
@@ -53,17 +53,18 @@ public class Path extends BaseModel {
    *
    * @param concepts the concepts
    */
-  public void setConcepts(List<Concept> concepts) {
+  public void setConcepts(List<ConceptMinimal> concepts) {
     this.concepts = concepts;
   }
 
   /**
-   * Returns the direction.
+   * Returns the direction. 1 means from node to root. -1 means from root to
+   * node.
    *
    * @return the direction
    */
   public int getDirection() {
-    return this.direction;
+    return direction;
   }
 
   /**
@@ -71,8 +72,11 @@ public class Path extends BaseModel {
    *
    * @return the concepts
    */
-  public List<Concept> getConcepts() {
-    return this.concepts;
+  public List<ConceptMinimal> getConcepts() {
+    if (concepts == null) {
+      concepts = new ArrayList<>();
+    }
+    return concepts;
   }
 
   /* see superclass */
@@ -119,6 +123,7 @@ public class Path extends BaseModel {
    * Rewrite path.
    *
    * @param include the include
+   * @param keepFirst the keep first
    * @return the path
    */
   public Path rewritePath(final Set<String> include, final boolean keepFirst) {
@@ -128,14 +133,14 @@ public class Path extends BaseModel {
     path.setDirection(path.getDirection());
     int level = 0;
     boolean first = true;
-    for (final Concept concept : getConcepts()) {
+    for (final ConceptMinimal concept : getConcepts()) {
       // Skip first concept
       if (!keepFirst && first) {
         first = false;
         continue;
       }
       if (include.contains(concept.getCode())) {
-        final Concept copy = new Concept(concept);
+        final ConceptMinimal copy = new ConceptMinimal(concept);
         copy.setLevel(level++);
         path.getConcepts().add(copy);
       }
@@ -154,13 +159,13 @@ public class Path extends BaseModel {
   public List<String> toParentChild() {
     int i = 0;
     final List<String> parentchild = new ArrayList<>();
-    for (final Concept concept : getConcepts()) {
+    for (final ConceptMinimal concept : getConcepts()) {
       if (i++ == 0) {
         continue;
       }
-      final Concept parent = concept;
-      final Concept child = getConcepts().get(i - 1);
-      StringBuffer str = new StringBuffer();
+      final ConceptMinimal parent = concept;
+      final ConceptMinimal child = getConcepts().get(i - 1);
+      final StringBuffer str = new StringBuffer();
       str.append(parent.getCode());
       str.append("\t");
       str.append(parent.getName());
@@ -183,7 +188,7 @@ public class Path extends BaseModel {
   public int getPathLengthFromAncestor(final Set<String> ancestors) {
     int i = 0;
     boolean found = false;
-    for (final Concept concept : getConcepts()) {
+    for (final ConceptMinimal concept : getConcepts()) {
       // Skip the first one
       if (i > 0 && ancestors.contains(concept.getCode())) {
         found = true;

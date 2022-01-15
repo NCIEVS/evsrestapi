@@ -857,10 +857,11 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
-  final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
-  final Optional<String> include) throws Exception {
+  public @ResponseBody List<List<ConceptMinimal>> getPathsFromRoot(
+    @PathVariable(value = "terminology")
+    final String terminology, @PathVariable(value = "code")
+    final String code, @RequestParam("include")
+    final Optional<String> include) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -1006,10 +1007,11 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
-  final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
-  final Optional<String> include) throws Exception {
+  public @ResponseBody List<List<ConceptMinimal>> getPathsToRoot(
+    @PathVariable(value = "terminology")
+    final String terminology, @PathVariable(value = "code")
+    final String code, @RequestParam("include")
+    final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -1065,11 +1067,12 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
   })
-  public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
-  final String terminology, @PathVariable(value = "code")
-  final String code, @PathVariable(value = "ancestorCode")
-  final String ancestorCode, @RequestParam("include")
-  final Optional<String> include) throws Exception {
+  public @ResponseBody List<List<ConceptMinimal>> getPathsToAncestor(
+    @PathVariable(value = "terminology")
+    final String terminology, @PathVariable(value = "code")
+    final String code, @PathVariable(value = "ancestorCode")
+    final String ancestorCode, @RequestParam("include")
+    final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));

@@ -80,10 +80,6 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Keyword)
   private String conceptStatus;
 
-  /** The level. */
-  @Field(type = FieldType.Integer)
-  private Integer level;
-
   /** The source - only used by parent/child references for NCIM. */
   @Field(type = FieldType.Keyword)
   private String source;
@@ -221,7 +217,7 @@ public class Concept extends ConceptMinimal {
   public Concept(final HierarchyNode other) {
     super(other.getCode());
     setName(other.getLabel());
-    level = other.getLevel();
+    setLevel(other.getLevel());
     if (other.getLeaf() != null && other.getLeaf()) {
       leaf = other.getLeaf();
     }
@@ -239,7 +235,6 @@ public class Concept extends ConceptMinimal {
     super.populateFrom(other);
     highlight = other.getHighlight();
     highlights = new HashMap<>(other.getHighlights());
-    level = other.getLevel();
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
     normName = other.getNormName();
@@ -357,23 +352,6 @@ public class Concept extends ConceptMinimal {
     this.conceptStatus = conceptStatus;
   }
 
-  /**
-   * Returns the level.
-   *
-   * @return the level
-   */
-  public Integer getLevel() {
-    return level;
-  }
-
-  /**
-   * Sets the level.
-   *
-   * @param level the level
-   */
-  public void setLevel(final Integer level) {
-    this.level = level;
-  }
 
   /**
    * Returns the leaf.

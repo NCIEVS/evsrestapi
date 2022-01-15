@@ -151,6 +151,7 @@ public class ConceptUnitTest {
     tester.include("code");
     tester.include("terminology");
     tester.include("version");
+    tester.include("level");
 
     tester.proxy("synonyms", 1, s1);
     tester.proxy("synonyms", 2, s2);

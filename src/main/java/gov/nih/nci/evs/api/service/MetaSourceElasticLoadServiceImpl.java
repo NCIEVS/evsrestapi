@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -346,8 +345,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     // Cache the concept preferred names so when we resolve relationships we
     // know the "related" name
     cacheMaps(terminology);
-    final Paths paths = hierarchy.getPaths(terminology);
-
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
@@ -359,10 +356,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // Set up vars
       String line = null;
       String prevCui = null;
-      Set<String> codes = new HashSet<>();
+      Set<String> codes = new HashSet<>(4);
       Concept concept = null;
       List<Concept> batch = new ArrayList<>();
       int totalConcepts = 0;
+      int sourceConcepts = 0;
 
       // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,SAB,TTY,CODE,STR,SRL,SUPPRESS,CVF
 
@@ -381,6 +379,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // check if we've hit a new concept then process the other files for the
         // "prevCui"
         if (!cui.equals(prevCui)) {
+
+          // Count total number of CUIs processed
+          if (totalConcepts++ % 5000 == 0) {
+            logger.info("    count = " + totalConcepts);
+          }
 
           // Process data from this CUI
           handleDefinitions(terminology, codes, mrdef, prevCui);
@@ -403,12 +406,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
               concept.setDescendants(hierarchy.getDescendants(code));
-              concept.setPaths(
-                  hierarchy.getPathsToRoot(concept.getCode(), terminology, paths.getPaths()));
+              concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
               handleConcept(concept, batch, false, terminology.getIndexName());
 
-              if (totalConcepts++ % 5000 == 0) {
-                logger.info("    count = " + totalConcepts);
+              // Count number of source concepts
+              if (sourceConcepts++ % 5000 == 0) {
+                logger.info("    " + terminology.getTerminology() + " = " + sourceConcepts);
               }
 
               // Free up some memory
@@ -420,7 +423,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           }
 
           // Start codes again for the next CUI
-          codes = new HashSet<>();
+          codes = new HashSet<>(4);
 
         }
 
@@ -478,13 +481,14 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept = codeConceptMap.get(code);
             concept.setLeaf(concept.getChildren().size() > 0);
             concept.setDescendants(hierarchy.getDescendants(code));
-            concept.setPaths(
-                hierarchy.getPathsToRoot(concept.getCode(), terminology, paths.getPaths()));
+            concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
             handleConcept(concept, batch, true, terminology.getIndexName());
 
-            if (totalConcepts++ % 5000 == 0) {
-              logger.info("    count = " + totalConcepts);
+            // Count number of source concepts
+            if (sourceConcepts++ % 5000 == 0) {
+              logger.info("    " + terminology.getTerminology() + " = " + sourceConcepts);
             }
+
           } else {
             // If not, then something went wrong, should not be possible
             throw new Exception(
@@ -502,6 +506,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       totalConcepts++;
 
       logger.info("TOTAL concepts = " + totalConcepts);
+      logger.info("TOTAL " + terminology.getTerminology() + " = " + sourceConcepts);
 
       return totalConcepts;
 
@@ -549,7 +554,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   public void handleSemanticTypes(final Set<String> codes, final PushBackReader mrsty,
     final String prevCui) throws Exception {
     String line;
-    Set<String> seen = new HashSet<>();
+    Set<String> seen = new HashSet<>(4);
     while ((line = mrsty.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
       if (!fields[0].equals(prevCui)) {
@@ -618,7 +623,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       if (fields[4].equals("RUI")) {
         qualSet.add(atn);
         if (!ruiQualMap.containsKey(fields[3])) {
-          ruiQualMap.put(fields[3], new HashSet<>());
+          ruiQualMap.put(fields[3], new HashSet<>(4));
         }
         ruiQualMap.get(fields[3]).add(atn + "|" + atv);
       }
@@ -746,6 +751,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         break;
       }
 
+      // Skip non-matching SAB lines
+      if (!fields[10].toLowerCase().equals(terminology.getTerminology())) {
+        continue;
+      }
+
       // CUI1,AUI1,STYPE1,REL,CUI2,AUI2,STYPE2,RELA,RUI,SRUI,SAB,SL,RG,DIR,SUPPRESS,CVF
       // e.g.
       // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
@@ -755,11 +765,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // Skip certain situations
       if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")
           || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
-        continue;
-      }
-
-      // Skip non-matching SAB lines
-      if (!fields[10].toLowerCase().equals(terminology.getTerminology())) {
         continue;
       }
 
@@ -1106,7 +1111,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
-
     batch.add(concept);
 
     int conceptSize = concept.toString().length();
@@ -1190,7 +1194,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
     cacheMaps(term);
-    final HierarchyUtils utils = new HierarchyUtils(parentChild);
+    final HierarchyUtils utils = new HierarchyUtils(term, parentChild);
     parentChild = null;
     return utils;
   }
