@@ -36,8 +36,7 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 public class MetadataControllerIncludeTests {
 
   /** The logger. */
-  private static final Logger log =
-      LoggerFactory.getLogger(MetadataControllerIncludeTests.class);
+  private static final Logger log = LoggerFactory.getLogger(MetadataControllerIncludeTests.class);
 
   /** The mvc. */
   @Autowired
@@ -132,19 +131,18 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("Preferred_Name")).count())
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
             .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("FULL_SYN")).count()).isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
+        .isGreaterThan(0);
     // Test properties are "by label"
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
     // Test "summary" is equal to "synonyms,definitions,properties"
-    url = baseUrl
-        + "/ncit/association/A8?include=synonyms,definitions,properties";
+    url = baseUrl + "/ncit/association/A8?include=synonyms,definitions,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content2 = result.getResponse().getContentAsString();
@@ -185,14 +183,14 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> "Preferred_Name".equals(s.getType())).count())
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> "Preferred_Name".equals(s.getType())).count())
             .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> "FULL_SYN".equals(s.getType())).count()).isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> "FULL_SYN".equals(s.getType())).count())
+        .isGreaterThan(0);
     // Test properties are "by label"
-    assertThat(concept.getProperties().stream()
-        .filter(p -> "Semantic_Type".equals(p.getType())).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> "Semantic_Type".equals(p.getType())).count())
             .isGreaterThan(0);
   }
 
@@ -228,11 +226,11 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("Preferred_Name")).count())
+    assertThat(
+        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
             .isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(s -> s.getType().equals("FULL_SYN")).count()).isGreaterThan(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
+        .isGreaterThan(0);
 
   }
 
@@ -301,8 +299,8 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
     // Test properties are "by label"
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
   }
@@ -393,9 +391,12 @@ public class MetadataControllerIncludeTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("CTRP Agent Terminology");
     assertThat(concept.getCode()).isEqualTo("C116978");
+    assertThat(concept.getLeaf()).isNotNull();
     assertThat(concept.getSynonyms()).isEmpty();
     assertThat(concept.getDefinitions()).isEmpty();
-    assertThat(concept.getProperties()).isEmpty();
+    // Always include properties
+    assertThat(concept.getProperties()).isNotEmpty();
+    // Always include children, but no children
     assertThat(concept.getChildren()).isEmpty();
     assertThat(concept.getParents()).isEmpty();
     assertThat(concept.getAssociations()).isEmpty();
@@ -404,7 +405,7 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
 
-    url = baseUrl + "/ncit/subset/C116978?include=properties";
+    url = baseUrl + "/ncit/subset/C116978?include=synonyms";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -412,7 +413,8 @@ public class MetadataControllerIncludeTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("CTRP Agent Terminology");
     assertThat(concept.getCode()).isEqualTo("C116978");
-    assertThat(concept.getSynonyms()).isEmpty();
+    assertThat(concept.getLeaf()).isNotNull();
+    assertThat(concept.getSynonyms()).isNotEmpty();
     assertThat(concept.getDefinitions()).isEmpty();
     assertThat(concept.getProperties()).isNotEmpty();
     assertThat(concept.getChildren()).isEmpty();
@@ -422,30 +424,33 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
-    // /subsets
-    url = baseUrl + "/ncit/subsets?include=properties";
+    // /subsets - minimal
+    url = baseUrl + "/ncit/subsets?include=minimal";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final List<Concept> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     concept = list.get(0);
     assertThat(concept.getName()).isEqualTo("ACC/AHA EHR Terminology");
     assertThat(concept.getCode()).isEqualTo("C167405");
+    assertThat(concept.getLeaf()).isNotNull();
     assertThat(concept.getSynonyms()).isEmpty();
     assertThat(concept.getDefinitions()).isEmpty();
+    // Always include properties
     assertThat(concept.getProperties()).isNotEmpty();
     // Children are set automatically (because this is a graph)
     assertThat(concept.getChildren()).isNotEmpty();
     // Check the first child also for just properties
+    assertThat(concept.getLeaf()).isNotNull();
     assertThat(concept.getChildren().get(0).getSynonyms()).isEmpty();
+    assertThat(concept.getChildren().get(0).getLeaf()).isNotNull();
     assertThat(concept.getChildren().get(0).getProperties()).isNotEmpty();
     assertThat(concept.getParents()).isEmpty();
     assertThat(concept.getAssociations()).isEmpty();
@@ -453,11 +458,42 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
-  
+    // /subsets - properties
+    url = baseUrl + "/ncit/subsets?include=synonyms";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    concept = list.get(0);
+    assertThat(concept.getName()).isEqualTo("ACC/AHA EHR Terminology");
+    assertThat(concept.getCode()).isEqualTo("C167405");
+    assertThat(concept.getSynonyms()).isNotEmpty();
+    assertThat(concept.getDefinitions()).isEmpty();
+    assertThat(concept.getProperties()).isNotEmpty();
+    // Children are set automatically (because this is a graph)
+    assertThat(concept.getChildren()).isNotEmpty();
+    // Check the first child also for just properties
+    assertThat(concept.getChildren().get(0).getParents()).isEmpty();
+    assertThat(concept.getChildren().get(0).getChildren()).isEmpty();
+    assertThat(concept.getChildren().get(0).getSynonyms()).isNotEmpty();
+    assertThat(concept.getChildren().get(0).getProperties()).isNotEmpty();
+    assertThat(concept.getParents()).isEmpty();
+    assertThat(concept.getAssociations()).isEmpty();
+    assertThat(concept.getInverseAssociations()).isEmpty();
+    assertThat(concept.getRoles()).isEmpty();
+    assertThat(concept.getInverseRoles()).isEmpty();
+    assertThat(concept.getMaps()).isEmpty();
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+            .isGreaterThan(0);
+
   }
 
 }

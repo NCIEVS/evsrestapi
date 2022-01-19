@@ -447,23 +447,27 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     // subsets should always return children and properties
+    // (contributing source needed)
     ip.setChildren(true);
     ip.setProperties(true);
     ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
 
+    // No list of codes supplied
     if (!list.isPresent()) {
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
+          .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
           .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
       return subsets;
     }
 
+    // List of codes supplied - first apply the filter.
     subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
         .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream().flatMap(Concept::streamSelfAndChildren)
-        // This doesn't work because the index doesn't have "full" data
-        // .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
-        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get())).count();
+        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get()))
+        .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
+
     return subsets;
 
   }
@@ -472,15 +476,11 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
     throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology, true);
-    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     // Verify that it is a property
     final List<Concept> list = self.getSubsets(terminology, include, Optional.ofNullable(code));
     if (list.size() == 1) {
-      final Concept concept = list.get(0);
-      concept.populateFrom(esQueryService.getConcept(concept.getCode(), term, ip).get());
-      return Optional.of(concept);
+      return Optional.of(list.get(0));
     } else if (list.size() > 1) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found (2)");
     }

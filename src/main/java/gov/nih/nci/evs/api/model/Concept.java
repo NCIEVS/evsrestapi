@@ -235,12 +235,17 @@ public class Concept extends ConceptMinimal {
     }
   }
 
+  public void populateFrom(final Concept other) {
+    populateFrom(other, false);
+  }
+
   /**
    * Populate from.
    *
    * @param other the other
+   * @param noChildren the no children - used for subsets retrieval
    */
-  public void populateFrom(final Concept other) {
+  public void populateFrom(final Concept other, final boolean noChildren) {
     super.populateFrom(other);
     highlight = other.getHighlight();
     highlights = new HashMap<>(other.getHighlights());
@@ -254,7 +259,9 @@ public class Concept extends ConceptMinimal {
     properties = new ArrayList<>(other.getProperties());
     qualifiers = new ArrayList<>(other.getQualifiers());
     source = other.getSource();
-    children = new ArrayList<>(other.getChildren());
+    if (!noChildren) {
+      children = new ArrayList<>(other.getChildren());
+    }
     parents = new ArrayList<>(other.getParents());
     associations = new ArrayList<>(other.getAssociations());
     inverseAssociations = new ArrayList<>(other.getInverseAssociations());
