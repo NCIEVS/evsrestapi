@@ -69,6 +69,9 @@ public class Paths extends BaseModel {
    * @return the paths
    */
   public List<Path> getPaths() {
+    if (paths == null) {
+      paths = new ArrayList<>();
+    }
     return this.paths;
   }
 

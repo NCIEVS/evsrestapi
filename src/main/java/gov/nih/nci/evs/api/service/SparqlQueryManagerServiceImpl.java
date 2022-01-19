@@ -705,6 +705,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Ensure that all list elements of the concept are in a natural sort
       // order
       concept.sortLists();
+
     }
 
     return concepts;

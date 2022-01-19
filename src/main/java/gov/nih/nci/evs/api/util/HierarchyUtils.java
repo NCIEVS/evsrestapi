@@ -433,7 +433,6 @@ public class HierarchyUtils {
    */
   public Map<String, Paths> getPathsMap(Terminology terminology) throws Exception {
     if (pathsMap.isEmpty()) {
-      logger.info("XXX = compute paths map");
       final Paths allPaths = new PathFinder(this).findPaths();
       final Set<String> seen = new HashSet<>();
       for (final Path path : allPaths.getPaths()) {

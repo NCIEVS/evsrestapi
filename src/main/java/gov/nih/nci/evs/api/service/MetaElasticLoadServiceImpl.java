@@ -955,6 +955,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
+    
+    // Put concept lists in natural sort order
+    concept.sortLists();
+    
     batch.add(concept);
 
     int conceptSize = concept.toString().length();
