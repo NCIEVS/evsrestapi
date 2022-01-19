@@ -310,15 +310,15 @@ public final class ConceptUtils {
    * @param reverse the reverse
    * @return the list
    */
-  public static List<List<ConceptMinimal>> convertPaths(final Paths paths, final boolean reverse) {
-    final List<List<ConceptMinimal>> list = new ArrayList<>();
+  public static List<List<Concept>> convertPaths(final Paths paths, final boolean reverse) {
+    final List<List<Concept>> list = new ArrayList<>();
     if (paths == null || paths.getPaths() == null || paths.getPaths().isEmpty()) {
       return list;
     }
     for (final Path path : paths.getPaths()) {
-      final List<ConceptMinimal> concepts = new ArrayList<ConceptMinimal>();
+      final List<Concept> concepts = new ArrayList<Concept>();
       for (final ConceptMinimal cn : path.getConcepts()) {
-        concepts.add(cn);
+        concepts.add(new Concept(cn));
       }
       // Reverse if indicated
       if (reverse) {
@@ -343,17 +343,17 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<List<ConceptMinimal>> convertPathsWithInclude(
-    final ElasticQueryService service, final IncludeParam ip, final Terminology terminology,
-    final Paths paths, final boolean reverse) throws Exception {
+  public static List<List<Concept>> convertPathsWithInclude(final ElasticQueryService service,
+    final IncludeParam ip, final Terminology terminology, final Paths paths, final boolean reverse)
+    throws Exception {
 
-    final List<List<ConceptMinimal>> list = convertPaths(paths, reverse);
+    final List<List<Concept>> list = convertPaths(paths, reverse);
     // final java.util.Map<String, Concept> cache = new HashMap<>();
-    for (final List<ConceptMinimal> concepts : list) {
+    for (final List<Concept> concepts : list) {
       final List<String> codes =
           concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
       final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
-      for (final ConceptMinimal concept : concepts) {
+      for (final Concept concept : concepts) {
         final int level = concept.getLevel();
         // if (cache.containsKey(concept.getCode())) {
         // concept.populateFrom(cache.get(concept.getCode()));

@@ -214,6 +214,15 @@ public class Concept extends ConceptMinimal {
    *
    * @param other the other
    */
+  public Concept(final ConceptMinimal other) {
+    super.populateFrom(other);
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
   public Concept(final HierarchyNode other) {
     super(other.getCode());
     setName(other.getLabel());
@@ -351,7 +360,6 @@ public class Concept extends ConceptMinimal {
   public void setConceptStatus(String conceptStatus) {
     this.conceptStatus = conceptStatus;
   }
-
 
   /**
    * Returns the leaf.
