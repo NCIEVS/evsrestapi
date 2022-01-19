@@ -234,8 +234,8 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
     } else if (!version.equals(other.version)) {
       return false;
     }
-    if (level== null) {
-      if (other.level!= null) {
+    if (level == null) {
+      if (other.level != null) {
         return false;
       }
     } else if (!level.equals(other.level)) {
