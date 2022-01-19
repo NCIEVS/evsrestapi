@@ -554,6 +554,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    */
   public void handleRelationships(final Concept concept, final PushBackReader mrrel,
     final String prevCui) throws Exception {
+    Set<String> seen = new HashSet<>();
     String line;
     while ((line = mrrel.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -565,14 +566,23 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // e.g.
       // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
       final String rel = fields[3];
+      final String rela = fields[7];
       final String fromCode = fields[4];
       final String toCode = fields[0];
 
       // Skip certain situations
       if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
-          || rel.equals("BRO")) {
+          || rel.equals("BRO") || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
+
+      // Skip combinations already seen
+      final String sab = fields[10];
+      final String key = fromCode + "," + toCode + "," + rela + sab;
+      if (seen.contains(key)) {
+        continue;
+      }
+      seen.add(key);
 
       // ALLOW AUI-AUI relationships
       // else if (fields[2].equals("AUI") && fields[6].equals("AUI")) {
@@ -587,7 +597,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // }
 
       // CUI1 has parent CUI2
-      else if (rel.equals("PAR")) {
+      if (rel.equals("PAR")) {
         buildParent(concept, fields);
       }
 
@@ -669,7 +679,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setVersion(concept.getVersion());
     concept2.setLeaf(false);
     if (!rela.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+      concept2.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
 
     // if (!rg.isEmpty()) {
@@ -891,7 +901,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // qualifiers to build - from relationships
     // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
     for (final String col : new String[] {
-        "RELA" //, "RG", "DIR"
+        "RELA" // , "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
@@ -945,6 +955,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
+    
+    // Put concept lists in natural sort order
+    concept.sortLists();
+    
     batch.add(concept);
 
     int conceptSize = concept.toString().length();

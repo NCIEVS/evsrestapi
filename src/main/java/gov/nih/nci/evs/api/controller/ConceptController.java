@@ -809,8 +809,7 @@ public class ConceptController extends BaseController {
 
       final List<Concept> list = elasticQueryService.getRootNodes(term, ip);
       if (list == null || list.isEmpty()) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "No roots for found for terminology = " + terminology);
+        return new ArrayList<>();
       }
       // "leaf" should be set to false for all roots
       for (final Concept c : list) {
@@ -958,6 +957,10 @@ public class ConceptController extends BaseController {
       final Terminology term = termUtils.getTerminology(terminology, true);
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      // If terminology is "ncim", there are no child nodes
+      if ("ncim".equals(terminology)) {
+        return new ArrayList<>();
       }
       final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, 0, term);
       nodes.stream().peek(n -> n.setLevel(null)).count();

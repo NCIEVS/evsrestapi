@@ -291,12 +291,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     logger.info("  ADD terminology = " + term);
     iMeta.setTerminology(term);
 
-    boolean created = operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
-    if (created) {
-      operationsService.getElasticsearchOperations().putMapping(
-          ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
-          IndexMetadata.class);
-    }
+    // boolean created =
+    operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+    // if (created) {
+    operationsService.getElasticsearchOperations().putMapping(
+        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
+        IndexMetadata.class);
+    // }
 
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);

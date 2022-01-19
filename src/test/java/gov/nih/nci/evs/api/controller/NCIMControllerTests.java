@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -354,6 +355,61 @@ public class NCIMControllerTests {
   }
 
   /**
+   * Test MRREL 2.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMRREL2() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // MRREL entry with parents and children
+    url = baseUrl + "/ncim/CL979355?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL979355");
+    assertThat(concept.getParents().size()).isGreaterThan(0);
+    // Verify that parents are "isa" and not "inverse isa"
+    assertThat(concept.getParents().stream()
+        .filter(
+            r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("isa"))
+        .count() > 0);
+    // Verify that children are "inverse isa" and not "isa"
+    assertThat(concept.getChildren().size()).isGreaterThan(0);
+    assertThat(concept.getChildren().stream().filter(r -> !r.getQualifiers().isEmpty()
+        && r.getQualifiers().get(0).getValue().equals("inverse_isa")).count() > 0);
+
+    // Read something with associations and inverse associations
+    url = baseUrl + "/ncim/C0000726?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0000726");
+
+    // C0000726|A13537807|AUI|RO|CL565855|A15706523|AUI|analyzes|R123761621||LNC|LNC|||N||
+    // CL565855|A15706523|AUI|RO|C0000726|A13537807|AUI|analyzed_by|R123761622||LNC|LNC|||N||
+    assertThat(concept.getAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getAssociations().stream().filter(r -> !r.getQualifiers().isEmpty()
+        && r.getQualifiers().get(0).getValue().equals("analyzed_by")).count() > 0);
+    assertThat(concept.getInverseAssociations().stream().filter(
+        r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("analyzes"))
+        .count() > 0);
+
+    assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
+
+  }
+
+  /**
    * MRDEF basic tests.
    *
    * @throws Exception the exception
@@ -484,6 +540,12 @@ public class NCIMControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("BRO");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRN");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("XR");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("AQ");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("QB");
@@ -558,8 +620,10 @@ public class NCIMControllerTests {
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet())).contains("STYPE2");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RELA");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RG");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("DIR");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("RG");
+    // assertThat(list.stream().map(c ->
+    // c.getCode()).collect(Collectors.toSet())).contains("DIR");
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet()))
     // .contains("SUPPRESS");
@@ -616,4 +680,110 @@ public class NCIMControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
 
   }
+
+  /**
+   * Test subree.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubree() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+    List<HierarchyNode> list2 = null;
+
+    // test /roots
+    url = baseUrl + "/ncim/roots";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /descendants
+    url = baseUrl + "/ncim/C0004057/descendants";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /subtree
+    url = baseUrl + "/ncim/C0004057/subtree";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isEmpty();
+
+    // test /subtree/children - C0242354
+    url = baseUrl + "/ncim/C0242354/subtree/children";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isEmpty();
+
+  }
+
+  /**
+   * Test paths.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPaths() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<List<Concept>> list = null;
+
+    // test /pathsToRoot
+    url = baseUrl + "/ncim/C0242354/pathsToRoot";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /pathsFromRoot
+    url = baseUrl + "/ncim/C0242354/pathsFromRoot";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+
+    // test /pathsToAncestor
+    url = baseUrl + "/ncim/C0242354/pathsToAncestor/C0000005";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list).isEmpty();
+  }
+
 }

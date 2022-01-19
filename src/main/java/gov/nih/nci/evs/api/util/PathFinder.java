@@ -11,7 +11,7 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 
@@ -84,18 +84,19 @@ public class PathFinder {
    * @param path the path
    * @return the path
    */
-  public Path createPath(String path) {
-    Path p = new Path();
-    List<Concept> concepts = new ArrayList<Concept>();
-    String[] codes = path.split("\\|");
+  private Path createPath(String path) {
+    final Path p = new Path();
+    final List<ConceptMinimal> concepts = new ArrayList<ConceptMinimal>();
+    final String[] codes = path.split("\\|");
     for (int i = 0; i < codes.length; i++) {
-      String name = hierarchy.getName(codes[i]);
-      Concept concept = new Concept(codes[i]);
+      final String name = hierarchy.getName(codes[i]);
+      final ConceptMinimal concept = new ConceptMinimal(codes[i]);
       concept.setLevel(i);
       concept.setName(name);
+      concept.setTerminology(hierarchy.getTerminology().getTerminology());
+      concept.setVersion(hierarchy.getTerminology().getVersion());
       concepts.add(concept);
     }
-
     p.setDirection(1);
     p.setConcepts(concepts);
     return p;
@@ -132,9 +133,10 @@ public class PathFinder {
         }
       }
       if (++ct % 100000 == 0) {
-        log.debug("    count = " + ct);
+        log.debug("    paths = " + ct);
       }
     }
+    log.debug("    total paths = " + ct);
 
     return paths;
   }

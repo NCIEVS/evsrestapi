@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
@@ -316,8 +317,8 @@ public final class ConceptUtils {
     }
     for (final Path path : paths.getPaths()) {
       final List<Concept> concepts = new ArrayList<Concept>();
-      for (final Concept cn : path.getConcepts()) {
-        concepts.add(cn);
+      for (final ConceptMinimal cn : path.getConcepts()) {
+        concepts.add(new Concept(cn));
       }
       // Reverse if indicated
       if (reverse) {
@@ -349,8 +350,9 @@ public final class ConceptUtils {
     final List<List<Concept>> list = convertPaths(paths, reverse);
     // final java.util.Map<String, Concept> cache = new HashMap<>();
     for (final List<Concept> concepts : list) {
-      List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
-      Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
+      final List<String> codes =
+          concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
+      final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
       for (final Concept concept : concepts) {
         final int level = concept.getLevel();
         // if (cache.containsKey(concept.getCode())) {

@@ -59,9 +59,11 @@ public class MainTypeHierarchy {
    * Initialize.
    *
    * @param terminology the terminology
+   * @param hierarchy the hierarchy
    * @throws Exception the exception
    */
-  public void initialize(Terminology terminology) throws Exception {
+  public void initialize(final Terminology terminology, final HierarchyUtils hierarchy)
+    throws Exception {
 
     if (terminology.getTerminology().equals("ncit") && broadCategorySet == null) {
 
@@ -76,7 +78,8 @@ public class MainTypeHierarchy {
       logCodes(mainTypeSet, terminology);
 
       logger.info("  Compute main type hierarchy");
-      mainTypeHierarchy = service.getMainTypeHierarchy(terminology, mainTypeSet, broadCategorySet);
+      mainTypeHierarchy =
+          service.getMainTypeHierarchy(terminology, mainTypeSet, broadCategorySet, hierarchy);
 
     }
   }

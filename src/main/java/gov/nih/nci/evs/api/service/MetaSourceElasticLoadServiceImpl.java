@@ -85,6 +85,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The rui qual map. */
   private Map<String, Set<String>> ruiQualMap = new HashMap<>();
 
+  /** The parent child. */
+  private List<String> parentChild = new ArrayList<>();
+
   /** The src auis. */
   private Set<String> srcAuis = new HashSet<>();
 
@@ -165,10 +168,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void cacheMaps(Terminology terminology) throws Exception {
 
+    // Don't run a second time
+    if (!colMap.isEmpty()) {
+      return;
+    }
+
     logger.info("  START cache maps");
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
+        final PushBackReader mrrel = readers.getReader(RrfReaders.Keys.MRREL);
         final PushBackReader mrmap = readers.getReader(RrfReaders.Keys.MRMAP);
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
@@ -287,6 +296,31 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         colMap.put(fields[0], fields[1]);
       }
 
+      // Prepare parent/child relationships for getHierarchyUtils
+      while ((line = mrrel.readLine()) != null) {
+        final String[] fields = line.split("\\|", -1);
+        // e.g.
+        // C4229995|A5970983|AUI|PAR|C4229995|A5963886|AUI||R91875256||MDR|MDR|||N||
+        // Looking for matching terminology
+        // REL=PAR
+        // parent is not an SRC atom
+        // codes of AUI1 and AUI2 do not match (self-referential)
+        if (fields[10].toLowerCase().equals(terminology.getTerminology()) && fields[3].equals("PAR")
+            && !srcAuis.contains(fields[5])
+            && !auiCodeMap.get(fields[5]).equals(auiCodeMap.get(fields[1]))) {
+          final StringBuffer str = new StringBuffer();
+          str.append(auiCodeMap.get(fields[5]));
+          str.append("\t");
+          str.append(nameMap.get(auiCodeMap.get(fields[5])));
+          str.append("\t");
+          str.append(auiCodeMap.get(fields[1]));
+          str.append("\t");
+          str.append(nameMap.get(auiCodeMap.get(fields[1])));
+          str.append("\n");
+          parentChild.add(str.toString());
+        }
+      }
+
     } finally {
       readers.closeReaders();
     }
@@ -311,7 +345,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     // Cache the concept preferred names so when we resolve relationships we
     // know the "related" name
     cacheMaps(terminology);
-
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
@@ -323,10 +356,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // Set up vars
       String line = null;
       String prevCui = null;
-      Set<String> codes = new HashSet<>();
+      Set<String> codes = new HashSet<>(4);
       Concept concept = null;
       List<Concept> batch = new ArrayList<>();
       int totalConcepts = 0;
+      int sourceConcepts = 0;
 
       // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,SAB,TTY,CODE,STR,SRL,SUPPRESS,CVF
 
@@ -345,6 +379,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // check if we've hit a new concept then process the other files for the
         // "prevCui"
         if (!cui.equals(prevCui)) {
+
+          // Count total number of CUIs processed
+          if (totalConcepts++ % 5000 == 0) {
+            logger.info("    count = " + totalConcepts);
+          }
 
           // Process data from this CUI
           handleDefinitions(terminology, codes, mrdef, prevCui);
@@ -366,10 +405,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
+              concept.setDescendants(hierarchy.getDescendants(code));
+              concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
               handleConcept(concept, batch, false, terminology.getIndexName());
 
-              if (totalConcepts++ % 5000 == 0) {
-                logger.info("    count = " + totalConcepts);
+              // Count number of source concepts
+              if (sourceConcepts++ % 5000 == 0) {
+                logger.info("    " + terminology.getTerminology() + " = " + sourceConcepts);
               }
 
               // Free up some memory
@@ -381,7 +423,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           }
 
           // Start codes again for the next CUI
-          codes = new HashSet<>();
+          codes = new HashSet<>(4);
 
         }
 
@@ -438,11 +480,15 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
             concept = codeConceptMap.get(code);
             concept.setLeaf(concept.getChildren().size() > 0);
+            concept.setDescendants(hierarchy.getDescendants(code));
+            concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
             handleConcept(concept, batch, true, terminology.getIndexName());
 
-            if (totalConcepts++ % 5000 == 0) {
-              logger.info("    count = " + totalConcepts);
+            // Count number of source concepts
+            if (sourceConcepts++ % 5000 == 0) {
+              logger.info("    " + terminology.getTerminology() + " = " + sourceConcepts);
             }
+
           } else {
             // If not, then something went wrong, should not be possible
             throw new Exception(
@@ -460,6 +506,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       totalConcepts++;
 
       logger.info("TOTAL concepts = " + totalConcepts);
+      logger.info("TOTAL " + terminology.getTerminology() + " = " + sourceConcepts);
 
       return totalConcepts;
 
@@ -507,7 +554,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   public void handleSemanticTypes(final Set<String> codes, final PushBackReader mrsty,
     final String prevCui) throws Exception {
     String line;
-    Set<String> seen = new HashSet<>();
+    Set<String> seen = new HashSet<>(4);
     while ((line = mrsty.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
       if (!fields[0].equals(prevCui)) {
@@ -576,7 +623,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       if (fields[4].equals("RUI")) {
         qualSet.add(atn);
         if (!ruiQualMap.containsKey(fields[3])) {
-          ruiQualMap.put(fields[3], new HashSet<>());
+          ruiQualMap.put(fields[3], new HashSet<>(4));
         }
         ruiQualMap.get(fields[3]).add(atn + "|" + atv);
       }
@@ -695,12 +742,18 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   public void handleRelationships(final Terminology terminology, final Set<String> codes,
     final PushBackReader mrrel, final String prevCui) throws Exception {
+    Set<String> seen = new HashSet<>();
     String line;
     while ((line = mrrel.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
       if (!fields[0].equals(prevCui)) {
         mrrel.push(line);
         break;
+      }
+
+      // Skip non-matching SAB lines
+      if (!fields[10].toLowerCase().equals(terminology.getTerminology())) {
+        continue;
       }
 
       // CUI1,AUI1,STYPE1,REL,CUI2,AUI2,STYPE2,RELA,RUI,SRUI,SAB,SL,RG,DIR,SUPPRESS,CVF
@@ -710,12 +763,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       final String rela = fields[7];
 
       // Skip certain situations
-      if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")) {
-        continue;
-      }
-
-      // Skip non-matching SAB lines
-      if (!fields[10].toLowerCase().equals(terminology.getTerminology())) {
+      if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")
+          || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
 
@@ -752,14 +801,21 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
       }
 
+      // Skip combinations already seen (all will have the same SAB here)
+      final String key = concept1.getCode() + "," + concept2 + "," + rela;
+      if (seen.contains(key)) {
+        continue;
+      }
+      seen.add(key);
+
       // CUI2 "child of" CUI1
-      // CUI1 has parent CUI2
+      // CUI1 has child CUI2
       if (rel.equals("CHD")) {
         buildChild(concept1, fields);
       }
 
       // CUI2 "parent of" CUI1
-      // CUI1 has child CUI2
+      // CUI1 has parent CUI2
       else if (rel.equals("PAR")) {
         buildParent(concept1, fields);
       }
@@ -767,10 +823,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // Other "association" and "inverse association"
       else {
 
-        // TEMP: skip SNOMED relationships
-        // if (fields[10].equals("SNOMEDCT_US")) {
-        // continue;
-        // }
         buildAssociations(concept1, fields);
       }
 
@@ -828,7 +880,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setVersion(concept.getVersion());
     concept2.setLeaf(null);
     if (!rela.isEmpty()) {
-      concept2.getQualifiers().add(new Qualifier("RELA", rela));
+      concept2.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
 
     return concept2;
@@ -936,9 +988,17 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     logger.debug("index result: {}", result);
 
     // Use default elasticsearch mapping
-
     // Set the "sources" map of the terminology metadata
     terminology.getMetadata().setSources(sourceMap);
+
+    //
+    // Handle hierarchy
+    //
+    ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+    hierarchyObject.setHierarchy(hierarchy);
+    operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
+    logger.info("  Hierarchy loaded");
 
     //
     // Handle associations
@@ -993,9 +1053,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject qualifiers = new ElasticObject("qualifiers");
 
     // qualifiers to build - from relationships
-    // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS", "RG", "DIR"
+    // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS", "RG",
+    // "DIR"
     for (final String col : new String[] {
-        "RELA"//, "RG", "DIR"
+        "RELA"// , "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
@@ -1050,6 +1111,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
+
+    // Put concept lists in natural sort order
+    concept.sortLists();
+        
     batch.add(concept);
 
     int conceptSize = concept.toString().length();
@@ -1131,8 +1196,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public HierarchyUtils getHierarchyUtils(Terminology term) {
-    return null;
+  public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
+    cacheMaps(term);
+    final HierarchyUtils utils = new HierarchyUtils(term, parentChild);
+    parentChild = null;
+    return utils;
   }
 
   /**

@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -97,8 +98,8 @@ public class MDRControllerTests {
     final Terminology mdr =
         terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
-    assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
     assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA");
+    assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
     assertThat(mdr.getName())
         .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
     assertThat(mdr.getDescription()).isEqualTo(";;MedDRA MSSO;;MedDRA [electronic resource]"
@@ -307,6 +308,12 @@ public class MDRControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("BRO");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("BRN");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .doesNotContain("XR");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("AQ");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("QB");
@@ -440,6 +447,161 @@ public class MDRControllerTests {
     assertThat(list.size()).isEqualTo(10);
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("LLT");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
+
+  }
+
+  /**
+   * Test subree.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubree() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+    List<HierarchyNode> list2 = null;
+
+    // test /roots
+    url = baseUrl + "/mdr/roots";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    // Some things show up as roots because of nature of the data
+    assertThat(list.size()).isGreaterThan(0);
+
+    // test /descendants
+    url = baseUrl + "/mdr/10053567/descendants";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+
+    // test /subtree
+    url = baseUrl + "/mdr/10053567/subtree";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isNotEmpty();
+
+    // test /subtree/children
+    url = baseUrl + "/mdr/10053567/subtree/children";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+      // n/a
+    });
+    assertThat(list2).isNotEmpty();
+
+  }
+
+  /**
+   * Test paths.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPaths() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<List<Concept>> list = null;
+    List<Concept> roots = null;
+    List<Concept> concepts = null;
+
+    // test /roots
+    url = baseUrl + "/mdr/roots";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+
+    // test /pathsToRoot
+    url = baseUrl + "/mdr/10009727/pathsToRoot";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list.size()).isGreaterThan(0);
+    concepts = list.get(0);
+    assertThat(concepts.size()).isGreaterThan(1);
+    assertThat(concepts.get(0).getLevel()).isEqualTo(0);
+    assertThat(concepts.get(0).getCode()).isEqualTo("10009727");
+    assertThat(concepts.get(concepts.size() - 1).getLevel()).isEqualTo(concepts.size() - 1);
+    final String rootCode = concepts.get(concepts.size() - 1).getCode();
+    assertThat(roots.stream().filter(c -> c.getCode().equals(rootCode)).count()).isGreaterThan(0);
+
+    // test /pathsFromRoot
+    url = baseUrl + "/mdr/10009727/pathsFromRoot";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list.size()).isGreaterThan(0);
+    concepts = list.get(0);
+    assertThat(concepts.size()).isGreaterThan(1);
+    assertThat(concepts.get(0).getLevel()).isEqualTo(0);
+    assertThat(concepts.get(concepts.size() - 1).getCode()).isEqualTo("10009727");
+    assertThat(concepts.get(concepts.size() - 1).getLevel()).isEqualTo(concepts.size() - 1);
+    assertThat(roots.stream().filter(c -> c.getCode().equals(rootCode)).count()).isGreaterThan(0);
+
+    // test /pathsToAncestor
+    url = baseUrl + "/mdr/10009727/pathsToAncestor/10009802";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list.size()).isGreaterThan(0);
+    concepts = list.get(0);
+    assertThat(concepts.size()).isEqualTo(2);
+    assertThat(concepts.get(0).getCode()).isEqualTo("10009727");
+    assertThat(concepts.get(0).getLevel()).isEqualTo(0);
+    assertThat(concepts.get(1).getCode()).isEqualTo("10009802");
+    assertThat(concepts.get(1).getLevel()).isEqualTo(1);
+
+    // test /pathsToAncestor - all the way up
+    url = baseUrl + "/mdr/10009727/pathsToAncestor/10005329";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    assertThat(list.size()).isGreaterThan(0);
+    concepts = list.get(0);
+    assertThat(concepts.size()).isGreaterThan(2);
+    assertThat(concepts.get(0).getCode()).isEqualTo("10009727");
+    assertThat(concepts.get(0).getLevel()).isEqualTo(0);
+    assertThat(concepts.get(concepts.size() - 1).getCode()).isEqualTo("10005329");
+    assertThat(concepts.get(concepts.size() - 1).getLevel()).isEqualTo(concepts.size() - 1);
 
   }
 }

@@ -347,15 +347,16 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     List<Path> ps = paths.getPaths();
     for (Path path : ps) {
-      List<Concept> concepts = path.getConcepts();
-      if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2)
+      final List<ConceptMinimal> concepts = path.getConcepts();
+      if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2) {
         continue;
-      Concept rootConcept = concepts.get(concepts.size() - 1);
+      }
+      final ConceptMinimal rootConcept = concepts.get(concepts.size() - 1);
 
-      HierarchyNode root = rootNodeMap.get(rootConcept.getCode());
+      final HierarchyNode root = rootNodeMap.get(rootConcept.getCode());
       HierarchyNode previous = root;
       for (int j = concepts.size() - 2; j >= 0; j--) {
-        Concept c = concepts.get(j);
+        ConceptMinimal c = concepts.get(j);
         if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(c.getCode()))) {
           List<HierarchyNode> children = getChildNodes(previous.getCode(), 0, terminology);
           for (HierarchyNode child : children) {
@@ -405,17 +406,17 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public Paths getPathToParent(String code, String parentCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    logger.debug(String.format("getPathToParent(%s, %s)", code, parentCode));
+    // logger.debug(String.format("getPathToParent(%s, %s)", code, parentCode));
     Paths paths = getPathToRoot(code, terminology);
-    logger.debug("paths: " + paths);
+    // logger.debug("paths: " + paths);
     Paths conceptPaths = new Paths();
-    Concept concept = new Concept();
+    ConceptMinimal concept = new ConceptMinimal();
     for (Path path : paths.getPaths()) {
-      logger.debug("checking path: " + path);
+      // logger.debug("checking path: " + path);
       Boolean codeSW = false;
       Boolean parentSW = false;
       int idx = -1;
-      List<Concept> concepts = path.getConcepts();
+      List<ConceptMinimal> concepts = path.getConcepts();
       for (int i = 0; i < concepts.size(); i++) {
         concept = concepts.get(i);
         if (concept.getCode().equals(code)) {
@@ -427,26 +428,26 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
         }
       }
       if (codeSW && parentSW) {
-        logger.debug("both codeSW and parentSW are TRUE");
-        List<Concept> trimed_concepts = new ArrayList<Concept>();
+        // logger.debug("both codeSW and parentSW are TRUE");
+        List<ConceptMinimal> trimed_concepts = new ArrayList<ConceptMinimal>();
         if (idx == -1) {
           idx = concepts.size() - 1;
         }
-        logger.debug("idx: " + idx);
+        // logger.debug("idx: " + idx);
         for (int i = 0; i <= idx; i++) {
-          logger.debug("adding concept: " + concepts.get(i).getCode());
+          // logger.debug("adding concept: " + concepts.get(i).getCode());
           trimed_concepts.add(concepts.get(i));
           if (concepts.get(i).getCode().equals(parentCode)) {
             break;
           }
         }
-        logger.debug("trimmed concepts: " + trimed_concepts);
+        // logger.debug("trimmed concepts: " + trimed_concepts);
         conceptPaths.add(new Path(1, trimed_concepts));
       }
     }
-    logger.debug("concept paths: " + conceptPaths);
+    // logger.debug("concept paths: " + conceptPaths);
     conceptPaths = PathUtils.removeDuplicatePaths(conceptPaths);
-    logger.debug("concept paths after de-dupe: " + conceptPaths);
+    // logger.debug("concept paths after de-dupe: " + conceptPaths);
     return conceptPaths;
   }
 
