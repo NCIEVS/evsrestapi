@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
@@ -371,6 +374,90 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
 
+  }
+
+  @Test
+  public void testIncludeSubsets() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // minimal
+    url = baseUrl + "/ncit/subset/C116978?include=minimal";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getName()).isEqualTo("CTRP Agent Terminology");
+    assertThat(concept.getCode()).isEqualTo("C116978");
+    assertThat(concept.getSynonyms()).isEmpty();
+    assertThat(concept.getDefinitions()).isEmpty();
+    assertThat(concept.getProperties()).isEmpty();
+    assertThat(concept.getChildren()).isEmpty();
+    assertThat(concept.getParents()).isEmpty();
+    assertThat(concept.getAssociations()).isEmpty();
+    assertThat(concept.getInverseAssociations()).isEmpty();
+    assertThat(concept.getRoles()).isEmpty();
+    assertThat(concept.getInverseRoles()).isEmpty();
+    assertThat(concept.getMaps()).isEmpty();
+
+    url = baseUrl + "/ncit/subset/C116978?include=properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getName()).isEqualTo("CTRP Agent Terminology");
+    assertThat(concept.getCode()).isEqualTo("C116978");
+    assertThat(concept.getSynonyms()).isEmpty();
+    assertThat(concept.getDefinitions()).isEmpty();
+    assertThat(concept.getProperties()).isNotEmpty();
+    assertThat(concept.getChildren()).isEmpty();
+    assertThat(concept.getParents()).isEmpty();
+    assertThat(concept.getAssociations()).isEmpty();
+    assertThat(concept.getInverseAssociations()).isEmpty();
+    assertThat(concept.getRoles()).isEmpty();
+    assertThat(concept.getInverseRoles()).isEmpty();
+    assertThat(concept.getMaps()).isEmpty();
+    assertThat(concept.getProperties().stream()
+        .filter(p -> p.getType().equals("Semantic_Type")).count())
+            .isGreaterThan(0);
+
+    // /subsets
+    url = baseUrl + "/ncit/subsets?include=properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
+    concept = list.get(0);
+    assertThat(concept.getName()).isEqualTo("ACC/AHA EHR Terminology");
+    assertThat(concept.getCode()).isEqualTo("C167405");
+    assertThat(concept.getSynonyms()).isEmpty();
+    assertThat(concept.getDefinitions()).isEmpty();
+    assertThat(concept.getProperties()).isNotEmpty();
+    // Children are set automatically (because this is a graph)
+    assertThat(concept.getChildren()).isNotEmpty();
+    // Check the first child also for just properties
+    assertThat(concept.getChildren().get(0).getSynonyms()).isEmpty();
+    assertThat(concept.getChildren().get(0).getProperties()).isNotEmpty();
+    assertThat(concept.getParents()).isEmpty();
+    assertThat(concept.getAssociations()).isEmpty();
+    assertThat(concept.getInverseAssociations()).isEmpty();
+    assertThat(concept.getRoles()).isEmpty();
+    assertThat(concept.getInverseRoles()).isEmpty();
+    assertThat(concept.getMaps()).isEmpty();
+    assertThat(concept.getProperties().stream()
+        .filter(p -> p.getType().equals("Semantic_Type")).count())
+            .isGreaterThan(0);
+
+  
   }
 
 }
