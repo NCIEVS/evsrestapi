@@ -366,6 +366,13 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code", value = "Code for a subset concept in the specified "
           + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, dataType = "string", paramType = "path"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>.",
+          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
           required = false, dataType = "string", paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
@@ -378,9 +385,11 @@ public class ConceptController extends BaseController {
   final String terminology, @RequestParam("fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(value = "pageSize")
   final Optional<Integer> pageSize, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestParam("include")
+  final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
@@ -398,7 +407,14 @@ public class ConceptController extends BaseController {
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
         for (Association assn : concept.get().getInverseAssociations().subList(fromIndex,
             toIndex)) {
-          subsets.add(new Concept("ncit", assn.getRelatedCode(), assn.getRelatedName()));
+          final Concept member =
+              elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
+          if (member != null) {
+            subsets.add(member);
+          } else {
+            logger.warn("Unexpected subset member that could not be loaded as a concept = "
+                + term.getTerminology() + ", " + assn.getRelatedCode());
+          }
         }
       }
 
