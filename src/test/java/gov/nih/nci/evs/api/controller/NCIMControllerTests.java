@@ -220,8 +220,8 @@ public class NCIMControllerTests {
     assertThat(concept.getDefinitions()).isNotNull();
     assertThat(concept.getDefinitions().size()).isEqualTo(8);
     assertThat(concept.getDefinitions().get(0).getDefinition()).startsWith(
-        "Lobular organ the parenchyma of which consists of glandular acini which communicate via a duct system with the duodenum.");
-    assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("NCI");
+        "A digestive organ in the abdomen that has both endocrine and exocrine functions.");
+    assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("NCI-GLOSS");
 
     // test random concept with no definition
     url = baseUrl + "/ncim/C0426679";
@@ -261,7 +261,8 @@ public class NCIMControllerTests {
     assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
+    assertThat(concept.getProperties().get(1).getValue())
+        .isEqualTo("Amino Acid, Peptide, or Protein");
 
     // test random concept with property
     url = baseUrl + "/ncim/C0718043";
@@ -274,8 +275,11 @@ public class NCIMControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0718043");
     assertThat(concept.getName()).isEqualTo("Sacrosidase");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(1).getValue()).isEqualTo("Pharmacologic Substance");
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+            .isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type"))
+        .findFirst().get().getValue()).isEqualTo("Amino Acid, Peptide, or Protein");
 
     // test penultimate concept with property
     url = baseUrl + "/ncim/CL988042";
@@ -289,8 +293,12 @@ public class NCIMControllerTests {
     assertThat(concept.getName()).isEqualTo(
         "Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
-    assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Clinical Attribute");
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+            .isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type"))
+        .findFirst().get().getValue()).isEqualTo("Clinical Attribute");
+
 
     // last concept in MRCONSO with one property
     url = baseUrl + "/ncim/CL990362";
@@ -303,8 +311,11 @@ public class NCIMControllerTests {
     assertThat(concept.getCode()).isEqualTo("CL990362");
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
-    assertThat(concept.getProperties().get(0).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(0).getValue()).isEqualTo("Intellectual Product");
+    assertThat(
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+            .isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type"))
+        .findFirst().get().getValue()).isEqualTo("Intellectual Product");
 
   }
 
