@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
@@ -562,4 +565,58 @@ public class ConceptControllerIncludeTests {
 
   }
 
+  /**
+   * Test subset members include.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubsetMembersInclude() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    // Look up subset members with minimal
+    url = baseUrl + "/ncit/subsetMembers/C157225?include=minimal&fromRecord=0&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(list.get(0).getCode()).isNotNull();
+    assertThat(list.get(0).getName()).isNotNull();
+    assertThat(list.get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).getVersion()).isNotNull();
+    assertThat(list.get(0).getLeaf()).isNotNull();
+    assertThat(list.get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).getProperties()).isEmpty();
+
+    // Look up subset members with synonyms
+    url = baseUrl + "/ncit/subsetMembers/C157225?include=synonyms&fromRecord=0&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(list.get(0).getCode()).isNotNull();
+    assertThat(list.get(0).getName()).isNotNull();
+    assertThat(list.get(0).getTerminology()).isNotNull();
+    assertThat(list.get(0).getVersion()).isNotNull();
+    assertThat(list.get(0).getLeaf()).isNotNull();
+    assertThat(list.get(0).getSynonyms()).isNotEmpty();
+    assertThat(list.get(0).getProperties()).isEmpty();
+
+  }
 }
