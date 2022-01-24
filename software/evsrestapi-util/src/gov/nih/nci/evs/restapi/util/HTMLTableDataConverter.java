@@ -76,7 +76,7 @@ public class HTMLTableDataConverter {
 			pw.println("</data>");
 			pw.println("</table>");
 
-			pw.println("<footer>(Source; NCI Thesaurus, version " + ncit_version + ")");
+			pw.println("<footer>(Source: NCI Thesaurus, version " + ncit_version + ")");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
