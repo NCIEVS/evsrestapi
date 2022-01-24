@@ -104,7 +104,7 @@ public class SPARQLQueryGenerator {
 	public static Vector createConstrcQueryMethod(String methodSignature, Vector v) {
 		Vector w = new Vector();
 	    w.add("public String " + methodSignature + " {");
-		w.add("\tString prefixes = getPrefixes();");
+		w.add("\tString prefixes = owlSPARQLUtils.getPrefixes();");
 		w.add("\tStringBuffer buf = new StringBuffer();");
 		w.add("\tbuf.append(prefixes);");
 		for (int i=0; i<v.size(); i++) {
@@ -147,7 +147,7 @@ public class SPARQLQueryGenerator {
 		constructQueryMethodSignature = constructQueryMethodSignature.replace("String ", "");
 
 		w.add("\tString query = " + constructQueryMethodSignature + ";");
-		w.add("\tVector v = executeQuery(query);");
+		w.add("\tVector v = owlSPARQLUtils.executeQuery(query);");
 		w.add("\tif (v == null) return null;");
 		w.add("\tif (v.size() == 0) return v;");
 		w.add("\tv = new ParserUtils().getResponseValues(v);");
