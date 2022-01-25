@@ -120,10 +120,13 @@ public class JSONParser {
 							Iterator it3 = map_obj.keySet().iterator();
 							while (it3.hasNext()) {
 								String key3 = (String) it3.next();
-								String value = (String) map_obj.get(key3);
-								//System.out.println("\t" + key3 + " --> " + value);
-								System.out.println("\t" + key3 + ": " + value);
-							}
+								Object obj1 = map_obj.get(key3);
+								if (obj1 instanceof org.json.JSONObject) {
+									System.out.println("\t" + key3 + ": " + obj1.toString());
+								} else if (obj1 instanceof String) {
+									System.out.println("\t" + key3 + ": " + obj1);
+								}
+  						    }
 						}
 					} else {
 						System.out.println("KEY: " + key + " value: Map");
@@ -179,9 +182,15 @@ public class JSONParser {
 							Iterator it3 = map_obj.keySet().iterator();
 							while (it3.hasNext()) {
 								String key3 = (String) it3.next();
-								String value = (String) map_obj.get(key3);
-								//v.add(key3 + " --> " + value);
-								v.add(key3 + ": " + value);
+
+								Object obj1 = map_obj.get(key3);
+								if (obj1 instanceof org.json.JSONObject) {
+									String value = obj1.toString();
+									v.add(key3 + ": " + value);
+								} else if (obj1 instanceof String) {
+									v.add(key3 + ": " + obj1);
+								}
+
 							}
 						} else {
 							Iterator it3 = map_obj.keySet().iterator();
