@@ -229,7 +229,7 @@ public class EVSStatistics {
 	}
 
     public void addFooter() {
-		table_data.add("<footer>(Source; NCI Thesaurus, version " + this.version + ")");
+		table_data.add("<footer>(Source: NCI Thesaurus, version " + this.version + ")");
 	}
 
     public boolean is_ANNOTATED_TARGET_CODES(String propertyCode) {

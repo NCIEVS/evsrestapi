@@ -88,7 +88,7 @@ public class MetadataGenerator {
 			pw.println("</data>");
 			pw.println("</table>");
 
-			pw.println("<footer>(Source; NCI Thesaurus, version " + this.version + ")");
+			pw.println("<footer>(Source: NCI Thesaurus, version " + this.version + ")");
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
