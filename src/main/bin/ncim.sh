@@ -5,6 +5,12 @@
 # legacy Jenkins setup, but it ignores the parameters.
 #
 
+if [[ $# -ne 0 ]]; then
+  echo "Usage: $0"
+  echo "  Call without parameters, you are likely trying to call ncim-part.sh"
+  exit 1
+fi
+
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"

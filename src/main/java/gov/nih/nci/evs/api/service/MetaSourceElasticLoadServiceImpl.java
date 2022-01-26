@@ -567,10 +567,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         Concept concept = codeConceptMap.get(code);
         // hard code to Semantic_Typ
         buildProperty(concept, "Semantic_Type", fields[3], null);
-        if (!seen.contains(fields[0])) {
+        if (!seen.contains(code + fields[0])) {
           buildProperty(concept, "NCI_META_CUI", fields[0], null);
         }
-        seen.add(fields[0]);
+        seen.add(code + fields[0]);
       }
 
     }
@@ -1031,11 +1031,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject properties = new ElasticObject("properties");
 
     // NCI_META_CUI
-    properties.getConcepts()
-        .add(buildMetadata(terminology, "NCI_META_CUI", "CUI assignment in the NCI Metatehsaurus"));
+    atnMap.put("NCI_META_CUI", "CUI assignment in the NCI Metatehsaurus");
 
     // MRSTY: Semantic_Type property
-    properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
+    atnMap.put("Semantic_Type", "Semantic Type");
 
     // MRSAT: property metadata for MRSAT
     // Remove ATNs that are qualifiers
@@ -1114,7 +1113,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
     // Put concept lists in natural sort order
     concept.sortLists();
-        
+
     batch.add(concept);
 
     int conceptSize = concept.toString().length();
