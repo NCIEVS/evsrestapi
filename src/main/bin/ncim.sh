@@ -5,7 +5,7 @@
 # legacy Jenkins setup, but it ignores the parameters.
 #
 
-if [[ $# -ne 0 ]]; then
+if [[ $# -ne 0 ]] && [ "x$1" != "x--download" ]; then
   echo "Usage: $0"
   echo "  Call without parameters, you are likely trying to call ncim-part.sh"
   exit 1
