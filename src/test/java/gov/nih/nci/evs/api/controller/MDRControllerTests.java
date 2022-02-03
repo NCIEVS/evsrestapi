@@ -99,6 +99,7 @@ public class MDRControllerTests {
         terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
     assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA");
+    assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
     assertThat(mdr.getName())
         .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
@@ -228,7 +229,7 @@ public class MDRControllerTests {
     String content = null;
     Concept concept = null;
 
-    // first concept in MRSAT
+    // random concept in MRSAT
     url = baseUrl + "/mdr/10009802";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -241,6 +242,29 @@ public class MDRControllerTests {
     assertThat(concept.getProperties().stream()
         .filter(p -> p.getType().equals("PRIMARY_SOC") && p.getValue().equals("10005329")).count())
             .isEqualTo(1);
+
+    // SMQ concept in MRSAT - 10036030
+    url = baseUrl + "/mdr/10036030?include=associations,inverseAssociations";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("10036030");
+    assertThat(concept.getAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getAssociations().stream().filter(a -> a.getQualifiers().size() > 1).count())
+        .isEqualTo(1);
+    assertThat(concept.getAssociations().stream().filter(a -> a.getQualifiers().size() > 1)
+        .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("SMQ_TERM_CAT"))
+        .count()).isEqualTo(1);
+
+    assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() > 1).count())
+        .isEqualTo(1);
+    assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() > 1)
+        .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("SMQ_TERM_CAT"))
+        .count()).isEqualTo(1);
 
   }
 
@@ -388,10 +412,9 @@ public class MDRControllerTests {
     // c.getCode()).collect(Collectors.toSet())).contains("STYPE2");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RELA");
 
-    // Sample data doesn't have one of these
-    // assertThat(list.stream().map(c ->
-    // c.getCode()).collect(Collectors.toSet()))
-    // .contains("SMQ_TERM_LEVEL");
+    // Faked example of SMQ qualifier
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .contains("SMQ_TERM_CAT");
 
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet()))

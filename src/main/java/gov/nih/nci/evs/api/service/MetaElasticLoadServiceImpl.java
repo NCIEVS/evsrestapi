@@ -756,8 +756,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         final String[] parts = atnatv.split("\\|");
         association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
       }
-      ruiQualMap.remove(fields[8]);
     }
+
     // RUI and SRUI in the other direction are different.
     // iassociation.getQualifiers().add(new Qualifier("RG", rg));
     // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
@@ -796,6 +796,15 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // association.getQualifiers().add(new Qualifier("SRUI", srui));
     // }
     // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+
+    if (ruiQualMap.containsKey(fields[8])) {
+      for (final String atnatv : ruiQualMap.get(fields[8])) {
+        final String[] parts = atnatv.split("\\|");
+        iassociation.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+      }
+      ruiQualMap.remove(fields[8]);
+    }
+
     concept.getInverseAssociations().add(iassociation);
 
   }
@@ -955,10 +964,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
-    
+
     // Put concept lists in natural sort order
     concept.sortLists();
-    
+
     batch.add(concept);
 
     int conceptSize = concept.toString().length();
@@ -1030,7 +1039,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         TerminologyMetadata metadata = new ObjectMapper().readValue(IOUtils
             .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
             TerminologyMetadata.class);
+        metadata.setLoader("rrf");
         term.setMetadata(metadata);
+
       } catch (Exception e) {
         throw new Exception("Unexpected error trying to load = " + resource, e);
       }

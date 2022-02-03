@@ -91,6 +91,7 @@ public class TerminologyMetadataUnitTest {
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("uiLabel");
+    tester.include("loader");
     tester.include("code");
     tester.include("definitionSource");
     tester.include("mapRelation");

@@ -102,6 +102,8 @@ public class NCIMControllerTests {
     assertThat(ncim.getDescription())
         .isEqualTo("NCI Metathesaurus. Bethesda, MD: National Cancer Institute.");
     assertThat(ncim.getLatest()).isTrue();
+    assertThat(ncim.getMetadata().getUiLabel()).isEqualTo("NCI Metathesaurus");
+    assertThat(ncim.getMetadata().getLoader()).isEqualTo("rrf");
   }
 
   /**
