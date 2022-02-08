@@ -100,6 +100,7 @@ public class MDRControllerTests {
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
     assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA");
     assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
+    assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
     assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
     assertThat(mdr.getName())
         .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
@@ -260,8 +261,9 @@ public class MDRControllerTests {
         .count()).isEqualTo(1);
 
     assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
-    assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() > 1).count())
-        .isEqualTo(1);
+    assertThat(
+        concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() > 1).count())
+            .isEqualTo(1);
     assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() > 1)
         .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("SMQ_TERM_CAT"))
         .count()).isEqualTo(1);

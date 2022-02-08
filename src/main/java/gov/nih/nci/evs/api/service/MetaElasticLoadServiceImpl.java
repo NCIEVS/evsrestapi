@@ -854,11 +854,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
 
-    // Use default elasticsearch mapping
-
-    // Set the "sources" map of the terminology metadata
-    terminology.getMetadata().setSources(sourceMap);
-
     //
     // Handle associations
     //
@@ -1040,6 +1035,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
             TerminologyMetadata.class);
         metadata.setLoader("rrf");
+        metadata.setSources(sourceMap);
+        metadata.setSourceCt(sourceMap.size());
         term.setMetadata(metadata);
 
       } catch (Exception e) {

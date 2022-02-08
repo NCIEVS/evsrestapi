@@ -997,10 +997,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
 
-    // Use default elasticsearch mapping
-    // Set the "sources" map of the terminology metadata
-    terminology.getMetadata().setSources(sourceMap);
-
     //
     // Handle hierarchy
     //
@@ -1163,9 +1159,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // VCUI,RCUI,VSAB,RSAB,SON,SF,SVER,VSTART,VEND,IMETA,RMETA,SLC,SCC,SRL,
         // TFR,CFR,CXTY,TTYL,ATNL,LAT,CENC,CURVER,SABIN,SSN,SCIT
         final String[] fields = line.split("\\|", -1);
-        sourceMap.put(fields[3], fields[4]);
 
         if (terminology.equals(fields[3]) && !fields[0].isEmpty()) {
+          sourceMap.put(fields[3], fields[4]);
           term.setTerminology(terminology.toLowerCase());
           term.setVersion(fields[6]);
           // No info about the date
@@ -1192,6 +1188,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
             TerminologyMetadata.class);
         metadata.setLoader("rrf");
+        metadata.setSources(sourceMap);
+        metadata.setSourceCt(1);
+
         term.setMetadata(metadata);
       } catch (Exception e) {
         throw new Exception("Unexpected error trying to load = " + resource, e);

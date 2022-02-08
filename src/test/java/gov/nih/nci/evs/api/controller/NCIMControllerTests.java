@@ -99,6 +99,9 @@ public class NCIMControllerTests {
         terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).findFirst().get();
     assertThat(ncim.getTerminology()).isEqualTo("ncim");
     assertThat(ncim.getName()).isEqualTo("NCIMTH");
+    assertThat(ncim.getMetadata().getUiLabel()).isEqualTo("NCI Metathesaurus");
+    assertThat(ncim.getMetadata().getLoader()).isEqualTo("rrf");
+    assertThat(ncim.getMetadata().getSourceCt()).isGreaterThan(1);
     assertThat(ncim.getDescription())
         .isEqualTo("NCI Metathesaurus. Bethesda, MD: National Cancer Institute.");
     assertThat(ncim.getLatest()).isTrue();
@@ -300,7 +303,6 @@ public class NCIMControllerTests {
             .isGreaterThan(0);
     assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type"))
         .findFirst().get().getValue()).isEqualTo("Clinical Attribute");
-
 
     // last concept in MRCONSO with one property
     url = baseUrl + "/ncim/CL990362";

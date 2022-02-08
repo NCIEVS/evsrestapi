@@ -164,6 +164,7 @@ if [[ $? -ne 0 ]]; then
     echo "ERROR: removing $lcterm $version indexes"
     exit 1
 fi
+cat /tmp/x.$$ | sed 's/^/    /'
 
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"

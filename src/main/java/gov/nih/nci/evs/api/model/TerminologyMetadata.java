@@ -79,6 +79,10 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources. */
   private Map<String, String> sources;
 
+  /** The source ct. */
+  @SuppressWarnings("unused")
+  private int sourceCt;
+
   /** The definition source set. */
   private Set<String> definitionSourceSet;
 
@@ -159,6 +163,7 @@ public class TerminologyMetadata extends BaseModel {
     preferredName = other.getPreferredName();
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
+    sourceCt = sources.size();
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
     synonym = new HashSet<>(other.getSynonym());
     synonymCode = other.getSynonymCode();
@@ -753,6 +758,24 @@ public class TerminologyMetadata extends BaseModel {
       sources = new HashMap<>();
     }
     return sources;
+  }
+
+  /**
+   * Returns the source ct.
+   *
+   * @return the source ct
+   */
+  public int getSourceCt() {
+    return sourceCt;
+  }
+
+  /**
+   * Sets the source ct.
+   *
+   * @param sourceCt the source ct
+   */
+  public void setSourceCt(final int sourceCt) {
+    this.sourceCt = sourceCt;
   }
 
   /**
