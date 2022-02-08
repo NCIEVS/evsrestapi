@@ -126,7 +126,8 @@ public class SearchController extends BaseController {
               + "list of NCI Metathesaurus properties</a>.</p> "
               + "The properties can be specified as code or name.  "
               + "NOTE: when specifying a property, the 'type' parameter will not "
-              + "function as expected because properties are indexed to only support exact matches.",
+              + "function as expected because properties are indexed to only support exact matches. "
+              + "This feature works with 'term' to find concepts having a specific property matching an exact value.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to. "
@@ -247,7 +248,8 @@ public class SearchController extends BaseController {
               + "list of NCI Metathesaurus properties</a>.</p> "
               + "The properties can be specified as code or name.  "
               + "NOTE: when specifying a property, the 'type' parameter will not "
-              + "function as expected because properties are indexed to only support exact matches.",
+              + "function as expected because properties are indexed to only support exact matches. "
+              + "This feature works with 'term' to find concepts having a specific property matching an exact value.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to. "
