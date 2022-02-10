@@ -375,8 +375,9 @@ public class MDRControllerTests {
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    assertThat(list.size()).isEqualTo(1);
-    assertThat(list.get(0).getCode()).isEqualTo("DEFINITION");
+    assertThat(list.size()).isEqualTo(0);
+    // No definitions in MDR
+    // assertThat(list.get(0).getCode()).isEqualTo("DEFINITION");
 
     // Handle properties
     url = base + "/properties";

@@ -134,6 +134,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The batch size. */
   private int batchSize = 0;
 
+  private int definitionCt = 0;
+
   /** the environment *. */
   @Autowired
   Environment env;
@@ -729,6 +731,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     def.setType("DEFINITION");
     terminology.getMetadata().getDefinitionSourceSet().add(source);
     concept.getDefinitions().add(def);
+    definitionCt++;
   }
 
   /**
@@ -944,7 +947,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
       ruiQualMap.remove(fields[8]);
     }
-    
+
     // avoid self-referential rels
     if (!iassociation.getRelatedCode().equals(concept.getCode())) {
       concept.getInverseAssociations().add(iassociation);
@@ -1027,7 +1030,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     // Handle definitionTypes
     //
     final ElasticObject defTypes = new ElasticObject("definitionTypes");
-    defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
+    // Only create definition metadata if there are actualy definitions
+    if (definitionCt > 0) {
+      defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
+    }
     operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
 
