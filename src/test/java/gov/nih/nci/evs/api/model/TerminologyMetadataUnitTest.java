@@ -90,6 +90,8 @@ public class TerminologyMetadataUnitTest {
   @Test
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
+    tester.include("uiLabel");
+    tester.include("loader");
     tester.include("code");
     tester.include("definitionSource");
     tester.include("mapRelation");
@@ -114,6 +116,9 @@ public class TerminologyMetadataUnitTest {
     tester.include("subsetPrefix");
     tester.include("unpublished");
     tester.include("monthlyDb");
+    tester.include("licenseText");
+    tester.include("metaConceptField");
+    tester.include("preferredTermTypes");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);

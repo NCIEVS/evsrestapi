@@ -35,7 +35,7 @@ public class AssociationEntryResultList extends ResultList {
    */
   public void populateFrom(final AssociationEntryResultList other) {
     super.populateFrom(other);
-    concepts = new ArrayList<>(other.getAssociationEntrys());
+    concepts = new ArrayList<>(other.getAssociationEntries());
   }
 
   /**
@@ -43,7 +43,7 @@ public class AssociationEntryResultList extends ResultList {
    *
    * @return the concepts
    */
-  public List<AssociationEntry> getAssociationEntrys() {
+  public List<AssociationEntry> getAssociationEntries() {
     if (concepts == null) {
       concepts = new ArrayList<>();
     }
@@ -55,7 +55,7 @@ public class AssociationEntryResultList extends ResultList {
    *
    * @param concepts the concepts
    */
-  public void setAssociationEntrys(final List<AssociationEntry> concepts) {
+  public void setAssociationEntries(final List<AssociationEntry> concepts) {
     this.concepts = concepts;
   }
 

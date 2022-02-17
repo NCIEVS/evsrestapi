@@ -263,7 +263,7 @@ public class Paths extends BaseModel {
   private boolean isMthAncestor(final String mma, final Set<String> codes, final List<Path> paths) {
     for (final Path path : paths) {
       boolean flag = false;
-      for (final Concept concept : path.getConcepts()) {
+      for (final ConceptMinimal concept : path.getConcepts()) {
         if (concept.getCode().equals(mma)) {
           // if another code was encountered before this mma, then
           // this is an ancestor and return true
@@ -296,7 +296,7 @@ public class Paths extends BaseModel {
     int first = -1;
     int last = 0;
     int ct = 0;
-    for (final Concept concept : path.getConcepts()) {
+    for (final ConceptMinimal concept : path.getConcepts()) {
       // First is the index where "code" is encountered
       if (concept.getCode().equals(code)) {
         first = ct;

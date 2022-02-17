@@ -66,6 +66,7 @@ public class ConceptMinimalUnitTest {
     tester.include("code");
     tester.include("terminology");
     tester.include("version");
+    tester.include("level");
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
     assertTrue(tester.testIdentityFieldNotEquals());

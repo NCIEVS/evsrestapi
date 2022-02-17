@@ -198,16 +198,16 @@ public class SearchControllerTests {
 
     // Page size too big
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=blood&pageSize=101");
+    log.info("Testing url - " + url + "?terminology=ncit&term=blood&pageSize=1001");
     mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "blood").param("pageSize", "101"))
+        get(url).param("terminology", "ncit").param("term", "blood").param("pageSize", "1001"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
     // Page size too big - 2
     url = baseUrl;
-    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=101");
-    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "101"))
+    log.info("Testing url - /api/v1/concept/ncit/search?term=blood&pageSize=1001");
+    mvc.perform(get("/api/v1/concept/ncit/search").param("term", "blood").param("pageSize", "1001"))
         .andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
 
@@ -393,11 +393,11 @@ public class SearchControllerTests {
             get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "0"))
         .andExpect(status().isBadRequest()).andReturn();
 
-    // Bad page size = 101
+    // Bad page size = 1001
     url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=101");
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma&pageSize=1001");
     result = mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "101"))
+        get(url).param("terminology", "ncit").param("term", "melanoma").param("pageSize", "1001"))
         .andExpect(status().isBadRequest()).andReturn();
 
     // Bad from record = -1
@@ -897,10 +897,10 @@ public class SearchControllerTests {
     // Test synonymSource + synonymTermGroup
     // ?include=summary&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY&term=blood
     log.info("Testing url - " + url
-        + "?include=summary&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY&term=blood");
+        + "?include=summary&pageSize=1000&synonymSource=CDISC&synonymTermGroup=SY&term=blood");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "blood")
-            .param("synonymSource", "CDISC").param("pageSize", "100")
+            .param("synonymSource", "CDISC").param("pageSize", "1000")
             .param("synonymTermGroup", "SY").param("include", "summary"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -917,10 +917,10 @@ public class SearchControllerTests {
 
     // Test synonymSource + synonymTermGroup without a term
     log.info("Testing url - " + url
-        + "?include=synonyms&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY");
+        + "?include=synonyms&pageSize=10&synonymSource=CDISC&synonymTermGroup=SY");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("synonymSource", "CDISC")
-            .param("pageSize", "100").param("synonymTermGroup", "SY").param("include", "synonyms"))
+            .param("pageSize", "10").param("synonymTermGroup", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -2043,10 +2043,10 @@ public class SearchControllerTests {
         .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
+    log.info("  list = " + list);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
     boolean found = false;
     for (Concept conc : list.getConcepts()) {
-      found = false;
       for (Property prop : conc.getProperties()) {
         if (prop.getValue() != null && prop.getValue().equals("Retired_Concept")) {
           found = true;
@@ -2058,6 +2058,44 @@ public class SearchControllerTests {
     }
 
   }
+
+  /**
+   * Test ncit browser match.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testBrowserMatch() throws Exception {
+
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Browser match on bone cancer (ncit)
+    log.info("Testing url - " + url + "?terminology=ncit&term=bone+cancer&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "bone cancer")
+        .param("type", "contains")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // test first result is Malignant Bone Neoplasm
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Malignant Bone Neoplasm");
+
+    // Browser match on bone cancer (ncim)
+    log.info("Testing url - " + url + "?terminology=ncim&term=digestive+cancer&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncim").param("term", "digestive cancer")
+        .param("type", "contains")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // test first result is Malignant Digestive System Neoplasm
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C0685938");
+}
 
   /**
    * Removes the time taken.

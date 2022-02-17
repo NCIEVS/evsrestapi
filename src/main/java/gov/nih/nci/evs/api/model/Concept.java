@@ -80,10 +80,6 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Keyword)
   private String conceptStatus;
 
-  /** The level. */
-  @Field(type = FieldType.Integer)
-  private Integer level;
-
   /** The source - only used by parent/child references for NCIM. */
   @Field(type = FieldType.Keyword)
   private String source;
@@ -132,7 +128,9 @@ public class Concept extends ConceptMinimal {
   private List<Concept> descendants;
 
   /** The associations. */
-  @Field(type = FieldType.Object)
+  @Field(type = FieldType.Nested, ignoreFields = {
+      "qualifiers"
+  })
   private List<Association> associations;
 
   /** The inverse associations. */
@@ -216,10 +214,19 @@ public class Concept extends ConceptMinimal {
    *
    * @param other the other
    */
+  public Concept(final ConceptMinimal other) {
+    super.populateFrom(other);
+  }
+
+  /**
+   * Instantiates a {@link Concept} from the specified parameters.
+   *
+   * @param other the other
+   */
   public Concept(final HierarchyNode other) {
     super(other.getCode());
     setName(other.getLabel());
-    level = other.getLevel();
+    setLevel(other.getLevel());
     if (other.getLeaf() != null && other.getLeaf()) {
       leaf = other.getLeaf();
     }
@@ -228,16 +235,20 @@ public class Concept extends ConceptMinimal {
     }
   }
 
+  public void populateFrom(final Concept other) {
+    populateFrom(other, false);
+  }
+
   /**
    * Populate from.
    *
    * @param other the other
+   * @param noChildren the no children - used for subsets retrieval
    */
-  public void populateFrom(final Concept other) {
+  public void populateFrom(final Concept other, final boolean noChildren) {
     super.populateFrom(other);
     highlight = other.getHighlight();
     highlights = new HashMap<>(other.getHighlights());
-    level = other.getLevel();
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
     normName = other.getNormName();
@@ -248,7 +259,9 @@ public class Concept extends ConceptMinimal {
     properties = new ArrayList<>(other.getProperties());
     qualifiers = new ArrayList<>(other.getQualifiers());
     source = other.getSource();
-    children = new ArrayList<>(other.getChildren());
+    if (!noChildren) {
+      children = new ArrayList<>(other.getChildren());
+    }
     parents = new ArrayList<>(other.getParents());
     associations = new ArrayList<>(other.getAssociations());
     inverseAssociations = new ArrayList<>(other.getInverseAssociations());
@@ -353,24 +366,6 @@ public class Concept extends ConceptMinimal {
    */
   public void setConceptStatus(String conceptStatus) {
     this.conceptStatus = conceptStatus;
-  }
-
-  /**
-   * Returns the level.
-   *
-   * @return the level
-   */
-  public Integer getLevel() {
-    return level;
-  }
-
-  /**
-   * Sets the level.
-   *
-   * @param level the level
-   */
-  public void setLevel(final Integer level) {
-    this.level = level;
   }
 
   /**
