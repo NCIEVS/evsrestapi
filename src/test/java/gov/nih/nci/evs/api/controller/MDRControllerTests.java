@@ -298,6 +298,14 @@ public class MDRControllerTests {
     assertThat(list.getConcepts().stream().filter(c -> c.getCode().equals("10009729"))
         .collect(Collectors.toList()).size()).isEqualTo(1);
 
+    // Test searching "Hepatitis, non-infectious (SMQ)"
+    log.info("Testing url - " + url
+        + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Hepatitis, non-infectious (SMQ)&type=contains");
+    result = mvc
+        .perform(get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
+            .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+
   }
 
   /**

@@ -74,7 +74,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Escape the term in case it has special characters
     final String term = escape(searchCriteria.getTerm());
-    final String termEscapedSpaces = escape(searchCriteria.getTerm()).replaceAll(" ", "\\\\");
     logger.debug("query string [{}]", term);
 
     BoolQueryBuilder boolQuery = new BoolQueryBuilder();
@@ -85,8 +84,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Normalized term with escaped spaces for exact matching
     final String normTerm =
-        escape(ConceptUtils.normalize(searchCriteria.getTerm())).replaceAll(" ", "\\\\ ")
-            + (startsWithFlag ? "*" : "");
+        escape(ConceptUtils.normalize(searchCriteria.getTerm())) + (startsWithFlag ? "*" : "");
 
     if (blankTermFlag) {
       // don't create anything
@@ -107,15 +105,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
               ScoreMode.Max).boost(20f));
 
       // NOTE: this only supports uppercase codes
-      boolQuery2.should(
-          QueryBuilders.queryStringQuery("code:" + termEscapedSpaces.toUpperCase()).boost(20f));
+      boolQuery2.should(QueryBuilders.queryStringQuery("code:" + term.toUpperCase()).boost(20f));
 
       if (startsWithFlag) {
         // Boost exact name match to top of list
         boolQuery2 = boolQuery2.should(QueryBuilders
             .matchQuery("normName", ConceptUtils.normalize(searchCriteria.getTerm())).boost(40f))
             // NOTE: this only supports uppercase codes
-            .should(QueryBuilders.queryStringQuery("code:" + termEscapedSpaces.toUpperCase() + "*")
+            .should(QueryBuilders.queryStringQuery("code:" + term.toUpperCase() + "*")
                 .analyzeWildcard(true).boost(15f));
       }
       boolQuery.must(boolQuery2);
