@@ -578,7 +578,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // Skip combinations already seen
       final String sab = fields[10];
-      final String key = fromCode + "," + toCode + "," + rela + sab;
+      final String key = fromCode + "," + toCode + "," + rel + rela + sab;
+
       if (seen.contains(key)) {
         continue;
       }
@@ -763,7 +764,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
     // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
     concept.getAssociations().add(association);
-
     // Build and add an inverse association
     final Association iassociation = new Association();
     iassociation.setType(rel);

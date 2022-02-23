@@ -805,7 +805,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Skip combinations already seen (all will have the same SAB here)
-      final String key = concept1.getCode() + "," + concept2 + "," + rela;
+      final String key = concept1.getCode() + "," + concept2 + "," + rel + rela;
       if (seen.contains(key)) {
         continue;
       }
