@@ -6624,6 +6624,47 @@ Term Type
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public String construct_get_roles(String named_graph, String code, boolean outbound) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <" + named_graph + "> ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            ?x :NHC0 ?x_code .").append("\n");
+        if (outbound) {
+        	buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+        buf.append("            ?x rdfs:label ?x_label .").append("\n");
+        buf.append("            ?y :NHC0 ?y_code .").append("\n");
+        if (!outbound) {
+        	buf.append("            ?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+        buf.append("            ?y rdfs:label ?y_label .").append("\n");
+        buf.append("            ?p :NHC0 ?p_code .").append("\n");
+        buf.append("            ?p rdfs:label ?p_label .").append("\n");
+        buf.append("            ?x (rdfs:subClassOf|owl:equivalentClass|owl:unionOf/rdf:rest*/rdf:first|owl:intersectionOf/rdf:rest*/rdf:first)* ?rs .  ").append("\n");
+        buf.append("            ?rs a owl:Restriction .").append("\n");
+        buf.append("            ?rs owl:onProperty ?p .").append("\n");
+        buf.append("            ?rs owl:someValuesFrom ?y .").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getRoles(String named_graph, String code, boolean outbound) {
+        String query = construct_get_roles(named_graph, code, outbound);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -6635,25 +6676,13 @@ Term Type
 	    OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(restURL, username, password);
 	    owlSPARQLUtils.set_named_graph(namedGraph);
 
-		String codefile = args[4];
-		Vector codes = Utils.readFile(codefile);
+        String code = "C158541";
+	    Vector v = owlSPARQLUtils.getRoles(namedGraph, code, true);
+	    Utils.dumpVector(code, v);
 
-		Vector roles = new Vector();
-		for (int i=0; i<codes.size(); i++) {
-			String code = (String) codes.elementAt(i);
-			int k = i+1;
-			System.out.println("(" + k + ") " + code);
-			Vector v = owlSPARQLUtils.getRestrictions(namedGraph, code);
-			if (v != null) {
-				for (int j=0; j<v.size(); j++) {
-					String line = (String) v.elementAt(j);
-					if (!roles.contains(line)) {
-						roles.add(line);
-					}
-				}
-		    }
-		}
-		Utils.saveToFile("results_" + codefile, roles);
+	    code = "C20194";
+	    v = owlSPARQLUtils.getRoles(namedGraph, code, false);
+	    Utils.dumpVector(code, v);
     }
 }
 
