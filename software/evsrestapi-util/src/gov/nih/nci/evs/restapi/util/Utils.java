@@ -198,7 +198,7 @@ public class Utils {
 		 v.add(t);
 		 saveToFile(outputfile, v);
 	 }
-
+/*
 	 public static void saveToFile(String outputfile, Vector v) {
 		if (outputfile.indexOf(" ") != -1) {
 			outputfile = replaceFilename(outputfile);
@@ -223,6 +223,24 @@ public class Utils {
 			}
 		}
 	 }
+*/
+    public static void saveToFile(String outputfile, Vector v) {
+        try {
+            FileOutputStream output = new FileOutputStream(outputfile);
+            for (int i=0; i<v.size(); i++) {
+				String data = (String) v.elementAt(i);
+				if (i < v.size()) {
+					data = data + "\n";
+				}
+				byte[] array = data.getBytes();
+				output.write(array);
+			}
+            output.close();
+        } catch(Exception e) {
+            e.getStackTrace();
+        }
+    }
+
 
 	public static void saveToFile(PrintWriter pw, Vector v) {
 		if (v != null && v.size() > 0) {
