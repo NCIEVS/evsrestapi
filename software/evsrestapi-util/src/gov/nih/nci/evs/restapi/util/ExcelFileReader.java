@@ -18,7 +18,7 @@ import java.util.*;
 import java.io.*;
 
 public class ExcelFileReader {
-
+     static String CONFIGFILE = "config.txt";
 	 public static void saveToFile(String outputfile, String t) {
 		 Vector v = new Vector();
 		 v.add(t);
@@ -107,12 +107,11 @@ public class ExcelFileReader {
 		for (int i = 0; i < rowCount+1; i++) {
 			StringBuffer buf = new StringBuffer();
 			Row row = sheet.getRow(i);
-
 			if (row != null) {
-
 				for (int j = 0; j < row.getLastCellNum(); j++) {
 					try {
 						String retstr = getCellValue(row.getCell(j));
+						retstr = retstr.replace("\n", " ");
 						buf.append(retstr);
 						if (j < row.getLastCellNum()-1) {
 							buf.append("\t");
@@ -157,6 +156,7 @@ public class ExcelFileReader {
 
     public static void main(String[] args) throws IOException{
 		ExcelFileReader test = new ExcelFileReader();
+		String configfile = CONFIGFILE;
 		String excelfile = args[0];
 		String sheetIndex_str = args[1];
 		int sheet_number = Integer.parseInt(sheetIndex_str);
