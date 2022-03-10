@@ -233,6 +233,33 @@ public class Utils {
 		}
 	}
 
+	public static Vector readFile(String datafile) {
+		Vector v = new Vector();
+        try {
+			File file = new File(datafile);
+			FileInputStream fis = new FileInputStream(file);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			BufferedReader br = null;
+			try {
+				br = br = new BufferedReader(new InputStreamReader(bis));
+			} catch (Exception ex) {
+				return null;
+			}
+
+            while (true) {
+                String line = br.readLine();
+				if (line == null) {
+					break;
+				}
+				v.add(line);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
+	}
+
+	/*
 	public static Vector readFile(String filename)
 	{
 		Vector v = new Vector();
@@ -250,6 +277,7 @@ public class Utils {
 		}
 		return v;
 	}
+	*/
 
     public static Vector parseData(String line, char delimiter) {
 		if(line == null) return null;
