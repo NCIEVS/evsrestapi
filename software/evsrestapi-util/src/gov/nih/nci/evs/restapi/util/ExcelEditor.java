@@ -11,9 +11,15 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.CellStyle;
 
-import org.apache.poi.util.StringUtil;
-
 public class ExcelEditor {
+
+    public static BufferedReader getBufferReader(String filename) throws Exception {
+        File file = new File(filename);
+        FileInputStream fis = new FileInputStream(file);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        BufferedReader br = new BufferedReader(new InputStreamReader(bis));
+        return br;
+    }
 
 	public static Vector readFile(String filename) {
 		Vector v = new Vector();
@@ -62,13 +68,28 @@ public class ExcelEditor {
         Vector v = readFile(datafile);
         CellStyle old_style = null;
         try {
+			BufferedReader br = null;
+			try {
+				br = getBufferReader(datafile);
+			} catch (Exception ex) {
+				return;
+			}
+
             FileInputStream inputStream = new FileInputStream(new File(excelFilePath));
             Workbook workbook = WorkbookFactory.create(inputStream);
 
             Sheet sheet = workbook.getSheetAt(sheetIndex);
             int rowCount = sheet.getLastRowNum();
-            for (int i=0; i<v.size(); i++) {
-				String line = (String) v.elementAt(i);
+            int i = 0;
+            while (true) {
+                String line = br.readLine();
+
+				if (line == null)
+					break;
+				// line = line.trim(); Note: 090512 first value could be empty
+				if (line.length() <= 0)
+					continue;
+
 				Vector values = parseData(line, '\t');
 				Row old_row = sheet.getRow(i);
 				Row row = sheet.createRow(i);
@@ -82,9 +103,10 @@ public class ExcelEditor {
 						Integer int_obj = new Integer(Integer.parseInt(value));
 						cell.setCellValue(int_obj);
                     } else {
-                        cell.setCellValue((String) value);
+                        cell.setCellValue(value);
                     }
 				}
+				i++;
             }
 
             inputStream.close();
