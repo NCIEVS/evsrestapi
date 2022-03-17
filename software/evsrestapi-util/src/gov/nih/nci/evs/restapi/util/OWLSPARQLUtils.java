@@ -6250,24 +6250,11 @@ Term Type
 	}
 
 	public Vector getRestrictions(String named_graph, String code) {
-		String query = construct_get_restrictions(named_graph, code);
-
-		//System.out.println(query);
-
-		Vector v = executeQuery(query);
-		if (v == null) return null;
-		if (v.size() == 0) return v;
-		v = new ParserUtils().getResponseValues(v);
-		return new SortUtils().quickSort(v);
+        return getRoles(named_graph, code, true);
 	}
 
 	public Vector getInverseRestrictions(String named_graph, String code) {
-		String query = construct_get_inverse_restrictions(named_graph, code);
-		Vector v = executeQuery(query);
-		if (v == null) return null;
-		if (v.size() == 0) return v;
-		v = new ParserUtils().getResponseValues(v);
-		return new SortUtils().quickSort(v);
+		return getRoles(named_graph, code, false);
 	}
 
 	public String construct_get_semantictypes(String named_graph) {
@@ -6449,211 +6436,8 @@ Term Type
         return (String) versions.elementAt(versions.size()-1);
 	}
 
-	public String construct_get_restrictions(String named_graph, String code) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + "> ").append("\n");
-		buf.append("    {").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y rdfs:label ?y_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?rs . ").append("\n");
-		buf.append("		?rs a owl:Restriction .").append("\n");
-		buf.append("		?rs owl:onProperty ?p .").append("\n");
-		buf.append("		?rs owl:someValuesFrom ?y .").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("	   UNION").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("		?z1 owl:unionOf ?list1 .").append("\n");
-		buf.append("		?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
-		buf.append("		?z2 owl:intersectionOf ?list2 .").append("\n");
-		buf.append("		?list2 rdf:rest*/rdf:first ?z4 .").append("\n");
-		buf.append("		?z4 a owl:Restriction .").append("\n");
-		buf.append("		?z4 owl:onProperty ?p .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?z4 owl:someValuesFrom ?y .").append("\n");
-		buf.append("		?y a owl:Class .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y rdfs:label ?y_label").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("	   UNION").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("		?z1 owl:intersectionOf ?list1 .").append("\n");
-		buf.append("		?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
-		buf.append("		?z2 owl:unionOf ?list2 .").append("\n");
-		buf.append("		?list2 rdf:rest*/rdf:first ?z4 .").append("\n");
-		buf.append("		?z4 a owl:Restriction .").append("\n");
-		buf.append("		?z4 owl:onProperty ?p .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?z4 owl:someValuesFrom ?y .").append("\n");
-		buf.append("		?y a owl:Class .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y rdfs:label ?y_label").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("	   UNION").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("		?z1 owl:intersectionOf ?list1 .").append("\n");
-		buf.append("		?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
-		buf.append("		?z2 owl:unionOf ?list2 .").append("\n");
-		buf.append("		?list2 rdf:rest*/rdf:first ?z3 .").append("\n");
-		buf.append("		?z3 owl:intersectionOf ?list3 .").append("\n");
-		buf.append("		?list3 rdf:rest*/rdf:first ?z4 .").append("\n");
-		buf.append("		?z4 a owl:Restriction .").append("\n");
-		buf.append("		?z4 owl:onProperty ?p .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?z4 owl:someValuesFrom ?y .").append("\n");
-		buf.append("		?y a owl:Class .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y rdfs:label ?y_label").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("    }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
 
-	public String construct_get_inverse_restrictions(String named_graph, String code) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + "> ").append("\n");
-		buf.append("    {").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?y rdfs:label ?y_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?rs . ").append("\n");
-		buf.append("		?rs a owl:Restriction .").append("\n");
-		buf.append("		?rs owl:onProperty ?p .").append("\n");
-		buf.append("		?rs owl:someValuesFrom ?y .").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("	   UNION").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("		?z1 owl:unionOf ?list1 .").append("\n");
-		buf.append("		?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
-		buf.append("		?z2 owl:intersectionOf ?list2 .").append("\n");
-		buf.append("		?list2 rdf:rest*/rdf:first ?z4 .").append("\n");
-		buf.append("		?z4 a owl:Restriction .").append("\n");
-		buf.append("		?z4 owl:onProperty ?p .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?z4 owl:someValuesFrom ?y .").append("\n");
-		buf.append("		?y a owl:Class .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?y rdfs:label ?y_label").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("	   UNION").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("		?z1 owl:intersectionOf ?list1 .").append("\n");
-		buf.append("		?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
-		buf.append("		?z2 owl:unionOf ?list2 .").append("\n");
-		buf.append("		?list2 rdf:rest*/rdf:first ?z4 .").append("\n");
-		buf.append("		?z4 a owl:Restriction .").append("\n");
-		buf.append("		?z4 owl:onProperty ?p .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?z4 owl:someValuesFrom ?y .").append("\n");
-		buf.append("		?y a owl:Class .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?y rdfs:label ?y_label").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("	   UNION").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("		?x a owl:Class .").append("\n");
-		buf.append("		?x :NHC0 ?x_code .").append("\n");
-		buf.append("		?x rdfs:label ?x_label .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z1 .").append("\n");
-		buf.append("		?z1 owl:intersectionOf ?list1 .").append("\n");
-		buf.append("		?list1 rdf:rest*/rdf:first ?z2 .").append("\n");
-		buf.append("		?z2 owl:unionOf ?list2 .").append("\n");
-		buf.append("		?list2 rdf:rest*/rdf:first ?z3 .").append("\n");
-		buf.append("		?z3 owl:intersectionOf ?list3 .").append("\n");
-		buf.append("		?list3 rdf:rest*/rdf:first ?z4 .").append("\n");
-		buf.append("		?z4 a owl:Restriction .").append("\n");
-		buf.append("		?z4 owl:onProperty ?p .").append("\n");
-		buf.append("		?p rdfs:label ?p_label .").append("\n");
-		buf.append("		?p :NHC0 ?p_code .").append("\n");
-		buf.append("		?z4 owl:someValuesFrom ?y .").append("\n");
-		buf.append("		?y a owl:Class .").append("\n");
-		buf.append("		?y :NHC0 ?y_code .").append("\n");
-		buf.append("		?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("		?y rdfs:label ?y_label").append("\n");
-		buf.append("	}").append("\n");
-		buf.append("    }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-	public String construct_get_roles(String named_graph, String code, boolean outbound) {
-        String prefixes = getPrefixes();
-        StringBuffer buf = new StringBuffer();
-        buf.append(prefixes);
-        buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
-        buf.append("{").append("\n");
-        buf.append("    graph <" + named_graph + "> ").append("\n");
-        buf.append("    {").append("\n");
-        buf.append("            ?x :NHC0 ?x_code .").append("\n");
-        if (outbound) {
-        	buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		}
-        buf.append("            ?x rdfs:label ?x_label .").append("\n");
-        buf.append("            ?y :NHC0 ?y_code .").append("\n");
-        if (!outbound) {
-        	buf.append("            ?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		}
-        buf.append("            ?y rdfs:label ?y_label .").append("\n");
-        buf.append("            ?p :NHC0 ?p_code .").append("\n");
-        buf.append("            ?p rdfs:label ?p_label .").append("\n");
-        buf.append("            ?x (rdfs:subClassOf|owl:equivalentClass|owl:unionOf/rdf:rest*/rdf:first|owl:intersectionOf/rdf:rest*/rdf:first)* ?rs .  ").append("\n");
-        buf.append("            ?rs a owl:Restriction .").append("\n");
-        buf.append("            ?rs owl:onProperty ?p .").append("\n");
-        buf.append("            ?rs owl:someValuesFrom ?y .").append("\n");
-        buf.append("    }").append("\n");
-        buf.append("}").append("\n");
-        return buf.toString();
-	}
 
 
 	public Vector getRoles(String named_graph, String code, boolean outbound) {
@@ -6663,6 +6447,37 @@ Term Type
         if (v.size() == 0) return v;
         v = new ParserUtils().getResponseValues(v);
         return new SortUtils().quickSort(v);
+	}
+
+
+	public String construct_get_roles(String named_graph, String code, boolean outbound) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl> ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            ?x :NHC0 ?x_code .").append("\n");
+        if (outbound) {
+        	buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+        buf.append("            ?x rdfs:label ?x_label .").append("\n");
+        buf.append("            ?y :NHC0 ?y_code .").append("\n");
+        buf.append("            ?y rdfs:label ?y_label .").append("\n");
+        buf.append("            ?p :NHC0 ?p_code .").append("\n");
+        buf.append("            ?p rdfs:label ?p_label .").append("\n");
+        buf.append("            ?x (rdfs:subClassOf|owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first/owl:unionOf/rdf:rest*/rdf:first) ?rs .  ").append("\n");
+        buf.append("            ?rs a owl:Restriction .").append("\n");
+        buf.append("            ?rs owl:onProperty ?p .").append("\n");
+        buf.append("            ?rs owl:someValuesFrom ?y .").append("\n");
+        if (!outbound) {
+        	buf.append("            ?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
 	}
 
 
