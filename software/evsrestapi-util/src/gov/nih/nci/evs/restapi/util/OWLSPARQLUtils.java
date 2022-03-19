@@ -6485,7 +6485,7 @@ Term Type
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
-        buf.append("select distinct ?x1_label ?x1_code ?p2_label ?p2_code ?a2_target ?q1_label ?q1_code ?q1_value").append("\n");
+        buf.append("select distinct ?x1_label ?x1_code ?a1 ?p2_label ?p2_code ?a2_target ?q1_label ?q1_code ?q1_value").append("\n");
         buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where  { ").append("\n");
         buf.append("                    ?x1 a owl:Class .").append("\n");
