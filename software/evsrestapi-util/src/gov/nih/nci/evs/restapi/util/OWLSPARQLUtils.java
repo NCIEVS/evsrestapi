@@ -15,7 +15,6 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.*;
-//import org.apache.commons.codec.binary.Base64;
 import org.json.*;
 
 /**
@@ -4386,26 +4385,33 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 ////////////////////getTransitiveClosure//////////////////////////////////////////////////////////////////
 
-	public Vector getDescendants(String root) {
-		return getDescendants(this.named_graph, root);
+	public Vector getTree(String root) {
+		return getDescendants(this.named_graph, root, true);
 	}
 
-	public Vector getDescendants(String namedGraph, String root) {
+	public Vector getDescendants(String root) {
+		return getDescendants(root, false);
+	}
+
+	public Vector getDescendants(String root, boolean includeRoot) {
+		return getDescendants(this.named_graph, root, includeRoot);
+	}
+
+	public Vector getDescendants(String namedGraph, String root, boolean includeRoot) {
 	    Vector w = new Vector();
 	    Stack stack = new Stack();
 	    stack.push(root);
 	    while (!stack.isEmpty()) {
 			String code = (String) stack.pop();
-			w.add(code);
-			Vector u = getSubclassesByCode(namedGraph, code);
-			if (u != null && u.size() > 0) {
-				int n = u.size()/2;
-				for (int i=0; i<n; i++) {
-					String s1 = (String) u.elementAt(i*2);
-					String s2 = (String) u.elementAt(i*2+1);
-					String t1 = parser.getValue(s1);
-					String t2 = parser.getValue(s2);
-					stack.push(t2);
+			if (includeRoot) w.add(code);
+			Vector v = getSubclassesByCode(namedGraph, code);
+			if (v != null && v.size() > 0) {
+				for (int i=0; i<v.size(); i++) {
+					String line = (String) v.elementAt(i);
+					Vector u = StringUtils.parseData(line, '|');
+					String s1 = (String) u.elementAt(0);
+					String s2 = (String) u.elementAt(1);
+					stack.push(s2);
 				}
 			}
 		}
@@ -4413,26 +4419,28 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 	}
 
 	public Vector getAncestors(String root) {
-		return getAncestors(this.named_graph, root);
+		return getAncestors(root, false);
 	}
 
-	public Vector getAncestors(String namedGraph, String root) {
-		ParserUtils parser = new ParserUtils();
+	public Vector getAncestors(String root, boolean includeRoot) {
+		return getAncestors(this.named_graph, root, includeRoot);
+	}
+
+	public Vector getAncestors(String namedGraph, String root, boolean includeRoot) {
 	    Vector w = new Vector();
 	    Stack stack = new Stack();
 	    stack.push(root);
 	    while (!stack.isEmpty()) {
 			String code = (String) stack.pop();
-			w.add(code);
-			Vector u = getSuperclassesByCode(namedGraph, code);
-			if (u != null && u.size() > 0) {
-				int n = u.size()/2;
-				for (int i=0; i<n; i++) {
-					String s1 = (String) u.elementAt(i*2);
-					String s2 = (String) u.elementAt(i*2+1);
-					String t1 = parser.getValue(s1);
-					String t2 = parser.getValue(s2);
-					stack.push(t2);
+			if (includeRoot) w.add(code);
+			Vector v = getSuperclassesByCode(namedGraph, code);
+			if (v != null && v.size() > 0) {
+				for (int i=0; i<v.size(); i++) {
+					String line = (String) v.elementAt(i);
+					Vector u = StringUtils.parseData(line, '|');
+					String s1 = (String) u.elementAt(0);
+					String s2 = (String) u.elementAt(1);
+					stack.push(s2);
 				}
 			}
 		}
@@ -5304,15 +5312,16 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("").append("\n");
 		buf.append("select distinct ?x_label ?x_code ").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + "> ").append("\n");
 		buf.append("    {").append("\n");
-		buf.append("      ?x ?p ?y .").append("\n");
-		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
 		buf.append("      ?x :NHC0 ?x_code .").append("\n");
 		buf.append("      ?x rdfs:label ?x_label .").append("\n");
+		buf.append("      ?y :NHC0 ?y_code .").append("\n");
+		buf.append("      ?y rdfs:label ?y_label .").append("\n");
+		buf.append("      ?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
@@ -5320,6 +5329,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public Vector getSubclasses(String named_graph, String code) {
 		String query = construct_get_subclasses(named_graph, code);
+		System.out.println(query);
 		Vector v = executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return v;
@@ -5331,16 +5341,16 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("").append("\n");
 		buf.append("select distinct ?y_label ?y_code ").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + "> ").append("\n");
 		buf.append("    {").append("\n");
-		buf.append("      ?x ?p ?y .").append("\n");
-		buf.append("      ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
 		buf.append("      ?x :NHC0 ?x_code .").append("\n");
 		buf.append("      ?x rdfs:label ?x_label .").append("\n");
+		buf.append("      ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		buf.append("      ?y :NHC0 ?y_code .").append("\n");
+		buf.append("      ?y rdfs:label ?y_label .").append("\n");
+		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
@@ -5364,10 +5374,11 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + "> ").append("\n");
 		buf.append("    {").append("\n");
-		buf.append("      ?x ?p ?y .").append("\n");
-		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
 		buf.append("      ?x :NHC0 ?x_code .").append("\n");
 		buf.append("      ?x rdfs:label ?x_label .").append("\n");
+		buf.append("      ?y :NHC0 ?y_code .").append("\n");
+		buf.append("      ?y rdfs:label ?y_label .").append("\n");
+		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
 		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
