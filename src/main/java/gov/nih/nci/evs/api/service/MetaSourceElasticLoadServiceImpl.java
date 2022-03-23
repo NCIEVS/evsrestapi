@@ -391,7 +391,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           handleDefinitions(terminology, codes, mrdef, prevCui);
           handleSemanticTypes(codes, mrsty, prevCui);
           handleAttributes(terminology, codes, mrsat, prevCui);
-          handleRelationships(terminology, codes, mrrel, prevCui);
+          handleRelationships(hierarchy, terminology, codes, mrrel, prevCui);
 
           if (maps.containsKey(cui)) {
             concept.getMaps().addAll(maps.get(cui));
@@ -471,7 +471,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       handleDefinitions(terminology, codes, mrdef, prevCui);
       handleSemanticTypes(codes, mrsty, prevCui);
       handleAttributes(terminology, codes, mrsat, prevCui);
-      handleRelationships(terminology, codes, mrrel, prevCui);
+      handleRelationships(hierarchy, terminology, codes, mrrel, prevCui);
 
       if (codes.size() > 0) {
         for (final String code : codes) {
@@ -743,8 +743,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleRelationships(final Terminology terminology, final Set<String> codes,
-    final PushBackReader mrrel, final String prevCui) throws Exception {
+  public void handleRelationships(final HierarchyUtils hierarchy, final Terminology terminology,
+    final Set<String> codes, final PushBackReader mrrel, final String prevCui) throws Exception {
     Set<String> seen = new HashSet<>();
     String line;
     while ((line = mrrel.readLine()) != null) {
@@ -814,7 +814,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // CUI2 "child of" CUI1
       // CUI1 has child CUI2
       if (rel.equals("CHD")) {
-        buildChild(concept1, fields);
+        buildChild(hierarchy, concept1, fields);
       }
 
       // CUI2 "parent of" CUI1
@@ -854,10 +854,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @throws Exception the exception
    */
-  private void buildChild(Concept concept, final String[] fields) throws Exception {
+  private void buildChild(HierarchyUtils hierarchy, Concept concept, final String[] fields)
+    throws Exception {
     final Concept child = buildParentChildHelper(concept, fields);
     if (!concept.getCode().equals(child.getCode())) {
       concept.getChildren().add(child);
+      // Compute "leaf"
+      child.setLeaf(hierarchy.getChildNodes(child.getCode(), 1).isEmpty());
     }
   }
 
@@ -879,8 +882,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     final Concept concept2 = new Concept();
     concept2.setCode(auiCodeMap.get(aui2));
     concept2.setName(nameMap.get(auiCodeMap.get(aui2)));
-    concept2.setTerminology(concept.getTerminology());
-    concept2.setVersion(concept.getVersion());
+    // concept2.setTerminology(concept.getTerminology());
+    // concept2.setVersion(concept.getVersion());
     concept2.setLeaf(null);
     if (!rela.isEmpty()) {
       concept2.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));

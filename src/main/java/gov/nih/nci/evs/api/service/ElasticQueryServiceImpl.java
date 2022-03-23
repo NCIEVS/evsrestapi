@@ -337,8 +337,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    List<HierarchyNode> rootNodes = getRootNodesHierarchy(terminology);
 
+    List<HierarchyNode> rootNodes = getRootNodesHierarchy(terminology);
     Paths paths = getPathToRoot(code, terminology);
 
     // root hierarchy node map for quick look up

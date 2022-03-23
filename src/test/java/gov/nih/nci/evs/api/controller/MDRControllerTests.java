@@ -210,9 +210,16 @@ public class MDRControllerTests {
             .findFirst().get().getQualifiers().get(0).getValue().equals("classified_as"));
 
     assertThat(concept.getChildren().size()).isEqualTo(8);
+    assertThat(concept.getChildren().get(0).getTerminology()).isNull();
+    assertThat(concept.getChildren().get(0).getVersion()).isNull();
+    assertThat(concept.getChildren().get(0).getLeaf()).isNotNull();
     assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10048498");
+
     assertThat(concept.getParents().size()).isEqualTo(1);
+    assertThat(concept.getParents().get(0).getTerminology()).isNull();
+    assertThat(concept.getParents().get(0).getVersion()).isNull();
+    assertThat(concept.getParents().get(0).getLeaf()).isNull();
     assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10053567");
 
