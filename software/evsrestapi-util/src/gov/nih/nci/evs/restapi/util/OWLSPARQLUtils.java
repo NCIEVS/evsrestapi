@@ -4403,7 +4403,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 	    stack.push(root);
 	    while (!stack.isEmpty()) {
 			String code = (String) stack.pop();
-			if (includeRoot) w.add(code);
+			w.add(code);
 			Vector v = getSubclassesByCode(namedGraph, code);
 			if (v != null && v.size() > 0) {
 				for (int i=0; i<v.size(); i++) {
@@ -4414,6 +4414,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 					stack.push(s2);
 				}
 			}
+		}
+		if (!includeRoot) {
+			w.remove(0);
 		}
 		return w;
 	}
@@ -4432,7 +4435,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 	    stack.push(root);
 	    while (!stack.isEmpty()) {
 			String code = (String) stack.pop();
-			if (includeRoot) w.add(code);
+			w.add(code);
 			Vector v = getSuperclassesByCode(namedGraph, code);
 			if (v != null && v.size() > 0) {
 				for (int i=0; i<v.size(); i++) {
@@ -4443,6 +4446,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 					stack.push(s2);
 				}
 			}
+		}
+		if (!includeRoot) {
+			w.remove(0);
 		}
 		return w;
 	}
@@ -5329,7 +5335,6 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public Vector getSubclasses(String named_graph, String code) {
 		String query = construct_get_subclasses(named_graph, code);
-		System.out.println(query);
 		Vector v = executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return v;
