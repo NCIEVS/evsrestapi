@@ -956,8 +956,8 @@ public class OWLSPARQLUtils {
         return v;
 	}
 
-	public Vector getAnnotaionPropertiesByCode(String named_graph, String code, String assoicationName) {
-		String query = construct_get_annotaion_properties_by_code(named_graph, code, assoicationName);
+	public Vector getAnnotaionPropertiesByCode(String named_graph, String code, String associationName) {
+		String query = construct_get_annotaion_properties_by_code(named_graph, code, associationName);
 		Vector v = executeQuery(query);
         v = new ParserUtils().getResponseValues(v);
         return v;
@@ -4161,33 +4161,36 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		return w;
 	}
 
-  	public Vector getTransitiveClosure(String label, String code) {
-		return getTransitiveClosure(this.named_graph, label, code);
+  	public Vector getTransitiveClosure(String root) {
+		return getTransitiveClosure(this.named_graph, root);
 	}
 
-
-  	public Vector getTransitiveClosure(String namedGraph, String label, String code) {
-		return getTransitiveClosure(namedGraph, label, code, true);
+  	public Vector getTransitiveClosure(String namedGraph, String root) {
+		return getTransitiveClosure(namedGraph, root, true);
 	}
 
-  	public Vector getTransitiveClosure(String namedGraph, String label, String code, boolean traverseDown) {
-		Vector w = new Vector();
-		Vector v = new Vector();
-		if (traverseDown) {
-		    v = get_subclasses_by_code(namedGraph, code);
-		} else {
-			v = get_superclasses_by_code(namedGraph, code);
-		}
-		if (v == null) return w;
-		for (int i=0; i<v.size(); i++) {
-			String label_and_code = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(label_and_code, '|');
-			String label_next = (String) u.elementAt(0);
-			String code_next = (String) u.elementAt(1);
-			w.add(label + "|" + code + "|" + label_next + "|" + code_next);
-			Vector v2 = getTransitiveClosure(namedGraph, label_next, code_next, traverseDown);
-			if (v2 != null && v2.size() > 0) {
-				w.addAll(v2);
+  	public Vector getTransitiveClosure(String namedGraph, String root, boolean traverseDown) {
+	    Vector w = new Vector();
+	    Vector v = new Vector();
+	    Stack stack = new Stack();
+	    String label = getLabel(root);
+	    stack.push(label + "|" + root);
+	    while (!stack.isEmpty()) {
+			String line = (String) stack.pop();
+			w.add(line);
+			Vector u = StringUtils.parseData(line, '|');
+			String s1 = (String) u.elementAt(0);
+			String s2 = (String) u.elementAt(1);
+			if (traverseDown) {
+				v = getSubclassesByCode(namedGraph, s2);
+			} else {
+				v = getSuperclassesByCode(namedGraph, s2);
+			}
+			if (v != null && v.size() > 0) {
+				for (int i=0; i<v.size(); i++) {
+					line = (String) v.elementAt(i);
+					stack.push(line);
+				}
 			}
 		}
 		w = removeDuplicates(w);
@@ -4333,9 +4336,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		String named_graph,
 	    String associationLabel,
 	    String associationTargetCode,
-	    String propertyLabel, //Contributing_Source
+	    String propertyLabel,
 	    String property2Label, //FULL_SYN
-	    Vector property2QualifierCodes) {	//Term Source  P384
+	    Vector property2QualifierCodes) {
 
 		String named_graph_id = ":NHC0";
 		String prefixes = getPrefixes();
@@ -4393,9 +4396,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		String named_graph,
 	    String associationLabel,
 	    String associationTargetCode,
-	    String propertyLabel, //Contributing_Source
-	    String property2Label, //FULL_SYN
-	    Vector property2QualifierCodes) {	//Term Source  P384 Term Type  P383
+	    String propertyLabel,
+	    String property2Label,
+	    Vector property2QualifierCodes) {
 	    String query = construct_get_concepts_with_association_and_properties_matching(
 			named_graph,
 			associationLabel,
