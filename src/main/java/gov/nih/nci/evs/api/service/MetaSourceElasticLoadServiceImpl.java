@@ -336,7 +336,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     HierarchyUtils hierarchy) throws Exception {
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
-    logger.info("WWW1 = " + hierarchy.getPathsMap(terminology).get("10002042"));
     // Put the mapping
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
@@ -508,7 +507,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
       totalConcepts++;
 
-      logger.info("WWW2 = " + hierarchy.getPathsMap(terminology).get("10002042"));
       logger.info("TOTAL concepts = " + totalConcepts);
       logger.info("TOTAL " + terminology.getTerminology() + " = " + sourceConcepts);
 
