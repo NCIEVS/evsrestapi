@@ -453,15 +453,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // consider skipping MDR - SMQ*, PT_IN_VERSION
 
-      // handle properties (include dynamic type)
       // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF|
       final String atn = fields[8];
       final String sab = fields[9];
       final String atv = fields[10];
-      if (seen.contains(atn + sab + atv)) {
-        continue;
-      }
-      seen.add(atn + sab + atv);
 
       // RUI Attributes
       if (fields[4].equals("RUI")) {
@@ -474,6 +469,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // Handle other attributes
       else {
+
+        // De-duplicate concept attributes
+        final String key = sab + atn + atv;
+        if (seen.contains(key)) {
+          continue;
+        }
+        seen.add(key);
+
         buildProperty(concept, atn, atv, sab);
       }
     }

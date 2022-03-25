@@ -611,15 +611,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // handle properties (include dynamic type)
       // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF|
       final String atn = fields[8];
       final String sab = fields[9];
       final String atv = fields[10];
-      if (seen.contains(atn + sab + atv)) {
-        continue;
-      }
-      seen.add(atn + sab + atv);
 
       // Handle RUI attributes as qualifiers on relationships
       if (fields[4].equals("RUI")) {
@@ -646,6 +641,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         if (concept == null) {
           throw new Exception("Concept for attribute cannot be resolved = " + line);
         }
+
+        // De-duplicate concept attributes
+        final String key = concept.getCode() + sab + atn + atv;
+        if (seen.contains(key)) {
+          continue;
+        }
+        seen.add(key);
 
         buildProperty(concept, atn, atv, sab);
       }
