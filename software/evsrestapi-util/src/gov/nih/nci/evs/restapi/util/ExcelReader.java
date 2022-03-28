@@ -7,6 +7,9 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.DataFormatter;
 
+import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
+
+
 import java.io.File;
 import java.io.*;
 import java.util.*;
@@ -105,36 +108,6 @@ public class ExcelReader {
 		return toDelimited(excelfile, 0, delim);
 	}
 
-/*
-    public static Vector toDelimited(String excelfile, int sheetNumber, char delim) {
-		Vector w = new Vector();
-		Workbook workbook = openWorkbook(excelfile);
-        Sheet sheet = workbook.getSheetAt(sheetNumber);
-        Iterator<Row> rowIterator = sheet.rowIterator();
-        while (rowIterator.hasNext()) {
-			StringBuffer buf = new StringBuffer();
-            Row row = rowIterator.next();
-            int lastCellNumber = row.getLastCellNum();
-            for (int lcv=0; lcv<lastCellNumber; lcv++) {
-				Cell cell = row.getCell(lcv);
-				String cellValue = "";
-				if (cell != null) {
-					cellValue = getCellValue(cell);
-				}
-                buf.append(cellValue).append(delim);
-			}
-            String line = buf.toString();
-            line = line.substring(0, line.length()-1);
-            w.add(line);
-        }
-        try {
-        	workbook.close();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-        return w;
-	}
-*/
     private static void printCellValue(Cell cell) {
         switch (cell.getCellTypeEnum()) {
             case BOOLEAN:
@@ -162,43 +135,11 @@ public class ExcelReader {
         System.out.print("\t");
     }
 
-    private static String getCellValue(Cell cell) {
-        switch (cell.getCellTypeEnum()) {
-
-            case BOOLEAN:
-                System.out.print(cell.getBooleanCellValue());
-                Boolean bool_obj = cell.getBooleanCellValue();
-                boolean bool = Boolean.valueOf(bool_obj);
-                return "" + bool;
-
-            case STRING:
-                return (cell.getRichStringCellValue().getString());
-
-            case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    return ("" + cell.getDateCellValue());
-                } else {
-                    return ("" + cell.getNumericCellValue());
-                }
-
-            case FORMULA:
-                return(cell.getCellFormula().toString());
-
-            case BLANK:
-                return "";
-
-            default:
-                return "";
-        }
-    }
 /*
 	public static List getRowData(Row row) {
-		// to extract the exact numerical value either integer/double
-		List allRows = new ArrayList();
 		DataFormatter fmt = new DataFormatter();
+		List fetchedRow = new ArrayList();
 		Iterator<Cell> cellIterator = row.cellIterator();
-        List fetchedRow = new ArrayList();
-
 		while (cellIterator.hasNext()) {
 			Cell cell = cellIterator.next();
             boolean rowEmpty = true;
@@ -215,7 +156,9 @@ public class ExcelReader {
 					rowEmpty = false;
 					break;
 				case STRING:
-					fetchedRow.add(cell.toString());
+					//fetchedRow.add(cell.toString());
+                    fetchedRow.add(fmt.formatCellValue(cell));
+
 					rowEmpty = false;
 					break;
 				case BOOLEAN:
@@ -225,62 +168,27 @@ public class ExcelReader {
 				case FORMULA:
 					fetchedRow.add(Double.toString(cell.getNumericCellValue()));
 					rowEmpty = false;
+					break;
+				case BLANK:
 					//fetchedRow.add("");
-					break;
-			}
-			if (!rowEmpty) {
-				allRows.add(fetchedRow.toArray(new String[0]));
-			}
-		}
-		return allRows;
-	}
-*/
-
-	public static List getRowData(Row row) {
-		// to extract the exact numerical value either integer/double
-		//List allRows = new ArrayList();
-		DataFormatter fmt = new DataFormatter();
-		Iterator<Cell> cellIterator = row.cellIterator();
-        List fetchedRow = new ArrayList();
-
-		while (cellIterator.hasNext()) {
-			Cell cell = cellIterator.next();
-            boolean rowEmpty = true;
-			switch (cell.getCellTypeEnum()) {
-				case NUMERIC:
-					if (DateUtil.isCellDateFormatted(cell)) {
-						Date date = cell.getDateCellValue();
-						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-						//DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-						fetchedRow.add(dateFormat.format(date));
-					} else {
-						fetchedRow.add(fmt.formatCellValue(cell));
-					}
+					fetchedRow.add(fmt.formatCellValue(cell));
 					rowEmpty = false;
 					break;
-				case STRING:
-					fetchedRow.add(cell.toString());
-					rowEmpty = false;
-					break;
-				case BOOLEAN:
-					fetchedRow.add(cell.toString());
-					rowEmpty = false;
-					break;
-				case FORMULA:
-					fetchedRow.add(Double.toString(cell.getNumericCellValue()));
-					rowEmpty = false;
+				case ERROR:
 					//fetchedRow.add("");
+					fetchedRow.add(fmt.formatCellValue(cell));
+					rowEmpty = false;
+					break;
+				default:
+					//fetchedRow.add("");
+					fetchedRow.add(fmt.formatCellValue(cell));
+					rowEmpty = false;
 					break;
 			}
-			/*
-			if (!rowEmpty) {
-				allRows.add(fetchedRow.toArray(new String[0]));
-			}
-			*/
 		}
 		return fetchedRow;
 	}
-
+*/
 
 
     public static Vector toDelimited(String excelfile, int sheetNumber, char delim) {
@@ -308,37 +216,13 @@ public class ExcelReader {
         return w;
 	}
 
-
-    public static void main(String[] args) throws IOException, InvalidFormatException {
-        String excelfile = args[0];
-
-        String textfile = null;
-        if (args.length >= 2) {
-			textfile = args[1];
-		} else {
-        	int n = excelfile.lastIndexOf(".");
-        	textfile = excelfile.substring(0, n) + "_" + StringUtils.getToday() + ".txt";
+    public static List getRowData(Row row) {
+		List list = new ArrayList();
+		for (int i=0; i<row.getPhysicalNumberOfCells(); i++) {
+			Cell cell=row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK );
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+			list.add(cell.getStringCellValue());
 		}
-		int sheetNumber = 0;
-		if (args.length >= 3) {
-			sheetNumber = Integer.parseInt(args[2]);
-		}
-
-		boolean skip_first_row = true;
-		if (args.length >= 4) {
-			String s = args[3];
-			if (s.compareTo("false") == 0) {
-				skip_first_row = false;
-			}
-		}
-
-        System.out.println(excelfile);
-        Vector w = toDelimited(excelfile, sheetNumber, '\t');
-        if (skip_first_row) {
-			w.remove(0);
-		}
-        Utils.saveToFile(textfile, w);
-    }
-
-
+		return list;
+	}
 }
