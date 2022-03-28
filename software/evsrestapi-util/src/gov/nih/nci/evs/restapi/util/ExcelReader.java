@@ -6,9 +6,7 @@ import org.apache.poi.xssf.usermodel.*;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.DataFormatter;
-
 import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
-
 
 import java.io.File;
 import java.io.*;
@@ -108,6 +106,7 @@ public class ExcelReader {
 		return toDelimited(excelfile, 0, delim);
 	}
 
+
     private static void printCellValue(Cell cell) {
         switch (cell.getCellTypeEnum()) {
             case BOOLEAN:
@@ -135,13 +134,50 @@ public class ExcelReader {
         System.out.print("\t");
     }
 
+
+    public static Vector toDelimited(String excelfile, int sheetNumber, char delim) {
+		Vector w = new Vector();
+		Workbook workbook = openWorkbook(excelfile);
+        Sheet sheet = workbook.getSheetAt(sheetNumber);
+        Iterator<Row> rowIterator = sheet.rowIterator();
+        while (rowIterator.hasNext()) {
+			StringBuffer buf = new StringBuffer();
+			Row row = rowIterator.next();
+            List list = getRowData(row);
+            for (int i=0; i<list.size(); i++) {
+				String t = (String) list.get(i);
+				buf.append(t).append(delim);
+			}
+			String s = buf.toString();
+			s = s.substring(0, s.length()-1);
+			w.add(s);
+		}
+        try {
+        	workbook.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+        return w;
+	}
+
 /*
-	public static List getRowData(Row row) {
+    public static List getRowData(Row row) {
+		List list = new ArrayList();
+		for (int i=0; i<row.getPhysicalNumberOfCells(); i++) {
+			Cell cell=row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK );
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+			list.add(cell.getStringCellValue());
+		}
+		return list;
+	}
+*/
+
+    public static List getRowData(Row row) {
 		DataFormatter fmt = new DataFormatter();
 		List fetchedRow = new ArrayList();
-		Iterator<Cell> cellIterator = row.cellIterator();
-		while (cellIterator.hasNext()) {
-			Cell cell = cellIterator.next();
+		//List list = new ArrayList();
+		for (int i=0; i<row.getPhysicalNumberOfCells(); i++) {
+			Cell cell=row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK );
             boolean rowEmpty = true;
 			switch (cell.getCellTypeEnum()) {
 				case NUMERIC:
@@ -158,7 +194,6 @@ public class ExcelReader {
 				case STRING:
 					//fetchedRow.add(cell.toString());
                     fetchedRow.add(fmt.formatCellValue(cell));
-
 					rowEmpty = false;
 					break;
 				case BOOLEAN:
@@ -188,41 +223,5 @@ public class ExcelReader {
 		}
 		return fetchedRow;
 	}
-*/
 
-
-    public static Vector toDelimited(String excelfile, int sheetNumber, char delim) {
-		Vector w = new Vector();
-		Workbook workbook = openWorkbook(excelfile);
-        Sheet sheet = workbook.getSheetAt(sheetNumber);
-        Iterator<Row> rowIterator = sheet.rowIterator();
-        while (rowIterator.hasNext()) {
-			StringBuffer buf = new StringBuffer();
-			Row row = rowIterator.next();
-            List list = getRowData(row);
-            for (int i=0; i<list.size(); i++) {
-				String t = (String) list.get(i);
-				buf.append(t).append(delim);
-			}
-			String s = buf.toString();
-			s = s.substring(0, s.length()-1);
-			w.add(s);
-		}
-        try {
-        	workbook.close();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-        return w;
-	}
-
-    public static List getRowData(Row row) {
-		List list = new ArrayList();
-		for (int i=0; i<row.getPhysicalNumberOfCells(); i++) {
-			Cell cell=row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK );
-			cell.setCellType(Cell.CELL_TYPE_STRING);
-			list.add(cell.getStringCellValue());
-		}
-		return list;
-	}
 }
