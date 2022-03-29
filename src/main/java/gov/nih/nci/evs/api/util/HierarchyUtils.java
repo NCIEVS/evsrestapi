@@ -433,6 +433,7 @@ public class HierarchyUtils {
    */
   public Map<String, Paths> getPathsMap(Terminology terminology) throws Exception {
     if (pathsMap.isEmpty()) {
+      logger.info("XXX");
       final Paths allPaths = new PathFinder(this).findPaths();
       final Set<String> seen = new HashSet<>();
       for (final Path path : allPaths.getPaths()) {
@@ -453,7 +454,7 @@ public class HierarchyUtils {
           copy.setDirection(1);
           int level = 0;
           for (int j = i; j >= 0; j--) {
-            final ConceptMinimal concept = path.getConcepts().get(j);
+            final ConceptMinimal concept = new ConceptMinimal(path.getConcepts().get(j));
             concept.setLevel(level++);
             copy.getConcepts().add(concept);
           }
@@ -461,6 +462,7 @@ public class HierarchyUtils {
         }
       }
     }
+
     return pathsMap;
   }
 
