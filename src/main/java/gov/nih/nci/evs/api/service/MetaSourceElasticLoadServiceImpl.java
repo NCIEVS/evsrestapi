@@ -73,6 +73,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
 
+  /** The name rank. */
+  private Map<String, Integer> nameRankMap = new HashMap<>();
+
   /** The code cuis map. */
   private Map<String, Set<String>> codeCuisMap = new HashMap<>();
 
@@ -134,6 +137,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The batch size. */
   private int batchSize = 0;
 
+  /** The definition ct. */
   private int definitionCt = 0;
 
   /** the environment *. */
@@ -210,11 +214,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // Cache concept preferred names
-        if (fields[11].toLowerCase().equals(terminology.getTerminology())
-            && terminology.getMetadata().getPreferredTermTypes().contains(fields[12])) {
-
-          // Save the name map to dereference it while processing rels
-          nameMap.put(code, fields[14]);
+        int rank = terminology.getMetadata().getPreferredTermTypes().indexOf(fields[12]);
+        if (fields[11].toLowerCase().equals(terminology.getTerminology()) && rank != -1) {
+          // If the new rank is lower than the previously assigned rank
+          // or we've never assigned a name, assign the name
+          // Lower index in preferred term types is better rank
+          if (!nameRankMap.containsKey(code)
+              || (nameRankMap.containsKey(code) && rank < nameRankMap.get(code))) {
+            nameMap.put(code, fields[14]);
+            nameRankMap.put(code, rank);
+          }
         }
 
         // If this MRCONSO entry has a "code" in this CUI, remember it
@@ -323,7 +332,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
       }
 
-    } finally {
+    } finally
+
+    {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
@@ -739,6 +750,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Handle relationships.
    *
+   * @param hierarchy the hierarchy
    * @param terminology the terminology
    * @param codes the codes
    * @param mrrel the mrrel
@@ -852,6 +864,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Builds the child.
    *
+   * @param hierarchy the hierarchy
    * @param concept the concept
    * @param fields the fields
    * @throws Exception the exception

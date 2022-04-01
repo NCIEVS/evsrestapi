@@ -1,8 +1,10 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,7 +125,7 @@ public class TerminologyMetadata extends BaseModel {
   private String metaConceptField;
 
   /** The preferred term types. */
-  private Set<String> preferredTermTypes;
+  private List<String> preferredTermTypes;
 
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
@@ -181,7 +183,7 @@ public class TerminologyMetadata extends BaseModel {
     monthlyDb = other.getMonthlyDb();
     licenseText = other.getLicenseText();
     metaConceptField = other.getMetaConceptField();
-    preferredTermTypes = new HashSet<>(other.getPreferredTermTypes());
+    preferredTermTypes = new ArrayList<>(other.getPreferredTermTypes());
     subset = new HashSet<>(other.getSubset());
   }
 
@@ -1042,9 +1044,9 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the preferred term types
    */
-  public Set<String> getPreferredTermTypes() {
+  public List<String> getPreferredTermTypes() {
     if (preferredTermTypes == null) {
-      preferredTermTypes = new HashSet<>();
+      preferredTermTypes = new ArrayList<>();
     }
     return preferredTermTypes;
   }
@@ -1054,7 +1056,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param preferredTermTypes the preferred term types
    */
-  public void setPreferredTermTypes(Set<String> preferredTermTypes) {
+  public void setPreferredTermTypes(List<String> preferredTermTypes) {
     this.preferredTermTypes = preferredTermTypes;
   }
 

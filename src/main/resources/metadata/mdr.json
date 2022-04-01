@@ -5,9 +5,12 @@
 	"preferredTermTypes": [
 		"HG",
 		"HT",
+		"PT",
 		"LLT",
-		"SMQ",
+		"OS",
+		"MTH_SMQ",
+		"MTH_OL",
 		"OL",
-		"OS"
+		"SMQ"
 	]
 }
