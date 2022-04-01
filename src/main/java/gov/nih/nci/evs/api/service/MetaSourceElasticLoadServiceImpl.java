@@ -222,6 +222,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           if (!nameRankMap.containsKey(code)
               || (nameRankMap.containsKey(code) && rank < nameRankMap.get(code))) {
             nameMap.put(code, fields[14]);
+            nameRankMap.put(code, rank);
           }
         }
 
