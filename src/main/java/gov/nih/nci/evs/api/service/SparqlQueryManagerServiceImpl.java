@@ -2065,8 +2065,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
         ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
-            terminology.getMetadata().getSynonymTermGroup(), "conceptStatusCode",
-            terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
+            // Temporary legacy patch for termType->termGroup
+            // Can be removed after 1.6.0 is deployed
+            terminology.getMetadata().getSynonymTermGroup() != null
+                ? terminology.getMetadata().getSynonymTermGroup() : "P383",
+            "conceptStatusCode", terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
             terminology.getMetadata().getRetiredStatusValue()));
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 

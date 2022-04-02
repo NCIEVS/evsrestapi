@@ -3,8 +3,10 @@ package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,6 +50,12 @@ public class TerminologyMetadataUnitTest {
   /** The s 2. */
   private Set<String> s2;
 
+  /** The l 1. */
+  private List<String> l1;
+
+  /** The s 2. */
+  private List<String> l2;
+
   /**
    * Setup.
    *
@@ -64,6 +72,10 @@ public class TerminologyMetadataUnitTest {
     s1.add("1");
     s2 = new HashSet<>();
     s2.add(null);
+    l1 = new ArrayList<>();
+    l1.add("1");
+    l2 = new ArrayList<>();
+    l2.add(null);
   }
 
   /**
