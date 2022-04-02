@@ -349,13 +349,13 @@ public interface SparqlQueryManagerService {
   public List<ConceptMinimal> getSynonymSources(Terminology terminology) throws Exception;
 
   /**
-   * Returns the term types.
+   * Returns the term groups.
    *
    * @param terminology the terminology
-   * @return the term types
+   * @return the term groups
    * @throws Exception the exception
    */
-  public List<ConceptMinimal> getTermTypes(Terminology terminology) throws Exception;
+  public List<ConceptMinimal> getTermGroups(Terminology terminology) throws Exception;
 
   /**
    * Returns the named graph.

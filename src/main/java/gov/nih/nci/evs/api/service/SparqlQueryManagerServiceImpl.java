@@ -1508,8 +1508,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomObject.setRelationshipToTarget(value);
         } else if (property.equals(terminology.getMetadata().getMapTarget())) {
           axiomObject.setTargetCode(value);
-        } else if (property.equals(terminology.getMetadata().getMapTargetTermType())) {
-          axiomObject.setTargetTermType(value);
+        } else if (property.equals(terminology.getMetadata().getMapTargetTermGroup())) {
+          axiomObject.setTargetTermGroup(value);
         } else if (property.equals(terminology.getMetadata().getMapTargetTerminology())) {
           axiomObject.setTargetTerminology(value);
         } else if (property.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
@@ -1520,7 +1520,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomObject.setSourceCode(value);
         } else if (property.equals(terminology.getMetadata().getSynonymSubSource())) {
           axiomObject.setSubsourceName(value);
-        } else if (property.equals(terminology.getMetadata().getSynonymTermType())) {
+        } else if (property.equals(terminology.getMetadata().getSynonymTermGroup())) {
           axiomObject.setTermGroup(value);
         } else if (property.equals(terminology.getMetadata().getSynonymSource())) {
           axiomObject.setTermSource(value);
@@ -2061,11 +2061,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<ConceptMinimal> getTermTypes(Terminology terminology) throws Exception {
+  public List<ConceptMinimal> getTermGroups(Terminology terminology) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
         ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
-            terminology.getMetadata().getSynonymTermType(), "conceptStatusCode",
+            terminology.getMetadata().getSynonymTermGroup(), "conceptStatusCode",
             terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
             terminology.getMetadata().getRetiredStatusValue()));
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -2073,7 +2073,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<ConceptMinimal> sources = new ArrayList<>();
-    final Map<String, String> map = terminology.getMetadata().getTermTypes();
+    final Map<String, String> map = terminology.getMetadata().getTermGroups();
 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();

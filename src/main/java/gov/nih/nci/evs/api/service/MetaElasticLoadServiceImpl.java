@@ -351,7 +351,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         sy.setSource(fields[11]);
         terminology.getMetadata().getSynonymSourceSet().add(fields[11]);
         sy.setTermGroup(fields[12]);
-        terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
+        terminology.getMetadata().getTermGroups().put(fields[12], ttyMap.get(fields[12]));
         sy.setName(fields[14]);
         sy.setNormName(ConceptUtils.normalize(fields[14]));
         concept.getSynonyms().add(sy);
@@ -946,7 +946,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         ElasticObject.class);
 
     //
-    // Handle termTypes - n/a - handled inline
+    // Handle termGroups - n/a - handled inline
     //
 
   }

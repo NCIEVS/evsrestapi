@@ -158,7 +158,7 @@ public class EVSUtils {
         Map mapsTo = new Map();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
-        mapsTo.setTargetTermGroup(axiom.getTargetTermType());
+        mapsTo.setTargetTermGroup(axiom.getTargetTermGroup());
         mapsTo.setTargetCode(axiom.getTargetCode());
         mapsTo.setTargetTerminology(axiom.getTargetTerminology());
         mapsTo.setTargetTerminologyVersion(axiom.getTargetTerminologyVersion());

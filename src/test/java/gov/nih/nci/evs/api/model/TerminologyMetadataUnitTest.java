@@ -98,7 +98,7 @@ public class TerminologyMetadataUnitTest {
     tester.include("mapTarget");
     tester.include("mapTargetTerminology");
     tester.include("mapTargetTerminologyVersion");
-    tester.include("mapTargetTermType");
+    tester.include("mapTargetTermGroup");
     tester.include("preferredName");
     tester.include("sources");
     tester.include("sourcesToRemove");
@@ -107,10 +107,10 @@ public class TerminologyMetadataUnitTest {
     tester.include("synonymCode");
     tester.include("synonymSource");
     tester.include("synonymSubSource");
-    tester.include("synonymTermType");
+    tester.include("synonymTermGroup");
     tester.include("definitionSourceSet");
     tester.include("synonymSourceSet");
-    tester.include("termTypes");
+    tester.include("termGroups");
     tester.include("subsetMember");
     tester.include("subsetLinks");
     tester.include("subsetPrefix");
@@ -118,7 +118,7 @@ public class TerminologyMetadataUnitTest {
     tester.include("monthlyDb");
     tester.include("licenseText");
     tester.include("metaConceptField");
-    tester.include("preferredTermTypes");
+    tester.include("preferredTermGroups");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
