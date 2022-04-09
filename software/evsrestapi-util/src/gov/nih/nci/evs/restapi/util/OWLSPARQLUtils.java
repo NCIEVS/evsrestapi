@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.bean.*;
@@ -178,6 +179,7 @@ public class OWLSPARQLUtils {
 	}
 
     public void set_named_graph_id(String named_graph_id) {
+
 		this.named_graph_id = named_graph_id;
 	}
 
@@ -191,6 +193,8 @@ public class OWLSPARQLUtils {
 
     public void set_named_graph(String named_graph) {
 		this.named_graph = named_graph;
+		this.BASE_URI = named_graph;
+
 		propertyCode2labelHashMap = new HashMap();
 		Vector supportedProperties = getSupportedProperties(named_graph);
 		for (int i=0; i<supportedProperties.size(); i++) {
@@ -213,9 +217,9 @@ public class OWLSPARQLUtils {
     public String getPrefixes() {
 		if (prefixes != null) return prefixes;
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-		buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -916,9 +920,9 @@ public class OWLSPARQLUtils {
 
 	public String construct_get_annotaion_properties_by_code(String named_graph, String code, String associationName) {
         StringBuffer buf = new StringBuffer();
-        buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-        buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-        buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+        buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+        buf.append("PREFIX base:<" + named_graph + ">").append("\n");
+        buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
         buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
         buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
         buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3110,8 +3114,8 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_property_query(String named_graph, String property_code) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
@@ -3216,8 +3220,8 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_object_property_query(String named_graph) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
@@ -3275,8 +3279,8 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_object_property_definition_query(String named_graph) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
@@ -3307,8 +3311,8 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_property_definition_query(String named_graph) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
@@ -3338,9 +3342,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_sources_query(String named_graph) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-		buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3374,9 +3378,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_property_qualifiers(String named_graph, String property_name) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-		buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3409,9 +3413,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_property_qualifier_values(String named_graph, String property_name, String qualifier_name) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-		buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3445,9 +3449,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_property_qualifiers(String named_graph) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
-		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
-		buf.append("PREFIX Thesaurus:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -4938,7 +4942,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("select ?dt ?element ?elementType ").append("\n");
-		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
 		buf.append("where  { ").append("\n");
 		buf.append("   ?dt a rdfs:Datatype ;").append("\n");
 		buf.append("   owl:oneOf/rdf:rest*/rdf:first ?element .").append("\n");
@@ -5094,7 +5098,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("select ?element ").append("\n");
-		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
 		buf.append("where  { ").append("\n");
 		buf.append("   ?dt a rdfs:Datatype .").append("\n");
 		buf.append("   ?dt ?x ?x_value .").append("\n");
@@ -5119,7 +5123,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("select distinct ?p2_label ?q1_label ?q1_value").append("\n");
-		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
 		buf.append("where  { ").append("\n");
 		buf.append("                    ?x1 a owl:Class .").append("\n");
 		buf.append("                    ?x1 :NHC0 ?x1_code .").append("\n");
@@ -5152,7 +5156,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("select distinct ?p2_label ?q1_label ?q1_value ?q2_label ?q2_value").append("\n");
-		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
 		buf.append("where  { ").append("\n");
 		buf.append("                    ?x1 a owl:Class .").append("\n");
 		buf.append("                    ?x1 :NHC0 ?x1_code .").append("\n");
@@ -5198,7 +5202,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		} else {
 			buf.append("select distinct ?x1_label ?x1_code ?p2_label ?a2_target ?q1_label ?q1_value ?q2_label ?q2_value ?q3_label ?q3_value ?q4_label ?q4_value").append("\n");
 		}
-		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("from <" + named_graph + ">").append("\n");
 		buf.append("where  {").append("\n");
 		buf.append("                ?x1 a owl:Class .").append("\n");
 		buf.append("                ?x1 :NHC0 ?x1_code .").append("\n");
