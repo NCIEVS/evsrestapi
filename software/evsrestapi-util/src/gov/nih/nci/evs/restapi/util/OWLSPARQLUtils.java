@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.bean.*;
@@ -78,6 +77,8 @@ public class OWLSPARQLUtils {
     String serviceUrl = null;
     String restURL = null;
     String named_graph_id = ":NHC0";
+
+    String NCIT_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String BASE_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
 
     gov.nih.nci.evs.restapi.util.ParserUtils parser = new ParserUtils();
@@ -193,10 +194,19 @@ public class OWLSPARQLUtils {
 
     public void set_named_graph(String named_graph) {
 		this.named_graph = named_graph;
-		this.BASE_URI = named_graph;
-
+		//this.BASE_URI = named_graph;
 		propertyCode2labelHashMap = new HashMap();
+
+		/*
 		Vector supportedProperties = getSupportedProperties(named_graph);
+
+		if (supportedProperties == null) {
+			System.out.println("supportedProperties == null???");
+			return;
+		} else {
+			System.out.println("supportedProperties: " + supportedProperties.size());
+		}
+
 		for (int i=0; i<supportedProperties.size(); i++) {
 			String supportedProperty = (String) supportedProperties.elementAt(i);
 			Vector u = StringUtils.parseData(supportedProperty, '|');
@@ -204,6 +214,7 @@ public class OWLSPARQLUtils {
 			String code = (String) u.elementAt(1);
 			propertyCode2labelHashMap.put(code, label);
 		}
+		*/
 	}
 
 	public String get_version() {
@@ -264,6 +275,7 @@ public class OWLSPARQLUtils {
 	}
 
     public Vector executeQuery(String query) {
+		query = query.replaceAll("from <" + NCIT_URI + ">", "from <" + this.named_graph + ">");
         Vector v = null;
         try {
 			if (this.password == null) {
@@ -272,13 +284,9 @@ public class OWLSPARQLUtils {
             	json = httpUtils.executeQuery(query);
             	v = new JSONUtils().parseJSON(json);
 			} else {
-				gov.nih.nci.evs.restapi.util.RESTUtils restUtils = new gov.nih.nci.evs.restapi.util.RESTUtils(this.username, this.password, 100000, 100000);
+				gov.nih.nci.evs.restapi.util.RESTUtils restUtils = new gov.nih.nci.evs.restapi.util.RESTUtils(this.username, this.password, 1500000, 1500000);
 				String response = restUtils.runSPARQL(query, serviceUrl);
 				v = new gov.nih.nci.evs.restapi.util.JSONUtils().parseJSON(response);
-				//v = parser.getResponseValues(v);
-				//Utils.dumpVector("v", v);
-
-				//v = httpUtils.execute(this.serviceUrl, this.username, this.password, query, false); // no parser
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
