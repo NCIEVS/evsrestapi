@@ -275,6 +275,7 @@ public class OWLSPARQLUtils {
 	}
 
     public Vector executeQuery(String query) {
+		//from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>
 		query = query.replaceAll("from <" + NCIT_URI + ">", "from <" + this.named_graph + ">");
         Vector v = null;
         try {
@@ -5461,6 +5462,81 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		return new SortUtils().quickSort(v);
 	}
 
+
+	public String construct_get_simple_roles(String named_graph, String code) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <" + named_graph + "> ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            ?x :NHC0 ?x_code .").append("\n");
+        if (code != null) {
+        	buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+        buf.append("            ?x rdfs:label ?x_label .").append("\n");
+        buf.append("            ?y :NHC0 ?y_code .").append("\n");
+        buf.append("            ?y rdfs:label ?y_label .").append("\n");
+        buf.append("            ?p :NHC0 ?p_code .").append("\n");
+        buf.append("            ?p rdfs:label ?p_label .").append("\n");
+        buf.append("            ?x rdfs:subClassOf ?rs .  ").append("\n");
+        buf.append("            ?rs a owl:Restriction .").append("\n");
+        buf.append("            ?rs owl:onProperty ?p .").append("\n");
+        buf.append("            ?rs owl:someValuesFrom ?y .").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        buf.append("").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getSimpleRoles(String named_graph, String code) {
+        String query = construct_get_simple_roles(named_graph, code);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
+
+	public String construct_get_complex_roles(String named_graph, String code) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <" + named_graph + "> ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            ?x :NHC0 ?x_code .").append("\n");
+        if (code != null) {
+        	buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
+		buf.append("            ?x rdfs:label ?x_label .").append("\n");
+        buf.append("            ?y :NHC0 ?y_code .").append("\n");
+        buf.append("            ?y rdfs:label ?y_label .").append("\n");
+        buf.append("            ?p :NHC0 ?p_code .").append("\n");
+        buf.append("            ?p rdfs:label ?p_label .").append("\n");
+        buf.append("            ?x (owl:equivalentClass|owl:unionOf|owl:intersectionOf|rdf:rest*/rdf:first)* ?rs .  ").append("\n");
+        buf.append("            ?rs a owl:Restriction .").append("\n");
+        buf.append("            ?rs owl:onProperty ?p .").append("\n");
+        buf.append("            ?rs owl:someValuesFrom ?y .").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        buf.append("").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getComplexRoles(String named_graph, String code) {
+        String query = construct_get_complex_roles(named_graph, code);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
