@@ -27,8 +27,8 @@ public class Axiom extends BaseModel {
   /** The target code. */
   String targetCode;
 
-  /** The target term type. */
-  String targetTermType;
+  /** The target term group. */
+  String targetTermGroup;
 
   /** The target terminology. */
   String targetTerminology;
@@ -187,21 +187,21 @@ public class Axiom extends BaseModel {
   }
 
   /**
-   * Returns the target term type.
+   * Returns the target term group.
    *
-   * @return the target term type
+   * @return the target term group
    */
-  public String getTargetTermType() {
-    return targetTermType;
+  public String getTargetTermGroup() {
+    return targetTermGroup;
   }
 
   /**
-   * Sets the target term type.
+   * Sets the target term group.
    *
-   * @param targetTermType the target term type
+   * @param targetTermGroup the target term group
    */
-  public void setTargetTermType(String targetTermType) {
-    this.targetTermType = targetTermType;
+  public void setTargetTermGroup(String targetTermGroup) {
+    this.targetTermGroup = targetTermGroup;
   }
 
   /**

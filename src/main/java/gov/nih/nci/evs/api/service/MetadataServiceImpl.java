@@ -345,24 +345,24 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   /**
-   * Returns the term types.
+   * Returns the term groups.
    *
    * @param terminology the terminology
-   * @return the term types
+   * @return the term groups
    * @throws Exception the exception
    */
   @Override
   // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
-  public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
+  public List<ConceptMinimal> getTermGroups(String terminology) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit")) {
       // Build the list from terminology metadata
-      return buildList(term, term.getMetadata().getTermTypes().keySet(),
-          term.getMetadata().getTermTypes());
+      return buildList(term, term.getMetadata().getTermGroups().keySet(),
+          term.getMetadata().getTermGroups());
     }
 
-    return sparqlQueryManagerService.getTermTypes(term);
+    return sparqlQueryManagerService.getTermGroups(term);
   }
 
   /* see superclass */

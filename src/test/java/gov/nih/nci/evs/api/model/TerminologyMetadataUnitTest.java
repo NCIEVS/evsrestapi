@@ -3,8 +3,10 @@ package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,6 +50,12 @@ public class TerminologyMetadataUnitTest {
   /** The s 2. */
   private Set<String> s2;
 
+  /** The l 1. */
+  private List<String> l1;
+
+  /** The s 2. */
+  private List<String> l2;
+
   /**
    * Setup.
    *
@@ -64,6 +72,10 @@ public class TerminologyMetadataUnitTest {
     s1.add("1");
     s2 = new HashSet<>();
     s2.add(null);
+    l1 = new ArrayList<>();
+    l1.add("1");
+    l2 = new ArrayList<>();
+    l2.add(null);
   }
 
   /**
@@ -78,6 +90,8 @@ public class TerminologyMetadataUnitTest {
     tester.proxy(Map.class, 2, m2);
     tester.proxy("sourcesToRemove", 1, s1);
     tester.proxy("sourcesToRemove", 2, s2);
+    tester.proxy("preferredTermGroups", 1, l1);
+    tester.proxy("preferredTermGroups", 2, l2);
 
     tester.test();
   }
@@ -98,7 +112,7 @@ public class TerminologyMetadataUnitTest {
     tester.include("mapTarget");
     tester.include("mapTargetTerminology");
     tester.include("mapTargetTerminologyVersion");
-    tester.include("mapTargetTermType");
+    tester.include("mapTargetTermGroup");
     tester.include("preferredName");
     tester.include("sources");
     tester.include("sourcesToRemove");
@@ -107,10 +121,10 @@ public class TerminologyMetadataUnitTest {
     tester.include("synonymCode");
     tester.include("synonymSource");
     tester.include("synonymSubSource");
-    tester.include("synonymTermType");
+    tester.include("synonymTermGroup");
     tester.include("definitionSourceSet");
     tester.include("synonymSourceSet");
-    tester.include("termTypes");
+    tester.include("termGroups");
     tester.include("subsetMember");
     tester.include("subsetLinks");
     tester.include("subsetPrefix");
@@ -118,12 +132,14 @@ public class TerminologyMetadataUnitTest {
     tester.include("monthlyDb");
     tester.include("licenseText");
     tester.include("metaConceptField");
-    tester.include("preferredTermTypes");
+    tester.include("preferredTermGroups");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
     tester.proxy(Set.class, 1, s1);
     tester.proxy(Set.class, 2, s2);
+    tester.proxy("preferredTermGroups", 1, l1);
+    tester.proxy("preferredTermGroups", 2, l2);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -143,6 +159,7 @@ public class TerminologyMetadataUnitTest {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Set.class, 1, s1);
+    tester.proxy("preferredTermGroups", 1, l1);
     assertTrue(tester.testCopyConstructor(TerminologyMetadata.class));
   }
 
@@ -156,6 +173,7 @@ public class TerminologyMetadataUnitTest {
     final SerializationTester tester = new SerializationTester(object);
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Set.class, 1, s1);
+    tester.proxy("preferredTermGroups", 1, l1);
     assertTrue(tester.testJsonSerialization());
   }
 }
