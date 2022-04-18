@@ -15,7 +15,7 @@ Information on downloading and using stardog with EVSRESTAPI.
 
       dir=c:/Users/carlsenbr/eclipse-workspace/data/
       docker run -it --entrypoint "/bin/bash" -v "$dir":/data -v stardog-home2:/var/opt/stardog stardog/stardog
-      [root@0b9fbb0b90ba bin]# cp /data/stardog-license-key.bin /var/opt/data
+      [root@0b9fbb0b90ba bin]# cp /data/stardog-license-key.bin /var/opt/stardog
       [root@0b9fbb0b90ba bin]# exit
 
 
