@@ -22,7 +22,7 @@ echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo "terminology = $terminology"
-echo "verion = $version"
+echo "version = $version"
 echo ""
 
 echo "  Remove indexes for $terminology $version"

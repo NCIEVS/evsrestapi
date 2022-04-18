@@ -22,8 +22,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.AssociationEntry;
@@ -86,7 +84,7 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   @Autowired
   MainTypeHierarchy mainTypeHierarchy;
 
-  /** the sparql query service impl */
+  /** the sparql query service impl. */
   @Autowired
   private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
 
@@ -145,7 +143,7 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     }
 
     logger.info("  Initialize main type hierarchy");
-    mainTypeHierarchy.initialize(terminology);
+    mainTypeHierarchy.initialize(terminology, hierarchy);
 
     logger.info("  Total concepts to load: {}", allConcepts.size());
 
@@ -221,9 +219,14 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * add subset links to subset hierarchy
+   * add subset links to subset hierarchy.
+   *
+   * @param subset the subset
+   * @param subsetLinks the subset links
+   * @param subsetPrefix the subset prefix
    */
-  private void addSubsetLinks(Concept subset, Map<String, String> subsetLinks, String subsetPrefix) {
+  private void addSubsetLinks(Concept subset, Map<String, String> subsetLinks,
+    String subsetPrefix) {
     if (subsetLinks.containsKey(subset.getCode())) {
       subset.setSubsetLink(subsetPrefix + subsetLinks.get(subset.getCode()));
     }
@@ -235,7 +238,7 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws IOException {
+    HierarchyUtils hierarchy) throws Exception {
     String indexName = terminology.getObjectIndexName();
     logger.info("Loading Elastic Objects");
     logger.debug("object index name: {}", indexName);
@@ -309,12 +312,13 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     ElasticObject subsetsObject = new ElasticObject("subsets");
     for (Concept subset : subsets)
-      addSubsetLinks(subset, terminology.getMetadata().getSubsetLinks(), terminology.getMetadata().getSubsetPrefix());
+      addSubsetLinks(subset, terminology.getMetadata().getSubsetLinks(),
+          terminology.getMetadata().getSubsetPrefix());
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
     logger.info("  Subsets loaded");
-    
+
     // associationEntries
     for (Concept association : associations) {
       logger.info(association.getName());
@@ -420,6 +424,8 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
       TerminologyMetadata metadata = new ObjectMapper().readValue(
           IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
           TerminologyMetadata.class);
+      metadata.setLoader("rdf");
+      metadata.setSourceCt(metadata.getSources().size());
       term.setMetadata(metadata);
     } catch (Exception e) {
       throw new Exception("Unexpected error trying to load = " + resource, e);
@@ -434,8 +440,7 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public HierarchyUtils getHierarchyUtils(Terminology term)
-    throws JsonParseException, JsonMappingException, IOException {
+  public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
     return sparqlQueryManagerService.getHierarchyUtils(term);
   }
 }

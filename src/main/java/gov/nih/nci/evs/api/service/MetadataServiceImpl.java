@@ -345,24 +345,24 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   /**
-   * Returns the term types.
+   * Returns the term groups.
    *
    * @param terminology the terminology
-   * @return the term types
+   * @return the term groups
    * @throws Exception the exception
    */
   @Override
   // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
-  public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
+  public List<ConceptMinimal> getTermGroups(String terminology) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit")) {
       // Build the list from terminology metadata
-      return buildList(term, term.getMetadata().getTermTypes().keySet(),
-          term.getMetadata().getTermTypes());
+      return buildList(term, term.getMetadata().getTermGroups().keySet(),
+          term.getMetadata().getTermGroups());
     }
 
-    return sparqlQueryManagerService.getTermTypes(term);
+    return sparqlQueryManagerService.getTermGroups(term);
   }
 
   /* see superclass */
@@ -447,28 +447,36 @@ public class MetadataServiceImpl implements MetadataService {
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     // subsets should always return children and properties
+    // (contributing source needed)
     ip.setChildren(true);
     ip.setProperties(true);
     ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
 
+    // No list of codes supplied
     if (!list.isPresent()) {
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
+          .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
           .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
       return subsets;
     }
 
+    // List of codes supplied - first apply the filter.
     subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
         .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream().flatMap(Concept::streamSelfAndChildren)
+        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get()))
         .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
+
     return subsets;
+
   }
 
   /* see superclass */
   @Override
   public Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
     throws Exception {
+
     // Verify that it is a property
     final List<Concept> list = self.getSubsets(terminology, include, Optional.ofNullable(code));
     if (list.size() == 1) {

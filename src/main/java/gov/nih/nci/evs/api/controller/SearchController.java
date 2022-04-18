@@ -126,7 +126,8 @@ public class SearchController extends BaseController {
               + "list of NCI Metathesaurus properties</a>.</p> "
               + "The properties can be specified as code or name.  "
               + "NOTE: when specifying a property, the 'type' parameter will not "
-              + "function as expected because properties are indexed to only support exact matches.",
+              + "function as expected because properties are indexed to only support exact matches. "
+              + "This feature works with 'term' to find concepts having a specific property matching an exact value.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to. "
@@ -156,9 +157,9 @@ public class SearchController extends BaseController {
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. "
-              + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='api/v1/metadata/ncit/termGroups' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='api/v1/metadata/ncim/termGroups' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",
@@ -247,7 +248,8 @@ public class SearchController extends BaseController {
               + "list of NCI Metathesaurus properties</a>.</p> "
               + "The properties can be specified as code or name.  "
               + "NOTE: when specifying a property, the 'type' parameter will not "
-              + "function as expected because properties are indexed to only support exact matches.",
+              + "function as expected because properties are indexed to only support exact matches. "
+              + "This feature works with 'term' to find concepts having a specific property matching an exact value.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results to. "
@@ -277,9 +279,9 @@ public class SearchController extends BaseController {
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermGroup",
           value = "Single synonym term group value to restrict search results to. "
-              + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='api/v1/metadata/ncit/termGroups' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='api/v1/metadata/ncim/termGroups' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",

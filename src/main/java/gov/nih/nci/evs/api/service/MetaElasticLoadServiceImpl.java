@@ -42,15 +42,14 @@ import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
 
 /**
- * The implementation for {@link DirectoryElasticLoadServiceImpl}.
+ * The implementation for {@link MetaElasticLoadServiceImpl}.
  */
 @Service
-public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
+public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
   @SuppressWarnings("unused")
-  private static final Logger logger =
-      LoggerFactory.getLogger(DirectoryElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetaElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -76,6 +75,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The scui cui map. */
   private Map<String, String> codeCuiMap = new HashMap<>();
+
+  /** The rui qual map. */
+  private Map<String, Set<String>> ruiQualMap = new HashMap<>();
 
   /** The mapsets. */
   private Map<String, String> mapsets = new HashMap<>();
@@ -109,6 +111,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The rel set. */
   private Set<String> relSet = new HashSet<>();
+
+  /** The qual set. */
+  private Set<String> qualSet = new HashSet<>();
 
   private int batchSize = 0;
 
@@ -346,7 +351,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         sy.setSource(fields[11]);
         terminology.getMetadata().getSynonymSourceSet().add(fields[11]);
         sy.setTermGroup(fields[12]);
-        terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
+        terminology.getMetadata().getTermGroups().put(fields[12], ttyMap.get(fields[12]));
         sy.setName(fields[14]);
         sy.setNormName(ConceptUtils.normalize(fields[14]));
         concept.getSynonyms().add(sy);
@@ -424,11 +429,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         continue;
       }
 
-      // Skip RUI Attributes
-      if (fields[4].equals("RUI")) {
-        continue;
-      }
-
       // ALLOW AUI attributes
       // if (fields[4].equals("AUI")) {
       //
@@ -453,16 +453,32 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
 
       // consider skipping MDR - SMQ*, PT_IN_VERSION
 
-      // handle properties (include dynamic type)
       // CUI,LUI,SUI,METAUI,STYPE,CODE,ATUI,SATUI,ATN,SAB,ATV,SUPPRESS,CVF|
       final String atn = fields[8];
       final String sab = fields[9];
       final String atv = fields[10];
-      if (seen.contains(atn + sab + atv)) {
-        continue;
+
+      // RUI Attributes
+      if (fields[4].equals("RUI")) {
+        qualSet.add(atn);
+        if (!ruiQualMap.containsKey(fields[3])) {
+          ruiQualMap.put(fields[3], new HashSet<>());
+        }
+        ruiQualMap.get(fields[3]).add(atn + "|" + atv);
       }
-      seen.add(atn + sab + atv);
-      buildProperty(concept, atn, atv, sab);
+
+      // Handle other attributes
+      else {
+
+        // De-duplicate concept attributes
+        final String key = sab + atn + atv;
+        if (seen.contains(key)) {
+          continue;
+        }
+        seen.add(key);
+
+        buildProperty(concept, atn, atv, sab);
+      }
     }
   }
 
@@ -541,6 +557,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    */
   public void handleRelationships(final Concept concept, final PushBackReader mrrel,
     final String prevCui) throws Exception {
+    Set<String> seen = new HashSet<>();
     String line;
     while ((line = mrrel.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -552,14 +569,24 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       // e.g.
       // C0000039|A13650014|AUI|RO|C0364349|A10774117|AUI|measures|R108296692||LNC|LNC|||N||
       final String rel = fields[3];
-      final String fromCode = fields[0];
-      final String toCode = fields[4];
+      final String rela = fields[7];
+      final String fromCode = fields[4];
+      final String toCode = fields[0];
 
       // Skip certain situations
       if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
-          || rel.equals("BRO")) {
+          || rel.equals("BRO") || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
+
+      // Skip combinations already seen
+      final String sab = fields[10];
+      final String key = fromCode + "," + toCode + "," + rel + rela + sab;
+
+      if (seen.contains(key)) {
+        continue;
+      }
+      seen.add(key);
 
       // ALLOW AUI-AUI relationships
       // else if (fields[2].equals("AUI") && fields[6].equals("AUI")) {
@@ -574,7 +601,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
       // }
 
       // CUI1 has parent CUI2
-      else if (rel.equals("PAR")) {
+      if (rel.equals("PAR")) {
         buildParent(concept, fields);
       }
 
@@ -653,10 +680,9 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     concept2.setCode(cui2);
     concept2.setName(nameMap.get(cui2));
     concept2.setTerminology(concept.getTerminology());
-    concept2.setVersion(concept2.getVersion());
+    concept2.setVersion(concept.getVersion());
     concept2.setLeaf(false);
     if (!rela.isEmpty()) {
-      // Reverse the RELA
       concept2.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
 
@@ -713,6 +739,35 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // final String cvf = fields[15];
 
     // Build and add association
+    final Association association = new Association();
+    association.setType(relInverseMap.get(rel));
+    association.setRelatedCode(cui2);
+    association.setRelatedName(nameMap.get(cui2));
+    association.setSource(sab);
+    if (!aui1.isEmpty()) {
+      // iassociation.getQualifiers().add(new Qualifier("AUI1", aui2));
+      // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    }
+    if (!aui2.isEmpty()) {
+      // iassociation.getQualifiers().add(new Qualifier("AUI2", aui2));
+      // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype1));
+    }
+    if (!rela.isEmpty()) {
+      association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
+    }
+    if (ruiQualMap.containsKey(fields[8])) {
+      for (final String atnatv : ruiQualMap.get(fields[8])) {
+        final String[] parts = atnatv.split("\\|");
+        association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+      }
+    }
+
+    // RUI and SRUI in the other direction are different.
+    // iassociation.getQualifiers().add(new Qualifier("RG", rg));
+    // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
+    // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
+    concept.getAssociations().add(association);
+    // Build and add an inverse association
     final Association iassociation = new Association();
     iassociation.setType(rel);
     relSet.add(rel);
@@ -725,49 +780,35 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     }
 
     // if (!rg.isEmpty()) {
-    // iassociation.getQualifiers().add(new Qualifier("RG", rg));
+    // association.getQualifiers().add(new Qualifier("RG", rg));
     // }
     // if (!dir.isEmpty()) {
-    // iassociation.getQualifiers().add(new Qualifier("DIR", dir));
+    // association.getQualifiers().add(new Qualifier("DIR", dir));
     // }
 
     // if (!aui1.isEmpty()) {
-    // iassociation.getQualifiers().add(new Qualifier("AUI1", aui1));
-    // iassociation.getQualifiers().add(new Qualifier("STYPE1", stype1));
+    // association.getQualifiers().add(new Qualifier("AUI1", aui1));
+    // association.getQualifiers().add(new Qualifier("STYPE1", stype1));
     // }
     // if (!aui2.isEmpty()) {
-    // iassociation.getQualifiers().add(new Qualifier("AUI2", aui1));
-    // iassociation.getQualifiers().add(new Qualifier("STYPE2", stype2));
+    // association.getQualifiers().add(new Qualifier("AUI2", aui1));
+    // association.getQualifiers().add(new Qualifier("STYPE2", stype2));
     // }
-    // iassociation.getQualifiers().add(new Qualifier("RUI", rui));
+    // association.getQualifiers().add(new Qualifier("RUI", rui));
     // if (!srui.isEmpty()) {
-    // iassociation.getQualifiers().add(new Qualifier("SRUI", srui));
+    // association.getQualifiers().add(new Qualifier("SRUI", srui));
     // }
-    // iassociation.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
-    concept.getInverseAssociations().add(iassociation);
-
-    // Build and add an inverse association
-    final Association association = new Association();
-    association.setType(relInverseMap.get(rel));
-    association.setRelatedCode(cui2);
-    association.setRelatedName(nameMap.get(cui2));
-    association.setSource(sab);
-    if (!aui1.isEmpty()) {
-      // association.getQualifiers().add(new Qualifier("AUI1", aui2));
-      // association.getQualifiers().add(new Qualifier("STYPE1", stype1));
-    }
-    if (!aui2.isEmpty()) {
-      // association.getQualifiers().add(new Qualifier("AUI2", aui2));
-      // association.getQualifiers().add(new Qualifier("STYPE2", stype1));
-    }
-    if (!rela.isEmpty()) {
-      association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
-    }
-    // RUI and SRUI in the other direction are different.
-    // association.getQualifiers().add(new Qualifier("RG", rg));
-    // association.getQualifiers().add(new Qualifier("DIR", dir));
     // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
-    concept.getAssociations().add(association);
+
+    if (ruiQualMap.containsKey(fields[8])) {
+      for (final String atnatv : ruiQualMap.get(fields[8])) {
+        final String[] parts = atnatv.split("\\|");
+        iassociation.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+      }
+      ruiQualMap.remove(fields[8]);
+    }
+
+    concept.getInverseAssociations().add(iassociation);
 
   }
 
@@ -816,11 +857,6 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
 
-    // Use default elasticsearch mapping
-
-    // Set the "sources" map of the terminology metadata
-    terminology.getMetadata().setSources(sourceMap);
-
     //
     // Handle associations
     //
@@ -855,6 +891,8 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
 
     // MRSAT: property metadata for MRSAT
+    // Remove ATNs that are qualifiers
+    atnSet.removeAll(qualSet);
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -870,9 +908,12 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
     // qualifiers to build - from relationships
     // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
     for (final String col : new String[] {
-        "RELA", "RG", "DIR"
+        "RELA" // , "RG", "DIR"
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
+    }
+    for (final String qual : qualSet) {
+      qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
@@ -905,7 +946,7 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         ElasticObject.class);
 
     //
-    // Handle termTypes - n/a - handled inline
+    // Handle termGroups - n/a - handled inline
     //
 
   }
@@ -921,6 +962,10 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
+
+    // Put concept lists in natural sort order
+    concept.sortLists();
+
     batch.add(concept);
 
     int conceptSize = concept.toString().length();
@@ -992,7 +1037,11 @@ public class DirectoryElasticLoadServiceImpl extends BaseLoaderService {
         TerminologyMetadata metadata = new ObjectMapper().readValue(IOUtils
             .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
             TerminologyMetadata.class);
+        metadata.setLoader("rrf");
+        metadata.setSources(sourceMap);
+        metadata.setSourceCt(sourceMap.size());
         term.setMetadata(metadata);
+
       } catch (Exception e) {
         throw new Exception("Unexpected error trying to load = " + resource, e);
       }
