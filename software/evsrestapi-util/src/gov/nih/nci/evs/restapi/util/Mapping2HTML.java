@@ -131,7 +131,7 @@ public class Mapping2HTML {
 		w.add("</data>");
 		w.add("</table>");
 		if (this.version != null) {
-			w.add("<footer>(Source; NCI Thesaurus, version " + this.version + ")");
+			w.add("<footer>(Source: NCI Thesaurus, version " + this.version + ")");
 		}
 		HTMLTable.generate(w);
 	}

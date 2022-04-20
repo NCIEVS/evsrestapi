@@ -126,7 +126,10 @@ public class AxiomUtils {
 			String qualifier_name = (String) u.elementAt(5);
 			//String qualifier_code = (String) u.elementAt(7);
 			String qualifier_value = (String) u.elementAt(6);
-            Synonym syn = (Synonym) hmap.get(axiom_id);
+
+			String key = axiom_id + "$" + code;
+
+            Synonym syn = (Synonym) hmap.get(key);
             if (syn == null) {
 				syn = new Synonym(
 							code,
@@ -158,13 +161,13 @@ public class AxiomUtils {
 			           qualifier_name.compareTo("subsource-name") == 0) {
 				syn.setSubSourceCode(qualifier_value);
 			}
-			hmap.put(axiom_id, syn);
+			hmap.put(key, syn);
 		}
 		List syn_list = new ArrayList();
 		Iterator it = hmap.keySet().iterator();
 		while (it.hasNext()) {
-			String axiom_id = (String) it.next();
-			Synonym syn = (Synonym) hmap.get(axiom_id);
+			String key = (String) it.next();
+			Synonym syn = (Synonym) hmap.get(key);
 			syn_list.add(syn);
 		}
 		return syn_list;

@@ -67,6 +67,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.springframework.boot:spring-boot-starter-actuator'  
     compile 'org.springframework.boot:spring-boot-starter-cache'
+	compile 'org.springframework:spring-core:5.2.21.RELEASE'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'commons-io:commons-io:2.6'
     compile "io.springfox:springfox-swagger2:$swaggerversion" 

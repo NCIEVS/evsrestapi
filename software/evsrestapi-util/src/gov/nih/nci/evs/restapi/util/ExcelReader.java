@@ -6,11 +6,12 @@ import org.apache.poi.xssf.usermodel.*;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.DataFormatter;
-
+import org.apache.poi.ss.usermodel.Row.MissingCellPolicy;
 
 import java.io.File;
 import java.io.*;
 import java.util.*;
+import java.text.*;
 
 public class ExcelReader {
 	public static DataFormatter dataFormatter = new DataFormatter();
@@ -105,34 +106,6 @@ public class ExcelReader {
 		return toDelimited(excelfile, 0, delim);
 	}
 
-    public static Vector toDelimited(String excelfile, int sheetNumber, char delim) {
-		Vector w = new Vector();
-		Workbook workbook = openWorkbook(excelfile);
-        Sheet sheet = workbook.getSheetAt(sheetNumber);
-        Iterator<Row> rowIterator = sheet.rowIterator();
-        while (rowIterator.hasNext()) {
-			StringBuffer buf = new StringBuffer();
-            Row row = rowIterator.next();
-            int lastCellNumber = row.getLastCellNum();
-            for (int lcv=0; lcv<lastCellNumber; lcv++) {
-				Cell cell = row.getCell(lcv);
-				String cellValue = "";
-				if (cell != null) {
-					cellValue = getCellValue(cell);
-				}
-                buf.append(cellValue).append(delim);
-			}
-            String line = buf.toString();
-            line = line.substring(0, line.length()-1);
-            w.add(line);
-        }
-        try {
-        	workbook.close();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-        return w;
-	}
 
     private static void printCellValue(Cell cell) {
         switch (cell.getCellTypeEnum()) {
@@ -161,42 +134,94 @@ public class ExcelReader {
         System.out.print("\t");
     }
 
-    private static String getCellValue(Cell cell) {
-        switch (cell.getCellTypeEnum()) {
-            case BOOLEAN:
-                System.out.print(cell.getBooleanCellValue());
-                Boolean bool_obj = cell.getBooleanCellValue();
-                boolean bool = Boolean.valueOf(bool_obj);
-                return "" + bool;
 
-            case STRING:
-                return (cell.getRichStringCellValue().getString());
+    public static Vector toDelimited(String excelfile, int sheetNumber, char delim) {
+		Vector w = new Vector();
+		Workbook workbook = openWorkbook(excelfile);
+        Sheet sheet = workbook.getSheetAt(sheetNumber);
+        Iterator<Row> rowIterator = sheet.rowIterator();
+        while (rowIterator.hasNext()) {
+			StringBuffer buf = new StringBuffer();
+			Row row = rowIterator.next();
+            List list = getRowData(row);
+            for (int i=0; i<list.size(); i++) {
+				String t = (String) list.get(i);
+				buf.append(t).append(delim);
+			}
+			String s = buf.toString();
+			s = s.substring(0, s.length()-1);
+			w.add(s);
+		}
+        try {
+        	workbook.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+        return w;
+	}
 
-            case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    return ("" + cell.getDateCellValue());
-                } else {
-                    return ("" + cell.getNumericCellValue());
-                }
+/*
+    public static List getRowData(Row row) {
+		List list = new ArrayList();
+		for (int i=0; i<row.getPhysicalNumberOfCells(); i++) {
+			Cell cell=row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK );
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+			list.add(cell.getStringCellValue());
+		}
+		return list;
+	}
+*/
 
-            case FORMULA:
-                return(cell.getCellFormula().toString());
+    public static List getRowData(Row row) {
+		DataFormatter fmt = new DataFormatter();
+		List fetchedRow = new ArrayList();
+		//List list = new ArrayList();
+		for (int i=0; i<row.getPhysicalNumberOfCells(); i++) {
+			Cell cell=row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK );
+            boolean rowEmpty = true;
+			switch (cell.getCellTypeEnum()) {
+				case NUMERIC:
+					if (DateUtil.isCellDateFormatted(cell)) {
+						Date date = cell.getDateCellValue();
+						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+						//DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+						fetchedRow.add(dateFormat.format(date));
+					} else {
+						fetchedRow.add(fmt.formatCellValue(cell));
+					}
+					rowEmpty = false;
+					break;
+				case STRING:
+					//fetchedRow.add(cell.toString());
+                    fetchedRow.add(fmt.formatCellValue(cell));
+					rowEmpty = false;
+					break;
+				case BOOLEAN:
+					fetchedRow.add(cell.toString());
+					rowEmpty = false;
+					break;
+				case FORMULA:
+					fetchedRow.add(Double.toString(cell.getNumericCellValue()));
+					rowEmpty = false;
+					break;
+				case BLANK:
+					//fetchedRow.add("");
+					fetchedRow.add(fmt.formatCellValue(cell));
+					rowEmpty = false;
+					break;
+				case ERROR:
+					//fetchedRow.add("");
+					fetchedRow.add(fmt.formatCellValue(cell));
+					rowEmpty = false;
+					break;
+				default:
+					//fetchedRow.add("");
+					fetchedRow.add(fmt.formatCellValue(cell));
+					rowEmpty = false;
+					break;
+			}
+		}
+		return fetchedRow;
+	}
 
-            case BLANK:
-                return "";
-
-            default:
-                return "";
-        }
-    }
-
-    public static void main(String[] args) throws IOException, InvalidFormatException {
-        String excelfile = args[0];
-        System.out.println(excelfile);
-        Vector w = toDelimited(excelfile, '|');
-        Utils.dumpVector(excelfile, w);
-        int n = excelfile.lastIndexOf(".");
-        String textfile = excelfile.substring(0, n) + "_" + StringUtils.getToday() + ".txt";
-        Utils.saveToFile(textfile, w);
-    }
 }
