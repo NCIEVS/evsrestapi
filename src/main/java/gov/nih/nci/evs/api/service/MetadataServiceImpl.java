@@ -446,10 +446,10 @@ public class MetadataServiceImpl implements MetadataService {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    // subsets should always return children and properties
+    // subsets should always return children
     // (contributing source needed)
     ip.setChildren(true);
-    ip.setProperties(true);
+    //ip.setProperties(true);
     ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
 
