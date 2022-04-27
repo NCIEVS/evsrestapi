@@ -373,18 +373,18 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // synonym source
     QueryBuilder synonymSourceQuery = getSynonymSourceQueryBuilder(searchCriteria);
 
-    // synonym termGroup
-    QueryBuilder synonymTermGroupQuery = getSynonymTermGroupQueryBuilder(searchCriteria);
+    // synonym termType
+    QueryBuilder synonymTermTypeQuery = getSynonymTermTypeQueryBuilder(searchCriteria);
 
-    if (synonymSourceQuery != null && synonymTermGroupQuery != null) {
-      // synonym termGroup + source search clause
-      QueryBuilder synonymTermGroupAndSourceQuery =
-          getSynonymTermGroupAndSourceQueryBuilder(searchCriteria);
-      queries.add(synonymTermGroupAndSourceQuery);
+    if (synonymSourceQuery != null && synonymTermTypeQuery != null) {
+      // synonym termType + source search clause
+      QueryBuilder synonymTermTypeAndSourceQuery =
+          getSynonymTermTypeAndSourceQueryBuilder(searchCriteria);
+      queries.add(synonymTermTypeAndSourceQuery);
     } else if (synonymSourceQuery != null) {
       queries.add(synonymSourceQuery);
-    } else if (synonymTermGroupQuery != null) {
-      queries.add(synonymTermGroupQuery);
+    } else if (synonymTermTypeQuery != null) {
+      queries.add(synonymTermTypeQuery);
     }
 
     // synonym type
@@ -653,26 +653,26 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term group criteria
+   * builds nested query for synonym term type criteria
    * 
    * @param searchCriteria the search criteria
    * @return the nested query
    */
-  private QueryBuilder getSynonymTermGroupQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup()))
+  private QueryBuilder getSynonymTermTypeQueryBuilder(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType()))
       return null;
 
-    // bool query to match synonym.termGroup
+    // bool query to match synonym.termType
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
 
-    if (searchCriteria.getSynonymTermGroup().size() == 1) {
-      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termGroup",
-          searchCriteria.getSynonymTermGroup().get(0)));
+    if (searchCriteria.getSynonymTermType().size() == 1) {
+      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termType",
+          searchCriteria.getSynonymTermType().get(0)));
     } else {
-      // IN query on synonym.termGroup
+      // IN query on synonym.termType
       BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
-      for (String source : searchCriteria.getSynonymTermGroup()) {
-        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termGroup", source));
+      for (String source : searchCriteria.getSynonymTermType()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termType", source));
       }
       fieldBoolQuery = fieldBoolQuery.must(inQuery);
     }
@@ -682,26 +682,26 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term group + source criteria
+   * builds nested query for synonym term type + source criteria
    * 
    * @param searchCriteria the search criteria
    * @return the nested query
    */
-  private QueryBuilder getSynonymTermGroupAndSourceQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermGroup()))
+  private QueryBuilder getSynonymTermTypeAndSourceQueryBuilder(SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType()))
       return null;
 
-    // bool query to match synonym.termGroup
+    // bool query to match synonym.termType
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
 
-    if (searchCriteria.getSynonymTermGroup().size() == 1) {
-      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termGroup",
-          searchCriteria.getSynonymTermGroup().get(0)));
+    if (searchCriteria.getSynonymTermType().size() == 1) {
+      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termType",
+          searchCriteria.getSynonymTermType().get(0)));
     } else {
-      // IN query on synonym.termGroup
+      // IN query on synonym.termType
       BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
-      for (String source : searchCriteria.getSynonymTermGroup()) {
-        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termGroup", source));
+      for (String source : searchCriteria.getSynonymTermType()) {
+        inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.termType", source));
       }
       fieldBoolQuery = fieldBoolQuery.must(inQuery);
     }

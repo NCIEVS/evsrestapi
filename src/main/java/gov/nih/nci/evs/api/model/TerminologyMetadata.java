@@ -42,8 +42,8 @@ public class TerminologyMetadata extends BaseModel {
   /** The synonym. */
   private Set<String> synonym;
 
-  /** The synonym term group. */
-  private String synonymTermGroup;
+  /** The synonym term type. */
+  private String synonymTermType;
 
   /** The synonym source. */
   private String synonymSource;
@@ -69,8 +69,8 @@ public class TerminologyMetadata extends BaseModel {
   /** The map target. */
   private String mapTarget;
 
-  /** The map target term group. */
-  private String mapTargetTermGroup;
+  /** The map target term type. */
+  private String mapTargetTermType;
 
   /** The map target terminology. */
   private String mapTargetTerminology;
@@ -91,8 +91,8 @@ public class TerminologyMetadata extends BaseModel {
   /** The synonym source set. */
   private Set<String> synonymSourceSet;
 
-  /** The term groups. */
-  private Map<String, String> termGroups;
+  /** The term types. */
+  private Map<String, String> termTypes;
 
   /** The property names. */
   private Map<String, String> propertyNames;
@@ -124,8 +124,8 @@ public class TerminologyMetadata extends BaseModel {
   /** The meta concept field. */
   private String metaConceptField;
 
-  /** The preferred term groups. */
-  private List<String> preferredTermGroups;
+  /** The preferred term types. */
+  private List<String> preferredTermTypes;
 
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
@@ -161,7 +161,7 @@ public class TerminologyMetadata extends BaseModel {
     mapTarget = other.getMapTarget();
     mapTargetTerminology = other.getMapTargetTerminology();
     mapTargetTerminologyVersion = other.getMapTargetTerminologyVersion();
-    mapTargetTermGroup = other.getMapTargetTermGroup();
+    mapTargetTermType = other.getMapTargetTermType();
     preferredName = other.getPreferredName();
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
@@ -171,11 +171,11 @@ public class TerminologyMetadata extends BaseModel {
     synonymCode = other.getSynonymCode();
     synonymSource = other.getSynonymSource();
     synonymSubSource = other.getSynonymSubSource();
-    synonymTermGroup = other.getSynonymTermGroup();
+    synonymTermType = other.getSynonymTermType();
     subsetPrefix = other.getSubsetPrefix();
     definitionSourceSet = new HashSet<>(other.getDefinitionSourceSet());
     synonymSourceSet = new HashSet<>(other.getSynonymSourceSet());
-    termGroups = new HashMap<>(other.getTermGroups());
+    termTypes = new HashMap<>(other.getTermTypes());
     propertyNames = new HashMap<>(other.getPropertyNames());
     subsetLinks = new HashMap<>(other.getSubsetLinks());
     subsetMember = new HashSet<>(other.getSubsetMember());
@@ -183,7 +183,7 @@ public class TerminologyMetadata extends BaseModel {
     monthlyDb = other.getMonthlyDb();
     licenseText = other.getLicenseText();
     metaConceptField = other.getMetaConceptField();
-    preferredTermGroups = new ArrayList<>(other.getPreferredTermGroups());
+    preferredTermTypes = new ArrayList<>(other.getPreferredTermTypes());
     subset = new HashSet<>(other.getSubset());
   }
 
@@ -198,7 +198,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
     result = prime * result + ((mapRelation == null) ? 0 : mapRelation.hashCode());
     result = prime * result + ((mapTarget == null) ? 0 : mapTarget.hashCode());
-    result = prime * result + ((mapTargetTermGroup == null) ? 0 : mapTargetTermGroup.hashCode());
+    result = prime * result + ((mapTargetTermType == null) ? 0 : mapTargetTermType.hashCode());
     result =
         prime * result + ((mapTargetTerminology == null) ? 0 : mapTargetTerminology.hashCode());
     result = prime * result
@@ -210,16 +210,16 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((synonymCode == null) ? 0 : synonymCode.hashCode());
     result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
     result = prime * result + ((synonymSubSource == null) ? 0 : synonymSubSource.hashCode());
-    result = prime * result + ((synonymTermGroup == null) ? 0 : synonymTermGroup.hashCode());
+    result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
     result = prime * result + ((definitionSourceSet == null) ? 0 : definitionSourceSet.hashCode());
     result = prime * result + ((synonymSourceSet == null) ? 0 : synonymSourceSet.hashCode());
-    result = prime * result + ((termGroups == null) ? 0 : termGroups.hashCode());
+    result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
     result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
     result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
     result = prime * result + ((monthlyDb == null) ? 0 : monthlyDb.hashCode());
     result = prime * result + ((licenseText == null) ? 0 : licenseText.hashCode());
     result = prime * result + ((metaConceptField == null) ? 0 : metaConceptField.hashCode());
-    result = prime * result + ((preferredTermGroups == null) ? 0 : preferredTermGroups.hashCode());
+    result = prime * result + ((preferredTermTypes == null) ? 0 : preferredTermTypes.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     result = prime * result + ((subsetLinks == null) ? 0 : subsetLinks.hashCode());
     result = prime * result + ((subsetPrefix == null) ? 0 : subsetPrefix.hashCode());
@@ -266,10 +266,10 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!mapTarget.equals(other.mapTarget))
       return false;
-    if (mapTargetTermGroup == null) {
-      if (other.mapTargetTermGroup != null)
+    if (mapTargetTermType == null) {
+      if (other.mapTargetTermType != null)
         return false;
-    } else if (!mapTargetTermGroup.equals(other.mapTargetTermGroup))
+    } else if (!mapTargetTermType.equals(other.mapTargetTermType))
       return false;
     if (mapTargetTerminology == null) {
       if (other.mapTargetTerminology != null)
@@ -316,10 +316,10 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!synonymSubSource.equals(other.synonymSubSource))
       return false;
-    if (synonymTermGroup == null) {
-      if (other.synonymTermGroup != null)
+    if (synonymTermType == null) {
+      if (other.synonymTermType != null)
         return false;
-    } else if (!synonymTermGroup.equals(other.synonymTermGroup))
+    } else if (!synonymTermType.equals(other.synonymTermType))
       return false;
     if (definitionSourceSet == null) {
       if (other.definitionSourceSet != null)
@@ -331,10 +331,10 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!synonymSourceSet.equals(other.synonymSourceSet))
       return false;
-    if (termGroups == null) {
-      if (other.termGroups != null)
+    if (termTypes == null) {
+      if (other.termTypes != null)
         return false;
-    } else if (!termGroups.equals(other.termGroups))
+    } else if (!termTypes.equals(other.termTypes))
       return false;
     if (subsetMember == null) {
       if (other.subsetMember != null)
@@ -361,10 +361,10 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!metaConceptField.equals(other.metaConceptField))
       return false;
-    if (preferredTermGroups == null) {
-      if (other.preferredTermGroups != null)
+    if (preferredTermTypes == null) {
+      if (other.preferredTermTypes != null)
         return false;
-    } else if (!preferredTermGroups.equals(other.preferredTermGroups))
+    } else if (!preferredTermTypes.equals(other.preferredTermTypes))
       return false;
     if (subset == null) {
       if (other.subset != null)
@@ -532,21 +532,21 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the synonym term group.
+   * Returns the synonym term type.
    *
-   * @return the synonym term group
+   * @return the synonym term type
    */
-  public String getSynonymTermGroup() {
-    return synonymTermGroup;
+  public String getSynonymTermType() {
+    return synonymTermType;
   }
 
   /**
-   * Sets the synonym term group.
+   * Sets the synonym term type.
    *
-   * @param synonymTermGroup the synonym term group
+   * @param synonymTermType the synonym term type
    */
-  public void setSynonymTermGroup(String synonymTermGroup) {
-    this.synonymTermGroup = synonymTermGroup;
+  public void setSynonymTermType(String synonymTermType) {
+    this.synonymTermType = synonymTermType;
   }
 
   /**
@@ -697,21 +697,21 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the map target term group.
+   * Returns the map target term type.
    *
-   * @return the map target term group
+   * @return the map target term type
    */
-  public String getMapTargetTermGroup() {
-    return mapTargetTermGroup;
+  public String getMapTargetTermType() {
+    return mapTargetTermType;
   }
 
   /**
-   * Sets the map target term group.
+   * Sets the map target term type.
    *
-   * @param mapTargetTermGroup the map target term group
+   * @param mapTargetTermType the map target term type
    */
-  public void setMapTargetTermGroup(String mapTargetTermGroup) {
-    this.mapTargetTermGroup = mapTargetTermGroup;
+  public void setMapTargetTermType(String mapTargetTermType) {
+    this.mapTargetTermType = mapTargetTermType;
   }
 
   /**
@@ -832,24 +832,24 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the term groups.
+   * Returns the term types.
    *
-   * @return the term groups
+   * @return the term types
    */
-  public Map<String, String> getTermGroups() {
-    if (termGroups == null) {
-      termGroups = new HashMap<>();
+  public Map<String, String> getTermTypes() {
+    if (termTypes == null) {
+      termTypes = new HashMap<>();
     }
-    return termGroups;
+    return termTypes;
   }
 
   /**
-   * Sets the term groups.
+   * Sets the term types.
    *
-   * @param termGroups the term groups
+   * @param termTypes the term types
    */
-  public void setTermGroups(Map<String, String> termGroups) {
-    this.termGroups = termGroups;
+  public void setTermTypes(Map<String, String> termTypes) {
+    this.termTypes = termTypes;
   }
 
   /**
@@ -1040,24 +1040,24 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the preferred term groups.
+   * Returns the preferred term types.
    *
-   * @return the preferred term groups
+   * @return the preferred term types
    */
-  public List<String> getPreferredTermGroups() {
-    if (preferredTermGroups == null) {
-      preferredTermGroups = new ArrayList<>();
+  public List<String> getPreferredTermTypes() {
+    if (preferredTermTypes == null) {
+      preferredTermTypes = new ArrayList<>();
     }
-    return preferredTermGroups;
+    return preferredTermTypes;
   }
 
   /**
-   * Sets the preferred term groups.
+   * Sets the preferred term types.
    *
-   * @param preferredTermGroups the preferred term groups
+   * @param preferredTermTypes the preferred term types
    */
-  public void setPreferredTermGroups(List<String> preferredTermGroups) {
-    this.preferredTermGroups = preferredTermGroups;
+  public void setPreferredTermTypes(List<String> preferredTermTypes) {
+    this.preferredTermTypes = preferredTermTypes;
   }
 
   /**
@@ -1102,9 +1102,9 @@ public class TerminologyMetadata extends BaseModel {
    * @return <code>true</code> if so, <code>false</code> otherwise
    */
   public boolean isRemodeledQualifier(final String code) {
-    return code.equals(synonymTermGroup) || code.equals(synonymSource) || code.equals(synonymCode)
+    return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
         || code.equals(synonymSubSource) || code.equals(definitionSource)
-        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermGroup)
+        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
         || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
   }
 

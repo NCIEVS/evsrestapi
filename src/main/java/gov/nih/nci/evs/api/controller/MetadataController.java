@@ -105,7 +105,7 @@ public class MetadataController extends BaseController {
         // Some terminologies may not have metadata
         if (meta != null) {
           meta.setSources(null);
-          meta.setTermGroups(null);
+          meta.setTermTypes(null);
           meta.setSourcesToRemove(null);
           meta.setUnpublished(null);
           meta.setSubsetPrefix(null);
@@ -526,30 +526,30 @@ public class MetadataController extends BaseController {
   }
 
   /**
-   * Returns the term groups.
+   * Returns the term types.
    *
    * @param terminology the terminology
-   * @return the term groups
+   * @return the term types
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all term groups for the specified terminology",
+  @ApiOperation(value = "Get all term types for the specified terminology",
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termGroups",
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
           required = true, dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
-  public @ResponseBody List<ConceptMinimal> getTermGroups(@PathVariable(value = "terminology")
+  public @ResponseBody List<ConceptMinimal> getTermTypes(@PathVariable(value = "terminology")
   final String terminology) throws Exception {
     try {
-      return metadataService.getTermGroups(terminology);
+      return metadataService.getTermTypes(terminology);
     } catch (Exception e) {
       handleException(e);
       return null;

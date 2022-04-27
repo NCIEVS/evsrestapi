@@ -83,7 +83,7 @@ public class EVSUtils {
         }
         synonym.setCode(axiomCode);
         synonym.setName(axiom.getAnnotatedTarget());
-        synonym.setTermGroup(axiom.getTermGroup());
+        synonym.setTermType(axiom.getTermType());
         synonym.setSource(axiom.getTermSource());
         synonym.setCode(axiom.getSourceCode());
         synonym.setSubSource(axiom.getSubsourceName());
@@ -158,7 +158,7 @@ public class EVSUtils {
         Map mapsTo = new Map();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
-        mapsTo.setTargetTermGroup(axiom.getTargetTermGroup());
+        mapsTo.setTargetTermType(axiom.getTargetTermType());
         mapsTo.setTargetCode(axiom.getTargetCode());
         mapsTo.setTargetTerminology(axiom.getTargetTerminology());
         mapsTo.setTargetTerminologyVersion(axiom.getTargetTerminologyVersion());

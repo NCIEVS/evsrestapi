@@ -188,9 +188,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
 
-      if (terminology.getMetadata().getPreferredTermGroups().isEmpty()) {
+      if (terminology.getMetadata().getPreferredTermTypes().isEmpty()) {
         throw new Exception(
-            "No preferred term groups are specified, meaning no preferred names can be chosen");
+            "No preferred term types are specified, meaning no preferred names can be chosen");
       }
 
       String line = null;
@@ -214,11 +214,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // Cache concept preferred names
-        int rank = terminology.getMetadata().getPreferredTermGroups().indexOf(fields[12]);
+        int rank = terminology.getMetadata().getPreferredTermTypes().indexOf(fields[12]);
         if (fields[11].toLowerCase().equals(terminology.getTerminology()) && rank != -1) {
           // If the new rank is lower than the previously assigned rank
           // or we've never assigned a name, assign the name
-          // Lower index in preferred term groups is better rank
+          // Lower index in preferred term types is better rank
           if (!nameRankMap.containsKey(code)
               || (nameRankMap.containsKey(code) && rank < nameRankMap.get(code))) {
             nameMap.put(code, fields[14]);
@@ -266,7 +266,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // map.setSourceTerminology(fields[8]);
       // map.setTargetCode(fields[16]);
       // map.setTargetName(nameMap.get(fields[16]));
-      // map.setTargetTermGroup("PT");
+      // map.setTargetTermType("PT");
       // map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
       // map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
       // map.setType(fields[12]);
@@ -542,15 +542,15 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     // Each line of MRCONSO is a synonym
     final Synonym sy = new Synonym();
     sy.setType(fields[14].equals(concept.getName())
-        && terminology.getMetadata().getPreferredTermGroups().contains(fields[12]) ? "Preferred_Name"
+        && terminology.getMetadata().getPreferredTermTypes().contains(fields[12]) ? "Preferred_Name"
             : "Synonym");
     if (!concept.getCode().equals(fields[13])) {
       sy.setCode(fields[13]);
     }
     sy.setSource(fields[11]);
     terminology.getMetadata().getSynonymSourceSet().add(fields[11]);
-    sy.setTermGroup(fields[12]);
-    terminology.getMetadata().getTermGroups().put(fields[12], ttyMap.get(fields[12]));
+    sy.setTermType(fields[12]);
+    terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
     sy.setName(fields[14]);
     sy.setNormName(ConceptUtils.normalize(fields[14]));
     concept.getSynonyms().add(sy);
@@ -1124,7 +1124,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         ElasticObject.class);
 
     //
-    // Handle termGroups - n/a - handled inline
+    // Handle termTypes - n/a - handled inline
     //
 
   }

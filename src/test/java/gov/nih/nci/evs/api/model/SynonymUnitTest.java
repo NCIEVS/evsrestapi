@@ -82,7 +82,7 @@ public class SynonymUnitTest {
     tester.proxy("qualifiers", 1, q1);
     tester.proxy("qualifiers", 2, q2);
     tester.include("name");
-    tester.include("termGroup");
+    tester.include("termType");
     tester.include("type");
     tester.include("source");
     tester.include("code");

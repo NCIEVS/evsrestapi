@@ -155,11 +155,11 @@ public class SearchController extends BaseController {
               + "Click here for a list of NCI Thesaurus values</a>. This parameter is only "
               + "meaningful for <i>ncit</i>.</p>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Single synonym term group value to restrict search results to. "
-              + "<p><a href='api/v1/metadata/ncit/termGroups' target='_blank'>Click here for a "
+      @ApiImplicitParam(name = "synonymTermType",
+          value = "Single synonym term type value to restrict search results to. "
+              + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/termGroups' target='_blank'>Click here for a "
+              + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",
@@ -277,11 +277,11 @@ public class SearchController extends BaseController {
               + "Click here for a list of NCI Thesaurus values</a>. This parameter is only "
               + "meaningful for <i>ncit</i>.</p>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
-      @ApiImplicitParam(name = "synonymTermGroup",
-          value = "Single synonym term group value to restrict search results to. "
-              + "<p><a href='api/v1/metadata/ncit/termGroups' target='_blank'>Click here for a "
+      @ApiImplicitParam(name = "synonymTermType",
+          value = "Single synonym term type value to restrict search results to. "
+              + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/termGroups' target='_blank'>Click here for a "
+              + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",

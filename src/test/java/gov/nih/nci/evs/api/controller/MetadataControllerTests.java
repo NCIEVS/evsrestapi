@@ -775,19 +775,19 @@ public class MetadataControllerTests {
   }
 
   /**
-   * Test term groups.
+   * Test term types.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testTermGroups() throws Exception {
+  public void testTermTypes() throws Exception {
 
     String url = null;
     MvcResult result = null;
     String content = null;
 
     // NCIt
-    url = baseUrl + "/ncit/termGroups";
+    url = baseUrl + "/ncit/termTypes";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -799,7 +799,7 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
 
     // Bad terminology
-    url = baseUrl + "/ncitXXX/termGroups";
+    url = baseUrl + "/ncitXXX/termTypes";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
