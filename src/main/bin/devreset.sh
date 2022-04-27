@@ -9,13 +9,13 @@
 # It resets the stardog and elasticsearch data sets locally to update to
 # the latest dev testing data set at that google drive URL.
 #
-force=0
+help=1
 while [[ "$#" -gt 0 ]]; do case $1 in
-  --force) force=1;;
+  --help) help=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
-if [ ${#arr[@]} -ne 1 ]; then
+if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
   echo "Usage: src/main/bin/devreset.sh \"c:/data/UnitTestData\""
   echo "  e.g. src/main/bin/devreset.sh /data/UnitTestData"
   exit 1
