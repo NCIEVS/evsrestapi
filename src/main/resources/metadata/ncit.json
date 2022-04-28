@@ -5,7 +5,7 @@
   "retiredStatusValue": "Retired_Concept",
   "preferredName": "P108",
   "synonym": [ "P90", "P107", "P108" ],
-  "synonymTermGroup": "P383",
+  "synonymTermType": "P383",
   "synonymSource": "P384",
   "synonymCode": "P385",
   "synonymSubSource": "P386",
@@ -14,7 +14,7 @@
   "map": "P375",
   "mapRelation": "P393",
   "mapTarget": "P395",
-  "mapTargetTermGroup": "P394",
+  "mapTargetTermType": "P394",
   "mapTargetTerminology": "P396",
   "mapTargetTerminologyVersion": "P397",
   "relationshipToTarget": "P393",
@@ -96,7 +96,7 @@
     "WHO": "World Health Organization",
     "ZFin": "Zebrafish Information Network"
   },
-  "termGroups": {
+  "termTypes": {
     "AB": "Abbreviation",
     "AD": "Adjectival form (and other parts of grammar)",
     "AQ": "*Antiquated preferred term",

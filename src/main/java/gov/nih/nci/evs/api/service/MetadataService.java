@@ -150,13 +150,13 @@ public interface MetadataService {
     throws Exception;
 
   /**
-   * Get term groups.
+   * Get term types.
    *
    * @param terminology the terminology
-   * @return the list of term groups
+   * @return the list of term types
    * @throws Exception the exception
    */
-  List<ConceptMinimal> getTermGroups(final String terminology) throws Exception;
+  List<ConceptMinimal> getTermTypes(final String terminology) throws Exception;
 
   /**
    * Returns the synonym types.

@@ -32,7 +32,7 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
  *   "leaf" : false,
  *   "synonyms" :[ {  
  *     "name" : "MELANOMA, MALIGNANT",
- *     "termGroup" : "PT",
+ *     "termType" : "PT",
  *     "source" : "CDISC",
  *     "type" : "FULL_SYN"
  *   }, ... ],

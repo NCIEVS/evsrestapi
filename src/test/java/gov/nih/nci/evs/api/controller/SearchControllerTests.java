@@ -787,11 +787,11 @@ public class SearchControllerTests {
     }
     assertThat(found).isTrue();
 
-    // Test synonymSource+SynonymTermGroup
+    // Test synonymSource+SynonymTermType
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=dsDNA&synonymSource=NCI&synonymTermGroup=SY");
+        + "?terminology=ncit&term=dsDNA&synonymSource=NCI&synonymTermType=SY");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-        .param("synonymSource", "NCI").param("synonymTermGroup", "SY").param("include", "synonyms"))
+        .param("synonymSource", "NCI").param("synonymTermType", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -803,7 +803,7 @@ public class SearchControllerTests {
     // check concept synonyms for valid synonym
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
       if (syn.getName().contains("dsDNA") && syn.getSource().equals("CDISC")
-          && syn.getTermGroup().equals("SY")) {
+          && syn.getTermType().equals("SY")) {
         found = true;
         break;
       }
@@ -821,33 +821,33 @@ public class SearchControllerTests {
   }
 
   /**
-   * Test synonym termGroup.
+   * Test synonym termType.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testSynonymTermGroup() throws Exception {
+  public void testSynonymTermType() throws Exception {
 
     String url = baseUrl;
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
 
-    // incomplete search, no termgroups matching SY
-    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermGroup=S");
+    // incomplete search, no termTypes matching SY
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermType=S");
     result = mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "dsDNA").param("synonymTermGroup", "S"))
+        get(url).param("terminology", "ncit").param("term", "dsDNA").param("synonymTermType", "S"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
-    // Test single SynonymTermGroup
-    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermGroup=SY");
+    // Test single SynonymTermType
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermType=SY");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-            .param("synonymTermGroup", "SY").param("include", "synonyms"))
+            .param("synonymTermType", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -857,18 +857,18 @@ public class SearchControllerTests {
 
     boolean found = false;
     for (final Synonym syn : list.getConcepts().get(0).getSynonyms()) {
-      if (syn.getName().contains("dsDNA") && syn.getTermGroup().equals("SY")) {
+      if (syn.getName().contains("dsDNA") && syn.getTermType().equals("SY")) {
         found = true;
         break;
       }
     }
     assertThat(found).isTrue();
 
-    // Test multiple SynonymTermGroup
-    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermGroup=DN,SY");
+    // Test multiple SynonymTermType
+    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermType=DN,SY");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-            .param("synonymTermGroup", "DN,SY").param("include", "synonyms"))
+            .param("synonymTermType", "DN,SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -882,9 +882,9 @@ public class SearchControllerTests {
       for (final Synonym syn : concept.getSynonyms()) {
         if (syn.getName().contains("DNA")) {
           if (!found)
-            found = "SY".equals(syn.getTermGroup());
+            found = "SY".equals(syn.getTermType());
           if (!found1)
-            found1 = "PT".equals(syn.getTermGroup());
+            found1 = "PT".equals(syn.getTermType());
           if (found && found1)
             break;
         }
@@ -894,14 +894,14 @@ public class SearchControllerTests {
     log.info("found = {}, found1 = {}", found, found1);
     assertThat(found && found1).isTrue();
 
-    // Test synonymSource + synonymTermGroup
-    // ?include=summary&pageSize=100&synonymSource=CDISC&synonymTermGroup=SY&term=blood
+    // Test synonymSource + synonymTermType
+    // ?include=summary&pageSize=100&synonymSource=CDISC&synonymTermType=SY&term=blood
     log.info("Testing url - " + url
-        + "?include=summary&pageSize=1000&synonymSource=CDISC&synonymTermGroup=SY&term=blood");
+        + "?include=summary&pageSize=1000&synonymSource=CDISC&synonymTermType=SY&term=blood");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("term", "blood")
             .param("synonymSource", "CDISC").param("pageSize", "1000")
-            .param("synonymTermGroup", "SY").param("include", "summary"))
+            .param("synonymTermType", "SY").param("include", "summary"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -911,16 +911,16 @@ public class SearchControllerTests {
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
-            .filter(s -> "SY".equals(s.getTermGroup()) && "CDISC".equals(s.getSource()))
+            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource()))
             .count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
-    // Test synonymSource + synonymTermGroup without a term
+    // Test synonymSource + synonymTermType without a term
     log.info("Testing url - " + url
-        + "?include=synonyms&pageSize=10&synonymSource=CDISC&synonymTermGroup=SY");
+        + "?include=synonyms&pageSize=10&synonymSource=CDISC&synonymTermType=SY");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("synonymSource", "CDISC")
-            .param("pageSize", "10").param("synonymTermGroup", "SY").param("include", "synonyms"))
+            .param("pageSize", "10").param("synonymTermType", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -930,11 +930,11 @@ public class SearchControllerTests {
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
-            .filter(s -> "SY".equals(s.getTermGroup()) && "CDISC".equals(s.getSource()))
+            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource()))
             .count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
-    log.info("Done Testing testSynonymTermGroup");
+    log.info("Done Testing testSynonymTermType");
 
   }
 
@@ -1870,11 +1870,11 @@ public class SearchControllerTests {
       assertThat(found).isTrue();
     }
 
-    // search by synonymSource + synonymTermGroup
+    // search by synonymSource + synonymTermType
     log.info("Testing url - " + url + "?synonymSource=GDC&terminology=ncit");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("synonymSource", "GDC")
-            .param("synonymTermGroup", "SY").param("include", "synonyms"))
+            .param("synonymTermType", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
@@ -1884,8 +1884,8 @@ public class SearchControllerTests {
                                                     // synonymSource = GDC
       boolean foundBoth = false;
       for (Synonym syn : conc.getSynonyms()) {
-        if (syn.getSource() != null && syn.getSource().equals("GDC") && syn.getTermGroup() != null
-            && syn.getTermGroup().equals("SY")) {
+        if (syn.getSource() != null && syn.getSource().equals("GDC") && syn.getTermType() != null
+            && syn.getTermType().equals("SY")) {
           foundBoth = true;
           break;
         }
