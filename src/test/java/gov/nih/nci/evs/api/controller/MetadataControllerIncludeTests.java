@@ -394,8 +394,8 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getLeaf()).isNotNull();
     assertThat(concept.getSynonyms()).isEmpty();
     assertThat(concept.getDefinitions()).isEmpty();
-    // Always include properties
-    assertThat(concept.getProperties()).isNotEmpty();
+    // DO NOT always include properties for "minimal"
+    assertThat(concept.getProperties()).isEmpty();
     // Always include children, but no children
     assertThat(concept.getChildren()).isEmpty();
     assertThat(concept.getParents()).isEmpty();
@@ -405,7 +405,7 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
 
-    url = baseUrl + "/ncit/subset/C116978?include=synonyms";
+    url = baseUrl + "/ncit/subset/C116978?include=synonyms,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -429,7 +429,7 @@ public class MetadataControllerIncludeTests {
             .isGreaterThan(0);
 
     // /subsets - minimal
-    url = baseUrl + "/ncit/subsets?include=minimal";
+    url = baseUrl + "/ncit/subsets?include=properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -463,7 +463,7 @@ public class MetadataControllerIncludeTests {
             .isGreaterThan(0);
 
     // /subsets - properties
-    url = baseUrl + "/ncit/subsets?include=synonyms";
+    url = baseUrl + "/ncit/subsets?include=synonyms,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

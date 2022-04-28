@@ -9,7 +9,7 @@
 # It resets the stardog and elasticsearch data sets locally to update to
 # the latest dev testing data set at that google drive URL.
 #
-help=1
+help=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --help) help=1;;
   *) arr=( "${arr[@]}" "$1" );;
