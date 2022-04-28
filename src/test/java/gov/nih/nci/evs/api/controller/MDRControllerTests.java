@@ -484,8 +484,8 @@ public class MDRControllerTests {
     assertThat(list.get(0).getCode()).isEqualTo("Preferred_Name");
     assertThat(list.get(1).getCode()).isEqualTo("Synonym");
 
-    // Handle termGroups - n/a - handled inline
-    url = base + "/termGroups";
+    // Handle termTypes - n/a - handled inline
+    url = base + "/termTypes";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

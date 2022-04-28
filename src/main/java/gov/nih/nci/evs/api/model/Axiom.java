@@ -27,8 +27,8 @@ public class Axiom extends BaseModel {
   /** The target code. */
   String targetCode;
 
-  /** The target term group. */
-  String targetTermGroup;
+  /** The target term type. */
+  String targetTermType;
 
   /** The target terminology. */
   String targetTerminology;
@@ -48,8 +48,8 @@ public class Axiom extends BaseModel {
   /** The subsource name. */
   String subsourceName;
 
-  /** The term group. */
-  String termGroup;
+  /** The term type. */
+  String termType;
 
   /** The term source. */
   String termSource;
@@ -187,21 +187,21 @@ public class Axiom extends BaseModel {
   }
 
   /**
-   * Returns the target term group.
+   * Returns the target term type.
    *
-   * @return the target term group
+   * @return the target term type
    */
-  public String getTargetTermGroup() {
-    return targetTermGroup;
+  public String getTargetTermType() {
+    return targetTermType;
   }
 
   /**
-   * Sets the target term group.
+   * Sets the target term type.
    *
-   * @param targetTermGroup the target term group
+   * @param targetTermType the target term type
    */
-  public void setTargetTermGroup(String targetTermGroup) {
-    this.targetTermGroup = targetTermGroup;
+  public void setTargetTermType(String targetTermType) {
+    this.targetTermType = targetTermType;
   }
 
   /**
@@ -313,21 +313,21 @@ public class Axiom extends BaseModel {
   }
 
   /**
-   * Returns the term group.
+   * Returns the term type.
    *
-   * @return the term group
+   * @return the term type
    */
-  public String getTermGroup() {
-    return termGroup;
+  public String getTermType() {
+    return termType;
   }
 
   /**
-   * Sets the term group.
+   * Sets the term type.
    *
-   * @param termGroup the term group
+   * @param termType the term type
    */
-  public void setTermGroup(String termGroup) {
-    this.termGroup = termGroup;
+  public void setTermType(String termType) {
+    this.termType = termType;
   }
 
   /**

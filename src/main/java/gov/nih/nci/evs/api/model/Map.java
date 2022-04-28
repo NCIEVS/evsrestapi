@@ -22,8 +22,8 @@ public class Map extends BaseModel implements Comparable<Map> {
   /** The target name. */
   private String targetName;
 
-  /** The target term group. */
-  private String targetTermGroup;
+  /** The target term type. */
+  private String targetTermType;
 
   /** The target code. */
   private String targetCode;
@@ -58,7 +58,7 @@ public class Map extends BaseModel implements Comparable<Map> {
   public void populateFrom(final Map other) {
     type = other.getType();
     targetName = other.getTargetName();
-    targetTermGroup = other.getTargetTermGroup();
+    targetTermType = other.getTargetTermType();
     sourceCode = other.getSourceCode();
     sourceTerminology = other.getSourceTerminology();
     targetCode = other.getTargetCode();
@@ -103,21 +103,21 @@ public class Map extends BaseModel implements Comparable<Map> {
   }
 
   /**
-   * Returns the target term group.
+   * Returns the target term type.
    *
-   * @return the target term group
+   * @return the target term type
    */
-  public String getTargetTermGroup() {
-    return targetTermGroup;
+  public String getTargetTermType() {
+    return targetTermType;
   }
 
   /**
-   * Sets the target term group.
+   * Sets the target term type.
    *
-   * @param targetTermGroup the target term group
+   * @param targetTermType the target term type
    */
-  public void setTargetTermGroup(final String targetTermGroup) {
-    this.targetTermGroup = targetTermGroup;
+  public void setTargetTermType(final String targetTermType) {
+    this.targetTermType = targetTermType;
   }
 
   /**
@@ -219,7 +219,7 @@ public class Map extends BaseModel implements Comparable<Map> {
     result = prime * result + ((sourceTerminology == null) ? 0 : sourceTerminology.hashCode());
     result = prime * result + ((targetCode == null) ? 0 : targetCode.hashCode());
     result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
-    result = prime * result + ((targetTermGroup == null) ? 0 : targetTermGroup.hashCode());
+    result = prime * result + ((targetTermType == null) ? 0 : targetTermType.hashCode());
     result = prime * result + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
     result = prime * result
         + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
@@ -268,11 +268,11 @@ public class Map extends BaseModel implements Comparable<Map> {
     } else if (!targetName.equals(other.targetName)) {
       return false;
     }
-    if (targetTermGroup == null) {
-      if (other.targetTermGroup != null) {
+    if (targetTermType == null) {
+      if (other.targetTermType != null) {
         return false;
       }
-    } else if (!targetTermGroup.equals(other.targetTermGroup)) {
+    } else if (!targetTermType.equals(other.targetTermType)) {
       return false;
     }
     if (targetTerminology == null) {

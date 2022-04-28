@@ -59,8 +59,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The definition type. */
   private List<String> definitionType;
 
-  /** The synonym term group. */
-  private List<String> synonymTermGroup;
+  /** The synonym term type. */
+  private List<String> synonymTermType;
 
   /** The subset group */
   private List<String> subset;
@@ -109,7 +109,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // role = new ArrayList<>(other.getRole());
     synonymSource = new ArrayList<>(other.getSynonymSource());
     synonymType = new ArrayList<>(other.getSynonymType());
-    synonymTermGroup = new ArrayList<>(other.getSynonymTermGroup());
+    synonymTermType = new ArrayList<>(other.getSynonymTermType());
     term = other.getTerm();
     type = other.getType();
     subset = new ArrayList<>(other.getSubset());
@@ -332,24 +332,24 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
-   * Returns the synonym term group.
+   * Returns the synonym term type.
    *
-   * @return the synonym term group
+   * @return the synonym term type
    */
-  public List<String> getSynonymTermGroup() {
-    if (synonymTermGroup == null) {
-      synonymTermGroup = new ArrayList<>();
+  public List<String> getSynonymTermType() {
+    if (synonymTermType == null) {
+      synonymTermType = new ArrayList<>();
     }
-    return synonymTermGroup;
+    return synonymTermType;
   }
 
   /**
-   * Sets the synonym term group.
+   * Sets the synonym term type.
    *
-   * @param synonymTermGroup the synonym term group
+   * @param synonymTermType the synonym term type
    */
-  public void setSynonymTermGroup(final List<String> synonymTermGroup) {
-    this.synonymTermGroup = synonymTermGroup;
+  public void setSynonymTermType(final List<String> synonymTermType) {
+    this.synonymTermType = synonymTermType;
   }
 
   /**
@@ -579,7 +579,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((property == null) ? 0 : property.hashCode());
     // result = prime * result + ((role == null) ? 0 : role.hashCode());
     result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
-    result = prime * result + ((synonymTermGroup == null) ? 0 : synonymTermGroup.hashCode());
+    result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
     result = prime * result + ((term == null) ? 0 : term.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
@@ -675,11 +675,11 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     } else if (!synonymSource.equals(other.synonymSource)) {
       return false;
     }
-    if (synonymTermGroup == null) {
-      if (other.synonymTermGroup != null) {
+    if (synonymTermType == null) {
+      if (other.synonymTermType != null) {
         return false;
       }
-    } else if (!synonymTermGroup.equals(other.synonymTermGroup)) {
+    } else if (!synonymTermType.equals(other.synonymTermType)) {
       return false;
     }
     if (subset == null) {
