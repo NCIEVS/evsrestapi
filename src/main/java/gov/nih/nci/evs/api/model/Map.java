@@ -121,6 +121,15 @@ public class Map extends BaseModel implements Comparable<Map> {
   }
 
   /**
+   * Sets the target term group. This is a bridge to support naming convention normalization.
+   *
+   * @param targetTermGroup the target term group
+   */
+  public void setTargetTermGroup(final String targetTermGroup) {
+    this.targetTermType = targetTermGroup;
+  }
+
+  /**
    * Returns the target code.
    *
    * @return the target code

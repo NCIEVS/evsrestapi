@@ -86,6 +86,10 @@ public class TerminologyMetadataUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
+    tester.exclude("synonymTermGroup");
+    tester.exclude("mapTargetTermGroup");
+    tester.exclude("termGroups");
+    tester.exclude("preferredTermGroups");
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
     tester.proxy("sourcesToRemove", 1, s1);

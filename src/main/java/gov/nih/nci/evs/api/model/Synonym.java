@@ -167,6 +167,15 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   }
 
   /**
+   * Sets the term group. This is a bridge to support naming convention normalization.
+   *
+   * @param termGroup the term group
+   */
+  public void setTermGroup(final String termGroup) {
+    this.termType = termGroup;
+  }
+
+  /**
    * Returns the type.
    *
    * @return the type

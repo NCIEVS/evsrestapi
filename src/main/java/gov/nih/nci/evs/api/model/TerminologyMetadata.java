@@ -550,6 +550,16 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Sets the synonym term group. This is a bridge to support naming convention
+   * normalization.
+   *
+   * @param synonymTermGroup the synonym term group
+   */
+  public void setSynonymTermGroup(String synonymTermGroup) {
+    this.synonymTermType = synonymTermGroup;
+  }
+
+  /**
    * Returns the synonym source.
    *
    * @return the synonym source
@@ -715,6 +725,15 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Sets the map target term group. This is a bridge to support naming convention normalization.
+   *
+   * @param mapTargetTermType the map target term group
+   */
+  public void setMapTargetTermGroup(String mapTargetTermGroup) {
+    this.mapTargetTermType = mapTargetTermGroup;
+  }
+
+  /**
    * Returns the map target terminology.
    *
    * @return the map target terminology
@@ -850,6 +869,15 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setTermTypes(Map<String, String> termTypes) {
     this.termTypes = termTypes;
+  }
+
+  /**
+   * Sets the term groups. This is a bridge to support naming convention normalization.
+   *
+   * @param termGroups the term groups
+   */
+  public void setTermGroups(Map<String, String> termGroups) {
+    this.termTypes = termGroups;
   }
 
   /**
@@ -1058,6 +1086,15 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setPreferredTermTypes(List<String> preferredTermTypes) {
     this.preferredTermTypes = preferredTermTypes;
+  }
+
+  /**
+   * Sets the preferred term groups. This is a bridge to support naming convention normalization.
+   *
+   * @param preferredTermGroups the preferred term groups
+   */
+  public void setPreferredTermGroups(List<String> preferredTermGroups) {
+    this.preferredTermTypes = preferredTermGroups;
   }
 
   /**
