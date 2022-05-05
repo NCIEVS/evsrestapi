@@ -80,6 +80,7 @@ public class RoleUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.proxy("qualifiers", 1, q1);
     tester.proxy("qualifiers", 2, q2);
+    tester.include("source");
     tester.include("type");
     tester.include("relatedCode");
     tester.include("relatedName");

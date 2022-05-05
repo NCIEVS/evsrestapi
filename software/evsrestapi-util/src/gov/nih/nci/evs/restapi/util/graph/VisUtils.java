@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import org.apache.commons.lang.*;
-import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
 
 
 /**
@@ -62,7 +62,7 @@ import org.apache.log4j.*;
 
 
 public class VisUtils {
-    private static Logger _logger = Logger.getLogger(VisUtils.class);
+    private static Logger _logger = LogManager.getLogger(VisUtils.class);
 
     public static final int NODES_ONLY = 1;
     public static final int EDGES_ONLY = 2;
@@ -135,7 +135,7 @@ public class VisUtils {
     public HashMap getRelationshipHashMap(String code) {
 		HashMap relMap = new HashMap();
 		List list = new ArrayList();
-		Vector v = relationshipData.getHierarchicallyRrelatedConcepts(named_graph, code, true);
+		Vector v = relationshipData.getHierarchicallyRelatedConcepts(named_graph, code, true);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');
@@ -147,7 +147,7 @@ public class VisUtils {
 		relMap.put("type_superconcept", list);
 		list = new ArrayList();
 
-		v = relationshipData.getHierarchicallyRrelatedConcepts(named_graph, code, false);
+		v = relationshipData.getHierarchicallyRelatedConcepts(named_graph, code, false);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line, '|');

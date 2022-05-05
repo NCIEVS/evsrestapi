@@ -2,8 +2,12 @@
 package gov.nih.nci.evs.api.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -263,8 +267,10 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public Optional<List<String>> getConceptStatuses(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return Optional.empty();
+    if (!term.getTerminology().equals("ncit")) {
+      // TODO: handle this like definition sources (via terminology metadata)
+      return Optional.of(new ArrayList<>());
+    }
 
     final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term,
         term.getMetadata().getConceptStatus());
@@ -278,8 +284,11 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return new ArrayList<>();
+    if (!term.getTerminology().equals("ncit")) {
+      // Build the list from terminology metadata
+      return buildList(term, term.getMetadata().getDefinitionSourceSet(),
+          term.getMetadata().getSources());
+    }
 
     return sparqlQueryManagerService.getDefinitionSources(term);
   }
@@ -296,8 +305,11 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return new ArrayList<>();
+    if (!term.getTerminology().equals("ncit")) {
+      // Build the list from terminology metadata
+      return buildList(term, term.getMetadata().getSynonymSourceSet(),
+          term.getMetadata().getSources());
+    }
 
     return esQueryService.getSynonymSources(term);
   }
@@ -344,8 +356,11 @@ public class MetadataServiceImpl implements MetadataService {
   public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit"))
-      return new ArrayList<>();
+    if (!term.getTerminology().equals("ncit")) {
+      // Build the list from terminology metadata
+      return buildList(term, term.getMetadata().getTermTypes().keySet(),
+          term.getMetadata().getTermTypes());
+    }
 
     return sparqlQueryManagerService.getTermTypes(term);
   }
@@ -431,29 +446,37 @@ public class MetadataServiceImpl implements MetadataService {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-    // subsets should always return children and properties
+    // subsets should always return children
+    // (contributing source needed)
     ip.setChildren(true);
-    ip.setProperties(true);
+    //ip.setProperties(true);
     ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
 
+    // No list of codes supplied
     if (!list.isPresent()) {
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
+          .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
           .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
       return subsets;
     }
 
+    // List of codes supplied - first apply the filter.
     subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
         .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream().flatMap(Concept::streamSelfAndChildren)
+        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get()))
         .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
+
     return subsets;
+
   }
 
   /* see superclass */
   @Override
   public Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
     throws Exception {
+
     // Verify that it is a property
     final List<Concept> list = self.getSubsets(terminology, include, Optional.ofNullable(code));
     if (list.size() == 1) {
@@ -464,4 +487,33 @@ public class MetadataServiceImpl implements MetadataService {
     return Optional.empty();
   }
 
+  /**
+   * Builds the list.
+   *
+   * @param terminology the terminology
+   * @param values the values
+   * @param nameMap the name map
+   * @return the list
+   */
+  private List<ConceptMinimal> buildList(final Terminology terminology, final Set<String> values,
+    final Map<String, String> nameMap) {
+    final List<ConceptMinimal> list = new ArrayList<>();
+    for (final String value : values) {
+      final ConceptMinimal concept = new ConceptMinimal();
+      concept.setCode(value);
+      concept.setName(nameMap.get(value));
+      concept.setTerminology(terminology.getTerminology());
+      concept.setVersion(terminology.getVersion());
+      list.add(concept);
+    }
+    Collections.sort(list, new Comparator<ConceptMinimal>() {
+
+      @Override
+      public int compare(final ConceptMinimal c1, final ConceptMinimal c2) {
+        return c1.getCode().compareTo(c2.getCode());
+      }
+
+    });
+    return list;
+  }
 }

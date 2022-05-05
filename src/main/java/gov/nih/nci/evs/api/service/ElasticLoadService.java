@@ -1,11 +1,9 @@
+
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 
 import org.springframework.context.ApplicationContext;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
@@ -48,16 +46,18 @@ public interface ElasticLoadService {
   /**
    * Clean stale indexes.
    *
+   * @param terminology the terminology
    * @throws Exception the exception
    */
-  void cleanStaleIndexes() throws Exception;
+  void cleanStaleIndexes(Terminology terminology) throws Exception;
 
   /**
    * Update latest flag.
    *
+   * @param terminology the terminology
    * @throws Exception the exception
    */
-  void updateLatestFlag() throws Exception;
+  void updateLatestFlag(Terminology terminology) throws Exception;
 
   /**
    * Get Terminology object
@@ -94,15 +94,12 @@ public interface ElasticLoadService {
   void loadIndexMetadata(int totalConcepts, Terminology term) throws IOException;
 
   /**
-   * get hierarchy utils
-   * 
+   * get hierarchy utils.
+   *
    * @param term the terminology object
    * @return HierarchyUtils
-   * @throws IOException
-   * @throws JsonMappingException
-   * @throws JsonParseException
+   * @throws Exception the exception
    */
-  HierarchyUtils getHierarchyUtils(Terminology term)
-    throws JsonParseException, JsonMappingException, IOException;
+  HierarchyUtils getHierarchyUtils(Terminology term) throws Exception;
 
 }

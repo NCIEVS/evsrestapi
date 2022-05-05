@@ -48,8 +48,8 @@ public class Axiom extends BaseModel {
   /** The subsource name. */
   String subsourceName;
 
-  /** The term group. */
-  String termGroup;
+  /** The term type. */
+  String termType;
 
   /** The term source. */
   String termSource;
@@ -313,21 +313,21 @@ public class Axiom extends BaseModel {
   }
 
   /**
-   * Returns the term group.
+   * Returns the term type.
    *
-   * @return the term group
+   * @return the term type
    */
-  public String getTermGroup() {
-    return termGroup;
+  public String getTermType() {
+    return termType;
   }
 
   /**
-   * Sets the term group.
+   * Sets the term type.
    *
-   * @param termGroup the term group
+   * @param termType the term type
    */
-  public void setTermGroup(String termGroup) {
-    this.termGroup = termGroup;
+  public void setTermType(String termType) {
+    this.termType = termType;
   }
 
   /**

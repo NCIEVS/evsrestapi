@@ -32,7 +32,7 @@ fi
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
-set -e
+echo ""
 
 # Setup configuration
 echo "  Setup configuration"
@@ -42,6 +42,10 @@ if [[ $config -eq 1 ]]; then
     CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
     echo "    config = $CONFIG_ENV_FILE"
     . $CONFIG_ENV_FILE
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
+        exit 1
+    fi
 elif [[ -z $STARDOG_HOST ]]; then
     echo "ERROR: STARDOG_HOST is not set"
     exit 1
@@ -82,6 +86,12 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "  databases = " `cat /tmp/db.$$.txt`
+ct=`cat /tmp/db.$$.txt | wc -l`
+if [[ $ct -eq 0 ]]; then
+    echo "ERROR: no stardog databases, this is unexpected"
+    exit 1
+fi
+
 
 # Prep query to read all version info
 echo "  Lookup version info for latest terminology in stardog"
@@ -194,6 +204,17 @@ for x in `cat /tmp/y.$$.txt`; do
     else
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
             echo "    FOUND indexes for $version, force reindex anyway"        
+
+            # Remove if this already exists
+            version=`echo $cv | perl -pe 's/.*_//;'`
+            echo "    Remove indexes for ncit $version"
+            DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+            $DIR/remove.sh ncit $version > /tmp/x.$$ 2>&1
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$ | sed 's/^/    /'
+                echo "ERROR: removing ncit $version indexes"
+                exit 1
+            fi
         fi
 
         # Run reindexing process (choose a port other than the one that it runs on)
@@ -201,8 +222,8 @@ for x in `cat /tmp/y.$$.txt`; do
         export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB $version"
 
-        echo "java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-        java $local -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex
+        echo "java $local -Xmx4096M -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+        java $local -Xmx4096M -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
@@ -227,15 +248,15 @@ done
 # It checks against stardog and reconciles everything and updates latest flags
 # regardless of whether there was new data
 echo "  Reconcile stale indexes and update flags"
-echo "    java $local -jar $jar --terminology ncit --skip-load"
-java $local -jar $jar --terminology ncit --skip-load
+echo "    java $local -jar $jar --terminology ncit --skipConcepts"
+java $local -jar $jar --terminology ncit --skipConcepts
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building indexes"
     exit 1
 fi
 
 # Cleanup
-/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt
+/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
 
 echo ""
 echo "--------------------------------------------------"

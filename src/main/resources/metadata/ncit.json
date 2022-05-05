@@ -1,4 +1,5 @@
 {
+  "uiLabel": "NCI Thesaurus",
   "code": "NHC0",
   "conceptStatus": "P310",
   "retiredStatusValue": "Retired_Concept",
@@ -54,6 +55,7 @@
     "CTRP": "Clinical Trials Reporting Program",
     "DCP": "NCI Division of Cancer Prevention Program",
     "DICOM": "Digital Imaging Communications in Medicine",
+    "DIPG/DMG": "Diffuse Intrinsic Pontine Glioma/Diffuse Midline Glioma",
     "DTP": "NCI Developmental Therapeutics Program",
     "EDQM-HC": "European Directorate for the Quality of Medicines & Healthcare",
     "FDA": "U.S. Food and Drug Administration",
@@ -62,6 +64,7 @@
     "GENC": "Geopolitical Entities, Names, and Codes Terminology",
     "HGNC": "HUGO Gene Nomenclature Committee",
     "HL7": "Health Level Seven International",
+    "ICD-10": "International Classification of Diseases, Tenth Revision",
     "ICDO3": "International Classification of Diseases for Oncology, 3rd edition",
     "ICDC": "International Cancer Genome Consortium",
     "ICH": "International Conference on Harmonization",

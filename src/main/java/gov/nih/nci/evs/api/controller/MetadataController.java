@@ -67,11 +67,11 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "latest", value = "latest terminology: 'true' or 'false'",
+      @ApiImplicitParam(name = "latest", value = "Return terminologies with matching <i>latest</i> value. e.g. true or false",
           required = false, dataType = "boolean", paramType = "query", defaultValue = "true"),
-      @ApiImplicitParam(name = "tag", value = "tag for terminology: 'monthly' or 'weekly'",
+      @ApiImplicitParam(name = "tag", value = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
           required = false, dataType = "string", paramType = "query"),
-      @ApiImplicitParam(name = "terminology", value = "terminology name", required = false,
+      @ApiImplicitParam(name = "terminology", value = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'", required = false,
           dataType = "string", paramType = "query")
   })
   @RecordMetric
@@ -102,12 +102,15 @@ public class MetadataController extends BaseController {
 
       for (Terminology term : terms) {
         TerminologyMetadata meta = term.getMetadata();
-        meta.setSources(null);
-        meta.setTermTypes(null);
-        meta.setSourcesToRemove(null);
-        meta.setUnpublished(null);
-        meta.setSubsetPrefix(null);
-        meta.setSubsetLinks(null);
+        // Some terminologies may not have metadata
+        if (meta != null) {
+          meta.setSources(null);
+          meta.setTermTypes(null);
+          meta.setSourcesToRemove(null);
+          meta.setUnpublished(null);
+          meta.setSubsetPrefix(null);
+          meta.setSubsetLinks(null);
+        }
       }
 
       return terms;
@@ -137,13 +140,13 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
@@ -180,16 +183,18 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Association code (or name), e.g. 'A10' or 'Has_CDRH_Parent'", required = true,
-          dataType = "string", paramType = "path"),
+          value = "Association code (or name), e.g. "
+              + "<ul><li>'A10' or 'Has_CDRH_Parent' for <i>ncit</i></li>"
+              + "<li>'RB' or 'has a broader relationship' for <i>ncim</i></li></ul>",
+          required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
@@ -239,13 +244,14 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology",
+          value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
@@ -285,13 +291,15 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Role code (or name), e.g. 'R123' or 'Chemotherapy_Regimen_Has_Component'",
+          value = "Role code (or name), e.g. "
+              + "'R123' or 'Chemotherapy_Regimen_Has_Component' for <i>ncit</i>. "
+              + "This call is only meaningful for <i>ncit</i>.",
           required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
@@ -339,13 +347,13 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
@@ -386,13 +394,14 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology",
+          value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
@@ -432,13 +441,13 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
@@ -476,16 +485,18 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Qualifier code (or name), e.g. 'P390' or 'go-source'", required = true,
-          dataType = "string", paramType = "path"),
+          value = "Qualifier code (or name), e.g."
+              + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
+              + "<li>'RG' or 'Relationship group' for <i>ncim</i></li></ul>",
+          required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
@@ -531,8 +542,8 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
   public @ResponseBody List<ConceptMinimal> getTermTypes(@PathVariable(value = "terminology")
@@ -562,16 +573,18 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Property code (or name), e.g. 'P216' or 'BioCarta_ID'", required = true,
-          dataType = "string", paramType = "path"),
+          value = "Property code (or name), e.g. "
+              + "<ul><li>'P216' or 'BioCarta_ID' for <i>ncit</i></li>"
+              + "<li>'BioCarta_ID' or ''BioCarta ID' for <i>ncim</i></li></ul>",
+          required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
@@ -617,15 +630,16 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code", value = "Subset code", required = true, dataType = "string",
+      @ApiImplicitParam(name = "terminology",
+          value = "Terminology, e.g. 'ncit'.",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code", value = "Subset code, e.g. 'C116978' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.", required = true, dataType = "string",
           paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          value = "Indicator of how much data tc return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
@@ -666,8 +680,9 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit")
+      @ApiImplicitParam(name = "terminology",
+          value = "Terminology, e.g. 'ncit'. This call is only meaningful for <i>ncit</i>.",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses",
@@ -702,8 +717,8 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionSources",
@@ -734,8 +749,8 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit")
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymSources",
@@ -766,11 +781,13 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Qualifier code (or name), e.g. 'P383' or 'term-group'", required = true,
-          dataType = "string", paramType = "path")
+          value = "Qualifier code (or name), e.g."
+              + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
+              + "<li>'RG' or 'Relationship group' for <i>ncim</i></li></ul>",
+          required = true, dataType = "string", paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
@@ -816,13 +833,13 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymTypes",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
@@ -851,16 +868,18 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Synonym type code (or name), e.g. 'P90' or 'FULL_SYN'", required = true,
-          dataType = "string", paramType = "path"),
+          value = "Synonym type code (or name), e.g."
+              + "<ul><li>'P90' or 'FULL_SYN' for <i>ncit</i></li>"
+              + "<li>'Preferred_Name' or 'Preferred name' for <i>ncim</i></li></ul>",
+          required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })
@@ -911,13 +930,13 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionTypes",
       produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
@@ -955,16 +974,18 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrName",
-          value = "Definition type code (or name), e.g. 'P325' or 'DEFINITION'", required = true,
-          dataType = "string", paramType = "path"),
+          value = "Definition type code (or name), e.g."
+              + "<ul><li>'P325' or 'DEFINITION' for <i>ncit</i></li>"
+              + "<li>'DEFINITION' for <i>ncim</i></li></ul>",
+          required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'>See here "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, dataType = "string", paramType = "query", defaultValue = "summary")
   })

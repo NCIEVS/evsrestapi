@@ -57,16 +57,13 @@ import java.util.*;
  */
 
 
+//https://evs.nci.nih.gov/ftp1/upload/ThesaurusInferred_forTS.zip
+
+
 public class NCItDownload {
 
-    public static String NCIt_UPLOAD_URL = "https://evs.nci.nih.gov/ftp1/upload/";
+    public static String NCIt_URI = "https://evs.nci.nih.gov/ftp1/upload/";
     public static String NCIT_ZIP_FILE = "ThesaurusInferred_forTS.zip";
-
-    public static String generatePrescrubFilename(String serviceUrl, String username, String password) {
-		MetadataUtils metadataUtils = new MetadataUtils(serviceUrl, username, password);
-		String version = metadataUtils.getLatestVersion("NCI_Thesaurus");
-		return "CTRPThesaurusInferred-" + version + ".owl-lvg.owl.zip";
-	}
 
 	public static void download(String uri, String outputfile) {
 		try (BufferedInputStream in = new BufferedInputStream(new URL(uri).openStream());
@@ -132,53 +129,31 @@ public class NCItDownload {
         File f = new File(dirName);
         String[] pathnames = f.list();
         for (String pathname : pathnames) {
-			System.out.println(pathname);
-			v.add(pathname);
+			//if (pathname.endsWith(".owl") && pathname.indexOf("READ ME") == -1) {
+                System.out.println(pathname);
+                v.add(pathname);
+		    //}
         }
         return v;
 	}
 
     public static void download() {
 		String currentWorkingDirectory = System.getProperty("user.dir");
-        download(NCIt_UPLOAD_URL + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
+        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
         String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
         unzip(zipFilePath, currentWorkingDirectory);
 	}
 
     public static void main(String[] args) {
-		String serviceUrl = null;
-		String named_graph = null;
-		String username = null;
-		String password = null;
-		String URL = NCIt_UPLOAD_URL;
-		String target = NCIT_ZIP_FILE;
+		String currentWorkingDirectory = System.getProperty("user.dir");
 
-		if (args.length > 0) {
-			serviceUrl = args[0];
-			named_graph = args[1];
-			username = args[2];
-			password = args[3];
-			if (args.length == 5) {
-				target = args[4];
-			} else {
-				target = generatePrescrubFilename(serviceUrl, username, password);
-			}
+        if (args.length == 1) {
+			NCIt_URI = args[0];
 		}
+        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
 
-	    try {
-			System.out.println("Downloading " + target + " from " + URL);
-			download(URL + target, target);
-			System.out.println("Completed.");
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-        String currentWorkingDirectory = System.getProperty("user.dir");
-		String zipFilePath = currentWorkingDirectory + "/" + target;
-		unzip(zipFilePath, currentWorkingDirectory);
-		Vector files = listFilesInDirectory();
-		Utils.dumpVector("listFilesInDirectory", files);
-
+        String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
+        unzip(zipFilePath, currentWorkingDirectory);
 	}
 }
 

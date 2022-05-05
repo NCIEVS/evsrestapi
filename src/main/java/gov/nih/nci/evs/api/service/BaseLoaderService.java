@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
@@ -107,7 +108,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   @Override
-  public void cleanStaleIndexes() throws Exception {
+  public void cleanStaleIndexes(final Terminology terminology) throws Exception {
 
     List<IndexMetadata> iMetas = termUtils.getStaleTerminologies(Arrays.asList(dbs.split(",")));
     if (CollectionUtils.isEmpty(iMetas)) {
@@ -117,6 +118,12 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     logger.info("Removing stale terminologies");
     for (IndexMetadata iMeta : iMetas) {
+
+      // Skip terminologies for a different loader
+      if (!iMeta.getTerminology().getTerminology().equals(terminology.getTerminology())) {
+        continue;
+      }
+
       logger.info("stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
@@ -156,7 +163,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   @Override
-  public void updateLatestFlag() throws Exception {
+  public void updateLatestFlag(final Terminology terminology) throws Exception {
     // update latest flag
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
@@ -173,11 +180,18 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         return -1 * o1.getTerminology().getVersion().compareTo(o2.getTerminology().getVersion());
       }
     });
-
+    logger.info("  iMetas = " + iMetas.stream().map(i -> i.getTerminology().getTerminologyVersion())
+        .collect(Collectors.toList()));
     boolean latestMonthlyFound = false;
     boolean latestWeeklyFound = false;
+    boolean latestFound = false;
 
     for (final IndexMetadata iMeta : iMetas) {
+
+      // Skip terminologies for a different loader
+      if (!iMeta.getTerminology().getTerminology().equals(terminology.getTerminology())) {
+        continue;
+      }
 
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
@@ -202,6 +216,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         logger.info("  " + iMeta.getTerminologyVersion() + " = latest true");
         iMeta.getTerminology().setLatest(true);
         latestWeeklyFound = true;
+      }
+      // Else if we're dealing with non-monthly/non-weekly and latest hasn't
+      // been found
+      else if (!latestFound && !monthly && !weekly) {
+        logger.info("  " + iMeta.getTerminologyVersion() + " = latest true");
+        iMeta.getTerminology().setLatest(true);
+        latestFound = true;
       }
       // Else change nothing
       else {
@@ -267,12 +288,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     iMeta.setIndexName(term.getIndexName());
     iMeta.setTotalConcepts(total);
     iMeta.setCompleted(true); // won't make it this far if it isn't complete
+    logger.info("  ADD terminology = " + term);
     iMeta.setTerminology(term);
 
+    // boolean created =
     operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
-
-    operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.METADATA_INDEX,
-          ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+    // if (created) {
+    operationsService.getElasticsearchOperations().putMapping(
+        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
+        IndexMetadata.class);
+    // }
 
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);

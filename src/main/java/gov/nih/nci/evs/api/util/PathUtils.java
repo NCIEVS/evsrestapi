@@ -2,7 +2,7 @@ package gov.nih.nci.evs.api.util;
 
 import java.util.HashSet;
 
-import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 
@@ -20,11 +20,11 @@ public class PathUtils {
    * @return the paths
    */
   public static Paths removeDuplicatePaths(Paths paths) {
-    Paths uniquePaths = new Paths();
-    HashSet<String> seenPaths = new HashSet<String>();
-    for (Path path : paths.getPaths()) {
-      StringBuffer strPath = new StringBuffer();
-      for (Concept concept : path.getConcepts()) {
+    final Paths uniquePaths = new Paths();
+    final HashSet<String> seenPaths = new HashSet<String>();
+    for (final Path path : paths.getPaths()) {
+      final StringBuffer strPath = new StringBuffer();
+      for (final ConceptMinimal concept : path.getConcepts()) {
         strPath.append(concept.getCode());
         strPath.append("|");
       }

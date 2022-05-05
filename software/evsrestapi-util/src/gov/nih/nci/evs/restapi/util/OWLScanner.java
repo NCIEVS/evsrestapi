@@ -1381,11 +1381,52 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
+
+    public Vector extractAssociations(Vector class_vec, String associationCode) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart0 = true;
+			}
+		    if (t.indexOf("</rdf:RDF>") != -1) {
+				break;
+			}
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (istart0) {
+					istart = true;
+				}
+			}
+			if (istart) {
+				String s = t.trim();
+				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
+					int n = s.indexOf(" ");
+					String a = s.substring(1, n);
+					if (a.compareTo(associationCode) == 0) {
+						w.add(classId + "|" + a + "|" + extractCode(s));
+					}
+				}
+		    }
+		}
+		return w;
+	}
+
+
     public Vector getAssociationSources(Vector assoc_vec, String targetCode) {
 		Vector v = new Vector();
 		for (int i=0; i<assoc_vec.size(); i++) {
 			String t = (String) assoc_vec.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
+
+
 			String s = (String) u.elementAt(2);
 			if (s.compareTo(targetCode) == 0) {
 				v.add((String) u.elementAt(0) + "|" + targetCode);
@@ -2665,6 +2706,37 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		}
 		return v;
 	}
+
+    public Vector extractNonRetiredConcepts(Vector class_vec, HashSet retiredConcepts) {
+        Vector w = new Vector();
+        boolean istart = false;
+        boolean istart0 = false;
+        boolean toSave = true;
+        String classId = null;
+
+        for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			String t0 = t;
+			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				int n = t.lastIndexOf("#");
+				t = t.substring(n, t.length());
+				n = t.lastIndexOf(" ");
+				classId = t.substring(1, n);
+				if (retiredConcepts.contains(classId)) {
+					toSave = false;
+				} else {
+					toSave = true;
+				}
+			}
+
+			if (toSave) {
+				w.add(t0);
+			}
+		}
+		return w;
+	}
+
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();

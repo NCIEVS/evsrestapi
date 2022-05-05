@@ -7,8 +7,8 @@ import java.util.*;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import org.apache.commons.lang.*;
-import org.apache.log4j.*;
-
+//import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
 
 /**
  * <!-- LICENSE_TEXT_START -->

@@ -25,6 +25,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   @Field(type = FieldType.Text)
   private String name;
 
+  /** The norm name. */
   @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
@@ -35,9 +36,9 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   @JsonDeserialize
   private String highlight;
 
-  /** The term group. */
+  /** The term type. */
   @Field(type = FieldType.Keyword)
-  private String termGroup;
+  private String termType;
 
   /** The type. */
   @Field(type = FieldType.Keyword)
@@ -56,6 +57,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
+  @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
 
   /**
@@ -82,7 +84,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   public void populateFrom(final Synonym other) {
     name = other.getName();
     highlight = other.getHighlight();
-    termGroup = other.getTermGroup();
+    termType = other.getTermType();
     type = other.getType();
     normName = other.getNormName();
     source = other.getSource();
@@ -147,21 +149,30 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   }
 
   /**
-   * Returns the term group.
+   * Returns the term type.
    *
-   * @return the term group
+   * @return the term type
    */
-  public String getTermGroup() {
-    return termGroup;
+  public String getTermType() {
+    return termType;
   }
 
   /**
-   * Sets the term group.
+   * Sets the term type.
+   *
+   * @param termType the term type
+   */
+  public void setTermType(final String termType) {
+    this.termType = termType;
+  }
+
+  /**
+   * Sets the term group. This is a bridge to support naming convention normalization.
    *
    * @param termGroup the term group
    */
   public void setTermGroup(final String termGroup) {
-    this.termGroup = termGroup;
+    this.termType = termGroup;
   }
 
   /**
@@ -271,7 +282,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + ((source == null) ? 0 : source.hashCode());
     result = prime * result + ((subSource == null) ? 0 : subSource.hashCode());
-    result = prime * result + ((termGroup == null) ? 0 : termGroup.hashCode());
+    result = prime * result + ((termType == null) ? 0 : termType.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
@@ -317,11 +328,11 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
     } else if (!subSource.equals(other.subSource)) {
       return false;
     }
-    if (termGroup == null) {
-      if (other.termGroup != null) {
+    if (termType == null) {
+      if (other.termType != null) {
         return false;
       }
-    } else if (!termGroup.equals(other.termGroup)) {
+    } else if (!termType.equals(other.termType)) {
       return false;
     }
     if (type == null) {
@@ -342,7 +353,8 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    */
   @Override
   public int compareTo(Synonym other) {
-    return (type + name).compareToIgnoreCase(other.getType() + other.getName());
+    return (source + type + name)
+        .compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
 
   }
 

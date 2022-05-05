@@ -3,8 +3,10 @@ package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,6 +50,12 @@ public class TerminologyMetadataUnitTest {
   /** The s 2. */
   private Set<String> s2;
 
+  /** The l 1. */
+  private List<String> l1;
+
+  /** The s 2. */
+  private List<String> l2;
+
   /**
    * Setup.
    *
@@ -64,6 +72,10 @@ public class TerminologyMetadataUnitTest {
     s1.add("1");
     s2 = new HashSet<>();
     s2.add(null);
+    l1 = new ArrayList<>();
+    l1.add("1");
+    l2 = new ArrayList<>();
+    l2.add(null);
   }
 
   /**
@@ -74,10 +86,16 @@ public class TerminologyMetadataUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
+    tester.exclude("synonymTermGroup");
+    tester.exclude("mapTargetTermGroup");
+    tester.exclude("termGroups");
+    tester.exclude("preferredTermGroups");
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
     tester.proxy("sourcesToRemove", 1, s1);
     tester.proxy("sourcesToRemove", 2, s2);
+    tester.proxy("preferredTermTypes", 1, l1);
+    tester.proxy("preferredTermTypes", 2, l2);
 
     tester.test();
   }
@@ -90,6 +108,8 @@ public class TerminologyMetadataUnitTest {
   @Test
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
+    tester.include("uiLabel");
+    tester.include("loader");
     tester.include("code");
     tester.include("definitionSource");
     tester.include("mapRelation");
@@ -106,17 +126,24 @@ public class TerminologyMetadataUnitTest {
     tester.include("synonymSource");
     tester.include("synonymSubSource");
     tester.include("synonymTermType");
+    tester.include("definitionSourceSet");
+    tester.include("synonymSourceSet");
     tester.include("termTypes");
     tester.include("subsetMember");
     tester.include("subsetLinks");
     tester.include("subsetPrefix");
     tester.include("unpublished");
     tester.include("monthlyDb");
+    tester.include("licenseText");
+    tester.include("metaConceptField");
+    tester.include("preferredTermTypes");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
     tester.proxy(Set.class, 1, s1);
     tester.proxy(Set.class, 2, s2);
+    tester.proxy("preferredTermTypes", 1, l1);
+    tester.proxy("preferredTermTypes", 2, l2);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -136,6 +163,7 @@ public class TerminologyMetadataUnitTest {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Set.class, 1, s1);
+    tester.proxy("preferredTermTypes", 1, l1);
     assertTrue(tester.testCopyConstructor(TerminologyMetadata.class));
   }
 
@@ -149,6 +177,7 @@ public class TerminologyMetadataUnitTest {
     final SerializationTester tester = new SerializationTester(object);
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Set.class, 1, s1);
+    tester.proxy("preferredTermTypes", 1, l1);
     assertTrue(tester.testJsonSerialization());
   }
 }
