@@ -5,6 +5,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * Represents a concept with a code from a terminology with the smallest amount
  * of information.
@@ -16,6 +19,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * }
  * </pre>
  */
+@JsonInclude(Include.NON_EMPTY)
 public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinimal> {
 
   /** The code. */
@@ -34,6 +38,10 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
   /** The version. */
   @Field(type = FieldType.Text)
   private String version;
+
+  /** The level. */
+  @Field(type = FieldType.Integer)
+  private Integer level;
 
   /**
    * Instantiates an empty {@link ConceptMinimal}.
@@ -83,6 +91,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
     name = other.getName();
     terminology = other.getTerminology();
     version = other.getVersion();
+    level = other.getLevel();
   }
 
   /**
@@ -147,6 +156,24 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
     this.version = version;
   }
 
+  /**
+   * Returns the level.
+   *
+   * @return the level
+   */
+  public Integer getLevel() {
+    return level;
+  }
+
+  /**
+   * Sets the level.
+   *
+   * @param level the level
+   */
+  public void setLevel(final Integer level) {
+    this.level = level;
+  }
+
   /* see superclass */
   @Override
   public int hashCode() {
@@ -156,6 +183,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + ((terminology == null) ? 0 : terminology.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
+    result = prime * result + ((level == null) ? 0 : level.hashCode());
     return result;
   }
 
@@ -204,6 +232,13 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
         return false;
       }
     } else if (!version.equals(other.version)) {
+      return false;
+    }
+    if (level == null) {
+      if (other.level != null) {
+        return false;
+      }
+    } else if (!level.equals(other.level)) {
       return false;
     }
     return true;

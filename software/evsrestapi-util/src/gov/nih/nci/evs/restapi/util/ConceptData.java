@@ -194,7 +194,7 @@ public class ConceptData {
     		w.add("</table>");
 		}
 
-		w.add("<footer>(Source; NCI Thesaurus, version " + version + ")");
+		w.add("<footer>(Source: NCI Thesaurus, version " + version + ")");
 
 		HTMLTable.generate(w);
 	}

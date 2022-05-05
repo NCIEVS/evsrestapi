@@ -51,11 +51,11 @@ public class ExtensionsUnitTest {
     object = new Extensions();
     final ProxyTester tester = new ProxyTester(new Path());
     final Path p1 = (Path) tester.createObject(1);
-    p1.getConcepts().add(new Concept("1"));
+    p1.getConcepts().add(new ConceptMinimal("1"));
     final Path p2 = (Path) tester.createObject(2);
-    p2.getConcepts().add(new Concept("2"));
+    p2.getConcepts().add(new ConceptMinimal("2"));
     final Path p3 = (Path) tester.createObject(3);
-    p3.getConcepts().add(new Concept("3"));
+    p3.getConcepts().add(new ConceptMinimal("3"));
     lp1 = new ArrayList<>();
     Paths ps1 = new Paths();
     ps1.getPaths().add(p1);

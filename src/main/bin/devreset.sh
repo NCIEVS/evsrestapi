@@ -9,13 +9,13 @@
 # It resets the stardog and elasticsearch data sets locally to update to
 # the latest dev testing data set at that google drive URL.
 #
-force=0
+help=0
 while [[ "$#" -gt 0 ]]; do case $1 in
-  --force) force=1;;
+  --help) help=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
-if [ ${#arr[@]} -ne 1 ]; then
+if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
   echo "Usage: src/main/bin/devreset.sh \"c:/data/UnitTestData\""
   echo "  e.g. src/main/bin/devreset.sh /data/UnitTestData"
   exit 1
@@ -64,7 +64,7 @@ fi
 # Prerequisites - check the UnitTest
 echo "  Check prerequisites"
 
-# Check that reindex.sh and ncim.sh are at src/main/bin
+# Check that reindex.sh is at src/main/bin
 if [[ ! -e "src/main/bin/reindex.sh" ]]; then
     echo "ERROR: src/main/bin/reindex.sh does not exist, run from top-level evsrestapi directory"
     exit 1
@@ -170,9 +170,17 @@ done
 
 # Reindex ncim
 echo "  Reindex ncim"
-src/main/bin/ncim.sh --noconfig $dir/NCIM | sed 's/^/    /'
+src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem running ncim.sh"
+    echo "ERROR: problem running ncim-part.sh"
+    exit 1
+fi
+
+# Reindex ncim - MDR
+echo "  Reindex ncim - MDR"
+src/main/bin/ncim-part.sh --noconfig $dir/NCIM --terminology MDR| sed 's/^/    /'
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: problem running ncim-part.sh for MDR"
     exit 1
 fi
 

@@ -13,14 +13,17 @@ public class Map extends BaseModel implements Comparable<Map> {
   /** The source code. */
   private String sourceCode;
 
+  /** The source terminology. */
+  private String sourceTerminology;
+
   /** The type. */
   private String type;
 
   /** The target name. */
   private String targetName;
 
-  /** The target term group. */
-  private String targetTermGroup;
+  /** The target term type. */
+  private String targetTermType;
 
   /** The target code. */
   private String targetCode;
@@ -55,8 +58,9 @@ public class Map extends BaseModel implements Comparable<Map> {
   public void populateFrom(final Map other) {
     type = other.getType();
     targetName = other.getTargetName();
-    targetTermGroup = other.getTargetTermGroup();
+    targetTermType = other.getTargetTermType();
     sourceCode = other.getSourceCode();
+    sourceTerminology = other.getSourceTerminology();
     targetCode = other.getTargetCode();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
@@ -99,21 +103,30 @@ public class Map extends BaseModel implements Comparable<Map> {
   }
 
   /**
-   * Returns the target term group.
+   * Returns the target term type.
    *
-   * @return the target term group
+   * @return the target term type
    */
-  public String getTargetTermGroup() {
-    return targetTermGroup;
+  public String getTargetTermType() {
+    return targetTermType;
   }
 
   /**
-   * Sets the target term group.
+   * Sets the target term type.
+   *
+   * @param targetTermType the target term type
+   */
+  public void setTargetTermType(final String targetTermType) {
+    this.targetTermType = targetTermType;
+  }
+
+  /**
+   * Sets the target term group. This is a bridge to support naming convention normalization.
    *
    * @param targetTermGroup the target term group
    */
   public void setTargetTermGroup(final String targetTermGroup) {
-    this.targetTermGroup = targetTermGroup;
+    this.targetTermType = targetTermGroup;
   }
 
   /**
@@ -153,6 +166,24 @@ public class Map extends BaseModel implements Comparable<Map> {
   }
 
   /**
+   * Returns the source terminology.
+   *
+   * @return the source terminology
+   */
+  public String getSourceTerminology() {
+    return sourceTerminology;
+  }
+
+  /**
+   * Sets the source terminology.
+   *
+   * @param sourceTerminology the source terminology
+   */
+  public void setSourceTerminology(final String sourceTerminology) {
+    this.sourceTerminology = sourceTerminology;
+  }
+
+  /**
    * Returns the target terminology.
    *
    * @return the target terminology
@@ -188,20 +219,16 @@ public class Map extends BaseModel implements Comparable<Map> {
     this.targetTerminologyVersion = targetTerminologyVersion;
   }
 
-  /**
-   * Hash code.
-   *
-   * @return the int
-   */
   /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((sourceCode == null) ? 0 : sourceCode.hashCode());
+    result = prime * result + ((sourceTerminology == null) ? 0 : sourceTerminology.hashCode());
     result = prime * result + ((targetCode == null) ? 0 : targetCode.hashCode());
     result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
-    result = prime * result + ((targetTermGroup == null) ? 0 : targetTermGroup.hashCode());
+    result = prime * result + ((targetTermType == null) ? 0 : targetTermType.hashCode());
     result = prime * result + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
     result = prime * result
         + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
@@ -209,12 +236,6 @@ public class Map extends BaseModel implements Comparable<Map> {
     return result;
   }
 
-  /**
-   * Equals.
-   *
-   * @param obj the obj
-   * @return true, if successful
-   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {
@@ -235,6 +256,13 @@ public class Map extends BaseModel implements Comparable<Map> {
     } else if (!sourceCode.equals(other.sourceCode)) {
       return false;
     }
+    if (sourceTerminology == null) {
+      if (other.sourceTerminology != null) {
+        return false;
+      }
+    } else if (!sourceTerminology.equals(other.sourceTerminology)) {
+      return false;
+    }
     if (targetCode == null) {
       if (other.targetCode != null) {
         return false;
@@ -249,11 +277,11 @@ public class Map extends BaseModel implements Comparable<Map> {
     } else if (!targetName.equals(other.targetName)) {
       return false;
     }
-    if (targetTermGroup == null) {
-      if (other.targetTermGroup != null) {
+    if (targetTermType == null) {
+      if (other.targetTermType != null) {
         return false;
       }
-    } else if (!targetTermGroup.equals(other.targetTermGroup)) {
+    } else if (!targetTermType.equals(other.targetTermType)) {
       return false;
     }
     if (targetTerminology == null) {
@@ -283,8 +311,8 @@ public class Map extends BaseModel implements Comparable<Map> {
   /* see superclass */
   @Override
   public int compareTo(Map o) {
-    return (sourceCode + targetName + targetCode)
-        .compareToIgnoreCase(o.getSourceCode() + o.getTargetName() + o.getTargetCode());
+    return (sourceCode + sourceTerminology + targetName + targetCode).compareToIgnoreCase(
+        o.getSourceCode() + o.getSourceTerminology() + o.getTargetName() + o.getTargetCode());
   }
 
 }

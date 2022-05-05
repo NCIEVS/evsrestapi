@@ -3,8 +3,43 @@ package gov.nih.nci.evs.restapi.util;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFCell;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFHyperlink;
+import org.apache.poi.hssf.usermodel.HSSFPalette;
+import org.apache.poi.hssf.usermodel.HSSFPicture;
+import org.apache.poi.hssf.usermodel.HSSFPictureData;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFShape;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.POIXMLDocument;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellValue;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFHyperlink;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.hpsf.SummaryInformation;
 
 import java.io.*;
 import java.util.*;
@@ -79,6 +114,8 @@ public class ExcelWriter {
 	static int XLSX = 1;
 	static int XLS = 2;
 
+	static String CONFIGFILE = "config.txt";
+
     public Workbook createWorkbook(int type) {
 		if (type == XLSX) {
 			return new XSSFWorkbook();
@@ -88,6 +125,40 @@ public class ExcelWriter {
 
     public Sheet createSheet(int type, Workbook workbook, String label) {
 		return workbook.createSheet(label);
+	}
+
+	public static Vector readFile(String filename) {
+		Vector v = new Vector();
+		try {
+			BufferedReader in = new BufferedReader(
+			   new InputStreamReader(
+						  new FileInputStream(filename), "UTF8"));
+			String str;
+			while ((str = in.readLine()) != null) {
+				v.add(str);
+			}
+            in.close();
+		} catch (Exception ex) {
+            ex.printStackTrace();
+		}
+		return v;
+	}
+
+    public static Vector parseData(String line, char delimiter) {
+		if(line == null) return null;
+		Vector w = new Vector();
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<line.length(); i++) {
+			char c = line.charAt(i);
+			if (c == delimiter) {
+				w.add(buf.toString());
+				buf = new StringBuffer();
+			} else {
+				buf.append(c);
+			}
+		}
+		w.add(buf.toString());
+		return w;
 	}
 
     public Font createFont(Workbook workbook, boolean bold, int size, String color) {
@@ -275,7 +346,7 @@ public class ExcelWriter {
 
 	}
 
-    public void writeToXSSF(Vector datafile_vec, String excelfile, char delim, Vector sheetLabel_vec, String headerColor) {
+    public void writeToXSSF(Vector datafile_vec, String excelfile, char delim, Vector sheetLabel_vec) {
 		Workbook workbook = new XSSFWorkbook();
 		CreationHelper createHelper = workbook.getCreationHelper();
 
@@ -292,26 +363,38 @@ public class ExcelWriter {
 
 		for (int lcv=0; lcv<datafile_vec.size(); lcv++) {
 			String datafile = (String) datafile_vec.elementAt(lcv);
-            Vector lines = Utils.readFile(datafile);
-			String heading = (String) lines.elementAt(0);
-			String[] columns = getColumnHeadings(heading, delim);
-			Sheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
-			Row headerRow = sheet.createRow(0);
-			for(int i = 0; i < columns.length; i++) {
-				Cell cell = headerRow.createCell(i);
-				cell.setCellValue(columns[i]);
-				cell.setCellStyle(headerCellStyle);
-			}
-			for (int i=1;i<lines.size(); i++) {
-				String line = (String) lines.elementAt(i);
-				Vector values = StringUtils.parseData(line, delim);
-				Row row = sheet.createRow(i);
-				for(int k = 0; k < values.size(); k++) {
-					row.createCell(k).setCellValue((String) values.elementAt(k));
+			System.out.println(datafile);
+			try {
+				Sheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
+				Vector lines = Utils.readFile(datafile);
+				if (lines.size() > 0) {
+					String heading = (String) lines.elementAt(0);
+					String[] columns = getColumnHeadings(heading, delim);
+
+					Row headerRow = sheet.createRow(0);
+
+					for(int i = 0; i < columns.length; i++) {
+						Cell cell = headerRow.createCell(i);
+						cell.setCellValue(columns[i]);
+						cell.setCellStyle(headerCellStyle);
+					}
+					if (lines.size() > 1) {
+						for (int i=1;i<lines.size(); i++) {
+							String line = (String) lines.elementAt(i);
+							Vector values = StringUtils.parseData(line, delim);
+							Row row = sheet.createRow(i);
+							for(int k = 0; k < values.size(); k++) {
+								row.createCell(k).setCellValue((String) values.elementAt(k));
+							}
+						}
+						for(int i = 0; i < columns.length; i++) {
+							sheet.autoSizeColumn(i);
+						}
+				    }
 				}
-			}
-			for(int i = 0; i < columns.length; i++) {
-				sheet.autoSizeColumn(i);
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 		}
         try {
@@ -325,131 +408,99 @@ public class ExcelWriter {
 		}
     }
 
-    public static void write(Workbook workbook, String excelfile) {
-		try {
+    public void writeToHSSF(Vector datafile_vec, String excelfile, char delim, Vector sheetLabel_vec) {
+		Workbook workbook = new HSSFWorkbook();
+		CreationHelper createHelper = workbook.getCreationHelper();
+
+		boolean bold = true;
+		int size = 14;
+		String color = RED;
+		Font headerFont = createFont(workbook, bold, size, color);
+
+		CellStyle headerCellStyle = workbook.createCellStyle();
+		headerCellStyle.setFont(headerFont);
+
+		CellStyle dateCellStyle = workbook.createCellStyle();
+		dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-MM-yyyy"));
+
+		for (int lcv=0; lcv<datafile_vec.size(); lcv++) {
+			String datafile = (String) datafile_vec.elementAt(lcv);
+			System.out.println(datafile);
+			try {
+				Sheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
+				Vector lines = Utils.readFile(datafile);
+				if (lines.size() > 0) {
+					String heading = (String) lines.elementAt(0);
+					String[] columns = getColumnHeadings(heading, delim);
+
+					Row headerRow = sheet.createRow(0);
+
+					for(int i = 0; i < columns.length; i++) {
+						Cell cell = headerRow.createCell(i);
+						cell.setCellValue(columns[i]);
+						cell.setCellStyle(headerCellStyle);
+					}
+					if (lines.size() > 1) {
+						for (int i=1;i<lines.size(); i++) {
+							String line = (String) lines.elementAt(i);
+							Vector values = StringUtils.parseData(line, delim);
+							Row row = sheet.createRow(i);
+							for(int k = 0; k < values.size(); k++) {
+								row.createCell(k).setCellValue((String) values.elementAt(k));
+							}
+						}
+						for(int i = 0; i < columns.length; i++) {
+							sheet.autoSizeColumn(i);
+						}
+				    }
+				}
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+        try {
 			FileOutputStream fileOut = new FileOutputStream(excelfile);
 			workbook.write(fileOut);
 			fileOut.close();
+
 			workbook.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-	}
+    }
 
-
-    public static CellStyle cloneStyleFrom(CellStyle style_clone, CellStyle style) {
-		style_clone.cloneStyleFrom(style);
-
-		int code = style.getAlignment();
-		HorizontalAlignment ha = HorizontalAlignment.forInt(code);
-		style_clone.setAlignment(ha);
-
-		short style_code = style.getBorderBottom();
-		style_clone.setBorderBottom(BorderStyle.valueOf(style_code));
-
-		style_code = style.getFillBackgroundColor();
-		style_clone.setFillBackgroundColor(style_code);
-
-		style_code = style.getFillForegroundColor();
-		style_clone.setFillForegroundColor(style_code);
-
-		style_code = style.getFillPattern();
-		style_clone.setFillPattern(FillPatternType.forInt(style_code));
-        return style_clone;
-	}
-
-    public static String cloneWorkbook(String xlsxfile) {
-		String outputfile = "cloned_" + xlsxfile;
-		Workbook workbook = null;
-		try {
-			workbook = new XSSFWorkbook(new FileInputStream(xlsxfile));
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		Workbook workbook_clone = new XSSFWorkbook();
-		CellStyle style_clone = workbook_clone.createCellStyle();
-		Row row;
-		//Cell cell;
-		for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-			XSSFSheet sheet = (XSSFSheet) workbook.getSheetAt(i);
-			XSSFSheet sheet_clone = (XSSFSheet) workbook_clone.createSheet(sheet.getSheetName());
-			Cell c = null;
-			Cell cell = null;
-			System.out.println("Number of rows in " + sheet.getSheetName() + ": " + sheet.getPhysicalNumberOfRows());
-			for (int rowIndex = 0; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
-				row = sheet.getRow(rowIndex);
-				if (row != null) {
-					Row row_clone = sheet_clone.createRow(rowIndex);
-					Iterator<Cell> cellIterator = row.cellIterator();
-					int colIndex = 0;
-					while (cellIterator.hasNext()) {
-						c = cellIterator.next();
-						if (c == null) {
-							System.out.println("WARNING: cell(" + rowIndex + "," + colIndex + ") on " + sheet.getSheetName() +  " is null");
-                            cell = row_clone.createCell(colIndex);
-                            cell.setCellValue("");
-						} else if (c != null) {
-							CellStyle style = c.getCellStyle();
-							cell = row_clone.createCell(colIndex);
-							style_clone = cloneStyleFrom(style_clone, style);
-							cell.setCellStyle(style_clone);
-							switch (c.getCellTypeEnum()) {
-								case STRING:
-									cell.setCellValue(c.getRichStringCellValue().getString());
-									break;
-								case NUMERIC:
-									if (DateUtil.isCellDateFormatted(cell)) {
-										cell.setCellValue(c.getDateCellValue());
-									} else {
-										cell.setCellValue(c.getNumericCellValue());
-									}
-									break;
-								case BOOLEAN:
-									cell.setCellValue(c.getBooleanCellValue());
-									break;
-								case FORMULA:
-									cell.setCellValue(c.getCellFormula());
-									break;
-								case BLANK:
-									cell.setCellValue("");
-									break;
-								default:
-									//cell.setCellValue("");
-							}
-						}
-						colIndex++;
-					}
-				}
-			}
-		}
-		FileOutputStream fileOut = null;
-		try {
-			fileOut = new FileOutputStream(outputfile);
-			workbook_clone.write(fileOut);
-			workbook.close();
-			workbook_clone.close();
-			fileOut.close();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return outputfile;
-	}
 
     public static void main(String[] args) throws IOException, InvalidFormatException {
 		ExcelWriter writer = new ExcelWriter();
-		boolean test_mode = true;
-        String datafile = "C168658.txt";
-        char delim = '|';
-        String sheetLabel = "test";
-        String headerColor = RED;
+		Vector v = readFile(CONFIGFILE);
+		String t = (String) v.elementAt(0);
+		Vector u = parseData(t, '|');
+		String excelfile = (String) u.elementAt(0);
+		char delim = '|';
+		String s = (String) u.elementAt(1);
+		if (s.compareTo("tab") == 0) {
+			delim = '\t';
+		}
         Vector datafile_vec = new Vector();
-        datafile_vec.add("C168655.txt");
-        datafile_vec.add("C168657.txt");
-        datafile_vec.add("C168658.txt");
         Vector sheetLabel_vec = new Vector();
-        sheetLabel_vec.add("Mapped ICDO3.1 Terminology");
-        sheetLabel_vec.add("Mapped ICDO3.1 Morphology Terminology");
-        sheetLabel_vec.add("Mapped ICDO3.1 Morphology PT Terminology");
-        writer.writeToXSSF(datafile_vec, "test1.xlsx", delim, sheetLabel_vec, headerColor);
+        for (int i=1; i<v.size(); i++) {
+			t = (String) v.elementAt(i);
+			u = parseData(t, '|');
+			datafile_vec.add((String) u.elementAt(1));
+			sheetLabel_vec.add((String) u.elementAt(0));
+		}
+		if (excelfile.endsWith(".xls")) {
+			writer.writeToHSSF(datafile_vec, excelfile, delim, sheetLabel_vec);
+		} else {
+			writer.writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec);
+		}
 	}
 }
+
+/*
+config.txt:
+CDISC ADaM Terminology.xls|tab
+ReadMe|readme.txt
+CDISC ADaM Terminology|CDISC ADaM Terminology.txt
+*/

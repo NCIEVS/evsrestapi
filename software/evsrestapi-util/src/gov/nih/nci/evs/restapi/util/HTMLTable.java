@@ -46,7 +46,9 @@ public class HTMLTable {
 			} else if (t.startsWith("<footer>")) {
 				footer = t.substring("<footer>".length(), t.length());
 			} else {
-				data_vec.add(t);
+				if (t.indexOf("</data>") == -1) {
+					data_vec.add(t);
+				}
 			}
 		}
 		try {

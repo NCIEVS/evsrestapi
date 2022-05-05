@@ -134,7 +134,13 @@ public class EVSStatistics {
 		this.owlSPARQLUtils.set_named_graph(named_graph);
 		this.version  = metadataUtils.getVocabularyVersion(named_graph);
         System.out.println("NCI Thesaurus version: " + version);
-		httpUtils = new HTTPUtils();
+        try {
+			httpUtils = new HTTPUtils();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		System.out.println("httpUtils instantiated.");
+		System.out.println("getSupportedProperties ...");
 		properties = getSupportedProperties(named_graph);
 		propertyCode2NameHashMap = new HashMap();
 		propertyName2CodeHashMap = new HashMap();
@@ -149,6 +155,7 @@ public class EVSStatistics {
 		this.table_data = new Vector();
 		this.roots = getRoots(named_graph, true);
 
+        System.out.println("getObjectProperties ...");
 		Vector supported_roles = getObjectProperties(named_graph);
 		roleCode2NameHashMap = new HashMap();
 		roleName2CodeHashMap = new HashMap();
@@ -165,6 +172,7 @@ public class EVSStatistics {
 		retired_concepts = new HashSet();
 	    String property_name = "Concept_Status";
 	    String property_value = "Retired_Concept";
+	    System.out.println("findConceptsWithPropertyMatching property_value: " + property_value);
 		Vector w = findConceptsWithPropertyMatching(named_graph, property_name, property_value);
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
@@ -175,6 +183,8 @@ public class EVSStatistics {
 		valuesetCode2NameMap = new HashMap();
 		valuesetName2CodeMap = new HashMap();
 		valueset2ContributingSourceMap = new HashMap();
+
+		System.out.println("getValueSets ...");
 	    w = getValueSets(named_graph);
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
@@ -186,6 +196,7 @@ public class EVSStatistics {
 			valuesetName2CodeMap.put(name, code);
 		}
 
+        System.out.println("getValueSetsWithContributingSource ...");
 	    w = getValueSetsWithContributingSource(named_graph);
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
@@ -194,6 +205,7 @@ public class EVSStatistics {
 			String source = (String) u.elementAt(3);
 			valueset2ContributingSourceMap.put(code, source);
 		}
+		System.out.println("EVSStatistics instantiated.");
 	}
 
 	public void addTitle(String title) {
@@ -217,7 +229,7 @@ public class EVSStatistics {
 	}
 
     public void addFooter() {
-		table_data.add("<footer>(Source; NCI Thesaurus, version " + this.version + ")");
+		table_data.add("<footer>(Source: NCI Thesaurus, version " + this.version + ")");
 	}
 
     public boolean is_ANNOTATED_TARGET_CODES(String propertyCode) {
@@ -1793,23 +1805,14 @@ public class EVSStatistics {
 	}
 
     public void generateTableData() {
+		System.out.println("generateTableData...");
 		Vector v = new Vector();
 		String tableName = null;
 		Vector th_vec = null;
 		addTitle("NCI Thesaurus Statistics");
 
-		if (checkIfFileExists(RESTRICTION_FILE)) {
-			v = Utils.readFile(RESTRICTION_FILE);
-		} else{
-			v = getRoleTargets(named_graph);
-		}
-		String firstLine = (String) v.elementAt(0);
-		Vector u = StringUtils.parseData(firstLine, '|');
-		if (u.size() == 3) {
-			v = convert(v);
-			Utils.saveToFile(RESTRICTION_FILE, v);
-		}
 
+		System.out.println("generateBranchSizeTableData ...");
         v = generateBranchSizeTableData();
 	    tableName = addTableNumber("Branch Size");
 	    th_vec = new Vector();
@@ -1819,6 +1822,24 @@ public class EVSStatistics {
 	    th_vec.add("Retired");
 	    th_vec.add("Total");
 	    addTable(tableName, th_vec, v);
+
+
+		if (checkIfFileExists(RESTRICTION_FILE)) {
+			System.out.println("Loading " + RESTRICTION_FILE);
+			v = Utils.readFile(RESTRICTION_FILE);
+		} else{
+			System.out.println("getRoleTargets...");
+			v = getRoleTargets(named_graph);
+		}
+
+		System.out.println("getRoleTargets... v.size(): " + v.size());
+		String firstLine = (String) v.elementAt(0);
+		Vector u = StringUtils.parseData(firstLine, '|');
+		if (u.size() == 3) {
+			v = convert(v);
+			Utils.saveToFile(RESTRICTION_FILE, v);
+		}
+
 
         Vector spec_roots = new Vector();
         spec_roots.add("C2991");
@@ -1830,6 +1851,7 @@ public class EVSStatistics {
         spec_roots.add("C16203");
         spec_roots.add("C25218");
         spec_roots.add("C1909");
+        System.out.println("generateSubBranchData ...");
         Vector subbranchdata = generateSubBranchData(spec_roots);
         subbranchdata = new SortUtils().quickSort(subbranchdata);
 	    tableName = addTableNumber("Subtrees");
@@ -1841,6 +1863,7 @@ public class EVSStatistics {
 	    th_vec.add("Total");
 	    addTable(tableName, th_vec, subbranchdata);
 
+        System.out.println("generateValueSetTableData ...");
 		Vector ret_vec = generateValueSetTableData();
 	    tableName = addTableNumber("Tallies of Concepts_In_Subset Associations");
 	    th_vec = new Vector();
@@ -1851,6 +1874,7 @@ public class EVSStatistics {
 
 	    run_valuse_set();
 
+        System.out.println("getPropertyValueCounts ...");
 	    v = getPropertyValueCounts(named_graph, "Semantic_Type");
 	    tableName = addTableNumber("Semantic_Type");
 	    th_vec = new Vector();
@@ -1859,6 +1883,7 @@ public class EVSStatistics {
 	    addTable(tableName, th_vec, v);
 	    addFooter();
 
+        System.out.println("getPropertyValueCounts (Contributing_Source) ...");
 	    v = getPropertyValueCounts(named_graph, "Contributing_Source");
 	    tableName = addTableNumber("Contributing_Source");
 	    th_vec = new Vector();
@@ -1867,6 +1892,7 @@ public class EVSStatistics {
 	    addTable(tableName, th_vec, v);
 	    addFooter();
 
+        System.out.println("getPropertyValueCounts (Concept_Status) ...");
 	    v = getPropertyValueCounts(named_graph, "Concept_Status");
 	    tableName = addTableNumber("Concept_Status");
 	    th_vec = new Vector();
@@ -1875,6 +1901,7 @@ public class EVSStatistics {
 	    addTable(tableName, th_vec, v);
 	    addFooter();
 
+        System.out.println("getPropertyCounts ...");
         v = getPropertyCounts(named_graph);
 	    tableName = addTableNumber("Properties");
 	    th_vec = new Vector();
@@ -1883,6 +1910,7 @@ public class EVSStatistics {
 	    addTable(tableName, th_vec, v);
 	    addFooter();
 
+        System.out.println("getAssociations ...");
         v = getAssociations(named_graph);
         Vector association_knt_vec = getRelationsipCounts(v);
 
@@ -1893,6 +1921,8 @@ public class EVSStatistics {
 	    addTable(tableName, th_vec, association_knt_vec);
 
 		v = Utils.readFile(RESTRICTION_FILE);
+        System.out.println("getRelationsipCounts ...");
+
 		Vector role_vec = getRelationsipCounts(v);
 		tableName = addTableNumber("Roles");
 		th_vec = new Vector();
@@ -1901,6 +1931,7 @@ public class EVSStatistics {
 		addTable(tableName, th_vec, role_vec);
 
 	    addFooter();
+	    System.out.println("Done.");
 	}
 
 

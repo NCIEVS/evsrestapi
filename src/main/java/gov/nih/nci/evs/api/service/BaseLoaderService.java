@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
@@ -179,7 +180,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         return -1 * o1.getTerminology().getVersion().compareTo(o2.getTerminology().getVersion());
       }
     });
-
+    logger.info("  iMetas = " + iMetas.stream().map(i -> i.getTerminology().getTerminologyVersion())
+        .collect(Collectors.toList()));
     boolean latestMonthlyFound = false;
     boolean latestWeeklyFound = false;
     boolean latestFound = false;
@@ -289,13 +291,14 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     logger.info("  ADD terminology = " + term);
     iMeta.setTerminology(term);
 
-    boolean created = operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
-    if (created) {
-      operationsService.getElasticsearchOperations().putMapping(
-          ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
-          IndexMetadata.class);
-    }
-    
+    // boolean created =
+    operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+    // if (created) {
+    operationsService.getElasticsearchOperations().putMapping(
+        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
+        IndexMetadata.class);
+    // }
+
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
 

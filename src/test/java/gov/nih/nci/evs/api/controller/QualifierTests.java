@@ -158,7 +158,7 @@ public class QualifierTests {
     assertThat(concept.getCode()).isEqualTo("C100065");
     assertThat(concept.getSynonyms().size()).isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getSource() != null
-        && s.getSubSource() != null && s.getCode() != null && s.getTermGroup() != null).count())
+        && s.getSubSource() != null && s.getCode() != null && s.getTermType() != null).count())
             .isGreaterThan(0);
   }
 
@@ -186,7 +186,7 @@ public class QualifierTests {
     assertThat(concept.getMaps().size()).isGreaterThan(0);
     assertThat(concept.getMaps().stream()
         .filter(m -> m.getType() != null && m.getTargetCode() != null
-            && m.getTargetTerminologyVersion() != null && m.getTargetTermGroup() != null
+            && m.getTargetTerminologyVersion() != null && m.getTargetTermType() != null
             && m.getTargetTerminology() != null)
         .count()).isGreaterThan(0);
   }

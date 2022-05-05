@@ -70,6 +70,7 @@ public class ExcelDiffUtils {
     public String datafile1 = null;
     public String datafile2 = null;
     Vector headings = null;
+    boolean NORMALIZE = true;
 
     public ExcelDiffUtils(String datafile1, String datafile2) {
 		this.datafile1 = datafile1;
@@ -83,6 +84,7 @@ public class ExcelDiffUtils {
 	public Vector split(String line, char delim) {
 		return StringUtils.parseData(line, delim);
 	}
+
 
 	public void run(PrintWriter pw) {
 		Vector v1 = Utils.readFile(datafile1);
@@ -136,9 +138,14 @@ public class ExcelDiffUtils {
         pw.println("\nOld file " + datafile1);
         pw.println("New file " + datafile2);
         pw.println("\n");
-        dumpVector(pw, "headings", headings);
+
+        pw.println("Edit action descriptions: ");
+        pw.println("\tadded: data in " + datafile2 + " but not in " + datafile1);
+        pw.println("\tdeleted: data in " + datafile1 + " but not in " + datafile2);
+
+        dumpVector(pw, "\nHeadings", headings);
         pw.println("\nEdit actions:");
-		compare(pw, hmap_2, hmap_1);
+		compare(pw, hmap_1, hmap_2);
 	}
 
 	public void dumpVector(PrintWriter pw, String label, Vector v) {
@@ -164,13 +171,37 @@ public class ExcelDiffUtils {
 		}
 	}
 
+	public String normalize(String t) {
+		if (t.indexOf("||") == -1) return t;
+		t = t.replace(" || ", "|");
+		Vector u = StringUtils.parseData(t, '|');
+		u = new SortUtils().quickSort(u);
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<u.size(); i++) {
+			String s = (String) u.elementAt(i);
+			buf.append(s);
+			if (i < u.size()-1) {
+				buf.append(" || ");
+			}
+		}
+		return buf.toString();
+	}
+
 	public void compareRow(PrintWriter pw, String code, HashMap hmap_1, HashMap hmap_2) {
 		Iterator it1 = hmap_1.keySet().iterator();
 		while (it1.hasNext()) {
 			String key = (String) it1.next();
 			String value_1 = (String) hmap_1.get(key);
 			String value_2 = (String) hmap_2.get(key);
+
+            if (NORMALIZE) {
+				value_1 = normalize(value_1);
+				value_2 = normalize(value_2);
+			}
+
 			if (value_1.compareTo(value_2) != 0) {
+				value_1 = (String) hmap_1.get(key);
+				value_2 = (String) hmap_2.get(key);
 				pw.println("added|" + code + "|" + key + "|" + value_1);
 				pw.println("deleted|" + code + "|" + key + "|" + value_2);
 			}
@@ -178,14 +209,17 @@ public class ExcelDiffUtils {
 	}
 
 	public void compare(PrintWriter pw, HashMap hmap_1, HashMap hmap_2) {
-		//hmap_1: New, hmap_2: Old
+		int n1 = hmap_1.keySet().size();
+		int n2 = hmap_2.keySet().size();
+
+		//hmap_1: Old, hmap_2: New
 		Iterator it1 = hmap_1.keySet().iterator();
 
-		//In New, but not in Old
+		//In Old, but not in New
 		while (it1.hasNext()) {
 			String code = (String) it1.next();
 			if (!hmap_2.containsKey(code)) {
-				pw.println("added|" + code);
+				pw.println("deleted|" + code);
 			}
 		}
 		//In Old, but not in New
@@ -193,7 +227,7 @@ public class ExcelDiffUtils {
 		while (it2.hasNext()) {
 			String code = (String) it2.next();
 			if (!hmap_1.containsKey(code)) {
-				pw.println("deleted|" + code);
+				pw.println("added|" + code);
 			}
 		}
 
@@ -209,19 +243,47 @@ public class ExcelDiffUtils {
 		}
 	}
 
+	public static void dumpData(String filename) {
+		Vector w = Utils.readFile(filename);
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '\t');
+			Utils.dumpVector(line, u);
+		}
+	}
+
+
+    public static String exportExcelSheet(String excelfile) {
+        int n = excelfile.lastIndexOf(".");
+        String textfile = excelfile.substring(0, n) + ".txt";
+        int sheet_num = 0;
+		Vector w = ExcelReader.toDelimited(excelfile, sheet_num, '\t');
+		Utils.saveToFile(textfile, w);
+	    return textfile;
+    }
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String datafile1 = args[0];
 		String datafile2 = args[1];
-		ExcelDiffUtils pdfAnalyzer = new ExcelDiffUtils(datafile1, datafile2);
+
+		if (datafile1.endsWith(".xls")) {
+			datafile1 = exportExcelSheet(datafile1);
+		}
+		if (datafile2.endsWith(".xls")) {
+			datafile2 = exportExcelSheet(datafile2);
+		}
+
+		ExcelDiffUtils diffUtils = new ExcelDiffUtils(datafile1, datafile2);
 
 		PrintWriter pw = null;
 		int n1 = datafile1.lastIndexOf(".");
 		int n2 = datafile2.lastIndexOf(".");
-		String outputfile = datafile1.substring(0, n1) + "_" + datafile1.substring(0, n2) + ".txt";
+		String outputfile = datafile1.substring(0, n1) + "_" + datafile2.substring(0, n2) + ".txt";
 		try {
 			pw = new PrintWriter(outputfile, "UTF-8");
-            pdfAnalyzer.run(pw);
+            diffUtils.run(pw);
 
 		} catch (Exception ex) {
 
@@ -233,6 +295,7 @@ public class ExcelDiffUtils {
 				ex.printStackTrace();
 			}
 		}
+
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }

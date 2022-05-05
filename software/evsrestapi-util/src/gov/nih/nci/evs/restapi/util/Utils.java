@@ -198,7 +198,7 @@ public class Utils {
 		 v.add(t);
 		 saveToFile(outputfile, v);
 	 }
-
+/*
 	 public static void saveToFile(String outputfile, Vector v) {
 		if (outputfile.indexOf(" ") != -1) {
 			outputfile = replaceFilename(outputfile);
@@ -223,6 +223,24 @@ public class Utils {
 			}
 		}
 	 }
+*/
+    public static void saveToFile(String outputfile, Vector v) {
+        try {
+            FileOutputStream output = new FileOutputStream(outputfile);
+            for (int i=0; i<v.size(); i++) {
+				String data = (String) v.elementAt(i);
+				if (i < v.size()) {
+					data = data + "\n";
+				}
+				byte[] array = data.getBytes();
+				output.write(array);
+			}
+            output.close();
+        } catch(Exception e) {
+            e.getStackTrace();
+        }
+    }
+
 
 	public static void saveToFile(PrintWriter pw, Vector v) {
 		if (v != null && v.size() > 0) {
@@ -233,6 +251,33 @@ public class Utils {
 		}
 	}
 
+	public static Vector readFile(String datafile) {
+		Vector v = new Vector();
+        try {
+			File file = new File(datafile);
+			FileInputStream fis = new FileInputStream(file);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			BufferedReader br = null;
+			try {
+				br = br = new BufferedReader(new InputStreamReader(bis));
+			} catch (Exception ex) {
+				return null;
+			}
+
+            while (true) {
+                String line = br.readLine();
+				if (line == null) {
+					break;
+				}
+				v.add(line);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
+	}
+
+	/*
 	public static Vector readFile(String filename)
 	{
 		Vector v = new Vector();
@@ -250,6 +295,7 @@ public class Utils {
 		}
 		return v;
 	}
+	*/
 
     public static Vector parseData(String line, char delimiter) {
 		if(line == null) return null;

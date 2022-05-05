@@ -137,7 +137,11 @@ public class LoaderServiceImpl {
     try {
       // which indexing object do we need to use
       if (cmd.hasOption('d')) {
-        loadService = app.getBean(DirectoryElasticLoadServiceImpl.class);
+        if (cmd.getOptionValue("t").equals("ncim")) {
+          loadService = app.getBean(MetaElasticLoadServiceImpl.class);
+        } else {
+          loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
+        }
       } else {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }

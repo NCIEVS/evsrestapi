@@ -30,8 +30,7 @@ public class SynonymUnitTest {
 
   /** The logger. */
   @SuppressWarnings("unused")
-  private static final Logger log =
-      LoggerFactory.getLogger(SynonymUnitTest.class);
+  private static final Logger log = LoggerFactory.getLogger(SynonymUnitTest.class);
 
   /** The model object to test. */
   private Synonym object;
@@ -66,6 +65,7 @@ public class SynonymUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
+    tester.exclude("termgroup");
     tester.proxy("qualifiers", 1, q1);
     tester.proxy("qualifiers", 2, q2);
     tester.test();
@@ -82,7 +82,7 @@ public class SynonymUnitTest {
     tester.proxy("qualifiers", 1, q1);
     tester.proxy("qualifiers", 2, q2);
     tester.include("name");
-    tester.include("termGroup");
+    tester.include("termType");
     tester.include("type");
     tester.include("source");
     tester.include("code");

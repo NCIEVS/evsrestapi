@@ -49,6 +49,7 @@ public class MapUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
+    tester.exclude("targettermgroup");
     tester.test();
   }
 
@@ -62,9 +63,10 @@ public class MapUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("type");
     tester.include("targetName");
+    tester.include("sourceCode");
+    tester.include("sourceTerminology");
     tester.include("targetCode");
-    tester.include("targetCode");
-    tester.include("targetTermGroup");
+    tester.include("targetTermType");
     tester.include("targetTerminology");
     tester.include("targetTerminologyVersion");
 
