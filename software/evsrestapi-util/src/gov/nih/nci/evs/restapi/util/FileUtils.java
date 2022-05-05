@@ -97,6 +97,20 @@ public class FileUtils
         return w;
     }
 
+	public static void copyDirectory(String sourceDirectoryLocation, String destinationDirectoryLocation)
+		throws IOException {
+		File target_dir = new File(destinationDirectoryLocation);
+
+		Files.walk(Paths.get(sourceDirectoryLocation)).forEach(source -> {
+		Path destination = Paths.get(destinationDirectoryLocation, source.toString().substring(sourceDirectoryLocation.length()));
+		try {
+			Files.copy(source, destination);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		});
+	}
+
     public static void main(String[] args) {
 		String currentWorkingDir = getCurrentWorkingDirectory();
 		System.out.println("getCurrentWorkingDirectory: " + currentWorkingDir);

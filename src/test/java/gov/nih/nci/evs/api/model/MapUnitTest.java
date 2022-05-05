@@ -49,6 +49,7 @@ public class MapUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
+    tester.exclude("targettermgroup");
     tester.test();
   }
 
