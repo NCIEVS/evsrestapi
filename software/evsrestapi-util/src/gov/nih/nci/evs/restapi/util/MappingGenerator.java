@@ -74,12 +74,15 @@ public class MappingGenerator {
 	static String BASE = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
 	static String LG_CON ="http://LexGrid.org/schema/2010/01/LexGrid/concepts";
 
-    static String MAPPING_NAME = "met:concise_name";
-    static String MAPPING_VERSION = "met:version";
-    static String RELEASE_DATE = "met:version_releaseDate";
-    static String MAPPING_DESCRIPTION = "met:description";
-    static String MAPPING_DISPLAY_NAME = "met:display_name";
-    static String MAPPING_RANK_APPLICABLE = "met:map_rank_applicable";
+    static final String MAPPING_NAME = "met:concise_name";
+    static final String MAPPING_VERSION = "met:version";
+    static final String RELEASE_DATE = "met:version_releaseDate";
+    static final String MAPPING_DESCRIPTION = "met:description";
+    static final String MAPPING_DISPLAY_NAME = "met:display_name";
+    static final String MAPPING_RANK_APPLICABLE = "met:map_rank_applicable";
+
+    static String SOURCE_NS = "";
+    static String TARGET_NS = "";
 
     static String[] METADATA = new String[]{
 		MAPPING_NAME, MAPPING_VERSION, RELEASE_DATE, MAPPING_DESCRIPTION, MAPPING_DISPLAY_NAME, MAPPING_RANK_APPLICABLE
@@ -485,7 +488,7 @@ public class MappingGenerator {
 		out.println("     xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\"");
 		out.println("     xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"");
 		out.println("     xmlns:dc=\"http://purl.org/dc/elements/1.1/\">");
-		out.println("");
+		out.println("     xmlns:obo=\"http://purl.obolibrary.org/obo/\">");
 		out.println("     xmlns=\"http://LexGrid.org/schema/2010/01/LexGrid/codingSchemes\"");
 		out.println("     xmlns:lgBuiltin=\"http://LexGrid.org/schema/2010/01/LexGrid/builtins\"");
 		out.println("     xmlns:lgCommon=\"http://LexGrid.org/schema/2010/01/LexGrid/commonTypes\"");
@@ -579,15 +582,11 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 			String sourceCode = (String) u.elementAt(0);
 			String sourceName = (String) u.elementAt(1);
 			String sourceCodingScheme = (String) u.elementAt(2);
-			String base = BASE;
-			if (sourceCodingScheme.compareTo("NCI_Thesaurus") != 0) {
-				base = LG_CON;
-			}
 
 			out.println("");
-			out.println("    <!-- http://" + base + "#" + sourceCode + " -->");
+			out.println("    <!-- http://" + SOURCE_NS + sourceCode + " -->");
             out.println("");
-			out.println("    <owl:Class rdf:about=\"" + base + "#" + sourceCode + "\">");
+			out.println("    <owl:Class rdf:about=\"" + SOURCE_NS + sourceCode + "\">");
 			out.println("        <rdfs:label>" + sourceName + "</rdfs:label>");
 			out.println("        <ncit:P375>" + sourceName + "</ncit:P375>");
             out.println("    </owl:Class>");
@@ -616,15 +615,11 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 			String targetCode = (String) u.elementAt(8);
 			String targetName = (String) u.elementAt(9);
 			String argetCodingScheme = (String) u.elementAt(10);
-			String base = BASE;
-			if (argetCodingScheme.compareTo("NCI_Thesaurus") != 0) {
-				base = LG_CON;
-			}
 
 			out.println("");
-			out.println("    <!-- http://" + base + "#" + targetCode + " -->");
+			out.println("    <!-- http://" + TARGET_NS + targetCode + " -->");
 
-			out.println("    <owl:Class rdf:about=\"" + base + "#" + targetCode + "\">");
+			out.println("    <owl:Class rdf:about=\"" + TARGET_NS + targetCode + "\">");
 			out.println("        <rdfs:label>" + targetName + "</rdfs:label>");
 			out.println("    </owl:Class>");
 			out.println("");
@@ -653,7 +648,9 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 		return hmap;
 	}
 
-    public static void run(String metadataXML, String mappingdata) {
+    public static void run(String metadataXML, String mappingdata, String sourceNS, String targetNS) {
+		SOURCE_NS = sourceNS;
+		TARGET_NS = targetNS;
 		HashMap hmap = createMetadataHashMap(metadataXML);
 		int n = mappingdata.lastIndexOf(".");
 		String outputfile = mappingdata.substring(0, n) + "_" + (String) hmap.get(MAPPING_VERSION) + ".owl";
@@ -698,13 +695,8 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 		String target_Name = (String) u.elementAt(9);
 		String target_Coding_Scheme = (String) u.elementAt(10);
 
-		String base = BASE;
-		if (sourceCodingScheme.compareTo("NCI_Thesaurus") != 0) {
-			base = LG_CON;
-		}
-
 		out.println("    <owl:Axiom>");
-		out.println("        <owl:annotatedSource rdf:resource=\"" + base + "#" + source_Code + "\"/>");
+		out.println("        <owl:annotatedSource rdf:resource=\"" + SOURCE_NS + source_Code + "\"/>");
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P375\"/>");
 		out.println("        <owl:annotatedTarget>" + source_Name + "</owl:annotatedTarget>");
 		out.println("        <ncit:P393>Has Synonym</ncit:P393>");
@@ -728,7 +720,11 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 		long ms = System.currentTimeMillis();
 		String metadatafile = args[0];
 		String mappingdatafile = args[1];
-		run(metadatafile, mappingdatafile);
+
+		String sourceNS = args[2];
+		String targetNS = args[3];
+
+		run(metadatafile, mappingdatafile, sourceNS, targetNS);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }
