@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.util.*;
 
 import java.io.*;
 import java.text.*;
@@ -80,6 +80,8 @@ public class MappingGenerator {
     static final String MAPPING_DESCRIPTION = "met:description";
     static final String MAPPING_DISPLAY_NAME = "met:display_name";
     static final String MAPPING_RANK_APPLICABLE = "met:map_rank_applicable";
+
+    static HashMap metadataHashMap = null;
 
     static String SOURCE_NS = "";
     static String TARGET_NS = "";
@@ -489,6 +491,8 @@ public class MappingGenerator {
 		out.println("     xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"");
 		out.println("     xmlns:dc=\"http://purl.org/dc/elements/1.1/\">");
 		out.println("     xmlns:obo=\"http://purl.obolibrary.org/obo/\">");
+		out.println("     xmlns:go=\"http://purl.obolibrary.org/obo/go#\"");
+
 		out.println("     xmlns=\"http://LexGrid.org/schema/2010/01/LexGrid/codingSchemes\"");
 		out.println("     xmlns:lgBuiltin=\"http://LexGrid.org/schema/2010/01/LexGrid/builtins\"");
 		out.println("     xmlns:lgCommon=\"http://LexGrid.org/schema/2010/01/LexGrid/commonTypes\"");
@@ -515,6 +519,10 @@ public class MappingGenerator {
 
 
 	public static void writeAnnotationProperties(PrintWriter out) {
+		if (!isMappingRankApplicable()) {
+			return;
+		}
+
 		out.println("    <!-- ");
 		out.println("    ///////////////////////////////////////////////////////////////////////////////////////");
 		out.println("    //");
@@ -523,7 +531,6 @@ public class MappingGenerator {
 		out.println("    ///////////////////////////////////////////////////////////////////////////////////////");
 		out.println("     -->");
 		out.println("     ");
-
 		out.println("    <!-- http://LexGrid.org/schema/2010/01/LexGrid/naming#P001 -->");
 		out.println("");
 		out.println("    <owl:AnnotationProperty rdf:about=\"http://http://LexGrid.org/schema/2010/01/LexGrid/naming#P001\">");
@@ -626,8 +633,19 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 		}
 	}
 
-	public static HashMap createMetadataHashMap(String metadataXML) {
-		HashMap hmap = new HashMap();
+	public static boolean isMappingRankApplicable() {
+		String value = (String) metadataHashMap.get(MAPPING_RANK_APPLICABLE);
+		if (value == null) {
+			return false;
+		}
+		if (value.compareTo("true") == 0) {
+			return true;
+		}
+		return false;
+	}
+
+	public static void createMetadataHashMap(String metadataXML) {
+		metadataHashMap = new HashMap();
 		// Instantiate the Factory
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try (InputStream is = XmlDomParser.readXmlFileIntoInputStream(metadataXML)) {
@@ -638,28 +656,28 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 				String nodeName = METADATA[i];
 				Node node = XmlDomParser.searchNode(doc.getChildNodes(), nodeName);
 				if (node != null) {
-					hmap.put(nodeName, node.getTextContent());
+					metadataHashMap.put(nodeName, node.getTextContent());
+					System.out.println(nodeName + ":" + node.getTextContent());
 				}
 			}
 
 		} catch (ParserConfigurationException | SAXException | IOException e) {
 			e.printStackTrace();
 		}
-		return hmap;
 	}
 
     public static void run(String metadataXML, String mappingdata, String sourceNS, String targetNS) {
 		SOURCE_NS = sourceNS;
 		TARGET_NS = targetNS;
-		HashMap hmap = createMetadataHashMap(metadataXML);
+		createMetadataHashMap(metadataXML);
 		int n = mappingdata.lastIndexOf(".");
-		String outputfile = mappingdata.substring(0, n) + "_" + (String) hmap.get(MAPPING_VERSION) + ".owl";
+		String outputfile = mappingdata.substring(0, n) + "_" + (String) metadataHashMap.get(MAPPING_VERSION) + ".owl";
 		Vector v = readFile(mappingdata);
         long ms = System.currentTimeMillis();
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(outputfile, "UTF-8");
-			writeMetadata(pw, hmap);
+			writeMetadata(pw, metadataHashMap);
 			writeAnnotationProperties(pw);
 			writeSourceConcepts(pw, v);
 			writeTargetConcepts(pw, v);
@@ -671,7 +689,7 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 			try {
 				pw.close();
 				System.out.println("Output file " + outputfile + " generated.");
-				System.out.println("Graph name: " + "http://ncicb.nci.nih.gov/xml/owl/EVS/" + (String) hmap.get(MAPPING_NAME) + ".owl");
+				System.out.println("Graph name: " + "http://ncicb.nci.nih.gov/xml/owl/EVS/" + (String) metadataHashMap.get(MAPPING_NAME) + ".owl");
 
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -700,7 +718,9 @@ C1003,Ansamycin Antineoplastic Antibiotic,NCI_Thesaurus,22.04d,NCI_Thesaurus,map
 		out.println("        <owl:annotatedProperty rdf:resource=\"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P375\"/>");
 		out.println("        <owl:annotatedTarget>" + source_Name + "</owl:annotatedTarget>");
 		out.println("        <ncit:P393>Has Synonym</ncit:P393>");
-		out.println("        <lgNaming:P001>" + rank + "</lgNaming:P001>");
+		if (isMappingRankApplicable()) {
+			out.println("        <lgNaming:P001>" + rank + "</lgNaming:P001>");
+	    }
 		out.println("        <ncit:P394>" + target_Term_Type + "</ncit:P394>");
 		out.println("        <ncit:P395>" + target_Code + "</ncit:P395>");
 		out.println("        <ncit:P396>" + target_Coding_Scheme + "</ncit:P396>");
