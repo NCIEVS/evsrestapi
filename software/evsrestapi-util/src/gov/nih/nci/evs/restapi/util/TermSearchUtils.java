@@ -85,6 +85,7 @@ public class TermSearchUtils {
 
 	Vector restricted_codes = null;
 
+
 	public TermSearchUtils(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
 		this.namedGraph = namedGraph;
@@ -96,6 +97,7 @@ public class TermSearchUtils {
 		this.serviceUrl = serviceUrl;
 		this.namedGraph = namedGraph;
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		this.owlSPARQLUtils.set_named_graph(namedGraph);
 		this.axiomUtils = new AxiomUtils(serviceUrl, username, password);
 	}
 
