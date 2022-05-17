@@ -127,7 +127,7 @@ public class EVSRESTAPIClient {
 			while ((line = reader.readLine()) != null) {
 				w.add(line);
 			}
-			json = (String) w.elementAt(0);
+			json = JSONParser.flatten(w);
 			reader.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();
