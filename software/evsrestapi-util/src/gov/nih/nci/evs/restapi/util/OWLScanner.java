@@ -1228,8 +1228,11 @@ C4910|<NHC0>C4910</NHC0>
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf("<!-- http://") != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
+				if (n == -1) {
+					n = t.lastIndexOf("/");
+				}
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
 				classId = t.substring(1, n);
@@ -1237,12 +1240,18 @@ C4910|<NHC0>C4910</NHC0>
 					istart = true;
 				}
 			}
-			//<rdfs:label>LEC-5 Standard Version - Unwanted Sex Experience: Happened</rdfs:label>
 			if (istart) {
 				t = t.trim();
+
 				if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
 					int n = t.lastIndexOf("</rdfs:label>");
 				    t = t.substring("<rdfs:label>".length(), n);
+					w.add(classId + "|" + t);
+				} else if (t.startsWith("<rdfs:label") && t.endsWith("</rdfs:label>")) {
+					int n = t.lastIndexOf("</rdfs:label>");
+					t = t.substring(0, n);
+					n = t.lastIndexOf(">");
+				    t = t.substring(n+1, t.length());
 					w.add(classId + "|" + t);
 				}
 		    }
@@ -2749,12 +2758,15 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		w = scanner.extractObjectProperties(scanner.get_owl_vec());
         Utils.dumpVector("w", w);
 */
-        Vector w = scanner.extractProperties(scanner.get_owl_vec(), "P108");
-        Utils.dumpVector("w", w);
+        //Vector w = scanner.extractProperties(scanner.get_owl_vec(), "P108");
+        //Utils.dumpVector("w", w);
 
+        /*
+        String RESTRICTION_FILE = "roles.txt";
 
-		//Vector v = scanner.extractOWLRestrictions(scanner.get_owl_vec());
-		//Utils.dumpVector("v", v);
+		Vector v = scanner.extractOWLRestrictions(scanner.get_owl_vec());
+		Utils.saveToFile(RESTRICTION_FILE, v);
+		*/
 
 		/*
         String owlfile = args[0];
@@ -2792,7 +2804,46 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 			String p = (String) w.elementAt(i);
 			System.out.println(p);
 		}
+
+	private String code;
+	private String label;
+	private String termName;
+	private String termGroup;
+	private String termSource;
+	private String sourceCode;
+	private String subSourceName;
+	private String subSourceCode;
+
 		*/
+		Vector v = new Vector();
+
+		/*
+		List list = scanner.extractFULLSyns();
+		HashSet hset = new HashSet();
+		for (int i=0; i<list.size(); i++) {
+			Synonym syn = (Synonym) list.get(i);
+
+			//(H115D)VHL35 Peptisyn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName()de|C28776|FULL_SYN|(H115D)VHL35 Peptide
+
+			//String line = syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName();
+			//if (!hset.contains(line)) {
+			//	hset.add(line);
+			// 	v.add(syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName());
+			//}
+
+			v.add(syn.toJson());
+
+		}
+		v = new SortUtils().quickSort(v);
+		Utils.saveToFile("FULL_SYN_1.txt", v);
+		*/
+
+        String propertyCode = "P319";
+        //FDA_UNII_Code 	P319
+		v = scanner.extractProperties(scanner.get_owl_vec(), propertyCode);
+        Utils.saveToFile(propertyCode + ".txt", v);
+        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
     }
 }
 

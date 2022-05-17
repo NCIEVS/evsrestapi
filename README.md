@@ -5,8 +5,6 @@ Information on the build and deployment process for the EVSRESTAPI project
 ### Prerequisites
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
-    * Memory = 7G
-    * Swap = 1G
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
     * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 
@@ -21,7 +19,6 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 * Load/Compute Indexes (for NCI Thesaurus)
 
-    # Build the project - From the root of cloned https://github.com/NCIEVS/evsrestapi
     gradlew clean build -x test
 
     version=ncit_21.08d
@@ -59,9 +56,20 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 * Download the NCI Metathesaurus to a local directory
 * Properly configure the environment variables needed by ncim.sh
-* Run `ncim.sh`
+* Run `ncim-part.sh`
 
-        dir=c:/evsrestapi/NCIM_202008/META
-        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
-        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=50
-        src/main/bin/ncim.sh --noconfig $dir
+        dir=c:/evsrestapi/NCIM_202202/META
+        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=1000
+        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
+        src/main/bin/ncim-part.sh --noconfig $dir
+
+### Steps for Loading MMDR from NCI Metathesaurus Indexes Locally
+
+* Download the NCI Metathesaurus to a local directory
+* Properly configure the environment variables needed by ncim.sh
+* Run `ncim-part.sh`
+
+        dir=c:/evsrestapi/NCIM_202202/META
+        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=1000
+        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
+        src/main/bin/ncim-part.sh --noconfig $dir --terminology MDR
