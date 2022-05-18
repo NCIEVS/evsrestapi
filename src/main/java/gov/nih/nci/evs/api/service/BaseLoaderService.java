@@ -302,12 +302,14 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
         ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
 
+    // Pause to ensure indexes are updated before the next part
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      // n/a
+    }
+
     // This block is for debugging presence of the iMeta
-    // try {
-    // Thread.sleep(2000);
-    // } catch (InterruptedException e) {
-    // // n/a
-    // }
     // List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
     // for (IndexMetadata iMetaPostLoad : iMetas) {
     // logger.info("iMetaPostLoad = " + iMetaPostLoad);
