@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.util;
-
 import gov.nih.nci.evs.restapi.client.bean.*;
 
 import java.io.*;
@@ -11,7 +10,9 @@ import java.util.*;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties
 public class ObjectMappingUtils {
 
 	public static void run(String[] args) {
@@ -109,6 +110,22 @@ public class ObjectMappingUtils {
 		}
 		return cls;
 	}
+
+	public static SearchResultDetails json2SearchResultDetails(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		SearchResultDetails cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, SearchResultDetails.class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
 
 	public static ConceptDetails json2ConceptDetails(String jsonInString) {
 		ObjectMapper mapper = new ObjectMapper();

@@ -11,54 +11,65 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class Property
+public class SearchResultDetails
 {
 
 // Variable declaration
-	private String type;
-	private String value;
-	private List<Qualifier> qualifiers;
+	private int total;
+	private int timeTaken;
+	private Parameter parameters;
+	private List<ConceptDetails> concepts;
 
 // Default constructor
-	public Property() {
+	public SearchResultDetails() {
 	}
 
 // Constructor
-	public Property(
-		String type,
-		String value,
-		List<Qualifier> qualifiers) {
+	public SearchResultDetails(
+		int total,
+		int timeTaken,
+		Parameter parameters,
+		List<ConceptDetails> concepts) {
 
-		this.type = type;
-		this.value = value;
-		this.qualifiers = qualifiers;
+		this.total = total;
+		this.timeTaken = timeTaken;
+		this.parameters = parameters;
+		this.concepts = concepts;
 	}
 
 // Set methods
-	public void setType(String type) { 
-		this.type = type;
+	public void setTotal(int total) { 
+		this.total = total;
 	}
 
-	public void setValue(String value) { 
-		this.value = value;
+	public void setTimeTaken(int timeTaken) { 
+		this.timeTaken = timeTaken;
 	}
 
-	public void setQualifiers(List<Qualifier> qualifiers) { 
-		this.qualifiers = qualifiers;
+	public void setParameters(Parameter parameters) { 
+		this.parameters = parameters;
+	}
+
+	public void setConcepts(List<ConceptDetails> concepts) { 
+		this.concepts = concepts;
 	}
 
 
 // Get methods
-	public String getType() { 
-		return this.type;
+	public int getTotal() { 
+		return this.total;
 	}
 
-	public String getValue() { 
-		return this.value;
+	public int getTimeTaken() { 
+		return this.timeTaken;
 	}
 
-	public List<Qualifier> getQualifiers() { 
-		return this.qualifiers;
+	public Parameter getParameters() { 
+		return this.parameters;
+	}
+
+	public List<ConceptDetails> getConcepts() { 
+		return this.concepts;
 	}
 
 	public String toXML() {
