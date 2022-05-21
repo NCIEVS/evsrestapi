@@ -11,7 +11,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class Parent
+public class HierarchicallyRelatedConcept
 {
 
 // Variable declaration
@@ -20,11 +20,11 @@ public class Parent
 	private boolean leaf;
 
 // Default constructor
-	public Parent() {
+	public HierarchicallyRelatedConcept() {
 	}
 
 // Constructor
-	public Parent(
+	public HierarchicallyRelatedConcept(
 		String code,
 		String name,
 		boolean leaf) {

@@ -3,6 +3,7 @@ import gov.nih.nci.evs.restapi.client.bean.*;
 
 import java.io.*;
 import java.io.IOException;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.*;
@@ -10,10 +11,24 @@ import java.util.*;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties
+
 public class ObjectMappingUtils {
+
+	public static String ASSOCIATIONS = "associations";
+	public static String CHILDREN = "children";
+	public static String DESCENDANTS = "descendants";
+	public static String DISJOINTWITH = "disjointWith";
+	public static String INVERSEASSOCIATIONS = "inverseAssociations";
+	public static String INVERSEROLES = "inverseRoles";
+	public static String MAPS = "maps";
+	public static String PARENTS = "parents";
+	public static String ROLES = "roles";
+
+	public static String[] HIERARCHICAL_RELATIONSHIPS = new String[] {CHILDREN, PARENTS};
+
+	public static String[] RELATIONSHIPS = new String[] {ASSOCIATIONS, DISJOINTWITH, INVERSEASSOCIATIONS,
+	                                                    INVERSEROLES, MAPS, ROLES};
 
 	public static void run(String[] args) {
 		String inputfile = args[0];
@@ -147,6 +162,36 @@ public class ObjectMappingUtils {
 		Concept[] cls = null;
 		try {
 			cls = mapper.readValue(jsonInString, Concept[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
+	public static RelatedConcept[] json2RelatedConcept(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		RelatedConcept[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, RelatedConcept[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
+	public static HierarchicallyRelatedConcept[] json2HierarchicallyRelatedConcept(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		HierarchicallyRelatedConcept[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, HierarchicallyRelatedConcept[].class);
 		} catch (JsonGenerationException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {

@@ -11,54 +11,54 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.XStream;
 
-public class Parent
+public class RelatedConcept
 {
 
 // Variable declaration
-	private String code;
-	private String name;
-	private boolean leaf;
+	private String type;
+	private String relatedCode;
+	private String relatedName;
 
 // Default constructor
-	public Parent() {
+	public RelatedConcept() {
 	}
 
 // Constructor
-	public Parent(
-		String code,
-		String name,
-		boolean leaf) {
+	public RelatedConcept(
+		String type,
+		String relatedCode,
+		String relatedName) {
 
-		this.code = code;
-		this.name = name;
-		this.leaf = leaf;
+		this.type = type;
+		this.relatedCode = relatedCode;
+		this.relatedName = relatedName;
 	}
 
 // Set methods
-	public void setCode(String code) { 
-		this.code = code;
+	public void setType(String type) { 
+		this.type = type;
 	}
 
-	public void setName(String name) { 
-		this.name = name;
+	public void setRelatedCode(String relatedCode) { 
+		this.relatedCode = relatedCode;
 	}
 
-	public void setLeaf(boolean leaf) { 
-		this.leaf = leaf;
+	public void setRelatedName(String relatedName) { 
+		this.relatedName = relatedName;
 	}
 
 
 // Get methods
-	public String getCode() { 
-		return this.code;
+	public String getType() { 
+		return this.type;
 	}
 
-	public String getName() { 
-		return this.name;
+	public String getRelatedCode() { 
+		return this.relatedCode;
 	}
 
-	public boolean getLeaf() { 
-		return this.leaf;
+	public String getRelatedName() { 
+		return this.relatedName;
 	}
 
 	public String toXML() {
