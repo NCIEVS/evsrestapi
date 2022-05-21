@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.restapi.util;
-import gov.nih.nci.evs.restapi.client.bean.*;
 
+import gov.nih.nci.evs.restapi.client.bean.*;
 import java.io.*;
 import java.io.IOException;
 
@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class ObjectMappingUtils {
+
+	static String BASE_URL = "https://api-evsrest.nci.nih.gov/api/v1/";
 
 	public static String ASSOCIATIONS = "associations";
 	public static String CHILDREN = "children";
@@ -29,6 +31,10 @@ public class ObjectMappingUtils {
 
 	public static String[] RELATIONSHIPS = new String[] {ASSOCIATIONS, DISJOINTWITH, INVERSEASSOCIATIONS,
 	                                                    INVERSEROLES, MAPS, ROLES};
+
+    public static void setBASE_URL(String url) {
+		BASE_URL = url;
+	}
 
 	public static void run(String[] args) {
 		String inputfile = args[0];
@@ -201,6 +207,78 @@ public class ObjectMappingUtils {
 		}
 		return cls;
 	}
+
+	public static Node[] json2Node(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		Node[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, Node[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.SearchResult searchTerm(String terminology, String term, int fromRecord, int pageSize, String algorithm) {
+        String url = BASE_URL + "concept/" + terminology + "/search?fromRecord=" + fromRecord + "&include=minimal&pageSize=" + pageSize
+           + "&term=" + term + "&type=" + algorithm;
+		String json = EVSRESTAPIClient.getJson(url);
+		gov.nih.nci.evs.restapi.client.bean.SearchResult sr = ObjectMappingUtils.json2SearchResult(json);
+		return sr;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Concept[] getRoots(String terminology) {
+	    String url = BASE_URL + "concept/" + terminology + "/roots?include=minimal";
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.Concept[] list = ObjectMappingUtils.json2ConceptList(json);
+	    return list;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.ConceptDetails getConceptDetails(String terminology, String code) {
+	    String url = BASE_URL + "concept/" + terminology + "/" + code + "?include=full";
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.ConceptDetails cd = ObjectMappingUtils.json2ConceptDetails(json);
+	    return cd;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.SearchResultDetails searchProperty(String terminology, String term, String include, int fromRecord, int pageSize, String propertyName, String algorithm) {
+        String url = BASE_URL + "concept/search?fromRecord=" + fromRecord + "&include=" + include + "&pageSize=" + pageSize + "&synonymType=" + propertyName + "&terminology=" + terminology + "&type=" + algorithm;
+        if (term != null) {
+			url = url + "&term=" + term;
+		}
+		String json = EVSRESTAPIClient.getJson(url);
+		gov.nih.nci.evs.restapi.client.bean.SearchResultDetails sr = ObjectMappingUtils.json2SearchResultDetails(json);
+		return sr;
+	}
+
+
+    public gov.nih.nci.evs.restapi.client.bean.RelatedConcept[] getRelatedConcepts(String terminology, String code, String relationship) {
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.RelatedConcept[] list = ObjectMappingUtils.json2RelatedConcept(json);
+	    return list;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.HierarchicallyRelatedConcept[] getHierarchicallyRelatedConcepts(String terminology, String code, String relationship) {
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.HierarchicallyRelatedConcept[] list = ObjectMappingUtils.json2HierarchicallyRelatedConcept(json);
+	    return list;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Node[] getDescendants(String terminology, String code) {
+		String relationship = "descendants";
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.Node[] list = ObjectMappingUtils.json2Node(json);
+	    return list;
+	}
+
+
 }
 
 
