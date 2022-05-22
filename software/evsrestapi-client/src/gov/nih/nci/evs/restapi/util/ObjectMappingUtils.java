@@ -178,7 +178,7 @@ public class ObjectMappingUtils {
 		return cls;
 	}
 
-	public static RelatedConcept[] json2RelatedConcept(String jsonInString) {
+	public static RelatedConcept[] json2RelatedConceptList(String jsonInString) {
 		ObjectMapper mapper = new ObjectMapper();
 		RelatedConcept[] cls = null;
 		try {
@@ -193,7 +193,22 @@ public class ObjectMappingUtils {
 		return cls;
 	}
 
-	public static HierarchicallyRelatedConcept[] json2HierarchicallyRelatedConcept(String jsonInString) {
+	public static ConceptDetails[] json2ConceptDetailsList(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		ConceptDetails[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, ConceptDetails[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
+	public static HierarchicallyRelatedConcept[] json2HierarchicallyRelatedConceptList(String jsonInString) {
 		ObjectMapper mapper = new ObjectMapper();
 		HierarchicallyRelatedConcept[] cls = null;
 		try {
@@ -208,7 +223,7 @@ public class ObjectMappingUtils {
 		return cls;
 	}
 
-	public static Node[] json2Node(String jsonInString) {
+	public static Node[] json2NodeList(String jsonInString) {
 		ObjectMapper mapper = new ObjectMapper();
 		Node[] cls = null;
 		try {
@@ -256,17 +271,17 @@ public class ObjectMappingUtils {
 	}
 
 
-    public gov.nih.nci.evs.restapi.client.bean.RelatedConcept[] getRelatedConcepts(String terminology, String code, String relationship) {
+    public gov.nih.nci.evs.restapi.client.bean.RelatedConcept[] getRelatedConceptsList(String terminology, String code, String relationship) {
 		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
 	    String json = EVSRESTAPIClient.getJson(url);
-	    gov.nih.nci.evs.restapi.client.bean.RelatedConcept[] list = ObjectMappingUtils.json2RelatedConcept(json);
+	    gov.nih.nci.evs.restapi.client.bean.RelatedConcept[] list = ObjectMappingUtils.json2RelatedConceptList(json);
 	    return list;
 	}
 
-    public gov.nih.nci.evs.restapi.client.bean.HierarchicallyRelatedConcept[] getHierarchicallyRelatedConcepts(String terminology, String code, String relationship) {
+    public gov.nih.nci.evs.restapi.client.bean.HierarchicallyRelatedConcept[] getHierarchicallyRelatedConceptList(String terminology, String code, String relationship) {
 		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
 	    String json = EVSRESTAPIClient.getJson(url);
-	    gov.nih.nci.evs.restapi.client.bean.HierarchicallyRelatedConcept[] list = ObjectMappingUtils.json2HierarchicallyRelatedConcept(json);
+	    gov.nih.nci.evs.restapi.client.bean.HierarchicallyRelatedConcept[] list = ObjectMappingUtils.json2HierarchicallyRelatedConceptList(json);
 	    return list;
 	}
 
@@ -274,7 +289,7 @@ public class ObjectMappingUtils {
 		String relationship = "descendants";
 		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
 	    String json = EVSRESTAPIClient.getJson(url);
-	    gov.nih.nci.evs.restapi.client.bean.Node[] list = ObjectMappingUtils.json2Node(json);
+	    gov.nih.nci.evs.restapi.client.bean.Node[] list = ObjectMappingUtils.json2NodeList(json);
 	    return list;
 	}
 
