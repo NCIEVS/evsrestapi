@@ -168,8 +168,9 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
 
-    if (CollectionUtils.isEmpty(iMetas))
+    if (CollectionUtils.isEmpty(iMetas)) {
       return;
+    }
 
     // Copy to allow modification
     iMetas = new ArrayList<>(iMetas);
@@ -287,8 +288,9 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     IndexMetadata iMeta = new IndexMetadata();
     iMeta.setIndexName(term.getIndexName());
     iMeta.setTotalConcepts(total);
-    iMeta.setCompleted(true); // won't make it this far if it isn't complete
-    logger.info("  ADD terminology = " + term);
+    // won't make it this far if it isn't complete
+    iMeta.setCompleted(true);
+    logger.info("  ADD terminology = " + iMeta);
     iMeta.setTerminology(term);
 
     // boolean created =
@@ -309,10 +311,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         IndexMetadata.class);
 
     // This block is for debugging presence of the iMeta
-    // List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
-    // for (IndexMetadata iMetaPostLoad : iMetas) {
-    // logger.info("iMetaPostLoad = " + iMetaPostLoad);
-    // }
+    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    for (IndexMetadata iMetaPostLoad : iMetas) {
+      logger.info("iMetaPostLoad (true) = " + iMetaPostLoad);
+    }
+
+    // This block is for debugging presence of the iMeta
+    iMetas = esQueryService.getIndexMetadata(false);
+    for (IndexMetadata iMetaPostLoad : iMetas) {
+      logger.info("iMetaPostLoad (false) = " + iMetaPostLoad);
+    }
 
   }
 
