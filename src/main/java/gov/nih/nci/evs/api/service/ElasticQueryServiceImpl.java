@@ -478,7 +478,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
     // Get first 1000 records
     final Pageable pageable = new EVSPageable(0, 1000, 0);
-    final NativeSearchQueryBuilder queryBuilder =
+    NativeSearchQueryBuilder queryBuilder =
         new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.METADATA_INDEX)
             .withTypes(ElasticOperationsService.METADATA_TYPE).withPageable(pageable);
 
