@@ -158,9 +158,9 @@ public class LoaderServiceImpl {
         if (!cmd.hasOption("xm")) {
           // Give load objects a chance to update terminology metadata
           loadService.loadObjects(config, term, hierarchy);
+          loadService.loadIndexMetadata(totalConcepts, term);
         }
       }
-      loadService.loadIndexMetadata(totalConcepts, term);
       loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term);
 

@@ -17,6 +17,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
@@ -39,6 +40,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptMultiGetResultMapper;
+import gov.nih.nci.evs.api.support.es.EVSPageable;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -474,9 +476,11 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
+    // Get first 1000 records
+    final Pageable pageable = new EVSPageable(0, 1000, 0);
     NativeSearchQueryBuilder queryBuilder =
         new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.METADATA_INDEX)
-            .withTypes(ElasticOperationsService.METADATA_TYPE);
+            .withTypes(ElasticOperationsService.METADATA_TYPE).withPageable(pageable);
 
     if (completedOnly) {
       queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));

@@ -157,7 +157,6 @@ public class OWLSPARQLUtils {
 		this.username = username;
 		this.password = password;
 
-		System.out.println(this.serviceUrl);
 		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
         this.jsonUtils = new JSONUtils();
         this.ontologyUri2LabelMap = createOntologyUri2LabelMap();
