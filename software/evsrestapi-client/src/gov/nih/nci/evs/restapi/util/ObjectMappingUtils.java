@@ -238,6 +238,21 @@ public class ObjectMappingUtils {
 		return cls;
 	}
 
+	public static TreeNode[] json2TreeNodeList(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		TreeNode[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, TreeNode[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
     public gov.nih.nci.evs.restapi.client.bean.SearchResult searchTerm(String terminology, String term, int fromRecord, int pageSize, String algorithm) {
         String url = BASE_URL + "concept/" + terminology + "/search?fromRecord=" + fromRecord + "&include=minimal&pageSize=" + pageSize
            + "&term=" + term + "&type=" + algorithm;
@@ -293,7 +308,13 @@ public class ObjectMappingUtils {
 	    return list;
 	}
 
-
+    public gov.nih.nci.evs.restapi.client.bean.TreeNode[] getSubtree(String terminology, String code) {
+		String relationship = "subtree";
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.TreeNode[] list = ObjectMappingUtils.json2TreeNodeList(json);
+	    return list;
+	}
 }
 
 
