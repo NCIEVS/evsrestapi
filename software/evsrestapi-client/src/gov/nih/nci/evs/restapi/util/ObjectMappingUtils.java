@@ -356,7 +356,14 @@ public class ObjectMappingUtils {
 	}
 
     public gov.nih.nci.evs.restapi.client.bean.Paths getPaths(String terminology, String code) {
+		return getPaths(terminology, code, true);
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Paths getPaths(String terminology, String code, boolean traverseUp) {
 		String relationship = "pathsToRoot";
+		if (!traverseUp) {
+			relationship = "pathsFromRoot";
+		}
 		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship + "?include=minimal";
 	    String json = EVSRESTAPIClient.getJson(url);
         List list = ObjectMappingUtils.json2PathList(json);
