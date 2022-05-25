@@ -385,6 +385,13 @@ public class ObjectMappingUtils {
 		return paths;
 	}
 
+    public gov.nih.nci.evs.restapi.client.bean.Concept[] resolveSubset(String terminology, String code) {
+		String relationship = "subsetMembers";
+		String url = BASE_URL + "concept/" + terminology + "/" + relationship + "/" + code;
+		String json = EVSRESTAPIClient.getJson(url);
+        gov.nih.nci.evs.restapi.client.bean.Concept[] concepts = ObjectMappingUtils.json2ConceptList(json);
+        return concepts;
+	}
 }
 
 
