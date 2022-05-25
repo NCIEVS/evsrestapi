@@ -268,6 +268,21 @@ public class ObjectMappingUtils {
 		return cls;
 	}
 
+	public static Metadata[] json2MetadataList(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		Metadata[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, Metadata[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
     public gov.nih.nci.evs.restapi.client.bean.SearchResult searchTerm(String terminology, String term, int fromRecord, int pageSize, String algorithm) {
         String url = BASE_URL + "concept/" + terminology + "/search?fromRecord=" + fromRecord + "&include=minimal&pageSize=" + pageSize
            + "&term=" + term + "&type=" + algorithm;
@@ -391,6 +406,13 @@ public class ObjectMappingUtils {
 		String json = EVSRESTAPIClient.getJson(url);
         gov.nih.nci.evs.restapi.client.bean.Concept[] concepts = ObjectMappingUtils.json2ConceptList(json);
         return concepts;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Metadata[] getMetadata(String terminology, String type) {
+		String url = BASE_URL + "metadata/" + terminology + "/" + type + "?include=minimal";
+		String json = EVSRESTAPIClient.getJson(url);
+        gov.nih.nci.evs.restapi.client.bean.Metadata[] list = ObjectMappingUtils.json2MetadataList(json);
+        return list;
 	}
 }
 
