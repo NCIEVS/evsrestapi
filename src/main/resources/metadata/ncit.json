@@ -1473,5 +1473,6 @@
     "C99174": "FDA/ICSR/",
     "C99175": "FDA/ICSR/",
     "C99288": "FDA/SPL/"
-  }
+  },
+  "hierarchy": true
 }
