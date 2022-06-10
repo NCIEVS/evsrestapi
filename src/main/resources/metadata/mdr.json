@@ -12,5 +12,6 @@
 		"MTH_OL",
 		"OL",
 		"SMQ"
-	]
+	],
+	"hierarchy": true
 }
