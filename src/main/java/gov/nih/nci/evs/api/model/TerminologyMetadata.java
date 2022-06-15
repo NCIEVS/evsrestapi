@@ -169,6 +169,7 @@ public class TerminologyMetadata extends BaseModel {
         relationshipToTarget = other.getRelationshipToTarget();
         sources = new HashMap<>(other.getSources());
         sourceCt = sources.size();
+        hierarchy = other.getHierarchy();
         sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
         synonym = new HashSet<>(other.getSynonym());
         synonymCode = other.getSynonymCode();
