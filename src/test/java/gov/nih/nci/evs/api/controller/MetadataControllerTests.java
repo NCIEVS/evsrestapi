@@ -1187,6 +1187,13 @@ public class MetadataControllerTests {
         // check that no subsetLink (no valid download)
         assertThat(list.getSubsetLink() == null);
 
+        url = baseUrl + "/ncit/subset/C168696";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, Concept.class);
+        // make sure there is a valid and correct subset link
+        assertThat(list.getSubsetLink() != null && list.getSubsetLink().contains("CBDD/"));
+
         url = baseUrl + "/ncit/subset/C116977";
         result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
