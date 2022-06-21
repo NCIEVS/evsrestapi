@@ -30,7 +30,11 @@ public class VisualizationUtils {
                                                            "type_association",
                                                            "type_inverse_association"};
     public static HashMap RELATIONSHIP_LABEL_MAP;
+
+    String serviceUrl = null;
     String named_graph = null;
+    String username = null;
+    String password = null;
 
     static {
 		RELATIONSHIP_LABEL_MAP = new HashMap();
@@ -54,24 +58,30 @@ public class VisualizationUtils {
 
 	}
 
-	public VisualizationUtils(String sparql_service) {
-        this.sparql_service = sparql_service;
-        this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_service);
+	public VisualizationUtils(String serviceUrl, String named_graph, String username, String password) {
+        this.serviceUrl = serviceUrl;
+        this.named_graph = named_graph;
+        this.username = username;
+        this.password = password;
 
+        this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+        owlSPARQLUtils.set_named_graph(named_graph);
+/*
         String serviceUrl = sparql_service;
         int n = sparql_service.lastIndexOf("?");
         if (n != -1) {
 			serviceUrl = sparql_service.substring(0, n);
 		}
+*/
 
-		MetadataUtils metadataUtils = new MetadataUtils(serviceUrl);
+		MetadataUtils metadataUtils = new MetadataUtils(serviceUrl, username, password);
 		String codingScheme = "NCI_Thesaurus";
 		long ms = System.currentTimeMillis();
 		String version = metadataUtils.getLatestVersion(codingScheme);
 		System.out.println(codingScheme);
 		System.out.println(version);
-		this.named_graph = metadataUtils.getNamedGraph(codingScheme);
-		owlSPARQLUtils.set_named_graph(named_graph);
+		//this.named_graph = metadataUtils.getNamedGraph(codingScheme);
+		//owlSPARQLUtils.set_named_graph(named_graph);
 
 	}
 
@@ -129,7 +139,7 @@ public class VisualizationUtils {
 
         String focused_node_label = "\"" + getLabel(name, code) + "\"" ;
 
-        RelationshipHelper relUtils = new RelationshipHelper(sparql_service);
+        RelationshipHelper relUtils = new RelationshipHelper(serviceUrl, named_graph, username, password);
         HashMap relMap = relUtils.getRelationshipHashMap(scheme, version, code, namespace, useNamespace);
 
 		String key = "type_superconcept";
@@ -361,7 +371,7 @@ public class VisualizationUtils {
 
         HashMap relMap = null;
         if (hmap == null) {
-			RelationshipHelper relUtils = new RelationshipHelper(sparql_service);
+			RelationshipHelper relUtils = new RelationshipHelper(serviceUrl, named_graph, username, password);
 			relMap = relUtils.getRelationshipHashMap(scheme, version, code, namespace, useNamespace);
 	    } else {
 			relMap = hmap;
@@ -569,8 +579,13 @@ public class VisualizationUtils {
 
 
     public static void main(String [] args) {
-		String sparql_service = "http://localhost:8080/jena-fuseki/ncit/query";
-		VisualizationUtils visualizationUtils = new VisualizationUtils(sparql_service);
+		//String sparql_service = "http://localhost:8080/jena-fuseki/ncit/query";
+		String sparql_service = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+
+		VisualizationUtils visualizationUtils = new VisualizationUtils(sparql_service, named_graph, username, password);
 		String code = "C16395";
 		if (args.length == 1) {
 			code = args[0];

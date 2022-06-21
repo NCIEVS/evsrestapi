@@ -38,26 +38,33 @@ public class GraphDrawer {
     OWLSPARQLUtils owlSPARQLUtils = null;
     RelationshipHelper relationshipHelper = null;
     //gov.nih.nci.evs.restapi.ui.VisUtils visUtils = null;
-    String named_graph = null;
 
-    public GraphDrawer(String serviceUrl) {
-		this.sparql_endpoint = serviceUrl + "?query=";
-		System.out.println("Instantiating owlSPARQLUtils ...");
-		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint, null, null);
+    String serviceUrl = null;
+    String named_graph = null;
+    String username = null;
+    String password = null;
+
+    public GraphDrawer(String serviceUrl, String named_graph, String username, String password) {
+		//this.sparql_endpoint = serviceUrl + "?query=";
+		//System.out.println("Instantiating owlSPARQLUtils ...");
+
+		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		owlSPARQLUtils.set_named_graph(this.named_graph);
+
 		System.out.println("Instantiating relationshipHelper ...");
-   	    relationshipHelper = new RelationshipHelper(serviceUrl);
+   	    relationshipHelper = new RelationshipHelper(serviceUrl, named_graph, username, password);
    	    /*
    	    System.out.println("Instantiating visUtils ...");
    	    visUtils = new gov.nih.nci.evs.restapi.ui.VisUtils(sparql_endpoint);
    	    */
- 		MetadataUtils test = new MetadataUtils(serviceUrl);
-		String scheme = "NCI_Thesaurus";
+ 		//MetadataUtils test = new MetadataUtils(serviceUrl);
+		//String scheme = "NCI_Thesaurus";
 		//long ms = System.currentTimeMillis();
 		//String version = test.getLatestVersion(scheme);
 		//System.out.println(scheme);
 		//System.out.println(version);
-		this.named_graph = test.getNamedGraph(scheme);
-		owlSPARQLUtils.set_named_graph(this.named_graph);
+		//this.named_graph = test.getNamedGraph(scheme);
+		//owlSPARQLUtils.set_named_graph(this.named_graph);
 	}
 
 	public String get_named_graph() {
@@ -935,6 +942,10 @@ public class GraphDrawer {
 	public static void main(String[] args) {
 		boolean testurl = false;
 		String serviceUrl = args [0];
+		String named_graph = args [0];
+		String username = args [0];
+		String password = args [0];
+		/*
 		String sparql_endpoint = serviceUrl + "?query=";
 
 		serviceUrl = endPoint2ServiceUrl(sparql_endpoint);
@@ -942,18 +953,20 @@ public class GraphDrawer {
 		if (testurl) {
 			System.exit(0);
 		}
+		*/
+
 
         long ms = System.currentTimeMillis();
 
-		GraphDrawer gd = new GraphDrawer(serviceUrl);
+		GraphDrawer gd = new GraphDrawer(serviceUrl, named_graph, username, password);
 
-		MetadataUtils test = new MetadataUtils(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
 		String scheme = "NCI_Thesaurus";
 
 		String version = test.getLatestVersion(scheme);
 		//System.out.println(scheme);
 		//System.out.println(version);
-		String named_graph = test.getNamedGraph(scheme);
+		//String named_graph = test.getNamedGraph(scheme);
 		//System.out.println(named_graph);
 
 		PrintWriter pw = null;
