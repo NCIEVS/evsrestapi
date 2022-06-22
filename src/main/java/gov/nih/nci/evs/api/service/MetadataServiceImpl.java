@@ -449,7 +449,7 @@ public class MetadataServiceImpl implements MetadataService {
     // subsets should always return children
     // (contributing source needed)
     ip.setChildren(true);
-    //ip.setProperties(true);
+    // ip.setProperties(true);
     ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
 
@@ -465,7 +465,7 @@ public class MetadataServiceImpl implements MetadataService {
     subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
         .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream().flatMap(Concept::streamSelfAndChildren)
-        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get()))
+        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
         .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
 
     return subsets;
