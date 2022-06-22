@@ -78,9 +78,13 @@ public final class ConceptUtils {
 
         // synonyms
         for (final Synonym sn : concept.getSynonyms()) {
-            final String value = highlights.get(sn.getName());
+            String value = highlights.get(sn.getName());
             if (value != null) {
                 sn.setHighlight(value);
+            }
+            value = highlights.get(sn.getCode());
+            if (value != null) {
+                sn.setHighlight(value + " - " + sn.getName());
             }
         }
 
