@@ -170,6 +170,36 @@ public class SearchControllerTests {
 
     assertThat(content).isEqualToIgnoringCase(content2);
 
+    // Test an NCIM search for C192 -> expect synonym to be highlighted
+    url = "/api/v1/concept/ncim/search";
+    log.info("Testing url - " + url + "?term=C192&include=synonyms,highlights");
+    result =
+        this.mvc.perform(get(url).param("term", "C192").param("include", "synonyms,highlights"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null).count()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null && s.getHighlight().contains("<em>C192")).count())
+            .isGreaterThan(0);
+
+    // Test an NCIt search for 10053571 -> expect synonym to be highlighted
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url + "?term=10053571&include=synonyms,highlights");
+    result =
+        this.mvc.perform(get(url).param("term", "10053571").param("include", "synonyms,highlights"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null).count()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null && s.getHighlight().contains("<em>10053571")).count())
+            .isEqualTo(1);
+
   }
 
   /**
@@ -911,8 +941,7 @@ public class SearchControllerTests {
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
-            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource()))
-            .count() > 0)
+            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource())).count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
     // Test synonymSource + synonymTermType without a term
@@ -930,8 +959,7 @@ public class SearchControllerTests {
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
-            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource()))
-            .count() > 0)
+            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource())).count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
     log.info("Done Testing testSynonymTermType");
@@ -2095,7 +2123,7 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // test first result is Malignant Digestive System Neoplasm
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C0685938");
-}
+  }
 
   /**
    * Removes the time taken.
