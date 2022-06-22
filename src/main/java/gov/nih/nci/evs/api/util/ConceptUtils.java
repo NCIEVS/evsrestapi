@@ -86,6 +86,14 @@ public final class ConceptUtils {
             if (value != null) {
                 sn.setHighlight(value + " - " + sn.getName());
             }
+            value = highlights.get(sn.getSource());
+            if (value != null) {
+                sn.setHighlight(value + " - " + sn.getName());
+            }
+            value = highlights.get(sn.getSubSource())
+            if (value != null) {
+                sn.setHighlight(value + " - " + sn.getName());
+            }
         }
 
         // definitions
