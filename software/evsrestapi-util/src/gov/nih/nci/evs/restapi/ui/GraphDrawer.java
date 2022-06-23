@@ -45,6 +45,11 @@ public class GraphDrawer {
     String password = null;
 
     public GraphDrawer(String serviceUrl, String named_graph, String username, String password) {
+		this.serviceUrl = serviceUrl;
+		this.named_graph = named_graph;
+		this.username = username;
+		this.password = password;
+
 		//this.sparql_endpoint = serviceUrl + "?query=";
 		//System.out.println("Instantiating owlSPARQLUtils ...");
 
@@ -85,11 +90,17 @@ public class GraphDrawer {
 	}
 
     public String getLabel(String line) {
+
+		System.out.println("getLabel: " + line);
+/*
         Vector u = gov.nih.nci.evs.restapi.util.StringUtils.parseData(line);
         String name = (String) u.elementAt(0);
         name = encode(name);
         String code = (String) u.elementAt(1);
-        return getLabel(name, code);
+
+*/
+        String name =  getEntityDescriptionByCode(line);
+        return getLabel(name, line);
 	}
 
     public String getFieldValue(String line, int index) {
@@ -941,37 +952,32 @@ public class GraphDrawer {
 
 	public static void main(String[] args) {
 		boolean testurl = false;
-		String serviceUrl = args [0];
-		String named_graph = args [0];
-		String username = args [0];
-		String password = args [0];
-		/*
-		String sparql_endpoint = serviceUrl + "?query=";
-
-		serviceUrl = endPoint2ServiceUrl(sparql_endpoint);
-		System.out.println(serviceUrl);
-		if (testurl) {
-			System.exit(0);
-		}
-		*/
-
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String code = args [4];
 
         long ms = System.currentTimeMillis();
 
-		GraphDrawer gd = new GraphDrawer(serviceUrl, named_graph, username, password);
 
 		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
-		String scheme = "NCI_Thesaurus";
+		String codingScheme = "NCI_Thesaurus";
+		String version = test.getLatestVersion(codingScheme);
+		System.out.println(codingScheme);
+		System.out.println(version);
 
-		String version = test.getLatestVersion(scheme);
-		//System.out.println(scheme);
+		String scheme = codingScheme;
+
+GraphDrawer gd = new GraphDrawer(serviceUrl, named_graph, username, password);
+
 		//System.out.println(version);
 		//String named_graph = test.getNamedGraph(scheme);
 		//System.out.println(named_graph);
 
 		PrintWriter pw = null;
-		String namespace = scheme;
-		String code = "C12365";
+		String namespace = codingScheme;
+		//String code = "C12365";
 		String type = "type_superconcept";
 		String outputfile = "graph.html";
 

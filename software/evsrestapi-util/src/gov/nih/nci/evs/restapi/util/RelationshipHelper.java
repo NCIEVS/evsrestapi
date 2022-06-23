@@ -25,21 +25,15 @@ public class RelationshipHelper {
     public RelationshipHelper(String serviceUrl, String named_graph, String username, String password) {
 		this.serviceUrl = serviceUrl;
 		this.named_graph = named_graph;
-		//this.restURL = serviceUrl;
 		this.username = username;
 		this.password = password;
-
-		this.sparql_endpoint = serviceUrl + "?query=";
-		//this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
-		this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint, username, password);
-
-
-		this.version = MetadataUtils.getLatestVersionOfCodingScheme(serviceUrl, Constants.NCI_THESAURUS);
-		this.named_graph = MetadataUtils.getNamedGraphOfCodingScheme(serviceUrl, Constants.NCI_THESAURUS, this.version);
-
-		this.owlSPARQLUtils.set_named_graph(this.named_graph);
-		//System.out.println(this.version);
-		//System.out.println(this.named_graph);
+		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+        this.owlSPARQLUtils.set_named_graph(this.named_graph);
+		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
+		String codingScheme = "NCI_Thesaurus";
+		long ms = System.currentTimeMillis();
+		this.version = test.getLatestVersion(codingScheme);
+		System.out.println(this.version);
 	}
 
 	public OWLSPARQLUtils getOwlSPARQLUtils() {
@@ -337,28 +331,22 @@ public class RelationshipHelper {
 	}
 
     public static void main(String [] args) {
-		/*
-		String sparql_endpoint = "http://localhost:8080/jena-fuseki/ncit/query";
-		RelationshipHelper relationshipHelper = new RelationshipHelper(sparql_endpoint);
-		code = args[0];
-		HashMap map = relationshipHelper.getRelationshipHashMap(code);
-		relationshipHelper.dumpRelationshipHashmap(map);
-		*/
 		String serviceUrl = args[0];
 		String named_graph = args[1];
 		String username = args[2];
 		String password = args[3];
+		String code = args[4];
 
 		System.out.println(serviceUrl);
-		String code = "C16395";
+		//String code = "C16395";
 		RelationshipHelper relationshipHelper = new RelationshipHelper(serviceUrl, named_graph, username, password);
+
 		String label = relationshipHelper.getOwlSPARQLUtils().getEntityDescriptionByCode(relationshipHelper.get_named_graph(), code);
 		System.out.println(label + " (" + code + ")");
 		//relationshipHelper.test(code);
 
 		HashMap map = relationshipHelper.getRelationshipHashMap(code);
 		relationshipHelper.dumpRelationshipHashmap(map);
-
 
 	}
 
