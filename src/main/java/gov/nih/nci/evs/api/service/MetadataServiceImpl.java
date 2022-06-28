@@ -39,10 +39,6 @@ public class MetadataServiceImpl implements MetadataService {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MetadataServiceImpl.class);
 
-  /** The sparql query manager service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
-
   /** The elastic query service *. */
   @Autowired
   private ElasticQueryService esQueryService;
@@ -177,15 +173,6 @@ public class MetadataServiceImpl implements MetadataService {
     return ConceptUtils.applyList(properties, ip, list.orElse(null));
   }
 
-  /**
-   * Returns the qualifiers.
-   *
-   * @param terminology the terminology
-   * @param include the include
-   * @param list the list
-   * @return the qualifiers
-   * @throws Exception the exception
-   */
   @Override
   // @Cacheable(value = "metadata", key = "{#root.methodName,
   // #include.orElse(''), #terminology}",
@@ -267,15 +254,7 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public Optional<List<String>> getConceptStatuses(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // TODO: handle this like definition sources (via terminology metadata)
-      return Optional.of(new ArrayList<>());
-    }
-
-    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term,
-        term.getMetadata().getConceptStatus());
-    return Optional.of(statuses);
-
+    return Optional.of(term.getMetadata().getConceptStatuses());
   }
 
   /* see superclass */
@@ -284,13 +263,11 @@ public class MetadataServiceImpl implements MetadataService {
   // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // Build the list from terminology metadata
-      return buildList(term, term.getMetadata().getDefinitionSourceSet(),
-          term.getMetadata().getSources());
-    }
 
-    return sparqlQueryManagerService.getDefinitionSources(term);
+    // Build the list from terminology metadata
+    return buildList(term, term.getMetadata().getDefinitionSourceSet(),
+        term.getMetadata().getSources());
+
   }
 
   /**
@@ -328,19 +305,13 @@ public class MetadataServiceImpl implements MetadataService {
   public Optional<List<String>> getQualifierValues(String terminology, String code)
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-
-    // Verify that it is a qualifier
-    final List<Concept> list =
-        self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
-
-    if (list.size() == 1) {
-      return Optional.of(sparqlQueryManagerService.getQualifierValues(list.get(0).getCode(), term));
-    } else if (list.size() > 1) {
+    final Map<String, Set<String>> map = esQueryService.getQualifierValues(term);
+    if (!map.containsKey(code)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Qualifier " + code + " not found (2)");
     }
 
-    return Optional.empty();
+    return Optional.of(map.get(code).stream().sorted().collect(Collectors.toList()));
 
   }
 
@@ -356,13 +327,10 @@ public class MetadataServiceImpl implements MetadataService {
   public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // Build the list from terminology metadata
-      return buildList(term, term.getMetadata().getTermTypes().keySet(),
-          term.getMetadata().getTermTypes());
-    }
+    // Build the list from terminology metadata
+    return buildList(term, term.getMetadata().getTermTypes().keySet(),
+        term.getMetadata().getTermTypes());
 
-    return sparqlQueryManagerService.getTermTypes(term);
   }
 
   /* see superclass */

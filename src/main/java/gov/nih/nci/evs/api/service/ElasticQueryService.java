@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -240,6 +241,17 @@ public interface ElasticQueryService {
     throws JsonMappingException, JsonProcessingException;
 
   /**
+   * Returns the qualifier values.
+   *
+   * @param terminology the terminology
+   * @return the qualifier values
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  Map<String, Set<String>> getQualifierValues(Terminology terminology)
+    throws JsonMappingException, JsonProcessingException;
+
+  /**
    * Get qualifier.
    *
    * @param code the code
@@ -422,10 +434,15 @@ public interface ElasticQueryService {
    * returns a list of association entries
    * 
    * @param terminology the terminology
+   * 
    * @param ip the ip
+   * 
    * @param fromRecord the starting record for the search
+   * 
    * @param pageSize the size of pages in returned result
+   * 
    * @return the association entry list
+   * 
    * @throws Exception Signals that an exception has occurred.
    */
   AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,

@@ -501,6 +501,32 @@ public class MDRControllerTests {
   }
 
   /**
+   * Test qualifier values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testQualifierValues() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<String> list = null;
+
+    // NCIM qualifier values
+    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_CAT/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
+
+  }
+  /**
    * Test subree.
    *
    * @throws Exception the exception
