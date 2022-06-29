@@ -449,15 +449,16 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
+      term.setMetadata(metadata);
 
       // Compute concept statuses
       metadata.setConceptStatuses(sparqlQueryManagerService.getDistinctPropertyValues(term,
-          term.getMetadata().getConceptStatus()));
+          metadata.getConceptStatus()));
 
       // Compute definition sources
       metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term).stream()
           .map(d -> d.getCode()).collect(Collectors.toSet()));
-      term.setMetadata(metadata);
+      
     } catch (Exception e) {
       throw new Exception("Unexpected error trying to load = " + resource, e);
     }

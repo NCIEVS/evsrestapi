@@ -174,7 +174,9 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
     Terminology term = list.get(0);
     assertThat(term.getMetadata()).isNotNull();
-    assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(10);
+    // term types are no longer returned with the terminology metadata
+    // these are retrievable from the /termTypes metdata endpoint
+    // assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(10);
 
     // Test NCIm
     url = baseUrl + "/terminologies?terminology=ncim&latest=true";
@@ -189,7 +191,9 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
     term = list.get(0);
     assertThat(term.getMetadata()).isNotNull();
-    assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(10);
+    // term types are no longer returned with the terminology metadata
+    // these are retrievable from the /termTypes metdata endpoint
+    // assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(10);
 
     // Test mdr
     url = baseUrl + "/terminologies?terminology=mdr&latest=true";
@@ -204,7 +208,9 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
     term = list.get(0);
     assertThat(term.getMetadata()).isNotNull();
-    assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(5);
+    // term types are no longer returned with the terminology metadata
+    // these are retrievable from the /termTypes metdata endpoint
+    // assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(5);
 
   }
 
