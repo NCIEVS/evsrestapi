@@ -489,7 +489,7 @@ public class SearchControllerTests {
 
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV0").param("property", "P999"))
+            .param("value", "XAV0").param("property", "P999"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -497,11 +497,11 @@ public class SearchControllerTests {
     assertThat(list.getTotal() == 0);
 
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=XAV05295I5&property=FDA_UNII_Code&include=properties");
+        + "?terminology=ncit&value=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV05295I5").param("property", "FDA_UNII_Code"))
+            .param("value", "XAV05295I5").param("property", "FDA_UNII_Code"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -512,15 +512,18 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
     assertThat(list.getConcepts().get(0).getProperties().stream()
         .filter(p -> p.getType().equals("FDA_UNII_Code")).count()).isGreaterThan(0);
-    assertThat(list.getConcepts().get(0).getProperties().stream()
-        .filter(p -> p.getType().equals("FDA_UNII_Code")).findFirst().get().getValue())
-            .isEqualTo("XAV05295I5");
+    // All results an FDA_UNII_Code property with the specified value
+    assertThat(list.getConcepts().stream()
+        .filter(c -> c.getProperties().stream().filter(
+            p -> p.getType().equals("FDA_UNII_Code") && p.getValue().equals("XAV05295I5")
+            ).count()>0).count()).isEqualTo(list.getConcepts().size());        
 
     // Test with single terminology form
     url = "/api/v1/concept/ncit/search";
-    log.info("Testing url - " + url + "?term=XAV05295I5&property=FDA_UNII_Code&include=properties");
+    log.info(
+        "Testing url - " + url + "?value=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
-    result = this.mvc.perform(get(url).param("include", "properties").param("term", "XAV05295I5")
+    result = this.mvc.perform(get(url).param("include", "properties").param("value", "XAV05295I5")
         .param("property", "FDA_UNII_Code")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
@@ -534,11 +537,11 @@ public class SearchControllerTests {
     // With property code also - P319
     url = baseUrl;
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=XAV05295I5&property=P319&include=properties");
+        + "?terminology=ncit&value=XAV05295I5&property=P319&include=properties");
 
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV05295I5").param("property", "P319"))
+            .param("value", "XAV05295I5").param("property", "P319"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -555,9 +558,9 @@ public class SearchControllerTests {
 
     // Test with single terminology form
     url = "/api/v1/concept/ncit/search";
-    log.info("Testing url - " + url + "?term=XAV05295I5&property=P319&include=properties");
+    log.info("Testing url - " + url + "?value=XAV05295I5&property=P319&include=properties");
 
-    result = this.mvc.perform(get(url).param("include", "properties").param("term", "XAV05295I5")
+    result = this.mvc.perform(get(url).param("include", "properties").param("value", "XAV05295I5")
         .param("property", "P319")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
@@ -571,10 +574,10 @@ public class SearchControllerTests {
     // BAD property type
     // url = baseUrl;
     // log.info("Testing url - " + url +
-    // "?terminology=ncit&term=XAV05295I5&property=P999999");
+    // "?terminology=ncit&value=XAV05295I5&property=P999999");
     //
     // result = mvc.perform(get(url).param("terminology",
-    // "ncit").param("term",
+    // "ncit").param("value",
     // "XAV05295I5")
     // .param("property",
     // "P999999")).andExpect(status().isBadRequest()).andReturn();
@@ -582,12 +585,31 @@ public class SearchControllerTests {
     // // Test with single terminology form
     // url = "/api/v1/concept/ncit/search";
     // log.info("Testing url - " + url +
-    // "?term=XAV05295I5&property=P999999");
+    // "?value=XAV05295I5&property=P999999");
     //
-    // result = this.mvc.perform(get(url).param("term",
+    // result = this.mvc.perform(get(url).param("value",
     // "XAV05295I5").param("property", "P999999"))
     // .andExpect(status().isBadRequest()).andReturn();
     log.info("Done Testing testSearchProperty ");
+
+    // search by property and term
+    // property=FDA_UNII_CODE and term=Toluene
+    log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code&term=Toluene");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
+            .param("include", "properties,synonyms").param("term", "Toluene"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    // all should have a name containing "Toluene" and have an FDA_UNII_CODE
+    assertThat(list.getConcepts().stream().filter(
+        c -> c.getProperties().stream().filter(p -> p.getType().equals("FDA_UNII_Code")).count() > 0
+            && (c.getName().toLowerCase().contains("toluene") || c.getSynonyms().stream()
+                .filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0))
+        .count()).isEqualTo(list.getConcepts().size());
+
   }
 
   /**
@@ -1955,12 +1977,12 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code");
     result = mvc.perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
         .param("include", "properties")).andExpect(status().isOk()).andReturn();
-    list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
-        ConceptResultList.class);
+    String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
-    for (final Concept conc : list.getConcepts()) { // test that have match
-                                                    // to
-                                                    // synonymSource = GDC
+    // test that have match to synonymSource = GDC
+    for (final Concept conc : list.getConcepts()) {
       boolean found = false;
       for (Property prop : conc.getProperties()) {
         if (prop.getType() != null && prop.getType().equals("FDA_UNII_Code")) {
@@ -1970,6 +1992,12 @@ public class SearchControllerTests {
       }
       assertThat(found).isTrue();
     }
+    // NOT all should have a name containing "Toluene" (see testSearchProperty)
+    assertThat(list.getConcepts().stream()
+        .filter(c -> (c.getName().toLowerCase().contains("toluene") || c.getSynonyms().stream()
+            .filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0))
+        .count()).isNotEqualTo(list.getConcepts().size());
+
   }
 
   /**

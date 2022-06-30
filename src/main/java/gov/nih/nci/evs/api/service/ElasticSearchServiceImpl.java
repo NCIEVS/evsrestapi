@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -94,18 +95,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       final String exactNormTerm = normTerm.replace(" ", "\\ ");
 
       // "Exact" clauses (with normTerm)
-      // Only search name, code, properties and synonyms
-      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
-          .should(QueryBuilders.queryStringQuery(exactNormTerm).field("normName").analyzeWildcard(true)
-              .boost(20f))
-          .should(QueryBuilders
-              .nestedQuery("properties",
-                  QueryBuilders.queryStringQuery(exactNormTerm).field("properties.value")
-                      .analyzeWildcard(true),
-                  ScoreMode.Max)
-              .boost(5f))
-          .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders.queryStringQuery(exactNormTerm)
-              .field("synonyms.normName").analyzeWildcard(true), ScoreMode.Max).boost(20f));
+      // Only search name, code, and synonyms
+      BoolQueryBuilder boolQuery2 =
+          new BoolQueryBuilder()
+              .should(QueryBuilders.queryStringQuery(exactNormTerm).field("normName")
+                  .analyzeWildcard(true).boost(20f))
+              .should(
+                  QueryBuilders
+                      .nestedQuery("synonyms", QueryBuilders.queryStringQuery(exactNormTerm)
+                          .field("synonyms.normName").analyzeWildcard(true), ScoreMode.Max)
+                      .boost(20f));
 
       // NOTE: this only supports uppercase codes
       boolQuery2
@@ -113,8 +112,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
       if (startsWithFlag) {
         // Boost exact name match to top of list
-        boolQuery2 = boolQuery2.should(QueryBuilders
-            .matchQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
+        boolQuery2 = boolQuery2
+            .should(
+                QueryBuilders.matchQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
             // NOTE: this only supports uppercase codes
             .should(QueryBuilders.queryStringQuery(exactTerm.toUpperCase() + "*").field("code")
                 .analyzeWildcard(true).boost(15f));
@@ -155,9 +155,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           // Synonyms generally 10f
           .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
               .boost(10f))
-          // Properties generally 5f
-          .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
-              .boost(5f))
           // definitions generally 1f
           .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max));
 
@@ -358,14 +355,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // concept status
-    QueryBuilder conceptStatusQuery =
-        getPropertyTypeValueQueryBuilder(searchCriteria, "Concept_Status");
+    QueryBuilder conceptStatusQuery = getConceptStatusQueryBuilder(searchCriteria);
     if (conceptStatusQuery != null) {
       queries.add(conceptStatusQuery);
     }
 
     // property
-    QueryBuilder propertyQuery = getPropertyTypeCodeQueryBuilder(searchCriteria);
+    QueryBuilder propertyQuery = getPropertyValueQueryBuilder(searchCriteria);
     if (propertyQuery != null) {
       queries.add(propertyQuery);
     }
@@ -420,17 +416,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param type the type
    * @return the nested query
    */
-  private QueryBuilder getPropertyTypeValueQueryBuilder(SearchCriteria searchCriteria,
-    String type) {
-    List<String> values = null;
-    switch (type.toLowerCase()) {
-      case "concept_status":
-        values = searchCriteria.getConceptStatus();
-        break;
-      default:
-        values = searchCriteria.getProperty();
-        break;
-    }
+  private QueryBuilder getConceptStatusQueryBuilder(SearchCriteria searchCriteria) {
+    List<String> values = searchCriteria.getConceptStatus();
 
     // If there are no values, bail
     if (CollectionUtils.isEmpty(values)) {
@@ -448,9 +435,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
     }
 
+    // TODO: this shouldn't be hardcoded, but need to read from the particular
+    // terminology
+    // we are searching, or otherwise make this a top-level field of "Concept"
     // bool query to match property.type and property.value
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.matchQuery("properties.type", type)).must(inQuery);
+        .must(QueryBuilders.matchQuery("properties.type", "Concept_Status")).must(inQuery);
 
     // nested query on properties
     return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
@@ -492,40 +482,32 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return the nested query
    */
-  private QueryBuilder getPropertyTypeCodeQueryBuilder(SearchCriteria searchCriteria) {
+  private QueryBuilder getPropertyValueQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getProperty()))
       return null;
 
-    boolean hasTerm = !StringUtils.isBlank(searchCriteria.getTerm());
+    boolean hasValue = !StringUtils.isBlank(searchCriteria.getValue());
 
-    // IN query on property.type or property.code
-    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+    // Match value (optional)
+    MatchQueryBuilder valueQuery = null;
+    if (hasValue) {
+      valueQuery = QueryBuilders.matchQuery("properties.value", searchCriteria.getValue());
+    }
 
-    if (searchCriteria.getProperty().size() == 1) {
-      inQuery = inQuery.must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.matchQuery("properties.type", searchCriteria.getProperty().get(0)))
-          .should(
-              QueryBuilders.matchQuery("properties.code", searchCriteria.getProperty().get(0))));
+    BoolQueryBuilder typeQuery = QueryBuilders.boolQuery();
+    // Iterate through properties and build up parts
+    for (String property : searchCriteria.getProperty()) {
 
-      if (hasTerm) {
-        inQuery =
-            inQuery.must(QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()));
-      }
-    } else {
-      for (String property : searchCriteria.getProperty()) {
-        inQuery = inQuery.should(
-            QueryBuilders.boolQuery().should(QueryBuilders.matchQuery("properties.type", property))
-                .should(QueryBuilders.matchQuery("properties.code", property)));
+      typeQuery = typeQuery.should(QueryBuilders.matchQuery("properties.type", property))
+          .should(QueryBuilders.matchQuery("properties.code", property));
 
-        if (hasTerm) {
-          inQuery = inQuery
-              .should(QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()));
-        }
-      }
     }
 
     // bool query to match (property.type or property.code) and property.value
-    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(typeQuery);
+    if (hasValue) {
+      fieldBoolQuery.must(valueQuery);
+    }
 
     // nested query on properties
     return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
