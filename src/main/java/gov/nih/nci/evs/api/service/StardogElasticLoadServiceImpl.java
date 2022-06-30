@@ -3,14 +3,18 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -262,6 +266,22 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
         sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
     ElasticObject conceptsObject = new ElasticObject("qualifiers");
     conceptsObject.setConcepts(qualifiers);
+    // Get qualifier values by code and by qualifier name
+    final Map<String, Set<String>> map = new HashMap<>();
+    for (final Concept qualifier : qualifiers) {
+      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(),
+          terminology)) {
+        if (!map.containsKey(qualifier.getCode())) {
+          map.put(qualifier.getCode(), new HashSet<>());
+        }
+        map.get(qualifier.getCode()).add(value);
+        if (!map.containsKey(qualifier.getName())) {
+          map.put(qualifier.getName(), new HashSet<>());
+        }
+        map.get(qualifier.getName()).add(value);
+      }
+    }
+    conceptsObject.setMap(map);
     operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
     logger.info("  Qualifiers loaded");
@@ -421,12 +441,24 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
     // the config file is probably not there
     final String resource = "metadata/" + term.getTerminology() + ".json";
     try {
+      // Load from file
       TerminologyMetadata metadata = new ObjectMapper().readValue(
           IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
           TerminologyMetadata.class);
+
+      // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
       term.setMetadata(metadata);
+
+      // Compute concept statuses
+      metadata.setConceptStatuses(sparqlQueryManagerService.getDistinctPropertyValues(term,
+          metadata.getConceptStatus()));
+
+      // Compute definition sources
+      metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term).stream()
+          .map(d -> d.getCode()).collect(Collectors.toSet()));
+      
     } catch (Exception e) {
       throw new Exception("Unexpected error trying to load = " + resource, e);
     }

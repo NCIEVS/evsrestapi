@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.index.query.QueryBuilders;
@@ -536,6 +537,18 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<Concept> getQualifiers(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonProcessingException {
     return getConceptList("qualifiers", terminology, ip);
+  }
+
+  /* see superclass */
+  @Override
+  public Map<String, Set<String>> getQualifierValues(Terminology terminology)
+    throws JsonMappingException, JsonProcessingException {
+    Optional<ElasticObject> esObject = getElasticObject("qualifiers", terminology);
+    if (!esObject.isPresent()) {
+      return new HashMap<>();
+    }
+
+    return esObject.get().getMap();
   }
 
   /**

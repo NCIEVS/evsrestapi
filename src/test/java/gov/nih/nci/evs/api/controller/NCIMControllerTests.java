@@ -68,7 +68,7 @@ public class NCIMControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
-    // baseUrlMetadata = "/api/v1/metadata";
+
   }
 
   /**
@@ -693,6 +693,33 @@ public class NCIMControllerTests {
     assertThat(list.size()).isGreaterThan(30);
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AB");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
+
+  }
+
+  /**
+   * Test qualifier values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testQualifierValues() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<String> list = null;
+
+    // NCIM qualifier values
+    url = "/api/v1/metadata/ncim/qualifier/SMQ_TERM_CAT/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
 
   }
 

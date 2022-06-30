@@ -67,12 +67,15 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "latest", value = "Return terminologies with matching <i>latest</i> value. e.g. true or false",
+      @ApiImplicitParam(name = "latest",
+          value = "Return terminologies with matching <i>latest</i> value. e.g. true or false",
           required = false, dataType = "boolean", paramType = "query", defaultValue = "true"),
-      @ApiImplicitParam(name = "tag", value = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
+      @ApiImplicitParam(name = "tag",
+          value = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
           required = false, dataType = "string", paramType = "query"),
-      @ApiImplicitParam(name = "terminology", value = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'", required = false,
-          dataType = "string", paramType = "query")
+      @ApiImplicitParam(name = "terminology",
+          value = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'",
+          required = false, dataType = "string", paramType = "query")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
@@ -101,7 +104,7 @@ public class MetadataController extends BaseController {
       }
 
       for (Terminology term : terms) {
-        TerminologyMetadata meta = term.getMetadata();
+        final TerminologyMetadata meta = term.getMetadata();
         // Some terminologies may not have metadata
         if (meta != null) {
           meta.setSources(null);
@@ -110,6 +113,8 @@ public class MetadataController extends BaseController {
           meta.setUnpublished(null);
           meta.setSubsetPrefix(null);
           meta.setSubsetLinks(null);
+          meta.setConceptStatus(null);
+          meta.setDefinitionSourceSet(null);
         }
       }
 
@@ -630,11 +635,11 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology",
-          value = "Terminology, e.g. 'ncit'.",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code", value = "Subset code, e.g. 'C116978' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.", required = true, dataType = "string",
-          paramType = "path"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'.", required = true,
+          dataType = "string", paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code",
+          value = "Subset code, e.g. 'C116978' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, dataType = "string", paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data tc return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
