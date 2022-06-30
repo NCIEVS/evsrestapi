@@ -20,6 +20,7 @@ public class Parameter
 	private String include;
 	private int fromRecord;
 	private int pageSize;
+	private List<String> property;
 	private List<String> terminology;
 
 // Default constructor
@@ -33,6 +34,7 @@ public class Parameter
 		String include,
 		int fromRecord,
 		int pageSize,
+		List<String> property,
 		List<String> terminology) {
 
 		this.term = term;
@@ -40,6 +42,7 @@ public class Parameter
 		this.include = include;
 		this.fromRecord = fromRecord;
 		this.pageSize = pageSize;
+		this.property = property;
 		this.terminology = terminology;
 	}
 
@@ -62,6 +65,10 @@ public class Parameter
 
 	public void setPageSize(int pageSize) {
 		this.pageSize = pageSize;
+	}
+
+	public void setProperty(List<String> property) {
+		this.property = property;
 	}
 
 	public void setTerminology(List<String> terminology) {
@@ -88,6 +95,10 @@ public class Parameter
 
 	public int getPageSize() {
 		return this.pageSize;
+	}
+
+	public List<String> getProperty() {
+		return this.property;
 	}
 
 	public List<String> getTerminology() {
