@@ -126,13 +126,13 @@ public class SearchController extends BaseController {
               + "list of NCI Metathesaurus properties</a>.</p> "
               + "The properties can be specified as code or name. "
               + "NOTE: This feature works with <i>value</i> to find concepts having one of the specified "
-              + "properties having an exact value matching the <i>value</i> parameter.  Using a <i>term</i> "
-              + "will further restrict results to those also matching the term value.",
+              + "properties with an exact value matching the <i>value</i> parameter.  Using a <i>term</i> "
+              + "will further restrict results to those also matching the term.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "value", value = "A property value to restrict search results by.  "
           + "NOTE: This feature works with <i>property</i> to find concepts having one of the specified "
-          + "properties having an exact value matching this parameter.  Using a <i>term</i> "
-          + "will further restrict results to those also matching the term value.",
+          + "properties with an exact value matching this parameter.  Using a <i>term</i> "
+          + "will further restrict results to those also matching the term.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results by. "
@@ -253,13 +253,13 @@ public class SearchController extends BaseController {
               + "list of NCI Metathesaurus properties</a>.</p> "
               + "The properties can be specified as code or name. "
               + "NOTE: This feature works with <i>value</i> to find concepts having one of the specified "
-              + "properties having an exact value matching the <i>value</i> parameter.  Using a <i>term</i> "
-              + "will further restrict results to those also matching the term value.",
+              + "properties with an exact value matching the <i>value</i> parameter.  Using a <i>term</i> "
+              + "will further restrict results to those also matching the term.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "value", value = "A property value to restrict search results by.  "
           + "NOTE: This feature works with <i>property</i> to find concepts having one of the specified "
-          + "properties having an exact value matching this parameter.  Using a <i>term</i> "
-          + "will further restrict results to those also matching the term value.",
+          + "properties with an exact value matching this parameter.  Using a <i>term</i> "
+          + "will further restrict results to those also matching the term.",
           required = false, dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results by. "
