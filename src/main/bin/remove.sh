@@ -8,10 +8,17 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
-if [ ${#arr[@]} -ne 2 ]; then
+if [ ${#arr[@]} -ne 2 ] || [ $help -e1 ]; then
   echo "Usage: $0 <terminology> <version>"
   echo "  e.g. $0 ncit 2009d"
   echo "  e.g. $0 ncim 202102"
+  # proceed if jq exists
+  jq --help >> /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    echo ""
+    echo "List of terminology version:"
+    curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_search?size=10000"  | jq -r '.hits.hits[]._source.terminology | .terminology + " " + .version' | perl -pe 's/\.//;' | sed 's/^/    /'
+  fi
   exit 1
 fi
 

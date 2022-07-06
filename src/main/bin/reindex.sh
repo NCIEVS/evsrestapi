@@ -44,6 +44,7 @@ if [[ $config -eq 1 ]]; then
     . $CONFIG_ENV_FILE
     if [[ $? -ne 0 ]]; then
         echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
+        echo "       consider using --noconfig (if working in dev environment)"
         exit 1
     fi
 elif [[ -z $STARDOG_HOST ]]; then
