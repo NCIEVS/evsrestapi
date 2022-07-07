@@ -80,11 +80,12 @@ public class AxiomUtils {
 
 	}
 
+/*
     public AxiomUtils(String serviceUrl) {
         this.serviceUrl = serviceUrl;
         this.owlSPARQLUtils = new OWLSPARQLUtils(this.serviceUrl, null, null);
     }
-
+*/
     public AxiomUtils(String serviceUrl, String username, String password) {
         this.serviceUrl = serviceUrl;
         this.username = username;
@@ -432,8 +433,10 @@ public class AxiomUtils {
 
     public static void main(String[] args) {
 		String serviceUrl = args[0];
-		String named_graph = args[1];
-		AxiomUtils axiomUtils = new AxiomUtils(serviceUrl);
+		String username = args[1];
+		String password = args[2];
+		String named_graph = args[3];
+		AxiomUtils axiomUtils = new AxiomUtils(serviceUrl, username, password);
 		String code = "C12345";
 		String propertyName = "FULL_SYN";
 		List list = axiomUtils.getSynonyms(named_graph, code, propertyName);
