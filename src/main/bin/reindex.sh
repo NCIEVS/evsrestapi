@@ -95,7 +95,7 @@ fi
 
 
 # Prep query to read all version info
-echo "  Lookup version info for latest terminology in stardog"
+echo "  Lookup terminology, version info in stardog"
 cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> 

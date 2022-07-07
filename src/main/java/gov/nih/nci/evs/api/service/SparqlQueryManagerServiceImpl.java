@@ -189,11 +189,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setDate((b.getDate() == null) ? null : b.getDate().getValue());
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
+      // TODO: this definitely needs to be turned into configuration
+      if (term.getSource().endsWith("Thesaurus.owl")) {
+        term.setTerminology("ncit");
+      } else if (term.getSource().endsWith("obo/go.owl")) {
+        term.setTerminology("go");
+      }
       termList.add(term);
     }
 
-    if (CollectionUtils.isEmpty(termList))
+    if (CollectionUtils.isEmpty(termList)) {
       return Collections.<Terminology> emptyList();
+    }
 
     final List<Terminology> results = new ArrayList<>();
 
@@ -206,11 +213,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     for (int i = 0; i < termList.size(); i++) {
       final Terminology term = termList.get(i);
-
-      // Only set weekly/monthly for NCIt
-      if (term.getTerminology().equals("ncit")) {
-        utils.setTags(term, stardogProperties.getDb());
-      }
 
       // set latest tag for the most recent version
       term.setLatest(i == 0);
