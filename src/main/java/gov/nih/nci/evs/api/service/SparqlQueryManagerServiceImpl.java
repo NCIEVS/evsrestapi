@@ -182,10 +182,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         continue;
       Terminology term = new Terminology();
       String comment = (b.getComment() == null) ? "" : b.getComment().getValue();
-      String version = b.getVersion().getValue();
+      // String version = b.getVersion().getValue();
       term.setDescription(comment);
       term.setVersion(b.getVersion().getValue());
-      term.setName(TerminologyUtils.constructName(comment, version));
+      // term.setName(TerminologyUtils.constructName(comment, version));
       term.setDate((b.getDate() == null) ? null : b.getDate().getValue());
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
@@ -244,7 +244,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setDate(b.getDate().getValue());
       term.setDescription(comment);
       term.setGraph(terminology.getGraph());
-      term.setName(TerminologyUtils.constructName(comment, version));
+      // term.setName(TerminologyUtils.constructName(comment, version));
     }
     return term;
   }

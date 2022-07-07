@@ -176,7 +176,7 @@ if [[ $config -eq 0 ]]; then
     local="-Dspring.profiles.active=local"
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 fi
-export EVS_SERVER_PORT="8083"
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1`

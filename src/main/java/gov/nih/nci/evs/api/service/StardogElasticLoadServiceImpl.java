@@ -446,26 +446,35 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
           IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
           TerminologyMetadata.class);
 
+      // Set terminology name
+      term.setName(metadata.getUiLabel() + " " + term.getDate());
+
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
       term.setMetadata(metadata);
 
       // Compute concept statuses
-      metadata.setConceptStatuses(sparqlQueryManagerService.getDistinctPropertyValues(term,
-          metadata.getConceptStatus()));
+      if (metadata.getConceptStatus() != null) {
+        metadata.setConceptStatuses(
+            sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
+      }
 
       // Compute definition sources
-      metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term).stream()
-          .map(d -> d.getCode()).collect(Collectors.toSet()));
-      
+      if (metadata.getDefinitionSource() != null) {
+        metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term)
+            .stream().map(d -> d.getCode()).collect(Collectors.toSet()));
+      }
+
     } catch (Exception e) {
       throw new Exception("Unexpected error trying to load = " + resource, e);
     }
 
     // Compute tags because this is the new terminology
     // Do this AFTER setting terminology metadata, which is needed
-    termUtils.setTags(term, stardogProperties.getDb());
+    if (term.getMetadata().getMonthlyDb() != null) {
+      termUtils.setTags(term, stardogProperties.getDb());
+    }
 
     return term;
   }

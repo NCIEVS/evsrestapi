@@ -1,6 +1,6 @@
 {
-  "uiLabel": "Gene Ontology",
-  "code": "oboInOwl:id",
+  "uiLabel": "NCI Thesaurus",
+  "code": "NHC0",
   "conceptStatus": "P310",
   "retiredStatusValue": "Retired_Concept",
   "preferredName": "P108",
