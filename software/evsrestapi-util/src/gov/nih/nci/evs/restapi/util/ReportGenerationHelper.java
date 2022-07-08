@@ -101,11 +101,11 @@ public class ReportGenerationHelper {
 		return this.owlSPARQLUtils;
 	}
 
-	public String construct_get_valueset(String named_graph) {
+	public String construct_get_valueset(String named_graph, String code) {
 		String prefixes = owlSPARQLUtils.getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		buf.append("select distinct ?x_label ?x_code ?p1_label ?y_label ?y_code ").append("\n");
+		buf.append("select distinct ?x_label ?x_code ?p1_label ?y_label ?y_code ?p2_value").append("\n");
 		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
 		buf.append("where  { ").append("\n");
 		buf.append("            	?x a owl:Class .").append("\n");
@@ -114,7 +114,10 @@ public class ReportGenerationHelper {
 		buf.append("").append("\n");
 		buf.append("            	?y a owl:Class .").append("\n");
 		buf.append("            	?y :NHC0 ?y_code .").append("\n");
-		buf.append("                ?y :NHC0 \"C128784\"^^xsd:string .").append("\n");
+
+		if (code != null) {
+			buf.append("                ?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
 		buf.append("").append("\n");
 		buf.append("            	?y rdfs:label ?y_label .").append("\n");
 		buf.append("            	").append("\n");
@@ -130,8 +133,8 @@ public class ReportGenerationHelper {
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
-	public Vector getValueset(String named_graph) {
-		String query = construct_get_valueset(named_graph);
+	public Vector getValueset(String named_graph, String code) {
+		String query = construct_get_valueset(named_graph, code);
 		Vector v = owlSPARQLUtils.executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return v;
