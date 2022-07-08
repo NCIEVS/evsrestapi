@@ -193,27 +193,7 @@ public class OWLSPARQLUtils {
 
     public void set_named_graph(String named_graph) {
 		this.named_graph = named_graph;
-		//this.BASE_URI = named_graph;
 		propertyCode2labelHashMap = new HashMap();
-
-		/*
-		Vector supportedProperties = getSupportedProperties(named_graph);
-
-		if (supportedProperties == null) {
-			System.out.println("supportedProperties == null???");
-			return;
-		} else {
-			System.out.println("supportedProperties: " + supportedProperties.size());
-		}
-
-		for (int i=0; i<supportedProperties.size(); i++) {
-			String supportedProperty = (String) supportedProperties.elementAt(i);
-			Vector u = StringUtils.parseData(supportedProperty, '|');
-			String label = (String) u.elementAt(0);
-			String code = (String) u.elementAt(1);
-			propertyCode2labelHashMap.put(code, label);
-		}
-		*/
 	}
 
 	public String get_version() {
@@ -2993,9 +2973,6 @@ public class OWLSPARQLUtils {
 
 	public Vector getAxioms(String named_graph, String code, String propertyName) {
 		String query = construct_axiom_query(named_graph, code, propertyName);
-
-		System.out.println(query);
-
 		Vector v = executeQuery(query);
 		if (v != null) {
 			v = new ParserUtils().getResponseValues(v);
@@ -4913,11 +4890,8 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 	}
 
 	public Vector getValueSetData(String named_graph) {
-		System.out.println("executeQuery");
 		Vector v = executeQuery(construct_get_value_set_data(named_graph));
-		System.out.println("v: " + v.size());
 		v = new ParserUtils().getResponseValues(v);
-		System.out.println("v: " + v.size());
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
