@@ -187,6 +187,16 @@ public class ReportGenerationHelper {
 		return v;
 	}
 
+	public Vector getSuperclassesByCode(String named_graph, String code) {
+		Vector v = owlSPARQLUtils.getSuperclassesByCode(named_graph, code);
+		return v;
+	}
+
+	public Vector getSubclassesByCode(String named_graph, String code) {
+		Vector v = owlSPARQLUtils.getSubclassesByCode(named_graph, code);
+		return v;
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
@@ -238,6 +248,11 @@ public class ReportGenerationHelper {
 		w = test.getInverseRolesByCode(named_graph, code);
 		Utils.dumpVector(code, w);
 
+		w = test.getSuperclassesByCode(named_graph, code);
+		Utils.dumpVector(code, w);
+
+		w = test.getSubclassesByCode(named_graph, code);
+		Utils.dumpVector(code, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
 }
