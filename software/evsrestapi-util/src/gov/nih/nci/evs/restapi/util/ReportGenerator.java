@@ -75,9 +75,6 @@ public class ReportGenerator {
     String prefixes = null;
     String serviceUrl = null;
     String restURL = null;
-    String named_graph_id = ":NHC0";
-    String BASE_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-
     ParserUtils parser = new ParserUtils();
     HashMap nameVersion2NamedGraphMap = null;
     HashMap ontologyUri2LabelMap = null;
@@ -85,13 +82,14 @@ public class ReportGenerator {
     String username = null;
     String password = null;
     OWLSPARQLUtils owlSPARQLUtils = null;
-    AxiomUtils axiomUtils = null; //(String serviceUrl, String username, String password)
+    AxiomUtils axiomUtils = null;
 
 	public static int TYPE_PARENT = 1;
 	public static int TYPE_CHILDREN = 2;
 	public static int TYPE_PROPERTY = 3;
 	public static int TYPE_ASSOCIATION = 4;
 	public static int TYPE_ROLE = 5;
+	public static int TYPE_ASSOCIATED_CONCEPT_PROPERTY = 6;
 
     public ReportGenerator(String serviceUrl, String named_graph, String username, String password) {
 		this.serviceUrl = serviceUrl;
@@ -124,6 +122,14 @@ public class ReportGenerator {
              buf.append("select distinct ?x_label ?x_code ?p1_label ?y_label ?y_code ?p2_value ?p_label ?z_label ?z_code").append("\n");
 		} else if (type == TYPE_ROLE) {
              buf.append("select distinct ?x_label ?x_code ?p1_label ?y_label ?y_code ?p2_value ?p_label ?z_label ?z_code").append("\n");
+		} else if (type == TYPE_ASSOCIATED_CONCEPT_PROPERTY) {
+			 Vector u = StringUtils.parseData(data, '|');
+			 String prop_code = (String) u.elementAt(0);
+			 if (u.size() == 2) {
+             	 buf.append("select distinct ?x_label ?x_code ?p1_label ?y_label ?y_code ?p2_value ?p_label ?z_label ?z_code ?p3_value").append("\n");
+			 } else {
+				 buf.append("select distinct ?x_label ?x_code ?p1_label ?y_label ?y_code ?p2_value ?p_label ?z_label ?z_code ?z1_axiom ?z1_target").append("\n");
+			 }
 		}
 		buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
 		buf.append("where  { ").append("\n");
@@ -184,47 +190,97 @@ public class ReportGenerator {
 			buf.append("        ?rs owl:someValuesFrom ?z .").append("\n");
 			buf.append("	    ?z rdfs:label ?z_label .").append("\n");
 			buf.append("	    ?z :NHC0 ?z_code .").append("\n");
+
+	    } else if (type == TYPE_ASSOCIATED_CONCEPT_PROPERTY) {
+			Vector u = StringUtils.parseData(data, '|');
+			String a_code = (String) u.elementAt(0);
+            buf.append("\n");
+			buf.append("	    	?x ?p ?z .").append("\n");
+			buf.append("	    	?z a owl:Class .").append("\n");
+
+			buf.append("	    	?z rdfs:label ?z_label .").append("\n");
+			buf.append("	    	?z :NHC0 ?z_code .").append("\n");
+
+			buf.append("	    	?p rdfs:label ?p_label .").append("\n");
+			buf.append("	    	?p :NHC0 \"" + a_code + "\"^^xsd:string .").append("\n");
+
+			String prop_code = (String) u.elementAt(1);
+			if (u.size() == 2) {
+				buf.append("	    ?z ?p3 ?p3_value .").append("\n");
+				buf.append("	    ?p3_code :NHC0 \"" + prop_code + "\"^^xsd:string .").append("\n");
+			} else if (u.size() > 2) {
+				//associated concept (?z) axiom
+				buf.append("            	?z1_axiom a owl:Axiom .").append("\n");
+				buf.append("            	?z1_axiom owl:annotatedSource ?z .").append("\n");
+				buf.append("            	?z1_axiom owl:annotatedProperty ?p3 .").append("\n");
+				buf.append("            	?p3_code :NHC0 \"" + prop_code + "\"^^xsd:string .").append("\n");
+				buf.append("            	?z1_axiom owl:annotatedTarget ?z1_target .").append("\n");
+				// match qualifiers
+                for (int j=2; j<u.size(); j++) {
+					int k=j-1;
+					String qual_str = (String) u.elementAt(j);
+					Vector u2 = StringUtils.parseData(qual_str, '$');
+					String qual_code = (String) u2.elementAt(0);
+					String qual_val = (String) u2.elementAt(1);
+					buf.append("            	?q" + k + " :NHC0 \"" + qual_code + "\"^^xsd:string .").append("\n");
+					buf.append("            	?z1_axiom ?q" + k + " \"" + qual_val + "\"^^xsd:string ." ).append("\n");
+				}
+			}
 		}
+
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
 
+	public String construct_axiom_query(String named_graph, String subset_code, String propertyName) {
+		return construct_axiom_query(named_graph, subset_code, null, null, propertyName);
+	}
 
-	public String construct_axiom_query(String named_graph, String code, String propertyName) {
+	public String construct_axiom_query(String named_graph, String subset_code, String code, String associationCode, String propertyName) {
 		String prefixes = owlSPARQLUtils.getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("").append("\n");
-		buf.append("SELECT ?z_axiom ?x_label ?x_code ?p_label ?z_target ?y_label ?z").append("\n");
+		buf.append("SELECT ?z_axiom ?z0_label ?z0_code ?p_label ?z_target ?y_label ?z").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + ">").append("\n");
 		buf.append("    { ").append("\n");
 
-		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
-		buf.append("            ?z_axiom owl:annotatedSource ?x .").append("\n");
-
 		buf.append("            ?x :NHC0 ?x_code .").append("\n");
+		if (code != null) {
+			buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+		}
 		buf.append("            ?x rdfs:label ?x_label .").append("\n");
 
-		buf.append("            	?y0 a owl:Class .").append("\n");
-		buf.append("            	?y0 :NHC0 ?y0_code .").append("\n");
+		buf.append("            ?x ?p0 ?z0 .").append("\n");
+		buf.append("            ?z0 a owl:Class .").append("\n");
 
-		if (code != null) {
-			buf.append("                ?y0 :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
-		}
+		buf.append("            ?z0 rdfs:label ?z0_label .").append("\n");
+		buf.append("            ?z0 :NHC0 ?z0_code .").append("\n");
 
-		buf.append("").append("\n");
-		buf.append("            	?y0 rdfs:label ?y0_label .").append("\n");
-		buf.append("            	").append("\n");
-		buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
-		buf.append("                ?p1 rdfs:label \"Concept_In_Subset\"^^xsd:string .  ").append("\n");
-		buf.append("                ").append("\n");
-		buf.append("                ?x ?p1 ?y0 .").append("\n");
-		buf.append("").append("\n");
-		buf.append("                ?y0 ?p2 ?p2_value .").append("\n");
-		buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
-		buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
+		buf.append("            ?p0 rdfs:label ?p0_label .").append("\n");
 
+		if (associationCode != null) {
+			buf.append("            ?p0 :NHC0 \"" + associationCode + "\"^^xsd:string .").append("\n\n");
+	    }
+
+        if (subset_code != null) {
+			buf.append("            ?y0 a owl:Class .").append("\n");
+			buf.append("            ?y0 :NHC0 ?y0_code .").append("\n");
+			buf.append("            ?y0 :NHC0 \"" + subset_code + "\"^^xsd:string .").append("\n");
+			buf.append("").append("\n");
+			buf.append("            ?y0 rdfs:label ?y0_label .").append("\n");
+			buf.append("            ?p1 rdfs:label ?p1_label .").append("\n");
+			buf.append("            ?p1 rdfs:label \"Concept_In_Subset\"^^xsd:string .  ").append("\n");
+			buf.append("            ?x ?p1 ?y0 .").append("\n");
+			buf.append("").append("\n");
+			buf.append("            ?y0 ?p2 ?p2_value .").append("\n");
+			buf.append("            ?p2 rdfs:label ?p2_label .").append("\n");
+			buf.append("            ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n\n");
+	    }
+
+		buf.append("            ?z_axiom a owl:Axiom .").append("\n");
+		buf.append("            ?z_axiom owl:annotatedSource ?z0 .").append("\n");
 		buf.append("            ?z_axiom owl:annotatedProperty ?p .").append("\n");
 		buf.append("            ?p rdfs:label ?p_label .").append("\n");
 
@@ -260,13 +316,27 @@ public class ReportGenerator {
 		return v;
 	}
 
-	public List getSynonyms(String named_graph, String code) {
-		Vector axiom_data = getAxioms(named_graph, code, "FULL_SYN");
+	public Vector getAxioms(String named_graph, String subset_code, String code, String associationCode, String propertyName) {
+		String query = construct_axiom_query(named_graph, subset_code, code, associationCode, propertyName);
+		Vector v = owlSPARQLUtils.executeQuery(query);
+		if (v != null) {
+			v = new ParserUtils().getResponseValues(v);
+		}
+		return v;
+	}
+
+	public List getSynonyms(String named_graph, String subset_code, String code, String associationCode) {
+		Vector axiom_data = getAxioms(named_graph, subset_code, code, associationCode, "FULL_SYN");
 		return axiomUtils.getSynonyms(axiom_data);
 	}
 
-	public List getDefinitions(String named_graph, String code) {
-		Vector axiom_data = getAxioms(named_graph, code, "DEFINITION");
+	public List getSynonyms(String named_graph, String subset_code) {
+		Vector axiom_data = getAxioms(named_graph, subset_code, "FULL_SYN");
+		return axiomUtils.getSynonyms(axiom_data);
+	}
+
+	public List getDefinitions(String named_graph, String subset_code) {
+		Vector axiom_data = getAxioms(named_graph, subset_code, "DEFINITION");
 		return axiomUtils.getDefinitions(axiom_data);
 	}
 
@@ -300,7 +370,7 @@ public class ReportGenerator {
         Utils.dumpVector(code, w);
 
         type = TYPE_ROLE;
-        w = test.getValueset(named_graph, code, type, null);
+        w = test.getValueset(named_graph, code, type, null);
         Utils.dumpVector(code, w);
 
         List list = test.getSynonyms(named_graph, code);
@@ -313,6 +383,17 @@ public class ReportGenerator {
         for (int i=0; i<list.size(); i++) {
 			Definition def = (Definition) list.get(i);
 			System.out.println(def.toJson());
+		}
+
+        String subset_code = null;
+        code = "C168823";
+        String associationCode = "A23";
+        String propertyName = "FULL_SYN";
+
+        list = test.getSynonyms(named_graph, subset_code, code, associationCode);
+        for (int i=0; i<list.size(); i++) {
+			Synonym syn = (Synonym) list.get(i);
+			System.out.println(syn.toJson());
 		}
 
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
