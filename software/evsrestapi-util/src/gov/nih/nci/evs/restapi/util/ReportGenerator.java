@@ -83,6 +83,10 @@ public class ReportGenerator {
     String password = null;
     OWLSPARQLUtils owlSPARQLUtils = null;
     AxiomUtils axiomUtils = null;
+    ReportGenerationHelper helper = null;
+
+    HashMap code2LabelMap = null;
+    HashMap vsMap = null;
 
 	public static int TYPE_PARENT = 1;
 	public static int TYPE_CHILDREN = 2;
@@ -99,7 +103,49 @@ public class ReportGenerator {
         this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
         this.owlSPARQLUtils.set_named_graph(named_graph);
         this.axiomUtils = new AxiomUtils(serviceUrl, username, password);
+        this.helper = new ReportGenerationHelper(serviceUrl, named_graph, username, password);
+        createVSMap();
     }
+
+    public HashMap getvsMap() {
+		return vsMap;
+	}
+
+	public Vector getVS(String subsetCode) {
+		return (Vector) vsMap.get(subsetCode);
+	}
+
+	public String getLabel(String code) {
+		return (String) code2LabelMap.get(code);
+	}
+
+    private void createVSMap() {
+		long ms = System.currentTimeMillis();
+		code2LabelMap = new HashMap();
+		vsMap = new HashMap();
+        Vector v = getValueset(this.named_graph);
+        for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String yesOrNo = (String) u.elementAt(5);
+			if (yesOrNo.compareTo("Yes") == 0) {
+				code2LabelMap.put((String) u.elementAt(1), (String) u.elementAt(0));
+				code2LabelMap.put((String) u.elementAt(4), (String) u.elementAt(3));
+				Vector w = new Vector();
+				String code = (String) u.elementAt(1);
+				String subsetCode = (String) u.elementAt(4);
+				if (vsMap.containsKey(subsetCode)) {
+					w = (Vector) vsMap.get(subsetCode);
+				}
+				if (!w.contains(code)) {
+					w.add(code);
+				}
+				vsMap.put(subsetCode, w);
+			}
+		}
+        v.clear();
+        System.out.println("Total createVSMap run time (ms): " + (System.currentTimeMillis() - ms));
+	}
 
     public OWLSPARQLUtils getOWLSPARQLUtils() {
 		return this.owlSPARQLUtils;
@@ -340,6 +386,76 @@ public class ReportGenerator {
 		return axiomUtils.getDefinitions(axiom_data);
 	}
 
+
+	public String construct_get_valueset(String named_graph) {
+        String prefixes = owlSPARQLUtils.getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_label ?x_code ?p1_label ?y_label ?y_code ?p2_value").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where  { ").append("\n");
+        buf.append("                    ?x a owl:Class .").append("\n");
+        buf.append("                    ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                    ?x rdfs:label ?x_label .").append("\n");
+        buf.append("                    ").append("\n");
+        buf.append("                    ?y a owl:Class .").append("\n");
+        buf.append("                    ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                    ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                    ").append("\n");
+        buf.append("                    ?x ?p1 ?y .").append("\n");
+        buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
+        buf.append("                ?p1 rdfs:label \"Concept_In_Subset\"^^xsd:string .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?y ?p2 ?p2_value .").append("\n");
+        buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
+        buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getValueset(String named_graph) {
+        String query = construct_get_valueset(named_graph);
+        Vector v = owlSPARQLUtils.executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
+	public Vector resolveValueSet(String subsetCode) {
+		Stack stack = new Stack();
+		stack.push(subsetCode);
+		Vector w = new Vector();
+		while (!stack.isEmpty()) {
+			String code = (String) stack.pop();
+			Vector v = (Vector) getVS(code);
+			if (v != null) {
+				w.addAll(v);
+			}
+			Vector sub_vec = helper.getSubclassesByCode(named_graph, code);
+			if (sub_vec != null) {
+				for (int k=0; k<sub_vec.size(); k++) {
+					String line1 = (String) sub_vec.elementAt(k);
+					Vector u2 = StringUtils.parseData(line1, '|');
+					String sub = (String) u2.elementAt(1);
+					stack.push(sub);
+				}
+			}
+		}
+		Vector v = new Vector();
+		HashSet hset = new HashSet();
+		for (int i=0; i<w.size(); i++) {
+			String code = (String) w.elementAt(i);
+			if (!hset.contains(code)) {
+				hset.add(code);
+				v.add(getLabel(code) + "|" + code);
+			}
+		}
+		w.clear();
+		return new SortUtils().quickSort(v);
+	}
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String serviceUrl = args[0];
@@ -348,8 +464,14 @@ public class ReportGenerator {
 		String password = args[3];
 		Vector w = new Vector();
         ReportGenerator test = new ReportGenerator(serviceUrl, named_graph, username, password);
+
+        //ICDC Terminology (Code C165451)
+        String code = "C165451";
+		Vector v = test.resolveValueSet(code);
+		Utils.dumpVector(code, v);
+
 		//SPL Color Terminology (Code C54453)
-        String code = "C54453";
+
         int type = TYPE_PARENT;
         w = test.getValueset(named_graph, code, type, null);
         Utils.dumpVector(code, w);
@@ -397,5 +519,6 @@ public class ReportGenerator {
 		}
 
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+
     }
 }
