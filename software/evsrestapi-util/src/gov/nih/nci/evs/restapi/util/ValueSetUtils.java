@@ -377,9 +377,11 @@ System.out.println("Step 5: generating AssertedValueSetTree ...");
         return this.owlSPARQLUtils.createValueSetDefinition(named_graph, vs_code);
 	}
 
+/*
 	public SearchResult search(String associationName, String searchString, String searchTarget, String algorithm) {
 	    return searchUtils.search(named_graph, associationName, searchString, searchTarget, algorithm);
 	}
+*/
 
 	public Vector execute(String queryfile) {
 		long ms = System.currentTimeMillis();
