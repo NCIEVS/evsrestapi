@@ -41,7 +41,7 @@ public class ValueSetSearchUtils {
 		this.owlSPARQLUtils.set_named_graph(named_graph);
 	}
 
-	public String construct_get_valueset_code_search(String named_graph, String code) {
+	public String construct_get_valueset_code_search(String named_graph, String code, String subset_code) {
 		String prefixes = owlSPARQLUtils.getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
@@ -55,6 +55,9 @@ public class ValueSetSearchUtils {
 		buf.append("            	").append("\n");
 		buf.append("            	?y a owl:Class .").append("\n");
 		buf.append("            	?y :NHC0 ?y_code .").append("\n");
+		if (subset_code != null) {
+			buf.append("                ?y :NHC0 \"" + subset_code + "\"^^xsd:string .").append("\n");
+		}
 		buf.append("            	?y rdfs:label ?y_label .").append("\n");
 		buf.append("            	").append("\n");
 		buf.append("            	?x ?p1 ?y .").append("\n");
@@ -70,7 +73,12 @@ public class ValueSetSearchUtils {
 	}
 
 	public Vector searchByCode(String named_graph, String code) {
-		String query = construct_get_valueset_code_search(named_graph, code);
+		return searchByCode(named_graph, code, null);
+	}
+
+
+	public Vector searchByCode(String named_graph, String code, String subset_code) {
+		String query = construct_get_valueset_code_search(named_graph, code, subset_code);
 		Vector v = owlSPARQLUtils.executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return v;
@@ -88,7 +96,7 @@ public class ValueSetSearchUtils {
 		return w;
 	}
 
-	public String construct_get_valueset_search(String named_graph, String term, String algorithm) {
+	public String construct_get_valueset_search(String named_graph, String term, String algorithm, String subset_code) {
 		term = term.toLowerCase();
 		String prefixes = owlSPARQLUtils.getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -102,6 +110,9 @@ public class ValueSetSearchUtils {
 		buf.append("            	").append("\n");
 		buf.append("            	?y a owl:Class .").append("\n");
 		buf.append("            	?y :NHC0 ?y_code .").append("\n");
+		if (subset_code != null) {
+			buf.append("                ?y :NHC0 \"" + subset_code + "\"^^xsd:string .").append("\n");
+		}
 		buf.append("            	?y rdfs:label ?y_label .").append("\n");
 		buf.append("            	").append("\n");
 		buf.append("            	?x ?p1 ?y .").append("\n");
@@ -115,15 +126,6 @@ public class ValueSetSearchUtils {
 
 		buf.append("                ?x ?p ?p_value .").append("\n");
 		buf.append("                ?p rdfs:label ?p_label .").append("\n");
-		/*
-		buf.append("                ?a1 a owl:Axiom .").append("\n");
-		buf.append("                ?a1 owl:annotatedSource ?x .").append("\n");
-		buf.append("                ?a1 owl:annotatedProperty ?p .").append("\n");
-		buf.append("                ?a1 owl:annotatedTarget ?a1_target .").append("\n");
-		buf.append("                ?p rdfs:label ?p_label .    ").append("\n");
-		buf.append("                ?p rdfs:label \"FULL_SYN\"^^xsd:string .").append("\n");
-		buf.append("                ").append("\n");
-		*/
 
 		if (algorithm.compareTo(EXACT_MATCH) == 0) {
 			buf.append("                FILTER(lcase(str(?p_value)) = \"" + term + "\"^^xsd:string)").append("\n");
@@ -137,9 +139,12 @@ public class ValueSetSearchUtils {
 		return buf.toString();
 	}
 
-
 	public Vector search(String named_graph, String term, String algorithm) {
-		String query = construct_get_valueset_search(named_graph, term, algorithm);
+		return search(named_graph, term, algorithm, null);
+	}
+
+	public Vector search(String named_graph, String term, String algorithm, String subset_code) {
+		String query = construct_get_valueset_search(named_graph, term, algorithm, subset_code);
 		Vector v = owlSPARQLUtils.executeQuery(query);
 		if (v == null) return null;
 		if (v.size() == 0) return v;
@@ -157,7 +162,7 @@ public class ValueSetSearchUtils {
 		return w;
 	}
 
-	public String construct_get_value_set_metadata(String named_graph, String header_concept_code) {
+	public String construct_get_value_set_metadata(String named_graph, String subset_code) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -175,14 +180,14 @@ public class ValueSetSearchUtils {
 		buf.append("?x ?y2 ?z2 .").append("\n");
 		buf.append("?y2 rdfs:label \"Contributing_Source\"^^xsd:string .").append("\n");
 		buf.append("?y2 rdfs:label ?y2_label .").append("\n");
-		buf.append("FILTER (str(?x_code) = \"" + header_concept_code + "\"^^xsd:string)").append("\n");
+		buf.append("FILTER (str(?x_code) = \"" + subset_code + "\"^^xsd:string)").append("\n");
 		buf.append("}").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
 
-	public Vector getValueSetMetadata(String named_graph, String header_concept_code) {
-	    String query = construct_get_value_set_metadata(named_graph, header_concept_code);
+	public Vector getValueSetMetadata(String named_graph, String subset_code) {
+	    String query = construct_get_value_set_metadata(named_graph, subset_code);
 	    Vector v = owlSPARQLUtils.executeQuery(query);
 	    if (v == null) return null;
 	    if (v.size() == 0) return v;
@@ -225,17 +230,20 @@ public class ValueSetSearchUtils {
 
 		String term = "blue";
 		String code = "C48333";
+		String subset_code = "C54452";
 		ValueSetSearchUtils utils = new ValueSetSearchUtils(serviceUrl, namedGraph, username, password);
 
 		for (int i=0; i<ALGORITHMS.length; i++) {
 			String algorithm = ALGORITHMS[i];
-			Vector w = utils.search(namedGraph, term, algorithm);
+			Vector w = utils.search(namedGraph, term, algorithm, subset_code);
 			Utils.dumpVector(algorithm + ", name - " + term, w);
+
 			boolean byName = true;
 			Vector w1 = utils.parseVSData(w, true);
 			Utils.dumpVector("value set, " + algorithm + ", name - " + term, w1);
 			Vector w2 = utils.parseVSData(w, false);
 			Utils.dumpVector("value set, " + algorithm + ", property - " + term, w2);
+
 		}
 
 		Vector w = utils.searchByCode(namedGraph, code);
