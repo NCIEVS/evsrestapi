@@ -195,6 +195,10 @@ public class ValueSetSearchUtils {
 	}
 
 	public Vector parseVSData(Vector v, boolean byName) {
+		return parseVSData(v, byName, true);
+	}
+
+	public Vector parseVSData(Vector v, boolean byName, boolean forVS) {
 		//(1) Blue|C48333|Concept_In_Subset|CPTAC Baseline Medical Forms Terminology|C156953|FULL_SYN|Blue
 		List<String> nameList = new ArrayList<>(Arrays.asList(NAMES));
 		Vector w = new Vector();
@@ -202,18 +206,37 @@ public class ValueSetSearchUtils {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String propertyName = (String) u.elementAt(5);
-			if (byName) {
-				if (nameList.contains(propertyName)) {
-					String t = (String) u.elementAt(3) + "|" + (String) u.elementAt(4);
-					if (!w.contains(t)) {
-						w.add(t);
+
+			if (forVS) {
+				if (byName) {
+					if (nameList.contains(propertyName)) {
+						String t = (String) u.elementAt(3) + "|" + (String) u.elementAt(4);
+						if (!w.contains(t)) {
+							w.add(t);
+						}
+					}
+				} else {
+					if (!nameList.contains(propertyName)) {
+						String t = (String) u.elementAt(3) + "|" + (String) u.elementAt(4);
+						if (!w.contains(t)) {
+							w.add(t);
+						}
 					}
 				}
 			} else {
-				if (!nameList.contains(propertyName)) {
-					String t = (String) u.elementAt(3) + "|" + (String) u.elementAt(4);
-					if (!w.contains(t)) {
-						w.add(t);
+				if (byName) {
+					if (nameList.contains(propertyName)) {
+						String t = (String) u.elementAt(0) + "|" + (String) u.elementAt(1);
+						if (!w.contains(t)) {
+							w.add(t);
+						}
+					}
+				} else {
+					if (!nameList.contains(propertyName)) {
+						String t = (String) u.elementAt(0) + "|" + (String) u.elementAt(1);
+						if (!w.contains(t)) {
+							w.add(t);
+						}
 					}
 				}
 			}
@@ -239,11 +262,10 @@ public class ValueSetSearchUtils {
 			Utils.dumpVector(algorithm + ", name - " + term, w);
 
 			boolean byName = true;
-			Vector w1 = utils.parseVSData(w, true);
+			Vector w1 = utils.parseVSData(w, true, false);
 			Utils.dumpVector("value set, " + algorithm + ", name - " + term, w1);
-			Vector w2 = utils.parseVSData(w, false);
+			Vector w2 = utils.parseVSData(w, false, false);
 			Utils.dumpVector("value set, " + algorithm + ", property - " + term, w2);
-
 		}
 
 		Vector w = utils.searchByCode(namedGraph, code);
