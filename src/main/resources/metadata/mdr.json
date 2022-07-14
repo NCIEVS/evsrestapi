@@ -13,5 +13,6 @@
 		"OL",
 		"SMQ"
 	],
-	"hierarchy": true
+	"hierarchy": true,
+	"welcomeText": ""
 }
