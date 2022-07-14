@@ -21,6 +21,7 @@ public class Parameter
 	private int fromRecord;
 	private int pageSize;
 	private List<String> property;
+	List<String> synonymType;
 	private List<String> terminology;
 
 // Default constructor
@@ -35,6 +36,7 @@ public class Parameter
 		int fromRecord,
 		int pageSize,
 		List<String> property,
+		List<String> synonymType,
 		List<String> terminology) {
 
 		this.term = term;
@@ -43,6 +45,7 @@ public class Parameter
 		this.fromRecord = fromRecord;
 		this.pageSize = pageSize;
 		this.property = property;
+		this.synonymType = synonymType;
 		this.terminology = terminology;
 	}
 
@@ -69,6 +72,10 @@ public class Parameter
 
 	public void setProperty(List<String> property) {
 		this.property = property;
+	}
+
+	public void setSynonymType(List<String> synonymType) {
+		this.synonymType = synonymType;
 	}
 
 	public void setTerminology(List<String> terminology) {
@@ -99,6 +106,10 @@ public class Parameter
 
 	public List<String> getProperty() {
 		return this.property;
+	}
+
+	public List<String> getSynonymType() {
+		return this.synonymType;
 	}
 
 	public List<String> getTerminology() {
