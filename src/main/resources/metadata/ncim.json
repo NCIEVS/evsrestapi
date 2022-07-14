@@ -1,3 +1,5 @@
 {
-  "uiLabel": "NCI Metathesaurus"
+  "uiLabel": "NCI Metathesaurus",
+  "codeLabel": "CUI",
+  "welcomeText": ""
 }

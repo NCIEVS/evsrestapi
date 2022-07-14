@@ -1,6 +1,7 @@
 {
   "uiLabel": "NCI Thesaurus",
   "code": "NHC0",
+  "codeLabel": "NCI Thesaurus Code",
   "conceptStatus": "P310",
   "retiredStatusValue": "Retired_Concept",
   "preferredName": "P108",
@@ -1749,5 +1750,6 @@
     "C99175": "FDA/ICSR/",
     "C99288": "FDA/SPL/"
 	},
-  "hierarchy": true
+  "hierarchy": true,
+  "welcomeText": ""
 }

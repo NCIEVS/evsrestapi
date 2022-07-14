@@ -84,7 +84,7 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources. */
   private Map<String, String> sources;
 
-  /** The hierarchy flag */
+  /** The hierarchy flag. */
   private Boolean hierarchy;
 
   /** The source ct. */
@@ -132,6 +132,12 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The preferred term types. */
   private List<String> preferredTermTypes;
+
+  /** The code label. */
+  private String codeLabel;
+
+  /** The welcome text. */
+  private String welcomeText;
 
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
@@ -193,6 +199,8 @@ public class TerminologyMetadata extends BaseModel {
     metaConceptField = other.getMetaConceptField();
     preferredTermTypes = new ArrayList<>(other.getPreferredTermTypes());
     subset = new HashSet<>(other.getSubset());
+    codeLabel = other.getCodeLabel();
+    welcomeText = other.getWelcomeText();
   }
 
   /* see superclass */
@@ -231,6 +239,8 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
     result = prime * result + ((subsetLinks == null) ? 0 : subsetLinks.hashCode());
     result = prime * result + ((subsetPrefix == null) ? 0 : subsetPrefix.hashCode());
+    result = prime * result + ((codeLabel == null) ? 0 : codeLabel.hashCode());
+    result = prime * result + ((welcomeText == null) ? 0 : welcomeText.hashCode());
     return result;
   }
 
@@ -389,6 +399,16 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!subsetPrefix.equals(other.subsetPrefix))
       return false;
+    if (codeLabel == null) {
+      if (other.codeLabel != null)
+        return false;
+    } else if (!codeLabel.equals(other.codeLabel))
+      return false;
+    if (welcomeText == null) {
+      if (other.welcomeText != null)
+        return false;
+    } else if (!welcomeText.equals(other.welcomeText))
+      return false;
     return true;
   }
 
@@ -482,6 +502,11 @@ public class TerminologyMetadata extends BaseModel {
     this.conceptStatus = conceptStatus;
   }
 
+  /**
+   * Returns the concept statuses.
+   *
+   * @return the concept statuses
+   */
   public List<String> getConceptStatuses() {
     if (conceptStatuses == null) {
       conceptStatuses = new ArrayList<>();
@@ -489,6 +514,11 @@ public class TerminologyMetadata extends BaseModel {
     return conceptStatuses;
   }
 
+  /**
+   * Sets the concept statuses.
+   *
+   * @param conceptStatuses the concept statuses
+   */
   public void setConceptStatuses(List<String> conceptStatuses) {
     this.conceptStatuses = conceptStatuses;
   }
@@ -747,7 +777,7 @@ public class TerminologyMetadata extends BaseModel {
    * Sets the map target term group. This is a bridge to support naming
    * convention normalization.
    *
-   * @param mapTargetTermType the map target term group
+   * @param mapTargetTermGroup the map target term group
    */
   public void setMapTargetTermGroup(String mapTargetTermGroup) {
     this.mapTargetTermType = mapTargetTermGroup;
@@ -1110,6 +1140,42 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the code label.
+   *
+   * @return the codeLabel
+   */
+  public String getCodeLabel() {
+    return codeLabel;
+  }
+
+  /**
+   * Sets the code label.
+   *
+   * @param codeLabel the codeLabel to set
+   */
+  public void setCodeLabel(String codeLabel) {
+    this.codeLabel = codeLabel;
+  }
+
+  /**
+   * Returns the welcome text.
+   *
+   * @return the welcomeText
+   */
+  public String getWelcomeText() {
+    return welcomeText;
+  }
+
+  /**
+   * Sets the welcome text.
+   *
+   * @param welcomeText the welcomeText to set
+   */
+  public void setWelcomeText(String welcomeText) {
+    this.welcomeText = welcomeText;
+  }
+
+  /**
    * Sets the preferred term groups. This is a bridge to support naming
    * convention normalization.
    *
@@ -1141,6 +1207,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the hierarchy.
+   *
    * @return the hierarchy
    */
   public Boolean getHierarchy() {
@@ -1151,6 +1219,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Sets the hierarchy.
+   *
    * @param hierarchy the hierarchy to set
    */
   public void setHierarchy(Boolean hierarchy) {
