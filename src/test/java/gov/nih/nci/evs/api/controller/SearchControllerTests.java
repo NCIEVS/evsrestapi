@@ -177,6 +177,7 @@ public class SearchControllerTests {
         this.mvc.perform(get(url).param("term", "C192").param("include", "synonyms,highlights"))
             .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isEqualTo(1);
     assertThat(list.getConcepts().get(0).getSynonyms().stream()
@@ -514,9 +515,10 @@ public class SearchControllerTests {
         .filter(p -> p.getType().equals("FDA_UNII_Code")).count()).isGreaterThan(0);
     // All results an FDA_UNII_Code property with the specified value
     assertThat(list.getConcepts().stream()
-        .filter(c -> c.getProperties().stream().filter(
-            p -> p.getType().equals("FDA_UNII_Code") && p.getValue().equals("XAV05295I5")
-            ).count()>0).count()).isEqualTo(list.getConcepts().size());        
+        .filter(c -> c.getProperties().stream()
+            .filter(p -> p.getType().equals("FDA_UNII_Code") && p.getValue().equals("XAV05295I5"))
+            .count() > 0)
+        .count()).isEqualTo(list.getConcepts().size());
 
     // Test with single terminology form
     url = "/api/v1/concept/ncit/search";
@@ -1087,6 +1089,11 @@ public class SearchControllerTests {
 
   }
 
+  /**
+   * Test definition type.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testDefinitionType() throws Exception {
 
@@ -1173,15 +1180,17 @@ public class SearchControllerTests {
     List<Concept> conceptList = list.getConcepts();
     boolean currentExact = true;
     for (Concept concept : conceptList) {
+      // found match
       if (concept.getName().equalsIgnoreCase("braf")
           || !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("braf"))
-              .collect(Collectors.toList()).isEmpty()) { // found
-                                                         // match
-        if (!currentExact) // check still in front
-          fail("Exact Matches not in order"); // exact matches not in
-                                              // order
+              .collect(Collectors.toList()).isEmpty()) {
+        // check still in front
+        if (!currentExact)
+          // exact matches not inorder
+          fail("Exact Matches not in order");
       } else
-        currentExact = false; // should be at end of exact matches
+        // should be at end of exact matches
+        currentExact = false;
     }
 
     // phrase term check
@@ -1253,7 +1262,7 @@ public class SearchControllerTests {
     // The first one should contain the word "corona" (e.g. crown, corona
     // dentist)
     assertThat(list.getConcepts().get(0).getSynonyms().stream()
-        .filter(s -> s.getName().toLowerCase().contains("corona ")).count()).isGreaterThan(0);
+        .filter(s -> s.getName().toLowerCase().contains("corona")).count()).isGreaterThan(0);
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
             .filter(s -> s.getName().toLowerCase().contains("coronaviridae")).count() > 0)
@@ -2024,12 +2033,11 @@ public class SearchControllerTests {
       log.info("  content = " + content);
       assertThat(content).isNotNull();
       list = new ObjectMapper().readValue(content, ConceptResultList.class);
-      if (type.equals("contains") || type.equals("OR")) {
+      if (type.equals("contains") || type.equals("OR") || type.equals("fuzzy")) {
         assertThat(list.getConcepts()).isNotEmpty();
       } else {
         assertThat(list.getConcepts()).isEmpty();
       }
-
     }
 
     for (final String type : new String[] {
@@ -2084,7 +2092,7 @@ public class SearchControllerTests {
   }
 
   /**
-   * Test that search deboosts retired concepts
+   * Test that search deboosts retired concepts.
    *
    * @throws Exception the exception
    */
@@ -2154,6 +2162,64 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search quality.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchQuality() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Search for "mg/dL", the first result should be C67015
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=mg%2Fdl&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "mg/dL").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C67015");
+
+    // Search for "double lymphoma" - everything with "double" and "lymphoma"
+    // should come
+    // before anything that doesn't have both.
+    log.info("Testing url - " + url
+        + "?terminology=ncit&pageSize=100&term=double+lymphoma&type=contains&include=synonyms");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("pageSize", "100")
+        .param("term", "double lymphoma").param("type", "contains").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    boolean currentExact = true;
+    for (Concept concept : list.getConcepts()) {
+      // found match
+      if ((concept.getName().toLowerCase().contains("double")
+          && concept.getName().toLowerCase().contains("lymphoma"))
+          || !concept.getSynonyms().stream()
+              .filter(s -> s.getName().toLowerCase().contains("double")
+                  && s.getName().toLowerCase().contains("lymphoma"))
+              .collect(Collectors.toList()).isEmpty()) {
+        // check still in front
+        if (!currentExact)
+          // exact matches not inorder
+          fail("Matches with both 'double' and 'lymphoma' not before others");
+      } else
+        // should be at end of exact matches
+        currentExact = false;
+    }
+
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
@@ -2162,4 +2228,5 @@ public class SearchControllerTests {
   private String removeTimeTaken(String response) {
     return response.replaceAll("\"timeTaken\"\\s*:\\s*\\d+\\s*,", "");
   }
+
 }

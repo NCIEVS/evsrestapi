@@ -132,8 +132,8 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "value", value = "A property value to restrict search results by.  "
           + "NOTE: This feature works with <i>property</i> to find concepts having one of the specified "
           + "properties with an exact value matching this parameter.  Using a <i>term</i> "
-          + "will further restrict results to those also matching the term.",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+          + "will further restrict results to those also matching the term.", required = false,
+          dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results by. "
               + "<p><a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a "
@@ -259,8 +259,8 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "value", value = "A property value to restrict search results by.  "
           + "NOTE: This feature works with <i>property</i> to find concepts having one of the specified "
           + "properties with an exact value matching this parameter.  Using a <i>term</i> "
-          + "will further restrict results to those also matching the term.",
-          required = false, dataType = "string", paramType = "query", defaultValue = ""),
+          + "will further restrict results to those also matching the term.", required = false,
+          dataType = "string", paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionSource",
           value = "Comma-separated list of definition sources to restrict search results by. "
               + "<p><a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a "
