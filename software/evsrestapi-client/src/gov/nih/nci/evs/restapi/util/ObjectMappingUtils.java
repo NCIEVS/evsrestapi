@@ -342,7 +342,16 @@ public class ObjectMappingUtils {
 		String relationship = "subtree";
 		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
 	    String json = EVSRESTAPIClient.getJson(url);
+
 	    gov.nih.nci.evs.restapi.client.bean.TreeNode[] list = ObjectMappingUtils.json2TreeNodeList(json);
+	    return list;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Node[] getChildren(String terminology, String code) {
+		String relationship = "children";
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.Node[] list = ObjectMappingUtils.json2NodeList(json);
 	    return list;
 	}
 
