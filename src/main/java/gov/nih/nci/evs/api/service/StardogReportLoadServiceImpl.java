@@ -130,19 +130,19 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
     logReport("  ", "properties", properties);
 
     // Show associations
-    // List<Concept> associations =
-    // sparqlQueryManagerService.getAllAssociations(terminology, new
-    // IncludeParam("full"));
+    List<Concept> associations =
+        sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
+    logReport("  ", "associations", associations);
 
     // Show roles
-    // List<Concept> roles =
-    // sparqlQueryManagerService.getAllRoles(terminology, new
-    // IncludeParam("full"));
+    List<Concept> roles =
+        sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
+    logReport("  ", "roles", roles);
 
     // Show synonym types
-    // List<Concept> synonymTypes =
-    // sparqlQueryManagerService.getAllSynonymTypes(terminology, new
-    // IncludeParam("full"));
+    List<Concept> synonymTypes =
+        sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
+    logReport("  ", "synonym types", synonymTypes);
 
     // Show definition types
     // List<Concept> definitionTypes =

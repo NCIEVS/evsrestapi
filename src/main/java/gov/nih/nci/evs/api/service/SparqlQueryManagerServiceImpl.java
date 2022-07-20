@@ -1846,8 +1846,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("all.associations",
-        terminology.getMetadata().getCode(), terminology.getGraph());
+    Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),
+        "namedGraph", terminology.getGraph(), "preferredNameCode",
+        terminology.getMetadata().getPreferredName());
+    String query = queryBuilderService.constructQuery("all.associations", values);
+
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1877,8 +1880,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   // #ip.toString()}")
   public List<Concept> getAllRoles(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("all.roles",
-        terminology.getMetadata().getCode(), terminology.getGraph());
+    Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),
+        "namedGraph", terminology.getGraph(), "preferredNameCode",
+        terminology.getMetadata().getPreferredName());
+    String query = queryBuilderService.constructQuery("all.roles", values);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
