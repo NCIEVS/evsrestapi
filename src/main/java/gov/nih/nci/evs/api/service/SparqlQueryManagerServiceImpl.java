@@ -229,7 +229,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public Terminology getTerminology(Terminology terminology) throws Exception {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("version.info", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("version.info",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -279,8 +280,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public boolean checkConceptExists(String conceptCode, Terminology terminology) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("concept.label", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("concept.label",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -303,8 +304,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public String getConceptLabel(String conceptCode, Terminology terminology) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("concept.label", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("concept.label",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -725,8 +726,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Property> getConceptProperties(String conceptCode, Terminology terminology)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("property", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("property",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -832,8 +833,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws Exception {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("property.no.restrictions", conceptCode,
-        terminology.getGraph());
+    String query = queryBuilderService.constructQuery("property.no.restrictions",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -869,8 +870,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getSubconcepts(String conceptCode, Terminology terminology)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("subconcept", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("subconcept",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -939,8 +940,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getSuperconcepts(String conceptCode, Terminology terminology)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("superconcept", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("superconcept",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1009,8 +1010,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Association> getAssociations(String conceptCode, Terminology terminology)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("associations", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("associations",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1081,8 +1082,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Association> getInverseAssociations(String conceptCode, Terminology terminology)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("inverse.associations", conceptCode,
-        terminology.getGraph());
+    String query = queryBuilderService.constructQuery("inverse.associations",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1152,8 +1153,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<Role> getInverseRoles(String conceptCode, Terminology terminology) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("inverse.roles", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("inverse.roles",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1224,7 +1225,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<Role> getRoles(String conceptCode, Terminology terminology) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("roles", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("roles", terminology.getMetadata().getCode(),
+        conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1297,8 +1299,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<DisjointWith> getDisjointWith(String conceptCode, Terminology terminology)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query =
-        queryBuilderService.constructQuery("disjoint.with", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("disjoint.with",
+        terminology.getMetadata().getCode(), conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1370,7 +1372,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Axiom> getAxioms(String conceptCode, Terminology terminology, boolean qualifierFlag)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("axiom", conceptCode, terminology.getGraph());
+    String query = queryBuilderService.constructQuery("axiom", terminology.getMetadata().getCode(),
+        conceptCode, terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1542,7 +1545,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public ArrayList<String> getHierarchy(Terminology terminology) throws Exception {
     ArrayList<String> parentchild = new ArrayList<String>();
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("hierarchy", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("hierarchy",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1669,7 +1673,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   // #ip.toString()}")
   public List<Concept> getAllProperties(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("all.properties", terminology.getGraph());
+    Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),
+        "namedGraph", terminology.getGraph(), "preferredNameCode",
+        terminology.getMetadata().getPreferredName());
+    String query = queryBuilderService.constructQuery("all.properties", values);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1684,7 +1691,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     // Get all qualifier codes (in case there is overlap with properties)
-    String query2 = queryBuilderService.constructQuery("all.qualifiers", terminology.getGraph());
+    String query2 = queryBuilderService.constructQuery("all.qualifiers",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     String res2 = restUtils.runSPARQL(queryPrefix + query2, getQueryURL());
     Set<String> qualifiers = new HashSet<>();
     Sparql sparqlResult2 = mapper.readValue(res2, Sparql.class);
@@ -1694,8 +1702,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     // Get all "properties never used"
-    String query3 =
-        queryBuilderService.constructQuery("all.propertiesNeverUsed", terminology.getGraph());
+    String query3 = queryBuilderService.constructQuery("all.propertiesNeverUsed",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     String res3 = restUtils.runSPARQL(queryPrefix + query3, getQueryURL());
     Set<String> neverUsed = new HashSet<>();
     Sparql sparqlResult3 = mapper.readValue(res3, Sparql.class);
@@ -1750,7 +1758,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
   public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("all.qualifiers", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("all.qualifiers",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1837,7 +1846,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("all.associations", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("all.associations",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -1867,7 +1877,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   // #ip.toString()}")
   public List<Concept> getAllRoles(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("all.roles", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("all.roles",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     ObjectMapper mapper = new ObjectMapper();
@@ -2030,6 +2041,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<ConceptMinimal> getSynonymSources(Terminology terminology) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
 
+    if (terminology.getMetadata().getSynonymSource() == null) {
+      return new ArrayList<>();
+    }
+
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
         ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
             terminology.getMetadata().getSynonymSource(), "conceptStatusCode",
@@ -2148,7 +2163,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws JsonMappingException, JsonProcessingException {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     log.debug("query prefix = {}", queryPrefix);
-    String query = queryBuilderService.constructQuery("all.concepts", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("all.concepts",
+        terminology.getMetadata().getCode(), terminology.getGraph());
     log.debug("query = {}", query);
     log.debug("query url = {}", getQueryURL());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -2236,8 +2252,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<AssociationEntry> getAssociationEntries(Terminology terminology,
     Concept association) {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("associationEntries", association.getCode(),
-        terminology.getGraph());
+    String query = queryBuilderService.constructQuery("associationEntries",
+        terminology.getMetadata().getCode(), association.getCode(), terminology.getGraph());
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

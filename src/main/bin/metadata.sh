@@ -37,7 +37,6 @@ echo "--------------------------------------------------"
 echo "terminology = $terminology"
 echo "version = $version"
 echo "uri = $uri"
-echo ""
 
 # Setup configuration
 echo "  Setup configuration"
@@ -62,6 +61,9 @@ elif [[ -z $ES_PORT ]]; then
     echo "ERROR: ES_PORT is not set"
     exit 1
 fi
+
+echo "    elasticsearch = $ES_SCHEME://$ES_HOST:$ES_PORT"
+echo ""
 
 # Verify that terminology/version is valid
 echo "  Verify $terminology $version exists"

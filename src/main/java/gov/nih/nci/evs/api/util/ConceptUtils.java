@@ -14,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Definition;
@@ -391,7 +389,12 @@ public final class ConceptUtils {
       throw new RuntimeException("Unexpected odd number of parameters");
     }
     for (int i = 0; i < values.length; i += 2) {
-      map.put(values[i], values[i + 1]);
+      // Patch for default namespace where appropriate
+      if (values[i].endsWith("Code") && !values[i + 1].contains(":")) {
+        map.put(values[i], ":" + values[i + 1]);
+      } else {
+        map.put(values[i], values[i + 1]);
+      }
     }
     return map;
 

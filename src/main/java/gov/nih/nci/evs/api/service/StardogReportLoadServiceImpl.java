@@ -1,12 +1,19 @@
 
 package gov.nih.nci.evs.api.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +21,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.StardogProperties;
@@ -31,6 +42,12 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(StardogReportLoadServiceImpl.class);
+
+  /** The mapper. */
+  private ObjectMapper mapper = new ObjectMapper();
+
+  /** The lines. */
+  private List<String> lines = new ArrayList<>();
 
   /** the environment *. */
   @Autowired
@@ -60,262 +77,79 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws IOException {
-    //
-    // logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}",
-    // terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE);
-    //
-    // boolean result =
-    // operationsService.createIndex(terminology.getIndexName(),
-    // config.isForceDeleteIndex());
-    // if (result) {
-    // operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-    // ElasticOperationsService.CONCEPT_TYPE, Concept.class);
-    // }
-    //
-    // logger.info("Getting all concepts");
+
+    // Get all concepts
     // List<Concept> allConcepts =
     // sparqlQueryManagerService.getAllConcepts(terminology);
     //
-    // try {
-    // // download concepts and upload to es in real time
-    // logger.info("Loading in real time");
-    // loadConceptsRealTime(allConcepts, terminology, hierarchy);
-    // } catch (Exception e) {
-    // logger.error(e.getMessage(), e);
-    // throw new IOException(e);
-    // }
-    //
-    // return allConcepts.size();
+
+    // TODO: For each concept
+    // Get the concept via sparql command
+    // print out the full concept
+    // maybe only print the first 10 or something
+
     return -1;
-  }
-
-  /**
-   * load concepts directly from stardog in batches.
-   *
-   * @param allConcepts all concepts to load
-   * @param terminology the terminology
-   * @param hierarchy the hierarchy
-   * @throws Exception the exception
-   */
-  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
-    // logger.info(" download batch size = " + DOWNLOAD_BATCH_SIZE);
-    // logger.info(" index batch size = " + INDEX_BATCH_SIZE);
-    //
-    // // Check assumptions
-    // if (DOWNLOAD_BATCH_SIZE < INDEX_BATCH_SIZE) {
-    // throw new Exception("The download batch size must not be less than the
-    // index batch size");
-    // }
-    //
-    // if (CollectionUtils.isEmpty(allConcepts)) {
-    // logger.warn("Unable to load. No concepts found!");
-    // return;
-    // }
-    //
-    // logger.info(" Initialize main type hierarchy");
-    // mainTypeHierarchy.initialize(terminology, hierarchy);
-    //
-    // logger.info(" Total concepts to load: {}", allConcepts.size());
-    //
-    // Double total = (double) allConcepts.size();
-    //
-    // int start = 0;
-    // int end = DOWNLOAD_BATCH_SIZE;
-    //
-    // Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
-    //
-    // CountDownLatch latch = new CountDownLatch(taskSize.intValue());
-    // ExecutorService executor = Executors.newFixedThreadPool(10);
-    // try {
-    // while (start < total) {
-    // if (total - start <= DOWNLOAD_BATCH_SIZE)
-    // end = total.intValue();
-    //
-    // logger.info(" Processing {} to {}", start + 1, end);
-    // logger.info(" start reading {} to {}", start + 1, end);
-    // List<Concept> concepts = sparqlQueryManagerService
-    // .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
-    // logger.info(" finish reading {} to {}", start + 1, end);
-    //
-    // logger.info(" start computing extensions {} to {}", start + 1, end);
-    // concepts.stream()
-    // // .peek(c -> logger.info(" concept = " + c.getCode() + " " +
-    // // c.getName()))
-    // .peek(c -> c.setExtensions(mainTypeHierarchy.getExtensions(c)))
-    // // .peek(c -> logger.info(" extensions = " + c.getExtensions()))
-    // .count();
-    // logger.info(" finish computing extensions {} to {}", start + 1, end);
-    //
-    // int indexStart = 0;
-    // int indexEnd = INDEX_BATCH_SIZE;
-    // Double indexTotal = (double) concepts.size();
-    // final List<Future<Void>> futures = new ArrayList<>();
-    // while (indexStart < indexTotal) {
-    // if (indexTotal - indexStart <= INDEX_BATCH_SIZE)
-    // indexEnd = indexTotal.intValue();
-    //
-    // futures.add(executor.submit(
-    // new ConceptLoadTask(concepts.subList(indexStart, indexEnd), start +
-    // indexStart,
-    // start + indexEnd, terminology.getIndexName(), latch,
-    // taskSize.intValue())));
-    //
-    // indexStart = indexEnd;
-    // indexEnd = indexEnd + INDEX_BATCH_SIZE;
-    //
-    // }
-    // // Look for exceptions
-    // for (final Future<Void> future : futures) {
-    // // This throws an exception if the callable had an issue
-    // future.get();
-    // }
-    // start = end;
-    // end = end + DOWNLOAD_BATCH_SIZE;
-    // }
-    //
-    // latch.await();
-    //
-    // logger.info(" shutdown");
-    // executor.shutdown();
-    // logger.info(" await termination");
-    // executor.awaitTermination(30, TimeUnit.SECONDS);
-    //
-    // } catch (Exception e) {
-    // logger.info(" shutdown now");
-    // executor.shutdownNow();
-    // logger.info(" await termination");
-    // executor.awaitTermination(30, TimeUnit.SECONDS);
-    // throw e;
-    // }
-    // logger.info("Done loading concepts!");
-  }
-
-  /**
-   * add subset links to subset hierarchy.
-   *
-   * @param subset the subset
-   * @param subsetLinks the subset links
-   * @param subsetPrefix the subset prefix
-   */
-  private void addSubsetLinks(Concept subset, Map<String, String> subsetLinks,
-    String subsetPrefix) {
-    if (subsetLinks.containsKey(subset.getCode())) {
-      subset.setSubsetLink(subsetPrefix + subsetLinks.get(subset.getCode()));
-    }
-    for (Concept child : subset.getChildren()) {
-      addSubsetLinks(child, subsetLinks, subsetPrefix);
-    }
   }
 
   /* see superclass */
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws Exception {
-    // String indexName = terminology.getObjectIndexName();
-    // logger.info("Loading Elastic Objects");
-    // logger.debug("object index name: {}", indexName);
-    // boolean result = operationsService.createIndex(indexName,
-    // config.isForceDeleteIndex());
-    // logger.debug("index result: {}", result);
-    //
-    // ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-    // hierarchyObject.setHierarchy(hierarchy);
-    // operationsService.index(hierarchyObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Hierarchy loaded");
-    //
-    // List<ConceptMinimal> synonymSources =
-    // sparqlQueryManagerService.getSynonymSources(terminology);
-    // ElasticObject ssObject = new ElasticObject("synonym_sources");
-    // ssObject.setConceptMinimals(synonymSources);
-    // operationsService.index(ssObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Synonym Sources loaded");
-    //
-    // List<Concept> qualifiers =
-    // sparqlQueryManagerService.getAllQualifiers(terminology, new
-    // IncludeParam("full"));
-    // ElasticObject conceptsObject = new ElasticObject("qualifiers");
-    // conceptsObject.setConcepts(qualifiers);
-    // // Get qualifier values by code and by qualifier name
-    // final Map<String, Set<String>> map = new HashMap<>();
-    // for (final Concept qualifier : qualifiers) {
-    // for (final String value :
-    // sparqlQueryManagerService.getQualifierValues(qualifier.getCode(),
-    // terminology)) {
-    // if (!map.containsKey(qualifier.getCode())) {
-    // map.put(qualifier.getCode(), new HashSet<>());
-    // }
-    // map.get(qualifier.getCode()).add(value);
-    // if (!map.containsKey(qualifier.getName())) {
-    // map.put(qualifier.getName(), new HashSet<>());
-    // }
-    // map.get(qualifier.getName()).add(value);
-    // }
-    // }
-    // conceptsObject.setMap(map);
-    // operationsService.index(conceptsObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Qualifiers loaded");
-    //
-    // List<Concept> properties =
-    // sparqlQueryManagerService.getAllProperties(terminology, new
-    // IncludeParam("full"));
-    // ElasticObject propertiesObject = new ElasticObject("properties");
-    // propertiesObject.setConcepts(properties);
-    // operationsService.index(propertiesObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Properties loaded");
-    //
+
+    // TODO: show hierarchy (passed in)
+
+    // Show synonym sources
+    List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
+    logReport("  ", "synonym sources", synonymSources);
+
+    // Show qualifiers
+    List<Concept> qualifiers =
+        sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
+    logReport("  ", "qualifiers", qualifiers);
+
+    // Show qualifier values by code and by qualifier name
+    final Map<String, Set<String>> map = new HashMap<>();
+    for (final Concept qualifier : qualifiers) {
+      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(),
+          terminology)) {
+        if (!map.containsKey(qualifier.getCode())) {
+          map.put(qualifier.getCode(), new HashSet<>());
+        }
+        map.get(qualifier.getCode()).add(value);
+        if (!map.containsKey(qualifier.getName())) {
+          map.put(qualifier.getName(), new HashSet<>());
+        }
+        map.get(qualifier.getName()).add(value);
+      }
+    }
+    logReport("  ", "qualifier values", map);
+
+    // Show properties
+    List<Concept> properties =
+        sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
+    logReport("  ", "properties", properties);
+
+    // Show associations
     // List<Concept> associations =
     // sparqlQueryManagerService.getAllAssociations(terminology, new
     // IncludeParam("full"));
-    // ElasticObject associationsObject = new ElasticObject("associations");
-    // associationsObject.setConcepts(associations);
-    // operationsService.index(associationsObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Associations loaded");
-    //
+
+    // Show roles
     // List<Concept> roles =
     // sparqlQueryManagerService.getAllRoles(terminology, new
     // IncludeParam("full"));
-    // ElasticObject rolesObject = new ElasticObject("roles");
-    // rolesObject.setConcepts(roles);
-    // operationsService.index(rolesObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Roles loaded");
-    //
-    // // synonymTypes
+
+    // Show synonym types
     // List<Concept> synonymTypes =
     // sparqlQueryManagerService.getAllSynonymTypes(terminology, new
     // IncludeParam("full"));
-    // ElasticObject synonymTypesObject = new ElasticObject("synonymTypes");
-    // synonymTypesObject.setConcepts(synonymTypes);
-    // operationsService.index(synonymTypesObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Synonym Types loaded");
-    //
-    // // definitionTypes
+
+    // Show definition types
     // List<Concept> definitionTypes =
     // sparqlQueryManagerService.getAllDefinitionTypes(terminology, new
     // IncludeParam("full"));
-    // ElasticObject definitionTypesObject = new
-    // ElasticObject("definitionTypes");
-    // definitionTypesObject.setConcepts(definitionTypes);
-    // operationsService.index(definitionTypesObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Definition Types loaded");
-    //
-    // // subsets
+
+    // LATER (ncit only): Show subsets
     // List<Concept> subsets =
     // sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     // ElasticObject subsetsObject = new ElasticObject("subsets");
@@ -323,12 +157,8 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
     // addSubsetLinks(subset, terminology.getMetadata().getSubsetLinks(),
     // terminology.getMetadata().getSubsetPrefix());
     // subsetsObject.setConcepts(subsets);
-    // operationsService.index(subsetsObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE,
-    // ElasticObject.class);
-    // logger.info(" Subsets loaded");
-    //
-    // // associationEntries
+
+    // Show association entries
     // for (Concept association : associations) {
     // logger.info(association.getName());
     // if (association.getName().equals("Concept_In_Subset"))
@@ -336,89 +166,8 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
     // List<AssociationEntry> entries =
     // sparqlQueryManagerService.getAssociationEntries(terminology,
     // association);
-    // ElasticObject associationEntriesObject =
-    // new ElasticObject("associationEntries_" + association.getName());
-    // logger.info(" add associationEntries_" + association.getName() + " = " +
-    // entries.size());
-    // associationEntriesObject.setAssociationEntries(entries);
-    // operationsService.index(associationEntriesObject, indexName,
-    // ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     // }
-    // logger.info(" Association Entries loaded");
-    //
-    // logger.info("Done loading Elastic Objects!");
-  }
 
-  /**
-   * Task to load a batch of concepts to elasticsearch.
-   *
-   * @author Arun
-   */
-  private class ConceptLoadTask implements Callable<Void> {
-
-    /** the logger *. */
-    private final Logger taskLogger = LoggerFactory.getLogger(ConceptLoadTask.class);
-
-    /** the concepts *. */
-    @SuppressWarnings("rawtypes")
-    private List concepts;
-
-    /** start index for the task *. */
-    private int startIndex;
-
-    /** end index for the task *. */
-    private int endIndex;
-
-    /** the index name *. */
-    private String indexName;
-
-    /** the count down latch *. */
-    private CountDownLatch latch;
-
-    /** the task size *. */
-    private int taskSize;
-
-    /**
-     * Instantiates a {@link ConceptLoadTask} from the specified parameters.
-     *
-     * @param concepts the concepts
-     * @param start the start
-     * @param end the end
-     * @param indexName the index name
-     * @param latch the latch
-     * @param taskSize the task size
-     * @throws Exception the exception
-     */
-    @SuppressWarnings("rawtypes")
-    public ConceptLoadTask(List concepts, int start, int end, String indexName,
-        CountDownLatch latch, int taskSize) throws Exception {
-      this.concepts = concepts;
-      this.startIndex = start;
-      this.endIndex = end;
-      this.indexName = indexName;
-      this.latch = latch;
-      this.taskSize = taskSize;
-    }
-
-    /* see superclass */
-    @Override
-    public Void call() throws Exception {
-      try {
-        taskLogger.info("    start loading concepts: {} to {}", startIndex + 1, endIndex);
-        operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE,
-            Concept.class);
-        int progress = (int) Math.floor((1.0 - 1.0 * latch.getCount() / taskSize) * 100);
-        taskLogger.info("    finish loading concepts: {} to {} ({}% complete)", startIndex + 1,
-            endIndex, progress);
-      } catch (Throwable e) {
-        throw new Exception(e);
-      } finally {
-        concepts = null;
-        latch.countDown();
-      }
-
-      return null;
-    }
   }
 
   /* see superclass */
@@ -426,15 +175,18 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
   public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
     String filepath, String terminology, boolean forceDelete) throws Exception {
 
+    // Write report header
+    lines.add("--------------------------------------------------------");
+    lines.add("Started ..." + new Date());
+    lines.add("--------------------------------------------------------");
+
     final Terminology term = super.getTerminology(app, config, filepath, terminology, forceDelete);
     final TerminologyMetadata metadata = term.getMetadata();
     term.setMetadata(null);
-    logger.info("  terminology = " + term.getTerminology() + ", " + term);
-    logger.info("     metadata = " + metadata);
+    logReport("  ", "terminology = " + term.getTerminology());
+    logReport("    ", null, term);
+    logReport("  ", "metadata", metadata);
     term.setMetadata(metadata);
-
-    // TODO: here go through and make sparql calls for the different
-    // kinds of metadata and report them.
 
     return term;
   }
@@ -442,24 +194,29 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
   /* see superclass */
   @Override
   public void checkLoadStatus(int total, Terminology term) throws IOException {
-    // n/a
+    // n/a - report only
   }
 
+  /* see superclass */
   @Override
   public void loadIndexMetadata(int total, Terminology term) throws IOException {
-    // n/a
+    // n/a - report only
   }
 
   /* see superclass */
   @Override
   public void cleanStaleIndexes(final Terminology terminology) throws Exception {
-    // n/a
+    // n/a - report only
   }
 
   /* see superclass */
   @Override
   public void updateLatestFlag(final Terminology terminology) throws Exception {
-    // n/a
+    // n/a - report only
+    lines.add("--------------------------------------------------------");
+    lines.add("Finished ..." + new Date());
+    lines.add("--------------------------------------------------------");
+    FileUtils.writeLines(new File("report.txt"), "UTF-8", lines, "\n");
   }
 
   /* see superclass */
@@ -467,4 +224,39 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
     return sparqlQueryManagerService.getHierarchyUtils(term);
   }
+
+  /**
+   * Log report.
+   *
+   * @param line the line
+   */
+  private void logReport(final String indent, final String line) {
+    logger.info(indent + line);
+    lines.add(indent + line);
+  }
+
+  /**
+   * Log report.
+   *
+   * @param indent the indent
+   * @param label the label
+   * @param object the object
+   * @throws Exception the exception
+   */
+  private void logReport(final String indent, final String label, final Object object)
+    throws Exception {
+    final String str = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+    if (label != null) {
+      logger.info(indent + label + " = " + object);
+      lines.add(indent + label + " = ");
+      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + "  " + s)
+          .collect(Collectors.toList()));
+    } else {
+      logger.info(indent + object);
+      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + s)
+          .collect(Collectors.toList()));
+
+    }
+  }
+
 }

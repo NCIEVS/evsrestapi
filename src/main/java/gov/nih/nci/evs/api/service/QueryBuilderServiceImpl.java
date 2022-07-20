@@ -61,12 +61,14 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
+   * @param codeCode the code code
    * @param namedGraph the named graph
    * @return the string
    */
   @Override
-  public String constructQuery(final String queryProp, String namedGraph) {
-    Map<String, String> values = ConceptUtils.asMap("namedGraph", namedGraph);
+  public String constructQuery(final String queryProp, final String codeCode,
+    final String namedGraph) {
+    Map<String, String> values = ConceptUtils.asMap("codeCode", codeCode, "namedGraph", namedGraph);
     String query = getResolvedProperty(queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
@@ -81,11 +83,11 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String constructQuery(final String queryProp, final String conceptCode,
-    final String namedGraph) {
+  public String constructQuery(final String queryProp, final String codeCode,
+    final String conceptCode, final String namedGraph) {
     checkCode(conceptCode);
-    final Map<String, String> values =
-        ConceptUtils.asMap("conceptCode", conceptCode, "namedGraph", namedGraph);
+    final Map<String, String> values = ConceptUtils.asMap("codeCode", codeCode, "conceptCode",
+        conceptCode, "namedGraph", namedGraph);
     final String query = getResolvedProperty(queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
