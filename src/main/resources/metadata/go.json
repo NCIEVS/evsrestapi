@@ -21,7 +21,12 @@
   "propertyNames" : {
     "oboInOwl:id": "code",
     "rdfs:label": "Preferred Name",
-    "oboInOwl:hasExactSynonym": "Synonym",
+    "oboInOwl:hasExactSynonym": "Exact Synonym",
+    "oboInOwl:hasNarrowSynonym": "Narrow Synonym",
+    "syngo_official_label": "Official Label",
+    "systematic_synonym": "Systematic Synonym",
+    "oboInOwl:hasRelatedSynonym": "Related Synonym",
+    "oboInOwl:hasBroadSynonym": "Related Synonym",
     "IAO_0000115": "DEFINITION"
   },
   "hierarchy": true

@@ -69,24 +69,27 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
   @Autowired
   MainTypeHierarchy mainTypeHierarchy;
 
-  /** the sparql query service impl. */
-  @Autowired
-  private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
-
   /* see superclass */
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws IOException {
 
     // Get all concepts
-    // List<Concept> allConcepts =
-    // sparqlQueryManagerService.getAllConcepts(terminology);
-    //
+    List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
 
-    // TODO: For each concept
-    // Get the concept via sparql command
-    // print out the full concept
-    // maybe only print the first 10 or something
+    try {
+      logReport("  ", "concepts = " + allConcepts.size());
+      int ct = 0;
+      for (final Concept concept : allConcepts) {
+        logReport("    ", "concept", sparqlQueryManagerService.getConcept(concept.getCode(),
+            terminology, new IncludeParam("full")));
+        if (++ct > 5) {
+          break;
+        }
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
 
     return -1;
   }
@@ -244,7 +247,7 @@ public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl 
    * @throws Exception the exception
    */
   private void logReport(final String indent, final String label, final Object object)
-    throws Exception {
+    throws IOException {
     final String str = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
     if (label != null) {
       logger.info(indent + label + " = " + object);
