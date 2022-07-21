@@ -430,8 +430,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         // If we're using preferred name instead of the label above,
         // then we need to add an "rdfs:label" synonym here.
-        if ((conceptType.equals("qualifier") || conceptType.equals("property"))
-            && conceptLabel != null && !conceptLabel.equals(pn)) {
+        final boolean qualPropFlag =
+            (conceptType.equals("qualifier") || conceptType.equals("property"))
+                && conceptLabel != null && !conceptLabel.equals(pn);
+        if (qualPropFlag) {
           final Synonym rdfsLabel = new Synonym();
           rdfsLabel.setType("rdfs:label");
           rdfsLabel.setName(conceptLabel);
@@ -451,12 +453,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         final Collection<String> commonProperties =
             terminology.getMetadata().getPropertyNames().values();
         final Set<String> syCode = terminology.getMetadata().getSynonym();
+        final Set<String> seen = new HashSet<>();
         for (Property property : properties) {
 
           // Get synonyms without extra axioms
           // Handle synonyms without extra axioms
           final String type = property.getType();
           final String name = property.getValue();
+          
+          // Skip definition properties - load them as definitions
+          if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
+            continue;
+          }
+
           if (ip.isSynonyms() && syCode.contains(property.getCode())
               && !syNameType.contains(type + name)) {
             // add synonym
@@ -471,6 +480,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
           // Handle if not a common property
           if (ip.isProperties() && !commonProperties.contains(type)) {
+            if (seen.contains(property.getType() + property.getValue())) {
+              continue;
+            }
+            seen.add(property.getType() + property.getValue());
             // Add any qualifiers to the property
             property.getQualifiers()
                 .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -482,7 +495,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (ip.isDefinitions()) {
-        concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
+        concept.setDefinitions(EVSUtils.getDefinitions(terminology, properties, axioms));
       }
 
       if (ip.isChildren()) {
@@ -636,7 +649,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setCode(EVSUtils.getProperty(terminology.getMetadata().getCode(), properties));
       final String pn =
           EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
-      concept.setName(pn);
+      if (pn != null) {
+        // Override concept name with PN if there is one
+        concept.setName(pn);
+      }
       // final String conceptLabel = getConceptLabel(conceptCode, terminology);
       // concept.setName(conceptLabel);
       concept.setNormName(ConceptUtils.normalize(pn));
@@ -658,7 +674,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           terminology.getMetadata().getPropertyNames().values();
       final Set<String> syCode = terminology.getMetadata().getSynonym();
       concept.setConceptStatus("DEFAULT");
-      for (Property property : properties) {
+      for (final Property property : properties) {
 
         if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
           concept.setConceptStatus(property.getValue());
@@ -666,6 +682,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // Handle synonyms without extra axioms
         final String type = property.getType();
         final String name = property.getValue();
+
+        // Skip definitions rendered as properties
+        if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
+          continue;
+        }
+
+        // TODO: handle rdfs:label logic
+
         if (syCode.contains(property.getCode()) && !syNameType.contains(type + name)) {
           // add synonym
           final Synonym synonym = new Synonym();
@@ -687,7 +711,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
       }
 
-      concept.setDefinitions(EVSUtils.getDefinitions(terminology, axioms));
+      concept.setDefinitions(EVSUtils.getDefinitions(terminology, properties, axioms));
       concept.setChildren(subConceptMap.get(conceptCode));
       for (Concept child : concept.getChildren()) {
         child.setLeaf(hierarchy.getChildNodes(child.getCode(), 1).isEmpty());
@@ -741,27 +765,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      if (b.getPropertyCode() == null) {
-        Property property = new Property();
-        if (b.getPropertyCode() != null) {
-          property.setCode(b.getPropertyCode().getValue());
-        }
-        property.setType(b.getPropertyLabel().getValue());
-        property.setValue(b.getPropertyValue().getValue());
-        properties.add(property);
-      } else {
-        if (!b.getPropertyCode().getValue().startsWith("A")) {
-          Property property = new Property();
-          if (b.getPropertyCode() != null) {
-            property.setCode(b.getPropertyCode().getValue());
-          }
-          property.setType(b.getPropertyLabel().getValue());
-          property.setValue(b.getPropertyValue().getValue());
-          properties.add(property);
-        }
+
+      // Skip annotation properties that have objects on the other side
+      // TODO: this is very NCI specific
+      if (b.getPropertyCode() != null && b.getPropertyCode().getValue().startsWith("A")) {
+        continue;
       }
+      final Property property = new Property();
+      property.setCode(EVSUtils.getCode(b));
+      property.setType(b.getPropertyLabel().getValue());
+      property.setValue(b.getPropertyValue().getValue());
+      properties.add(property);
     }
 
+    properties.stream().peek(p -> log.info("XXX prop = " + p)).count();
     return properties;
   }
 
@@ -796,25 +813,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         resultMap.put(conceptCode, new ArrayList<Property>());
       }
 
-      if (b.getPropertyCode() == null) {
-        Property property = new Property();
-        if (b.getPropertyCode() != null) {
-          property.setCode(b.getPropertyCode().getValue());
-        }
-        property.setType(b.getPropertyLabel().getValue());
-        property.setValue(b.getPropertyValue().getValue());
-        resultMap.get(conceptCode).add(property);
-      } else {
-        if (!b.getPropertyCode().getValue().startsWith("A")) {
-          Property property = new Property();
-          if (b.getPropertyCode() != null) {
-            property.setCode(b.getPropertyCode().getValue());
-          }
-          property.setType(b.getPropertyLabel().getValue());
-          property.setValue(b.getPropertyValue().getValue());
-          resultMap.get(conceptCode).add(property);
-        }
+      if (b.getPropertyCode() != null && b.getPropertyCode().getValue().startsWith("A")) {
+        continue;
       }
+      final Property property = new Property();
+      property.setCode(EVSUtils.getCode(b));
+      property.setType(b.getPropertyLabel().getValue());
+      property.setValue(b.getPropertyValue().getValue());
+      resultMap.get(conceptCode).add(property);
+
     }
 
     return resultMap;
@@ -848,10 +855,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      Property property = new Property();
-      if (b.getPropertyCode() != null) {
-        property.setCode(b.getPropertyCode().getValue());
-      }
+      final Property property = new Property();
+      property.setCode(EVSUtils.getCode(b));
+
       if (b.getPropertyLabel() == null) {
         property.setType(b.getProperty().getValue());
       } else {
@@ -1407,6 +1413,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
     }
+    log.info("ZZZ = " + axiomObject);
     axioms.add(axiomObject);
     return axioms;
   }
@@ -1687,7 +1694,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (Bindings b : bindings) {
-      properties.add(b.getPropertyCode().getValue());
+      properties.add(EVSUtils.getCode(b));
     }
 
     // Get all qualifier codes (in case there is overlap with properties)
@@ -1709,7 +1716,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Sparql sparqlResult3 = mapper.readValue(res3, Sparql.class);
     Bindings[] bindings3 = sparqlResult3.getResults().getBindings();
     for (Bindings b : bindings3) {
-      neverUsed.add(b.getPropertyCode().getValue());
+      neverUsed.add(EVSUtils.getCode(b));
     }
 
     final TerminologyMetadata md = terminology.getMetadata();
@@ -2182,8 +2189,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     List<Concept> concepts = new ArrayList<>();
     for (Bindings b : bindings) {
-      if (b.getConceptCode() == null)
+      // Skip anything without a concept code
+      if (b.getConceptCode() == null) {
         continue;
+      }
       Concept c = new Concept();
       c.setCode(b.getConceptCode().getValue());
       c.setTerminology(terminology.getTerminology());

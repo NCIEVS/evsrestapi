@@ -18,6 +18,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.sparql.Bindings;
 
 /**
  * Utilities for handling EVS stuff.
@@ -53,7 +54,7 @@ public class EVSUtils {
    * @return the property
    */
   public static String getProperty(String type, List<Property> properties) {
-    for (Property property : properties) {
+    for (final Property property : properties) {
       if (property.getCode() != null && property.getCode().equals(type)) {
         return property.getValue();
       }
@@ -98,13 +99,16 @@ public class EVSUtils {
    * Returns the definitions.
    *
    * @param terminology the terminology
+   * @param properties the properties
    * @param axioms the axioms
    * @return the definitions
    */
-  public static List<Definition> getDefinitions(Terminology terminology, List<Axiom> axioms) {
+  public static List<Definition> getDefinitions(Terminology terminology, List<Property> properties,
+    List<Axiom> axioms) {
     final ArrayList<Definition> results = new ArrayList<>();
     final Set<String> defCodes = terminology.getMetadata().getDefinition();
-    for (Axiom axiom : axioms) {
+    // Check axioms for definitions
+    for (final Axiom axiom : axioms) {
       final String axiomCode = axiom.getAnnotatedProperty();
       if (defCodes.contains(axiomCode)) {
         Definition definition = new Definition();
@@ -118,6 +122,20 @@ public class EVSUtils {
         if (definition.getType() == null) {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
         }
+        results.add(definition);
+      }
+    }
+
+    // Check properties for definitions
+    for (final Property property : properties) {
+      if (defCodes.contains(property.getCode())) {
+        Definition definition = new Definition();
+        definition.setDefinition(property.getValue());
+        definition.setType(terminology.getMetadata().getPropertyName(property.getCode()));
+
+        // TODO: figure out how to get definition source and other qualifiers
+        // from axioms?
+
         results.add(definition);
       }
     }
@@ -186,4 +204,33 @@ public class EVSUtils {
     }
     return list;
   }
+
+  /**
+   * Returns the code from property.
+   *
+   * @param property the property
+   * @return the code from property
+   */
+  public static String getCodeFromProperty(final String property) {
+    final String code = property.replaceFirst(".*\\/", "");
+    if (code.contains("#")) {
+      return code.replaceFirst(".*#", "");
+    }
+    return code;
+  }
+
+  /**
+   * Returns the code.
+   *
+   * @param b the b
+   * @return the code
+   */
+  public static String getCode(final Bindings b) {
+    if (b.getPropertyCode() == null) {
+      return EVSUtils.getCodeFromProperty(b.getProperty().getValue());
+    } else {
+      return b.getPropertyCode().getValue();
+    }
+  }
+
 }

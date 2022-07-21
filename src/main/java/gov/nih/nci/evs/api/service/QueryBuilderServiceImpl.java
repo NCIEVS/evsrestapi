@@ -49,8 +49,20 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
     if (StringUtils.isNotEmpty(source)) {
       Map<String, String> values = ConceptUtils.asMap("source", source);
-      prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
-          + prefix;
+      final String terminology = source.replaceFirst(".*\\/(.*)\\.owl", "$1").toLowerCase();
+
+      // If we do not extract a terminology value, compose "graph" and base
+      // prefixes
+      if (terminology.equals(source)) {
+        prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
+            + prefix;
+      }
+      // otherwise, if we can and there is a property for it, include those also
+      else if (env.containsProperty("prefix." + terminology)) {
+        prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
+            + getResolvedProperty("prefix." + terminology, values)
+            + System.getProperty("line.separator") + prefix;
+      }
     }
 
     // log.debug("prefix - " + prefix);
