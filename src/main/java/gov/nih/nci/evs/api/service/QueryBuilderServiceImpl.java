@@ -61,7 +61,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
       else if (env.containsProperty("prefix." + terminology)) {
         prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
             + getResolvedProperty("prefix." + terminology, values)
-            + System.getProperty("line.separator") + prefix;
+            + System.getProperty("line.separator") + prefix + " ";
       }
     }
 

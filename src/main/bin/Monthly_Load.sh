@@ -54,7 +54,6 @@ cat > $dir/x.sh << EOF
 #!/bin/bash
 echo "    load data"
 /opt/stardog/bin/stardog data remove --named-graph http://GO_monthly NCIT2 | sed 's/^/     /'
-/opt/stardog/bin/stardog data add --named-graph http://GO_monthly NCIT2 /data/UnitTestData/GO/oboInOwl.owl | sed 's/^/     /'
 /opt/stardog/bin/stardog data add --named-graph http://GO_monthly NCIT2 /data/UnitTestData/GO/go.2022-07-01.owl | sed 's/^/     /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'

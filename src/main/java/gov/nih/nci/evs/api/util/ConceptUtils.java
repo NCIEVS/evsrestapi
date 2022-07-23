@@ -392,6 +392,8 @@ public final class ConceptUtils {
       // Patch for default namespace where appropriate
       if (values[i].endsWith("Code") && !values[i + 1].contains(":")) {
         map.put(values[i], ":" + values[i + 1]);
+      } else if (values[i].endsWith("Code") && values[i + 1].startsWith("http")) {
+        map.put(values[i], "<" + values[i + 1] + ">");
       } else {
         map.put(values[i], values[i + 1]);
       }

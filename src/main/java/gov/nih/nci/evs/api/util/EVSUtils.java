@@ -227,6 +227,10 @@ public class EVSUtils {
    */
   public static String getCode(final Bindings b) {
     if (b.getPropertyCode() == null) {
+      // Convert rdfs:label from the property type
+      if (b.getProperty().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+        return "rdfs:label";
+      }
       return EVSUtils.getCodeFromProperty(b.getProperty().getValue());
     } else {
       return b.getPropertyCode().getValue();
