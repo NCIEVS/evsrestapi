@@ -404,7 +404,8 @@ public class MainTypeHierarchy {
     final boolean isDiseaseGrade =
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
     final boolean isDiseaseStage =
-        concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Stage")).count() > 0;
+        concept.getName().toLowerCase().startsWith("recurrent") || concept.getRoles().stream()
+            .filter(r -> r.getType().equals("Disease_Is_Stage")).count() > 0;
     final boolean subtypeFlag = isSubtype(concept);
     if (!subtypeFlag && !isDiseaseStage && !isDiseaseGrade) {
       // logger
@@ -418,7 +419,7 @@ public class MainTypeHierarchy {
     }
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
-    List<Paths> paths =
+    final List<Paths> paths =
         concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
 
     if (subtypeFlag) {
