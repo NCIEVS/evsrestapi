@@ -151,7 +151,7 @@ public class OWLSPARQLUtils {
     }
 
 	public OWLSPARQLUtils(String serviceUrl, String named_graph, String username, String password) {
-		this.serviceUrl = serviceUrl;//verifyServiceUrl(serviceUrl);
+		this.serviceUrl = serviceUrl;
 		this.named_graph = named_graph;
 		this.restURL = serviceUrl;
 		this.username = username;
@@ -581,6 +581,25 @@ public class OWLSPARQLUtils {
 		return getRoles(named_graph, code);
 	}
 
+
+	public boolean hasRole(String code, String roleName) {
+		return hasRole(this.named_graph, code, roleName);
+	}
+
+	public boolean hasRole(String named_graph, String code, String roleName) {
+		Vector v = getRoles(named_graph, code);
+		if (v == null) return false;
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String p_label = (String) u.elementAt(3);
+			if (p_label.compareTo(roleName) == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public String construct_get_properties_by_code(String named_graph, String code) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -995,7 +1014,7 @@ public class OWLSPARQLUtils {
         buf.append("            ?y rdfs:label ?y_label .").append("\n");
         buf.append("            ?p :NHC0 ?p_code .").append("\n");
         buf.append("            ?p rdfs:label ?p_label .").append("\n");
-        buf.append("            ?p :NHC0 \"" + associationName + "\"^^xsd:string .").append("\n");
+        buf.append("            ?p rdfs:label \"" + associationName + "\"^^xsd:string .").append("\n");
         buf.append("            ?x (rdfs:subClassOf|owl:equivalentClass|owl:unionOf/rdf:rest*/rdf:first|owl:intersectionOf/rdf:rest*/rdf:first)* ?rs .  ").append("\n");
         buf.append("            ?rs a owl:Restriction .").append("\n");
         buf.append("            ?rs owl:onProperty ?p .").append("\n");
@@ -5515,17 +5534,15 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		String namedGraph = args[1];
 		String username = args[2];
 		String password = args[3];
-
 	    OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(restURL, username, password);
 	    owlSPARQLUtils.set_named_graph(namedGraph);
-
-        String code = "C158541";
-	    Vector v = owlSPARQLUtils.getRoles(namedGraph, code, true);
-	    Utils.dumpVector(code, v);
-
-	    code = "C20194";
-	    v = owlSPARQLUtils.getRoles(namedGraph, code, false);
-	    Utils.dumpVector(code, v);
+        String code = "C96255";
+	    boolean isStage = owlSPARQLUtils.hasRole(namedGraph, code, "Disease_Is_Stage");
+        System.out.println("isStage? " + code + ": " + isStage);
+		//FIGO Stage IIIA2 Ovarian Cancer (Code C128091)
+        code = "C128091";
+	    isStage = owlSPARQLUtils.hasRole(namedGraph, code, "Disease_Is_Stage");
+        System.out.println("isStage? " + code + ": " + isStage);
     }
 }
 
