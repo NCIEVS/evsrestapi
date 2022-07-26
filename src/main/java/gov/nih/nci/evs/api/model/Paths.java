@@ -39,6 +39,16 @@ public class Paths extends BaseModel {
   /**
    * Instantiates a {@link Paths} from the specified parameters.
    *
+   * @param other the other
+   */
+  public Paths(Paths other) {
+    // Copy all the paths using copy constructor
+    paths = other.getPaths().stream().map(p -> new Path(p)).collect(Collectors.toList());
+  }
+
+  /**
+   * Instantiates a {@link Paths} from the specified parameters.
+   *
    * @param paths the paths
    */
   public Paths(List<Path> paths) {

@@ -57,7 +57,7 @@ public class MainTypeHierarchyTest {
   @Test
   public void test() throws Exception {
 
-    log.info("  Get terminology = ncit_22.07c");
+    log.info("  Get terminology = ncit");
     // Use true to get the metadata
     final Terminology terminology = termUtils.getTerminology("ncit", true);
     log.info("    terminology = " + terminology);
@@ -66,9 +66,9 @@ public class MainTypeHierarchyTest {
     log.info("  Initialize main type hierarchy");
     mainTypeHierarchy.initialize(terminology, hierarchy);
 
-    // C156722, C156720, C125715, C148427
+    // Check certain concepts
     for (final String code : new String[] {
-        "C156722", "C156720", "C125715", "C148427"
+        "C156722", "C6278", "C128245"
     }) {
       log.info("  Get concept and compute paths = " + code);
       final Concept concept = service.getConcept(code, terminology, new IncludeParam("full"));
