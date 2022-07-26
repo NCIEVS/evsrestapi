@@ -66,12 +66,12 @@ public class MainTypeHierarchyTest {
     log.info("  Initialize main type hierarchy");
     mainTypeHierarchy.initialize(terminology, hierarchy);
 
-    log.info("  Get concept and compute paths");
     // C156722, C156720, C125715, C148427
     for (final String code : new String[] {
         "C156722", "C156720", "C125715", "C148427"
     }) {
-      final Concept concept = service.getConcept("C156722", terminology, new IncludeParam("full"));
+      log.info("  Get concept and compute paths = " + code);
+      final Concept concept = service.getConcept(code, terminology, new IncludeParam("full"));
       concept.setPaths(hierarchy.getPaths(concept.getCode(), terminology));
 
       final List<Paths> paths = mainTypeHierarchy.getMainMenuAncestors(concept);
