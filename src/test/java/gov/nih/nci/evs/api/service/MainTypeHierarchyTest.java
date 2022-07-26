@@ -68,7 +68,9 @@ public class MainTypeHierarchyTest {
 
     // C156722, C156720, C125715, C148427
     for (final String code : new String[] {
-        "C156722", "C156720", "C125715", "C148427"
+//        "C156722", "C156720", "C125715", "C148427"
+        //"C6278", 
+        "C128245"
     }) {
       log.info("  Get concept and compute paths = " + code);
       final Concept concept = service.getConcept(code, terminology, new IncludeParam("full"));

@@ -422,18 +422,18 @@ public class MainTypeHierarchy {
     final List<Paths> paths =
         concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
 
-    if (subtypeFlag) {
-      // logger.info("QA CASE mainMenuAncestors: subtype = " +
-      // concept.getCode());
-    }
-    if (isDiseaseStage) {
-      // logger.info("QA CASE mainMenuAncestors: Disease_Is_Stage = " +
-      // concept.getCode());
-    }
-    if (isDiseaseGrade) {
-      // logger.info("QA CASE mainMenuAncestors: Disease_Is_Grade = " +
-      // concept.getCode());
-    }
+    // if (subtypeFlag) {
+    // logger.info("QA CASE mainMenuAncestors: subtype = " +
+    // concept.getCode());
+    // }
+    // if (isDiseaseStage) {
+    // logger.info("QA CASE mainMenuAncestors: Disease_Is_Stage = " +
+    // concept.getCode());
+    // }
+    // if (isDiseaseGrade) {
+    // logger.info("QA CASE mainMenuAncestors: Disease_Is_Grade = " +
+    // concept.getCode());
+    // }
 
     if (paths.size() == 0) {
       // logger.info("QA CASE !mainMenuAncestors: default no paths = " +

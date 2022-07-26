@@ -1627,12 +1627,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       }
       // Save the pre-trimmed paths, this is the full hierarchy
-      map.put(code + "-FULL", longestPaths);
+      // Copy longest paths because the next section is going to trim them.
+      map.put(code + "-FULL", new Paths(longestPaths));
 
       // Trim paths to remove broad category concepts if there are main type
       // concepts
       final Paths trimmedPaths = new Paths();
       for (final Path path : longestPaths.getPaths()) {
+
         // If the path contains main type concepts, remove broad category
         // concepts
         if (path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode()))
@@ -1649,8 +1651,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         trimmedPaths.getPaths().add(path);
       }
       for (final Path path : trimmedPaths.getPaths()) {
-        log.debug("    trimmed = "
-            + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+        log.debug(
+            "    trimmed = " + map.get(code + "-FULL").getPaths().get(0).getConcepts().size() + ", "
+                + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       }
 
       // Save the trimmed paths (this is where mma comes from)
