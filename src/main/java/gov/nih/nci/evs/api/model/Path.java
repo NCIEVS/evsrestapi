@@ -31,6 +31,16 @@ public class Path extends BaseModel {
   /**
    * Instantiates a {@link Path} from the specified parameters.
    *
+   * @param other the other
+   */
+  public Path(final Path other) {
+    direction = other.getDirection();
+    concepts = new ArrayList<>(other.getConcepts());
+  }
+
+  /**
+   * Instantiates a {@link Path} from the specified parameters.
+   *
    * @param direction the direction
    * @param concepts the concepts
    */
