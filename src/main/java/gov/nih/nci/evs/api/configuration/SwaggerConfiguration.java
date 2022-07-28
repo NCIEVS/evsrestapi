@@ -6,8 +6,6 @@ import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.base.Predicates;
-
 import gov.nih.nci.evs.api.controller.VersionController;
 import gov.nih.nci.evs.api.support.ApplicationVersion;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -34,12 +32,14 @@ public class SwaggerConfiguration {
    */
   @Bean
   public Docket api() throws IOException {
+    // See
+    // http://springfox.github.io/springfox/docs/current
     return new Docket(DocumentationType.SWAGGER_2)
         // Disable default responses (e.g. 401, 403)
         .useDefaultResponseMessages(false)
 
         .select().apis(RequestHandlerSelectors.any())
-        .paths(Predicates.or(PathSelectors.ant("/api/v1/**"), PathSelectors.ant("/version/**")))
+        .paths(PathSelectors.regex("/(api/v1/.*|version)"))
         .build().apiInfo(apiInfo());
 
   }
