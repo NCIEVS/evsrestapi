@@ -94,19 +94,19 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List (comma-separated) of codes to return concepts for, e.g."
               + "<ul><li>'C2291,C3224' for <i>ncit</i></li>"
               + "<li>'C0010137,C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataType = "string", paramType = "query")
+          required = true, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(@PathVariable(value = "terminology")
@@ -154,18 +154,18 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions, "
               + "disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, "
               + "roles, synonyms. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
   })
   public @ResponseBody Concept getConcept(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -205,11 +205,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. <ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations",
@@ -255,16 +255,16 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrLabel",
           value = "Code/label in the specified terminology, e.g. "
               + "'A5' or 'Has_Salt_Form' for <i>ncit</i>."
               + " This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
-          required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "10")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "10")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
@@ -315,11 +315,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
@@ -362,21 +362,21 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Code for a subset concept in the specified "
           + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
-          required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataType = "string", paramType = "query"),
+          required = false, dataTypeClass = String.class, paramType = "query"),
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
@@ -443,11 +443,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles",
@@ -491,11 +491,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles",
@@ -538,11 +538,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents",
@@ -585,11 +585,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children",
@@ -638,17 +638,17 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit''", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
-          required = false, dataType = "string", paramType = "query", defaultValue = "0"),
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "10000"),
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "10000"),
       @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
-          required = false, dataType = "string", paramType = "query", defaultValue = "10000")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -708,11 +708,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
@@ -756,11 +756,11 @@ public class ConceptController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3910' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith",
@@ -806,14 +806,14 @@ public class ConceptController extends BaseController {
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
           value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path", defaultValue = "ncit"),
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<Concept> getRoots(@PathVariable(value = "terminology")
   final String terminology, @RequestParam("include")
@@ -860,18 +860,18 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -915,11 +915,11 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   public @ResponseBody List<HierarchyNode> getSubtree(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -960,11 +960,11 @@ public class ConceptController extends BaseController {
       value = "/concept/{terminology}/{code}/subtree/children", produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. 'C3224' for <i>ncit</i>. "
               + "This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path")
   })
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -1009,18 +1009,18 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -1064,22 +1064,22 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataType = "string", paramType = "path", defaultValue = "ncit"),
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g."
               + " 'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "ancestorCode",
           value = "Ancestor code of the other specified code, e.g. "
               + "'C2991' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataType = "string", paramType = "path"),
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataType = "string", paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
