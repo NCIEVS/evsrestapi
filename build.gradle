@@ -58,7 +58,8 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-actuator'  
     compile 'org.springframework.boot:spring-boot-starter-cache'
     compile "io.springfox:springfox-boot-starter:3.0.0"
-	compile 'org.springframework:spring-core:5.2.21.RELEASE'
+    // Override spring-core version to handle vulnerabilities
+	compile 'org.springframework:spring-core:5.2.22.RELEASE'
     compile 'com.google.guava:guava:20.0'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'commons-io:commons-io:2.6'
