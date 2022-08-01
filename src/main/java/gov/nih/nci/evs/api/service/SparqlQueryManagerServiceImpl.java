@@ -186,7 +186,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setDescription(comment);
       term.setVersion(b.getVersion().getValue());
       // term.setName(TerminologyUtils.constructName(comment, version));
-      term.setDate((b.getDate() == null) ? null : b.getDate().getValue());
+      term.setDate((b.getDate() == null) ? b.getVersion().getValue() : b.getDate().getValue());
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       // TODO: this definitely needs to be turned into configuration
