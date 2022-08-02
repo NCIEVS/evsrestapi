@@ -452,6 +452,14 @@ public class StardogElasticLoadServiceImpl extends BaseLoaderService {
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
+      final String welcomeResource = "metadata/" + term.getTerminology() + ".html";
+      try {
+        String welcomeText = IOUtils
+            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8");
+        metadata.setWelcomeText(welcomeText);
+      } catch (Exception e) {
+        throw new Exception("Unexpected error trying to load = " + welcomeResource, e);
+      }
       term.setMetadata(metadata);
 
       // Compute concept statuses
