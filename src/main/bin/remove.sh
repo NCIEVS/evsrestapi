@@ -8,7 +8,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
-if [ ${#arr[@]} -ne 2 ] || [ $help -e1 ]; then
+if [ ${#arr[@]} -ne 2 ] || [ $help -eq 1 ]; then
   echo "Usage: $0 <terminology> <version>"
   echo "  e.g. $0 ncit 2009d"
   echo "  e.g. $0 ncim 202102"
