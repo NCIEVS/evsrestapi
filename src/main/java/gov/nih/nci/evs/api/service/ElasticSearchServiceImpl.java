@@ -89,7 +89,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     boolQuery.should(QueryBuilders.matchQuery("conceptStatus", "Retired_Concept").boost(-200f));
 
     // append terminology query
-    final QueryBuilder terminologyQuery = getTerminologyQuery(searchCriteria);
+    final QueryBuilder terminologyQuery = getTerminologyQuery(terminologies);
     if (terminologyQuery != null) {
       boolQuery.must(terminologyQuery);
     }
@@ -410,19 +410,20 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria
    * @return the terminology query builder
    */
-  private QueryBuilder getTerminologyQuery(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getTerminology()))
+  private QueryBuilder getTerminologyQuery(final List<Terminology> terminologies) {
+    if (CollectionUtils.isEmpty(terminologies)) {
       return null;
+    }
 
     BoolQueryBuilder terminologyQuery = QueryBuilders.boolQuery();
 
-    if (searchCriteria.getTerminology().size() == 1) {
+    if (terminologies.size() == 1) {
       terminologyQuery = terminologyQuery
-          .must(QueryBuilders.matchQuery("terminology", searchCriteria.getTerminology().get(0)));
+          .must(QueryBuilders.matchQuery("terminology", terminologies.get(0).getTerminology()));
     } else {
-      for (String terminology : searchCriteria.getTerminology()) {
-        terminologyQuery =
-            terminologyQuery.should(QueryBuilders.matchQuery("terminology", terminology));
+      for (Terminology terminology : terminologies) {
+        terminologyQuery = terminologyQuery
+            .should(QueryBuilders.matchQuery("terminology", terminology.getTerminology()));
       }
     }
 
