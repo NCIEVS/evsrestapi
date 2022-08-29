@@ -38,7 +38,7 @@ import gov.nih.nci.evs.api.util.MainTypeHierarchy;
  * report.
  */
 @Service
-public class StardogReportLoadServiceImpl extends StardogElasticLoadServiceImpl {
+public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl {
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(StardogReportLoadServiceImpl.class);
