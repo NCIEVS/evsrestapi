@@ -8,8 +8,6 @@ import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -36,27 +34,21 @@ public class ElasticObject extends BaseModel {
   private String name;
 
   /** The hierarchy. */
-  @Field(type = FieldType.Object)
   private HierarchyUtils hierarchy;
 
   /** The paths. */
-  @Field(type = FieldType.Object)
   private Paths paths;
 
   /** The concepts. */
-  @Field(type = FieldType.Nested)
   private List<Concept> concepts;
 
   /** The concept minimals. */
-  @Field(type = FieldType.Nested)
   private List<ConceptMinimal> conceptMinimals;
 
   /** The association entries. */
-  @Field(type = FieldType.Object)
   private List<AssociationEntry> associationEntries;
 
   /** The map. */
-  @Field(type = FieldType.Object)
   private Map<String, Set<String>> map;
 
   /**

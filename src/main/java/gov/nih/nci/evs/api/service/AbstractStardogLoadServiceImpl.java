@@ -36,6 +36,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.ElasticObjectMapping;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -251,7 +252,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // if (result) {
     // logger.debug("put mapping");
     // operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-    // ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    // ElasticOperationsService.OBJECT_TYPE, ElasticObjectMapping.class);
     // }
 
     ElasticObject hierarchyObject = new ElasticObject("hierarchy");
