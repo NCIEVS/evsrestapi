@@ -36,7 +36,7 @@ public interface QueryBuilderService {
    * @param conceptCodes the concept codes
    * @return the string
    */
-  public String constructBatchQuery(String queryProp, String namedGraph, List<String> conceptCodes);
+  public String constructBatchQuery(String queryProp, String codeCode, String namedGraph, List<String> conceptCodes);
 
   /**
    * Construct query.

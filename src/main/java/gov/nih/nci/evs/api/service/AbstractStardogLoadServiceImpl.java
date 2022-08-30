@@ -43,11 +43,12 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 /**
  * The implementation for {@link ElasticLoadService}.
  */
-//@Service
+// @Service
 public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -245,6 +246,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.debug("object index name: {}", indexName);
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
+
+    // No need to put mapping directly, we really just need to index the id
+    // if (result) {
+    // logger.debug("put mapping");
+    // operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
+    // ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    // }
 
     ElasticObject hierarchyObject = new ElasticObject("hierarchy");
     hierarchyObject.setHierarchy(hierarchy);

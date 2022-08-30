@@ -114,11 +114,11 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String constructBatchQuery(final String queryProp, final String namedGraph,
+  public String constructBatchQuery(final String queryProp, final String codeCode, final String namedGraph,
     final List<String> conceptCodes) {
     final String inClause = getInClause(conceptCodes);
     final Map<String, String> values =
-        ConceptUtils.asMap("namedGraph", namedGraph, "inClause", inClause);
+        ConceptUtils.asMap("codeCode", codeCode, "namedGraph", namedGraph, "inClause", inClause);
     final String query = getResolvedProperty(queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
