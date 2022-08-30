@@ -75,7 +75,7 @@ public class EVSUtils {
     // If 'axioms' is null here, it's likely because the "main" query didn't
     // finish
     for (Axiom axiom : axioms) {
-      final String axiomCode = axiom.getAnnotatedProperty();
+      final String axiomCode = axiom.getAnnotatedProperty();      
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
         synonym.setType(terminology.getMetadata().getPropertyName(axiomCode));

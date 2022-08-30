@@ -655,6 +655,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // adding all synonyms
       final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, axioms);
+      if (synonyms.size() == 0) {
+        final Synonym sy = new Synonym();
+        sy.setType(terminology.getMetadata().getPreferredName());
+        sy.setName(concept.getName());
+        concept.getSynonyms().add(sy);
+      }
       final Set<String> syNameType =
           synonyms.stream().map(sy -> sy.getType() + sy.getName()).collect(Collectors.toSet());
       concept.getSynonyms().addAll(synonyms);
