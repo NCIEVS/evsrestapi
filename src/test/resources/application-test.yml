@@ -9,4 +9,8 @@ logging:
     level:
         org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
         gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
-    
+
+spring:    
+    cache:
+        jcache:
+            config: classpath:ehcache.xml

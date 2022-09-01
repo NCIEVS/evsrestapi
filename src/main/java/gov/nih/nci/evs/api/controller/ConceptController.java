@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,6 +31,7 @@ import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -892,7 +895,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathToRoot(code, term);
+      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
@@ -938,9 +941,42 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = elasticQueryService.getPathInHierarchy(code, term);
+//      final List<HierarchyNode> nodes = elasticQueryService.getPathInHierarchy(code, term);
+//      return nodes;
 
-      return nodes;
+      List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(term);
+      Paths paths = elasticQueryService.getPathsToRoot(code, term);
+
+      // root hierarchy node map for quick look up
+      HashMap<String, HierarchyNode> rootNodeMap = new HashMap<>();
+      rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
+
+      List<Path> ps = paths.getPaths();
+      for (Path path : ps) {
+        final List<ConceptMinimal> concepts = path.getConcepts();
+        if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2) {
+          continue;
+        }
+        final ConceptMinimal rootConcept = concepts.get(concepts.size() - 1);
+
+        final HierarchyNode root = rootNodeMap.get(rootConcept.getCode());
+        HierarchyNode previous = root;
+        for (int j = concepts.size() - 2; j >= 0; j--) {
+          ConceptMinimal c = concepts.get(j);
+          if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(c.getCode()))) {
+            List<HierarchyNode> children = elasticQueryService.getChildNodes(previous.getCode(), 0, term);
+            for (HierarchyNode child : children) {
+              child.setLevel(null);
+              previous.getChildren().add(child);
+            }
+            previous.setExpanded(true);
+          }
+          previous = previous.getChildren().stream().filter(n -> n.getCode().equals(c.getCode()))
+              .findFirst().orElse(null);
+        }
+      }
+      return rootNodes;
+      
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -1041,7 +1077,9 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathToRoot(code, term);
+      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
+      logger.info("XXX paths = " + paths.getPaths().size());
+      logger.info("XXX ip = " + ip);
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
     } catch (Exception e) {
       handleException(e);
@@ -1102,7 +1140,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathToParent(code, ancestorCode, term);
+      final Paths paths = elasticQueryService.getPathsToParent(code, ancestorCode, term);
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
 
     } catch (Exception e) {

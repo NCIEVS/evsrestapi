@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +25,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
@@ -95,21 +93,18 @@ public class GOControllerTests {
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).count())
         .isEqualTo(1);
-    final Terminology mdr =
+    final Terminology go =
         terminologies.stream().filter(t -> t.getTerminology().equals("go")).findFirst().get();
-    assertThat(mdr.getTerminology()).isEqualTo("go");
-    assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("Gene Ontology");
-    assertThat(mdr.getMetadata().getLoader()).isEqualTo("rdf");
-    assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
-    assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
-    assertThat(mdr.getName())
-        .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
-    assertThat(mdr.getDescription()).isEqualTo(";;MedDRA MSSO;;MedDRA [electronic resource]"
-        + " : Medical Dictionary for Regulatory Activities Terminology;;;"
-        + "Version 23.1;;MedDRA MSSO;;September, 2020;;;;MedDRA "
-        + "[electronic resource] : Medical Dictionary for Regulatory Activities Terminology");
-    ;
-    assertThat(mdr.getLatest()).isTrue();
+    assertThat(go.getTerminology()).isEqualTo("go");
+    assertThat(go.getMetadata().getUiLabel()).isEqualTo("Gene Ontology");
+    assertThat(go.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(go.getMetadata().getSourceCt()).isEqualTo(0);
+    assertThat(go.getMetadata().getLicenseText()).isNull();
+    assertThat(go.getName()).isEqualTo("Gene Ontology 2022-07-01");
+    assertThat(go.getDescription())
+        .isEqualTo("The Gene Ontology (GO) provides a framework and set of concepts "
+            + "for describing the functions of gene products from all organisms.");
+    assertThat(go.getLatest()).isTrue();
   }
   //
   // /**
@@ -656,31 +651,39 @@ public class GOControllerTests {
     roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
+    assertThat(roots.size()).isGreaterThan(0);
+
+    // basic /subtree test
+    url = baseUrl + "/go/GO:0044579/subtree";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    List<HierarchyNode> nodes =
+        new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+          // n/a
+        });
+    assertThat(nodes.size()).isEqualTo(3);
+
+    // test /pathsToRoot
+    url = baseUrl + "/go/GO:0044579/pathsToRoot";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // Too big to log
+    // log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
       // n/a
     });
-    // // TODO:
-    // // test /pathsToRoot
-    // url = baseUrl + "/mdr/10009727/pathsToRoot";
-    // log.info("Testing url - " + url);
-    // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    // content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    // list = new ObjectMapper().readValue(content, new
-    // TypeReference<List<List<Concept>>>() {
-    // // n/a
-    // });
-    // assertThat(list.size()).isGreaterThan(0);
-    // concepts = list.get(0);
-    // assertThat(concepts.size()).isGreaterThan(1);
-    // assertThat(concepts.get(0).getLevel()).isEqualTo(0);
-    // assertThat(concepts.get(0).getCode()).isEqualTo("10009727");
-    // assertThat(concepts.get(concepts.size() -
-    // 1).getLevel()).isEqualTo(concepts.size() - 1);
-    // final String rootCode = concepts.get(concepts.size() - 1).getCode();
-    // assertThat(roots.stream().filter(c ->
-    // c.getCode().equals(rootCode)).count()).isGreaterThan(0);
-    //
+    assertThat(list.size()).isGreaterThan(0);
+    concepts = list.get(0);
+    assertThat(concepts.size()).isGreaterThan(1);
+    assertThat(concepts.get(0).getLevel()).isEqualTo(0);
+    assertThat(concepts.get(0).getCode()).isEqualTo("GO:0044579");
+    assertThat(concepts.get(concepts.size() - 1).getLevel()).isEqualTo(concepts.size() - 1);
+    final String rootCode = concepts.get(concepts.size() - 1).getCode();
+    assertThat(roots.stream().filter(c -> c.getCode().equals(rootCode)).count()).isGreaterThan(0);
+
     // // test /pathsFromRoot
     // url = baseUrl + "/mdr/10009727/pathsFromRoot";
     // log.info("Testing url - " + url);
@@ -741,4 +744,9 @@ public class GOControllerTests {
     // 1).getLevel()).isEqualTo(concepts.size() - 1);
 
   }
+
+  // Content test cases
+  // GO:0000003 (lots of data, differences from ncit browser)
+  // GO:0000004 (deprecated concept ... missing)
+  // GO:0044597 (only name is rdfs:label)
 }

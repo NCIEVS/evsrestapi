@@ -134,7 +134,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology", key = "#root.methodName")
   public List<String> getAllGraphNames() throws Exception {
     List<String> graphNames = new ArrayList<String>();
     String queryPrefix = queryBuilderService.contructPrefix(null);
@@ -160,7 +159,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology", key = "{#root.methodName, #db}")
   public List<Terminology> getTerminologies(final String db) throws Exception, ParseException {
     String queryPrefix = queryBuilderService.contructPrefix(null);
     String query = queryBuilderService.constructQuery("all.graphs.and.versions", new HashMap<>());
@@ -224,8 +222,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public Terminology getTerminology(Terminology terminology) throws Exception {
 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -337,9 +333,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
   public Concept getProperty(String code, Terminology terminology, IncludeParam ip)
     throws Exception {
     return getConceptByType("property", code, terminology, ip);
@@ -347,9 +340,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
   public Concept getQualifier(String code, Terminology terminology, IncludeParam ip)
     throws Exception {
     return getConceptByType("qualifier", code, terminology, ip);
@@ -357,9 +347,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
   public Concept getAssociation(String code, Terminology terminology, IncludeParam ip)
     throws Exception {
     return getConceptByType("association", code, terminology, ip);
@@ -367,9 +354,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #code, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
   public Concept getRole(String code, Terminology terminology, IncludeParam ip) throws Exception {
     return getConceptByType("role", code, terminology, ip);
   }
@@ -675,9 +659,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setConceptStatus("DEFAULT");
       for (final Property property : properties) {
 
-        if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
+        // Skip properties matching the concept code so as to not duplicate them
+        // e.g. for GO oboInOwl:id
+        if (property.getValue().equals(concept.getCode())) {
+          continue;
+        }
+
+        // Set concept status for retired concepts
+        // if
+        // (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue()))
+        // {
+        if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
           concept.setConceptStatus(property.getValue());
         }
+
         // Handle synonyms without extra axioms
         final String type = property.getType();
         final String name = property.getValue();
@@ -1686,9 +1681,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
   public List<Concept> getAllProperties(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),
@@ -1784,7 +1776,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   // Caching needs to remain for "getConcepts" because it's used
   // in setAxiomProperty
   @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
+  key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
   public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructQuery("all.qualifiers",
@@ -1869,9 +1861,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
   public List<Concept> getAllAssociations(Terminology terminology, IncludeParam ip)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
@@ -1904,9 +1893,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "terminology",
-  // key = "{#root.methodName, #terminology.getTerminologyVersion(),
-  // #ip.toString()}")
   public List<Concept> getAllRoles(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),

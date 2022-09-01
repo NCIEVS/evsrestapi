@@ -30,7 +30,7 @@
 	"relationshipToTarget": null,
 	"propertyNames": {
 		"oboInOwl:id": "code",
-		"rdfs:label": "Label",
+		"rdfs:label": "label",
 		"IAO_0000115": "definition",
 		"hasExactSynonym": "has_exact_synonym",
 		"hasRelatedSynonym": "has_related_synonym",
