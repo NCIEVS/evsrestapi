@@ -1416,7 +1416,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
     }
-    log.info("ZZZ = " + axiomObject);
     axioms.add(axiomObject);
     return axioms;
   }
