@@ -1371,20 +1371,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * Returns the axioms.
    *
-   * @param conceptCode the concept code
+   * @param refCode the concept code
    * @param terminology the terminology
    * @param qualifierFlag the qualifier flag
    * @return the axioms
    * @throws Exception the exception
    */
   @Override
-  public List<Axiom> getAxioms(String conceptCode, Terminology terminology, boolean qualifierFlag)
+  public List<Axiom> getAxioms(String refCode, Terminology terminology, boolean qualifierFlag)
     throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("axiom", terminology.getMetadata().getCode(),
-        conceptCode, terminology.getGraph());
+    Map<String, String> values =
+        ConceptUtils.asMap("refCode", refCode, "namedGraph", terminology.getGraph());
+    String query = queryBuilderService.constructQuery("axiom", values);
     String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     ArrayList<Axiom> axioms = new ArrayList<Axiom>();
@@ -1775,7 +1775,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   // Caching needs to remain for "getConcepts" because it's used
   // in setAxiomProperty
   @Cacheable(value = "terminology",
-  key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
+      key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
   public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip) throws Exception {
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructQuery("all.qualifiers",
@@ -1839,7 +1839,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     throws Exception {
     final String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     final Map<String, String> values =
-        ConceptUtils.asMap("conceptCode", subsetCode, "namedGraph", terminology.getGraph());
+        ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "conceptCode",
+            subsetCode, "namedGraph", terminology.getGraph());
     final String query = queryBuilderService.constructQuery("subset", values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
@@ -2061,11 +2062,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
 
     if (terminology.getMetadata().getSynonymSource() == null) {
-      return new ArrayList<>();
+      return new ArrayList<>(0);
     }
 
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
-        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
+        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "propertyCode",
             terminology.getMetadata().getSynonymSource(), "conceptStatusCode",
             terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
             terminology.getMetadata().getRetiredStatusValue()));
@@ -2136,9 +2137,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<ConceptMinimal> getDefinitionSources(Terminology terminology) throws Exception {
+    if (terminology.getMetadata().getDefinitionSource() == null) {
+      return new ArrayList<>(0);
+    }
+
     String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
     String query = queryBuilderService.constructQuery("axiom.qualifier.values",
-        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
+        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "propertyCode",
             terminology.getMetadata().getDefinitionSource(), "conceptStatusCode",
             terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
             terminology.getMetadata().getRetiredStatusValue()));

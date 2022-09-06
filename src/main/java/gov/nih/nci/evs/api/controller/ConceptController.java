@@ -1078,8 +1078,6 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       final Paths paths = elasticQueryService.getPathsToRoot(code, term);
-      logger.info("XXX paths = " + paths.getPaths().size());
-      logger.info("XXX ip = " + ip);
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
     } catch (Exception e) {
       handleException(e);

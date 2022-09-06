@@ -51,17 +51,15 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
       Map<String, String> values = ConceptUtils.asMap("source", source);
       final String terminology = source.replaceFirst(".*\\/(.*)\\.owl", "$1").toLowerCase();
 
-      // If we do not extract a terminology value, compose "graph" and base
-      // prefixes
-      if (terminology.equals(source)) {
+      // otherwise, if we can and there is a property for it, include those also
+      if (env.containsProperty("prefix." + terminology)) {
+        prefix = getResolvedProperty("prefix." + terminology, values)
+            + System.getProperty("line.separator") + prefix + " ";
+      }
+      // Otherwise create top level prefixes with the source
+      else {
         prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
             + prefix;
-      }
-      // otherwise, if we can and there is a property for it, include those also
-      else if (env.containsProperty("prefix." + terminology)) {
-        prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
-            + getResolvedProperty("prefix." + terminology, values)
-            + System.getProperty("line.separator") + prefix + " ";
       }
     }
 
@@ -90,6 +88,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
+   * @param codeCode the code code
    * @param conceptCode the concept code
    * @param namedGraph the named graph
    * @return the string
@@ -109,13 +108,14 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct batch query.
    *
    * @param queryProp the query prop
+   * @param codeCode the code code
    * @param namedGraph the named graph
    * @param conceptCodes the concept codes
    * @return the string
    */
   @Override
-  public String constructBatchQuery(final String queryProp, final String codeCode, final String namedGraph,
-    final List<String> conceptCodes) {
+  public String constructBatchQuery(final String queryProp, final String codeCode,
+    final String namedGraph, final List<String> conceptCodes) {
     final String inClause = getInClause(conceptCodes);
     final Map<String, String> values =
         ConceptUtils.asMap("codeCode", codeCode, "namedGraph", namedGraph, "inClause", inClause);
