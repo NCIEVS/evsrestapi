@@ -1713,8 +1713,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult2 = mapper.readValue(res2, Sparql.class);
     final Bindings[] bindings2 = sparqlResult2.getResults().getBindings();
     for (final Bindings b : bindings2) {
-      qualifiers.add(b.getProperty().getValue());
-      qualifiers.add(EVSUtils.getCode(b));
+      // This query just looks up the codes
+      qualifiers.add(b.getPropertyCode().getValue());
     }
 
     // Get all "properties never used"
@@ -1725,8 +1725,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult3 = mapper.readValue(res3, Sparql.class);
     final Bindings[] bindings3 = sparqlResult3.getResults().getBindings();
     for (final Bindings b : bindings3) {
-      neverUsed.add(b.getProperty().getValue());
-      neverUsed.add(EVSUtils.getCode(b));
+      neverUsed.add(b.getPropertyCode().getValue());
     }
 
     final TerminologyMetadata md = terminology.getMetadata();
