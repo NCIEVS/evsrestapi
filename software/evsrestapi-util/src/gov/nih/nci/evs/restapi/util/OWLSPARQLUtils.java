@@ -207,9 +207,9 @@ public class OWLSPARQLUtils {
     public String getPrefixes() {
 		if (prefixes != null) return prefixes;
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
-		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
-		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
+		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -922,9 +922,9 @@ public class OWLSPARQLUtils {
 
 	public String construct_get_annotaion_properties_by_code(String named_graph, String code, String associationName) {
         StringBuffer buf = new StringBuffer();
-        buf.append("PREFIX :<" + named_graph + "#>").append("\n");
-        buf.append("PREFIX base:<" + named_graph + ">").append("\n");
-        buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
+        buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
+        buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+        buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
         buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
         buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
         buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3344,9 +3344,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_sources_query(String named_graph) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
-		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
-		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
+		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3380,9 +3380,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_property_qualifiers(String named_graph, String property_name) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
-		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
-		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
+		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3415,9 +3415,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_property_qualifier_values(String named_graph, String property_name, String qualifier_name) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
-		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
-		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
+		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -3451,9 +3451,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public String construct_supported_property_qualifiers(String named_graph) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<" + named_graph + "#>").append("\n");
-		buf.append("PREFIX base:<" + named_graph + ">").append("\n");
-		buf.append("PREFIX Thesaurus:<" + named_graph + "#>").append("\n");
+		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
+		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+		buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
