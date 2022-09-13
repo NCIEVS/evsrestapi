@@ -75,7 +75,7 @@ public class EVSUtils {
     // If 'axioms' is null here, it's likely because the "main" query didn't
     // finish
     for (Axiom axiom : axioms) {
-      final String axiomCode = axiom.getAnnotatedProperty();      
+      final String axiomCode = axiom.getAnnotatedProperty();
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
         synonym.setType(terminology.getMetadata().getPropertyName(axiomCode));
@@ -126,17 +126,19 @@ public class EVSUtils {
       }
     }
 
-    // Check properties for definitions
-    for (final Property property : properties) {
-      if (defCodes.contains(property.getCode())) {
-        Definition definition = new Definition();
-        definition.setDefinition(property.getValue());
-        definition.setType(terminology.getMetadata().getPropertyName(property.getCode()));
+    // Check properties for definitions if axioms didn't produce them
+    if (results.size() == 0) {
+      for (final Property property : properties) {
+        if (defCodes.contains(property.getCode())) {
+          Definition definition = new Definition();
+          definition.setDefinition(property.getValue());
+          definition.setType(terminology.getMetadata().getPropertyName(property.getCode()));
 
-        // TODO: figure out how to get definition source and other qualifiers
-        // from axioms?
+          // TODO: figure out how to get definition source and other qualifiers
+          // from axioms?
 
-        results.add(definition);
+          results.add(definition);
+        }
       }
     }
     return results;
