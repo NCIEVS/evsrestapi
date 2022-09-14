@@ -210,6 +210,7 @@ public class OWLSPARQLUtils {
 		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
 		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
 		buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
+		buf.append("PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
 		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
@@ -294,6 +295,7 @@ public class OWLSPARQLUtils {
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
 		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>").append("\n");
 		buf.append("SELECT ?g ?x_version_info ?x_dc_date ?x_comment").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph ?g").append("\n");
