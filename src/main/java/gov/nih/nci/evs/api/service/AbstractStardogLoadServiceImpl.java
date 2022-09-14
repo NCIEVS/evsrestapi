@@ -46,7 +46,8 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 // @Service
 public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(StardogElasticLoadServiceImpl.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -244,6 +245,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.debug("object index name: {}", indexName);
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
+
+    // No need to put mapping directly, we really just need to index the id
+    // if (result) {
+    // logger.debug("put mapping");
+    // operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
+    // ElasticOperationsService.OBJECT_TYPE, ElasticObjectMapping.class);
+    // }
 
     ElasticObject hierarchyObject = new ElasticObject("hierarchy");
     hierarchyObject.setHierarchy(hierarchy);
@@ -447,8 +455,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       metadata.setSourceCt(metadata.getSources().size());
       final String welcomeResource = "metadata/" + term.getTerminology() + ".html";
       try {
-        String welcomeText = IOUtils
-            .toString(term.getClass().getClassLoader().getResourceAsStream(welcomeResource), "UTF-8");
+        String welcomeText = IOUtils.toString(
+            term.getClass().getClassLoader().getResourceAsStream(welcomeResource), "UTF-8");
         metadata.setWelcomeText(welcomeText);
       } catch (Exception e) {
         throw new Exception("Unexpected error trying to load = " + welcomeResource, e);
@@ -456,12 +464,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       term.setMetadata(metadata);
 
       // Compute concept statuses
-      metadata.setConceptStatuses(
-          sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
+      if (metadata.getConceptStatus() != null) {
+        metadata.setConceptStatuses(
+            sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
+      }
 
       // Compute definition sources
-      metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term).stream()
-          .map(d -> d.getCode()).collect(Collectors.toSet()));
+      if (metadata.getDefinitionSource() != null) {
+        metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term)
+            .stream().map(d -> d.getCode()).collect(Collectors.toSet()));
+      }
 
     } catch (Exception e) {
       throw new Exception("Unexpected error trying to load = " + resource, e);
@@ -469,7 +481,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // Compute tags because this is the new terminology
     // Do this AFTER setting terminology metadata, which is needed
-    termUtils.setTags(term, stardogProperties.getDb());
+    if (term.getMetadata().getMonthlyDb() != null) {
+      termUtils.setTags(term, stardogProperties.getDb());
+    }
 
     return term;
   }
