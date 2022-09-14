@@ -34,6 +34,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.service.StardogElasticLoadServiceImpl.ConceptLoadTask;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -45,10 +46,8 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
  */
 // @Service
 public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
-
   /** the logger *. */
-  private static final Logger logger =
-      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(StardogElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -247,13 +246,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
 
-    // No need to put mapping directly, we really just need to index the id
-    // if (result) {
-    // logger.debug("put mapping");
-    // operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-    // ElasticOperationsService.OBJECT_TYPE, ElasticObjectMapping.class);
-    // }
-
     ElasticObject hierarchyObject = new ElasticObject("hierarchy");
     hierarchyObject.setHierarchy(hierarchy);
     operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
@@ -451,9 +443,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
           TerminologyMetadata.class);
 
-      // Set terminology name
-      term.setName(metadata.getUiLabel() + " " + term.getDate());
-
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
@@ -468,16 +457,12 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       term.setMetadata(metadata);
 
       // Compute concept statuses
-      if (metadata.getConceptStatus() != null) {
-        metadata.setConceptStatuses(
-            sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
-      }
+      metadata.setConceptStatuses(
+          sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
 
       // Compute definition sources
-      if (metadata.getDefinitionSource() != null) {
-        metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term)
-            .stream().map(d -> d.getCode()).collect(Collectors.toSet()));
-      }
+      metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term).stream()
+          .map(d -> d.getCode()).collect(Collectors.toSet()));
 
     } catch (Exception e) {
       throw new Exception("Unexpected error trying to load = " + resource, e);
@@ -485,9 +470,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // Compute tags because this is the new terminology
     // Do this AFTER setting terminology metadata, which is needed
-    if (term.getMetadata().getMonthlyDb() != null) {
-      termUtils.setTags(term, stardogProperties.getDb());
-    }
+    termUtils.setTags(term, stardogProperties.getDb());
 
     return term;
   }
