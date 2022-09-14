@@ -2220,6 +2220,28 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search weekly.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchWeekly() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Basic search using the weekly version of NCIt
+    log.info("Testing url - " + url + "?terminology=ncit_21.07a&term=cancer");
+    result = mvc.perform(get(url).param("terminology", "ncit_21.07a").param("term", "cancer"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal()).isGreaterThan(0);
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
