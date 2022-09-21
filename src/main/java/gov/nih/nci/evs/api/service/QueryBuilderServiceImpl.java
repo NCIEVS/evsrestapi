@@ -49,8 +49,18 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
     if (StringUtils.isNotEmpty(source)) {
       Map<String, String> values = ConceptUtils.asMap("source", source);
-      prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
-          + prefix;
+      final String terminology = source.replaceFirst(".*\\/(.*)\\.owl", "$1").toLowerCase();
+
+      // otherwise, if we can and there is a property for it, include those also
+      if (env.containsProperty("prefix." + terminology)) {
+        prefix = getResolvedProperty("prefix." + terminology, values)
+            + System.getProperty("line.separator") + prefix + " ";
+      }
+      // Otherwise create top level prefixes with the source
+      else {
+        prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
+            + prefix;
+      }
     }
 
     // log.debug("prefix - " + prefix);
@@ -61,12 +71,14 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
+   * @param codeCode the code code
    * @param namedGraph the named graph
    * @return the string
    */
   @Override
-  public String constructQuery(final String queryProp, String namedGraph) {
-    Map<String, String> values = ConceptUtils.asMap("namedGraph", namedGraph);
+  public String constructQuery(final String queryProp, final String codeCode,
+    final String namedGraph) {
+    Map<String, String> values = ConceptUtils.asMap("codeCode", codeCode, "namedGraph", namedGraph);
     String query = getResolvedProperty(queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
@@ -76,16 +88,17 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
+   * @param codeCode the code code
    * @param conceptCode the concept code
    * @param namedGraph the named graph
    * @return the string
    */
   @Override
-  public String constructQuery(final String queryProp, final String conceptCode,
-    final String namedGraph) {
+  public String constructQuery(final String queryProp, final String codeCode,
+    final String conceptCode, final String namedGraph) {
     checkCode(conceptCode);
-    final Map<String, String> values =
-        ConceptUtils.asMap("conceptCode", conceptCode, "namedGraph", namedGraph);
+    final Map<String, String> values = ConceptUtils.asMap("codeCode", codeCode, "conceptCode",
+        conceptCode, "namedGraph", namedGraph);
     final String query = getResolvedProperty(queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
@@ -95,16 +108,17 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct batch query.
    *
    * @param queryProp the query prop
+   * @param codeCode the code code
    * @param namedGraph the named graph
    * @param conceptCodes the concept codes
    * @return the string
    */
   @Override
-  public String constructBatchQuery(final String queryProp, final String namedGraph,
-    final List<String> conceptCodes) {
+  public String constructBatchQuery(final String queryProp, final String codeCode,
+    final String namedGraph, final List<String> conceptCodes) {
     final String inClause = getInClause(conceptCodes);
     final Map<String, String> values =
-        ConceptUtils.asMap("namedGraph", namedGraph, "inClause", inClause);
+        ConceptUtils.asMap("codeCode", codeCode, "namedGraph", namedGraph, "inClause", inClause);
     final String query = getResolvedProperty(queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;

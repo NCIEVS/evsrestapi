@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,10 +40,6 @@ public class MetadataServiceImpl implements MetadataService {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MetadataServiceImpl.class);
 
-  /** The sparql query manager service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
-
   /** The elastic query service *. */
   @Autowired
   private ElasticQueryService esQueryService;
@@ -66,9 +63,8 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName,
-  // #include.orElse(''), #terminology}",
-  // condition = "#list.orElse('').isEmpty()")
+  @Cacheable(value = "metadata", key = "{#root.methodName,#include.orElse(''),#terminology}",
+      condition = "#list.orElse('').isEmpty()")
   public List<Concept> getAssociations(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -114,9 +110,6 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName,
-  // #include.orElse(''), #terminology}",
-  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getRoles(String terminology, Optional<String> include, Optional<String> list)
     throws Exception {
 
@@ -163,9 +156,6 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName,
-  // #include.orElse(''), #terminology}",
-  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getProperties(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -177,19 +167,7 @@ public class MetadataServiceImpl implements MetadataService {
     return ConceptUtils.applyList(properties, ip, list.orElse(null));
   }
 
-  /**
-   * Returns the qualifiers.
-   *
-   * @param terminology the terminology
-   * @param include the include
-   * @param list the list
-   * @return the qualifiers
-   * @throws Exception the exception
-   */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName,
-  // #include.orElse(''), #terminology}",
-  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getQualifiers(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
@@ -263,34 +241,20 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
-  // condition = "#terminology.equals('ncit')")
   public Optional<List<String>> getConceptStatuses(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // TODO: handle this like definition sources (via terminology metadata)
-      return Optional.of(new ArrayList<>());
-    }
-
-    final List<String> statuses = sparqlQueryManagerService.getDistinctPropertyValues(term,
-        term.getMetadata().getConceptStatus());
-    return Optional.of(statuses);
-
+    return Optional.of(term.getMetadata().getConceptStatuses());
   }
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
-  // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getDefinitionSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // Build the list from terminology metadata
-      return buildList(term, term.getMetadata().getDefinitionSourceSet(),
-          term.getMetadata().getSources());
-    }
 
-    return sparqlQueryManagerService.getDefinitionSources(term);
+    // Build the list from terminology metadata
+    return buildList(term, term.getMetadata().getDefinitionSourceSet(),
+        term.getMetadata().getSources());
+
   }
 
   /**
@@ -301,8 +265,6 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}",
-  // condition = "#terminology.equals('ncit')")
   public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     if (!term.getTerminology().equals("ncit")) {
@@ -323,24 +285,16 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology,
-  // #code}")
   public Optional<List<String>> getQualifierValues(String terminology, String code)
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-
-    // Verify that it is a qualifier
-    final List<Concept> list =
-        self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
-
-    if (list.size() == 1) {
-      return Optional.of(sparqlQueryManagerService.getQualifierValues(list.get(0).getCode(), term));
-    } else if (list.size() > 1) {
+    final Map<String, Set<String>> map = esQueryService.getQualifierValues(term);
+    if (!map.containsKey(code)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Qualifier " + code + " not found (2)");
     }
 
-    return Optional.empty();
+    return Optional.of(map.get(code).stream().sorted().collect(Collectors.toList()));
 
   }
 
@@ -352,24 +306,34 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
   public List<ConceptMinimal> getTermTypes(String terminology) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // Build the list from terminology metadata
-      return buildList(term, term.getMetadata().getTermTypes().keySet(),
-          term.getMetadata().getTermTypes());
-    }
+    // Build the list from terminology metadata
+    return buildList(term, term.getMetadata().getTermTypes().keySet(),
+        term.getMetadata().getTermTypes());
 
-    return sparqlQueryManagerService.getTermTypes(term);
+  }
+
+  /**
+   * Returns the welcome text.
+   *
+   * @param terminology the terminology
+   * @return the welcome text
+   * @throws Exception the exception
+   */
+  @Override
+  // @Cacheable(value = "metadata", key = "{#root.methodName, #terminology}")
+  public String getWelcomeText(String terminology) throws Exception {
+
+    final Terminology term = termUtils.getTerminology(terminology, true);
+    // Build the list from terminology metadata
+    return term.getMetadata().getWelcomeText();
+
   }
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName,
-  // #include.orElse(''), #terminology}",
-  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getSynonymTypes(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
 
@@ -401,9 +365,6 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  // @Cacheable(value = "metadata", key = "{#root.methodName,
-  // #include.orElse(''), #terminology}",
-  // condition = "#list.orElse('').isEmpty()")
   public List<Concept> getDefinitionTypes(String terminology, Optional<String> include,
     Optional<String> list) throws Exception {
 
@@ -449,7 +410,7 @@ public class MetadataServiceImpl implements MetadataService {
     // subsets should always return children
     // (contributing source needed)
     ip.setChildren(true);
-    //ip.setProperties(true);
+    // ip.setProperties(true);
     ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
 
@@ -465,7 +426,7 @@ public class MetadataServiceImpl implements MetadataService {
     subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
         .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream().flatMap(Concept::streamSelfAndChildren)
-        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get()))
+        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
         .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
 
     return subsets;

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -76,127 +77,44 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final String term = escape(searchCriteria.getTerm());
     logger.debug("query string [{}]", term);
 
-    BoolQueryBuilder boolQuery = new BoolQueryBuilder();
+    final BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
-    boolean blankTermFlag = "".equalsIgnoreCase(term);
-    boolean startsWithFlag = "startsWith".equalsIgnoreCase(searchCriteria.getType());
-    boolean exactMatchFlag = "match".equalsIgnoreCase(searchCriteria.getType());
-
-    // Normalized term with escaped spaces for exact matching
-    final String normTerm =
-        escape(ConceptUtils.normalize(searchCriteria.getTerm())) + (startsWithFlag ? "*" : "");
-
-    if (blankTermFlag) {
+    if ("".equals(term)) {
       // don't create anything
-    } else if (exactMatchFlag || startsWithFlag) {
-
-      final String exactTerm = term.replace(" ", "\\ ");
-      final String exactNormTerm = normTerm.replace(" ", "\\ ");
-
-      // "Exact" clauses (with normTerm)
-      // Only search name, code, properties and synonyms
-      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
-          .should(QueryBuilders.queryStringQuery(exactNormTerm).field("normName").analyzeWildcard(true)
-              .boost(20f))
-          .should(QueryBuilders
-              .nestedQuery("properties",
-                  QueryBuilders.queryStringQuery(exactNormTerm).field("properties.value")
-                      .analyzeWildcard(true),
-                  ScoreMode.Max)
-              .boost(5f))
-          .should(QueryBuilders.nestedQuery("synonyms", QueryBuilders.queryStringQuery(exactNormTerm)
-              .field("synonyms.normName").analyzeWildcard(true), ScoreMode.Max).boost(20f));
-
-      // NOTE: this only supports uppercase codes
-      boolQuery2
-          .should(QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(20f));
-
-      if (startsWithFlag) {
-        // Boost exact name match to top of list
-        boolQuery2 = boolQuery2.should(QueryBuilders
-            .matchQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
-            // NOTE: this only supports uppercase codes
-            .should(QueryBuilders.queryStringQuery(exactTerm.toUpperCase() + "*").field("code")
-                .analyzeWildcard(true).boost(15f));
-      }
-      boolQuery.must(boolQuery2);
-
     } else {
-      // prepare query_string query builder
-      QueryStringQueryBuilder queryStringQueryBuilder =
-          QueryBuilders.queryStringQuery(updateTermForType(term, searchCriteria.getType()));
-
-      // -- fuzzy and wildcard - both cannot be used for same query
-      if ("fuzzy".equalsIgnoreCase(searchCriteria.getType())) {
-        queryStringQueryBuilder = queryStringQueryBuilder.fuzziness(Fuzziness.ONE);
-      }
-
-      // -- wildcard search is assumed to be a term search or phrase search
-      if ("AND".equalsIgnoreCase(searchCriteria.getType())) {
-        queryStringQueryBuilder = queryStringQueryBuilder.defaultOperator(Operator.AND);
-      }
-
-      queryStringQueryBuilder = queryStringQueryBuilder.type(Type.BEST_FIELDS);
-
-      // prepare bool query
-      BoolQueryBuilder boolQuery2 = new BoolQueryBuilder()
-          // Exact name 20f
-          .should(QueryBuilders.queryStringQuery(normTerm).field("normName").boost(20f))
-          // Name generally 10f
-          .should(QueryBuilders.queryStringQuery(queryStringQueryBuilder.queryString())
-              .field("name").boost(10f).defaultOperator(queryStringQueryBuilder.defaultOperator()))
-          // Uppercase code 20f
-          .should(QueryBuilders.queryStringQuery(term.toUpperCase()).field("code").boost(20f)
-              .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-          // Exact synonym name 20f
-          .should(QueryBuilders.nestedQuery("synonyms",
-              QueryBuilders.queryStringQuery(normTerm).field("synonyms.normName"), ScoreMode.Max)
-              .boost(20f))
-          // Synonyms generally 10f
-          .should(QueryBuilders.nestedQuery("synonyms", queryStringQueryBuilder, ScoreMode.Max)
-              .boost(10f))
-          // Properties generally 5f
-          .should(QueryBuilders.nestedQuery("properties", queryStringQueryBuilder, ScoreMode.Max)
-              .boost(5f))
-          // definitions generally 1f
-          .should(QueryBuilders.nestedQuery("definitions", queryStringQueryBuilder, ScoreMode.Max));
-
-      // For "contains", also search without wildcards
-      if ("contains".equalsIgnoreCase(searchCriteria.getType())) {
-        QueryStringQueryBuilder termBuilder = QueryBuilders.queryStringQuery(term);
-        boolQuery2
-            .should(QueryBuilders.queryStringQuery(term).field("name", 3f).boost(10f)
-                .defaultOperator(queryStringQueryBuilder.defaultOperator()))
-            .should(QueryBuilders.nestedQuery("synonyms", termBuilder, ScoreMode.Max).boost(25f));
-      }
-
-      boolQuery.must(boolQuery2);
-      boolQuery.should(QueryBuilders.matchQuery("conceptStatus", "Retired_Concept").boost(-200f));
+      boolQuery.must(getTermQuery(searchCriteria.getType(), term));
     }
 
+    // Append concept status clause
+    boolQuery.should(QueryBuilders.matchQuery("conceptStatus", "Retired_Concept").boost(-200f));
+
     // append terminology query
-    QueryBuilder terminologyQuery = getTerminologyQuery(searchCriteria);
+    final QueryBuilder terminologyQuery = getTerminologyQuery(terminologies);
     if (terminologyQuery != null) {
-      boolQuery = boolQuery.must(terminologyQuery);
+      boolQuery.must(terminologyQuery);
     }
 
     // append criteria queries
-    List<QueryBuilder> criteriaQueries = getCriteriaQueries(terminologies, searchCriteria);
+    final List<QueryBuilder> criteriaQueries = getCriteriaQueries(terminologies, searchCriteria);
     if (!CollectionUtils.isEmpty(criteriaQueries)) {
-      for (QueryBuilder criteriaQuery : criteriaQueries) {
-        boolQuery = boolQuery.must(criteriaQuery);
+      for (final QueryBuilder criteriaQuery : criteriaQueries) {
+        boolQuery.must(criteriaQuery);
       }
     }
 
     // build final search query
-    NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
+    final NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
         .withIndices(buildIndicesArray(searchCriteria))
         .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable);
+//        .withSourceFilter(new FetchSourceFilter(new String[] {
+//            "name", "code", "leaf", "terminology", "version"
+//        }, null));
+
     // avoid setting min score
     // .withMinScore(0.01f);
 
     if (searchCriteria.getInclude().toLowerCase().contains("highlights")) {
-      searchQuery = searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
+      searchQuery.withHighlightFields(new HighlightBuilder.Field("*"));
     }
 
     // Sort by score, but then by code
@@ -204,12 +122,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
 
     // query on operations
-    Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class,
+    final Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class,
         new EVSConceptResultMapper(searchCriteria.computeIncludeParam()));
 
     logger.debug("result count: {}", resultPage.getTotalElements());
 
-    ConceptResultList result = new ConceptResultList();
+    final ConceptResultList result = new ConceptResultList();
     result.setParameters(searchCriteria);
     if (fromOffset == 0) {
       result.setConcepts(resultPage.getContent());
@@ -226,6 +144,174 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     result.setTotal(Long.valueOf(resultPage.getTotalElements()).intValue());
 
     return result;
+  }
+
+  /**
+   * Returns the term query.
+   *
+   * @param type the type
+   * @param term the term
+   * @return the term query
+   * @throws Exception the exception
+   */
+  private BoolQueryBuilder getTermQuery(final String type, final String term) throws Exception {
+    switch (type) {
+      case "contains":
+      case "phrase":
+      case "OR":
+        return getContainsQuery(type, term, false, false);
+      case "match":
+        return getMatchQuery(term, false);
+      case "startsWith":
+        return getMatchQuery(term, true);
+      case "fuzzy":
+        return getContainsQuery(type, term, true, false);
+      case "AND":
+        return getContainsQuery(type, term, false, true);
+      default:
+        // Default to contains query
+        return getContainsQuery(type, term, false, false);
+    }
+  }
+
+  /**
+   * Returns the contains query.
+   *
+   * @param type the type
+   * @param term the term
+   * @param fuzzyFlag the fuzzy flag
+   * @param andFlag the and flag
+   * @return the contains query
+   * @throws Exception the exception
+   */
+  private BoolQueryBuilder getContainsQuery(final String type, final String term, boolean fuzzyFlag,
+    boolean andFlag) throws Exception {
+
+    // Normalized term (no punctuation)
+    final String normTerm = ConceptUtils.normalize(term);
+    final String fixterm = updateTermForType(term, type);
+    final String fixNormTerm = updateTermForType(normTerm, type);
+    final String codeTerm = term.toUpperCase();
+
+    // prepare query_string query builder
+    final QueryStringQueryBuilder synonymNamesQuery =
+        QueryBuilders.queryStringQuery(fixNormTerm).field("synonyms.name", 10f);
+    final QueryStringQueryBuilder definitionQuery =
+        QueryBuilders.queryStringQuery(fixNormTerm).field("definitions.definition");
+    // name is Text indexed - for looser matching
+    final QueryStringQueryBuilder nameQuery1 =
+        QueryBuilders.queryStringQuery(fixterm).field("name", 20f);
+    final QueryStringQueryBuilder nameQuery2 =
+        QueryBuilders.queryStringQuery(fixNormTerm).field("name", 20f);
+
+    // -- fuzzy case
+    if ("fuzzy".equalsIgnoreCase(type)) {
+      synonymNamesQuery.fuzziness(Fuzziness.ONE);
+      definitionQuery.fuzziness(Fuzziness.ONE);
+      nameQuery1.fuzziness(Fuzziness.ONE);
+      nameQuery2.fuzziness(Fuzziness.ONE);
+    }
+
+    // -- wildcard search is assumed to be a term search or phrase search
+    if ("AND".equalsIgnoreCase(type)) {
+      synonymNamesQuery.defaultOperator(Operator.AND);
+      definitionQuery.defaultOperator(Operator.AND);
+      nameQuery1.defaultOperator(Operator.AND);
+      nameQuery2.defaultOperator(Operator.AND);
+    }
+
+    // Set "best fields" and fields
+    synonymNamesQuery.type(Type.BEST_FIELDS);
+    definitionQuery.type(Type.BEST_FIELDS);
+
+    final QueryStringQueryBuilder codeQuery =
+        QueryBuilders.queryStringQuery(codeTerm).field("code", 20f);
+
+    // prepare bool query
+    BoolQueryBuilder termQuery = new BoolQueryBuilder();
+
+    // For "contains", also search without wildcards, boost higher
+    // if ("contains".equalsIgnoreCase(type)) {
+    // termQuery
+    // // Boost name matches
+    // .should(QueryBuilders.queryStringQuery(term).field("name", 30f))
+    // // Boost synonym name matches
+    // .should(QueryBuilders.nestedQuery("synonyms",
+    // QueryBuilders.queryStringQuery(term).field("synonyms.name", 25f),
+    // ScoreMode.Max));
+    // }
+
+    termQuery
+        // Boost exact matches on norm name
+        .should(QueryBuilders.matchQuery("normName", normTerm).boost(40f))
+        .should(QueryBuilders.nestedQuery("synonyms",
+            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(40f), ScoreMode.Max))
+
+        // Name query
+        .should(nameQuery1).should(nameQuery2);
+
+    // // If not phrase query, do a name search also on the fixed norm name.
+    // if (!"phrase".equalsIgnoreCase(type)) {
+    // termQuery.should(nameQuery2)
+    // .should(QueryBuilders.nestedQuery("synonyms", nameQuery4,
+    // ScoreMode.Max));
+    // }
+
+    termQuery
+        // Code match
+        .should(codeQuery)
+        .should(QueryBuilders.nestedQuery("synonyms",
+            QueryBuilders.queryStringQuery(codeTerm).field("synonyms.code", 20f), ScoreMode.Max))
+        // Synonyms generally 10f
+        .should(QueryBuilders.nestedQuery("synonyms", synonymNamesQuery, ScoreMode.Max))
+        // definitions generally 1f
+        .should(QueryBuilders.nestedQuery("definitions", definitionQuery, ScoreMode.Max));
+
+    return termQuery;
+  }
+
+  /**
+   * Returns the match query.
+   *
+   * @param term the term
+   * @param startsWithFlag the starts with flag
+   * @return the match query
+   * @throws Exception the exception
+   */
+  private BoolQueryBuilder getMatchQuery(final String term, final boolean startsWithFlag)
+    throws Exception {
+
+    // Normalized term with escaped spaces for exact matching
+    final String normTerm = escape(ConceptUtils.normalize(term)) + (startsWithFlag ? "*" : "");
+    final String codeTerm = term.toUpperCase() + (startsWithFlag ? "*" : "");
+    final String exactTerm = term.replace(" ", "\\ ");
+    final String exactNormTerm = normTerm.replace(" ", "\\ ");
+
+    // "Exact" clauses (with normTerm)
+    // Only search name, code, and synonyms
+    BoolQueryBuilder termQuery =
+        // One of the following things
+        new BoolQueryBuilder()
+            // exact "normName" match
+            .should(QueryBuilders.queryStringQuery(exactNormTerm).field("normName")
+                .analyzeWildcard(startsWithFlag).boost(20f))
+            // exact "synonyms.normName" match
+            .should(QueryBuilders.nestedQuery("synonyms",
+                QueryBuilders.queryStringQuery(exactNormTerm).field("synonyms.normName").boost(20f)
+                    .analyzeWildcard(startsWithFlag),
+                ScoreMode.Max))
+            // exact match to code (uppercase the code)
+            .should(QueryBuilders.queryStringQuery(codeTerm).field("code")
+                .analyzeWildcard(startsWithFlag).boost(20f));
+
+    // If startsWith flag, boost exact matches to the top
+    if (startsWithFlag) {
+      termQuery = termQuery
+          .should(
+              QueryBuilders.matchQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
+          .should(QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f));
+    }
+    return termQuery;
   }
 
   /**
@@ -328,19 +414,20 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria
    * @return the terminology query builder
    */
-  private QueryBuilder getTerminologyQuery(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getTerminology()))
+  private QueryBuilder getTerminologyQuery(final List<Terminology> terminologies) {
+    if (CollectionUtils.isEmpty(terminologies)) {
       return null;
+    }
 
     BoolQueryBuilder terminologyQuery = QueryBuilders.boolQuery();
 
-    if (searchCriteria.getTerminology().size() == 1) {
+    if (terminologies.size() == 1) {
       terminologyQuery = terminologyQuery
-          .must(QueryBuilders.matchQuery("terminology", searchCriteria.getTerminology().get(0)));
+          .must(QueryBuilders.matchQuery("terminology", terminologies.get(0).getTerminology()));
     } else {
-      for (String terminology : searchCriteria.getTerminology()) {
-        terminologyQuery =
-            terminologyQuery.should(QueryBuilders.matchQuery("terminology", terminology));
+      for (Terminology terminology : terminologies) {
+        terminologyQuery = terminologyQuery
+            .should(QueryBuilders.matchQuery("terminology", terminology.getTerminology()));
       }
     }
 
@@ -358,14 +445,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // concept status
-    QueryBuilder conceptStatusQuery =
-        getPropertyTypeValueQueryBuilder(searchCriteria, "Concept_Status");
+    QueryBuilder conceptStatusQuery = getConceptStatusQueryBuilder(searchCriteria);
     if (conceptStatusQuery != null) {
       queries.add(conceptStatusQuery);
     }
 
     // property
-    QueryBuilder propertyQuery = getPropertyTypeCodeQueryBuilder(searchCriteria);
+    QueryBuilder propertyQuery = getPropertyValueQueryBuilder(searchCriteria);
     if (propertyQuery != null) {
       queries.add(propertyQuery);
     }
@@ -420,17 +506,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param type the type
    * @return the nested query
    */
-  private QueryBuilder getPropertyTypeValueQueryBuilder(SearchCriteria searchCriteria,
-    String type) {
-    List<String> values = null;
-    switch (type.toLowerCase()) {
-      case "concept_status":
-        values = searchCriteria.getConceptStatus();
-        break;
-      default:
-        values = searchCriteria.getProperty();
-        break;
-    }
+  private QueryBuilder getConceptStatusQueryBuilder(SearchCriteria searchCriteria) {
+    List<String> values = searchCriteria.getConceptStatus();
 
     // If there are no values, bail
     if (CollectionUtils.isEmpty(values)) {
@@ -448,9 +525,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
     }
 
+    // TODO: this shouldn't be hardcoded, but need to read from the particular
+    // terminology
+    // we are searching, or otherwise make this a top-level field of "Concept"
     // bool query to match property.type and property.value
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.matchQuery("properties.type", type)).must(inQuery);
+        .must(QueryBuilders.matchQuery("properties.type", "Concept_Status")).must(inQuery);
 
     // nested query on properties
     return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);
@@ -492,40 +572,32 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return the nested query
    */
-  private QueryBuilder getPropertyTypeCodeQueryBuilder(SearchCriteria searchCriteria) {
+  private QueryBuilder getPropertyValueQueryBuilder(SearchCriteria searchCriteria) {
     if (CollectionUtils.isEmpty(searchCriteria.getProperty()))
       return null;
 
-    boolean hasTerm = !StringUtils.isBlank(searchCriteria.getTerm());
+    boolean hasValue = !StringUtils.isBlank(searchCriteria.getValue());
 
-    // IN query on property.type or property.code
-    BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
+    // Match value (optional)
+    MatchQueryBuilder valueQuery = null;
+    if (hasValue) {
+      valueQuery = QueryBuilders.matchQuery("properties.value", searchCriteria.getValue());
+    }
 
-    if (searchCriteria.getProperty().size() == 1) {
-      inQuery = inQuery.must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.matchQuery("properties.type", searchCriteria.getProperty().get(0)))
-          .should(
-              QueryBuilders.matchQuery("properties.code", searchCriteria.getProperty().get(0))));
+    BoolQueryBuilder typeQuery = QueryBuilders.boolQuery();
+    // Iterate through properties and build up parts
+    for (String property : searchCriteria.getProperty()) {
 
-      if (hasTerm) {
-        inQuery =
-            inQuery.must(QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()));
-      }
-    } else {
-      for (String property : searchCriteria.getProperty()) {
-        inQuery = inQuery.should(
-            QueryBuilders.boolQuery().should(QueryBuilders.matchQuery("properties.type", property))
-                .should(QueryBuilders.matchQuery("properties.code", property)));
+      typeQuery = typeQuery.should(QueryBuilders.matchQuery("properties.type", property))
+          .should(QueryBuilders.matchQuery("properties.code", property));
 
-        if (hasTerm) {
-          inQuery = inQuery
-              .should(QueryBuilders.matchQuery("properties.value", searchCriteria.getTerm()));
-        }
-      }
     }
 
     // bool query to match (property.type or property.code) and property.value
-    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(inQuery);
+    BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery().must(typeQuery);
+    if (hasValue) {
+      fieldBoolQuery.must(valueQuery);
+    }
 
     // nested query on properties
     return QueryBuilders.nestedQuery("properties", fieldBoolQuery, ScoreMode.Total);

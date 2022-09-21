@@ -3,11 +3,11 @@ package gov.nih.nci.evs.api.support.es;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -21,60 +21,101 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
- * The elasticsearch wrapper object for cached objects
- * 
- * @author Arun
+ * The elasticsearch wrapper object for cached objects.
  *
+ * @author Arun
  */
 @Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
 @JsonInclude(content = Include.NON_EMPTY)
 public class ElasticObject extends BaseModel {
 
+  /** The name. */
   @Id
   private String name;
 
-  @Field(type = FieldType.Object)
+  /** The hierarchy. */
   private HierarchyUtils hierarchy;
 
-  @Field(type = FieldType.Object)
+  /** The paths. */
   private Paths paths;
 
-  @Field(type = FieldType.Nested)
+  /** The concepts. */
   private List<Concept> concepts;
 
-  @Field(type = FieldType.Nested)
+  /** The concept minimals. */
   private List<ConceptMinimal> conceptMinimals;
 
-  @Field(type = FieldType.Object)
+  /** The association entries. */
   private List<AssociationEntry> associationEntries;
 
+  /** The map. */
+  private Map<String, Set<String>> map;
+
+  /**
+   * Instantiates an empty {@link ElasticObject}.
+   */
   public ElasticObject() {
   }
 
+  /**
+   * Instantiates a {@link ElasticObject} from the specified parameters.
+   *
+   * @param name the name
+   */
   public ElasticObject(String name) {
     this.name = name;
   }
 
+  /**
+   * Returns the name.
+   *
+   * @return the name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Sets the name.
+   *
+   * @param name the name
+   */
   public void setName(String name) {
     this.name = name;
   }
 
+  /**
+   * Returns the hierarchy.
+   *
+   * @return the hierarchy
+   */
   public HierarchyUtils getHierarchy() {
     return hierarchy;
   }
 
+  /**
+   * Sets the hierarchy.
+   *
+   * @param hierarchy the hierarchy
+   */
   public void setHierarchy(HierarchyUtils hierarchy) {
     this.hierarchy = hierarchy;
   }
 
+  /**
+   * Returns the paths.
+   *
+   * @return the paths
+   */
   public Paths getPaths() {
     return paths;
   }
 
+  /**
+   * Sets the paths.
+   *
+   * @param paths the paths
+   */
   public void setPaths(Paths paths) {
     this.paths = paths;
   }
@@ -91,10 +132,20 @@ public class ElasticObject extends BaseModel {
     return concepts;
   }
 
+  /**
+   * Sets the concepts.
+   *
+   * @param concepts the concepts
+   */
   public void setConcepts(List<Concept> concepts) {
     this.concepts = concepts;
   }
 
+  /**
+   * Returns the concept minimals.
+   *
+   * @return the concept minimals
+   */
   public List<ConceptMinimal> getConceptMinimals() {
     if (conceptMinimals == null) {
       conceptMinimals = new ArrayList<>();
@@ -102,15 +153,49 @@ public class ElasticObject extends BaseModel {
     return conceptMinimals;
   }
 
+  /**
+   * Sets the concept minimals.
+   *
+   * @param conceptMinimals the concept minimals
+   */
   public void setConceptMinimals(List<ConceptMinimal> conceptMinimals) {
     this.conceptMinimals = conceptMinimals;
   }
 
+  /**
+   * Returns the association entries.
+   *
+   * @return the association entries
+   */
   public List<AssociationEntry> getAssociationEntries() {
     return associationEntries;
   }
 
+  /**
+   * Sets the association entries.
+   *
+   * @param associationEntries the association entries
+   */
   public void setAssociationEntries(List<AssociationEntry> associationEntries) {
     this.associationEntries = associationEntries;
   }
+
+  /**
+   * Returns the map.
+   *
+   * @return the map
+   */
+  public Map<String, Set<String>> getMap() {
+    return map;
+  }
+
+  /**
+   * Sets the map.
+   *
+   * @param map the map
+   */
+  public void setMap(Map<String, Set<String>> map) {
+    this.map = map;
+  }
+
 }

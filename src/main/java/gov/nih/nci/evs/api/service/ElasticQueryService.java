@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -152,19 +153,7 @@ public interface ElasticQueryService {
    */
   List<String> getAllChildNodes(String code, Terminology terminology);
 
-  /**
-   * Returns the path in hierarchy.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @return the path in hierarchy
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
-
+ 
   /**
    * Returns the path to root.
    *
@@ -175,7 +164,7 @@ public interface ElasticQueryService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  Paths getPathToRoot(String code, Terminology terminology)
+  Paths getPathsToRoot(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -189,7 +178,7 @@ public interface ElasticQueryService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  Paths getPathToParent(String code, String parentCode, Terminology terminology)
+  Paths getPathsToParent(String code, String parentCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -237,6 +226,17 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   List<Concept> getQualifiers(Terminology terminology, IncludeParam ip)
+    throws JsonMappingException, JsonProcessingException;
+
+  /**
+   * Returns the qualifier values.
+   *
+   * @param terminology the terminology
+   * @return the qualifier values
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  Map<String, Set<String>> getQualifierValues(Terminology terminology)
     throws JsonMappingException, JsonProcessingException;
 
   /**
@@ -422,10 +422,15 @@ public interface ElasticQueryService {
    * returns a list of association entries
    * 
    * @param terminology the terminology
+   * 
    * @param ip the ip
+   * 
    * @param fromRecord the starting record for the search
+   * 
    * @param pageSize the size of pages in returned result
+   * 
    * @return the association entry list
+   * 
    * @throws Exception Signals that an exception has occurred.
    */
   AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,

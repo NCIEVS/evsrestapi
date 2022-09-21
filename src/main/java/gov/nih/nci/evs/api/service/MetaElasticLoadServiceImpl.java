@@ -113,7 +113,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   private Set<String> relSet = new HashSet<>();
 
   /** The qual set. */
-  private Set<String> qualSet = new HashSet<>();
+  private Map<String, Set<String>> qualMap = new HashMap<>();
 
   private int batchSize = 0;
 
@@ -460,7 +460,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // RUI Attributes
       if (fields[4].equals("RUI")) {
-        qualSet.add(atn);
+        if (!qualMap.containsKey(atn)) {
+          qualMap.put(atn, new HashSet<>());
+        }
+        qualMap.get(atn).add(atv);
         if (!ruiQualMap.containsKey(fields[3])) {
           ruiQualMap.put(fields[3], new HashSet<>());
         }
@@ -892,7 +895,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
     // MRSAT: property metadata for MRSAT
     // Remove ATNs that are qualifiers
-    atnSet.removeAll(qualSet);
+    atnSet.removeAll(qualMap.keySet());
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -912,9 +915,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
-    for (final String qual : qualSet) {
+    for (final String qual : qualMap.keySet()) {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
+    qualifiers.setMap(qualMap);
+
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
 
@@ -1040,6 +1045,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(sourceMap.size());
+        final String welcomeResource = "metadata/" + term.getTerminology() + ".html";
+        try {
+          String welcomeText = IOUtils
+              .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8");
+          metadata.setWelcomeText(welcomeText);
+        } catch (Exception e) {
+          throw new Exception("Unexpected error trying to load = " + welcomeResource, e);
+        }
         term.setMetadata(metadata);
 
       } catch (Exception e) {

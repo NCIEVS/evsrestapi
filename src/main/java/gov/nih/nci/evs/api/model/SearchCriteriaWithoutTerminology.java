@@ -47,6 +47,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The property. */
   private List<String> property;
 
+  /** The value. */
+  private String value;
+
   /** The synonym source. */
   private List<String> synonymSource;
 
@@ -106,6 +109,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // inverse = other.getInverse();
     pageSize = other.getPageSize();
     property = new ArrayList<>(other.getProperty());
+    value = other.getValue();
+
     // role = new ArrayList<>(other.getRole());
     synonymSource = new ArrayList<>(other.getSynonymSource());
     synonymType = new ArrayList<>(other.getSynonymType());
@@ -245,6 +250,14 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void setProperty(final List<String> property) {
     this.property = property;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(final String value) {
+    this.value = value;
   }
 
   /**
@@ -577,6 +590,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // result = prime * result + ((inverse == null) ? 0 : inverse.hashCode());
     result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
     result = prime * result + ((property == null) ? 0 : property.hashCode());
+    result = prime * result + ((value == null) ? 0 : value.hashCode());
     // result = prime * result + ((role == null) ? 0 : role.hashCode());
     result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
@@ -659,6 +673,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!property.equals(other.property)) {
+      return false;
+    }
+    if (value == null) {
+      if (other.value != null) {
+        return false;
+      }
+    } else if (!value.equals(other.value)) {
       return false;
     }
     // if (role == null) {

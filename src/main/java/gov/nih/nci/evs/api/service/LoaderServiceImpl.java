@@ -65,6 +65,7 @@ public class LoaderServiceImpl {
         "Skip loading metadata, just clean stale terminologies concepts, and update latest flags");
     options.addOption("xl", "skipLoad", false,
         "Skip loading data, just clean stale terminologies and update latest flags");
+    options.addOption("xr", "report", false, "Compute and return a report instead of loading data");
 
     return options;
   }
@@ -142,6 +143,8 @@ public class LoaderServiceImpl {
         } else {
           loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
         }
+      } else if (cmd.hasOption("xr")) {
+        loadService = app.getBean(StardogReportLoadServiceImpl.class);
       } else {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }

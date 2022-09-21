@@ -24,6 +24,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 @JsonInclude(Include.NON_EMPTY)
 public class Property extends BaseModel implements Comparable<Property> {
 
+  /**
+   * The rdfs:about - used for situations where there is not a defined code
+   * property.
+   */
+  @Transient
+  private String about;
+
   /** The code. */
   @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
@@ -89,6 +96,19 @@ public class Property extends BaseModel implements Comparable<Property> {
     highlight = other.getHighlight();
     qualifiers = new ArrayList<>(other.getQualifiers());
     source = other.getSource();
+  }
+
+  public String getAbout() {
+    return about;
+  }
+
+  /**
+   * Sets the about.
+   *
+   * @param about the about
+   */
+  public void setAbout(final String about) {
+    this.about = about;
   }
 
   /**
