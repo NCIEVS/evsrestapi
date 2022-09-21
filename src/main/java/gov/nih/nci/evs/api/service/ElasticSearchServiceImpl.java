@@ -106,6 +106,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
         .withIndices(buildIndicesArray(searchCriteria))
         .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable);
+//        .withSourceFilter(new FetchSourceFilter(new String[] {
+//            "name", "code", "leaf", "terminology", "version"
+//        }, null));
+
     // avoid setting min score
     // .withMinScore(0.01f);
 

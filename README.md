@@ -63,7 +63,7 @@ Information on the build and deployment process for the EVSRESTAPI project
         export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
         src/main/bin/ncim-part.sh --noconfig $dir
 
-### Steps for Loading MMDR from NCI Metathesaurus Indexes Locally
+### Steps for Loading MDR from NCI Metathesaurus Indexes Locally
 
 * Download the NCI Metathesaurus to a local directory
 * Properly configure the environment variables needed by ncim.sh

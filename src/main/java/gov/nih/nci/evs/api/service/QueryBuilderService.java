@@ -16,7 +16,7 @@ public interface QueryBuilderService {
    * @param namedGraph the named graph
    * @return the string
    */
-  public String constructQuery(String queryProp, String namedGraph);
+  public String constructQuery(String queryProp, String codeCode, String namedGraph);
 
   /**
    * Construct query.
@@ -26,7 +26,7 @@ public interface QueryBuilderService {
    * @param namedGraph the named graph
    * @return the string
    */
-  public String constructQuery(String queryProp, String conceptCode, String namedGraph);
+  public String constructQuery(String queryProp, String codeCode, String conceptCode, String namedGraph);
 
   /**
    * Construct batch query.
@@ -36,7 +36,7 @@ public interface QueryBuilderService {
    * @param conceptCodes the concept codes
    * @return the string
    */
-  public String constructBatchQuery(String queryProp, String namedGraph, List<String> conceptCodes);
+  public String constructBatchQuery(String queryProp, String codeCode, String namedGraph, List<String> conceptCodes);
 
   /**
    * Construct query.

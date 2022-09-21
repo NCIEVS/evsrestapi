@@ -155,16 +155,6 @@ if [[ $terminology == "ncim" ]]; then
 else
     version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
 fi
-lcterm=`echo $terminology | perl -ne 'print lc($_);'`
-echo "  Remove indexes for $lcterm $version"
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-$DIR/remove.sh $lcterm $version > /tmp/x.$$ 2>&1
-if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$ | sed 's/^/    /'
-    echo "ERROR: removing $lcterm $version indexes"
-    exit 1
-fi
-cat /tmp/x.$$ | sed 's/^/    /'
 
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"

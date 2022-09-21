@@ -153,19 +153,7 @@ public interface ElasticQueryService {
    */
   List<String> getAllChildNodes(String code, Terminology terminology);
 
-  /**
-   * Returns the path in hierarchy.
-   *
-   * @param code the code
-   * @param terminology the terminology
-   * @return the path in hierarchy
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
-
+ 
   /**
    * Returns the path to root.
    *
@@ -176,7 +164,7 @@ public interface ElasticQueryService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  Paths getPathToRoot(String code, Terminology terminology)
+  Paths getPathsToRoot(String code, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**
@@ -190,7 +178,7 @@ public interface ElasticQueryService {
    * @throws JsonMappingException the json mapping exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  Paths getPathToParent(String code, String parentCode, Terminology terminology)
+  Paths getPathsToParent(String code, String parentCode, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException;
 
   /**

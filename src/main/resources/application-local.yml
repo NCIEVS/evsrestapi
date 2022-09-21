@@ -17,6 +17,11 @@ spring:
         serialization:
             INDENT_OUTPUT: true
 
+    # ehcache configuration
+    cache:
+        jcache:
+            config: classpath:ehcache.xml
+
 management:
   endpoints:
     web:

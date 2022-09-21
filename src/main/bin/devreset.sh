@@ -89,6 +89,12 @@ if [[ ! -e "$dir/ThesaurusInferred_monthly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_monthly.owl file"
     exit 1
 fi
+# Check GO monthly
+echo "    check GO monthly"
+if [[ ! -e "$dir/GO/go.2022-07-01.owl" ]]; then
+    echo "ERROR: unexpectedly missing GO/go.2022-07-01.owl file"
+    exit 1
+fi
 
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
@@ -200,7 +206,8 @@ echo "    create databases"
 echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://NCI_T_weekly CTRP /data/UnitTestData/ThesaurusInferred_+1weekly.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly CTRP /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/      /'
-/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly NCIT2 /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/     /'
+/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly NCIT2 /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://GO_monthly NCIT2 /data/UnitTestData/GO/go.2022-07-01.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
@@ -216,8 +223,8 @@ if [[ $? -ne 0 ]]; then
 fi
 /bin/rm -f $dir/x.sh
 
-# Reindex ncit
-echo "  Reindex ncit weekly/monthly"
+# Reindex stardog terminologies
+echo "  Reindex stardog"
 src/main/bin/reindex.sh --noconfig | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem running reindex.sh script"
