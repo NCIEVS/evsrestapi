@@ -748,5 +748,6 @@ public class GOControllerTests {
   // Content test cases
   // GO:0000003 (lots of data, differences from ncit browser)
   // GO:0000004 (deprecated concept ... missing)
+  // GO:0000005 (OBSOLETE concept)
   // GO:0044597 (only name is rdfs:label)
 }
