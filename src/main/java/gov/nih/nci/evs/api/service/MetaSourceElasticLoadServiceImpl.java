@@ -1221,8 +1221,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         metadata.setSourceCt(1);
         final String welcomeResource = "metadata/" + term.getTerminology() + ".html";
         try {
-          String welcomeText = IOUtils
-              .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8");
+          String welcomeText = IOUtils.toString(
+              term.getClass().getClassLoader().getResourceAsStream(welcomeResource), "UTF-8");
           metadata.setWelcomeText(welcomeText);
         } catch (Exception e) {
           throw new Exception("Unexpected error trying to load = " + welcomeResource, e);
