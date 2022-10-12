@@ -322,15 +322,6 @@ public interface SparqlQueryManagerService {
   public List<Terminology> getTerminologies(String db) throws Exception, ParseException;
 
   /**
-   * Returns the version info.
-   *
-   * @param terminology the terminology
-   * @return the version info
-   * @throws Exception the exception
-   */
-  public Terminology getTerminology(Terminology terminology) throws Exception;
-
-  /**
    * Returns the definition sources.
    *
    * @param terminology the terminology

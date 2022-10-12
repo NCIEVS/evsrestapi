@@ -169,12 +169,13 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "  Remove any older versions indexes"
+echo "  Remove any older versions indexes ($terminology $version)"
 curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
-   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
+   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep -i ${terminology}_ > /tmp/x.$$
 for i in `cat /tmp/x.$$`; do    
-    lv=`echo $i | perl -pe 's/.*_//;'`
-    if [[ $lv -ge $version ]]; then
+    lv=`echo $i | perl -pe 's/.*'${terminology}'_//i;'`
+    # string compare versions
+    if [[ $lv \> $version ]]; then
         echo "    skip $lv - later than $version"
         continue
     fi

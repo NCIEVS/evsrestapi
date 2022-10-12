@@ -1,0 +1,34 @@
+{
+	"uiLabel": "HGNC",
+	"code": "hgnc_id",
+	"conceptStatus": "owl:deprecated",
+	"retiredStatusValue": "true",
+	"preferredName": "symbol",
+	"synonym": [
+	    "symbol",
+		"alias_name",
+		"alias_symbol",
+		"name",
+		"prev_name",
+		"prev_symbol"
+	],
+	"definition": null,
+	"definitionSource": null,
+	"map": null,
+	"mapRelation": null,
+	"mapTarget": null,
+	"mapTargetTermType": null,
+	"mapTargetTerminology": null,
+	"mapTargetTerminologyVersion": null,
+	"relationshipToTarget": null,
+	"propertyNames": {
+		"hgnc_id": "code",
+		"symbol": "symbol",
+		"alias_name": "alias_name",
+		"alias_symbol": "alias_symbol",
+		"prev_name": "prev_name",
+		"prev_symbol": "prev_symbol",
+		"name": "name"
+	},
+	"hierarchy": false
+}

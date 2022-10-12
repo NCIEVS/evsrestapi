@@ -22,6 +22,8 @@ elif [ ${#arr[@]} -ne 3 ] || [ $help -eq 1 ]; then
   echo "Usage: $0 [--noconfig] [--list] <database> <terminology> <version>"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
+  echo "  e.g. $0 --noconfig --list"
+  echo "  e.g. $0 --noconfig hgnc Sep2022"
   exit 1
 fi
 
@@ -148,10 +150,11 @@ if [ $list -eq 1 ]; then
         cv=`echo $version | perl -pe 's/\.//;'`
         db=`echo $x | cut -d\| -f 2`
         uri=`echo $x | cut -d\| -f 3`
-        term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/;'`
+        term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/'`
         echo "    $db $term $version"
     done
-
+    exit 0
+    
 else
 
     # Verify db/termionlogy/version is valid

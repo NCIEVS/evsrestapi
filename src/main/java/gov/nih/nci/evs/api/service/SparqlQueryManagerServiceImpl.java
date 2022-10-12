@@ -220,32 +220,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return results;
   }
 
-  /* see superclass */
-  @Override
-  public Terminology getTerminology(Terminology terminology) throws Exception {
-
-    String queryPrefix = queryBuilderService.contructPrefix(terminology.getSource());
-    String query = queryBuilderService.constructQuery("version.info",
-        terminology.getMetadata().getCode(), terminology.getGraph());
-    String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    Terminology term = new Terminology();
-    Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (Bindings b : bindings) {
-      String comment = (b.getComment() == null) ? "" : b.getComment().getValue();
-      String version = b.getVersion().getValue();
-      term.setVersion(version);
-      term.setDate(b.getDate().getValue());
-      term.setDescription(comment);
-      term.setGraph(terminology.getGraph());
-      // term.setName(TerminologyUtils.constructName(comment, version));
-    }
-    return term;
-  }
-
   /**
    * Returns the returns the class counts.
    *
