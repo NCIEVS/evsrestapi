@@ -3,11 +3,13 @@
 config=1
 download=0
 rm=1
+help=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --download) download=1;;
   --terminology) terminology="$2"; shift;;
   --keep) rm=0;;
+  --help) help=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
@@ -17,7 +19,7 @@ if [ ${#arr[@]} -eq 1 ]; then
 elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
   ok=1
 fi
-if [ $ok -eq 0 ]; then
+if [ $ok -eq 0 ] || [ $help -eq 1]; then
   echo "Usage: $0 [--noconfig] [--download] [<dir>]"
   echo "Usage:    [--terminology <terminology, e.g. MDR>]"
   echo "  e.g. $0 /data/evs/ncim"
