@@ -192,6 +192,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         term.setTerminology("ncit");
       } else if (term.getSource().endsWith("obo/go.owl")) {
         term.setTerminology("go");
+      } else if (term.getSource().endsWith("/HGNC.owl")) {
+        term.setTerminology("hgnc");
       }
       termList.add(term);
     }

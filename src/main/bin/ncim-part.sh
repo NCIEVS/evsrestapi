@@ -175,7 +175,7 @@ curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
 for i in `cat /tmp/x.$$`; do    
     lv=`echo $i | perl -pe 's/.*'${terminology}'_//i;'`
     # string compare versions
-    if [[ $lv \> $version ]]; then
+    if [ "$lv" \> "$version" ]; then
         echo "    skip $lv - later than $version"
         continue
     fi
