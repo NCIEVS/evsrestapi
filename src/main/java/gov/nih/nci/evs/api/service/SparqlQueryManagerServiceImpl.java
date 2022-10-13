@@ -204,6 +204,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final List<Terminology> results = new ArrayList<>();
 
+    // Reverse sort by version
     Collections.sort(termList, new Comparator<Terminology>() {
       @Override
       public int compare(Terminology o1, Terminology o2) {
