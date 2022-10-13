@@ -166,8 +166,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
-    if (log.isDebugEnabled())
+    if (log.isDebugEnabled()) {
       log.debug("getTerminologies response - " + res);
+    }
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<Terminology> termList = new ArrayList<>();
@@ -188,6 +189,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       // TODO: this definitely needs to be turned into configuration
+log.info("XXX term source = " + term.getSource());;
       if (term.getSource().endsWith("Thesaurus.owl")) {
         term.setTerminology("ncit");
       } else if (term.getSource().endsWith("obo/go.owl")) {
