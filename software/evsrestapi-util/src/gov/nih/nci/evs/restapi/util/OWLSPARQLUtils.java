@@ -207,9 +207,12 @@ public class OWLSPARQLUtils {
     public String getPrefixes() {
 		if (prefixes != null) return prefixes;
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
-		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
-		buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
+		//buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
+		//buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+		//buf.append("PREFIX Thesaurus:<" + BASE_URI + "#>").append("\n");
+
+		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
 		buf.append("PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
 		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");

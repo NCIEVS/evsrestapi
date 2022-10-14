@@ -70,7 +70,7 @@ import java.time.Duration;
 
 public class SPARQL4OBO {
     OWLSPARQLUtils owlSPARQLUtils = null;
-    static String BASE_URI = "http://purl.obolibrary.org/obo/go.owl";
+    String BASE_URI = "http://purl.obolibrary.org/obo/go.owl";
 
     public String named_graph = null;
     String prefixes = null;
@@ -84,31 +84,6 @@ public class SPARQL4OBO {
     public SPARQL4OBO(String restURL, String namedGraph, String username, String password) {
 	    owlSPARQLUtils = new OWLSPARQLUtils(restURL, username, password);
 	    owlSPARQLUtils.set_named_graph(namedGraph);
-	}
-
-
-	public String construct_get_id(String named_graph) {
-        String prefixes = getPrefixes();
-        StringBuffer buf = new StringBuffer();
-        buf.append(prefixes);
-        buf.append("select distinct ?x_label ?x_id").append("\n");
-        buf.append("from <" + named_graph + ">").append("\n");
-        buf.append("where {").append("\n");
-        buf.append("            ?x a owl:Class .").append("\n");
-        buf.append("            ?x oboInOwl:id ?x_id .").append("\n");
-        buf.append("            ?x rdfs:label ?x_label .").append("\n");
-        buf.append("}").append("\n");
-        return buf.toString();
-	}
-
-
-	public Vector getId(String named_graph) {
-        String query = construct_get_id(named_graph);
-        Vector v = owlSPARQLUtils.executeQuery(query);
-        if (v == null) return null;
-        if (v.size() == 0) return v;
-        v = new ParserUtils().getResponseValues(v);
-        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_prop(String named_graph) {
@@ -138,10 +113,10 @@ public class SPARQL4OBO {
 
 
     public String getPrefixes() {
-		if (prefixes != null) return prefixes;
+		//if (prefixes != null) return prefixes;
 		StringBuffer buf = new StringBuffer();
-		buf.append("PREFIX :<" + BASE_URI + "#>").append("\n");
-		buf.append("PREFIX base:<" + BASE_URI + ">").append("\n");
+		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
+		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
 		buf.append("PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>").append("\n");
 		buf.append("PREFIX obo1:<http://purl.obolibrary.org/obo/>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
@@ -323,6 +298,38 @@ public class SPARQL4OBO {
         return new SortUtils().quickSort(v);
 	}
 
+	public String construct_get_id(String named_graph) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_label ?x_id").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where {").append("\n");
+        buf.append("            ?x a owl:Class .").append("\n");
+
+        if (named_graph.indexOf("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus") == -1) {
+            buf.append("            ?x oboInOwl:id ?x_id .").append("\n");
+        } else {
+			buf.append("            ?x :NHC0 ?x_id .").append("\n");
+		}
+        buf.append("            ?x rdfs:label ?x_label .").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getId(String named_graph) {
+		//set_BASE_URI(named_graph);
+        String query = construct_get_id(named_graph);
+        System.out.println(query);
+        Vector v = owlSPARQLUtils.executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
+
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
@@ -332,6 +339,8 @@ public class SPARQL4OBO {
 		String password = args[3];
 
 	    SPARQL4OBO goRunner = new SPARQL4OBO(restURL, namedGraph, username, password);
+
+	    /*
 	    Vector v = goRunner.getProp(namedGraph);
 	    v = new SortUtils().quickSort(v);
         Utils.dumpVector("Go properties", v);
@@ -358,10 +367,18 @@ public class SPARQL4OBO {
 	    v = goRunner.getObjectProp(namedGraph);
 	    v = new SortUtils().quickSort(v);
         Utils.dumpVector("Go getObjectProp", v);
+        */
 
+        namedGraph = "http://GO_monthly";
+	    Vector v = goRunner.getId(namedGraph);
+	    //v = new SortUtils().quickSort(v);
+        //Utils.dumpVector("go_IDs", v);
+
+        namedGraph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus22.08e.owl";
 	    v = goRunner.getId(namedGraph);
 	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("Go IDs", v);
+        Utils.dumpVector("ncit_IDs", v);
+
 
 
 	}
