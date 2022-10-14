@@ -23,7 +23,7 @@ elif [ ${#arr[@]} -ne 3 ] || [ $help -eq 1 ]; then
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --noconfig --list"
-  echo "  e.g. $0 --noconfig hgnc Sep2022"
+  echo "  e.g. $0 --noconfig NCIT2 hgnc 202209"
   exit 1
 fi
 
@@ -194,6 +194,7 @@ else
     fi
 
 fi
+
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
 

@@ -1025,11 +1025,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle hierarchy
     //
-    ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-    hierarchyObject.setHierarchy(hierarchy);
-    operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
-    logger.info("  Hierarchy loaded");
+    if (terminology.getMetadata().getHierarchy() != null
+        && terminology.getMetadata().getHierarchy()) {
+      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      hierarchyObject.setHierarchy(hierarchy);
+      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+          ElasticObject.class);
+      logger.info("  Hierarchy loaded");
+    } else {
+      logger.info("  Hierarchy skipped");
+    }
 
     //
     // Handle associations

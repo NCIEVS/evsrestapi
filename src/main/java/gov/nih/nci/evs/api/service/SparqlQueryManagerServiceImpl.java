@@ -189,7 +189,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       // TODO: this definitely needs to be turned into configuration
-log.info("XXX term source = " + term.getSource());;
       if (term.getSource().endsWith("Thesaurus.owl")) {
         term.setTerminology("ncit");
       } else if (term.getSource().endsWith("obo/go.owl")) {
@@ -357,8 +356,12 @@ log.info("XXX term source = " + term.getSource());;
         conceptType.equals("concept") ? getConceptProperties(conceptCode, terminology)
             : getMetadataProperties(conceptCode, terminology);
 
-    // minimal, always do these
+    // always set code (if it's an rdfs:about, strip after the #)
     concept.setCode(conceptCode);
+    if (!conceptType.equals("concept") && conceptCode.contains("#")) {
+      concept.setCode(EVSUtils.getCodeFromProperty(conceptCode));
+    }
+
     String pn = null;
     pn = EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
     final String conceptLabel = getConceptLabel(conceptCode, terminology);
@@ -372,6 +375,10 @@ log.info("XXX term source = " + term.getSource());;
         concept.setName(pn);
       } else {
         concept.setName(conceptLabel);
+      }
+      // If concept name is still null, set it to the code
+      if (concept.getName() == null) {
+        concept.setName(concept.getCode());
       }
     }
 
@@ -590,8 +597,8 @@ log.info("XXX term source = " + term.getSource());;
 
     if (axiomMap.isEmpty()) {
       // This likely occurs if the 10 minute awaitTermination isn't long enough
-      throw new RuntimeException(
-          "Missing axioms, likely because awaitTermination was not long enough.");
+      log.warn("Missing axioms, likely because awaitTermination was not long enough "
+          + "(or there are no axioms).");
     }
 
     // Throw an
@@ -614,7 +621,8 @@ log.info("XXX term source = " + term.getSource());;
       concept.setNormName(ConceptUtils.normalize(pn));
 
       // If loading a qualifier, don't look for additional qualifiers
-      final List<Axiom> axioms = axiomMap.get(conceptCode);
+      final List<Axiom> axioms =
+          axiomMap.get(conceptCode) == null ? new ArrayList<>(0) : axiomMap.get(conceptCode);
 
       // adding all synonyms
       final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, axioms);
@@ -1679,6 +1687,7 @@ log.info("XXX term source = " + term.getSource());;
       property.setCode(EVSUtils.getCode(b));
       if (b.getPropertyCode() == null
           || !property.getCode().equals(b.getPropertyCode().getValue())) {
+        // Save this for later comparison
         property.setAbout(b.getProperty().getValue());
       }
       properties.add(property);
@@ -2187,7 +2196,7 @@ log.info("XXX term source = " + term.getSource());;
       c.setCode(b.getConceptCode().getValue());
       c.setTerminology(terminology.getTerminology());
       c.setVersion(terminology.getVersion());
-      c.setName(b.getConceptLabel().getValue());
+      c.setName(b.getConceptLabel() == null ? null : b.getConceptLabel().getValue());
       concepts.add(c);
     }
 
