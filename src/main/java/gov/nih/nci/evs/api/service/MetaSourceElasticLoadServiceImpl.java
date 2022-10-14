@@ -1025,11 +1025,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle hierarchy
     //
-    ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-    hierarchyObject.setHierarchy(hierarchy);
-    operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
-    logger.info("  Hierarchy loaded");
+    if (terminology.getMetadata().getHierarchy() != null
+        && terminology.getMetadata().getHierarchy()) {
+      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      hierarchyObject.setHierarchy(hierarchy);
+      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+          ElasticObject.class);
+      logger.info("  Hierarchy loaded");
+    } else {
+      logger.info("  Hierarchy skipped");
+    }
 
     //
     // Handle associations
@@ -1221,8 +1226,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         metadata.setSourceCt(1);
         final String welcomeResource = "metadata/" + term.getTerminology() + ".html";
         try {
-          String welcomeText = IOUtils
-              .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8");
+          String welcomeText = IOUtils.toString(
+              term.getClass().getClassLoader().getResourceAsStream(welcomeResource), "UTF-8");
           metadata.setWelcomeText(welcomeText);
         } catch (Exception e) {
           throw new Exception("Unexpected error trying to load = " + welcomeResource, e);

@@ -432,7 +432,8 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public Map<String, Paths> getPathsMap(Terminology terminology) throws Exception {
-    if (pathsMap.isEmpty()) {
+    if (pathsMap.isEmpty() && terminology.getMetadata().getHierarchy() != null
+        && terminology.getMetadata().getHierarchy()) {
       final Paths allPaths = new PathFinder(this).findPaths();
       final Set<String> seen = new HashSet<>();
       for (final Path path : allPaths.getPaths()) {

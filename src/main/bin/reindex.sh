@@ -107,8 +107,8 @@ select distinct ?source ?graphName ?version where {
   graph ?graphName {
     ?source a owl:Ontology .
     ?source owl:versionInfo ?version .
-    ?source (dc:date|owl:versionInfo) ?date .
-    ?source (rdfs:comment|dc:description) ?comment .
+    OPTIONAL { ?source (dc:date|owl:versionInfo) ?date } .
+    OPTIONAL { ?source (rdfs:comment|dc:description) ?comment } .
   }
 }
 EOF
@@ -183,7 +183,7 @@ for x in `cat /tmp/y.$$.txt`; do
     cv=`echo $version | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
-    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/;'`
+    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/'`
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases

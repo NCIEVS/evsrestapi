@@ -166,8 +166,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
     String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
-    if (log.isDebugEnabled())
+    if (log.isDebugEnabled()) {
       log.debug("getTerminologies response - " + res);
+    }
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     List<Terminology> termList = new ArrayList<>();
@@ -192,6 +193,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         term.setTerminology("ncit");
       } else if (term.getSource().endsWith("obo/go.owl")) {
         term.setTerminology("go");
+      } else if (term.getSource().endsWith("/HGNC.owl")) {
+        term.setTerminology("hgnc");
       }
       termList.add(term);
     }
@@ -202,6 +205,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final List<Terminology> results = new ArrayList<>();
 
+    // Reverse sort by version
     Collections.sort(termList, new Comparator<Terminology>() {
       @Override
       public int compare(Terminology o1, Terminology o2) {
@@ -352,8 +356,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         conceptType.equals("concept") ? getConceptProperties(conceptCode, terminology)
             : getMetadataProperties(conceptCode, terminology);
 
-    // minimal, always do these
+    // always set code (if it's an rdfs:about, strip after the #)
     concept.setCode(conceptCode);
+    if (!conceptType.equals("concept") && conceptCode.contains("#")) {
+      concept.setCode(EVSUtils.getCodeFromProperty(conceptCode));
+    }
+
     String pn = null;
     pn = EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
     final String conceptLabel = getConceptLabel(conceptCode, terminology);
@@ -367,6 +375,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setName(pn);
       } else {
         concept.setName(conceptLabel);
+      }
+      // If concept name is still null, set it to the code
+      if (concept.getName() == null) {
+        concept.setName(concept.getCode());
       }
     }
 
@@ -585,8 +597,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     if (axiomMap.isEmpty()) {
       // This likely occurs if the 10 minute awaitTermination isn't long enough
-      throw new RuntimeException(
-          "Missing axioms, likely because awaitTermination was not long enough.");
+      log.warn("Missing axioms, likely because awaitTermination was not long enough "
+          + "(or there are no axioms).");
     }
 
     // Throw an
@@ -609,7 +621,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setNormName(ConceptUtils.normalize(pn));
 
       // If loading a qualifier, don't look for additional qualifiers
-      final List<Axiom> axioms = axiomMap.get(conceptCode);
+      final List<Axiom> axioms =
+          axiomMap.get(conceptCode) == null ? new ArrayList<>(0) : axiomMap.get(conceptCode);
 
       // adding all synonyms
       final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, axioms);
@@ -1674,6 +1687,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       property.setCode(EVSUtils.getCode(b));
       if (b.getPropertyCode() == null
           || !property.getCode().equals(b.getPropertyCode().getValue())) {
+        // Save this for later comparison
         property.setAbout(b.getProperty().getValue());
       }
       properties.add(property);
@@ -2182,7 +2196,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       c.setCode(b.getConceptCode().getValue());
       c.setTerminology(terminology.getTerminology());
       c.setVersion(terminology.getVersion());
-      c.setName(b.getConceptLabel().getValue());
+      c.setName(b.getConceptLabel() == null ? null : b.getConceptLabel().getValue());
       concepts.add(c);
     }
 
