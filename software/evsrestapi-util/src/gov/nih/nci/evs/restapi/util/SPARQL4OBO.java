@@ -86,6 +86,10 @@ public class SPARQL4OBO {
 	    owlSPARQLUtils.set_named_graph(namedGraph);
 	}
 
+	public void set_BASE_URI(String baseURL) {
+		this.BASE_URI = baseURL;
+	}
+
 	public String construct_get_prop(String named_graph) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
@@ -117,6 +121,24 @@ public class SPARQL4OBO {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>").append("\n");
 		buf.append("PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+		buf.append("PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>").append("\n");
+		buf.append("PREFIX obo1:<http://purl.obolibrary.org/obo/>").append("\n");
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX protege:<http://protege.stanford.edu/plugins/owl/protege#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX ncicp:<http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		return buf.toString();
+	}
+
+    public String getPrefixes(String baseURL) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX :<" + baseURL + "#>").append("\n");
+		buf.append("PREFIX base:<" + baseURL + ">").append("\n");
 		buf.append("PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>").append("\n");
 		buf.append("PREFIX obo1:<http://purl.obolibrary.org/obo/>").append("\n");
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
@@ -319,7 +341,6 @@ public class SPARQL4OBO {
 
 
 	public Vector getId(String named_graph) {
-		//set_BASE_URI(named_graph);
         String query = construct_get_id(named_graph);
         System.out.println(query);
         Vector v = owlSPARQLUtils.executeQuery(query);
@@ -329,6 +350,41 @@ public class SPARQL4OBO {
         return new SortUtils().quickSort(v);
 	}
 
+/*
+PREFIX :<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#>
+PREFIX base:<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl>
+*/
+
+	public String construct_get_hgnc(String named_graph) {
+		String baseURL = "http://ncicb.nci.nih.gov/genenames.org/HGNC.owl";
+        String prefixes = getPrefixes(baseURL);
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?hgnc_id ?symbol ?parent").append("\n");
+        buf.append("from <http://ncicb.nci.nih.gov/genenames.org/HGNC202209.owl>").append("\n");
+        buf.append("where {").append("\n");
+        buf.append("            ?x a owl:Class .").append("\n");
+        buf.append("OPTIONAL {").append("\n");
+        buf.append("            ?x rdfs:subClassOf ?parent .").append("\n");
+        buf.append("}").append("\n");
+        buf.append("            ?x :hgnc_id ?hgnc_id .").append("\n");
+        buf.append("            ?x :symbol ?symbol .").append("\n");
+        buf.append("}").append("\n");
+        buf.append("").append("\n");
+        buf.append(" ").append("\n");
+        buf.append("").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getHgnc(String named_graph) {
+        String query = construct_get_hgnc(named_graph);
+        Vector v = owlSPARQLUtils.executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
 
 
 	public static void main(String[] args) {
@@ -339,6 +395,9 @@ public class SPARQL4OBO {
 		String password = args[3];
 
 	    SPARQL4OBO goRunner = new SPARQL4OBO(restURL, namedGraph, username, password);
+
+	    //String baseURL = "http://purl.obolibrary.org/obo/go.owl";
+	    //goRunner.set_BASE_URI(baseURL);
 
 	    /*
 	    Vector v = goRunner.getProp(namedGraph);
@@ -367,7 +426,6 @@ public class SPARQL4OBO {
 	    v = goRunner.getObjectProp(namedGraph);
 	    v = new SortUtils().quickSort(v);
         Utils.dumpVector("Go getObjectProp", v);
-        */
 
         namedGraph = "http://GO_monthly";
 	    Vector v = goRunner.getId(namedGraph);
@@ -378,10 +436,12 @@ public class SPARQL4OBO {
 	    v = goRunner.getId(namedGraph);
 	    v = new SortUtils().quickSort(v);
         Utils.dumpVector("ncit_IDs", v);
+        */
 
-
+        namedGraph = "http://ncicb.nci.nih.gov/genenames.org/HGNC202209.owl";
+	    Vector v = goRunner.getHgnc(namedGraph);
+	    v = new SortUtils().quickSort(v);
+        Utils.dumpVector("hgnc", v);
 
 	}
-
-
 }
