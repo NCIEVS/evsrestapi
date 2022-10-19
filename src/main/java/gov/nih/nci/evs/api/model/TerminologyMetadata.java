@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * from OWL structures to the terminology model.
  */
 @JsonInclude(Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TerminologyMetadata extends BaseModel {
 
   /** The ui label. */

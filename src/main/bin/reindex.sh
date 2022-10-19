@@ -145,6 +145,7 @@ done
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
+# NOTE: version isn't cleaned up here so from where versionIRI is still an IRI
 /bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
