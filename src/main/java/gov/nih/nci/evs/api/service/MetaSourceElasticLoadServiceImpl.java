@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
@@ -1201,7 +1202,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           // No info about the date
           term.setDate(null);
           if (line != null) {
-            term.setName(line.split("\\|", -1)[4]);
+            // term.setName(line.split("\\|", -1)[4]);
             term.setDescription(line.split("\\|", -1)[24]);
           }
           term.setGraph(null);
@@ -1218,9 +1219,18 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // the config file is probably not there
       final String resource = "metadata/" + term.getTerminology() + ".json";
       try {
-        TerminologyMetadata metadata = new ObjectMapper().readValue(IOUtils
-            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
-            TerminologyMetadata.class);
+        // Load from file
+        final JsonNode node = new ObjectMapper().readTree(IOUtils
+            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"));
+        TerminologyMetadata metadata =
+            new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+
+        // Set term name and description
+        term.setName(metadata.getUiLabel() + " " + term.getVersion());
+        if (term.getDescription() == null || term.getDescription().isEmpty()) {
+          term.setDescription(node.get("description").asText());
+        }
+
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(1);

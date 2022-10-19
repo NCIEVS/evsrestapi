@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.AssociationEntry;
@@ -451,9 +452,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     final String resource = "metadata/" + term.getTerminology() + ".json";
     try {
       // Load from file
-      TerminologyMetadata metadata = new ObjectMapper().readValue(
-          IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
-          TerminologyMetadata.class);
+      final JsonNode node = new ObjectMapper().readTree(IOUtils
+          .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"));
+      TerminologyMetadata metadata =
+          new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+
+      // Set term name and description
+      term.setName(metadata.getUiLabel() + " " + term.getVersion());
+      if (term.getDescription() == null) {
+        term.setDescription(node.get("description").asText());
+      }
 
       // Set some flags
       metadata.setLoader("rdf");

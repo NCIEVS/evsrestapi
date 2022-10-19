@@ -105,10 +105,16 @@ PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
 select distinct ?source ?graphName ?version where {
   graph ?graphName {
-    ?source a owl:Ontology .
-    ?source owl:versionInfo ?version .
-    OPTIONAL { ?source (dc:date|owl:versionInfo) ?date } .
-    OPTIONAL { ?source (rdfs:comment|dc:description) ?comment } .
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionInfo ?version
+    }
+    UNION
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionIRI ?version .
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo }
+    }
   }
 }
 EOF
@@ -179,11 +185,11 @@ fi
 
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
-    version=`echo $x | cut -d\| -f 1`
+    version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
     cv=`echo $version | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
-    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/'`
+    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases

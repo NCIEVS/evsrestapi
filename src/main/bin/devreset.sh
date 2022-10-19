@@ -103,6 +103,13 @@ if [[ ! -e "$dir/HGNC/HGNC_202209.owl" ]]; then
     exit 1
 fi
 
+# Check ChEBI monthly
+echo "    check ChEBI monthly"
+if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
+    echo "ERROR: unexpectedly missing ChEBI/chebi_213.owl file"
+    exit 1
+fi
+
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
 ct=`docker ps | grep 'stardog/stardog' | wc -l`
@@ -216,6 +223,7 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly NCIT2 /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://GO_monthly NCIT2 /data/UnitTestData/GO/go.2022-07-01.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://HGNC_monthly NCIT2 /data/UnitTestData/HGNC/HGNC_202209.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://ChEBI_monthly NCIT2 /data/UnitTestData/ChEBI/chebi_213.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'

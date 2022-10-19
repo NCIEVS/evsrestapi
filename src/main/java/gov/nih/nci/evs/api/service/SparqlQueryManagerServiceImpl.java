@@ -183,7 +183,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       String comment = (b.getComment() == null) ? "" : b.getComment().getValue();
       // String version = b.getVersion().getValue();
       term.setDescription(comment);
-      term.setVersion(b.getVersion().getValue());
+      // Extract a version if a owl:versionIRI was used
+      term.setVersion(b.getVersion().getValue().replaceFirst(".*/(\\d+)/[a-zA-Z]+.owl", "$1"));
       // term.setName(TerminologyUtils.constructName(comment, version));
       term.setDate((b.getDate() == null) ? b.getVersion().getValue() : b.getDate().getValue());
       term.setGraph(graphName);
@@ -195,6 +196,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         term.setTerminology("go");
       } else if (term.getSource().endsWith("/HGNC.owl")) {
         term.setTerminology("hgnc");
+      } else if (term.getSource().endsWith("/chebi.owl")) {
+        term.setTerminology("chebi");
       }
       termList.add(term);
     }

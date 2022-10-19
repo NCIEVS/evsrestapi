@@ -1,6 +1,6 @@
 {
-	"uiLabel": "Gene Ontology",
-	"description": "The Gene Ontology (GO) provides a framework and set of concepts for describing the functions of gene products from all organisms.",
+	"uiLabel": "ChEBI",
+    "description": "Chemical Entities of Biological Interest (ChEBI) is a freely available dictionary of molecular entities focused on 'small' chemical compounds.",
 	"code": "oboInOwl:id",
 	"conceptStatus": "owl:deprecated",
 	"retiredStatusValue": "true",
