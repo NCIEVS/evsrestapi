@@ -34,6 +34,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     /** The include. */
     private String include = "minimal";
 
+    /** The columns. */
+    private String columns;
+
     /** The from record. */
     private Integer fromRecord = 0;
 
@@ -171,6 +174,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
      */
     public void setInclude(final String include) {
         this.include = include;
+    }
+
+    /**
+     * @return the columns
+     */
+    public String getColumns() {
+        return columns;
+    }
+
+    /**
+     * @param columns the columns to set
+     */
+    public void setColumns(String columns) {
+        this.columns = columns;
     }
 
     /**
@@ -585,6 +602,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
         result = prime * result + ((fromRecord == null) ? 0 : fromRecord.hashCode());
         result = prime * result + ((include == null) ? 0 : include.hashCode());
+        result = prime * result + ((columns == null) ? 0 : columns.hashCode());
         // result = prime * result + ((inverse == null) ? 0 : inverse.hashCode());
         result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
         result = prime * result + ((property == null) ? 0 : property.hashCode());
@@ -650,6 +668,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
                 return false;
             }
         } else if (!include.equals(other.include)) {
+            return false;
+        }
+        if (columns == null) {
+            if (other.columns != null) {
+                return false;
+            }
+        } else if (!columns.equals(other.columns)) {
             return false;
         }
         // if (inverse == null) {

@@ -4,9 +4,8 @@ package gov.nih.nci.evs.api.controller;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -39,6 +37,7 @@ import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.ExportUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -83,6 +82,10 @@ public class SearchController extends BaseController {
     /* The terminology utils */
     @Autowired
     TerminologyUtils termUtils;
+
+    /* The data export utils */
+    @Autowired
+    ExportUtils exportUtils;
 
     /**
      * Search within a single terminology.
@@ -251,7 +254,8 @@ public class SearchController extends BaseController {
                     + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
                     + "list of NCI Metathesaurus values</a>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
             @ApiImplicitParam(name = "subset", value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
-                    + " This parameter is only meaningful for <i>ncit</i>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
+                    + " This parameter is only meaningful for <i>ncit</i>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
+            @ApiImplicitParam(name = "export", value = "export download search", required = false, dataTypeClass = Boolean.class, paramType = "query", defaultValue = "false")
             // These are commented out because they are currently not supported
             // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
             // or \"roles\" when true to indicate that inverse associations or roles
@@ -408,21 +412,25 @@ public class SearchController extends BaseController {
                     + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
                     + "list of NCI Metathesaurus values</a>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
             @ApiImplicitParam(name = "subset", value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
-                    + " This parameter is only meaningful for <i>ncit</i>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
+                    + " This parameter is only meaningful for <i>ncit</i>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
+            @ApiImplicitParam(name = "columns", value = "Comma-separated list of columns to include in download.", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
     })
     @RecordMetric
     @RequestMapping(method = RequestMethod.GET, value = "/concept/export", produces = "application/octet-stream")
     public @ResponseBody ResponseEntity<byte[]> export(@ModelAttribute SearchCriteria searchCriteria,
             BindingResult bindingResult) throws Exception {
-        String exportText = String.join("\t", "Code", "Preferred Name", "Synonyms", "Definitions\n");
+
+        String exportText = String.join("\t", searchCriteria.getColumns().split(",")) + "\n";
         ConceptResultList results = this.search(searchCriteria, bindingResult, true);
-        exportText += this.exportFormatter(results);
+        exportText += this.exportUtils.exportFormatter(results.getConcepts(),
+                Arrays.asList(searchCriteria.getColumns().split(",")));
         int totalRecords = results.getTotal();
         if (totalRecords > 10000) {
             for (int i = 10000; i < Math.min(totalRecords, MAX_EXPORT_CONCEPTS); i += 10000) {
                 searchCriteria.setFromRecord(i);
                 results = this.search(searchCriteria, bindingResult, true);
-                exportText += this.exportFormatter(results);
+                exportText += this.exportUtils.exportFormatter(results.getConcepts(),
+                        Arrays.asList(searchCriteria.getColumns().split(",")));
             }
         }
         byte[] exportData = exportText.getBytes(StandardCharsets.UTF_8);
@@ -434,42 +442,6 @@ public class SearchController extends BaseController {
         httpHeaders.setContentLength(exportData.length);
         return ResponseEntity.ok().headers(httpHeaders).body(exportData);
 
-    }
-
-    String exportFormatter(ConceptResultList results) {
-        // format all the text in here
-        String toJoin = "";
-        for (Concept conc : results.getConcepts()) {
-            toJoin += conc.getCode() + "\t";
-            toJoin += conc.getName() + "\t";
-
-            String synonymString = "";
-            if (conc.getSynonyms().size() > 0) {
-                synonymString += "\"";
-                Set<String> uniqueSynonyms = new HashSet<>(conc.getSynonyms().size());
-                conc.getSynonyms().removeIf(p -> !uniqueSynonyms.add(p.getName()));
-                for (String name : uniqueSynonyms) {
-                    synonymString += name + "\n";
-                }
-                // remove last newline
-                synonymString = synonymString.substring(0, synonymString.length() - 1) + "\"";
-            }
-            synonymString += "\t";
-            toJoin += synonymString;
-
-            String defString = "";
-            if (conc.getDefinitions().size() > 0) {
-                defString += "\"";
-                for (Definition def : conc.getDefinitions()) {
-                    defString += def.getSource() + ": " + def.getDefinition() + "\n";
-                }
-                // remove last newline
-                defString = defString.substring(0, defString.length() - 1) + "\"";
-            }
-            defString += "\n";
-            toJoin += defString;
-        }
-        return toJoin;
     }
 
 }
