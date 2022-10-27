@@ -361,7 +361,7 @@ PREFIX base:<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl>
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("select distinct ?hgnc_id ?symbol ?parent").append("\n");
-        buf.append("from <http://ncicb.nci.nih.gov/genenames.org/HGNC202209.owl>").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where {").append("\n");
         buf.append("            ?x a owl:Class .").append("\n");
         buf.append("OPTIONAL {").append("\n");
@@ -370,9 +370,6 @@ PREFIX base:<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl>
         buf.append("            ?x :hgnc_id ?hgnc_id .").append("\n");
         buf.append("            ?x :symbol ?symbol .").append("\n");
         buf.append("}").append("\n");
-        buf.append("").append("\n");
-        buf.append(" ").append("\n");
-        buf.append("").append("\n");
         return buf.toString();
 	}
 
@@ -386,62 +383,85 @@ PREFIX base:<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl>
         return new SortUtils().quickSort(v);
 	}
 
-
-	public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-		String restURL = args[0];
-		String namedGraph = args[1];
-		String username = args[2];
-		String password = args[3];
-
-	    SPARQL4OBO goRunner = new SPARQL4OBO(restURL, namedGraph, username, password);
-
-	    //String baseURL = "http://purl.obolibrary.org/obo/go.owl";
-	    //goRunner.set_BASE_URI(baseURL);
-
-	    /*
-	    Vector v = goRunner.getProp(namedGraph);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("Go properties", v);
-
-        String code = "GO:0003899";
-	    v = goRunner.getSuperconcepts(namedGraph, code);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("Go superconcepts", v);
-
-	    v = goRunner.getSubconcepts(namedGraph, code);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("Go subconcepts", v);
-
-        code = "GO:0018849";
-	    v = goRunner.getAxiom(namedGraph, code);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("Go getAxiom", v);
-
-        code = "GO:0021546";
-	    v = goRunner.getRoles(namedGraph, code);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("Go getRoles", v);
-
-	    v = goRunner.getObjectProp(namedGraph);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("Go getObjectProp", v);
-
-        namedGraph = "http://GO_monthly";
-	    Vector v = goRunner.getId(namedGraph);
-	    //v = new SortUtils().quickSort(v);
-        //Utils.dumpVector("go_IDs", v);
-
-        namedGraph = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus22.08e.owl";
-	    v = goRunner.getId(namedGraph);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("ncit_IDs", v);
-        */
-
-        namedGraph = "http://ncicb.nci.nih.gov/genenames.org/HGNC202209.owl";
-	    Vector v = goRunner.getHgnc(namedGraph);
-	    v = new SortUtils().quickSort(v);
-        Utils.dumpVector("hgnc", v);
-
+/*
+	public String construct_get_hgnc_concept(String named_graph, String hgnc_id) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?hgnc_id ?symbol ?p ?p_value ").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where {").append("\n");
+        buf.append("            ?x a owl:Class .").append("\n");
+        buf.append("            ?p a owl:AnnotationProperty .").append("\n");
+        buf.append("            ?x ?p ?p_value .").append("\n");
+        buf.append("            ?x :hgnc_id ?hgnc_id .").append("\n");
+        buf.append("            ?x :hgnc_id \"" + hgnc_id + "\"^^xsd:string .").append("\n");
+        buf.append("            ?x :symbol ?symbol .").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
 	}
+
+
+	public Vector getHgncConcept(String named_graph, String hgnc_id) {
+		String baseURL = "http://ncicb.nci.nih.gov/genenames.org/HGNC.owl";
+        String prefixes = getPrefixes(baseURL);
+        String query = construct_get_hgnc_concept(named_graph, hgnc_id);
+
+        System.out.println(query);
+
+        Vector v = owlSPARQLUtils.executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+*/
+
+
+	public String construct_get_hgnc_concept(String named_graph, String hgnc_id) {
+		String baseURL = "http://ncicb.nci.nih.gov/genenames.org/HGNC.owl";
+        String prefixes = getPrefixes(baseURL);
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?hgnc_id ?symbol ?p ?p_value").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where {").append("\n");
+        buf.append("            ?x a owl:Class .").append("\n");
+        buf.append("            ?p a owl:AnnotationProperty .").append("\n");
+        buf.append("            ?x ?p ?p_value .").append("\n");
+        buf.append("            ?x :hgnc_id ?hgnc_id .").append("\n");
+        buf.append("            ?x :hgnc_id \"" + hgnc_id + "\"^^xsd:string .").append("\n");
+        buf.append("            ?x :symbol ?symbol .").append("\n");
+        buf.append("}").append("\n");
+        buf.append("").append("\n");
+        buf.append(" ").append("\n");
+        buf.append("").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getHgncConcept(String named_graph, String code) {
+        String query = construct_get_hgnc_concept(named_graph, code);
+        Vector v = owlSPARQLUtils.executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
+	public Vector removeBaseUrl(String baseURL, Vector v) {
+		if (v == null) return v;
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			if (line.startsWith(baseURL + "#")) {
+				int n = line.lastIndexOf("#");
+				w.add(line.substring(n+1, line.length()));
+			} else {
+				w.add(line);
+			}
+		}
+		return w;
+	}
+
 }
