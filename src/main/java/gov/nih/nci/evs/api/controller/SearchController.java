@@ -57,7 +57,7 @@ public class SearchController extends BaseController {
     /** The Constant log. */
     private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
 
-    public final int MAX_EXPORT_CONCEPTS = 150000;
+    public final int MAX_EXPORT_CONCEPTS = 10000;
 
     /** The stardog properties. */
     @Autowired
@@ -425,17 +425,15 @@ public class SearchController extends BaseController {
         exportText += this.exportUtils.exportFormatter(results.getConcepts(),
                 Arrays.asList(searchCriteria.getColumns().split(",")));
         int totalRecords = results.getTotal();
-        if (totalRecords > 10000) {
-            for (int i = 10000; i < Math.min(totalRecords, MAX_EXPORT_CONCEPTS); i += 10000) {
-                searchCriteria.setFromRecord(i);
-                results = this.search(searchCriteria, bindingResult, true);
-                exportText += this.exportUtils.exportFormatter(results.getConcepts(),
-                        Arrays.asList(searchCriteria.getColumns().split(",")));
-            }
+        for (int i = 2000; i < Math.min(totalRecords, MAX_EXPORT_CONCEPTS); i += 2000) {
+            searchCriteria.setFromRecord(i);
+            results = this.search(searchCriteria, bindingResult, true);
+            exportText += this.exportUtils.exportFormatter(results.getConcepts(),
+                    Arrays.asList(searchCriteria.getColumns().split(",")));
         }
         byte[] exportData = exportText.getBytes(StandardCharsets.UTF_8);
-        HttpHeaders httpHeaders = new HttpHeaders();
 
+        HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentDisposition(ContentDisposition.builder("attachment")
                 .filename(searchCriteria.getTerm() + "." + Clock.systemUTC().instant() + "." + ".tsv").build());
         httpHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);

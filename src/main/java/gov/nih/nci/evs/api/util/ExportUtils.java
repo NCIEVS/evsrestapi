@@ -47,6 +47,7 @@ public final class ExportUtils {
                             "Invalid column for export: " + col);
                 }
             }
+
             if (columns.contains("Code"))
                 toJoin += conc.getCode() + "\t";
             if (columns.contains("Preferred Name"))
@@ -56,6 +57,7 @@ public final class ExportUtils {
                 String synonymString = "";
                 if (conc.getSynonyms().size() > 0) {
                     synonymString += "\"";
+                    // get unique synonyms
                     Set<String> uniqueSynonyms = new HashSet<>(conc.getSynonyms().size());
                     conc.getSynonyms().removeIf(p -> !uniqueSynonyms.add(p.getName()));
                     for (String name : uniqueSynonyms) {
@@ -80,6 +82,7 @@ public final class ExportUtils {
                 }
                 toJoin += defString;
             }
+            // every concept needs a newline at the end
             toJoin += "\n";
 
         }
