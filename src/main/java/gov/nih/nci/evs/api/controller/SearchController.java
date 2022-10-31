@@ -39,7 +39,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 /**
- * The Class SearchController.
+ * Search controller.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
@@ -65,10 +65,12 @@ public class SearchController extends BaseController {
   @Autowired
   MetadataService metadataService;
 
+  /** The es query service. */
   /* The elasticsearch query service */
   @Autowired
   ElasticQueryService esQueryService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
@@ -101,6 +103,11 @@ public class SearchController extends BaseController {
           value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
           required = false, dataTypeClass = String.class, paramType = "query",
           defaultValue = "contains"),
+      @ApiImplicitParam(name = "sort", value = "The search parameter to sort results by",
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "ascending",
+          value = "Sort ascending (if true) or descending (if false)", required = false,
+          dataTypeClass = Boolean.class, paramType = "query"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions,"
@@ -234,6 +241,11 @@ public class SearchController extends BaseController {
           value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.",
           required = false, dataTypeClass = String.class, paramType = "query",
           defaultValue = "contains"),
+      @ApiImplicitParam(name = "sort", value = "The search parameter to sort results by",
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
+      @ApiImplicitParam(name = "ascending",
+          value = "Sort ascending (if true) or descending (if false)", required = false,
+          dataTypeClass = Boolean.class, paramType = "query"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions,"
