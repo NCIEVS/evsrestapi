@@ -2242,6 +2242,80 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search with sort.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchWithSort() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    List<String> values = null;
+    List<String> sortedValues = null;
+
+    // Sort members of C128784 ascending by code
+    log.info("Testing url - " + url + "?terminology=ncit&subset=C128784&sort=code&ascending=true");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "code").param("ascending", "true"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList());
+    sortedValues =
+        list.getConcepts().stream().map(c -> c.getCode()).sorted().collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+    // Sort members of C128784 descending by code
+    log.info("Testing url - " + url + "?terminology=ncit&subset=C128784&sort=code&ascending=false");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "code").param("ascending", "false"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList());
+    sortedValues = list.getConcepts().stream().map(c -> c.getCode())
+        .sorted((a, b) -> b.toLowerCase().compareTo(a.toLowerCase())).collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+    // Sort members of C128784 ascending by norm name
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&subset=C128784&sort=normName&ascending=true");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "normName").param("ascending", "true"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    sortedValues =
+        list.getConcepts().stream().map(c -> c.getName()).sorted().collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+    // Sort members of C128784 ascending by norm name
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&subset=C128784&sort=normName&ascending=false");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "normName").param("ascending", "false"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    sortedValues = list.getConcepts().stream().map(c -> c.getName())
+        .sorted((a, b) -> b.toLowerCase().compareTo(a.toLowerCase())).collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response

@@ -106,9 +106,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
         .withIndices(buildIndicesArray(searchCriteria))
         .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable);
-//        .withSourceFilter(new FetchSourceFilter(new String[] {
-//            "name", "code", "leaf", "terminology", "version"
-//        }, null));
+    // .withSourceFilter(new FetchSourceFilter(new String[] {
+    // "name", "code", "leaf", "terminology", "version"
+    // }, null));
 
     // avoid setting min score
     // .withMinScore(0.01f);
@@ -118,8 +118,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // Sort by score, but then by code
-    searchQuery.withSort(SortBuilders.scoreSort())
-        .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
+    if (searchCriteria.getSort() != null) {
+      // Default is ascending if not specified
+      if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
+        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+      } else {
+        searchQuery
+            .withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
+      }
+
+    } else {
+      searchQuery.withSort(SortBuilders.scoreSort())
+          .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
+    }
 
     // query on operations
     final Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class,
