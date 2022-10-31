@@ -35,11 +35,11 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The include. */
   private String include = "minimal";
 
-  /** The sortBy. */
-  private String sortBy;
+  /** The sort. */
+  private String sort;
 
   /** Ascending/Descending. */
-  private Boolean descending = null;
+  private Boolean ascending = null;
 
   /** The from record. */
   private Integer fromRecord = 0;
@@ -112,8 +112,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     definitionType = new ArrayList<>(other.getDefinitionType());
     fromRecord = other.getFromRecord();
     include = other.getInclude();
-    sortBy = other.getSortBy();
-    descending = other.getDescending();
+    sort = other.getSort();
+    ascending = other.getAscending();
     // inverse = other.getInverse();
     pageSize = other.getPageSize();
     property = new ArrayList<>(other.getProperty());
@@ -185,10 +185,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Returns the sort by.
    *
-   * @return the sortBy
+   * @return the sort
    */
-  public String getSortBy() {
-    return sortBy;
+  public String getSort() {
+    return sort;
   }
 
   /**
@@ -197,25 +197,25 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @param sortBy the sortBy to set
    */
   public void setSortBy(String sortBy) {
-    this.sortBy = sortBy;
+    this.sort = sortBy;
   }
 
   /**
-   * Returns the descending.
+   * Returns the ascending.
    *
-   * @return the descending
+   * @return the ascending
    */
-  public Boolean getDescending() {
-    return descending;
+  public Boolean getAscending() {
+    return ascending;
   }
 
   /**
-   * Sets the descending.
+   * Sets the ascending.
    *
-   * @param descending the descending to set
+   * @param ascending the ascending to set
    */
-  public void setDescending(Boolean descending) {
-    this.descending = descending;
+  public void setAscending(Boolean aescending) {
+    this.ascending = aescending;
   }
 
   /**
@@ -643,8 +643,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
     result = prime * result + ((fromRecord == null) ? 0 : fromRecord.hashCode());
     result = prime * result + ((include == null) ? 0 : include.hashCode());
-    result = prime * result + ((sortBy == null) ? 0 : sortBy.hashCode());
-    result = prime * result + ((descending == null) ? 0 : descending.hashCode());
+    result = prime * result + ((sort == null) ? 0 : sort.hashCode());
+    result = prime * result + ((ascending == null) ? 0 : ascending.hashCode());
     // result = prime * result + ((inverse == null) ? 0 : inverse.hashCode());
     result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
     result = prime * result + ((property == null) ? 0 : property.hashCode());
@@ -712,18 +712,18 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     } else if (!include.equals(other.include)) {
       return false;
     }
-    if (sortBy == null) {
-      if (other.sortBy != null) {
+    if (sort == null) {
+      if (other.sort != null) {
         return false;
       }
-    } else if (!sortBy.equals(other.sortBy)) {
+    } else if (!sort.equals(other.sort)) {
       return false;
     }
-    if (descending == null) {
-      if (other.descending != null) {
+    if (ascending == null) {
+      if (other.ascending != null) {
         return false;
       }
-    } else if (!descending.equals(other.descending)) {
+    } else if (!ascending.equals(other.ascending)) {
       return false;
     }
     // if (inverse == null) {

@@ -118,13 +118,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // Sort by score, but then by code
-    if (searchCriteria.getSortBy() != null) {
-      if (searchCriteria.getDescending() == true) {
+    if (searchCriteria.getSort() != null) {
+      if (searchCriteria.getAscending()) {
         searchQuery
-            .withSort(SortBuilders.fieldSort(searchCriteria.getSortBy()).order(SortOrder.DESC));
+            .withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
         searchQuery
-            .withSort(SortBuilders.fieldSort(searchCriteria.getSortBy()).order(SortOrder.ASC));
+            .withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
 
     } else {
