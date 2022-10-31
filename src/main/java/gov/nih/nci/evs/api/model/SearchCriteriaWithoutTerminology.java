@@ -194,10 +194,10 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Sets the sort by.
    *
-   * @param sortBy the sortBy to set
+   * @param sort the sort to set
    */
-  public void setSortBy(String sortBy) {
-    this.sort = sortBy;
+  public void setSort(final String sort) {
+    this.sort = sort;
   }
 
   /**
@@ -212,9 +212,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * Sets the ascending.
    *
-   * @param ascending the ascending to set
+   * @param aescending the ascending
    */
-  public void setAscending(Boolean aescending) {
+  public void setAscending(final Boolean aescending) {
     this.ascending = aescending;
   }
 
@@ -576,12 +576,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
-    if (pageSize < 1) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
-    }
-
-    if (pageSize > 1000) {
+    if ((pageSize < 1) || (pageSize > 1000)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
     }
@@ -670,10 +665,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     if (this == obj) {
       return true;
     }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
+    if ((obj == null) || (getClass() != obj.getClass())) {
       return false;
     }
     final SearchCriteriaWithoutTerminology other = (SearchCriteriaWithoutTerminology) obj;

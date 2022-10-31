@@ -119,9 +119,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Sort by score, but then by code
     if (searchCriteria.getSort() != null) {
-      if (searchCriteria.getAscending()) {
-        searchQuery
-            .withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+      // Default is ascending if not specified
+      if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
+        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
         searchQuery
             .withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
