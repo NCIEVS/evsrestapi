@@ -75,12 +75,35 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     HierarchyUtils hierarchy) throws IOException {
 
     // Get all concepts
-    List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
+    List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
+    // For loading these concepts, use "rdfs:about" as the #{codeCode}
+    final String codeCode = terminology.getMetadata().getCode();
+    terminology.getMetadata().setCode("rdfs:about");
 
     try {
-      logReport("  ", "concepts = " + allConcepts.size());
+      logReport("  ", "concepts without codes = " + concepts.size());
       int ct = 0;
-      for (final Concept concept : allConcepts) {
+      for (final Concept concept : concepts) {
+        logReport("    ", "concept", sparqlQueryManagerService.getConcept(concept.getCode(),
+            terminology, new IncludeParam("full")));
+        if (++ct > 5) {
+          break;
+        }
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+
+    // Get all concepts
+    concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
+
+    // Restore the #{codeCode} here
+    terminology.getMetadata().setCode(codeCode);
+
+    try {
+      logReport("  ", "concepts with codes = " + concepts.size());
+      int ct = 0;
+      for (final Concept concept : concepts) {
         logReport("    ", "concept", sparqlQueryManagerService.getConcept(concept.getCode(),
             terminology, new IncludeParam("full")));
         if (++ct > 5) {

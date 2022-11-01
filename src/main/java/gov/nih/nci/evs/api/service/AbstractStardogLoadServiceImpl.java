@@ -105,19 +105,38 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
     }
 
-    logger.info("Getting all concepts");
-    List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
+    logger.info("Getting all concepts without codes");
+    List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
+    int ct = concepts.size();
+
+    // For loading these concepts, use "rdfs:about" as the #{codeCode}
+    final String codeCode = terminology.getMetadata().getCode();
+    terminology.getMetadata().setCode("rdfs:about");
 
     try {
-      // download concepts and upload to es in real time
-      logger.info("Loading in real time");
-      loadConceptsRealTime(allConcepts, terminology, hierarchy);
+      logger.info("Loading concepts without codes");
+      loadConceptsRealTime(concepts, terminology, hierarchy);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       throw new IOException(e);
     }
 
-    return allConcepts.size();
+    concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
+    ct += concepts.size();
+
+    // Restore the #{codeCode} here
+    terminology.getMetadata().setCode(codeCode);
+
+    try {
+      // download concepts and upload to es in real time
+      logger.info("Loading concepts with codes");
+      loadConceptsRealTime(concepts, terminology, hierarchy);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new IOException(e);
+    }
+
+    return ct;
 
   }
 

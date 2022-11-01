@@ -327,15 +327,37 @@ public class HierarchyUtils {
    * @param maxLevel the max level
    * @return the child nodes
    */
-  public List<HierarchyNode> getChildNodes(String parent, int maxLevel) {
-    List<HierarchyNode> nodes = new ArrayList<>();
-    List<String> children = this.parent2child.get(parent);
+  public List<HierarchyNode> getChildNodes(final String parent, final int maxLevel) {
+    final List<HierarchyNode> nodes = new ArrayList<>();
+    final List<String> children = this.parent2child.get(parent);
     if (children == null) {
       return nodes;
     }
-    for (String code : children) {
-      HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
+    for (final String code : children) {
+      final HierarchyNode node =
+          new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
       getChildNodesLevel(node, maxLevel, 0);
+      nodes.add(node);
+    }
+    nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
+    return nodes;
+  }
+
+  /**
+   * Returns the parent nodes.
+   *
+   * @param child the child
+   * @return the parent nodes
+   */
+  public List<HierarchyNode> getParentNodes(final String child) {
+    final List<HierarchyNode> nodes = new ArrayList<>();
+    final List<String> parents = this.child2parent.get(child);
+    if (parents == null) {
+      return nodes;
+    }
+    for (final String code : parents) {
+      final HierarchyNode node =
+          new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
       nodes.add(node);
     }
     nodes.sort(Comparator.comparing(HierarchyNode::getLabel));

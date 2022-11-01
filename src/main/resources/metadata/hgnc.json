@@ -6,7 +6,7 @@
 	"retiredStatusValue": "true",
 	"preferredName": "symbol",
 	"synonym": [
-	    "symbol",
+		"symbol",
 		"alias_name",
 		"alias_symbol",
 		"name",
@@ -31,5 +31,5 @@
 		"prev_symbol": "prev_symbol",
 		"name": "name"
 	},
-	"hierarchy": false
+	"hierarchy": true
 }

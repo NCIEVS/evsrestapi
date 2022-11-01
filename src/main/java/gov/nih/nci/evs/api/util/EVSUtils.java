@@ -247,7 +247,7 @@ public class EVSUtils {
    * @param b the b
    * @return the code
    */
-  public static String getCode(final Bindings b) {
+  public static String getPropertyCode(final Bindings b) {
     if (b.getPropertyCode() == null) {
       // Convert rdfs:label from the property type
       if (b.getProperty().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
@@ -265,7 +265,7 @@ public class EVSUtils {
    * @param b the b
    * @return the label
    */
-  public static String getPropertyType(final Bindings b) {
+  public static String getPropertyLabel(final Bindings b) {
     if (b.getPropertyLabel() == null) {
       // Convert rdfs:label from the property type
       if (b.getProperty().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
@@ -324,4 +324,90 @@ public class EVSUtils {
     }
   }
 
+  /**
+   * Returns the parent label.
+   *
+   * @param b the b
+   * @return the parent label
+   */
+  public static String getParentLabel(final Bindings b) {
+    if (b.getParentLabel() == null) {
+      // Convert rdfs:label from the Relationship type
+      return EVSUtils.getLabelFromUri(b.getParent().getValue());
+    } else {
+      return b.getParentLabel().getValue();
+    }
+  }
+
+  /**
+   * Returns the parent code.
+   *
+   * @param b the b
+   * @return the parent code
+   */
+  public static String getParentCode(final Bindings b) {
+    if (b.getParentCode() == null) {
+      return EVSUtils.getCodeFromUri(b.getParent().getValue());
+    } else {
+      return b.getParentCode().getValue();
+    }
+  }
+
+  /**
+   * Returns the child label.
+   *
+   * @param b the b
+   * @return the child label
+   */
+  public static String getChildLabel(final Bindings b) {
+    if (b.getChildLabel() == null) {
+      // Convert rdfs:label from the Relationship type
+      return EVSUtils.getLabelFromUri(b.getChild().getValue());
+    } else {
+      return b.getChildLabel().getValue();
+    }
+  }
+
+  /**
+   * Returns the child code.
+   *
+   * @param b the b
+   * @return the child code
+   */
+  public static String getChildCode(final Bindings b) {
+    if (b.getChildCode() == null) {
+      return EVSUtils.getCodeFromUri(b.getChild().getValue());
+    } else {
+      return b.getChildCode().getValue();
+    }
+  }
+
+  /**
+   * Returns the concept label.
+   *
+   * @param b the b
+   * @return the concept label
+   */
+  public static String getConceptLabel(final Bindings b) {
+    if (b.getConceptLabel() == null) {
+      // Convert rdfs:label from the Relationship type
+      return EVSUtils.getLabelFromUri(b.getConcept().getValue());
+    } else {
+      return b.getConceptLabel().getValue();
+    }
+  }
+
+  /**
+   * Returns the concept code.
+   *
+   * @param b the b
+   * @return the concept code
+   */
+  public static String getConceptCode(final Bindings b) {
+    if (b.getConceptCode() == null) {
+      return EVSUtils.getCodeFromUri(b.getConcept().getValue());
+    } else {
+      return b.getConceptCode().getValue();
+    }
+  }
 }

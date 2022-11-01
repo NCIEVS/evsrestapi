@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.data.annotation.Transient;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -9,10 +11,35 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BaseModel {
 
   /**
+   * The rdfs:about - used for situations where there is not a defined code
+   * property.
+   */
+  @Transient
+  private String about;
+
+  /**
    * Instantiates an empty {@link BaseModel}.
    */
   public BaseModel() {
     // n/a
+  }
+
+  /**
+   * Returns the about.
+   *
+   * @return the about
+   */
+  public String getAbout() {
+    return about;
+  }
+
+  /**
+   * Sets the about.
+   *
+   * @param about the about
+   */
+  public void setAbout(final String about) {
+    this.about = about;
   }
 
   /* see superclass */

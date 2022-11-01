@@ -1,16 +1,13 @@
 
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.util.VersionInfo;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
@@ -238,7 +235,7 @@ public interface SparqlQueryManagerService {
    * @return the subconcepts
    * @throws Exception the exception
    */
-  public List<Concept> getSubconcepts(String conceptCode, Terminology terminology) throws Exception;
+  public List<Concept> getChildren(String conceptCode, Terminology terminology) throws Exception;
 
   /**
    * Returns the superconcepts.
@@ -248,8 +245,7 @@ public interface SparqlQueryManagerService {
    * @return the superconcepts
    * @throws Exception the exception
    */
-  public List<Concept> getSuperconcepts(String conceptCode, Terminology terminology)
-    throws Exception;
+  public List<Concept> getParents(String conceptCode, Terminology terminology) throws Exception;
 
   /**
    * Returns the maps to.
@@ -426,7 +422,7 @@ public interface SparqlQueryManagerService {
    * @return the hierarchy
    * @throws Exception the exception
    */
-  ArrayList<String> getHierarchy(Terminology terminology) throws Exception;
+  List<String> getHierarchy(Terminology terminology) throws Exception;
 
   /**
    * Returns the main type hierarchy.
@@ -434,6 +430,7 @@ public interface SparqlQueryManagerService {
    * @param terminology the terminology
    * @param mainTypeSet the main type set
    * @param broadCategorySet the broad category set
+   * @param hierarchy the hierarchy
    * @return the main type hierarchy
    * @throws Exception the exception
    */
@@ -464,11 +461,18 @@ public interface SparqlQueryManagerService {
    *
    * @param terminology the terminology
    * @return list of concept objects
-   * @throws JsonMappingException the json mapping exception
-   * @throws JsonProcessingException the json processing exception
+   * @throws Exception the exception
    */
-  List<Concept> getAllConcepts(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException;
+  public List<Concept> getAllConceptsWithCode(Terminology terminology) throws IOException;
+
+  /**
+   * Returns the all concepts without code.
+   *
+   * @param terminology the terminology
+   * @return the all concepts without code
+   * @throws Exception the exception
+   */
+  public List<Concept> getAllConceptsWithoutCode(Terminology terminology) throws IOException;
 
   /**
    * Returns the path in hierarchy.
