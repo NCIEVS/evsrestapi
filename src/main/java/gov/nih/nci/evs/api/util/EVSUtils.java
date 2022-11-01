@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
@@ -210,15 +211,34 @@ public class EVSUtils {
   /**
    * Returns the code from property.
    *
-   * @param property the property
+   * @param uri the property
    * @return the code from property
    */
-  public static String getCodeFromProperty(final String property) {
-    final String code = property.replaceFirst(".*\\/", "");
+  public static String getCodeFromUri(final String uri) {
+    // Replace up to the last slash
+    final String code = uri.replaceFirst(".*\\/", "");
+    // If there's a #, replace everything up to it.
     if (code.contains("#")) {
       return code.replaceFirst(".*#", "");
     }
     return code;
+  }
+
+  /**
+   * Returns the label from uri.
+   *
+   * @param uri the uri
+   * @return the label from uri
+   */
+  public static String getLabelFromUri(final String uri) {
+    // Replace up to the last slash
+    String code = uri.replaceFirst(".*\\/", "");
+    // If there's a #, replace everything up to it.
+    if (code.contains("#")) {
+      code = code.replaceFirst(".*#", "");
+    }
+    // Turn _ into space and capitalize
+    return StringUtils.capitalize(code.replaceAll("_", " "));
   }
 
   /**
@@ -233,9 +253,74 @@ public class EVSUtils {
       if (b.getProperty().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
         return "rdfs:label";
       }
-      return EVSUtils.getCodeFromProperty(b.getProperty().getValue());
+      return EVSUtils.getCodeFromUri(b.getProperty().getValue());
     } else {
       return b.getPropertyCode().getValue();
+    }
+  }
+
+  /**
+   * Returns the label.
+   *
+   * @param b the b
+   * @return the label
+   */
+  public static String getPropertyType(final Bindings b) {
+    if (b.getPropertyLabel() == null) {
+      // Convert rdfs:label from the property type
+      if (b.getProperty().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+        return "rdfs:label";
+      }
+      return EVSUtils.getCodeFromUri(b.getProperty().getValue());
+    } else {
+      return b.getPropertyLabel().getValue();
+    }
+  }
+
+  /**
+   * Returns the relationship type.
+   *
+   * @param b the b
+   * @return the relationship type
+   */
+  public static String getRelationshipType(final Bindings b) {
+    if (b.getRelationshipLabel() == null) {
+      // Convert rdfs:label from the Relationship type
+      if (b.getRelationship().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
+        return "rdfs:label";
+      }
+      return EVSUtils.getCodeFromUri(b.getRelationship().getValue());
+    } else {
+      return b.getRelationshipLabel().getValue();
+    }
+  }
+
+  /**
+   * Returns the related concept label.
+   *
+   * @param b the b
+   * @return the related concept label
+   */
+  public static String getRelatedConceptLabel(final Bindings b) {
+    if (b.getRelatedConceptLabel() == null) {
+      // Convert rdfs:label from the Relationship type
+      return EVSUtils.getLabelFromUri(b.getRelatedConcept().getValue());
+    } else {
+      return b.getRelatedConceptLabel().getValue();
+    }
+  }
+
+  /**
+   * Returns the related concept code.
+   *
+   * @param b the b
+   * @return the related concept code
+   */
+  public static String getRelatedConceptCode(final Bindings b) {
+    if (b.getRelatedConceptCode() == null) {
+      return EVSUtils.getCodeFromUri(b.getRelatedConcept().getValue());
+    } else {
+      return b.getRelatedConceptCode().getValue();
     }
   }
 

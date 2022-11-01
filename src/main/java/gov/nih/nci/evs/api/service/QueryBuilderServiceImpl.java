@@ -4,7 +4,6 @@ package gov.nih.nci.evs.api.service;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 
@@ -40,27 +40,32 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   /**
    * Contruct prefix.
    *
-   * @param source the source
+   * @param terminology the terminology
    * @return the string
    */
   @Override
-  public String contructPrefix(final String source) {
+  public String constructPrefix(final Terminology terminology) {
+
+    // Always use common
     String prefix = env.getProperty("prefix.common");
 
-    if (StringUtils.isNotEmpty(source)) {
-      Map<String, String> values = ConceptUtils.asMap("source", source);
-      final String terminology = source.replaceFirst(".*\\/(.*)\\.owl", "$1").toLowerCase();
+    // Only do the next part if terminology is set
+    if (terminology != null) {
 
-      // otherwise, if we can and there is a property for it, include those also
-      if (env.containsProperty("prefix." + terminology)) {
-        prefix = getResolvedProperty("prefix." + terminology, values)
-            + System.getProperty("line.separator") + prefix + " ";
+      final Map<String, String> values = ConceptUtils.asMap("source", terminology.getSource());
+
+      // Try terminology-specific prefix
+      if (env.containsProperty("prefix." + terminology.getTerminology())) {
+        prefix = getResolvedProperty("prefix." + terminology.getTerminology(), values)
+            + System.getProperty("line.separator") + prefix;
       }
-      // Otherwise create top level prefixes with the source
+
+      // Otherwise use prefix.graph + prefix.common
       else {
         prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
             + prefix;
       }
+
     }
 
     // log.debug("prefix - " + prefix);
@@ -68,18 +73,31 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   }
 
   /**
-   * Construct query.
+   * Construct graph query.
    *
    * @param queryProp the query prop
-   * @param codeCode the code code
-   * @param namedGraph the named graph
    * @return the string
    */
   @Override
-  public String constructQuery(final String queryProp, final String codeCode,
-    final String namedGraph) {
-    Map<String, String> values = ConceptUtils.asMap("codeCode", codeCode, "namedGraph", namedGraph);
-    String query = getResolvedProperty(queryProp, values);
+  public String constructGraphQuery(final String queryProp) {
+    return env.getProperty(queryProp);
+  }
+
+  /**
+   * Construct query.
+   *
+   * @param queryProp the query prop
+   * @param terminology the terminology
+   * @return the string
+   */
+  @Override
+  public String constructQuery(final String queryProp, final Terminology terminology) {
+    Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),
+        "namedGraph", terminology.getGraph(), "preferredNameCode",
+        terminology.getMetadata().getPreferredName());
+    final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
+    String query = getResolvedProperty(
+        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
@@ -88,18 +106,20 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
-   * @param codeCode the code code
+   * @param terminology the terminology
    * @param conceptCode the concept code
-   * @param namedGraph the named graph
    * @return the string
    */
   @Override
-  public String constructQuery(final String queryProp, final String codeCode,
-    final String conceptCode, final String namedGraph) {
+  public String constructQuery(final String queryProp, final Terminology terminology,
+    final String conceptCode) {
     checkCode(conceptCode);
-    final Map<String, String> values = ConceptUtils.asMap("codeCode", codeCode, "conceptCode",
-        conceptCode, "namedGraph", namedGraph);
-    final String query = getResolvedProperty(queryProp, values);
+    final Map<String, String> values = ConceptUtils.asMap("codeCode",
+        terminology.getMetadata().getCode(), "conceptCode", conceptCode, "namedGraph",
+        terminology.getGraph(), "preferredNameCode", terminology.getMetadata().getPreferredName());
+    final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
+    String query = getResolvedProperty(
+        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
@@ -108,18 +128,20 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct batch query.
    *
    * @param queryProp the query prop
-   * @param codeCode the code code
-   * @param namedGraph the named graph
+   * @param terminology the terminology
    * @param conceptCodes the concept codes
    * @return the string
    */
   @Override
-  public String constructBatchQuery(final String queryProp, final String codeCode,
-    final String namedGraph, final List<String> conceptCodes) {
+  public String constructBatchQuery(final String queryProp, final Terminology terminology,
+    final List<String> conceptCodes) {
     final String inClause = getInClause(conceptCodes);
     final Map<String, String> values =
-        ConceptUtils.asMap("codeCode", codeCode, "namedGraph", namedGraph, "inClause", inClause);
-    final String query = getResolvedProperty(queryProp, values);
+        ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "namedGraph",
+            terminology.getGraph(), "inClause", inClause);
+    final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
+    String query = getResolvedProperty(
+        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
@@ -128,20 +150,23 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
+   * @param terminology the terminology
    * @param values the values
    * @return the string
    */
   @Override
-  public String constructQuery(String queryProp, Map<String, String> values) {
+  public String constructQuery(String queryProp, Terminology terminology,
+    Map<String, String> values) {
     // Validate codes
     for (final Map.Entry<String, String> entry : values.entrySet()) {
       if (entry.getKey().toLowerCase().contains("code")) {
         checkCode(entry.getValue());
       }
     }
-    String query = getResolvedProperty(queryProp, values);
+    final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
+    String query = getResolvedProperty(
+        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
-    // log.debug("construct map " + values);
     return query;
   }
 

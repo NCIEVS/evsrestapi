@@ -45,21 +45,21 @@ public class HierarchyUtils {
   /** The parent 2 child. */
   // @Field(type = FieldType.Object)
   @Transient
-  private Map<String, ArrayList<String>> parent2child = new HashMap<String, ArrayList<String>>();
+  private Map<String, List<String>> parent2child = new HashMap<>();
 
   /** The child 2 parent. */
   // @Field(type = FieldType.Object)
   @Transient
-  private Map<String, ArrayList<String>> child2parent = new HashMap<String, ArrayList<String>>();
+  private Map<String, List<String>> child2parent = new HashMap<>();
 
   /** The code 2 label. */
   // @Field(type = FieldType.Text)
   @Transient
-  private Map<String, String> code2label = new HashMap<String, String>();
+  private Map<String, String> code2label = new HashMap<>();
 
   /** The label 2 code. */
   @Transient
-  private Map<String, String> label2code = new HashMap<String, String>();
+  private Map<String, String> label2code = new HashMap<>();
 
   /** The concepts. */
   @Transient
@@ -130,7 +130,7 @@ public class HierarchyUtils {
       if (parent2child.containsKey(values[0])) {
         parent2child.get(values[0]).add(values[2]);
       } else {
-        ArrayList<String> children = new ArrayList<String>();
+        List<String> children = new ArrayList<>();
         children.add(values[2]);
         parent2child.put(values[0], children);
       }
@@ -138,7 +138,7 @@ public class HierarchyUtils {
       if (child2parent.containsKey(values[2])) {
         child2parent.get(values[2]).add(values[0]);
       } else {
-        ArrayList<String> parents = new ArrayList<String>();
+        List<String> parents = new ArrayList<>();
         parents.add(values[0]);
         child2parent.put(values[2], parents);
       }
@@ -178,10 +178,10 @@ public class HierarchyUtils {
    *
    * @return the transitive closure
    */
-  // public ArrayList<String> getTransitiveClosure(ArrayList<String> concepts,
+  // public List<String> getTransitiveClosure(ArrayList<> concepts,
   // String code,
   // Integer level) {
-  // ArrayList<String> children = this.parent2child.get(code);
+  // List<String> children = this.parent2child.get(code);
   // if (children == null || children.size() == 0) {
   // return concepts;
   // }
@@ -193,7 +193,7 @@ public class HierarchyUtils {
   // System.out.println(indent + "Parent: " + code + ": " + code2label.get(code)
   // + " Child: "
   // + child + ": " + code2label.get(child) + " Level: " + level);
-  // // ArrayList<String> newChildren =
+  // // List<String> newChildren =
   // getTransitiveClosure(concepts, child, level + 1);
   // }
   // return concepts;
@@ -204,8 +204,8 @@ public class HierarchyUtils {
    *
    * @return the roots
    */
-  public ArrayList<String> getHierarchyRoots() {
-    return new ArrayList<String>(this.hierarchyRoots);
+  public List<String> getHierarchyRoots() {
+    return new ArrayList<>(this.hierarchyRoots);
   }
 
   /**
@@ -214,7 +214,7 @@ public class HierarchyUtils {
    * @param code the code
    * @return the subclass codes
    */
-  public ArrayList<String> getSubclassCodes(String code) {
+  public List<String> getSubclassCodes(String code) {
     if (this.parent2child.containsKey(code)) {
       return parent2child.get(code);
     }
@@ -227,7 +227,7 @@ public class HierarchyUtils {
    * @param code the code
    * @return the superclass codes
    */
-  public ArrayList<String> getSuperclassCodes(String code) {
+  public List<String> getSuperclassCodes(String code) {
     if (!child2parent.containsKey(code)) {
       return null;
     }
@@ -241,12 +241,12 @@ public class HierarchyUtils {
    * @return the descendant nodes
    */
   public List<Concept> getDescendants(String code) {
-    ArrayList<Concept> descendants = new ArrayList<Concept>();
+    List<Concept> descendants = new ArrayList<>();
     Map<String, Concept> descendantMap = new LinkedHashMap<>();
 
     getDescendantMapLevel(code, descendantMap, 1);
 
-    descendants = new ArrayList<Concept>(descendantMap.values());
+    descendants = new ArrayList<>(descendantMap.values());
     Collections.sort(descendants, new Comparator<Concept>() {
       @Override
       public int compare(Concept c1, Concept c2) {
@@ -310,8 +310,8 @@ public class HierarchyUtils {
    *
    * @return the root nodes
    */
-  public ArrayList<HierarchyNode> getRootNodes() {
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+  public List<HierarchyNode> getRootNodes() {
+    List<HierarchyNode> nodes = new ArrayList<>();
     for (String code : this.hierarchyRoots) {
       HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
       nodes.add(node);
@@ -327,9 +327,9 @@ public class HierarchyUtils {
    * @param maxLevel the max level
    * @return the child nodes
    */
-  public ArrayList<HierarchyNode> getChildNodes(String parent, int maxLevel) {
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    ArrayList<String> children = this.parent2child.get(parent);
+  public List<HierarchyNode> getChildNodes(String parent, int maxLevel) {
+    List<HierarchyNode> nodes = new ArrayList<>();
+    List<String> children = this.parent2child.get(parent);
     if (children == null) {
       return nodes;
     }
@@ -364,7 +364,7 @@ public class HierarchyUtils {
       return;
     }
 
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+    List<HierarchyNode> nodes = new ArrayList<>();
     level = level + 1;
     for (String code : children) {
       HierarchyNode newnode = new HierarchyNode(code, code2label.get(code), false);
@@ -389,7 +389,7 @@ public class HierarchyUtils {
    * @param childCodes the child codes
    * @return the all child nodes recursive
    */
-  public void getAllChildNodesRecursive(String code, ArrayList<String> childCodes) {
+  public void getAllChildNodesRecursive(String code, List<String> childCodes) {
     List<String> children = this.parent2child.get(code);
     if (children == null || children.size() == 0) {
       return;
@@ -408,7 +408,7 @@ public class HierarchyUtils {
    * @return the all child nodes
    */
   public List<String> getAllChildNodes(String code) {
-    ArrayList<String> childCodes = new ArrayList<String>();
+    List<String> childCodes = new ArrayList<>();
 
     List<String> children = this.parent2child.get(code);
     if (children == null || children.size() == 0) {
@@ -557,5 +557,14 @@ public class HierarchyUtils {
    */
   public void setTerminology(final Terminology terminology) {
     this.terminology = terminology;
+  }
+
+  /**
+   * Returns the p2c.
+   *
+   * @return the p2c
+   */
+  public Map<String, List<String>> getP2C() {
+    return this.parent2child;
   }
 }

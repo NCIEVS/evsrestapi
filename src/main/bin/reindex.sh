@@ -239,8 +239,8 @@ for x in `cat /tmp/y.$$.txt`; do
         export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB $version"
 
-        echo "java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
+        echo "java $local -Xm8192M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+        java $local -Xmx8192M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1

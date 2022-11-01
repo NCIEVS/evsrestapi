@@ -70,8 +70,8 @@ public class PathFinder {
    *
    * @return the roots
    */
-  public ArrayList<String> getRoots() {
-    ArrayList<String> roots = this.hierarchy.getHierarchyRoots();
+  public List<String> getRoots() {
+    List<String> roots = this.hierarchy.getHierarchyRoots();
     for (String root : roots) {
       System.out.println(root);
     }
@@ -86,7 +86,7 @@ public class PathFinder {
    */
   private Path createPath(String path) {
     final Path p = new Path();
-    final List<ConceptMinimal> concepts = new ArrayList<ConceptMinimal>();
+    final List<ConceptMinimal> concepts = new ArrayList<>();
     final String[] codes = path.split("\\|");
     for (int i = 0; i < codes.length; i++) {
       final String name = hierarchy.getName(codes[i]);
@@ -110,7 +110,7 @@ public class PathFinder {
   public Paths findPaths() {
     Paths paths = new Paths();
     Deque<String> stack = new ArrayDeque<String>();
-    ArrayList<String> roots = this.hierarchy.getHierarchyRoots();
+    List<String> roots = this.hierarchy.getHierarchyRoots();
     log.debug("    roots = " + roots.size());
     for (String root : roots) {
       stack.push(root);
@@ -121,7 +121,7 @@ public class PathFinder {
       String[] values = path.trim().split("\\|");
       List<String> elements = Arrays.asList(values);
       String lastCode = elements.get(elements.size() - 1);
-      ArrayList<String> subclasses = hierarchy.getSubclassCodes(lastCode);
+      List<String> subclasses = hierarchy.getSubclassCodes(lastCode);
       if (subclasses == null) {
         paths.add(createPath(path));
       } else {
@@ -148,7 +148,7 @@ public class PathFinder {
   // * @param hset the hset
   // * @return the paths
   // */
-  // public Paths findPathsToRoots(String code, HashSet<String> hset) {
+  // public Paths findPathsToRoots(String code, Set<> hset) {
   // Paths paths = new Paths();
   // Stack<String> stack = new Stack<>();
   // stack.push(code);

@@ -33,16 +33,6 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 public interface SparqlQueryManagerService {
 
   /**
-   * Check concept exists.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return true, if successful
-   * @throws Exception the exception
-   */
-  public boolean checkConceptExists(String conceptCode, Terminology terminology) throws Exception;
-
-  /**
    * Returns the concept by code.
    *
    * @param conceptCode the concept code
