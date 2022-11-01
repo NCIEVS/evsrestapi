@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Property;
 
 /**
  * Utilities for handling the "include" flag, and converting EVSConcept to
@@ -80,7 +81,21 @@ public final class ExportUtils {
                     // remove last newline
                     defString = defString.substring(0, defString.length() - 1) + "\"";
                 }
+                defString += "\t";
                 toJoin += defString;
+            }
+            if (columns.contains("Semantic Type")) {
+                String semString = "";
+                if (conc.getProperties().size() > 0) {
+                    for (Property prop : conc.getProperties()) {
+                        if (prop.getType().equals("Semantic_Type")) {
+                            semString += prop.getValue();
+                            // only one semantic type
+                            break;
+                        }
+                    }
+                }
+                toJoin += semString;
             }
             // every concept needs a newline at the end
             toJoin += "\n";
