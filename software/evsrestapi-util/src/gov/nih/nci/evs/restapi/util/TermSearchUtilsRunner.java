@@ -71,6 +71,7 @@ import org.json.*;
 
 
 public class TermSearchUtilsRunner {
+    public static String NCIT_OWL_FILE = "ThesaurusInferred_forTS.owl";
 
 	public static String removeDeplicates(String retstr) {
 		Vector u = StringUtils.parseData(retstr, '$');
@@ -89,6 +90,7 @@ public class TermSearchUtilsRunner {
 
     public static void main(String [] args) {
 		long ms = System.currentTimeMillis();
+		OWLScannerRunner.run(NCIT_OWL_FILE);
 		String serviceUrl = args[0];
 		String named_graph = args[1];
 		String username = args[2];
@@ -96,7 +98,6 @@ public class TermSearchUtilsRunner {
 		String vbtfile = args[4];
         TermSearchUtils termSearchUtils = new TermSearchUtils(serviceUrl, named_graph, username, password);
         termSearchUtils.initialize();
-
         HashMap vbt_map = new HashMap();
 		Vector vbts = Utils.readFile(vbtfile);
 		Vector w = new Vector();

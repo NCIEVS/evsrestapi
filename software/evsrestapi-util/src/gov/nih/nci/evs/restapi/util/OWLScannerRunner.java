@@ -1,4 +1,4 @@
-import gov.nih.nci.evs.restapi.util.*;
+package gov.nih.nci.evs.restapi.util;
 
 import gov.nih.nci.evs.restapi.bean.*;
 import java.io.*;
@@ -68,11 +68,8 @@ import java.text.*;
 
 public class OWLScannerRunner {
 
-    public static void main(String[] args) {
-		long ms = System.currentTimeMillis();
-        String owlfile = args[0];
+    public static void run(String owlfile) {
 		OWLScanner scanner = new OWLScanner(owlfile);
-
 		Vector v = new Vector();
 		List list = scanner.extractFULLSyns();
 		HashSet hset = new HashSet();
@@ -82,8 +79,15 @@ public class OWLScannerRunner {
 		}
 		v = new SortUtils().quickSort(v);
 		Utils.saveToFile("FULL_SYN.txt", v);
+		v.clear();
+		scanner.get_owl_vec().clear();
+    }
 
+
+    public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
+        String owlfile = args[0];
+		run(owlfile);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-
     }
 }
