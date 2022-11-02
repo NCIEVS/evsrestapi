@@ -116,12 +116,11 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     checkCode(conceptCode);
     final Map<String, String> values =
         ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "conceptCode",
-            conceptCode, "about", conceptCode, "namedGraph", terminology.getGraph(),
+            conceptCode, "conceptAbout", conceptCode, "namedGraph", terminology.getGraph(),
             "preferredNameCode", terminology.getMetadata().getPreferredName());
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
-    String query = getResolvedProperty(
+    final String query = getResolvedProperty(
         env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
-    // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
 
@@ -139,7 +138,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     final String inClause = getInClause(conceptCodes);
     final Map<String, String> values =
         ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "namedGraph",
-            terminology.getGraph(), "inClause", inClause);
+            terminology.getGraph(), "inClause", inClause, "aboutClause", "");
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
     String query = getResolvedProperty(
         env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
@@ -190,7 +189,20 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    */
   private String getInClause(List<String> values) {
     checkCodes(values);
-    return new StringBuilder().append("'").append(String.join("', '", values)).append("'")
+    return new StringBuilder().append("'").append(String.join("','", values)).append("'")
+        .toString();
+  }
+
+  /**
+   * Returns the about clause.
+   *
+   * @param values the values
+   * @return the about clause
+   */
+  @SuppressWarnings("unused")
+  private String getAboutClause(List<String> values) {
+    checkCodes(values);
+    return new StringBuilder().append("<").append(String.join(">,<", values)).append(">")
         .toString();
   }
 

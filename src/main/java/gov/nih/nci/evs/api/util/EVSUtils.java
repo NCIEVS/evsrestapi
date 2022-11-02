@@ -55,12 +55,17 @@ public class EVSUtils {
    * @return the property
    */
   public static String getProperty(String type, List<Property> properties) {
+    String rdfsLabel = null;
     for (final Property property : properties) {
       if (property.getCode() != null && property.getCode().equals(type)) {
         return property.getValue();
       }
+      if ("rdfs:label".equals(property.getCode())) {
+        rdfsLabel = property.getValue();
+      }
     }
-    return null;
+
+    return rdfsLabel;
   }
 
   /**
@@ -253,6 +258,18 @@ public class EVSUtils {
     }
     // Turn _ into space and capitalize
     return StringUtils.capitalize(code.replaceAll("_", " "));
+  }
+
+  /**
+   * Returns the name from code.
+   *
+   * @param code the code
+   * @return the name from code
+   */
+  public static String getNameFromCode(final String code) {
+    // Turn _ into space and capitalize
+    return StringUtils
+        .capitalize(code.replaceFirst(".*\\/", "").replaceFirst(".*:", "").replaceAll("_", " "));
   }
 
   /**

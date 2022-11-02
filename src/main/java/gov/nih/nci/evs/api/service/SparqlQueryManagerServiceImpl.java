@@ -231,29 +231,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public String getConceptLabel(final String conceptCode, final Terminology terminology)
-    throws Exception {
-    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query =
-        queryBuilderService.constructQuery("concept.label", terminology, conceptCode);
-    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    String conceptLabel = null;
-    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    if (bindings.length == 1) {
-      conceptLabel =
-          bindings[0].getConceptLabel() != null ? bindings[0].getConceptLabel().getValue()
-              : EVSUtils.getLabelFromUri(bindings[0].getConcept().getValue());
-    }
-
-    return conceptLabel;
-  }
-
-  /* see superclass */
-  @Override
   public Concept getConcept(final String conceptCode, final Terminology terminology,
     final IncludeParam ip) throws Exception {
     return getConceptByType("concept", conceptCode, terminology, ip);
@@ -271,11 +248,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public Concept getProperty(final String code, final Terminology terminology,
     final IncludeParam ip) throws Exception {
-    final String codeCode = terminology.getMetadata().getCode();
-    terminology.getMetadata().setCode("rdf:about");
-    final Concept property = getConceptByType("property", code, terminology, ip);
-    terminology.getMetadata().setCode(codeCode);
-    return property;
+    return getConceptByType("property", code, terminology, ip);
   }
 
   /* see superclass */
@@ -319,29 +292,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     // always set code (if it's an rdf:about, strip after the #)
     concept.setCode(conceptCode);
-    if (!conceptType.equals("concept") && conceptCode.contains("#")) {
+    if (conceptCode.startsWith("http")) {
+      // Not qualified code here because it should match "type" for metadata
+      // or the actual code for a concept with no other info
       concept.setCode(EVSUtils.getCodeFromUri(conceptCode));
     }
 
-    String pn = null;
-    pn = EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
-    final String conceptLabel = getConceptLabel(conceptCode, terminology);
-
-    if (!conceptType.equals("qualifier") && !conceptType.equals("property")) {
-      concept.setName(conceptLabel);
-    } else {
-      // Handle case where preferred name and rdfs:label don't match (only for
-      // qualifiers)
-      if (conceptLabel != null && !conceptLabel.equals(pn)) {
-        concept.setName(pn);
-      } else {
-        concept.setName(conceptLabel);
-      }
-      // If concept name is still null, set it to the code
-      if (concept.getName() == null) {
-        concept.setName(concept.getCode());
-      }
+    // Find preferred name OR default to rdfs:label
+    String pn = EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
+    // Otherwise, compute a name from the code
+    if (pn == null) {
+      pn = EVSUtils.getNameFromCode(conceptCode);
     }
+    concept.setName(pn);
 
     if (ip.hasAnyTrue()) {
 
@@ -357,22 +320,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         syNameType.addAll(
             synonyms.stream().map(sy -> sy.getType() + sy.getName()).collect(Collectors.toSet()));
         concept.getSynonyms().addAll(synonyms);
-
-        // If we're using preferred name instead of the label above,
-        // then we need to add an "rdfs:label" synonym here.
-        final boolean qualPropFlag =
-            (conceptType.equals("qualifier") || conceptType.equals("property"))
-                && conceptLabel != null && !conceptLabel.equals(pn);
-        if (qualPropFlag) {
-          final Synonym rdfsLabel = new Synonym();
-          rdfsLabel.setType("rdfs:label");
-          rdfsLabel.setName(conceptLabel);
-          concept.getSynonyms().add(rdfsLabel);
-          syNameType.add("rdfs:label" + rdfsLabel);
-        }
-        // add norm name here because EVSUtils.getSynonyms is used elsewhere
-        concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
-            .count();
 
       }
 
@@ -416,6 +363,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             concept.getProperties().add(property);
           }
         }
+
+        // If no synonyms, we need to add at least one
+        if (concept.getSynonyms().size() == 0) {
+          final Synonym sy = new Synonym();
+          sy.setType("default");
+          sy.setName(pn);
+          concept.getSynonyms().add(sy);
+          syNameType.add("default" + pn);
+        }
+
+        // add norm name here because EVSUtils.getSynonyms is used elsewhere
+        concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
+            .count();
 
       }
 
@@ -615,11 +575,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
 
         // Set concept status for retired concepts
-        // if
-        // (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue()))
-        // {
         if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
-          concept.setConceptStatus(property.getValue());
+          // Set to retired if it matches config
+          if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
+            concept.setConceptStatus("Retired_Concept");
+          } else {
+            concept.setConceptStatus(property.getValue());
+          }
         }
 
         // Handle synonyms without extra axioms
@@ -630,8 +592,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
           continue;
         }
-
-        // TODO: handle rdfs:label logic
 
         if (syCode.contains(property.getCode()) && !syNameType.contains(type + name)) {
           // add synonym
@@ -683,12 +643,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Property> getProperties(final String conceptCode,
-    final Terminology terminology) throws Exception {
+  public List<Property> getProperties(final String conceptCode, final Terminology terminology)
+    throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("properties", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
+    
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
@@ -707,7 +667,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // continue;
       // }
       final Property property = new Property();
-      property.setAbout(b.getProperty().getValue());
       property.setCode(EVSUtils.getPropertyCode(b));
       property.setType(EVSUtils.getPropertyLabel(b));
       property.setValue(b.getPropertyValue().getValue());
@@ -883,7 +842,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
-      association.setAbout(b.getProperty().getValue());
       association.setCode(EVSUtils.getPropertyCode(b));
       association.setType(EVSUtils.getRelationshipType(b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
@@ -952,7 +910,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
-      association.setAbout(b.getProperty().getValue());
       association.setCode(EVSUtils.getPropertyCode(b));
       association.setType(EVSUtils.getRelationshipType(b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
@@ -1020,7 +977,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Role role = new Role();
-      role.setAbout(b.getRelationship().getValue());
       role.setCode(EVSUtils.getRelationshipCode(b));
       role.setType(EVSUtils.getRelationshipType(b));
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
@@ -1088,7 +1044,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Role role = new Role();
-      role.setAbout(b.getRelationship().getValue());
       role.setCode(EVSUtils.getRelationshipCode(b));
       role.setType(EVSUtils.getRelationshipType(b));
       role.setRelatedCode(b.getRelatedConceptCode().getValue());
@@ -1523,7 +1478,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Property property = new Property();
-      property.setAbout(b.getProperty().getValue());
+      // Add the "about" if there is no explicit property code
+      if (b.getPropertyCode() == null) {
+        property.setAbout(b.getProperty().getValue());
+      }
       property.setCode(EVSUtils.getPropertyCode(b));
       properties.add(property);
     }
@@ -1561,15 +1519,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           || neverUsed.contains(property.getAbout())) {
         continue;
       }
-      // Keep the larger one??
-      final Concept concept = getProperty(property.getCode(), terminology, ip);
-      log.info("XXX code = " + property.getCode());
-      log.info("XXX      = " + concept);
+      // Call with either code or about depending on whether code was set
+      // TODO: apply this to associations/roles, etc.
+      final Concept concept = getProperty(
+          property.getAbout() != null ? property.getAbout() : property.getCode(), terminology, ip);
       concepts.add(concept);
-      final Concept concept2 = getProperty(property.getAbout(), terminology, ip);
-      concepts.add(concept2);
-      log.info("YYY about = " + property.getAbout());
-      log.info("YYY      = " + concept2);
     }
 
     return concepts;

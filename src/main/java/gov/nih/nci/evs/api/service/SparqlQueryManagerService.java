@@ -350,16 +350,6 @@ public interface SparqlQueryManagerService {
   String getQueryURL();
 
   /**
-   * Returns the concept label.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the concept label
-   * @throws Exception the exception
-   */
-  String getConceptLabel(String conceptCode, Terminology terminology) throws Exception;
-
-  /**
    * Returns the concepts.
    *
    * @param concepts the concepts
