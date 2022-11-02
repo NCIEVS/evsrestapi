@@ -114,9 +114,10 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructQuery(final String queryProp, final Terminology terminology,
     final String conceptCode) {
     checkCode(conceptCode);
-    final Map<String, String> values = ConceptUtils.asMap("codeCode",
-        terminology.getMetadata().getCode(), "conceptCode", conceptCode, "namedGraph",
-        terminology.getGraph(), "preferredNameCode", terminology.getMetadata().getPreferredName());
+    final Map<String, String> values =
+        ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "conceptCode",
+            conceptCode, "about", conceptCode, "namedGraph", terminology.getGraph(),
+            "preferredNameCode", terminology.getMetadata().getPreferredName());
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
     String query = getResolvedProperty(
         env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);

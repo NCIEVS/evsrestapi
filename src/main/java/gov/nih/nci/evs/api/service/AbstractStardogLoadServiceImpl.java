@@ -109,9 +109,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
     int ct = concepts.size();
 
-    // For loading these concepts, use "rdfs:about" as the #{codeCode}
+    // For loading these concepts, use "rdf:about" as the #{codeCode}
     final String codeCode = terminology.getMetadata().getCode();
-    terminology.getMetadata().setCode("rdfs:about");
+    terminology.getMetadata().setCode("rdf:about");
+
 
     try {
       logger.info("Loading concepts without codes");
@@ -121,11 +122,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       throw new IOException(e);
     }
 
+    // Restore the #{codeCode} here
+    terminology.getMetadata().setCode(codeCode);
+
+
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
     ct += concepts.size();
 
-    // Restore the #{codeCode} here
-    terminology.getMetadata().setCode(codeCode);
 
     try {
       // download concepts and upload to es in real time

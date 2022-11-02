@@ -217,11 +217,25 @@ public class EVSUtils {
   public static String getCodeFromUri(final String uri) {
     // Replace up to the last slash
     final String code = uri.replaceFirst(".*\\/", "");
+
     // If there's a #, replace everything up to it.
     if (code.contains("#")) {
       return code.replaceFirst(".*#", "");
     }
+
     return code;
+  }
+
+  /**
+   * Returns the qualified code from uri.
+   *
+   * @param uri the uri
+   * @return the qualified code from uri
+   */
+  public static String getQualifiedCodeFromUri(final String uri) {
+    // Replace up to the last slash
+    final String code = uri.replaceFirst(".*\\/", "");
+    return code.replaceFirst("rdf-schema", "rdfs").replaceFirst("#", ":");
   }
 
   /**
@@ -249,11 +263,7 @@ public class EVSUtils {
    */
   public static String getPropertyCode(final Bindings b) {
     if (b.getPropertyCode() == null) {
-      // Convert rdfs:label from the property type
-      if (b.getProperty().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
-        return "rdfs:label";
-      }
-      return EVSUtils.getCodeFromUri(b.getProperty().getValue());
+      return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
     } else {
       return b.getPropertyCode().getValue();
     }
@@ -267,9 +277,9 @@ public class EVSUtils {
    */
   public static String getPropertyLabel(final Bindings b) {
     if (b.getPropertyLabel() == null) {
-      // Convert rdfs:label from the property type
-      if (b.getProperty().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
-        return "rdfs:label";
+      // Convert
+      if (b.getProperty().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
+        return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
       }
       return EVSUtils.getCodeFromUri(b.getProperty().getValue());
     } else {
@@ -285,13 +295,26 @@ public class EVSUtils {
    */
   public static String getRelationshipType(final Bindings b) {
     if (b.getRelationshipLabel() == null) {
-      // Convert rdfs:label from the Relationship type
-      if (b.getRelationship().getValue().equals("http://www.w3.org/2000/01/rdf-schema#label")) {
-        return "rdfs:label";
+      if (b.getProperty().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
+        return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
       }
       return EVSUtils.getCodeFromUri(b.getRelationship().getValue());
     } else {
       return b.getRelationshipLabel().getValue();
+    }
+  }
+
+  /**
+   * Returns the relationship code.
+   *
+   * @param b the b
+   * @return the relationship code
+   */
+  public static String getRelationshipCode(final Bindings b) {
+    if (b.getRelationshipCode() == null) {
+      return EVSUtils.getQualifiedCodeFromUri(b.getRelationship().getValue());
+    } else {
+      return b.getRelationshipCode().getValue();
     }
   }
 
@@ -303,7 +326,6 @@ public class EVSUtils {
    */
   public static String getRelatedConceptLabel(final Bindings b) {
     if (b.getRelatedConceptLabel() == null) {
-      // Convert rdfs:label from the Relationship type
       return EVSUtils.getLabelFromUri(b.getRelatedConcept().getValue());
     } else {
       return b.getRelatedConceptLabel().getValue();
@@ -332,7 +354,6 @@ public class EVSUtils {
    */
   public static String getParentLabel(final Bindings b) {
     if (b.getParentLabel() == null) {
-      // Convert rdfs:label from the Relationship type
       return EVSUtils.getLabelFromUri(b.getParent().getValue());
     } else {
       return b.getParentLabel().getValue();
@@ -361,7 +382,6 @@ public class EVSUtils {
    */
   public static String getChildLabel(final Bindings b) {
     if (b.getChildLabel() == null) {
-      // Convert rdfs:label from the Relationship type
       return EVSUtils.getLabelFromUri(b.getChild().getValue());
     } else {
       return b.getChildLabel().getValue();
@@ -390,7 +410,6 @@ public class EVSUtils {
    */
   public static String getConceptLabel(final Bindings b) {
     if (b.getConceptLabel() == null) {
-      // Convert rdfs:label from the Relationship type
       return EVSUtils.getLabelFromUri(b.getConcept().getValue());
     } else {
       return b.getConceptLabel().getValue();

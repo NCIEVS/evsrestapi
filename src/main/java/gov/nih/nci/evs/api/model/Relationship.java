@@ -10,6 +10,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -18,6 +20,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  */
 @JsonInclude(Include.NON_EMPTY)
 public class Relationship extends BaseModel implements Comparable<Relationship> {
+
+  /** The code. */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
+  private String code;
 
   /** The type. */
   @Field(type = FieldType.Keyword)
@@ -67,12 +74,32 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    * @param other the other
    */
   public void populateFrom(final Relationship other) {
+    code = other.getCode();
     type = other.getType();
     relatedCode = other.getRelatedCode();
     relatedName = other.getRelatedName();
     source = other.getSource();
     highlight = other.getHighlight();
     qualifiers = new ArrayList<>(other.getQualifiers());
+  }
+
+  /**
+   * Returns the code. This is really for internal use for connecting qualifiers
+   * to properties.
+   *
+   * @return the code
+   */
+  public String getCode() {
+    return code;
+  }
+
+  /**
+   * Sets the code.
+   *
+   * @param code the code
+   */
+  public void setCode(final String code) {
+    this.code = code;
   }
 
   /**

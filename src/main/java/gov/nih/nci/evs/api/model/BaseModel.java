@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BaseModel {
 
   /**
-   * The rdfs:about - used for situations where there is not a defined code
+   * The rdf:about - used for situations where there is not a defined code
    * property.
    */
   @Transient

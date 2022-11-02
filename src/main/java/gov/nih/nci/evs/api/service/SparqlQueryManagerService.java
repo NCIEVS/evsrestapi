@@ -140,13 +140,13 @@ public interface SparqlQueryManagerService {
   /**
    * Returns the property.
    *
-   * @param conceptCode the concept code
+   * @param code the code
    * @param terminology the terminology
    * @param param the param
    * @return the property
    * @throws Exception the exception
    */
-  public Concept getProperty(String conceptCode, Terminology terminology, IncludeParam param)
+  public Concept getProperty(String code, Terminology terminology, IncludeParam param)
     throws Exception;
 
   /**
@@ -379,18 +379,8 @@ public interface SparqlQueryManagerService {
    * @return the properties
    * @throws Exception the exception
    */
-  List<Property> getConceptProperties(String conceptCode, Terminology terminology) throws Exception;
+  List<Property> getProperties(String conceptCode, Terminology terminology) throws Exception;
 
-  /**
-   * Returns the properties no restrictions.
-   *
-   * @param conceptCode the concept code
-   * @param terminology the terminology
-   * @return the properties no restrictions
-   * @throws Exception the exception
-   */
-  List<Property> getMetadataProperties(String conceptCode, Terminology terminology)
-    throws Exception;
 
   /**
    * Returns the disjoint with.
@@ -461,7 +451,7 @@ public interface SparqlQueryManagerService {
    *
    * @param terminology the terminology
    * @return list of concept objects
-   * @throws Exception the exception
+   * @throws IOException Signals that an I/O exception has occurred.
    */
   public List<Concept> getAllConceptsWithCode(Terminology terminology) throws IOException;
 
@@ -470,7 +460,7 @@ public interface SparqlQueryManagerService {
    *
    * @param terminology the terminology
    * @return the all concepts without code
-   * @throws Exception the exception
+   * @throws IOException Signals that an I/O exception has occurred.
    */
   public List<Concept> getAllConceptsWithoutCode(Terminology terminology) throws IOException;
 

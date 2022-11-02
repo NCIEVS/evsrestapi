@@ -76,9 +76,10 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
     // Get all concepts
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
-    // For loading these concepts, use "rdfs:about" as the #{codeCode}
+
+    // For loading these concepts, use "rdf:about" as the #{codeCode}
     final String codeCode = terminology.getMetadata().getCode();
-    terminology.getMetadata().setCode("rdfs:about");
+    terminology.getMetadata().setCode("rdf:about");
 
     try {
       logReport("  ", "concepts without codes = " + concepts.size());
@@ -94,11 +95,11 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       throw new IOException(e);
     }
 
-    // Get all concepts
-    concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
-
     // Restore the #{codeCode} here
     terminology.getMetadata().setCode(codeCode);
+
+    // Get all concepts
+    concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
 
     try {
       logReport("  ", "concepts with codes = " + concepts.size());

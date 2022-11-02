@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 @JsonInclude(Include.NON_EMPTY)
 public class Property extends BaseModel implements Comparable<Property> {
 
-
-
   /** The code. */
   @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
@@ -92,7 +90,6 @@ public class Property extends BaseModel implements Comparable<Property> {
     qualifiers = new ArrayList<>(other.getQualifiers());
     source = other.getSource();
   }
-
 
   /**
    * Returns the code. This is really for internal use for connecting qualifiers
