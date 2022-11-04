@@ -52,6 +52,28 @@ public interface SparqlQueryManagerService {
   public List<Concept> getAllProperties(Terminology terminology, IncludeParam ip) throws Exception;
 
   /**
+   * Returns the all properties never used.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the all properties never used
+   * @throws Exception the exception
+   */
+  public List<Concept> getNeverUsedProperties(Terminology terminology, IncludeParam ip)
+    throws Exception;
+
+  /**
+   * Returns the all remodeled properties.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the all remodeled properties
+   * @throws Exception the exception
+   */
+  public List<Concept> getRemodeledProperties(Terminology terminology, IncludeParam ip)
+    throws Exception;
+
+  /**
    * Returns the distinct property values.
    *
    * @param terminology the terminology
@@ -370,7 +392,6 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   List<Property> getProperties(String conceptCode, Terminology terminology) throws Exception;
-
 
   /**
    * Returns the disjoint with.

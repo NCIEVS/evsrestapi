@@ -181,7 +181,7 @@ public class HierarchyUtils {
   // public List<String> getTransitiveClosure(ArrayList<> concepts,
   // String code,
   // Integer level) {
-  // List<String> children = this.parent2child.get(code);
+  // List<String> children = parent2child.get(code);
   // if (children == null || children.size() == 0) {
   // return concepts;
   // }
@@ -205,7 +205,7 @@ public class HierarchyUtils {
    * @return the roots
    */
   public List<String> getHierarchyRoots() {
-    return new ArrayList<>(this.hierarchyRoots);
+    return new ArrayList<>(hierarchyRoots);
   }
 
   /**
@@ -215,7 +215,7 @@ public class HierarchyUtils {
    * @return the subclass codes
    */
   public List<String> getSubclassCodes(String code) {
-    if (this.parent2child.containsKey(code)) {
+    if (parent2child.containsKey(code)) {
       return parent2child.get(code);
     }
     return null;
@@ -295,7 +295,7 @@ public class HierarchyUtils {
    * @return the label
    */
   public String getName(String code) {
-    if (this.code2label.containsKey(code)) {
+    if (code2label.containsKey(code)) {
       return code2label.get(code);
     }
     return null;
@@ -312,7 +312,7 @@ public class HierarchyUtils {
    */
   public List<HierarchyNode> getRootNodes() {
     List<HierarchyNode> nodes = new ArrayList<>();
-    for (String code : this.hierarchyRoots) {
+    for (String code : hierarchyRoots) {
       HierarchyNode node = new HierarchyNode(code, code2label.get(code), false);
       nodes.add(node);
     }
@@ -329,7 +329,7 @@ public class HierarchyUtils {
    */
   public List<HierarchyNode> getChildNodes(final String parent, final int maxLevel) {
     final List<HierarchyNode> nodes = new ArrayList<>();
-    final List<String> children = this.parent2child.get(parent);
+    final List<String> children = parent2child.get(parent);
     if (children == null) {
       return nodes;
     }
@@ -351,7 +351,7 @@ public class HierarchyUtils {
    */
   public List<HierarchyNode> getParentNodes(final String child) {
     final List<HierarchyNode> nodes = new ArrayList<>();
-    final List<String> parents = this.child2parent.get(child);
+    final List<String> parents = child2parent.get(child);
     if (parents == null) {
       return nodes;
     }
@@ -373,7 +373,7 @@ public class HierarchyUtils {
    * @return the child nodes level
    */
   public void getChildNodesLevel(HierarchyNode node, int maxLevel, int level) {
-    List<String> children = this.parent2child.get(node.getCode());
+    List<String> children = parent2child.get(node.getCode());
     node.setLevel(level);
 
     if (children == null || children.size() == 0) {
@@ -412,7 +412,7 @@ public class HierarchyUtils {
    * @return the all child nodes recursive
    */
   public void getAllChildNodesRecursive(String code, List<String> childCodes) {
-    List<String> children = this.parent2child.get(code);
+    List<String> children = parent2child.get(code);
     if (children == null || children.size() == 0) {
       return;
     } else {
@@ -432,7 +432,7 @@ public class HierarchyUtils {
   public List<String> getAllChildNodes(String code) {
     List<String> childCodes = new ArrayList<>();
 
-    List<String> children = this.parent2child.get(code);
+    List<String> children = parent2child.get(code);
     if (children == null || children.size() == 0) {
       return childCodes;
     }
@@ -582,11 +582,21 @@ public class HierarchyUtils {
   }
 
   /**
+   * Indicates whether or not leaf is the case.
+   *
+   * @param code the code
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isLeaf(final String code) {
+    return parent2child.get(code) == null;
+  }
+
+  /**
    * Returns the p2c.
    *
    * @return the p2c
    */
   public Map<String, List<String>> getP2C() {
-    return this.parent2child;
+    return parent2child;
   }
 }

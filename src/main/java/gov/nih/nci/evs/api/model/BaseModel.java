@@ -15,7 +15,7 @@ public class BaseModel {
    * property.
    */
   @Transient
-  private String about;
+  private String uri;
 
   /**
    * Instantiates an empty {@link BaseModel}.
@@ -25,21 +25,21 @@ public class BaseModel {
   }
 
   /**
-   * Returns the about.
+   * Returns the uri.
    *
-   * @return the about
+   * @return the uri
    */
-  public String getAbout() {
-    return about;
+  public String getUri() {
+    return uri;
   }
 
   /**
-   * Sets the about.
+   * Sets the uri.
    *
-   * @param about the about
+   * @param uri the uri
    */
-  public void setAbout(final String about) {
-    this.about = about;
+  public void setUri(final String uri) {
+    this.uri = uri;
   }
 
   /* see superclass */

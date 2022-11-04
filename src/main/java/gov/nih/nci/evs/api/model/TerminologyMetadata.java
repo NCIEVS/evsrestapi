@@ -1215,7 +1215,7 @@ public class TerminologyMetadata extends BaseModel {
    */
   public Boolean getHierarchy() {
     if (hierarchy == null) {
-      hierarchy = new Boolean(null);
+      hierarchy = false;
     }
     return hierarchy;
   }

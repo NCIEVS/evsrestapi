@@ -81,8 +81,10 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       logReport("  ", "concepts without codes = " + concepts.size());
       int ct = 0;
       for (final Concept concept : concepts) {
-        logReport("    ", "concept", sparqlQueryManagerService.getConcept(concept.getAbout(),
-            terminology, new IncludeParam("full")));
+        final Concept concept2 = sparqlQueryManagerService.getConcept(concept.getUri(), terminology,
+            new IncludeParam("full"));
+        concept2.setUri(concept.getUri());
+        logReport("    ", "concept", concept2);
         if (++ct > 5) {
           break;
         }
@@ -148,6 +150,16 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     List<Concept> properties =
         sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
     logReport("  ", "properties", properties);
+
+    // Show remodeled properties
+    List<Concept> remodeledProperties =
+        sparqlQueryManagerService.getRemodeledProperties(terminology, new IncludeParam("full"));
+    logReport("  ", "remodeled properties", remodeledProperties);
+
+    // Show never used properties
+    List<Concept> neverUsedProperties =
+        sparqlQueryManagerService.getNeverUsedProperties(terminology, new IncludeParam("full"));
+    logReport("  ", "never used properties", remodeledProperties);
 
     // Show associations
     List<Concept> associations =

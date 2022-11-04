@@ -7,10 +7,10 @@
 	"preferredName": "rdfs:label",
 	"synonym": [
 		"rdfs:label",
-		"hasExactSynonym",
-		"hasRelatedSynonym",
-		"hasNarrowSynonym",
-		"hasBroadSynonym"
+		"oboInOwl:hasExactSynonym",
+		"oboInOwl:hasRelatedSynonym",
+		"oboInOwl:hasNarrowSynonym",
+		"oboInOwl:hasBroadSynonym"
 	],
 	"synonymTermType": "hasSynonymType",
 	"synonymSource": "oboInOwl:source",
@@ -28,13 +28,13 @@
 	"mapTargetTerminologyVersion": null,
 	"relationshipToTarget": null,
 	"propertyNames": {
-		"oboInOwl:id": "code",
-		"rdfs:label": "label",
+		"oboInOwl:id": "id",
+		"rdfs:label": "rdfs:label",
 		"IAO_0000115": "definition",
 		"hasExactSynonym": "has_exact_synonym",
 		"hasRelatedSynonym": "has_related_synonym",
 		"hasNarrowSynonym": "has_narrow_synonym",
-		"hasBroadSynonym": "has_broad_synonym"
+		"has  oadSynonym": "has_broad_synonym"
 	},
 	"hierarchy": true
 }
