@@ -22,14 +22,5 @@
 	"mapTargetTerminology": null,
 	"mapTargetTerminologyVersion": null,
 	"relationshipToTarget": null,
-	"propertyNames": {
-		"hgnc_id": "code",
-		"symbol": "symbol",
-		"alias_name": "alias_name",
-		"alias_symbol": "alias_symbol",
-		"prev_name": "prev_name",
-		"prev_symbol": "prev_symbol",
-		"name": "name"
-	},
 	"hierarchy": true
 }

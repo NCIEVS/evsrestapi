@@ -4,7 +4,6 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -320,7 +319,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       if (ip.isSynonyms()) {
 
-        final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, axioms);
+        final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, properties, axioms);
         syNameType.addAll(
             synonyms.stream().map(sy -> sy.getType() + sy.getName()).collect(Collectors.toSet()));
         concept.getSynonyms().addAll(synonyms);
@@ -332,8 +331,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (ip.isSynonyms() || ip.isProperties()) {
 
         // Render synonym properties and normal properties
-        final Collection<String> commonProperties =
-            terminology.getMetadata().getPropertyNames().values();
         final Set<String> syCode = terminology.getMetadata().getSynonym();
         for (final Property property : properties) {
 
@@ -351,6 +348,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
               && !syNameType.contains(type + name)) {
             // add synonym
             final Synonym synonym = new Synonym();
+            synonym.setTypeCode(property.getCode());
             synonym.setType(type);
             synonym.setName(name);
             synonym.setNormName(ConceptUtils.normalize(property.getValue()));
@@ -369,8 +367,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             }
           }
 
-          // Handle if not a common property
-          if (ip.isProperties() && !commonProperties.contains(type)) {
+          // Handle if not a remodeled property
+          if (ip.isProperties()
+              && !terminology.getMetadata().isRemodeledProperty(property.getCode())) {
             // Add any qualifiers to the property
             property.getQualifiers()
                 .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -383,6 +382,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // If no synonyms, we need to add at least one
         if (concept.getSynonyms().size() == 0) {
           final Synonym sy = new Synonym();
+          // sy.setTypeCode("default");
           sy.setType("default");
           sy.setName(pn);
           concept.getSynonyms().add(sy);
@@ -563,10 +563,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomMap.get(conceptCode) == null ? new ArrayList<>(0) : axiomMap.get(conceptCode);
 
       // adding all synonyms
-      final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, axioms);
+      final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, properties, axioms);
       if (synonyms.size() == 0) {
         final Synonym sy = new Synonym();
-        sy.setType(terminology.getMetadata().getPreferredName());
+        sy.setType("default");
         sy.setName(concept.getName());
         concept.getSynonyms().add(sy);
       }
@@ -578,8 +578,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           .count();
 
       // Render synonym properties and normal properties
-      final Collection<String> commonProperties =
-          terminology.getMetadata().getPropertyNames().values();
       final Set<String> syCode = terminology.getMetadata().getSynonym();
       concept.setConceptStatus("DEFAULT");
       for (final Property property : properties) {
@@ -612,6 +610,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         if (syCode.contains(property.getCode()) && !syNameType.contains(type + name)) {
           // add synonym
           final Synonym synonym = new Synonym();
+          synonym.setTypeCode(property.getCode());
           synonym.setType(type);
           synonym.setName(name);
           synonym.setNormName(ConceptUtils.normalize(property.getValue()));
@@ -621,7 +620,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
 
         // Handle if not a common property
-        if (!commonProperties.contains(type)) {
+        if (!terminology.getMetadata().isRemodeledProperty(property.getCode())) {
           // Add any qualifiers to the property
           property.getQualifiers()
               .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
@@ -1536,7 +1535,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         continue;
       }
 
-      // NEED a better mechanism to know which thing to send
+      // Send URI or code
       final Concept concept = getProperty(
           property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
       concepts.add(concept);
@@ -1547,8 +1546,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Concept> getRemodeledProperties(final Terminology terminology,
-    final IncludeParam ip) throws Exception {
+  public List<Concept> getRemodeledProperties(final Terminology terminology, final IncludeParam ip)
+    throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.properties", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -1574,9 +1573,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Property property : properties) {
       // Exclude properties that are redefined as synonyms or definitions
       // any qualifiers, and also properties defined in the OWL but never used
-      if (!md.isRemodeledProperty(property.getCode())
-          && !md.isRemodeledProperty(property.getUri())) {
-        // NEED a better mechanism to know which thing to send
+      if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())) {
+
+        // Send URI or code
         final Concept concept = getProperty(
             property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
         concepts.add(concept);
@@ -1588,8 +1587,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Concept> getNeverUsedProperties(final Terminology terminology,
-    final IncludeParam ip) throws Exception {
+  public List<Concept> getNeverUsedProperties(final Terminology terminology, final IncludeParam ip)
+    throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery("all.properties.never.used", terminology);
@@ -1633,7 +1632,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         continue;
       }
 
-      // NEED a better mechanism to know which thing to send
+      // Send URI or code
       final Concept concept = getProperty(
           property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
       concepts.add(concept);
@@ -1704,9 +1703,50 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         continue;
       }
 
+      // Send URI or code
       final Concept concept = getQualifier(
           qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(), terminology, ip);
       concepts.add(concept);
+    }
+
+    return concepts;
+  }
+
+  /* see superclass */
+  @Override
+  public List<Concept> getRemodeledQualifiers(final Terminology terminology, final IncludeParam ip)
+    throws Exception {
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query = queryBuilderService.constructQuery("all.qualifiers", terminology);
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final List<Qualifier> qualifiers = new ArrayList<>();
+    final List<Concept> concepts = new ArrayList<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (final Bindings b : bindings) {
+      final Qualifier qualifier = new Qualifier();
+      if (b.getPropertyCode() == null) {
+        qualifier.setUri(b.getProperty().getValue());
+      }
+      qualifier.setCode(EVSUtils.getPropertyCode(b));
+      qualifiers.add(qualifier);
+    }
+
+    final TerminologyMetadata md = terminology.getMetadata();
+    for (final Qualifier qualifier : qualifiers) {
+      // Exclude properties that are redefined as synonyms or definitions
+      if (md.isRemodeledQualifier(qualifier.getCode())
+          || md.isRemodeledQualifier(qualifier.getUri()) || md.isUnpublished(qualifier.getCode())
+          || md.isUnpublished(qualifier.getUri())) {
+        // Send URI or code
+        final Concept concept = getQualifier(
+            qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(), terminology, ip);
+        concepts.add(concept);
+      }
     }
 
     return concepts;
@@ -1796,7 +1836,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     for (final Association association : associations) {
-      // Call with either code or about depending on whether code was set
+
+      // Send URI or code
       final Concept concept = getAssociation(
           association.getUri() != null ? association.getUri() : association.getCode(), terminology,
           ip);
@@ -1832,7 +1873,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     for (final Role role : roles) {
 
-      // Call with either code or about depending on whether code was set
+      // Send URI or code
       final Concept concept =
           getRole(role.getUri() != null ? role.getUri() : role.getCode(), terminology, ip);
       concepts.add(concept);

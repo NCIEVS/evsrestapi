@@ -95,6 +95,17 @@ public interface SparqlQueryManagerService {
   public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip) throws Exception;
 
   /**
+   * Returns the remodeled qualifiers.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the remodeled qualifiers
+   * @throws Exception the exception
+   */
+  public List<Concept> getRemodeledQualifiers(Terminology terminology, IncludeParam ip)
+    throws Exception;
+
+  /**
    * Returns the axiom qualifiers list.
    *
    * @param propertyCode the property code

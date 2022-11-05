@@ -12,7 +12,7 @@
 		"oboInOwl:hasNarrowSynonym",
 		"oboInOwl:hasBroadSynonym"
 	],
-	"synonymTermType": "hasSynonymType",
+	"synonymTermType": "oboInOwl:hasSynonymType",
 	"synonymSource": "oboInOwl:source",
 	"synonymCode": null,
 	"synonymSubSource": null,
@@ -20,21 +20,12 @@
 		"IAO_0000115"
 	],
 	"definitionSource": "oboInOwl:hasDbXref",
-	"map": "oboInOwl:hasDbXref",
+	"map": null,
 	"mapRelation": null,
 	"mapTarget": null,
 	"mapTargetTermType": null,
 	"mapTargetTerminology": null,
 	"mapTargetTerminologyVersion": null,
 	"relationshipToTarget": null,
-	"propertyNames": {
-		"oboInOwl:id": "id",
-		"rdfs:label": "rdfs:label",
-		"IAO_0000115": "definition",
-		"hasExactSynonym": "has_exact_synonym",
-		"hasRelatedSynonym": "has_related_synonym",
-		"hasNarrowSynonym": "has_narrow_synonym",
-		"has  oadSynonym": "has_broad_synonym"
-	},
 	"hierarchy": true
 }

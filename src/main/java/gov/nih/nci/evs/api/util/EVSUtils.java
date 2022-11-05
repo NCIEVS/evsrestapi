@@ -75,7 +75,8 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the synonyms
    */
-  public static List<Synonym> getSynonyms(Terminology terminology, List<Axiom> axioms) {
+  public static List<Synonym> getSynonyms(Terminology terminology, List<Property> properties,
+    List<Axiom> axioms) {
     final List<Synonym> results = new ArrayList<>();
     final Set<String> syCode = terminology.getMetadata().getSynonym();
     // If 'axioms' is null here, it's likely because the "main" query didn't
@@ -84,7 +85,14 @@ public class EVSUtils {
       final String axiomCode = axiom.getAnnotatedProperty();
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
-        synonym.setType(terminology.getMetadata().getPropertyName(axiomCode));
+        // This shouldn't happen unless axiomCode and property codes are off
+        // TODO: this could be more efficient if we pass in a map of
+        // synonym type metadata
+        final Property typeProperty =
+            properties.stream().filter(p -> p.getCode().equals(axiomCode)).findFirst().get();
+        synonym.setTypeCode(typeProperty.getCode());
+        synonym.setType(typeProperty.getType());
+
         if (synonym.getType() == null) {
           throw new RuntimeException("Unexpected missing name for synonym code = " + axiomCode);
         }
@@ -98,6 +106,7 @@ public class EVSUtils {
         results.add(synonym);
       }
     }
+    // Synonyms from properties are gathered outside of here
     return results;
   }
 
@@ -124,7 +133,13 @@ public class EVSUtils {
         // weird owl)
         definition.getQualifiers().addAll(axiom.getQualifiers().stream()
             .filter(q -> q.getType() != null).collect(Collectors.toList()));
-        definition.setType(terminology.getMetadata().getPropertyName(axiomCode));
+        // This shouldn't happen unless axiomCode and property codes are off
+        // TODO: this could be more efficient if we pass in a map of
+        // definition type metadata
+        final Property typeProperty =
+            properties.stream().filter(p -> p.getCode().equals(axiomCode)).findFirst().get();
+        definition.setCode(typeProperty.getCode());
+        definition.setType(typeProperty.getType());
         if (definition.getType() == null) {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
         }
@@ -138,7 +153,8 @@ public class EVSUtils {
         if (defCodes.contains(property.getCode())) {
           Definition definition = new Definition();
           definition.setDefinition(property.getValue());
-          definition.setType(terminology.getMetadata().getPropertyName(property.getCode()));
+          definition.setCode(property.getCode());
+          definition.setType(property.getType());
 
           // TODO: figure out how to get definition source and other qualifiers
           // from axioms?

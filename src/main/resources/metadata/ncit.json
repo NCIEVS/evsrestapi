@@ -27,16 +27,6 @@
 	"mapTargetTerminologyVersion": "P397",
 	"relationshipToTarget": "P393",
 	"monthlyDb": "NCIT2",
-	"propertyNames": {
-		"NHC0": "code",
-		"P107": "Display_Name",
-		"P108": "Preferred_Name",
-		"P97": "DEFINITION",
-		"P325": "ALT_DEFINITION",
-		"P90": "FULL_SYN",
-		"rdfs:label": "label",
-		"P375": "Maps_To"
-	},
 	"subsetMember": [
 		"A8"
 	],

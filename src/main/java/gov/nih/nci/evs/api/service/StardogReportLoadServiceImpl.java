@@ -129,6 +129,11 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
         sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
     logReport("  ", "qualifiers", qualifiers);
 
+    // Show remodeled qualifiers
+    List<Concept> remodeledQualifiers =
+        sparqlQueryManagerService.getRemodeledQualifiers(terminology, new IncludeParam("full"));
+    logReport("  ", "remodeled qualifiers", remodeledQualifiers);
+
     // Show qualifier values by code and by qualifier name
     final Map<String, Set<String>> map = new HashMap<>();
     for (final Concept qualifier : qualifiers) {
@@ -159,7 +164,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     // Show never used properties
     List<Concept> neverUsedProperties =
         sparqlQueryManagerService.getNeverUsedProperties(terminology, new IncludeParam("full"));
-    logReport("  ", "never used properties", remodeledProperties);
+    logReport("  ", "never used properties", neverUsedProperties);
 
     // Show associations
     List<Concept> associations =
