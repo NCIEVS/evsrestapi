@@ -82,7 +82,7 @@ public class EVSUtils {
     // If 'axioms' is null here, it's likely because the "main" query didn't
     // finish
     for (Axiom axiom : axioms) {
-      final String axiomCode = axiom.getAnnotatedProperty();
+      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
         // This shouldn't happen unless axiomCode and property codes are off
@@ -124,7 +124,7 @@ public class EVSUtils {
     final Set<String> defCodes = terminology.getMetadata().getDefinition();
     // Check axioms for definitions
     for (final Axiom axiom : axioms) {
-      final String axiomCode = axiom.getAnnotatedProperty();
+      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (defCodes.contains(axiomCode)) {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
@@ -169,16 +169,16 @@ public class EVSUtils {
   /**
    * Returns the qualifiers.
    *
-   * @param annotatedProperty the property code
-   * @param annotatedTarget the annotated target
+   * @param code the property code
+   * @param value the annotated target
    * @param axioms the axioms
    * @return the qualifiers
    */
-  public static List<Qualifier> getQualifiers(final String annotatedProperty,
-    final String annotatedTarget, final List<Axiom> axioms) {
+  public static List<Qualifier> getQualifiers(final String code, final String value,
+    final List<Axiom> axioms) {
     for (final Axiom axiom : axioms) {
-      if (axiom.getAnnotatedProperty().equals(annotatedProperty)
-          && axiom.getAnnotatedTarget().equals(annotatedTarget)) {
+      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
+      if (axiomCode.equals(code) && axiom.getAnnotatedTarget().equals(value)) {
         return axiom.getQualifiers();
       }
     }
@@ -196,7 +196,8 @@ public class EVSUtils {
     ArrayList<Map> results = new ArrayList<Map>();
     final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
-      if (axiom.getAnnotatedProperty().equals(mapCode)) {
+      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
+      if (axiomCode.equals(mapCode)) {
         Map mapsTo = new Map();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
@@ -266,13 +267,28 @@ public class EVSUtils {
    * @return the label from uri
    */
   public static String getLabelFromUri(final String uri) {
+    // Only convert if it's an actual URI
+    if (!uri.startsWith("http")) {
+      return uri;
+    }
     // Replace up to the last slash
     String code = uri.replaceFirst(".*\\/", "");
     // If there's a #, replace everything up to it.
     if (code.contains("#")) {
       code = code.replaceFirst(".*#", "");
     }
-    // Turn _ into space and capitalize
+    return code;
+  }
+
+  /**
+   * Returns the name from uri.
+   *
+   * @param uri the uri
+   * @return the name from uri
+   */
+  public static String getNameFromUri(final String uri) {
+    // Replace up to the last slash
+    final String code = getLabelFromUri(uri);
     return StringUtils.capitalize(code.replaceAll("_", " "));
   }
 

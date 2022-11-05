@@ -95,7 +95,6 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
     // Get all concepts
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
-
     try {
       logReport("  ", "concepts with codes = " + concepts.size());
       int ct = 0;
@@ -104,6 +103,12 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
             terminology, new IncludeParam("full")));
         if (++ct > 5) {
           break;
+        }
+      }
+      for (final Concept concept : concepts) {
+        if (concept.getCode().equals("CHEBI:119915")) {
+        logReport("    ", "concept", sparqlQueryManagerService.getConcept(concept.getCode(),
+            terminology, new IncludeParam("full")));
         }
       }
     } catch (Exception e) {

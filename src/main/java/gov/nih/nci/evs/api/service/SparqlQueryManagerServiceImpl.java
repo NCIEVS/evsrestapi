@@ -435,7 +435,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
     }
 
+    // Ensure that all list elements of the concept are in a natural sort
+    // order
     concept.sortLists();
+
     return concept;
 
   }
@@ -1176,12 +1179,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Axiom> getAxioms(final String refCode, final Terminology terminology,
+  public List<Axiom> getAxioms(final String conceptCode, final Terminology terminology,
     final boolean qualifierFlag) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final Map<String, String> values =
-        ConceptUtils.asMap("refCode", refCode, "namedGraph", terminology.getGraph());
-    final String query = queryBuilderService.constructQuery("axiom", terminology, values);
+    final String query = queryBuilderService.constructQuery("axiom", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1193,23 +1194,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       return axioms;
     }
     Axiom axiomObject = new Axiom();
-    boolean sw = false;
-    String oldAxiom = "";
+    String oldAxiom = null;
     for (final Bindings b : bindings) {
       final String axiom = b.getAxiom().getValue();
-      final String property = b.getAxiomProperty().getValue().split("#")[1];
-      String value = b.getAxiomValue().getValue();
-      // If value contains owl#, take everything after the #
-      if (value.contains("owl#")) {
-        // value = value.split("#")[1];
-        value = value.substring(value.indexOf("#") + 1);
-      }
+      final String property = EVSUtils.getQualifiedCodeFromUri(b.getAxiomProperty().getValue());
+      final String value = EVSUtils.getLabelFromUri(b.getAxiomValue().getValue());
+      log.info("XXX axiom = " + property + ", " + value + ", " + axiom);
 
-      if (sw && !axiom.equals(oldAxiom)) {
+      if (oldAxiom != null && !axiom.equals(oldAxiom)) {
         axioms.add(axiomObject);
+        log.info("XXX   ADD Axiom = " + axiomObject);
         axiomObject = new Axiom();
       }
-      sw = true;
       oldAxiom = axiom;
 
       setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
@@ -1304,19 +1300,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final boolean qualifierFlag, final Axiom axiomObject, final Terminology terminology)
     throws Exception {
     switch (property) {
-      case "annotatedSource":
+      case "owl:annotatedSource":
+        log.info("XXX   annotated source = " + value);
         axiomObject.setAnnotatedSource(value);
         break;
-      case "annotatedTarget":
+      case "owl:annotatedTarget":
         axiomObject.setAnnotatedTarget(value);
+        log.info("XXX   annotated target = " + value);
         break;
-      case "annotatedProperty":
+      case "owl:annotatedProperty":
         axiomObject.setAnnotatedProperty(value);
-        break;
-      case "type":
-        axiomObject.setType(value);
+        log.info("XXX   annotated property = " + value);
         break;
       default:
+        // Skip the "type property
+        if (property.contains("rdf-syntax-ns") && property.contains("type")) {
+          return;
+        }
         if (property.equals(terminology.getMetadata().getRelationshipToTarget())) {
           axiomObject.setRelationshipToTarget(value);
         } else if (property.equals(terminology.getMetadata().getMapTarget())) {
@@ -1331,16 +1331,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomObject.setDefSource(value);
         } else if (property.equals(terminology.getMetadata().getSynonymCode())) {
           axiomObject.setSourceCode(value);
+          log.info("XXX   sy code = " + value);
         } else if (property.equals(terminology.getMetadata().getSynonymSubSource())) {
           axiomObject.setSubsourceName(value);
+          log.info("XXX   sy subsource = " + value);
         } else if (property.equals(terminology.getMetadata().getSynonymTermType())) {
           axiomObject.setTermType(value);
+          log.info("XXX   sy termType = " + value);
         } else if (property.equals(terminology.getMetadata().getSynonymSource())) {
           axiomObject.setTermSource(value);
+          log.info("XXX   sy source = " + value);
         } else if (qualifierFlag) {
           final String name = EVSUtils.getQualifierName(
               self.getAllQualifiers(terminology, new IncludeParam("minimal")), property);
-          axiomObject.getQualifiers().add(new Qualifier(name, value));
+          if (name != null) {
+            axiomObject.getQualifiers().add(new Qualifier(name, value));
+          }
+          log.info("XXX   qualifier = " + name + ", " + value + ", " + property);
         }
         break;
     }

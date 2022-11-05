@@ -19,7 +19,7 @@
 	"definition": [
 		"IAO_0000115"
 	],
-	"definitionSource": "oboInOwl:hasDbXref",
+	"definitionSource": "oboInOwl:source",
 	"map": null,
 	"mapRelation": null,
 	"mapTarget": null,

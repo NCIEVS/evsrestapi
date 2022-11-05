@@ -6,13 +6,11 @@
 	"retiredStatusValue": "true",
 	"preferredName": "rdfs:label",
 	"synonym": [
-	    "rdfs:label",
-		"hasExactSynonym",
-		"hasRelatedSynonym",
-		"hasNarrowSynonym",
-		"hasBroadSynonym",
-		"syngo_official_label",
-		"systematic_synonym"
+		"rdfs:label",
+		"oboInOwl:hasExactSynonym",
+		"oboInOwl:hasRelatedSynonym",
+		"oboInOwl:hasNarrowSynonym",
+		"oboInOwl:hasBroadSynonym"
 	],
 	"synonymTermType": "oboInOwl:hasSynonymType",
 	"synonymSource": null,
@@ -21,8 +19,8 @@
 	"definition": [
 		"IAO_0000115"
 	],
-	"definitionSource": "hasDbXref",
-	"map": "oboInOwl:hasDbXref",
+	"definitionSource": "oboInOwl:hasSynonymType",
+	"map": null,
 	"mapRelation": null,
 	"mapTarget": null,
 	"mapTargetTermType": null,
