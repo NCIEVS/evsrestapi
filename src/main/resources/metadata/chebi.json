@@ -19,7 +19,7 @@
 	"definition": [
 		"IAO_0000115"
 	],
-	"definitionSource": "oboInOwl:source",
+	"definitionSource": null,
 	"map": null,
 	"mapRelation": null,
 	"mapTarget": null,

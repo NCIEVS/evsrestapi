@@ -1198,7 +1198,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
       final String axiom = b.getAxiom().getValue();
       final String property = EVSUtils.getQualifiedCodeFromUri(b.getAxiomProperty().getValue());
-      final String value = EVSUtils.getLabelFromUri(b.getAxiomValue().getValue());
+      final String value = b.getAxiomValue().getValue();
       log.info("XXX axiom = " + property + ", " + value + ", " + axiom);
 
       if (oldAxiom != null && !axiom.equals(oldAxiom)) {
@@ -1264,13 +1264,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomMap.put(axiom, new Axiom());
         }
         final Axiom axiomObject = axiomMap.get(axiom);
-        final String property = b.getAxiomProperty().getValue().split("#")[1];
-        String value = b.getAxiomValue().getValue();
-        // If value contains owl#, take everything after the #
-        if (value.contains("owl#")) {
-          // value = value.split("#")[1];
-          value = value.substring(value.indexOf("#") + 1);
-        }
+        final String property = EVSUtils.getQualifiedCodeFromUri(b.getAxiomProperty().getValue());
+        final String value = b.getAxiomValue().getValue();
 
         setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
       }
@@ -1299,55 +1294,59 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   private void setAxiomProperty(final String property, final String value,
     final boolean qualifierFlag, final Axiom axiomObject, final Terminology terminology)
     throws Exception {
+
     switch (property) {
       case "owl:annotatedSource":
-        log.info("XXX   annotated source = " + value);
-        axiomObject.setAnnotatedSource(value);
+        // This is never used
+        // axiomObject.setAnnotatedSource(value);
         break;
       case "owl:annotatedTarget":
+        // use the actual value
         axiomObject.setAnnotatedTarget(value);
         log.info("XXX   annotated target = " + value);
         break;
       case "owl:annotatedProperty":
-        axiomObject.setAnnotatedProperty(value);
-        log.info("XXX   annotated property = " + value);
+        // Use the code value
+        axiomObject.setAnnotatedProperty(EVSUtils.getQualifiedCodeFromUri(value));
+        log.info("XXX   annotated property = " + EVSUtils.getQualifiedCodeFromUri(value));
         break;
       default:
+        final String labelValue = EVSUtils.getLabelFromUri(value);
         // Skip the "type property
         if (property.contains("rdf-syntax-ns") && property.contains("type")) {
           return;
         }
         if (property.equals(terminology.getMetadata().getRelationshipToTarget())) {
-          axiomObject.setRelationshipToTarget(value);
+          axiomObject.setRelationshipToTarget(labelValue);
         } else if (property.equals(terminology.getMetadata().getMapTarget())) {
-          axiomObject.setTargetCode(value);
+          axiomObject.setTargetCode(labelValue);
         } else if (property.equals(terminology.getMetadata().getMapTargetTermType())) {
-          axiomObject.setTargetTermType(value);
+          axiomObject.setTargetTermType(labelValue);
         } else if (property.equals(terminology.getMetadata().getMapTargetTerminology())) {
-          axiomObject.setTargetTerminology(value);
+          axiomObject.setTargetTerminology(labelValue);
         } else if (property.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
-          axiomObject.setTargetTerminologyVersion(value);
+          axiomObject.setTargetTerminologyVersion(labelValue);
         } else if (property.equals(terminology.getMetadata().getDefinitionSource())) {
-          axiomObject.setDefSource(value);
+          axiomObject.setDefSource(labelValue);
         } else if (property.equals(terminology.getMetadata().getSynonymCode())) {
-          axiomObject.setSourceCode(value);
-          log.info("XXX   sy code = " + value);
+          axiomObject.setSourceCode(labelValue);
+          log.info("XXX   sy code = " + labelValue);
         } else if (property.equals(terminology.getMetadata().getSynonymSubSource())) {
-          axiomObject.setSubsourceName(value);
-          log.info("XXX   sy subsource = " + value);
+          axiomObject.setSubsourceName(labelValue);
+          log.info("XXX   sy subsource = " + labelValue);
         } else if (property.equals(terminology.getMetadata().getSynonymTermType())) {
-          axiomObject.setTermType(value);
-          log.info("XXX   sy termType = " + value);
+          axiomObject.setTermType(labelValue);
+          log.info("XXX   sy termType = " + labelValue);
         } else if (property.equals(terminology.getMetadata().getSynonymSource())) {
-          axiomObject.setTermSource(value);
-          log.info("XXX   sy source = " + value);
+          axiomObject.setTermSource(labelValue);
+          log.info("XXX   sy source = " + labelValue);
         } else if (qualifierFlag) {
           final String name = EVSUtils.getQualifierName(
               self.getAllQualifiers(terminology, new IncludeParam("minimal")), property);
           if (name != null) {
-            axiomObject.getQualifiers().add(new Qualifier(name, value));
+            axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
           }
-          log.info("XXX   qualifier = " + name + ", " + value + ", " + property);
+          log.info("XXX   qualifier = " + name + ", " + labelValue + ", " + property);
         }
         break;
     }
