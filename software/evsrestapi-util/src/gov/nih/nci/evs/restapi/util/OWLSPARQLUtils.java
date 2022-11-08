@@ -528,49 +528,87 @@ public class OWLSPARQLUtils {
 		return v;
 	}
 
+////////////////////////////////////////////////////////////////////////////////////////////////
 	public String construct_get_superclasses_by_code(String named_graph, String code) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("SELECT ?z_label ?z_code WHERE").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + ">").append("\n");
-		buf.append("  {").append("\n");
-		buf.append("  {").append("\n");
-		buf.append("	  {").append("\n");
-		buf.append("	    ?x a owl:Class .").append("\n");
-		buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		buf.append("	    ?x rdfs:subClassOf ?z .").append("\n");
-		buf.append("	    ?z a owl:Class .").append("\n");
-		buf.append("	    ?z rdfs:label ?z_label .").append("\n");
-		buf.append("	    ?z :NHC0 ?z_code").append("\n");
-		buf.append("	  }").append("\n");
-		buf.append("	  FILTER (?x != ?z)").append("\n");
-		buf.append("  }").append("\n");
-		buf.append("  UNION").append("\n");
-		buf.append("  {").append("\n");
-		buf.append("	  {").append("\n");
-		buf.append("	    ?x a owl:Class .").append("\n");
-		buf.append("	    ?x :NHC0 \"" + code + "\"^^<http://www.w3.org/2001/XMLSchema#string> .").append("\n");
-		buf.append("		?x owl:equivalentClass ?z0 .").append("\n");
-		buf.append("		?z0 a owl:Class .").append("\n");
-		buf.append("		?z0 owl:intersectionOf ?list .").append("\n");
-		buf.append("	    ?list rdf:rest*/rdf:first ?z .").append("\n");
-		buf.append("	    ?z a owl:Class .").append("\n");
-		buf.append("	    ?z rdfs:label ?z_label .").append("\n");
-		buf.append("	    ?z :NHC0 ?z_code").append("\n");
-		buf.append("	  }").append("\n");
-		buf.append("	  FILTER (?x != ?z)").append("\n");
-		buf.append("  }").append("\n");
-		buf.append("  }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
-	}
-
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?y_label ?y_code").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <" + named_graph + "> ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            {").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+        buf.append("                ?x rdfs:subClassOf ?y . ").append("\n");
+        buf.append("            } union {").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ?x :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+        buf.append("                ?x rdfs:subClassOf ?rs . ").append("\n");
+        buf.append("                ?rs a owl:Restriction .  ").append("\n");
+        buf.append("            ?rs owl:onProperty ?p .").append("\n");
+        buf.append("                ?rs owl:someValuesFrom ?y .  ").append("\n");
+        buf.append("            }").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+    }
 
 	public Vector getSuperclassesByCode(String named_graph, String code) {
-		return  getSuperclasses(named_graph, code);
+        String query = construct_get_superclasses_by_code(named_graph, code);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
+
+	public String construct_get_subclasses_by_code(String named_graph, String code) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?y_label ?y_code").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <" + named_graph + "> ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            {").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+        buf.append("                ?x rdfs:subClassOf ?y . ").append("\n");
+        buf.append("            } union {").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ?y :NHC0 \"" + code + "\"^^xsd:string .").append("\n");
+        buf.append("                ?x rdfs:subClassOf ?rs . ").append("\n");
+        buf.append("                ?rs a owl:Restriction .  ").append("\n");
+        buf.append("                ?rs owl:onProperty ?p .").append("\n");
+        buf.append("                ?rs owl:someValuesFrom ?y .  ").append("\n");
+        buf.append("            }").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+    }
+
+	public Vector getSubclassesByCode(String named_graph, String code) {
+        String query = construct_get_subclasses_by_code(named_graph, code);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public boolean isLeaf(String named_graph, String code) {
 		Vector v = getSubclassesByCode(named_graph, code);
@@ -578,10 +616,11 @@ public class OWLSPARQLUtils {
 	    return true;
 	}
 
+/*
 	public Vector getSubclassesByCode(String named_graph, String code) {
 		return getSubclasses(named_graph, code);
 	}
-
+*/
 	public Vector getRolesByCode(String named_graph, String code) {
 		return getRoles(named_graph, code);
 	}
@@ -1564,8 +1603,17 @@ public class OWLSPARQLUtils {
 			int level = Integer.parseInt(level_str);
 			if (level == maxLevel) break;
 			int nextLevel = level + 1;
-			Vector u = getSubclassesByCode(named_graph, next_code);
+			Vector u2 = getSubclassesByCode(named_graph, next_code);
 			Vector v3 = new Vector();
+			for (int i=0; i<u2.size(); i++) {
+				String t = (String) u2.elementAt(i);
+				Vector u3 = StringUtils.parseData(t, '|');
+				String t1 = (String) u3.elementAt(0);
+				String t2 = (String) u3.elementAt(1);
+				v3.add(next_label + "|" + next_code + "|" + t1 + "|" + t2);
+				stack.push(t1 + "|" + t2 + "|" + nextLevel);
+			}
+			/*
 			int n = u.size()/2;
 			for (int i=0; i<n; i++) {
 				String s1 = (String) u.elementAt(i*2);
@@ -1575,6 +1623,8 @@ public class OWLSPARQLUtils {
 				v3.add(next_label + "|" + next_code + "|" + t1 + "|" + t2);
 				stack.push(t1 + "|" + t2 + "|" + nextLevel);
 			}
+			*/
+
 			w.addAll(v3);
 		}
 		return w;
@@ -1958,22 +2008,13 @@ public class OWLSPARQLUtils {
 	}
 
 ////////////////////////////////////////////////////////////////////
+
 	public Vector getSuperclassesByCode(String code) {
-		Vector v = getSuperclassesByCode(named_graph, code);
-		if (v == null) return null;
-		if (v.size() == 0) return new Vector();
-		v = new ParserUtils().getResponseValues(v);
-		v = new SortUtils().quickSort(v);
-		return v;
+		return getSuperclassesByCode(named_graph, code);
 	}
 
 	public Vector getSubclassesByCode(String code) {
-		Vector v = getSubclassesByCode(named_graph, code);
-		if (v == null) return null;
-		if (v.size() == 0) return new Vector();
-		v = new ParserUtils().getResponseValues(v);
-		v = new SortUtils().quickSort(v);
-		return v;
+		return getSubclassesByCode(named_graph, code);
 	}
 
 	public Vector getOutboundRolesByCode(String code) {
@@ -4074,6 +4115,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		return w;
 	}
 
+/*
     public Vector get_superclasses_by_code(String namedGraph, String code) {
 		Vector w = new Vector();
 		Vector u = getSuperclassesByCode(namedGraph, code);
@@ -4089,6 +4131,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		}
 		return w;
 	}
+	*/
 
 ////////////////////getTransitiveClosure//////////////////////////////////////////////////////////////////
 
