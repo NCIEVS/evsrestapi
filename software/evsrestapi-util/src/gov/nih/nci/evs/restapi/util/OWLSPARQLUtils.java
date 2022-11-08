@@ -573,7 +573,7 @@ public class OWLSPARQLUtils {
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
-        buf.append("select distinct ?y_label ?y_code").append("\n");
+        buf.append("select distinct ?x_label ?x_code").append("\n");
         buf.append("{").append("\n");
         buf.append("    graph <" + named_graph + "> ").append("\n");
         buf.append("    {").append("\n");
