@@ -52,6 +52,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     /** The value. */
     private String value;
 
+    /** The export value. */
+    private Boolean export = false;
+
     /** The synonym source. */
     private List<String> synonymSource;
 
@@ -274,6 +277,23 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     public void setValue(final String value) {
         this.value = value;
+    }
+
+    /**
+     * @return the export
+     */
+    public Boolean getExport() {
+        if (export == null) {
+            export = false;
+        }
+        return export;
+    }
+
+    /**
+     * @param export the export to set
+     */
+    public void setExport(Boolean export) {
+        this.export = export;
     }
 
     /**
@@ -607,6 +627,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
         result = prime * result + ((property == null) ? 0 : property.hashCode());
         result = prime * result + ((value == null) ? 0 : value.hashCode());
+        result = prime * result + ((export == null) ? 0 : export.hashCode());
         // result = prime * result + ((role == null) ? 0 : role.hashCode());
         result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
         result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
@@ -703,6 +724,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
                 return false;
             }
         } else if (!value.equals(other.value)) {
+            return false;
+        }
+        if (export == null) {
+            if (other.export != null) {
+                return false;
+            }
+        } else if (!export.equals(other.export)) {
             return false;
         }
         // if (role == null) {

@@ -1,20 +1,13 @@
 
 package gov.nih.nci.evs.api.controller;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Clock;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -180,7 +173,7 @@ public class SearchController extends BaseController {
             @PathVariable(value = "terminology") final String terminology,
             @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult)
             throws Exception {
-        return search(new SearchCriteria(searchCriteria, terminology), bindingResult, false);
+        return search(new SearchCriteria(searchCriteria, terminology), bindingResult);
     }
 
     /**
@@ -277,7 +270,7 @@ public class SearchController extends BaseController {
     @RecordMetric
     @RequestMapping(method = RequestMethod.GET, value = "/concept/search", produces = "application/json")
     public @ResponseBody ConceptResultList search(@ModelAttribute SearchCriteria searchCriteria,
-            BindingResult bindingResult, boolean export) throws Exception {
+            BindingResult bindingResult) throws Exception {
 
         // Check whether or not parameter binding was successful
         if (bindingResult.hasErrors()) {
@@ -302,7 +295,7 @@ public class SearchController extends BaseController {
          * searchCriteria.computeMissingRequiredFields()); }
          */
 
-        if (export == false)
+        if (searchCriteria.getExport() == false)
             searchCriteria.checkPagination();
         logger.debug("  Search = " + searchCriteria);
 
@@ -315,7 +308,7 @@ public class SearchController extends BaseController {
             final List<Terminology> terminologies = new ArrayList<>();
             for (String terminology : searchCriteria.getTerminology()) {
                 final Terminology term = termUtils.getTerminology(terminology, true);
-                searchCriteria.validate(term, metadataService, export);
+                searchCriteria.validate(term, metadataService, searchCriteria.getExport());
                 terminologies.add(term);
             }
 
@@ -336,109 +329,6 @@ public class SearchController extends BaseController {
             handleException(e);
             return null;
         }
-
-    }
-
-    /**
-     * Export search results.
-     *
-     * @param searchCriteria the filter criteria elastic fields
-     * @param bindingResult  the binding result
-     * @return the string
-     * @throws Exception the exception
-     */
-    @ApiOperation(value = "Get exported search results", response = byte[].class, notes = "Use cases for search range from very simple term searches, use of paging "
-            + "parameters, additional filters, searches properties, roles, and associations,"
-            + " and so on.  To further explore the range of search options, take a look "
-            + "at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>"
-            + "Github client SDK library created for the NCI EVS Rest API</a>.")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-            @ApiResponse(code = 400, message = "Bad request"),
-            @ApiResponse(code = 404, message = "Resource not found")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "terminology", value = "Comma-separated list of terminologies to search, e.g. 'ncit' or 'ncim'", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "ncit"),
-            @ApiImplicitParam(name = "term", value = "The term, phrase, or code to be searched, e.g. 'melanoma'", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "type", value = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy.", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "contains"),
-            @ApiImplicitParam(name = "sortBy", value = "The search parameter to sort results by", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "descending", value = "Sort by descending (if true) or ascending (if false)", required = false, dataTypeClass = Boolean.class, paramType = "query"),
-            @ApiImplicitParam(name = "include", value = "Indicator of how much data to return. Comma-separated list of any of the "
-                    + "following values: minimal, summary, full, associations, children, definitions,"
-                    + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, "
-                    + "roles, synonyms. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-                    + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-            @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false, dataTypeClass = String.class, paramType = "query", example = "0", defaultValue = "0"),
-            @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false, dataTypeClass = String.class, paramType = "query", example = "0", defaultValue = "10"),
-            @ApiImplicitParam(name = "conceptStatus", value = "Comma-separated list of concept status values to restrict search results by. "
-                    + "<p><a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a "
-                    + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>ncit</i>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "property", value = "Comma-separated list of properties to restrict search results by (see also <i>value</i>). e.g."
-                    + "<ul><li>'P106,P322' for <i>ncit</i></li>"
-                    + "<li>'COLOR,SHAPE' for <i>ncim</i></li></ul>"
-                    + "<p><a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a "
-                    + "list of NCI Thesaurus properties</a>.</p>"
-                    + "<p><a href='api/v1/metadata/ncim/properties' target='_blank'>Click here for a "
-                    + "list of NCI Metathesaurus properties</a>.</p> "
-                    + "The properties can be specified as code or name. "
-                    + "NOTE: This feature works with <i>value</i> to find concepts having one of the specified "
-                    + "properties with an exact value matching the <i>value</i> parameter.  Using a <i>term</i> "
-                    + "will further restrict results to those also matching the term.", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "value", value = "A property value to restrict search results by.  "
-                    + "NOTE: This feature works with <i>property</i> to find concepts having one of the specified "
-                    + "properties with an exact value matching this parameter.  Using a <i>term</i> "
-                    + "will further restrict results to those also matching the term.", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "definitionSource", value = "Comma-separated list of definition sources to restrict search results by. "
-                    + "<p><a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a "
-                    + "list of NCI Thesaurus values</a>.</p>"
-                    + "<p><a href='api/v1/metadata/ncim/definitionSources' target='_blank'>Click here for a "
-                    + "list of NCI Metathesaurus values</a>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "definitionType", value = "Comma-separated list of definition types to restrict search results by, e.g. "
-                    + "'DEFINITION,ALT_DEFINITION' for <i>ncit</i>. "
-                    + "<p><a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a "
-                    + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>ncit</i>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "synonymSource", value = "Comma-separated list of synonym sources to restrict search results by. "
-                    + "<p><a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a "
-                    + "list of NCI Thesaurus values</a>.</p> "
-                    + "<p><a href='api/v1/metadata/ncim/synonymSources' target='_blank'>Click here for a "
-                    + "list of NCI Metathesaurus values</a>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "synonymType", value = "Comma-separated list of synonym types to restrict search results by, e.g. "
-                    + "'FULL_SYN'. <p><a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>"
-                    + "Click here for a list of NCI Thesaurus values</a>. This parameter is only "
-                    + "meaningful for <i>ncit</i>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "synonymTermType", value = "Single synonym term type value to restrict search results by. "
-                    + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
-                    + "list of NCI Thesaurus values</a>.</p> "
-                    + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
-                    + "list of NCI Metathesaurus values</a>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "subset", value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
-                    + " This parameter is only meaningful for <i>ncit</i>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
-            @ApiImplicitParam(name = "columns", value = "Comma-separated list of columns to include in download.", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
-    })
-    @RecordMetric
-    @RequestMapping(method = RequestMethod.GET, value = "/concept/export", produces = "application/octet-stream")
-    public @ResponseBody ResponseEntity<byte[]> export(@ModelAttribute SearchCriteria searchCriteria,
-            BindingResult bindingResult) throws Exception {
-
-        String exportText = String.join("\t", searchCriteria.getColumns().split(",")) + "\n";
-        ConceptResultList results = this.search(searchCriteria, bindingResult, true);
-        exportText += this.exportUtils.exportFormatter(results.getConcepts(),
-                Arrays.asList(searchCriteria.getColumns().split(",")));
-        int totalRecords = results.getTotal();
-        for (int i = 2000; i < Math.min(totalRecords, MAX_EXPORT_CONCEPTS); i += 2000) {
-            searchCriteria.setFromRecord(i);
-            results = this.search(searchCriteria, bindingResult, true);
-            exportText += this.exportUtils.exportFormatter(results.getConcepts(),
-                    Arrays.asList(searchCriteria.getColumns().split(",")));
-        }
-        byte[] exportData = exportText.getBytes(StandardCharsets.UTF_8);
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentDisposition(ContentDisposition.builder("attachment")
-                .filename(searchCriteria.getTerm() + "." + Clock.systemUTC().instant() + "." + ".tsv").build());
-        httpHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        httpHeaders.setContentLength(exportData.length);
-        return ResponseEntity.ok().headers(httpHeaders).body(exportData);
 
     }
 
