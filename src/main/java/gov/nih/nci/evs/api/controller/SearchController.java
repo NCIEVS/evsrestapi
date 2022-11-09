@@ -76,10 +76,6 @@ public class SearchController extends BaseController {
     @Autowired
     TerminologyUtils termUtils;
 
-    /* The data export utils */
-    @Autowired
-    ExportUtils exportUtils;
-
     /**
      * Search within a single terminology.
      *
@@ -149,23 +145,23 @@ public class SearchController extends BaseController {
                     + "list of NCI Metathesaurus values</a>.</p>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
             @ApiImplicitParam(name = "subset", value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
                     + " This parameter is only meaningful for <i>ncit</i>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
-            // These are commented out because they are currently not supported
-            // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
-            // or \"roles\" when true to indicate that inverse associations or roles
-            // should be searched", required = false, dataTypeClass = String.class,
-            // paramType =
-            // "query", defaultValue = "false"),
-            // @ApiImplicitParam(name = "association", value = "Comma-separated list
-            // of associations to search. e.g A10,A215. <a
-            // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
-            // a list of NCI Thesaurus associations</a>. The associations can be
-            // specified as code or name", required = false, dataTypeClass = String.class,
-            // paramType = "query", defaultValue = ""),
-            // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
-            // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
-            // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
-            // roles can be specified as code or name", required = false, dataTypeClass =
-            // String.class, paramType = "query", defaultValue = "")
+    // These are commented out because they are currently not supported
+    // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
+    // or \"roles\" when true to indicate that inverse associations or roles
+    // should be searched", required = false, dataTypeClass = String.class,
+    // paramType =
+    // "query", defaultValue = "false"),
+    // @ApiImplicitParam(name = "association", value = "Comma-separated list
+    // of associations to search. e.g A10,A215. <a
+    // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
+    // a list of NCI Thesaurus associations</a>. The associations can be
+    // specified as code or name", required = false, dataTypeClass = String.class,
+    // paramType = "query", defaultValue = ""),
+    // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
+    // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
+    // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
+    // roles can be specified as code or name", required = false, dataTypeClass =
+    // String.class, paramType = "query", defaultValue = "")
     })
     @RecordMetric
     @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search", produces = "application/json")
@@ -249,23 +245,23 @@ public class SearchController extends BaseController {
             @ApiImplicitParam(name = "subset", value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
                     + " This parameter is only meaningful for <i>ncit</i>", required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
             @ApiImplicitParam(name = "export", value = "export download search", required = false, dataTypeClass = Boolean.class, paramType = "query", defaultValue = "false")
-            // These are commented out because they are currently not supported
-            // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
-            // or \"roles\" when true to indicate that inverse associations or roles
-            // should be searched", required = false, dataTypeClass = String.class,
-            // paramType =
-            // "query", defaultValue = "false"),
-            // @ApiImplicitParam(name = "association", value = "Comma-separated list
-            // of associations to search. e.g A10,A215. <a
-            // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
-            // a list of NCI Thesaurus associations</a>. The associations can be
-            // specified as code or name", required = false, dataTypeClass = String.class,
-            // paramType = "query", defaultValue = ""),
-            // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
-            // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
-            // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
-            // roles can be specified as code or name", required = false, dataTypeClass =
-            // String.class, paramType = "query", defaultValue = "")
+    // These are commented out because they are currently not supported
+    // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
+    // or \"roles\" when true to indicate that inverse associations or roles
+    // should be searched", required = false, dataTypeClass = String.class,
+    // paramType =
+    // "query", defaultValue = "false"),
+    // @ApiImplicitParam(name = "association", value = "Comma-separated list
+    // of associations to search. e.g A10,A215. <a
+    // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
+    // a list of NCI Thesaurus associations</a>. The associations can be
+    // specified as code or name", required = false, dataTypeClass = String.class,
+    // paramType = "query", defaultValue = ""),
+    // @ApiImplicitParam(name = "role", value = "Comma-separated list of roles
+    // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
+    // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
+    // roles can be specified as code or name", required = false, dataTypeClass =
+    // String.class, paramType = "query", defaultValue = "")
     })
     @RecordMetric
     @RequestMapping(method = RequestMethod.GET, value = "/concept/search", produces = "application/json")
