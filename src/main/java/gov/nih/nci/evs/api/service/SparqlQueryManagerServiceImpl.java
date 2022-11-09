@@ -534,7 +534,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
     for (final Concept concept : concepts) {
       final String conceptCode = concept.getCode();
-      final List<Property> properties = propertyMap.get(conceptCode);
+      final List<Property> properties =
+          propertyMap.containsKey(conceptCode) ? propertyMap.get(conceptCode) : new ArrayList<>(0);
 
       // minimal, always do these
       final String pn =
@@ -690,11 +691,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         resultMap.put(conceptCode, new ArrayList<>());
       }
 
-      // Should no longer be necessary to exclude A, done with filter now
-      // && b.getPropertyCode().getValue().startsWith("A")) {
-      if (b.getPropertyCode() != null) {
-        continue;
-      }
       final Property property = new Property();
       property.setCode(EVSUtils.getPropertyCode(b));
       property.setType(EVSUtils.getPropertyLabel(b));
