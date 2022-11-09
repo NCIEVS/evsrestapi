@@ -140,7 +140,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     final String aboutClause = getAboutClause(conceptCodes);
     final Map<String, String> values =
         ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "namedGraph",
-            terminology.getGraph(), "inClause", inClause, "aboutClause", aboutClause);
+            terminology.getGraph(), "inClause", inClause, "aboutClause", aboutClause,
+            "preferredNameCode", terminology.getMetadata().getPreferredName());
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
     String query = getResolvedProperty(
         env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);

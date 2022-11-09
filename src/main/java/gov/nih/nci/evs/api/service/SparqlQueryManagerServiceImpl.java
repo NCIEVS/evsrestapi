@@ -1268,7 +1268,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       case "owl:annotatedSource":
         // This is never used
         // axiomObject.setAnnotatedSource(value);
-        log.info("XXX   annotated source = " + value);
         break;
       case "owl:annotatedTarget":
         // use the actual value
