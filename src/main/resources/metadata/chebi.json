@@ -13,7 +13,7 @@
 		"oboInOwl:hasBroadSynonym"
 	],
 	"synonymTermType": "oboInOwl:hasSynonymType",
-	"synonymSource": "oboInOwl:source",
+	"synonymSource": null,
 	"synonymCode": null,
 	"synonymSubSource": null,
 	"definition": [

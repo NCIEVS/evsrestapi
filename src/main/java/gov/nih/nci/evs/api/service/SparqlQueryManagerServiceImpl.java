@@ -319,45 +319,38 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final List<Axiom> axioms =
           getAxioms(concept.getCode(), terminology, !conceptType.equals("qualifier"));
 
-      final Set<String> syNameType = new HashSet<>();
+      // final Set<String> syNameType = new HashSet<>();
 
       if (ip.isSynonyms()) {
 
         final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, properties, axioms);
-        syNameType.addAll(
-            synonyms.stream().map(sy -> sy.getType() + sy.getName()).collect(Collectors.toSet()));
+        // syNameType.addAll(
+        // synonyms.stream().map(sy -> sy.getType() +
+        // sy.getName()).collect(Collectors.toSet()));
         concept.getSynonyms().addAll(synonyms);
+
+        // If no synonyms, we need to add at least one
+        if (concept.getSynonyms().size() == 0) {
+          final Synonym sy = new Synonym();
+          // sy.setTypeCode("default");
+          sy.setType("default");
+          sy.setName(pn);
+          sy.setNormName(ConceptUtils.normalize(sy.getName()));
+          concept.getSynonyms().add(sy);
+          // syNameType.add("default" + pn);
+        }
 
       }
 
       // Properties ending in "Name" are rendered as synonyms here.
       concept.setConceptStatus("DEFAULT");
-      if (ip.isSynonyms() || ip.isProperties()) {
+      if (ip.isProperties()) {
 
         // Render synonym properties and normal properties
-        final Set<String> syCode = terminology.getMetadata().getSynonym();
         for (final Property property : properties) {
-
-          // Get synonyms without extra axioms
-          // Handle synonyms without extra axioms
-          final String type = property.getType();
-          final String name = property.getValue();
 
           // Skip definition properties - load them as definitions
           if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
-            continue;
-          }
-
-          if (ip.isSynonyms() && syCode.contains(property.getCode())
-              && !syNameType.contains(type + name)) {
-            // add synonym
-            final Synonym synonym = new Synonym();
-            synonym.setTypeCode(property.getCode());
-            synonym.setType(type);
-            synonym.setName(name);
-            synonym.setNormName(ConceptUtils.normalize(property.getValue()));
-            concept.getSynonyms().add(synonym);
-            syNameType.add(type + name);
             continue;
           }
 
@@ -371,7 +364,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             }
           }
 
-          // Handle if not a remodeled property
+          // Handle if not a remodeled property (e.g. sy or definition)
           if (ip.isProperties()
               && !terminology.getMetadata().isRemodeledProperty(property.getCode())) {
             // Add any qualifiers to the property
@@ -382,20 +375,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
 
         }
-
-        // If no synonyms, we need to add at least one
-        if (concept.getSynonyms().size() == 0) {
-          final Synonym sy = new Synonym();
-          // sy.setTypeCode("default");
-          sy.setType("default");
-          sy.setName(pn);
-          concept.getSynonyms().add(sy);
-          syNameType.add("default" + pn);
-        }
-
-        // add norm name here because EVSUtils.getSynonyms is used elsewhere
-        concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
-            .count();
 
       }
 
@@ -574,21 +553,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // adding all synonyms
       final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, properties, axioms);
+      concept.getSynonyms().addAll(synonyms);
       if (synonyms.size() == 0) {
         final Synonym sy = new Synonym();
         sy.setType("default");
         sy.setName(concept.getName());
+        sy.setNormName(ConceptUtils.normalize(sy.getName()));
         concept.getSynonyms().add(sy);
       }
-      final Set<String> syNameType =
-          synonyms.stream().map(sy -> sy.getType() + sy.getName()).collect(Collectors.toSet());
-      concept.getSynonyms().addAll(synonyms);
-      // add norm name here because EVSUtils.getSynonyms is used elsewhere
-      concept.getSynonyms().stream().peek(s -> s.setNormName(ConceptUtils.normalize(s.getName())))
-          .count();
 
       // Render synonym properties and normal properties
-      final Set<String> syCode = terminology.getMetadata().getSynonym();
       concept.setConceptStatus("DEFAULT");
       for (final Property property : properties) {
 
@@ -608,28 +582,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
         }
 
-        // Handle synonyms without extra axioms
-        final String type = property.getType();
-        final String name = property.getValue();
-
         // Skip definitions rendered as properties
         if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
           continue;
         }
 
-        if (syCode.contains(property.getCode()) && !syNameType.contains(type + name)) {
-          // add synonym
-          final Synonym synonym = new Synonym();
-          synonym.setTypeCode(property.getCode());
-          synonym.setType(type);
-          synonym.setName(name);
-          synonym.setNormName(ConceptUtils.normalize(property.getValue()));
-          concept.getSynonyms().add(synonym);
-          syNameType.add(type + name);
-          continue;
-        }
-
-        // Handle if not a common property
+        // Handle if not a remodeled property (e.g. synonym or definition)
         if (!terminology.getMetadata().isRemodeledProperty(property.getCode())) {
           // Add any qualifiers to the property
           property.getQualifiers()
@@ -1189,7 +1147,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Axiom> getAxioms(final String conceptCode, final Terminology terminology,
     final boolean qualifierFlag) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructQuery("axiom", terminology, conceptCode);
+    final String query = queryBuilderService.constructQuery("axioms", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -1218,6 +1176,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
     }
+    log.info("XXX   ADD Axiom = " + axiomObject);
     axioms.add(axiomObject);
     return axioms;
   }
@@ -1293,22 +1252,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /**
    * sets axiom property.
    *
-   * @param property the property
+   * @param propertyCode the property
    * @param value the value
    * @param qualifierFlag the qualifier flag
    * @param axiomObject the axiom object
    * @param terminology the terminology
    * @throws Exception the exception
    */
-  private void setAxiomProperty(final String property, final String propertyUri, final String value,
-    final boolean qualifierFlag, final Axiom axiomObject, final Terminology terminology)
-    throws Exception {
+  private void setAxiomProperty(final String propertyCode, final String propertyUri,
+    final String value, final boolean qualifierFlag, final Axiom axiomObject,
+    final Terminology terminology) throws Exception {
 
     // Look at the qualified code form of the property for the switch
-    switch (property) {
+    switch (propertyCode) {
       case "owl:annotatedSource":
         // This is never used
         // axiomObject.setAnnotatedSource(value);
+        log.info("XXX   annotated source = " + value);
         break;
       case "owl:annotatedTarget":
         // use the actual value
@@ -1323,43 +1283,44 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       default:
         final String labelValue = EVSUtils.getLabelFromUri(value);
         // Skip the "type property
-        if (property.contains("rdf-syntax-ns") && property.contains("type")) {
+        if (propertyCode.contains("rdf-syntax-ns") && propertyCode.contains("type")) {
           return;
         }
-        if (property.equals(terminology.getMetadata().getRelationshipToTarget())) {
+        if (propertyCode.equals(terminology.getMetadata().getRelationshipToTarget())) {
           axiomObject.setRelationshipToTarget(labelValue);
-        } else if (property.equals(terminology.getMetadata().getMapTarget())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getMapTarget())) {
           axiomObject.setTargetCode(labelValue);
-        } else if (property.equals(terminology.getMetadata().getMapTargetTermType())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getMapTargetTermType())) {
           axiomObject.setTargetTermType(labelValue);
-        } else if (property.equals(terminology.getMetadata().getMapTargetTerminology())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getMapTargetTerminology())) {
           axiomObject.setTargetTerminology(labelValue);
-        } else if (property.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
+        } else if (propertyCode
+            .equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
           axiomObject.setTargetTerminologyVersion(labelValue);
-        } else if (property.equals(terminology.getMetadata().getDefinitionSource())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getDefinitionSource())) {
           axiomObject.setDefSource(labelValue);
-        } else if (property.equals(terminology.getMetadata().getSynonymCode())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getSynonymCode())) {
           axiomObject.setSourceCode(labelValue);
           log.info("XXX   sy code = " + labelValue);
-        } else if (property.equals(terminology.getMetadata().getSynonymSubSource())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getSynonymSubSource())) {
           axiomObject.setSubsourceName(labelValue);
           log.info("XXX   sy subsource = " + labelValue);
-        } else if (property.equals(terminology.getMetadata().getSynonymTermType())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getSynonymTermType())) {
           axiomObject.setTermType(labelValue);
           log.info("XXX   sy termType = " + labelValue);
-        } else if (property.equals(terminology.getMetadata().getSynonymSource())) {
+        } else if (propertyCode.equals(terminology.getMetadata().getSynonymSource())) {
           axiomObject.setTermSource(labelValue);
           log.info("XXX   sy source = " + labelValue);
         } else if (qualifierFlag) {
           // Here check the qualified form as well as the URI
 
           final String name = EVSUtils.getQualifierName(
-              self.getAllQualifiers(terminology, new IncludeParam("minimal")), property,
+              self.getAllQualifiers(terminology, new IncludeParam("minimal")), propertyCode,
               propertyUri);
           if (name != null) {
             axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
           }
-          log.info("XXX   qualifier = " + name + ", " + labelValue + ", " + property);
+          log.info("XXX   qualifier = " + name + ", " + labelValue + ", " + propertyCode);
         }
         break;
     }

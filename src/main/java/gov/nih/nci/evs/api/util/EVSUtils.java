@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -79,6 +80,8 @@ public class EVSUtils {
     List<Axiom> axioms) {
     final List<Synonym> results = new ArrayList<>();
     final Set<String> syCode = terminology.getMetadata().getSynonym();
+    final Set<String> sySeen = new HashSet<>();
+
     // If 'axioms' is null here, it's likely because the "main" query didn't
     // finish
     for (Axiom axiom : axioms) {
@@ -87,7 +90,7 @@ public class EVSUtils {
         Synonym synonym = new Synonym();
         // This shouldn't happen unless axiomCode and property codes are off
 
-        // TODO: this could be more efficient if we pass in a map of
+        // NOTE: this could be more efficient if we pass in a map of
         // synonym type metadata
         final Property typeProperty =
             properties.stream().filter(p -> p.getCode().equals(axiomCode)).findFirst().get();
@@ -99,15 +102,45 @@ public class EVSUtils {
         }
         synonym.setCode(axiomCode);
         synonym.setName(axiom.getAnnotatedTarget());
+        synonym.setNormName(ConceptUtils.normalize(synonym.getName()));
         synonym.setTermType(axiom.getTermType());
         synonym.setSource(axiom.getTermSource());
         synonym.setCode(axiom.getSourceCode());
         synonym.setSubSource(axiom.getSubsourceName());
+
+        // Add any qualifiers to the synonym
+        synonym.getQualifiers()
+            .addAll(EVSUtils.getQualifiers(synonym.getTypeCode(), synonym.getName(), axioms));
+
+        // Record for later comparison
+        sySeen.add(synonym.getName() + synonym.getType());
+
         // log.info(" ADD synonym = " + axiomCode + ", " + synonym);
         results.add(synonym);
       }
     }
-    // Synonyms from properties are gathered outside of here
+
+    // Gather synonyms from properties
+    for (final Property property : properties) {
+
+      if (syCode.contains(property.getCode())
+          && !sySeen.contains(property.getType() + property.getValue())) {
+        // add synonym
+        final Synonym synonym = new Synonym();
+        synonym.setTypeCode(property.getCode());
+        synonym.setType(property.getType());
+        synonym.setName(property.getValue());
+        synonym.setNormName(ConceptUtils.normalize(synonym.getName()));
+
+        // Any synonyms found here won't have qualifiers
+
+        sySeen.add(synonym.getName() + synonym.getType());
+        results.add(synonym);
+
+        continue;
+      }
+    }
+
     return results;
   }
 
@@ -123,6 +156,8 @@ public class EVSUtils {
     List<Axiom> axioms) {
     final ArrayList<Definition> results = new ArrayList<>();
     final Set<String> defCodes = terminology.getMetadata().getDefinition();
+    final Set<String> defSeen = new HashSet<>();
+
     // Check axioms for definitions
     for (final Axiom axiom : axioms) {
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
@@ -135,7 +170,7 @@ public class EVSUtils {
         definition.getQualifiers().addAll(axiom.getQualifiers().stream()
             .filter(q -> q.getType() != null).collect(Collectors.toList()));
 
-        // TODO: this could be more efficient if we pass in a map of
+        // NOTE: this could be more efficient if we pass in a map of
         // definition type metadata
         final Property typeProperty =
             properties.stream().filter(p -> p.getCode().equals(axiomCode)).findFirst().get();
@@ -144,24 +179,25 @@ public class EVSUtils {
         if (definition.getType() == null) {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
         }
+
+        defSeen.add(definition.getType() + definition.getDefinition());
         results.add(definition);
       }
     }
 
     // Check properties for definitions if axioms didn't produce them
-    if (results.size() == 0) {
-      for (final Property property : properties) {
-        if (defCodes.contains(property.getCode())) {
-          Definition definition = new Definition();
-          definition.setDefinition(property.getValue());
-          definition.setCode(property.getCode());
-          definition.setType(property.getType());
+    for (final Property property : properties) {
+      if (defCodes.contains(property.getCode())
+          && !defSeen.contains(property.getType() + property.getValue())) {
+        final Definition definition = new Definition();
+        definition.setDefinition(property.getValue());
+        definition.setCode(property.getCode());
+        definition.setType(property.getType());
 
-          // TODO: figure out how to get definition source and other qualifiers
-          // from axioms?
+        // Definitions made here won't have qualifiers
 
-          results.add(definition);
-        }
+        defSeen.add(definition.getType() + definition.getDefinition());
+        results.add(definition);
       }
     }
     return results;
@@ -178,8 +214,7 @@ public class EVSUtils {
   public static List<Qualifier> getQualifiers(final String code, final String value,
     final List<Axiom> axioms) {
     for (final Axiom axiom : axioms) {
-      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
-      if (axiomCode.equals(code) && axiom.getAnnotatedTarget().equals(value)) {
+      if (axiom.getAnnotatedProperty().equals(code) && axiom.getAnnotatedTarget().equals(value)) {
         return axiom.getQualifiers();
       }
     }
