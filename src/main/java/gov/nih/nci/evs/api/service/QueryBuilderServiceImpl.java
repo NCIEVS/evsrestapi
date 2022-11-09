@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -136,9 +137,10 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String constructBatchQuery(final String queryProp, final Terminology terminology,
     final List<String> conceptCodes) {
     final String inClause = getInClause(conceptCodes);
+    final String aboutClause = getAboutClause(conceptCodes);
     final Map<String, String> values =
         ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "namedGraph",
-            terminology.getGraph(), "inClause", inClause, "aboutClause", "");
+            terminology.getGraph(), "inClause", inClause, "aboutClause", aboutClause);
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
     String query = getResolvedProperty(
         env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
@@ -189,8 +191,10 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    */
   private String getInClause(List<String> values) {
     checkCodes(values);
-    return new StringBuilder().append("'").append(String.join("','", values)).append("'")
-        .toString();
+    return new StringBuilder().append("'")
+        .append(String.join("','",
+            values.stream().filter(v -> !v.startsWith("http")).collect(Collectors.toList())))
+        .append("'").toString();
   }
 
   /**
@@ -199,11 +203,11 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @param values the values
    * @return the about clause
    */
-  @SuppressWarnings("unused")
-  private String getAboutClause(List<String> values) {
-    checkCodes(values);
-    return new StringBuilder().append("<").append(String.join(">,<", values)).append(">")
+  private String getAboutClause(final List<String> values) {
+    final String result = new StringBuilder().append(String.join(",", values.stream()
+        .filter(v -> v.startsWith("http")).map(v -> "<" + v + ">").collect(Collectors.toList())))
         .toString();
+    return result.isEmpty() ? "<empty>" : result;
   }
 
   /**

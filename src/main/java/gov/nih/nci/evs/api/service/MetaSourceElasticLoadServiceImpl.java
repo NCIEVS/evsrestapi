@@ -420,7 +420,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
               concept.setDescendants(hierarchy.getDescendants(code));
-              concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
+              concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
               handleConcept(concept, batch, false, terminology.getIndexName());
 
               // Count number of source concepts
@@ -495,7 +495,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept = codeConceptMap.get(code);
             concept.setLeaf(concept.getChildren().size() > 0);
             concept.setDescendants(hierarchy.getDescendants(code));
-            concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
+            concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
             handleConcept(concept, batch, true, terminology.getIndexName());
 
             // Count number of source concepts

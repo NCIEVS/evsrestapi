@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
@@ -37,9 +36,10 @@ public class EVSUtils {
    * @param code the code
    * @return the qualifier name
    */
-  public static String getQualifierName(final List<Concept> qualifiers, final String code) {
-    final Optional<Concept> concept =
-        qualifiers.stream().filter(c -> c.getCode().equals(code)).findFirst();
+  public static String getQualifierName(final List<Concept> qualifiers, final String code,
+    final String uri) {
+    final Optional<Concept> concept = qualifiers.stream()
+        .filter(c -> c.getCode().equals(code) || uri.equals(c.getUri())).findFirst();
     if (concept.isPresent()) {
       return concept.get().getName();
     } else {
@@ -86,6 +86,7 @@ public class EVSUtils {
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
         // This shouldn't happen unless axiomCode and property codes are off
+
         // TODO: this could be more efficient if we pass in a map of
         // synonym type metadata
         final Property typeProperty =
@@ -129,11 +130,11 @@ public class EVSUtils {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
         definition.setSource(axiom.getDefSource());
-        // Only keep qualifiers without null types (this happend when loading
+        // Only keep qualifiers without null types (this happened when loading
         // weird owl)
         definition.getQualifiers().addAll(axiom.getQualifiers().stream()
             .filter(q -> q.getType() != null).collect(Collectors.toList()));
-        // This shouldn't happen unless axiomCode and property codes are off
+
         // TODO: this could be more efficient if we pass in a map of
         // definition type metadata
         final Property typeProperty =
@@ -281,30 +282,6 @@ public class EVSUtils {
   }
 
   /**
-   * Returns the name from uri.
-   *
-   * @param uri the uri
-   * @return the name from uri
-   */
-  public static String getNameFromUri(final String uri) {
-    // Replace up to the last slash
-    final String code = getLabelFromUri(uri);
-    return StringUtils.capitalize(code.replaceAll("_", " "));
-  }
-
-  /**
-   * Returns the name from code.
-   *
-   * @param code the code
-   * @return the name from code
-   */
-  public static String getNameFromCode(final String code) {
-    // Turn _ into space and capitalize
-    return StringUtils
-        .capitalize(code.replaceFirst(".*\\/", "").replaceFirst(".*:", "").replaceAll("_", " "));
-  }
-
-  /**
    * Returns the code.
    *
    * @param b the b
@@ -330,7 +307,7 @@ public class EVSUtils {
       if (b.getProperty().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
         return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
       }
-      return EVSUtils.getCodeFromUri(b.getProperty().getValue());
+      return EVSUtils.getLabelFromUri(b.getProperty().getValue());
     } else {
       return b.getPropertyLabel().getValue();
     }
@@ -347,7 +324,7 @@ public class EVSUtils {
       if (b.getProperty().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
         return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
       }
-      return EVSUtils.getCodeFromUri(b.getRelationship().getValue());
+      return EVSUtils.getLabelFromUri(b.getRelationship().getValue());
     } else {
       return b.getRelationshipLabel().getValue();
     }
@@ -465,17 +442,4 @@ public class EVSUtils {
     }
   }
 
-  /**
-   * Returns the concept code.
-   *
-   * @param b the b
-   * @return the concept code
-   */
-  public static String getConceptCode(final Bindings b) {
-    if (b.getConceptCode() == null) {
-      return EVSUtils.getCodeFromUri(b.getConcept().getValue());
-    } else {
-      return b.getConceptCode().getValue();
-    }
-  }
 }

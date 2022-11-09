@@ -84,7 +84,7 @@ public class Path extends BaseModel {
    */
   public List<ConceptMinimal> getConcepts() {
     if (concepts == null) {
-      concepts = new ArrayList<>();
+      concepts = new ArrayList<>(5);
     }
     return concepts;
   }

@@ -298,11 +298,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setCode(EVSUtils.getCodeFromUri(conceptCode));
     }
 
-    // Find preferred name OR default to rdfs:label
+    // Find preferred name (or rdfs:label if no pref name)
     String pn = EVSUtils.getProperty(terminology.getMetadata().getPreferredName(), properties);
     // Otherwise, compute a name from the code
     if (pn == null) {
-      pn = EVSUtils.getNameFromCode(concept.getCode());
+      if (concept.getUri() != null) {
+        pn = EVSUtils.getLabelFromUri(concept.getUri());
+      } else {
+        pn = concept.getCode();
+      }
     }
     concept.setName(pn);
 
@@ -433,6 +437,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (ip.isDisjointWith()) {
         concept.setDisjointWith(getDisjointWith(conceptCode, terminology));
       }
+
+      // NOTE: "paths" and "descendants" are not read here
+
     }
 
     // Ensure that all list elements of the concept are in a natural sort
@@ -515,7 +522,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.submit(() -> {
       try {
         log.info("      start paths + desc");
-        pathsMap.putAll(hierarchy.getPathsMap(conceptCodes, terminology));
+        pathsMap.putAll(hierarchy.getPathsMap(terminology, conceptCodes));
         for (final String code : conceptCodes) {
           descendantsMap.put(code, hierarchy.getDescendants(code));
         }
@@ -1197,9 +1204,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String oldAxiom = null;
     for (final Bindings b : bindings) {
       final String axiom = b.getAxiom().getValue();
-      final String property = EVSUtils.getQualifiedCodeFromUri(b.getAxiomProperty().getValue());
+      final String propertyUri = b.getAxiomProperty().getValue();
+      final String propertyCode = EVSUtils.getQualifiedCodeFromUri(propertyUri);
       final String value = b.getAxiomValue().getValue();
-      log.info("XXX axiom = " + property + ", " + value + ", " + axiom);
+      log.info("XXX axiom = " + propertyUri + ", " + value + ", " + axiom);
 
       if (oldAxiom != null && !axiom.equals(oldAxiom)) {
         axioms.add(axiomObject);
@@ -1208,7 +1216,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
       oldAxiom = axiom;
 
-      setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
+      setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
     }
     axioms.add(axiomObject);
     return axioms;
@@ -1264,10 +1272,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomMap.put(axiom, new Axiom());
         }
         final Axiom axiomObject = axiomMap.get(axiom);
-        final String property = EVSUtils.getQualifiedCodeFromUri(b.getAxiomProperty().getValue());
+        final String propertyUri = b.getAxiomProperty().getValue();
+        final String propertyCode = EVSUtils.getQualifiedCodeFromUri(propertyUri);
         final String value = b.getAxiomValue().getValue();
 
-        setAxiomProperty(property, value, qualifierFlag, axiomObject, terminology);
+        setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
       }
       for (final Axiom axiom : axiomMap.values()) {
         if (resultMap.get(code) == null) {
@@ -1291,10 +1300,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param terminology the terminology
    * @throws Exception the exception
    */
-  private void setAxiomProperty(final String property, final String value,
+  private void setAxiomProperty(final String property, final String propertyUri, final String value,
     final boolean qualifierFlag, final Axiom axiomObject, final Terminology terminology)
     throws Exception {
 
+    // Look at the qualified code form of the property for the switch
     switch (property) {
       case "owl:annotatedSource":
         // This is never used
@@ -1341,8 +1351,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomObject.setTermSource(labelValue);
           log.info("XXX   sy source = " + labelValue);
         } else if (qualifierFlag) {
+          // Here check the qualified form as well as the URI
+
           final String name = EVSUtils.getQualifierName(
-              self.getAllQualifiers(terminology, new IncludeParam("minimal")), property);
+              self.getAllQualifiers(terminology, new IncludeParam("minimal")), property,
+              propertyUri);
           if (name != null) {
             axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
           }
@@ -1369,11 +1382,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final StringBuffer str = new StringBuffer();
-      str.append(b.getParentCode().getValue());
+      str.append(b.getParentCode() == null ? EVSUtils.getCodeFromUri(b.getParent().getValue())
+          : b.getParentCode().getValue());
       str.append("\t");
       str.append(EVSUtils.getParentLabel(b));
       str.append("\t");
-      str.append(b.getChildCode().getValue());
+      str.append(b.getChildCode() == null ? EVSUtils.getCodeFromUri(b.getChild().getValue())
+          : b.getChildCode().getValue());
       str.append("\t");
       str.append(EVSUtils.getChildLabel(b));
       str.append("\n");
@@ -1402,7 +1417,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // For each mainTypeSet concept find "shortest paths" to root
     final Map<String, Paths> map = new HashMap<>();
     for (final Map.Entry<String, Paths> entry : hierarchy
-        .getPathsMap(new ArrayList<>(combined), terminology).entrySet()) {
+        .getPathsMap(terminology, new ArrayList<>(combined)).entrySet()) {
       final String code = entry.getKey();
       final Paths paths = entry.getValue();
 
@@ -1997,7 +2012,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<HierarchyNode> getPathInHierarchy(final String code, final Terminology terminology)
     throws Exception {
     final List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(terminology);
-    final Paths paths = self.getHierarchyUtils(terminology).getPaths(code, terminology);
+    final Paths paths = self.getHierarchyUtils(terminology).getPaths(terminology, code);
 
     for (final HierarchyNode rootNode : rootNodes) {
       for (final Path path : paths.getPaths()) {
@@ -2194,7 +2209,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       final Concept c = new Concept();
       c.setUri(b.getConcept().getValue());
-      c.setCode(EVSUtils.getConceptCode(b));
+      c.setCode(EVSUtils.getCodeFromUri(b.getConcept().getValue()));
       c.setTerminology(terminology.getTerminology());
       c.setVersion(terminology.getVersion());
       // Use label if found, or compute from rdf:about otherwise

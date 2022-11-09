@@ -1,10 +1,12 @@
 
 package gov.nih.nci.evs.api.util;
 
-import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,9 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -57,14 +56,6 @@ public class HierarchyUtils {
   @Transient
   private Map<String, String> code2label = new HashMap<>();
 
-  /** The label 2 code. */
-  @Transient
-  private Map<String, String> label2code = new HashMap<>();
-
-  /** The concepts. */
-  @Transient
-  private Set<String> concepts = new HashSet<String>();
-
   /** The parents. */
   @Transient
   private Set<String> parents = new HashSet<String>();
@@ -78,16 +69,11 @@ public class HierarchyUtils {
    * Use a different HierarchyUtils.
    */
   @Transient
-  private Map<String, Paths> pathsMap = new HashMap<>();
+  private Map<String, Set<String>> pathsMap = new HashMap<>();
 
   /** The roots. */
   @Field(type = FieldType.Object)
   private Set<String> hierarchyRoots = null;
-
-  /** The leaves. */
-  // @Field(type = FieldType.Object)
-  @Transient
-  private Set<String> leaves = null;
 
   /**
    * Instantiates an empty {@link HierarchyUtils}.
@@ -149,55 +135,18 @@ public class HierarchyUtils {
       if (!code2label.containsKey(values[2])) {
         code2label.put(values[2], values[3]);
       }
-      if (!label2code.containsKey(values[1])) {
-        code2label.put(values[1], values[0]);
-      }
-      if (!label2code.containsKey(values[3])) {
-        code2label.put(values[3], values[2]);
-      }
 
       /*
        * Keep Track of Parents and Children
        */
       parents.add(values[0]);
       children.add(values[2]);
-      concepts.add(values[0]);
-      concepts.add(values[2]);
     }
 
     hierarchyRoots = new HashSet<String>(parents);
     hierarchyRoots.removeAll(children);
 
-    leaves = new HashSet<String>(children);
-    leaves.removeAll(parents);
-    // testLoading();
   }
-
-  /**
-   * Returns the transitive closure.
-   *
-   * @return the transitive closure
-   */
-  // public List<String> getTransitiveClosure(ArrayList<> concepts,
-  // String code,
-  // Integer level) {
-  // List<String> children = parent2child.get(code);
-  // if (children == null || children.size() == 0) {
-  // return concepts;
-  // }
-  // for (String child : children) {
-  // String indent = "";
-  // for (int i = 0; i < level; i++) {
-  // indent = indent + " ";
-  // }
-  // System.out.println(indent + "Parent: " + code + ": " + code2label.get(code)
-  // + " Child: "
-  // + child + ": " + code2label.get(child) + " Level: " + level);
-  // // List<String> newChildren =
-  // getTransitiveClosure(concepts, child, level + 1);
-  // }
-  // return concepts;
-  // }
 
   /**
    * Returns the roots.
@@ -453,114 +402,167 @@ public class HierarchyUtils {
    * @return the path map
    * @throws Exception the exception
    */
-  public Map<String, Paths> getPathsMap(Terminology terminology) throws Exception {
+  public Map<String, Set<String>> getPathsMap(final Terminology terminology) throws Exception {
     if (pathsMap.isEmpty() && terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
-      final Paths allPaths = new PathFinder(this).findPaths();
-      final Set<String> seen = new HashSet<>();
-      for (final Path path : allPaths.getPaths()) {
-        for (int i = 1; i < path.getConcepts().size(); i++) {
-          final String key = path.getConcepts().get(i).getCode();
-          final String ptr = String.join(".", path.getConcepts().subList(0, i + 1).stream()
-              .map(c -> c.getCode()).collect(Collectors.toList()));
-          if (seen.contains(ptr + key)) {
-            continue;
-          }
-          seen.add(ptr + key);
+
+      // This finds paths for leaf nodes, and we need to turn into full paths
+      // for each code
+      final Set<String> paths = findPaths();
+      int partCt = 0;
+      for (final String path : paths) {
+        final List<String> parts = Arrays.asList(path.split("\\|"));
+
+        for (int i = 1; i < parts.size(); i++) {
+          partCt++;
+          final String key = parts.get(i);
+          final String ptr = String.join("|", parts.subList(0, i + 1));
+
           if (!pathsMap.containsKey(key)) {
-            pathsMap.put(key, new Paths());
+            pathsMap.put(key, new HashSet<>());
           }
-          // Keep the path just down to the node itself
-          // and reverse the concepts
-          final Path copy = new Path();
-          copy.setDirection(1);
-          int level = 0;
-          for (int j = i; j >= 0; j--) {
-            final ConceptMinimal concept = new ConceptMinimal(path.getConcepts().get(j));
-            concept.setLevel(level++);
-            copy.getConcepts().add(concept);
+
+          if (!pathsMap.get(key).contains(ptr)) {
+            partCt++;
+            pathsMap.get(key).add(ptr);
           }
-          pathsMap.get(key).getPaths().add(copy);
         }
       }
+      logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
     }
 
     return pathsMap;
   }
 
   /**
+   * Find paths.
+   *
+   * @return the list
+   */
+  private Set<String> findPaths() {
+    final Set<String> paths = new HashSet<>();
+    final Deque<String> stack = new ArrayDeque<String>();
+    final List<String> roots = getHierarchyRoots();
+    logger.debug("    roots = " + roots.size());
+    for (final String root : roots) {
+      stack.push(root);
+    }
+    int ct = 0;
+    while (!stack.isEmpty()) {
+      final String path = stack.pop();
+      final String[] values = path.trim().split("\\|");
+      final List<String> elements = Arrays.asList(values);
+      final String lastCode = elements.get(elements.size() - 1);
+      final List<String> subclasses = getSubclassCodes(lastCode);
+      if (subclasses == null) {
+        paths.add(path);
+      } else {
+        for (final String subclass : subclasses) {
+          if (path.contains(subclass + "|")) {
+            logger.error("  unexpected cycle = " + path + ", " + subclass);
+          }
+          stack.push(path + "|" + subclass);
+        }
+      }
+      if (++ct % 100000 == 0) {
+        logger.debug("    paths = " + ct);
+      }
+    }
+    logger.debug("    total paths = " + ct);
+
+    return paths;
+  }
+
+  /**
+   * Returns the code with min paths.
+   *
+   * @param terminology the terminology
+   * @return the code with min paths
+   * @throws Exception the exception
+   */
+  public String getCodeWithMinPaths(Terminology terminology) throws Exception {
+    final Map<String, Set<String>> paths = getPathsMap(terminology);
+    int min = 100000;
+    String code = null;
+    for (final Map.Entry<String, Set<String>> entry : paths.entrySet()) {
+      if (entry.getValue().size() < min) {
+        min = entry.getValue().size();
+        code = entry.getKey();
+      }
+    }
+    return code;
+  }
+
+  /**
+   * Returns the code with max paths.
+   *
+   * @param terminology the terminology
+   * @return the code with max paths
+   * @throws Exception the exception
+   */
+  public String getCodeWithMaxPaths(Terminology terminology) throws Exception {
+    final Map<String, Set<String>> paths = getPathsMap(terminology);
+    int max = 0;
+    String code = null;
+    for (final Map.Entry<String, Set<String>> entry : paths.entrySet()) {
+      if (entry.getValue().size() > max) {
+        max = entry.getValue().size();
+        code = entry.getKey();
+      }
+    }
+    return code;
+  }
+
+  /**
    * Returns the paths.
    *
-   * @param code the code
    * @param terminology the terminology
+   * @param code the code
    * @return the paths
    * @throws Exception the exception
    */
-  public Paths getPaths(String code, Terminology terminology) throws Exception {
-    return getPathsMap(terminology).get(code);
+  public Paths getPaths(Terminology terminology, String code) throws Exception {
+
+    final Paths paths = new Paths();
+    // Handle things without paths
+    if (!getPathsMap(terminology).containsKey(code)) {
+      return null;
+    }
+
+    // Sort in code-path order
+    for (final String pathstr : getPathsMap(terminology).get(code).stream().sorted()
+        .collect(Collectors.toList())) {
+      final Path path = new Path();
+      path.setDirection(1);
+      int level = 0;
+      final String[] parts = pathstr.split("\\|");
+      for (int i = parts.length - 1; i >= 0; i--) {
+        final ConceptMinimal concept = new ConceptMinimal();
+        concept.setCode(parts[i]);
+        concept.setName(code2label.get(parts[i]));
+        concept.setLevel(level++);
+        path.getConcepts().add(concept);
+      }
+      paths.getPaths().add(path);
+    }
+    return paths;
   }
 
   /**
    * Returns the paths map.
    *
-   * @param codes the codes
    * @param terminology the terminology
+   * @param codes the codes
    * @return the paths map
    * @throws Exception the exception
    */
-  public Map<String, Paths> getPathsMap(List<String> codes, Terminology terminology)
+  public Map<String, Paths> getPathsMap(Terminology terminology, List<String> codes)
     throws Exception {
     final Map<String, Paths> map = new HashMap<>();
     for (final String code : codes) {
-      if (getPathsMap(terminology).containsKey(code)) {
-        map.put(code, getPathsMap(terminology).get(code));
-      }
+      map.put(code, getPaths(terminology, code));
     }
     return map;
-  }
-
-  /**
-   * Returns the paths to parent.
-   *
-   * @param code the code
-   * @param parentCode the parent code
-   * @param terminology the terminology
-   * @param paths the paths
-   * @return the paths to parent
-   * @throws JsonParseException the json parse exception
-   * @throws JsonMappingException the json mapping exception
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public Paths getPathsToParent(String code, String parentCode, Terminology terminology,
-    final List<Path> paths) throws JsonParseException, JsonMappingException, IOException {
-    Paths conceptPaths = new Paths();
-    if (paths == null) {
-      return conceptPaths;
-    }
-    for (Path path : paths) {
-      int parentIndex = -1;
-      int index = -1;
-      for (int i = 0; i < path.getConcepts().size(); i++) {
-        if (path.getConcepts().get(i).getCode().equals(parentCode)) {
-          parentIndex = i;
-        }
-        if (path.getConcepts().get(i).getCode().equals(code)) {
-          index = i;
-        }
-      }
-      if (parentIndex != -1 && index != -1) {
-        if (parentIndex >= index) {
-          throw new IOException("Parent code is a child = " + code + ", " + parentCode);
-        }
-        final Path subpath = new Path();
-        subpath.setDirection(1);
-        for (int i = parentIndex; i < index; i++) {
-          subpath.getConcepts().add(path.getConcepts().get(i));
-        }
-        conceptPaths.add(path);
-      }
-    }
-    return conceptPaths;
   }
 
   /**
