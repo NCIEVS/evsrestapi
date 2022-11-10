@@ -253,11 +253,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // ElasticOperationsService.OBJECT_TYPE, ElasticObjectMapping.class);
     // }
 
-    ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-    hierarchyObject.setHierarchy(hierarchy);
-    operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
-    logger.info("  Hierarchy loaded");
+    if (terminology.getMetadata().getHierarchy() != null
+        && terminology.getMetadata().getHierarchy()) {
+      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      hierarchyObject.setHierarchy(hierarchy);
+      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+          ElasticObject.class);
+      logger.info("  Hierarchy loaded");
+    } else {
+      logger.info("  Hierarchy skipped");
+    }
 
     List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
     ElasticObject ssObject = new ElasticObject("synonym_sources");
