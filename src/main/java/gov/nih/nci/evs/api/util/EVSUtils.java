@@ -180,6 +180,9 @@ public class EVSUtils {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
         }
 
+        definition.getQualifiers().addAll(
+            EVSUtils.getQualifiers(definition.getCode(), definition.getDefinition(), axioms));
+
         defSeen.add(definition.getType() + definition.getDefinition());
         results.add(definition);
       }
@@ -291,9 +294,14 @@ public class EVSUtils {
    * @return the qualified code from uri
    */
   public static String getQualifiedCodeFromUri(final String uri) {
-    // Replace up to the last slash
-    final String code = uri.replaceFirst(".*\\/", "");
-    return code.replaceFirst("rdf-schema", "rdfs").replaceFirst("#", ":");
+    // Replace up to the last slash and fix rdfs
+    String code = uri.replaceFirst(".*\\/", "").replaceFirst("rdf-schema", "rdfs");
+    if (code.contains(".")) {
+      // Remove up to the hash if the thing before is like "HGNC.owl"
+      return code.replaceFirst(".*#", "");
+    }
+    //otherwise, use what's before the hash as a prefix
+    return code.replaceFirst("#", ":");
   }
 
   /**

@@ -295,7 +295,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Not qualified code here because it should match "type" for metadata
       // or the actual code for a concept with no other info
       concept.setUri(conceptCode);
-      concept.setCode(EVSUtils.getCodeFromUri(conceptCode));
+      if (conceptType.equals("concept")) {
+        concept.setCode(EVSUtils.getCodeFromUri(conceptCode));
+      } else {
+        concept.setCode(EVSUtils.getQualifiedCodeFromUri(conceptCode));
+      }
     }
 
     // Find preferred name (or rdfs:label if no pref name)
@@ -432,7 +436,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getConcepts(final List<Concept> origConcepts, final Terminology terminology,
-    final HierarchyUtils hierarchy) throws IOException {
+    final HierarchyUtils hierarchy) throws Exception {
 
     if (CollectionUtils.isEmpty(origConcepts)) {
       return Collections.<Concept> emptyList();
@@ -456,8 +460,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Map<String, List<Role>> roleMap = new HashMap<>();
     final Map<String, List<Role>> inverseRoleMap = new HashMap<>();
     final Map<String, List<DisjointWith>> disjointWithMap = new HashMap<>();
-    final Map<String, Paths> pathsMap = new HashMap<>();
-    final Map<String, List<Concept>> descendantsMap = new HashMap<>();
 
     executor.submit(() -> {
       try {
@@ -494,20 +496,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         log.info("      finish inverse roles");
       } catch (final Exception e) {
         log.error("Uexpected error on inverse roles", e);
-        exceptions.add(e);
-      }
-    });
-
-    executor.submit(() -> {
-      try {
-        log.info("      start paths + desc");
-        pathsMap.putAll(hierarchy.getPathsMap(terminology, conceptCodes));
-        for (final String code : conceptCodes) {
-          descendantsMap.put(code, hierarchy.getDescendants(code));
-        }
-        log.info("      finish paths + desc");
-      } catch (final Exception e) {
-        log.error("Uexpected error on paths+desc", e);
         exceptions.add(e);
       }
     });
@@ -603,7 +591,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       for (final Concept child : concept.getChildren()) {
         child.setLeaf(hierarchy.getChildNodes(child.getCode(), 1).isEmpty());
       }
-      concept.setDescendants(descendantsMap.get(conceptCode));
       concept.setParents(parentMap.get(conceptCode));
       concept.setAssociations(associationMap.get(conceptCode));
       concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
@@ -611,9 +598,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setInverseRoles(inverseRoleMap.get(conceptCode));
       concept.setMaps(EVSUtils.getMapsTo(terminology, axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
-      if (pathsMap.containsKey(conceptCode)) {
-        concept.setPaths(pathsMap.get(conceptCode));
-      }
+      concept.setPaths(hierarchy.getPaths(terminology, conceptCode));
+      concept.setDescendants(hierarchy.getDescendants(conceptCode));
+
       concept.setLeaf(concept.getChildren().isEmpty());
 
       // Ensure that all list elements of the concept are in a natural sort
@@ -623,6 +610,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return concepts;
+
   }
 
   /* see superclass */
@@ -1161,18 +1149,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String propertyUri = b.getAxiomProperty().getValue();
       final String propertyCode = EVSUtils.getQualifiedCodeFromUri(propertyUri);
       final String value = b.getAxiomValue().getValue();
-      log.info("XXX axiom = " + propertyUri + ", " + value + ", " + axiom);
+      // log.debug(" axiom = " + propertyUri + ", " + value + ", " + axiom);
 
       if (oldAxiom != null && !axiom.equals(oldAxiom)) {
         axioms.add(axiomObject);
-        log.info("XXX   ADD Axiom = " + axiomObject);
+        // log.debug(" ADD Axiom = " + axiomObject);
         axiomObject = new Axiom();
       }
       oldAxiom = axiom;
 
       setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
     }
-    log.info("XXX   ADD Axiom = " + axiomObject);
+    // log.debug(" ADD Axiom = " + axiomObject);
     axioms.add(axiomObject);
     return axioms;
   }
@@ -1249,6 +1237,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * sets axiom property.
    *
    * @param propertyCode the property
+   * @param propertyUri the property uri
    * @param value the value
    * @param qualifierFlag the qualifier flag
    * @param axiomObject the axiom object
@@ -1268,12 +1257,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       case "owl:annotatedTarget":
         // use the actual value
         axiomObject.setAnnotatedTarget(value);
-        log.info("XXX   annotated target = " + value);
+        // log.debug(" annotated target = " + value);
         break;
       case "owl:annotatedProperty":
         // Use the code value
         axiomObject.setAnnotatedProperty(EVSUtils.getQualifiedCodeFromUri(value));
-        log.info("XXX   annotated property = " + EVSUtils.getQualifiedCodeFromUri(value));
+        // log.debug(" annotated property = " +
+        // EVSUtils.getQualifiedCodeFromUri(value));
         break;
       default:
         final String labelValue = EVSUtils.getLabelFromUri(value);
@@ -1296,16 +1286,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomObject.setDefSource(labelValue);
         } else if (propertyCode.equals(terminology.getMetadata().getSynonymCode())) {
           axiomObject.setSourceCode(labelValue);
-          log.info("XXX   sy code = " + labelValue);
+          // log.debug(" sy code = " + labelValue);
         } else if (propertyCode.equals(terminology.getMetadata().getSynonymSubSource())) {
           axiomObject.setSubsourceName(labelValue);
-          log.info("XXX   sy subsource = " + labelValue);
+          // log.debug(" sy subsource = " + labelValue);
         } else if (propertyCode.equals(terminology.getMetadata().getSynonymTermType())) {
           axiomObject.setTermType(labelValue);
-          log.info("XXX   sy termType = " + labelValue);
+          // log.debug(" sy termType = " + labelValue);
         } else if (propertyCode.equals(terminology.getMetadata().getSynonymSource())) {
           axiomObject.setTermSource(labelValue);
-          log.info("XXX   sy source = " + labelValue);
+          // log.debug(" sy source = " + labelValue);
         } else if (qualifierFlag) {
           // Here check the qualified form as well as the URI
 
@@ -1315,7 +1305,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (name != null) {
             axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
           }
-          log.info("XXX   qualifier = " + name + ", " + labelValue + ", " + propertyCode);
+          // log.debug(" qualifier = " + name + ", " + labelValue + ", " +
+          // propertyCode);
         }
         break;
     }

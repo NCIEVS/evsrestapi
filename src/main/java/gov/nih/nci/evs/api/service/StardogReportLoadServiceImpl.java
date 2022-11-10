@@ -87,6 +87,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       }
       samples.add(line);
     }
+    logReport("  ", "samples = " + samples.size());
 
     // Get all concepts
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
@@ -95,12 +96,11 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       logReport("  ", "concepts without codes = " + concepts.size());
       int ct = 0;
       for (final Concept concept : concepts) {
-        if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
+        if (++ct < 3 || samples.contains(concept.getCode())) {
           final Concept concept2 = sparqlQueryManagerService.getConcept(concept.getUri(),
               terminology, new IncludeParam("full"));
           concept2.setUri(concept.getUri());
           logReport("    ", "concept", concept2);
-          break;
         }
       }
     } catch (final Exception e) {
@@ -118,7 +118,6 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
               terminology, new IncludeParam("full")));
           // logReport(" ", " paths", hierarchy.getPaths(terminology,
           // concept.getCode()));
-
         }
       }
 
