@@ -284,6 +284,9 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     final String maxPathsCode = hierarchy.getCodeWithMaxPaths(term);
     logReport("  ", "  max paths = " + maxPathsCode + ", "
         + hierarchy.getPathsMap(term).get(maxPathsCode).size());
+    final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(term);
+    logReport("  ", "  max children = " + maxChildrenCode + ", "
+        + (maxChildrenCode == null ? "0" : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
 
     return hierarchy;
   }

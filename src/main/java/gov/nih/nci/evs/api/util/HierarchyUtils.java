@@ -514,6 +514,25 @@ public class HierarchyUtils {
   }
 
   /**
+   * Returns the code with max children.
+   *
+   * @param terminology the terminology
+   * @return the code with max children
+   * @throws Exception the exception
+   */
+  public String getCodeWithMaxChildren(Terminology terminology) throws Exception {
+    int max = 0;
+    String code = null;
+    for (final Map.Entry<String, List<String>> entry : parent2child.entrySet()) {
+      if (entry.getValue().size() > max) {
+        max = entry.getValue().size();
+        code = entry.getKey();
+      }
+    }
+    return code;
+  }
+
+  /**
    * Returns the paths.
    *
    * @param terminology the terminology

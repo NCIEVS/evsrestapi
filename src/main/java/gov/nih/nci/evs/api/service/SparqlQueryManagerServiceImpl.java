@@ -809,6 +809,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
+      if (b.getProperty() == null && b.getPropertyCode() == null) {
+        log.info("XXX b = " + b);
+      }
       association.setCode(EVSUtils.getPropertyCode(b));
       association.setType(EVSUtils.getRelationshipType(b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
