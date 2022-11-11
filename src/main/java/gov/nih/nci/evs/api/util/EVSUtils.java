@@ -35,6 +35,7 @@ public class EVSUtils {
    *
    * @param qualifiers the qualifiers
    * @param code the code
+   * @param uri the uri
    * @return the qualifier name
    */
   public static String getQualifierName(final List<Concept> qualifiers, final String code,
@@ -73,6 +74,7 @@ public class EVSUtils {
    * Returns the synonyms.
    *
    * @param terminology the terminology
+   * @param properties the properties
    * @param axioms the axioms
    * @return the synonyms
    */
@@ -300,7 +302,7 @@ public class EVSUtils {
       // Remove up to the hash if the thing before is like "HGNC.owl"
       return code.replaceFirst(".*#", "");
     }
-    //otherwise, use what's before the hash as a prefix
+    // otherwise, use what's before the hash as a prefix
     return code.replaceFirst("#", ":");
   }
 

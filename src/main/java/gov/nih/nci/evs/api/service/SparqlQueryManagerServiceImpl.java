@@ -1029,7 +1029,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the roles
    * @throws Exception the exception
    */
-  /* see superclass */
   public Map<String, List<Role>> getRoles(final List<String> conceptCodes,
     final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
@@ -1057,6 +1056,46 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
       resultMap.get(conceptCode).add(role);
+    }
+
+    return resultMap;
+  }
+
+  /* see superclass */
+  @Override
+  public Map<String, List<Role>> getRolesForAllCodes(final Terminology terminology,
+    boolean inverseFlag) throws Exception {
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query =
+        queryBuilderService.constructBatchQuery("roles.all", terminology, new ArrayList<>());
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final Map<String, List<Role>> resultMap = new HashMap<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (final Bindings b : bindings) {
+      final String conceptCode = b.getConceptCode().getValue();
+
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+
+      final Role role = new Role();
+      role.setCode(EVSUtils.getRelationshipCode(b));
+      role.setType(EVSUtils.getRelationshipType(b));
+      if (inverseFlag) {
+        // reverse code and related code
+        role.setRelatedCode(b.getConceptCode().getValue());
+        role.setRelatedName(EVSUtils.getConceptLabel(b));
+        resultMap.get(b.getRelatedConceptCode().getValue()).add(role);
+      } else {
+        role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
+        role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
+        resultMap.get(b.getConceptCode().getValue()).add(role);
+      }
     }
 
     return resultMap;

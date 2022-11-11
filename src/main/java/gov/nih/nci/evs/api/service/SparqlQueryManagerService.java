@@ -251,6 +251,16 @@ public interface SparqlQueryManagerService {
   public List<Role> getRoles(String conceptCode, Terminology terminology) throws Exception;
 
   /**
+   * Returns the roles for all codes.
+   *
+   * @param terminology the terminology
+   * @return the roles for all codes
+   * @throws Exception the exception
+   */
+  public Map<String, List<Role>> getRolesForAllCodes(Terminology terminology, boolean inverseFlag)
+    throws Exception;
+
+  /**
    * Returns the inverse roles.
    *
    * @param conceptCode the concept code
