@@ -877,7 +877,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
-      association.setCode(EVSUtils.getPropertyCode(b));
+      association.setCode(EVSUtils.getRelationshipCode(b));
       association.setType(EVSUtils.getRelationshipType(b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
@@ -917,7 +917,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Association association = new Association();
-      association.setCode(EVSUtils.getPropertyCode(b));
+      association.setCode(EVSUtils.getRelationshipCode(b));
       association.setType(EVSUtils.getRelationshipType(b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
@@ -1757,9 +1757,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getSubsetMembers(final String subsetCode, final Terminology terminology)
     throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final Map<String, String> values =
-        ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "conceptCode",
-            subsetCode, "namedGraph", terminology.getGraph());
+    final Map<String, String> values = ConceptUtils.asMap("codeCode",
+        terminology.getMetadata().getCode(), "conceptCode", subsetCode, "namedGraph",
+        terminology.getGraph(), "preferredNameCode", terminology.getMetadata().getPreferredName());
     final String query = queryBuilderService.constructQuery("subset", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 

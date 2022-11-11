@@ -364,8 +364,8 @@ public class EVSUtils {
    */
   public static String getRelationshipType(final Bindings b) {
     if (b.getRelationshipLabel() == null) {
-      if (b.getProperty().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
-        return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
+      if (b.getRelationship().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
+        return EVSUtils.getQualifiedCodeFromUri(b.getRelationship().getValue());
       }
       return EVSUtils.getLabelFromUri(b.getRelationship().getValue());
     } else {
