@@ -139,7 +139,7 @@ for db in `cat /tmp/db.$$.txt`; do
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected problem obtaining $db versions from stardog"
         exit 1
-    fi    
+    fi
 done
 
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
@@ -217,7 +217,20 @@ for x in `cat /tmp/y.$$.txt`; do
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-        echo "    FOUND indexes for $version, continue"
+        echo "    FOUND indexes for $version"
+        
+        # Stale indexes are automatically cleaned up by the indexing process
+        # It checks against stardog and reconciles everything and updates latest flags
+        # regardless of whether there was new data
+        echo "    RECONCILE $term stale indexes and update flags"
+        echo "    java $local -jar $jar --terminology $term --skipConcepts --skipMetadata"        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+        if [[ $? -ne 0 ]]; then
+            cat /tmp/x.$$.log | sed 's/^/    /'
+            echo "ERROR: unexpected error building indexes"
+            exit 1
+        fi
+        /bin/rm -rf /tmp/x.$$.log
+        
     else
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
             echo "    FOUND indexes for $version, force reindex anyway"        
@@ -256,21 +269,10 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
     fi
-
+    
     # track previous version, if next one is the same, don't index again.
     pv=$cv
 done
-
-# Stale indexes are automatically cleaned up by the indexing process
-# It checks against stardog and reconciles everything and updates latest flags
-# regardless of whether there was new data
-echo "  Reconcile stale indexes and update flags"
-echo "    java $local -jar $jar --terminology $term --skipConcepts --skipMetadata"
-java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building indexes"
-    exit 1
-fi
 
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
