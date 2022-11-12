@@ -26,6 +26,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
@@ -63,6 +64,14 @@ public class HierarchyUtils {
   /** The children. */
   @Transient
   private Set<String> children = new HashSet<String>();
+
+  /** The roles. */
+  @Transient
+  private Map<String, List<Role>> roleMap = new HashMap<>(10000);
+
+  /** The inverse roles. */
+  @Transient
+  private Map<String, List<Role>> inverseRoleMap = new HashMap<>(10000);
 
   /**
    * The path map. NOTE: if we need paths for >1 terminology, this doesn't work.
@@ -613,11 +622,39 @@ public class HierarchyUtils {
   }
 
   /**
-   * Returns the p2c.
+   * Returns the roles.
    *
-   * @return the p2c
+   * @return the roles
    */
-  public Map<String, List<String>> getP2C() {
-    return parent2child;
+  public Map<String, List<Role>> getRoleMap() {
+    return roleMap;
   }
+
+  /**
+   * Sets the roles.
+   *
+   * @param roleMap the roles
+   */
+  public void setRoleMap(Map<String, List<Role>> roleMap) {
+    this.roleMap = roleMap;
+  }
+
+  /**
+   * Returns the inverse roles.
+   *
+   * @return the inverse roles
+   */
+  public Map<String, List<Role>> getInverseRoleMap() {
+    return inverseRoleMap;
+  }
+
+  /**
+   * Sets the inverse roles.
+   *
+   * @param inverseRoleMap the inverse roles
+   */
+  public void setInverseRoleMap(Map<String, List<Role>> inverseRoleMap) {
+    this.inverseRoleMap = inverseRoleMap;
+  }
+
 }

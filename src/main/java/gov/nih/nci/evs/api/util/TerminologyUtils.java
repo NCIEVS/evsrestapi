@@ -150,6 +150,12 @@ public final class TerminologyUtils {
       return latest;
     }
 
+    // Find the "first"
+    final Terminology first = terminologies.stream()
+        .filter(t -> t.getTerminology().equals(terminology)).findFirst().orElse(null);
+    if (first != null) {
+      return first;
+    }
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, terminology + " not found");
   }
 

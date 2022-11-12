@@ -453,21 +453,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
     final Map<String, List<Property>> propertyMap = new HashMap<>();
     final Map<String, List<Axiom>> axiomMap = new HashMap<>();
-    final Map<String, List<Concept>> childMap = new HashMap<>();
-    final Map<String, List<Concept>> parentMap = new HashMap<>();
+    final Map<String, List<Concept>> childMap = getChildren(conceptCodes, terminology, hierarchy);
+    final Map<String, List<Concept>> parentMap = getParents(conceptCodes, terminology, hierarchy);
     final Map<String, List<Association>> associationMap = new HashMap<>();
     final Map<String, List<Association>> inverseAssociationMap = new HashMap<>();
-    final Map<String, List<Role>> roleMap = new HashMap<>();
-    final Map<String, List<Role>> inverseRoleMap = new HashMap<>();
+    final Map<String, List<Role>> roleMap = new HashMap<>(); // hierarchy.getRoleMap();
+    final Map<String, List<Role>> inverseRoleMap = new HashMap<>(); // hierarchy.getInverseRoleMap();
     final Map<String, List<DisjointWith>> disjointWithMap = new HashMap<>();
 
     executor.submit(() -> {
       try {
         log.info("      start main");
         propertyMap.putAll(getProperties(conceptCodes, terminology));
-        axiomMap.putAll(getAxioms(conceptCodes, terminology, true));
-        childMap.putAll(getChildren(conceptCodes, terminology, hierarchy));
-        parentMap.putAll(getParents(conceptCodes, terminology, hierarchy));
         associationMap.putAll(getAssociations(conceptCodes, terminology));
         inverseAssociationMap.putAll(getInverseAssociations(conceptCodes, terminology));
         disjointWithMap.putAll(getDisjointWith(conceptCodes, terminology));
@@ -482,24 +479,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       try {
         log.info("      start roles");
         roleMap.putAll(getRoles(conceptCodes, terminology));
+        inverseRoleMap.putAll(getInverseRoles(conceptCodes, terminology));
         log.info("      finish roles");
       } catch (final Exception e) {
-        log.error("Uexpected error on roles", e);
+        log.error("Uexpected error on main", e);
         exceptions.add(e);
       }
     });
 
     executor.submit(() -> {
       try {
-        log.info("      start inverse roles");
-        inverseRoleMap.putAll(getInverseRoles(conceptCodes, terminology));
-        log.info("      finish inverse roles");
+        log.info("      start axioms");
+        axiomMap.putAll(getAxioms(conceptCodes, terminology, true));
+        log.info("      finish axioms");
       } catch (final Exception e) {
-        log.error("Uexpected error on inverse roles", e);
+        log.error("Uexpected error on main", e);
         exceptions.add(e);
       }
     });
-
     // Shutdown executor
     executor.shutdown();
 
@@ -600,12 +597,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
       concept.setPaths(hierarchy.getPaths(terminology, conceptCode));
       concept.setDescendants(hierarchy.getDescendants(conceptCode));
-
       concept.setLeaf(concept.getChildren().isEmpty());
 
       // Ensure that all list elements of the concept are in a natural sort
       // order
       concept.sortLists();
+
+      // Free memory in "all roles" maps
+      roleMap.remove(concept.getCode());
+      inverseRoleMap.remove(concept.getCode());
 
     }
 
@@ -1077,7 +1077,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode().getValue();
+
+      final String conceptCode =
+          inverseFlag ? b.getRelatedConceptCode().getValue() : b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1090,11 +1092,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // reverse code and related code
         role.setRelatedCode(b.getConceptCode().getValue());
         role.setRelatedName(EVSUtils.getConceptLabel(b));
-        resultMap.get(b.getRelatedConceptCode().getValue()).add(role);
+        resultMap.get(conceptCode).add(role);
       } else {
         role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
         role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
-        resultMap.get(b.getConceptCode().getValue()).add(role);
+        resultMap.get(conceptCode).add(role);
       }
     }
 
@@ -1268,7 +1270,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
     }
-
     return resultMap;
   }
 

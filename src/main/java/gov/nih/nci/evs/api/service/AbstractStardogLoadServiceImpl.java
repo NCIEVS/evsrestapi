@@ -516,6 +516,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
-    return sparqlQueryManagerService.getHierarchyUtils(term);
+    final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
+
+    // Get all roles and inverse roles
+    // IF WE BRING THIS BACK -> clean this up to reuse the data structure, so we
+    // don't have to call twice.
+    // logger.info("Load all roles");
+    // hierarchy.setRoleMap(sparqlQueryManagerService.getRolesForAllCodes(term,
+    // false));
+    // logger.info("Load all inverse roles");
+    // hierarchy.setRoleMap(sparqlQueryManagerService.getRolesForAllCodes(term,
+    // true));
+
+    return hierarchy;
   }
 }

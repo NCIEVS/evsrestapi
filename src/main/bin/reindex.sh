@@ -223,7 +223,8 @@ for x in `cat /tmp/y.$$.txt`; do
         # It checks against stardog and reconciles everything and updates latest flags
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
-        echo "    java $local -jar $jar --terminology $term --skipConcepts --skipMetadata"        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata 
+        #> /tmp/x.$$.log 2>&1 
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
             echo "ERROR: unexpected error building indexes"
@@ -233,7 +234,7 @@ for x in `cat /tmp/y.$$.txt`; do
         
     else
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-            echo "    FOUND indexes for $version, force reindex anyway"        
+            echo "    FOUND indexes for $term $version, force reindex anyway"        
 
             # Remove if this already exists
             version=`echo $cv | perl -pe 's/.*_//;'`
@@ -252,8 +253,8 @@ for x in `cat /tmp/y.$$.txt`; do
         export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB ${term} $version"
 
-        echo "java $local -Xm8192M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-        java $local -Xmx8192M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
+        echo "java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
