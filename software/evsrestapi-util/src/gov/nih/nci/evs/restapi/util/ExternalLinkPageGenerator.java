@@ -75,7 +75,6 @@ public class ExternalLinkPageGenerator {
 	String password = null;
 	OWLSPARQLUtils owlSPARQLUtils = null;
 	HashMap propertyCode2labelHashMap = null;
-	static String NCIT_URL = "https://nciterms.nci.nih.gov/ncitbrowser/pages/concept_details.jsf?dictionary=NCI_Thesaurus&&ns=ncit&code=";
 
     public ExternalLinkPageGenerator() {
 
@@ -207,56 +206,8 @@ public class ExternalLinkPageGenerator {
         return null;
 	}
 
-	public void generateHTMLPage(String filename) {
-		String hyperlink_url = NCIT_URL;
-		generateHTMLPage(filename, hyperlink_url);
-	}
-
-	public void generateHTMLPage(String filename, String hyperlink_url) {
-        Vector w1 = Utils.readFile(filename);
-        //Regimen Category Label|egimen Category Code|Regimen Label|Regimen Cide|Regimen Definition
-        Vector w = new Vector();
-		for (int i=1; i<w1.size(); i++) {
-			String line = (String) w1.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			StringBuffer buf = new StringBuffer();
-			for (int j=0; j<u.size(); j++) {
-				String s = (String) u.elementAt(j);
-				if (HTMLTableDataConverter.isCode(s)) {
-					buf.append(hyperlink(hyperlink_url, s)).append("|");
-				} else {
-					buf.append(s).append("|");
-				}
-			}
-			String t = buf.toString();
-			t = t.substring(0, t.length()-1);
-			w.add(t);
-		}
-        Vector w0 = new Vector();
-        String heading = (String) w1.elementAt(0);
-        Vector u = StringUtils.parseData(heading, '|');
-        StringBuffer buf = new StringBuffer();
-        for (int i=0; i<u.size(); i++) {
-			String t = (String) u.elementAt(i);
-			buf.append(t).append("|");
-		}
-		String t = buf.toString();
-		t = t.substring(0, t.length()-1);
-        w0.add(t);
-        w0.addAll(w);
-        int n = filename.lastIndexOf(".");
-        String datafile = filename.substring(0, n) + "_" + StringUtils.getToday() + ".txt";
-        Utils.saveToFile(datafile, w0);
-        String outputfile = new HTMLTableDataConverter().convert(datafile);
-		Vector v = Utils.readFile(outputfile);
-		outputfile = new HTMLTable().generate(v);
-		System.out.println(outputfile + " generated.");
-	}
-
-
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
-		/*
 		String restURL = args[0];
 		String namedGraph = args[1];
 		String username = args[2];
@@ -271,10 +222,6 @@ public class ExternalLinkPageGenerator {
 			generator.set_external_hyperlink_url(args[5]);
 		}
 		generator.run(propertyCode);
-		*/
-		String datafile = args[0];
-		new ExternalLinkPageGenerator().generateHTMLPage(datafile);
-
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
