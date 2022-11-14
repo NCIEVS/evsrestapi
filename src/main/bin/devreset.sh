@@ -240,7 +240,7 @@ fi
 /bin/rm -f $dir/x.sh
 
 # Reindex stardog terminologies
-echo "  Reindex stardog"
+echo "  Reindex stardog terminologies"
 src/main/bin/reindex.sh --noconfig | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem running reindex.sh script"
