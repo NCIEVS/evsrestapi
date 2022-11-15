@@ -223,8 +223,8 @@ for x in `cat /tmp/y.$$.txt`; do
         # It checks against stardog and reconciles everything and updates latest flags
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
-        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata 
-        #> /tmp/x.$$.log 2>&1 
+        export EVS_SERVER_PORT="8083"
+        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
             echo "ERROR: unexpected error building indexes"
