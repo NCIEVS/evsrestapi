@@ -492,6 +492,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       if (metadata.getConceptStatus() != null) {
         metadata.setConceptStatuses(
             sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
+        // IF this is just the single value "true", then instead set to
+        // "Retired_Concept"
+        if (metadata.getConceptStatuses().size() == 1
+            && "true".equals(metadata.getConceptStatuses().get(0))) {
+          metadata.getConceptStatuses().clear();
+          metadata.getConceptStatuses().add("Retired_Concept");
+        }
       }
 
       // Compute definition sources

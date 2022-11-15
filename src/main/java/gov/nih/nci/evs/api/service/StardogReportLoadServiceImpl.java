@@ -135,11 +135,6 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
     // TODO: show hierarchy (passed in)
 
-    // Show synonym sources
-    final List<ConceptMinimal> synonymSources =
-        sparqlQueryManagerService.getSynonymSources(terminology);
-    logReport("  ", "synonym sources", synonymSources);
-
     // Show qualifiers
     final List<Concept> qualifiers =
         sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
@@ -192,9 +187,35 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
         sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
     logReport("  ", "roles", roles);
 
+    // Show synonym sources
+    final List<ConceptMinimal> synonymSources =
+        sparqlQueryManagerService.getSynonymSources(terminology);
+    logReport("  ", "synonym sources", synonymSources);
+
+    // Show definition sources
+    if (terminology.getMetadata().getDefinitionSource() != null) {
+      final List<ConceptMinimal> definitionSources =
+          sparqlQueryManagerService.getDefinitionSources(terminology);
+      logReport("  ", "definition sources", definitionSources);
+    }
+
     // Show synonym types
     final List<Concept> synonymTypes =
         sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
+    logReport("  ", "synonym types", synonymTypes);
+
+    // Show concept statuses
+    if (terminology.getMetadata().getConceptStatus() != null) {
+      final List<String> conceptStatuses = sparqlQueryManagerService
+          .getDistinctPropertyValues(terminology, terminology.getMetadata().getConceptStatus());
+      // Hack borrowed from superclass to fix "true" as a value
+      if (conceptStatuses.size() == 1 && "true".equals(conceptStatuses.get(0))) {
+        conceptStatuses.clear();
+        conceptStatuses.add("Retired_Concept");
+      }
+      logReport("  ", "concept statuses = " + conceptStatuses);
+    }
+
     logReport("  ", "synonym types", synonymTypes);
 
     // Show definition types

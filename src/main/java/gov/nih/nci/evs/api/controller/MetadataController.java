@@ -765,6 +765,7 @@ public class MetadataController extends BaseController {
                 // this should never happen
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
+            
             return result.get();
         } catch (Exception e) {
             handleException(e);
