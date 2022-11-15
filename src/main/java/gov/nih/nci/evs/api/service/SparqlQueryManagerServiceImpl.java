@@ -1896,11 +1896,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getAllSynonymTypes(final Terminology terminology, final IncludeParam ip)
     throws Exception {
 
+    final List<Concept> properties = self.getRemodeledProperties(terminology, ip);
     final List<Concept> concepts = new ArrayList<>();
     final TerminologyMetadata md = terminology.getMetadata();
-    for (final String code : md.getSynonym()) {
-      final Concept concept = getProperty(code, terminology, ip);
-      concepts.add(concept);
+    for (final Concept property : properties) {
+      if (md.getSynonym().contains(property.getCode())) {
+        concepts.add(property);
+      }
     }
     return concepts;
   }
@@ -1910,11 +1912,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getAllDefinitionTypes(final Terminology terminology, final IncludeParam ip)
     throws Exception {
 
+    final List<Concept> properties = self.getRemodeledProperties(terminology, ip);
     final List<Concept> concepts = new ArrayList<>();
     final TerminologyMetadata md = terminology.getMetadata();
-    for (final String code : md.getDefinition()) {
-      final Concept concept = getProperty(code, terminology, ip);
-      concepts.add(concept);
+    for (final Concept property : properties) {
+      if (md.getDefinition().contains(property.getCode())) {
+        concepts.add(property);
+      }
     }
     return concepts;
   }
