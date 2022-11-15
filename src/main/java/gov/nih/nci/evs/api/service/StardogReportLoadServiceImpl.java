@@ -199,11 +199,6 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       logReport("  ", "definition sources", definitionSources);
     }
 
-    // Show synonym types
-    final List<Concept> synonymTypes =
-        sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
-    logReport("  ", "synonym types", synonymTypes);
-
     // Show concept statuses
     if (terminology.getMetadata().getConceptStatus() != null) {
       final List<String> conceptStatuses = sparqlQueryManagerService
@@ -216,12 +211,17 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       logReport("  ", "concept statuses = " + conceptStatuses);
     }
 
+    // Show synonym types
+    final List<Concept> synonymTypes =
+        sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
     logReport("  ", "synonym types", synonymTypes);
 
-    // Show definition types
-    // List<Concept> definitionTypes =
-    // sparqlQueryManagerService.getAllDefinitionTypes(terminology, new
-    // IncludeParam("full"));
+    // Show synonym types
+    if (terminology.getMetadata().getDefinition() != null) {
+      final List<Concept> definitionTypes =
+          sparqlQueryManagerService.getAllDefinitionTypes(terminology, new IncludeParam("full"));
+      logReport("  ", "definition types", definitionTypes);
+    }
 
     // LATER (ncit only): Show subsets
     // List<Concept> subsets =
