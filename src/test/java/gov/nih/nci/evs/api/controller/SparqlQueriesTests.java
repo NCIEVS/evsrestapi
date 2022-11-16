@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.set.Sets;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -50,6 +51,7 @@ public class SparqlQueriesTests {
   @Test
   public void testQueryFields() {
 
+    boolean error = false;
     for (final Map.Entry<Object, Object> entry : prop.entrySet()) {
       final String key = entry.getKey().toString();
       final String query = entry.getValue().toString();
@@ -72,22 +74,27 @@ public class SparqlQueriesTests {
       // Find things referenced in "graph" that are not in "select"
       final Set<String> selectNotGraph = Sets.difference(selectMatches, graphMatches);
       final Set<String> graphNotSelect = Sets.difference(graphMatches, selectMatches).stream()
-          .filter(s -> !s.matches("\\?[xyz].*")).collect(Collectors.toSet());
+          .filter(s -> !s.matches("\\?([xyz].*|rs)")).collect(Collectors.toSet());
       if (selectNotGraph.size() > 0) {
         logger.info("  FOUND select field not in graph = " + key);
         logger.info("    ERROR = " + selectNotGraph);
+        error = true;
       }
       if (graphNotSelect.size() > 0) {
         logger.info("  FOUND graph field not in select = " + key);
         logger.info("    ERROR = " + graphNotSelect);
+        error = true;
       }
 
+    }
+    if (error) {
+      fail("Unexpected graph fields not in select, see log.");
     }
 
   }
 
   /**
-   * In general, rdfs:label should not be used in queires.
+   * In general, rdfs:label should not be used in queries.
    */
   @Test
   public void testRdfsLabel() {
@@ -131,7 +138,7 @@ public class SparqlQueriesTests {
 
         final boolean pnc = line.contains("preferredNameCode");
         final boolean matches =
-            line.matches("OPTIONAL \\{ .*#\\{preferredNameCode\\} .*Label.*\\}.*");
+            line.matches(".*OPTIONAL \\{ .*#\\{preferredNameCode\\} .*Label.*\\}.*");
 
         if (pnc) {
           logger.info("  FOUND #{preferredNameCode} = " + key + ", " + line);
@@ -157,8 +164,7 @@ public class SparqlQueriesTests {
   @Test
   public void testCodeCodeAfterPreferredNameCode() {
 
-    // This is an exception because it's always NCIt
-    final Set<String> exceptions = Set.of("associations");
+    final Set<String> exceptions = Set.of("n/a");
 
     boolean error = false;
     for (final Map.Entry<Object, Object> entry : prop.entrySet()) {
@@ -189,6 +195,47 @@ public class SparqlQueriesTests {
     }
     if (error) {
       fail("Unexpected use of '#{codeCode} after #{preferredNameCode}' - see log");
+    }
+  }
+
+  @Test
+  public void testDotBeforeClause() {
+
+    final Set<String> exceptions = Set.of("n/a");
+
+    boolean error = false;
+    for (final Map.Entry<Object, Object> entry : prop.entrySet()) {
+      final String key = entry.getKey().toString();
+      final String query = entry.getValue().toString();
+
+      if (exceptions.contains(key)) {
+        continue;
+      }
+
+      // If query does not end in " . ", the next line should be " }"
+      for (String line : query.split(" \\. ")) {
+        line = line.replaceFirst("ORDER BY.*","");
+        
+        // Skip certain lines lines
+        if (line.toLowerCase().startsWith("select")) {
+          continue;
+        }
+        if (line.toLowerCase().contains("} union {")) {
+          continue;
+        }
+        if (line.toLowerCase().contains("xml:anyuri")) {
+          continue;
+        }
+
+        if (StringUtils.countMatches(line, "?") > 3) {
+          logger.info("    ERROR missing clause . separator = " + key + " = " + line);
+
+        }
+
+      }
+    }
+    if (error) {
+      fail("Unexpected missing . separating clause - see log");
     }
   }
 }

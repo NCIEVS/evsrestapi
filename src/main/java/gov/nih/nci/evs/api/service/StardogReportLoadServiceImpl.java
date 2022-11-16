@@ -153,10 +153,15 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
         if (!map.containsKey(qualifier.getCode())) {
           map.put(qualifier.getCode(), new HashSet<>());
         }
-        map.get(qualifier.getCode()).add(value);
         if (!map.containsKey(qualifier.getName())) {
           map.put(qualifier.getName(), new HashSet<>());
         }
+        if (map.get(qualifier.getCode()).size() > 5) {
+          map.get(qualifier.getCode()).add("...");
+          map.get(qualifier.getName()).add("...");
+          break;
+        }
+        map.get(qualifier.getCode()).add(value);
         map.get(qualifier.getName()).add(value);
       }
     }
