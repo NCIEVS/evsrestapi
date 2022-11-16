@@ -210,15 +210,15 @@ public class MDRControllerTests {
             .findFirst().get().getQualifiers().get(0).getValue().equals("classified_as"));
 
     assertThat(concept.getChildren().size()).isEqualTo(8);
-    assertThat(concept.getChildren().get(0).getTerminology()).isNull();
-    assertThat(concept.getChildren().get(0).getVersion()).isNull();
-    assertThat(concept.getChildren().get(0).getLeaf()).isNotNull();
+    assertThat(concept.getChildren().get(0).getTerminology()).isNotNull();
+    assertThat(concept.getChildren().get(0).getVersion()).isNotNull();
+    assertThat(concept.getChildren().get(0).getLeaf()).isNull();
     assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10048498");
 
     assertThat(concept.getParents().size()).isEqualTo(1);
-    assertThat(concept.getParents().get(0).getTerminology()).isNull();
-    assertThat(concept.getParents().get(0).getVersion()).isNull();
+    assertThat(concept.getParents().get(0).getTerminology()).isNotNull();
+    assertThat(concept.getParents().get(0).getVersion()).isNotNull();
     assertThat(concept.getParents().get(0).getLeaf()).isNull();
     assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10053567");
@@ -309,8 +309,9 @@ public class MDRControllerTests {
     log.info("Testing url - " + url
         + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Hepatitis, non-infectious (SMQ)&type=contains");
     result = mvc
-        .perform(get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-            .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+        .perform(
+            get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
+                .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
 
@@ -318,11 +319,12 @@ public class MDRControllerTests {
     log.info("Testing url - " + url
         + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Hepatitis, non-infectious (SMQ)&type=match");
     result = mvc
-        .perform(get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-            .param("pageSize", "100").param("type", "match").param("include", "synonyms"))
+        .perform(
+            get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
+                .param("pageSize", "100").param("type", "match").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
-}
+  }
 
   /**
    * Test mdr metadata.
@@ -526,6 +528,7 @@ public class MDRControllerTests {
     assertThat(list.size()).isEqualTo(1);
 
   }
+
   /**
    * Test subree.
    *

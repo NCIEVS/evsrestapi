@@ -137,6 +137,10 @@ public class TerminologyMetadataUnitTest {
     tester.include("licenseText");
     tester.include("metaConceptField");
     tester.include("preferredTermTypes");
+    tester.include("subsetLinks");
+    tester.include("subsetPrefix");
+    tester.include("codeLabel");
+    tester.include("welcomeText");
 
     tester.proxy(Map.class, 1, m1);
     tester.proxy(Map.class, 2, m2);
