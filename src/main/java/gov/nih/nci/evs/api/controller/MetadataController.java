@@ -717,43 +717,41 @@ public class MetadataController extends BaseController {
     }
   }
 
-    /**
-     * Returns the concept statuses.
-     *
-     * @param terminology the terminology
-     * @return the concept statuses
-     * @throws Exception the exception
-     */
-    @ApiOperation(value = "Get all concept status values for the specified terminology",
-            response = String.class, responseContainer = "List")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-            @ApiResponse(code = 400, message = "Bad request"),
-            @ApiResponse(code = 404, message = "Resource not found")
-    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "terminology",
-                    value = "Terminology, e.g. 'ncit'. This call is only meaningful for <i>ncit</i>.",
-                    required = true, dataTypeClass = String.class, paramType = "path",
-                    defaultValue = "ncit")
-    })
-    @RecordMetric
-    @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses",
-            produces = "application/json")
-    public @ResponseBody List<String> getConceptStatuses(@PathVariable(value = "terminology")
-    final String terminology) throws Exception {
-        try {
-            Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
-            if (!result.isPresent()) {
-                // this should never happen
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            
-            return result.get();
-        } catch (Exception e) {
-            handleException(e);
-            return null;
-        }
+  /**
+   * Returns the concept statuses.
+   *
+   * @param terminology the terminology
+   * @return the concept statuses
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get all concept status values for the specified terminology",
+      response = String.class, responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology",
+          value = "Terminology, e.g. 'ncit'. This call is only meaningful for <i>ncit</i>.",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses",
+      produces = "application/json")
+  public @ResponseBody List<String> getConceptStatuses(@PathVariable(value = "terminology")
+  final String terminology) throws Exception {
+    try {
+      Optional<List<String>> result = metadataService.getConceptStatuses(terminology);
+      if (!result.isPresent()) {
+        // this should never happen
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      return result.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
     }
   }
 
