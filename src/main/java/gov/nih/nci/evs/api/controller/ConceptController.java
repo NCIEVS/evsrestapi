@@ -114,7 +114,7 @@ public class ConceptController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
+  final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam("list")
   final String list) throws Exception {
     try {
@@ -174,7 +174,7 @@ public class ConceptController extends BaseController {
   })
   public @ResponseBody Concept getConcept(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -277,8 +277,8 @@ public class ConceptController extends BaseController {
   public @ResponseBody AssociationEntryResultList getAssociationEntries(
     @PathVariable(value = "terminology")
     final String terminology, @PathVariable(value = "codeOrLabel")
-    String codeOrLabel, @RequestParam("fromRecord")
-    Optional<Integer> fromRecord, @RequestParam("pageSize")
+    String codeOrLabel, @RequestParam(required = false, name = "fromRecord")
+    Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
     Optional<Integer> pageSize) throws Exception {
     // Get the association "label"
     Long startTime = System.currentTimeMillis();
@@ -354,7 +354,10 @@ public class ConceptController extends BaseController {
    * Returns the subsets.
    *
    * @param terminology the terminology
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @param code the code
+   * @param include the include
    * @return the subsets
    * @throws Exception the exception
    */
@@ -389,8 +392,8 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   public @ResponseBody List<Concept> getSubsetMembers(@PathVariable(value = "terminology")
   final String terminology, @RequestParam("fromRecord")
-  final Optional<Integer> fromRecord, @RequestParam(value = "pageSize")
-  final Optional<Integer> pageSize, @PathVariable(value = "code")
+  final Optional<Integer> fromRecord, @RequestParam(required = false, value = "pageSize")
+  final Optional<Integer> pageSize, @PathVariable(required = false, value = "code")
   final String code, @RequestParam("include")
   final Optional<String> include) throws Exception {
     try {
@@ -660,9 +663,9 @@ public class ConceptController extends BaseController {
   })
   public @ResponseBody List<Concept> getDescendants(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("fromRecord")
-  final Optional<Integer> fromRecord, @RequestParam("pageSize")
-  final Optional<Integer> pageSize, @RequestParam("maxLevel")
+  final String code, @RequestParam(required = false, name = "fromRecord")
+  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Optional<Integer> pageSize, @RequestParam(required = false, name = "maxLevel")
   final Optional<Integer> maxLevel) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -825,7 +828,7 @@ public class ConceptController extends BaseController {
           defaultValue = "minimal")
   })
   public @ResponseBody List<Concept> getRoots(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
+  final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -885,7 +888,7 @@ public class ConceptController extends BaseController {
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -941,8 +944,9 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-//      final List<HierarchyNode> nodes = elasticQueryService.getPathInHierarchy(code, term);
-//      return nodes;
+      // final List<HierarchyNode> nodes =
+      // elasticQueryService.getPathInHierarchy(code, term);
+      // return nodes;
 
       List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(term);
       Paths paths = elasticQueryService.getPathsToRoot(code, term);
@@ -964,7 +968,8 @@ public class ConceptController extends BaseController {
         for (int j = concepts.size() - 2; j >= 0; j--) {
           ConceptMinimal c = concepts.get(j);
           if (!previous.getChildren().stream().anyMatch(n -> n.getCode().equals(c.getCode()))) {
-            List<HierarchyNode> children = elasticQueryService.getChildNodes(previous.getCode(), 0, term);
+            List<HierarchyNode> children =
+                elasticQueryService.getChildNodes(previous.getCode(), 0, term);
             for (HierarchyNode child : children) {
               child.setLevel(null);
               previous.getChildren().add(child);
@@ -976,7 +981,7 @@ public class ConceptController extends BaseController {
         }
       }
       return rootNodes;
-      
+
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -1068,7 +1073,7 @@ public class ConceptController extends BaseController {
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -1129,7 +1134,7 @@ public class ConceptController extends BaseController {
   public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @PathVariable(value = "ancestorCode")
-  final String ancestorCode, @RequestParam("include")
+  final String ancestorCode, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);

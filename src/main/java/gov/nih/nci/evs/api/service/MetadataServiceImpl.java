@@ -289,12 +289,12 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final Map<String, Set<String>> map = esQueryService.getQualifierValues(term);
-    if (!map.containsKey(code)) {
+    if (map == null || !map.containsKey(code)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Qualifier " + code + " not found (2)");
     }
 
-    return Optional.of(map.get(code).stream().sorted().collect(Collectors.toList()));
+    return Optional.ofNullable(map.get(code).stream().sorted().collect(Collectors.toList()));
 
   }
 

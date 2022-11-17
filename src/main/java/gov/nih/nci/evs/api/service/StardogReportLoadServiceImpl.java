@@ -153,10 +153,15 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
         if (!map.containsKey(qualifier.getCode())) {
           map.put(qualifier.getCode(), new HashSet<>());
         }
-        map.get(qualifier.getCode()).add(value);
         if (!map.containsKey(qualifier.getName())) {
           map.put(qualifier.getName(), new HashSet<>());
         }
+        if (map.get(qualifier.getCode()).size() > 5) {
+          map.get(qualifier.getCode()).add("...");
+          map.get(qualifier.getName()).add("...");
+          break;
+        }
+        map.get(qualifier.getCode()).add(value);
         map.get(qualifier.getName()).add(value);
       }
     }
@@ -199,11 +204,6 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       logReport("  ", "definition sources", definitionSources);
     }
 
-    // Show synonym types
-    final List<Concept> synonymTypes =
-        sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
-    logReport("  ", "synonym types", synonymTypes);
-
     // Show concept statuses
     if (terminology.getMetadata().getConceptStatus() != null) {
       final List<String> conceptStatuses = sparqlQueryManagerService
@@ -216,12 +216,17 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       logReport("  ", "concept statuses = " + conceptStatuses);
     }
 
+    // Show synonym types
+    final List<Concept> synonymTypes =
+        sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
     logReport("  ", "synonym types", synonymTypes);
 
-    // Show definition types
-    // List<Concept> definitionTypes =
-    // sparqlQueryManagerService.getAllDefinitionTypes(terminology, new
-    // IncludeParam("full"));
+    // Show synonym types
+    if (terminology.getMetadata().getDefinition() != null) {
+      final List<Concept> definitionTypes =
+          sparqlQueryManagerService.getAllDefinitionTypes(terminology, new IncludeParam("full"));
+      logReport("  ", "definition types", definitionTypes);
+    }
 
     // LATER (ncit only): Show subsets
     // List<Concept> subsets =

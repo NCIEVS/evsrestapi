@@ -127,9 +127,9 @@ query=`cat /tmp/x.$$.txt`
 # Run the query against each of the databases
 /bin/rm -f /tmp/y.$$.txt
 touch /tmp/y.$$.txt
-for db in `cat /tmp/db.$$.txt`; do
+for d in `cat /tmp/db.$$.txt`; do
     curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-        http://${STARDOG_HOST}:${STARDOG_PORT}/$db/query \
+        http://${STARDOG_HOST}:${STARDOG_PORT}/$d/query \
         --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
         $jq | perl -ne '
             chop; $x="version" if /"version"/; 
@@ -138,10 +138,10 @@ for db in `cat /tmp/db.$$.txt`; do
             if ($x && /"value"/) { 
                 s/.* "//; s/".*//;
                 ${$x} = $_;                
-                print "$version|'$db'|$source\n" if $x eq "version"; 
+                print "$version|'$d'|$source\n" if $x eq "version"; 
             } ' >> /tmp/y.$$.txt
     if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected problem obtaining $db versions from stardog"
+        echo "ERROR: unexpected problem obtaining $d versions from stardog"
         exit 1
     fi    
 done
@@ -150,6 +150,7 @@ done
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
 /bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
+
 
 if [ $list -eq 1 ]; then
 
@@ -165,7 +166,6 @@ if [ $list -eq 1 ]; then
     exit 0
     
 else
-
     # Verify db/termionlogy/version is valid
     passed=0
     for x in `cat /tmp/y.$$.txt`; do
