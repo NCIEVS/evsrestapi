@@ -124,7 +124,7 @@ public final class TerminologyUtils {
    */
   public Terminology getTerminology(final String terminology, boolean indexed) throws Exception {
     List<Terminology> terminologies = getTerminologies(indexed);
-
+    logger.debug("XXX terminologies = " + terminologies);
     // Find latest monthly match
     final Terminology latestMonthly = terminologies.stream()
         .filter(t -> t.getTerminology().equals(terminology) && "ncit".equals(terminology)

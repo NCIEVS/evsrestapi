@@ -217,7 +217,7 @@ for x in `cat /tmp/y.$$.txt`; do
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-        echo "    FOUND indexes for $version"
+        echo "    FOUND indexes for $term $version"
         
         # Stale indexes are automatically cleaned up by the indexing process
         # It checks against stardog and reconciles everything and updates latest flags
