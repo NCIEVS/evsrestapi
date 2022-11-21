@@ -33,7 +33,7 @@ public class Paths extends BaseModel {
    * Instantiates an empty {@link Paths}.
    */
   public Paths() {
-    paths = new ArrayList<Path>();
+    paths = new ArrayList<Path>(5);
   }
 
   /**
@@ -41,7 +41,7 @@ public class Paths extends BaseModel {
    *
    * @param other the other
    */
-  public Paths(Paths other) {
+  public Paths(final Paths other) {
     // Copy all the paths using copy constructor
     paths = other.getPaths().stream().map(p -> new Path(p)).collect(Collectors.toList());
   }

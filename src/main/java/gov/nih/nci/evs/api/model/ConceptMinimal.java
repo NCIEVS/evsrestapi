@@ -27,6 +27,10 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
   @Field(type = FieldType.Text)
   private String code;
 
+  /** The uri. */
+  @Field(type = FieldType.Keyword)
+  private String uri;
+
   /** The name. */
   @Field(type = FieldType.Text)
   private String name;
@@ -87,11 +91,24 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    * @param other the other
    */
   public void populateFrom(final ConceptMinimal other) {
+    uri = other.getUri();
     code = other.getCode();
     name = other.getName();
     terminology = other.getTerminology();
     version = other.getVersion();
     level = other.getLevel();
+  }
+
+  /* see superclass */
+  @Override
+  public String getUri() {
+    return uri;
+  }
+
+  /* see superclass */
+  @Override
+  public void setUri(final String uri) {
+    this.uri = uri;
   }
 
   /**
@@ -148,10 +165,20 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
     this.terminology = terminology;
   }
 
+  /**
+   * Returns the version.
+   *
+   * @return the version
+   */
   public String getVersion() {
     return version;
   }
 
+  /**
+   * Sets the version.
+   *
+   * @param version the version
+   */
   public void setVersion(final String version) {
     this.version = version;
   }

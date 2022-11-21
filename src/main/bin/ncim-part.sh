@@ -19,7 +19,7 @@ if [ ${#arr[@]} -eq 1 ]; then
 elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
   ok=1
 fi
-if [ $ok -eq 0 ] || [ $help -eq 1]; then
+if [ $ok -eq 0 ] || [ $help -eq 1 ]; then
   echo "Usage: $0 [--noconfig] [--download] [<dir>]"
   echo "Usage:    [--terminology <terminology, e.g. MDR>]"
   echo "  e.g. $0 /data/evs/ncim"

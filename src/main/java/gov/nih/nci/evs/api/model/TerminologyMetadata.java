@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * from OWL structures to the terminology model.
  */
 @JsonInclude(Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TerminologyMetadata extends BaseModel {
 
   /** The ui label. */
@@ -99,9 +101,6 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The term types. */
   private Map<String, String> termTypes;
-
-  /** The property names. */
-  private Map<String, String> propertyNames;
 
   /** The subset link prefix. */
   private String subsetPrefix;
@@ -190,7 +189,6 @@ public class TerminologyMetadata extends BaseModel {
     definitionSourceSet = new HashSet<>(other.getDefinitionSourceSet());
     synonymSourceSet = new HashSet<>(other.getSynonymSourceSet());
     termTypes = new HashMap<>(other.getTermTypes());
-    propertyNames = new HashMap<>(other.getPropertyNames());
     subsetLinks = new HashMap<>(other.getSubsetLinks());
     subsetMember = new HashSet<>(other.getSubsetMember());
     unpublished = new HashSet<>(other.getUnpublished());
@@ -932,37 +930,6 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the property names.
-   *
-   * @return the property names
-   */
-  public Map<String, String> getPropertyNames() {
-    if (propertyNames == null) {
-      propertyNames = new HashMap<>();
-    }
-    return propertyNames;
-  }
-
-  /**
-   * Sets the property names.
-   *
-   * @param propertyNames the property names
-   */
-  public void setPropertyNames(Map<String, String> propertyNames) {
-    this.propertyNames = propertyNames;
-  }
-
-  /**
-   * Returns the property name.
-   *
-   * @param code the code
-   * @return the property name
-   */
-  public String getPropertyName(String code) {
-    return getPropertyNames().get(code);
-  }
-
-  /**
    * Returns the subset links.
    *
    * @return the subsetLinks
@@ -1213,7 +1180,7 @@ public class TerminologyMetadata extends BaseModel {
    */
   public Boolean getHierarchy() {
     if (hierarchy == null) {
-      hierarchy = new Boolean(null);
+      hierarchy = false;
     }
     return hierarchy;
   }
@@ -1237,6 +1204,9 @@ public class TerminologyMetadata extends BaseModel {
     // IT was requested that Maps_To remain as property metadata for NCIt
     // to accommodate report writer use cases
     // || getMap().equals(code)
+    if (code == null) {
+      return false;
+    }
     return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code);
 
   }
@@ -1248,6 +1218,9 @@ public class TerminologyMetadata extends BaseModel {
    * @return <code>true</code> if so, <code>false</code> otherwise
    */
   public boolean isRemodeledQualifier(final String code) {
+    if (code == null) {
+      return false;
+    }
     return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
         || code.equals(synonymSubSource) || code.equals(definitionSource)
         || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
