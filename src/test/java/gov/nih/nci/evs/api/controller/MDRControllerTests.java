@@ -99,6 +99,8 @@ public class MDRControllerTests {
         terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
     assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA");
+    assertThat(mdr.getName()).isEqualTo("MedDRA 23_1");
+    assertThat(mdr.getDescription()).isNotEmpty();
     assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
     assertThat(mdr.getMetadata().getLicenseText()).isNotNull();

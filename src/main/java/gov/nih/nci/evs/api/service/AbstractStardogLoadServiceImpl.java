@@ -25,6 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.AssociationEntry;
@@ -104,19 +105,31 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
     }
 
-    logger.info("Getting all concepts");
-    List<Concept> allConcepts = sparqlQueryManagerService.getAllConcepts(terminology);
+    logger.info("Getting all concepts without codes");
+    List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
+    int ct = concepts.size();
 
     try {
-      // download concepts and upload to es in real time
-      logger.info("Loading in real time");
-      loadConceptsRealTime(allConcepts, terminology, hierarchy);
+      logger.info("Loading concepts without codes");
+      loadConceptsRealTime(concepts, terminology, hierarchy);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       throw new IOException(e);
     }
 
-    return allConcepts.size();
+    concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
+    ct += concepts.size();
+
+    try {
+      // download concepts and upload to es in real time
+      logger.info("Loading concepts with codes");
+      loadConceptsRealTime(concepts, terminology, hierarchy);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new IOException(e);
+    }
+
+    return ct;
 
   }
 
@@ -451,9 +464,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     final String resource = "metadata/" + term.getTerminology() + ".json";
     try {
       // Load from file
-      TerminologyMetadata metadata = new ObjectMapper().readValue(
-          IOUtils.toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
-          TerminologyMetadata.class);
+      final JsonNode node = new ObjectMapper().readTree(IOUtils
+          .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"));
+      TerminologyMetadata metadata =
+          new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+
+      // Set term name and description
+      term.setName(metadata.getUiLabel() + " " + term.getVersion());
+      if (term.getDescription() == null) {
+        term.setDescription(node.get("description").asText());
+      }
 
       // Set some flags
       metadata.setLoader("rdf");
@@ -472,6 +492,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       if (metadata.getConceptStatus() != null) {
         metadata.setConceptStatuses(
             sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
+        // IF this is just the single value "true", then instead set to
+        // "Retired_Concept"
+        if (metadata.getConceptStatuses().size() == 1
+            && "true".equals(metadata.getConceptStatuses().get(0))) {
+          metadata.getConceptStatuses().clear();
+          metadata.getConceptStatuses().add("Retired_Concept");
+        }
       }
 
       // Compute definition sources
@@ -496,6 +523,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
-    return sparqlQueryManagerService.getHierarchyUtils(term);
+    final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
+
+    // Get all roles and inverse roles
+    // IF WE BRING THIS BACK -> clean this up to reuse the data structure, so we
+    // don't have to call twice.
+    // logger.info("Load all roles");
+    // hierarchy.setRoleMap(sparqlQueryManagerService.getRolesForAllCodes(term,
+    // false));
+    // logger.info("Load all inverse roles");
+    // hierarchy.setRoleMap(sparqlQueryManagerService.getRolesForAllCodes(term,
+    // true));
+
+    return hierarchy;
   }
 }

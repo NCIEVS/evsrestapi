@@ -660,14 +660,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // IN query on synonym.type
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
-    for (String source : searchCriteria.getSynonymType()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.type", source));
-      for (final Terminology terminology : terminologies) {
-        if (terminology.getMetadata().getPropertyName(source) != null) {
-          inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.type",
-              terminology.getMetadata().getPropertyName(source)));
-        }
-      }
+    for (String type : searchCriteria.getSynonymType()) {
+      inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.type", type));
+      inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.typeCode", type));
+      // ONLY search on synonym type
+      // for (final Terminology terminology : terminologies) {
+      // if (terminology.getMetadata().getPropertyName(source) != null) {
+      // inQuery = inQuery.should(QueryBuilders.matchQuery("synonyms.type",
+      // terminology.getMetadata().getPropertyName(source)));
+      // }
+      // }
     }
     fieldBoolQuery = fieldBoolQuery.must(inQuery);
 
@@ -720,19 +722,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // IN query on definition.type
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
-    for (String source : searchCriteria.getDefinitionType()) {
-      inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.type", source));
-      for (final Terminology terminology : terminologies) {
-        if (terminology.getMetadata().getPropertyName(source) != null) {
-          inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.type",
-              terminology.getMetadata().getPropertyName(source)));
-        }
-      }
+    for (String type : searchCriteria.getDefinitionType()) {
+      inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.type", type));
+      inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.code", type));
+      // Only search on definition type
+      // for (final Terminology terminology : terminologies) {
+      // if (terminology.getMetadata().getPropertyName(type) != null) {
+      // inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.type",
+      // terminology.getMetadata().getPropertyName(type)));
+      // }
+      // }
     }
     fieldBoolQuery = fieldBoolQuery.must(inQuery);
 
     // nested query on properties
     return QueryBuilders.nestedQuery("definitions", fieldBoolQuery, ScoreMode.Total);
+
   }
 
   /**

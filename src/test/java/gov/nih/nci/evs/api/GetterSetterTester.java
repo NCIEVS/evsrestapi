@@ -54,8 +54,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GetterSetterTester extends ProxyTester {
   /** The logger. */
-  private final Logger logger =
-      LoggerFactory.getLogger(GetterSetterTester.class);
+  private final Logger logger = LoggerFactory.getLogger(GetterSetterTester.class);
 
   /** Object under test. */
   private Object obj;
@@ -92,7 +91,7 @@ public class GetterSetterTester extends ProxyTester {
    */
   public void test() throws Exception {
     final Method[] methods = getClazz().getMethods();
-    final Object emptyObj = obj.getClass().newInstance();
+    final Object emptyObj = obj.getClass().getDeclaredConstructor().newInstance();
 
     for (int i = 0; i < methods.length; i++) {
       /* We're looking for single-argument setters. */
@@ -107,8 +106,7 @@ public class GetterSetterTester extends ProxyTester {
       }
 
       /* Check the field name against our include/exclude list. */
-      if (!getIncludes().isEmpty()
-          && !getIncludes().contains(fieldName.toLowerCase())) {
+      if (!getIncludes().isEmpty() && !getIncludes().contains(fieldName.toLowerCase())) {
         continue;
       }
       if (getExcludes().contains(fieldName.toLowerCase())) {
@@ -126,10 +124,8 @@ public class GetterSetterTester extends ProxyTester {
         if (Collection.class.isAssignableFrom(getter.getReturnType())) {
           final Object value = getter.invoke(emptyObj, new Object[] {});
           if (value == null) {
-            logger.error("  " + getter.getName()
-                + " returns null instead of empty collection");
-            throw new Exception(
-                getter.getName() + " returns null instead of empty collection");
+            logger.error("  " + getter.getName() + " returns null instead of empty collection");
+            throw new Exception(getter.getName() + " returns null instead of empty collection");
           }
         }
       } catch (final NoSuchMethodException e) {
@@ -139,9 +135,7 @@ public class GetterSetterTester extends ProxyTester {
             continue;
           }
         } catch (final NoSuchMethodException e2) {
-          throw new Exception(
-              "Set method does not have corresponding get method: "
-                  + m.getName());
+          throw new Exception("Set method does not have corresponding get method: " + m.getName());
         }
       }
 
@@ -159,11 +153,10 @@ public class GetterSetterTester extends ProxyTester {
    * @param argType the data type
    * @throws Exception the exception
    */
-  private void testGetterSetter(final String field, final Method get,
-    final Method set, final Class<?> argType) throws Exception {
+  private void testGetterSetter(final String field, final Method get, final Method set,
+    final Class<?> argType) throws Exception {
     if (this.verbose) {
-      logger.debug(
-          "Testing " + get.getDeclaringClass().getName() + "." + get.getName());
+      logger.debug("Testing " + get.getDeclaringClass().getName() + "." + get.getName());
     }
     final Object proxy = makeProxy(field, argType, 1);
     try {
@@ -172,25 +165,23 @@ public class GetterSetterTester extends ProxyTester {
       });
     } catch (final InvocationTargetException e) {
       e.printStackTrace();
-      throw new RuntimeException(
-          "Setter " + set.getDeclaringClass().getName() + "." + set.getName()
-              + " threw " + e.getTargetException().toString());
+      throw new RuntimeException("Setter " + set.getDeclaringClass().getName() + "." + set.getName()
+          + " threw " + e.getTargetException().toString());
     }
 
     Object getResult;
     try {
       getResult = get.invoke(this.obj, new Object[] {});
     } catch (final InvocationTargetException e) {
-      throw new RuntimeException(
-          "Getter " + get.getDeclaringClass().getName() + "." + set.getName()
-              + " threw " + e.getTargetException().toString());
+      throw new RuntimeException("Getter " + get.getDeclaringClass().getName() + "." + set.getName()
+          + " threw " + e.getTargetException().toString());
     }
 
     if (getResult == proxy || proxy.equals(getResult)) {
       return;
     }
-    throw new RuntimeException("Getter " + get.getName()
-        + " did not return value from setter: " + proxy + ", " + getResult);
+    throw new RuntimeException("Getter " + get.getName() + " did not return value from setter: "
+        + proxy + ", " + getResult);
   }
 
 }

@@ -226,7 +226,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
     if (!hierarchy.isPresent())
       return Collections.emptyList();
-    ArrayList<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
+    List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
     List<Concept> concepts = getConcepts(hierarchyRoots, terminology, ip);
     concepts.sort(Comparator.comparing(Concept::getName));
     for (Concept c : concepts) {
@@ -250,8 +250,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
     if (!hierarchy.isPresent())
       return Collections.emptyList();
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
-    ArrayList<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
+    List<HierarchyNode> nodes = new ArrayList<>();
+    List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
     List<Concept> concepts = getConcepts(hierarchyRoots, terminology, new IncludeParam("minimal"));
     for (Concept c : concepts) {
       HierarchyNode node = new HierarchyNode(c.getCode(), c.getName(), false);
@@ -278,7 +278,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       key = "{#root.methodName, #parent, #maxLevel, #terminology.getTerminologyVersion()}")
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
-    ArrayList<HierarchyNode> nodes = new ArrayList<HierarchyNode>();
+    List<HierarchyNode> nodes = new ArrayList<>();
     List<Concept> children = getSubclasses(parent, terminology);
     if (children == null) {
       return nodes;
@@ -301,7 +301,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<String> getAllChildNodes(String code, Terminology terminology) {
-    ArrayList<String> childCodes = new ArrayList<String>();
+    List<String> childCodes = new ArrayList<>();
 
     List<Concept> children = getSubclasses(code, terminology);
     if (children == null || children.size() == 0) {
@@ -324,7 +324,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @param terminology the terminology
    * @return the all child nodes recursive
    */
-  private void getAllChildNodesRecursive(String code, ArrayList<String> childCodes,
+  private void getAllChildNodesRecursive(String code, List<String> childCodes,
     Terminology terminology) {
     List<Concept> children = getSubclasses(code, terminology);
     if (children == null || children.size() == 0) {
@@ -394,7 +394,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       }
       if (codeSW && parentSW) {
         // logger.debug("both codeSW and parentSW are TRUE");
-        List<ConceptMinimal> trimed_concepts = new ArrayList<ConceptMinimal>();
+        List<ConceptMinimal> trimed_concepts = new ArrayList<>();
         if (idx == -1) {
           idx = concepts.size() - 1;
         }
