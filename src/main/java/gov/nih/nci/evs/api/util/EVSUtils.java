@@ -115,7 +115,7 @@ public class EVSUtils {
             .addAll(EVSUtils.getQualifiers(synonym.getTypeCode(), synonym.getName(), axioms));
 
         // Record for later comparison
-        sySeen.add(synonym.getName() + synonym.getType());
+        sySeen.add(synonym.getType() + synonym.getName());
 
         // log.info(" ADD synonym = " + axiomCode + ", " + synonym);
         results.add(synonym);
@@ -136,7 +136,7 @@ public class EVSUtils {
 
         // Any synonyms found here won't have qualifiers
 
-        sySeen.add(synonym.getName() + synonym.getType());
+        sySeen.add(synonym.getType() + synonym.getName()  );
         results.add(synonym);
 
         continue;
