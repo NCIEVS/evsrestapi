@@ -105,6 +105,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
     }
 
+    // Get complex roles and inverse roles
+    try {
+    logger.info("Load complex roles");
+      hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
+    logger.info("Load complex inverse roles");
+    hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
+    } catch (Exception e1) {
+      throw new IOException(e1);
+    }
+
     logger.info("Getting all concepts without codes");
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
     int ct = concepts.size();
@@ -524,12 +534,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
     final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
-
-    // Get complex roles and inverse roles
-    logger.info("Load complex roles");
-    hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(term, false));
-    logger.info("Load complex inverse roles");
-    hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(term, true));
 
     return hierarchy;
   }

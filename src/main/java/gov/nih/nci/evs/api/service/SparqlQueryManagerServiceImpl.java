@@ -457,8 +457,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Map<String, List<Concept>> parentMap = getParents(conceptCodes, terminology, hierarchy);
     final Map<String, List<Association>> associationMap = new HashMap<>();
     final Map<String, List<Association>> inverseAssociationMap = new HashMap<>();
-    final Map<String, List<Role>> roleMap = new HashMap<>(); // hierarchy.getRoleMap();
-    final Map<String, List<Role>> inverseRoleMap = new HashMap<>(); // hierarchy.getInverseRoleMap();
+    final Map<String, List<Role>> roleMap = hierarchy.getRoleMap();
+    final Map<String, List<Role>> inverseRoleMap = hierarchy.getInverseRoleMap();
     final Map<String, List<DisjointWith>> disjointWithMap = new HashMap<>();
 
     executor.submit(() -> {
@@ -478,8 +478,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.submit(() -> {
       try {
         log.info("      start roles");
-        roleMap.putAll(getRoles(conceptCodes, terminology));
-        inverseRoleMap.putAll(getInverseRoles(conceptCodes, terminology));
+        ConceptUtils.combineRoles(roleMap, getRoles(conceptCodes, terminology));
+        ConceptUtils.combineRoles(inverseRoleMap, getInverseRoles(conceptCodes, terminology));
         log.info("      finish roles");
       } catch (final Exception e) {
         log.error("Uexpected error on main", e);
