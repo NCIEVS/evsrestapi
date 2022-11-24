@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api.model.sparql;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Bindings for sparql queries.
  */
@@ -290,8 +292,11 @@ public class Bindings {
    */
   @Override
   public String toString() {
-    return "ClassPojo [propertyValue = " + propertyValue + ", property = " + property
-        + ", propertyLabel = " + propertyLabel + ", propertyCode = " + propertyCode + "]";
+    try {
+      return new ObjectMapper().writeValueAsString(this);
+    } catch (final Exception e) {
+      return e.getMessage();
+    }
   }
 
   /**

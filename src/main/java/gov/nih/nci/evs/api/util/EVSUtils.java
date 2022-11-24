@@ -136,7 +136,7 @@ public class EVSUtils {
 
         // Any synonyms found here won't have qualifiers
 
-        sySeen.add(synonym.getType() + synonym.getName()  );
+        sySeen.add(synonym.getType() + synonym.getName());
         results.add(synonym);
 
         continue;

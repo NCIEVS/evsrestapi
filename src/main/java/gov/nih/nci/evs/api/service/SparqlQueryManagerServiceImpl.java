@@ -455,8 +455,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Map<String, List<Axiom>> axiomMap = new HashMap<>();
     final Map<String, List<Concept>> childMap = getChildren(conceptCodes, terminology, hierarchy);
     final Map<String, List<Concept>> parentMap = getParents(conceptCodes, terminology, hierarchy);
-    final Map<String, List<Association>> associationMap = new HashMap<>();
-    final Map<String, List<Association>> inverseAssociationMap = new HashMap<>();
+    final Map<String, List<Association>> associationMap = hierarchy.getAssociationMap();
+    final Map<String, List<Association>> inverseAssociationMap =
+        hierarchy.getInverseAssociationMap();
     final Map<String, List<Role>> roleMap = hierarchy.getRoleMap();
     final Map<String, List<Role>> inverseRoleMap = hierarchy.getInverseRoleMap();
     final Map<String, List<DisjointWith>> disjointWithMap = new HashMap<>();
@@ -465,8 +466,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       try {
         log.info("      start main");
         propertyMap.putAll(getProperties(conceptCodes, terminology));
-        associationMap.putAll(getAssociations(conceptCodes, terminology));
-        inverseAssociationMap.putAll(getInverseAssociations(conceptCodes, terminology));
         disjointWithMap.putAll(getDisjointWith(conceptCodes, terminology));
         log.info("      finish main");
       } catch (final Exception e) {
@@ -479,10 +478,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       try {
         log.info("      start roles");
         ConceptUtils.combineRoles(roleMap, getRoles(conceptCodes, terminology));
-        ConceptUtils.combineRoles(inverseRoleMap, getInverseRoles(conceptCodes, terminology));
         log.info("      finish roles");
       } catch (final Exception e) {
-        log.error("Uexpected error on main", e);
+        log.error("Uexpected error on roles", e);
+        exceptions.add(e);
+      }
+    });
+
+    executor.submit(() -> {
+      try {
+        log.info("      start inverse roles");
+        ConceptUtils.combineRoles(inverseRoleMap, getInverseRoles(conceptCodes, terminology));
+        log.info("      finish inverse roles");
+      } catch (final Exception e) {
+        log.error("Uexpected error on inverse roles", e);
         exceptions.add(e);
       }
     });
@@ -493,7 +502,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         axiomMap.putAll(getAxioms(conceptCodes, terminology, true));
         log.info("      finish axioms");
       } catch (final Exception e) {
-        log.error("Uexpected error on main", e);
+        log.error("Uexpected error on axioms", e);
         exceptions.add(e);
       }
     });
@@ -827,7 +836,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the associations
    * @throws Exception the exception
    */
-  /* see superclass */
   public Map<String, List<Association>> getAssociations(final List<String> conceptCodes,
     final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
@@ -851,8 +859,51 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final Association association = new Association();
       association.setCode(EVSUtils.getRelationshipCode(b));
       association.setType(EVSUtils.getRelationshipType(b));
+
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
+      resultMap.get(conceptCode).add(association);
+
+    }
+
+    return resultMap;
+  }
+
+  /* see superclass */
+  @Override
+  public Map<String, List<Association>> getAssociationsForAllCodes(final Terminology terminology,
+    final boolean inverse) throws Exception {
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query =
+        queryBuilderService.constructBatchQuery("associations.all", terminology, new ArrayList<>());
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final Map<String, List<Association>> resultMap = new HashMap<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (final Bindings b : bindings) {
+      final String conceptCode = b.getConceptCode().getValue();
+
+      if (resultMap.get(conceptCode) == null) {
+        resultMap.put(conceptCode, new ArrayList<>());
+      }
+
+      final Association association = new Association();
+      association.setCode(EVSUtils.getRelationshipCode(b));
+      association.setType(EVSUtils.getRelationshipType(b));
+
+      if (inverse) {
+        association.setRelatedCode(b.getConceptCode().getValue());
+        // assumes the query has ?concept or that label is guaranteed to be set
+        association.setRelatedName(EVSUtils.getConceptLabel(b));
+      } else {
+        association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
+        association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
+
+      }
       resultMap.get(conceptCode).add(association);
 
     }

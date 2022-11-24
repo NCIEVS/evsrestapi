@@ -107,10 +107,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // Get complex roles and inverse roles
     try {
-    logger.info("Load complex roles");
-      hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
-    logger.info("Load complex inverse roles");
-    hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
+      logger.info("Load complex roles");
+      hierarchy
+          .setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
+      logger.info("Load complex inverse roles");
+      hierarchy.setInverseRoleMap(
+          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
+      logger.info("Load all associations");
+      hierarchy.setAssociationMap(
+          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
+      logger.info("Load all inverse roles");
+      hierarchy.setInverseAssociationMap(
+          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
     } catch (Exception e1) {
       throw new IOException(e1);
     }
