@@ -223,7 +223,6 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "    SKIP RECONCILE $term stale indexes and update flags"
             continue
         fi
-        pt=$term
         
         # Stale indexes are automatically cleaned up by the indexing process
         # It checks against stardog and reconciles everything and updates latest flags
@@ -279,6 +278,7 @@ for x in `cat /tmp/y.$$.txt`; do
     
     # track previous version, if next one is the same, don't index again.
     pv=$cv
+    pt=$term
 done
 
 # Cleanup

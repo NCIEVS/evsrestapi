@@ -21,6 +21,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
@@ -65,7 +66,15 @@ public class HierarchyUtils {
   @Transient
   private Set<String> children = new HashSet<String>();
 
-  /** The roles. */
+  /** The association map. */
+  @Transient
+  private Map<String, List<Association>> associationMap = new HashMap<>(10000);
+
+  /** The inverse association map. */
+  @Transient
+  private Map<String, List<Association>> inverseAssociationMap = new HashMap<>(10000);
+
+  /** The role map. */
   @Transient
   private Map<String, List<Role>> roleMap = new HashMap<>(10000);
 
@@ -657,4 +666,39 @@ public class HierarchyUtils {
     this.inverseRoleMap = inverseRoleMap;
   }
 
+  /**
+   * Returns the association map.
+   *
+   * @return the association map
+   */
+  public Map<String, List<Association>> getAssociationMap() {
+    return associationMap;
+  }
+
+  /**
+   * Sets the association map.
+   *
+   * @param associationMap the association map
+   */
+  public void setAssociationMap(Map<String, List<Association>> associationMap) {
+    this.associationMap = associationMap;
+  }
+
+  /**
+   * Returns the inverse association map.
+   *
+   * @return the inverse association map
+   */
+  public Map<String, List<Association>> getInverseAssociationMap() {
+    return inverseAssociationMap;
+  }
+
+  /**
+   * Sets the inverse association map.
+   *
+   * @param inverseAssociationMap the inverse association map
+   */
+  public void setInverseAssociationMap(Map<String, List<Association>> inverseAssociationMap) {
+    this.inverseAssociationMap = inverseAssociationMap;
+  }
 }
