@@ -105,6 +105,24 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
     }
 
+    // Get complex roles and inverse roles
+    try {
+      logger.info("Load complex roles");
+      hierarchy
+          .setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
+      logger.info("Load complex inverse roles");
+      hierarchy.setInverseRoleMap(
+          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
+      logger.info("Load all associations");
+      hierarchy.setAssociationMap(
+          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
+      logger.info("Load all inverse roles");
+      hierarchy.setInverseAssociationMap(
+          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
+    } catch (Exception e1) {
+      throw new IOException(e1);
+    }
+
     logger.info("Getting all concepts without codes");
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
     int ct = concepts.size();
@@ -524,16 +542,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
     final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
-
-    // Get all roles and inverse roles
-    // IF WE BRING THIS BACK -> clean this up to reuse the data structure, so we
-    // don't have to call twice.
-    // logger.info("Load all roles");
-    // hierarchy.setRoleMap(sparqlQueryManagerService.getRolesForAllCodes(term,
-    // false));
-    // logger.info("Load all inverse roles");
-    // hierarchy.setRoleMap(sparqlQueryManagerService.getRolesForAllCodes(term,
-    // true));
 
     return hierarchy;
   }

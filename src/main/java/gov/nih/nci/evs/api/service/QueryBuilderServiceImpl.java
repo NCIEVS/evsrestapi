@@ -143,6 +143,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
             terminology.getGraph(), "inClause", inClause, "aboutClause", aboutClause,
             "preferredNameCode", terminology.getMetadata().getPreferredName());
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
+    if (env.containsProperty(queryPropTerminology)) {
+      log.info("    use terminology-specific query = " + queryPropTerminology);
+    }
     String query = getResolvedProperty(
         env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
