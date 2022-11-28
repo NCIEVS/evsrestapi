@@ -105,10 +105,16 @@ PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
 select distinct ?source ?graphName ?version where {
   graph ?graphName {
-    ?source a owl:Ontology .
-    ?source owl:versionInfo ?version .
-    ?source (dc:date|owl:versionInfo) ?date .
-    ?source (rdfs:comment|dc:description) ?comment .
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionInfo ?version
+    }
+    UNION
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionIRI ?version .
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo }
+    }
   }
 }
 EOF
@@ -133,12 +139,13 @@ for db in `cat /tmp/db.$$.txt`; do
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected problem obtaining $db versions from stardog"
         exit 1
-    fi    
+    fi
 done
 
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
+# NOTE: version isn't cleaned up here so from where versionIRI is still an IRI
 /bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
@@ -179,11 +186,11 @@ fi
 
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
-    version=`echo $x | cut -d\| -f 1`
+    version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
     cv=`echo $version | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
-    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/;'`
+    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
@@ -210,10 +217,29 @@ for x in `cat /tmp/y.$$.txt`; do
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-        echo "    FOUND indexes for $version, continue"
+        echo "    FOUND indexes for $term $version"
+        
+        if [[ $term == $pt ]]; then
+            echo "    SKIP RECONCILE $term stale indexes and update flags"
+            continue
+        fi
+        
+        # Stale indexes are automatically cleaned up by the indexing process
+        # It checks against stardog and reconciles everything and updates latest flags
+        # regardless of whether there was new data
+        echo "    RECONCILE $term stale indexes and update flags"
+        export EVS_SERVER_PORT="8083"
+        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+        if [[ $? -ne 0 ]]; then
+            cat /tmp/x.$$.log | sed 's/^/    /'
+            echo "ERROR: unexpected error building indexes"
+            exit 1
+        fi
+        /bin/rm -rf /tmp/x.$$.log
+        
     else
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-            echo "    FOUND indexes for $version, force reindex anyway"        
+            echo "    FOUND indexes for $term $version, force reindex anyway"        
 
             # Remove if this already exists
             version=`echo $cv | perl -pe 's/.*_//;'`
@@ -230,9 +256,9 @@ for x in `cat /tmp/y.$$.txt`; do
         # Run reindexing process (choose a port other than the one that it runs on)
         export STARDOG_DB=$db
         export EVS_SERVER_PORT="8083"
-        echo "    Generate indexes for $STARDOG_DB $version"
+        echo "    Generate indexes for $STARDOG_DB ${term} $version"
 
-        echo "java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+        echo "java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
         java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
@@ -249,21 +275,11 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
     fi
-
+    
     # track previous version, if next one is the same, don't index again.
     pv=$cv
+    pt=$term
 done
-
-# Stale indexes are automatically cleaned up by the indexing process
-# It checks against stardog and reconciles everything and updates latest flags
-# regardless of whether there was new data
-echo "  Reconcile stale indexes and update flags"
-echo "    java $local -jar $jar --terminology $term --skipConcepts --skipMetadata"
-java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building indexes"
-    exit 1
-fi
 
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$

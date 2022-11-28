@@ -22,6 +22,9 @@ elif [ ${#arr[@]} -ne 3 ] || [ $help -eq 1 ]; then
   echo "Usage: $0 [--noconfig] [--list] <database> <terminology> <version>"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
+  echo "  e.g. $0 --noconfig --list"
+  echo "  e.g. $0 --noconfig NCIT2 hgnc 202209"
+  echo "  e.g. $0 --noconfig NCIT2 chebi 213"
   exit 1
 fi
 
@@ -96,7 +99,7 @@ fi
 
 
 # Prep query to read all version info
-echo "  Lookup terminology, version info for in stardog"
+echo "  Lookup terminology, version info for graphs in stardog"
 cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
@@ -106,8 +109,16 @@ PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
 select distinct ?source ?graphName ?version where {
   graph ?graphName {
-    ?source a owl:Ontology .
-    ?source owl:versionInfo ?version .
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionInfo ?version
+    }
+    UNION
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionIRI ?version .
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo }
+    }
   }
 }
 EOF
@@ -116,9 +127,9 @@ query=`cat /tmp/x.$$.txt`
 # Run the query against each of the databases
 /bin/rm -f /tmp/y.$$.txt
 touch /tmp/y.$$.txt
-for db in `cat /tmp/db.$$.txt`; do
+for d in `cat /tmp/db.$$.txt`; do
     curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-        http://${STARDOG_HOST}:${STARDOG_PORT}/$db/query \
+        http://${STARDOG_HOST}:${STARDOG_PORT}/$d/query \
         --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
         $jq | perl -ne '
             chop; $x="version" if /"version"/; 
@@ -127,10 +138,10 @@ for db in `cat /tmp/db.$$.txt`; do
             if ($x && /"value"/) { 
                 s/.* "//; s/".*//;
                 ${$x} = $_;                
-                print "$version|'$db'|$source\n" if $x eq "version"; 
+                print "$version|'$d'|$source\n" if $x eq "version"; 
             } ' >> /tmp/y.$$.txt
     if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected problem obtaining $db versions from stardog"
+        echo "ERROR: unexpected problem obtaining $d versions from stardog"
         exit 1
     fi    
 done
@@ -140,27 +151,28 @@ done
 # defined in ncit.json
 /bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 
+
 if [ $list -eq 1 ]; then
 
     echo "  List stardog graphs"
     for x in `cat /tmp/y.$$.txt`; do
-        version=`echo $x | cut -d\| -f 1`
+        version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
         cv=`echo $version | perl -pe 's/\.//;'`
         db=`echo $x | cut -d\| -f 2`
         uri=`echo $x | cut -d\| -f 3`
-        term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/;'`
+        term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
         echo "    $db $term $version"
     done
-
+    exit 0
+    
 else
-
     # Verify db/termionlogy/version is valid
     passed=0
     for x in `cat /tmp/y.$$.txt`; do
-        v=`echo $x | cut -d\| -f 1`
+        v=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
         d=`echo $x | cut -d\| -f 2`
         uri=`echo $x | cut -d\| -f 3`
-        t=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/;'`
+        t=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
         if [ $v == $version ] && [ $t == $terminology ] && [ $d == $db ]; then
             passed=1
         fi	
@@ -180,7 +192,7 @@ else
     fi
 
     # Generate report
-    echo "  Generate report for $STARDOG_DB $terminology $version...`/bin/date`"
+    echo "  Generate report for $db $terminology $version...`/bin/date`"
     export STARDOG_DB=$db
     export EVS_SERVER_PORT="8083"
     echo "java $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report" | sed 's/^/      /'
@@ -191,6 +203,7 @@ else
     fi
 
 fi
+
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
 

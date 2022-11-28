@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api.model.sparql;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Bindings for sparql queries.
  */
@@ -9,20 +11,23 @@ public class Bindings {
   /** The property. */
   private Property property;
 
+  /** The property code. */
+  private Property propertyCode;
+
   /** The property label. */
   private Property propertyLabel;
 
-  /** The property code. */
-  private Property propertyCode;
+  /** The property value. */
+  private Property propertyValue;
+
+  /** The concept. */
+  private Property concept;
 
   /** The concept code. */
   private Property conceptCode;
 
   /** The concept label. */
   private Property conceptLabel;
-
-  /** The property value. */
-  private Property propertyValue;
 
   /** The axiom. */
   private Property axiom;
@@ -33,21 +38,6 @@ public class Bindings {
   /** The axiom value. */
   private Property axiomValue;
 
-  /** The subclass. */
-  private Property subclass;
-
-  /** The subclass code. */
-  private Property subclassCode;
-
-  /** The subclass label. */
-  private Property subclassLabel;
-
-  /** The superclass. */
-  private Property superclass;
-
-  /** The superclass code. */
-  private Property superclassCode;
-
   /** The superclass label. */
   private Property superclassLabel;
 
@@ -57,17 +47,29 @@ public class Bindings {
   /** The relationship code. */
   private Property relationshipCode;
 
+  /** The relationship code. */
+  private Property relationshipLabel;
+
+  /** The related concept. */
+  private Property relatedConcept;
+
   /** The related concept code. */
   private Property relatedConceptCode;
 
   /** The related concept label. */
   private Property relatedConceptLabel;
 
+  /** The parent. */
+  private Property parent;
+
   /** The parent code. */
   private Property parentCode;
 
   /** The parent label. */
   private Property parentLabel;
+
+  /** The child. */
+  private Property child;
 
   /** The child code. */
   private Property childCode;
@@ -137,6 +139,24 @@ public class Bindings {
    */
   public void setProperty(Property property) {
     this.property = property;
+  }
+
+  /**
+   * Returns the concept.
+   *
+   * @return the concept
+   */
+  public Property getConcept() {
+    return concept;
+  }
+
+  /**
+   * Sets the concept.
+   *
+   * @param concept the concept
+   */
+  public void setConcept(Property concept) {
+    this.concept = concept;
   }
 
   /**
@@ -248,96 +268,6 @@ public class Bindings {
   }
 
   /**
-   * Returns the subclass.
-   *
-   * @return the subclass
-   */
-  public Property getSubclass() {
-    return subclass;
-  }
-
-  /**
-   * Sets the subclass.
-   *
-   * @param subclass the subclass
-   */
-  public void setSubclass(Property subclass) {
-    this.subclass = subclass;
-  }
-
-  /**
-   * Returns the subclass code.
-   *
-   * @return the subclass code
-   */
-  public Property getSubclassCode() {
-    return subclassCode;
-  }
-
-  /**
-   * Sets the subclass code.
-   *
-   * @param subclassCode the subclass code
-   */
-  public void setSubclassCode(Property subclassCode) {
-    this.subclassCode = subclassCode;
-  }
-
-  /**
-   * Returns the subclass label.
-   *
-   * @return the subclass label
-   */
-  public Property getSubclassLabel() {
-    return subclassLabel;
-  }
-
-  /**
-   * Sets the subclass label.
-   *
-   * @param subclassLabel the subclass label
-   */
-  public void setSubclassLabel(Property subclassLabel) {
-    this.subclassLabel = subclassLabel;
-  }
-
-  /**
-   * Returns the superclass.
-   *
-   * @return the superclass
-   */
-  public Property getSuperclass() {
-    return superclass;
-  }
-
-  /**
-   * Sets the superclass.
-   *
-   * @param superclass the superclass
-   */
-  public void setSuperclass(Property superclass) {
-    this.superclass = superclass;
-  }
-
-  /**
-   * Returns the superclass code.
-   *
-   * @return the superclass code
-   */
-  public Property getSuperclassCode() {
-    return superclassCode;
-  }
-
-  /**
-   * Sets the superclass code.
-   *
-   * @param superclassCode the superclass code
-   */
-  public void setSuperclassCode(Property superclassCode) {
-    this.superclassCode = superclassCode;
-  }
-
-  /**
    * Returns the superclass label.
    *
    * @return the superclass label
@@ -362,8 +292,11 @@ public class Bindings {
    */
   @Override
   public String toString() {
-    return "ClassPojo [propertyValue = " + propertyValue + ", property = " + property
-        + ", propertyLabel = " + propertyLabel + ", propertyCode = " + propertyCode + "]";
+    try {
+      return new ObjectMapper().writeValueAsString(this);
+    } catch (final Exception e) {
+      return e.getMessage();
+    }
   }
 
   /**
@@ -421,6 +354,42 @@ public class Bindings {
   }
 
   /**
+   * Returns the relationship label.
+   *
+   * @return the relationship label
+   */
+  public Property getRelationshipLabel() {
+    return relationshipLabel;
+  }
+
+  /**
+   * Sets the relationship label.
+   *
+   * @param relationshipLabel the relationship label
+   */
+  public void setRelationshipLabel(Property relationshipLabel) {
+    this.relationshipLabel = relationshipLabel;
+  }
+
+  /**
+   * Returns the related concept.
+   *
+   * @return the related concept
+   */
+  public Property getRelatedConcept() {
+    return relatedConcept;
+  }
+
+  /**
+   * Sets the related concept.
+   *
+   * @param relatedConcept the related concept
+   */
+  public void setRelatedConcept(Property relatedConcept) {
+    this.relatedConcept = relatedConcept;
+  }
+
+  /**
    * Returns the related concept code.
    *
    * @return the related concept code
@@ -457,6 +426,24 @@ public class Bindings {
   }
 
   /**
+   * Returns the parent.
+   *
+   * @return the parent
+   */
+  public Property getParent() {
+    return parent;
+  }
+
+  /**
+   * Sets the parent.
+   *
+   * @param parent the parent
+   */
+  public void setParent(Property parent) {
+    this.parent = parent;
+  }
+
+  /**
    * Returns the parent code.
    *
    * @return the parent code
@@ -490,6 +477,24 @@ public class Bindings {
    */
   public void setParentLabel(Property parentLabel) {
     this.parentLabel = parentLabel;
+  }
+
+  /**
+   * Returns the child.
+   *
+   * @return the child
+   */
+  public Property getChild() {
+    return child;
+  }
+
+  /**
+   * Sets the child.
+   *
+   * @param child the child
+   */
+  public void setChild(Property child) {
+    this.child = child;
   }
 
   /**

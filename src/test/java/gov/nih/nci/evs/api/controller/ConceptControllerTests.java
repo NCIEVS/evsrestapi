@@ -1281,6 +1281,46 @@ public class ConceptControllerTests {
     assertThat(subsetMembers.size() == 0);
   }
 
+  @Test
+  public void testMDRTerminology() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // test if mdr term exists
+    url = "/api/v1/metadata/terminologies?latest=true&tags=monthly&terminology=ncit";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url).param("latest", "true").param("tags", "monthly").param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+
+    final List<Terminology> terminologies =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        });
+    assertThat(terminologies.size()).isGreaterThan(0);
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count())
+        .isEqualTo(1);
+    final Terminology ncit =
+        terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(ncit.getTerminology()).isEqualTo("ncit");
+    assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
+    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 22.06e");
+    assertThat(ncit.getDescription()).isNotEmpty();
+
+    // TODO: These need fixing
+    assertThat(ncit.getMetadata().getLoader()).isEqualTo("rrf");
+    assertThat(ncit.getMetadata().getSourceCt()).isEqualTo(1);
+    assertThat(ncit.getMetadata().getLicenseText()).isNotNull();
+    assertThat(ncit.getName())
+        .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
+    assertThat(ncit.getDescription()).isEqualTo(";;MedDRA MSSO;;MedDRA [electronic resource]"
+        + " : Medical Dictionary for Regulatory Activities Terminology;;;"
+        + "Version 23.1;;MedDRA MSSO;;September, 2020;;;;MedDRA "
+        + "[electronic resource] : Medical Dictionary for Regulatory Activities Terminology");
+    ;
+    assertThat(ncit.getLatest()).isTrue();
+  }
+  
   /**
    * Test terminology versions
    *
@@ -1300,6 +1340,7 @@ public class ConceptControllerTests {
         }).get(0);
     String weeklyTerm = terminology.getTerminologyVersion();
     String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;
+    
     result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();

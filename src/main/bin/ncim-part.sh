@@ -3,11 +3,13 @@
 config=1
 download=0
 rm=1
+help=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --download) download=1;;
   --terminology) terminology="$2"; shift;;
   --keep) rm=0;;
+  --help) help=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
@@ -17,7 +19,7 @@ if [ ${#arr[@]} -eq 1 ]; then
 elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
   ok=1
 fi
-if [ $ok -eq 0 ]; then
+if [ $ok -eq 0 ] || [ $help -eq 1 ]; then
   echo "Usage: $0 [--noconfig] [--download] [<dir>]"
   echo "Usage:    [--terminology <terminology, e.g. MDR>]"
   echo "  e.g. $0 /data/evs/ncim"
@@ -167,12 +169,13 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "  Remove any older versions indexes"
+echo "  Remove any older versions indexes ($terminology $version)"
 curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
-   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
+   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep -i ${terminology}_ > /tmp/x.$$
 for i in `cat /tmp/x.$$`; do    
-    lv=`echo $i | perl -pe 's/.*_//;'`
-    if [[ $lv -ge $version ]]; then
+    lv=`echo $i | perl -pe 's/.*'${terminology}'_//i;'`
+    # string compare versions
+    if [ "$lv" \> "$version" ]; then
         echo "    skip $lv - later than $version"
         continue
     fi

@@ -56,6 +56,9 @@ public class MetadataController extends BaseController {
   /**
    * Returns the terminologies.
    *
+   * @param latest the latest
+   * @param tag the tag
+   * @param terminology the terminology
    * @return the terminologies
    * @throws Exception the exception
    */
@@ -81,10 +84,11 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
-  public @ResponseBody List<Terminology> getTerminologies(@RequestParam("latest")
-  final Optional<Boolean> latest, @RequestParam("tag")
-  final Optional<String> tag, @RequestParam("terminology")
-  final Optional<String> terminology) throws Exception {
+  public @ResponseBody List<Terminology> getTerminologies(
+    @RequestParam(required = false, name = "latest")
+    final Optional<Boolean> latest, @RequestParam(required = false, name = "tag")
+    final Optional<String> tag, @RequestParam(required = false, name = "terminology")
+    final Optional<String> terminology) throws Exception {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
       List<Terminology> terms = termUtils.getTerminologies(true);
@@ -164,8 +168,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getAssociations(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getAssociations(terminology, include, list);
@@ -213,7 +217,7 @@ public class MetadataController extends BaseController {
       value = "/metadata/{terminology}/association/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getAssociation(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
 
@@ -271,8 +275,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getRoles(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getRoles(terminology, include, list);
@@ -320,7 +324,7 @@ public class MetadataController extends BaseController {
       produces = "application/json")
   public @ResponseBody Concept getRole(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       // If the code contains a comma, just bail
@@ -375,8 +379,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getProperties(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
 
     try {
@@ -424,8 +428,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getSubsets(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getSubsets(terminology, include, list);
@@ -472,8 +476,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getQualifiers(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getQualifiers(terminology, include, list);
@@ -521,7 +525,7 @@ public class MetadataController extends BaseController {
       value = "/metadata/{terminology}/qualifier/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getQualifier(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -640,7 +644,7 @@ public class MetadataController extends BaseController {
       value = "/metadata/{terminology}/property/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getProperty(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -696,7 +700,7 @@ public class MetadataController extends BaseController {
       produces = "application/json")
   public @ResponseBody Concept getSubset(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       // If the code contains a comma, just bail
@@ -743,6 +747,7 @@ public class MetadataController extends BaseController {
         // this should never happen
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
       }
+
       return result.get();
     } catch (Exception e) {
       handleException(e);
@@ -897,8 +902,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getSynonymTypes(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
 
     try {
@@ -909,6 +914,15 @@ public class MetadataController extends BaseController {
     }
   }
 
+  /**
+   * Returns the synonym type.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the synonym type
+   * @throws Exception the exception
+   */
   @ApiOperation(value = "Get the synonym type for the specified terminology and code/name",
       response = Concept.class)
   @ApiResponses(value = {
@@ -938,7 +952,7 @@ public class MetadataController extends BaseController {
       value = "/metadata/{terminology}/synonymType/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getSynonymType(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -996,8 +1010,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getDefinitionTypes(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
 
     try {
@@ -1046,7 +1060,7 @@ public class MetadataController extends BaseController {
       value = "/metadata/{terminology}/definitionType/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getDefinitionType(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
