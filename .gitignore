@@ -18,3 +18,4 @@ WEB-INF/*
 .vscode/launch.json
 .vscode/settings.json
 .idea/.gitignore
+!src/main/bin/
