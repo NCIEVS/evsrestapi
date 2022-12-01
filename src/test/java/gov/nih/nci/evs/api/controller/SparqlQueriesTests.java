@@ -122,7 +122,7 @@ public class SparqlQueriesTests {
   public void testPreferredNameCode() {
 
     // This is an exception because it's always NCIt
-    final Set<String> exceptions = Set.of("subset");
+    final Set<String> exceptions = Set.of("subset","associations.all.ncit");
     boolean found = false;
     boolean error = false;
     for (final Map.Entry<Object, Object> entry : prop.entrySet()) {
