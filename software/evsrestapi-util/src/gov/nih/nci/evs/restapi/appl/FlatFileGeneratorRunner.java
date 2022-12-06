@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.appl;
-
 import gov.nih.nci.evs.restapi.util.*;
 
 import java.io.*;
@@ -64,16 +63,16 @@ import java.nio.charset.Charset;
 public class FlatFileGeneratorRunner {
     static String CONCEPT_MEMBESHIP_FILE = "concept_in_subset_data.txt";
 	public static void run(String restURL, String named_graph, String username, String password) {
-		System.out.println("Generating NCI Thesaurus flat file ...");
+		System.out.println("Generating NCI Thesaurus flat file. Please wait ...");
 
         FlatFileGenerator test = new FlatFileGenerator(restURL, named_graph, username, password);
 		String flatfile = test.generate();
 
-		System.out.println("Loading " + CONCEPT_MEMBESHIP_FILE + " ...");
-        Vector v = Utils.readFile(CONCEPT_MEMBESHIP_FILE);
+        //System.out.println("getConceptMembership ...");
+        Vector v = test.getConceptMembership(named_graph);
+        //Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, v);
 
-		System.out.println("Merging " + CONCEPT_MEMBESHIP_FILE + " with " + flatfile + " ...");
-		System.out.println("\tNumber of Concept_In_Subset associations loaded: " + v.size());
+		//System.out.println("Merging " + CONCEPT_MEMBESHIP_FILE + " with " + flatfile + " ...");
 		HashMap code2LabelMap = new HashMap();
 
 		//Cyclin D|C104194|Concept_In_Subset|CTRP Biomarker Terminology|C142799
@@ -126,7 +125,7 @@ public class FlatFileGeneratorRunner {
 		System.out.println("Number of code in the " + flatfile + ": " + hset.size());
 
 		int n = flatfile.lastIndexOf(".");
-		String outputfile = flatfile.substring(0, n) + "_v2.txt";
+		String outputfile = flatfile.substring(0, n) + "_" + StringUtils.getToday() + ".txt";
 		Utils.saveToFile(outputfile, v2);
 		System.out.println("File generated as " + outputfile + ".");
 

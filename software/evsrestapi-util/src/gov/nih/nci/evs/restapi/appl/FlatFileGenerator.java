@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.appl;
-
 import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
@@ -360,12 +359,12 @@ public class FlatFileGenerator {
 		HashMap dnMap = createMultiValuedHashMap(v);
 		v.clear();
 
-//Concept_Status
+//Cocept_Statu
 		v = getProp(named_graph, "P310");
 		HashMap statusMap = createMultiValuedHashMap(v);
 		v.clear();
 
-//Concept_Status
+//Semantic_Type
 		v = getProp(named_graph, "P106");
 		HashMap styMap = createMultiValuedHashMap(v);
 		v.clear();
