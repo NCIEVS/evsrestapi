@@ -125,7 +125,7 @@ public class FlatFileGeneratorRunner {
 		System.out.println("Number of code in the " + flatfile + ": " + hset.size());
 
 		int n = flatfile.lastIndexOf(".");
-		String outputfile = flatfile.substring(0, n) + "_" + StringUtils.getToday() + ".txt";
+		String outputfile = flatfile.substring(0, n) + "_v2" + ".txt";
 		Utils.saveToFile(outputfile, v2);
 		System.out.println("File generated as " + outputfile + ".");
 

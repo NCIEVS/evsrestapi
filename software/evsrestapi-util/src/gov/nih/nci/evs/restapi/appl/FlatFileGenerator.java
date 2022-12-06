@@ -400,7 +400,7 @@ public class FlatFileGenerator {
 		String flatfile = test.generate();
 
 		Vector cis_data = test.getConceptMembership(named_graph);
-		Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, cis_data);
+		//Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, cis_data);
 
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
