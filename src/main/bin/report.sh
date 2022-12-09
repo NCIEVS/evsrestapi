@@ -182,7 +182,7 @@ else
         exit 1
     fi
 
-    export PATH="/usr/local/jdk1.8/bin/:$PATH"
+    export PATH="/usr/local/corretto-jdk11/:$PATH"
     # Handle the local setup
     local=""
     jar="../lib/evsrestapi.jar"
