@@ -175,7 +175,7 @@ fi
 
 # For each DB|version, check whether indexes already exist for that version
 echo ""
-export PATH="/usr/local/corretto-jdk11/:$PATH"
+export PATH="/usr/local/corretto-jdk11/bin:$PATH"
 # Handle the local setup
 local=""
 jar="../lib/evsrestapi.jar"
