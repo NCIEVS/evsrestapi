@@ -9,7 +9,7 @@
 # Short-Description: start and stop the Angular Core application
 ### END INIT INFO
 
-export JAVA_HOME=/usr/local/jdk1.8
+export JAVA_HOME=/usr/local/corretto-jdk11
 export PATH="${JAVA_HOME}/bin:${PATH}"
 USER=`id | sed -e 's/^[^(]*(\([^(]*\)).*$/\1/'`
 APP_NAME=`basename $0`

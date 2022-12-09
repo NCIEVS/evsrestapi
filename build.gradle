@@ -43,8 +43,8 @@ apply plugin: 'maven-publish'
 group = "gov.nih.nci.evs.api"
 version = "1.7.0.RELEASE"
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 springBoot {
     // generate file META-INF/build-info.properties during the build
