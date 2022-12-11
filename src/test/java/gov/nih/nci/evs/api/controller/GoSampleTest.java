@@ -13,6 +13,7 @@ import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
@@ -26,11 +27,14 @@ public class GoSampleTest {
     @Autowired
     ConceptSampleTester conceptSampleTester;
 
+    @Value("${spring.sampleText.go}")
+    private static String goFile;
+
     @BeforeClass
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
         ClassLoader classLoader = GoSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream("sample.txt");
+        InputStream resourceStream = classLoader.getResourceAsStream(goFile);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
         String line;
         samples = new HashMap<>();

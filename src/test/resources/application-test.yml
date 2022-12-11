@@ -14,3 +14,8 @@ spring:
     cache:
         jcache:
             config: classpath:ehcache.xml
+	sampleTest:
+		ncit: ncit.txt
+		chebi: chebi.txt
+		go: go.txt
+		hgnc: hgnc.txt
