@@ -34,7 +34,7 @@ public class NcitSampleTest {
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
         ClassLoader classLoader = NcitSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream(ncitFile);
+        InputStream resourceStream = classLoader.getResourceAsStream("../../../../../../../resources/" + ncitFile);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
         String line;
         samples = new HashMap<>();

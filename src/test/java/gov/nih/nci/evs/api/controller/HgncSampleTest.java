@@ -34,7 +34,7 @@ public class HgncSampleTest {
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
         ClassLoader classLoader = HgncSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream(hgncFile);
+        InputStream resourceStream = classLoader.getResourceAsStream("../../../../../../../resources/" + hgncFile);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
         String line;
         samples = new HashMap<>();

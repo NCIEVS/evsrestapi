@@ -34,7 +34,7 @@ public class GoSampleTest {
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
         ClassLoader classLoader = GoSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream(goFile);
+        InputStream resourceStream = classLoader.getResourceAsStream("../../../../../../../resources/" + goFile);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
         String line;
         samples = new HashMap<>();

@@ -34,7 +34,7 @@ public class ChebiSampleTest {
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
         ClassLoader classLoader = ChebiSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream(chebiFile);
+        InputStream resourceStream = classLoader.getResourceAsStream("../../../../../../../resources/" + chebiFile);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
         String line;
         samples = new HashMap<>();
