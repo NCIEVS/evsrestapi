@@ -384,7 +384,8 @@ public class FlatFileGenerator {
 			w.add(code + "\t" + classUri + "\t" + parents + "\t" + synonms + "\t" + defs + "\t" + dns + "\t" + status + "\t" + sty);
 		}
 		v.clear();
-		String outputfile = "Thesaurus_" + StringUtils.getToday() + ".txt";
+		//String outputfile = "Thesaurus_" + StringUtils.getToday() + ".txt";
+		String outputfile = "Thesaurus.txt";
 		Utils.saveToFile(outputfile, w);
 		return outputfile;
 	}
@@ -400,7 +401,7 @@ public class FlatFileGenerator {
 		String flatfile = test.generate();
 
 		Vector cis_data = test.getConceptMembership(named_graph);
-		//Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, cis_data);
+		Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, cis_data);
 
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }

@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.restapi.appl;
 import gov.nih.nci.evs.restapi.util.*;
-
 import java.io.*;
 import java.text.*;
 import java.net.*;
@@ -63,19 +62,11 @@ import java.nio.charset.Charset;
 public class FlatFileGeneratorRunner {
     static String CONCEPT_MEMBESHIP_FILE = "concept_in_subset_data.txt";
 	public static void run(String restURL, String named_graph, String username, String password) {
-		System.out.println("Generating NCI Thesaurus flat file. Please wait ...");
-
-        FlatFileGenerator test = new FlatFileGenerator(restURL, named_graph, username, password);
-		String flatfile = test.generate();
-
-        //System.out.println("getConceptMembership ...");
-        Vector v = test.getConceptMembership(named_graph);
-        //Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, v);
-
-		//System.out.println("Merging " + CONCEPT_MEMBESHIP_FILE + " with " + flatfile + " ...");
+		System.out.println("Generating NCI Thesaurus flat file ...");
+        FlatFileGenerator generator = new FlatFileGenerator(restURL, named_graph, username, password);
+		String flatfile = generator.generate();
+		Vector v = generator.getConceptMembership(named_graph);
 		HashMap code2LabelMap = new HashMap();
-
-		//Cyclin D|C104194|Concept_In_Subset|CTRP Biomarker Terminology|C142799
         HashMap hmap = new HashMap();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
@@ -100,7 +91,6 @@ public class FlatFileGeneratorRunner {
 		v = Utils.readFile(flatfile);
 		Vector v2 = new Vector();
 		HashSet hset = new HashSet();
-		//C100000	<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000>	C99521	Percutaneous Coronary Intervention for ST Elevation Myocardial Infarction-Stable-Over 12 Hours From Symptom Onset|PERCUTANEOUS CORONARY INTERVENTION (PCI) FOR ST ELEVATION MYOCARDIAL INFARCTION (STEMI) (STABLE, >12 HRS FROM SYMPTOM ONSET)	A percutaneous coronary intervention is necessary for a myocardial infarction that presents with ST segment elevation and the subject does not have recurrent or persistent symptoms, symptoms of heart failure or ventricular arrhythmia. The presentation is past twelve hours since onset of symptoms. (ACC)			Therapeutic or Preventive Procedure
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(t, '\t');
@@ -113,7 +103,6 @@ public class FlatFileGeneratorRunner {
 				for (int j=0; j<w.size(); j++) {
 					String targetCode = (String) w.elementAt(j);
 					String targetName = (String) code2LabelMap.get(targetCode);
-					//buf.append("Concept_In_Subset"+"|").append(targetName+"|").append(targetCode+"|").append("ncit").append("$");
 					buf.append(targetName).append("|");
 				}
 				String s = buf.toString();
@@ -125,7 +114,7 @@ public class FlatFileGeneratorRunner {
 		System.out.println("Number of code in the " + flatfile + ": " + hset.size());
 
 		int n = flatfile.lastIndexOf(".");
-		String outputfile = flatfile.substring(0, n) + "_v2" + ".txt";
+		String outputfile = flatfile;//.substring(0, n) + "_v2.txt";
 		Utils.saveToFile(outputfile, v2);
 		System.out.println("File generated as " + outputfile + ".");
 
@@ -148,8 +137,6 @@ public class FlatFileGeneratorRunner {
 				String label = (String) code2LabelMap.get(code);
 				System.out.println("(" + lcv + ") " + label + " (" + code + ")");
 			}
-		} else {
-			System.out.println("\nAll codes in " + CONCEPT_MEMBESHIP_FILE + " are found in " + flatfile + ".");
 		}
 	}
 
