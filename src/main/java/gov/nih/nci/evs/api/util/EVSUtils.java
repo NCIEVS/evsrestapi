@@ -182,9 +182,6 @@ public class EVSUtils {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
         }
 
-        definition.getQualifiers().addAll(
-            EVSUtils.getQualifiers(definition.getCode(), definition.getDefinition(), axioms));
-
         defSeen.add(definition.getType() + definition.getDefinition());
         results.add(definition);
       }
