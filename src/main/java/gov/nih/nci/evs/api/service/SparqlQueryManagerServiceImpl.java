@@ -885,7 +885,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode().getValue();
+      
+      final String conceptCode = inverse ?
+          EVSUtils.getRelatedConceptCode(b)
+          : b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -902,7 +905,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       } else {
         association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
         association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
-
       }
       resultMap.get(conceptCode).add(association);
 
