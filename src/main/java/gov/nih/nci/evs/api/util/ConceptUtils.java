@@ -94,7 +94,7 @@ public final class ConceptUtils {
     // definitions
     for (final Definition def : concept.getDefinitions()) {
       String value = null;
-      for (Map.Entry<String, String> highlight : highlights.entrySet()) {
+      for (final Map.Entry<String, String> highlight : highlights.entrySet()) {
         if (def.getDefinition().contains(highlight.getKey())) {
           value = highlight.getValue();
         }
@@ -130,13 +130,14 @@ public final class ConceptUtils {
    * @return the result concepts
    */
   public static List<Concept> applyInclude(final List<Concept> concepts, final IncludeParam ip) {
-    if (CollectionUtils.isEmpty(concepts))
+    if (CollectionUtils.isEmpty(concepts)) {
       return Collections.emptyList();
+    }
 
     final List<Concept> result = new ArrayList<>(concepts.size());
 
-    for (Concept concept : concepts) {
-      Concept newConcept = new Concept();
+    for (final Concept concept : concepts) {
+      final Concept newConcept = new Concept();
       newConcept.setCode(concept.getCode());
       newConcept.setName(concept.getName());
       newConcept.setTerminology(concept.getTerminology());
@@ -198,14 +199,55 @@ public final class ConceptUtils {
   /**
    * Apply include.
    *
+   * @param concept the concept
+   * @param limit the limit
+   */
+  public static void applyLimit(final Concept concept, final int limit) {
+
+    concept.setAssociations(sublist(concept.getAssociations(), 0, limit));
+    concept.setChildren(sublist(concept.getChildren(), 0, limit));
+    concept.setDefinitions(sublist(concept.getDefinitions(), 0, limit));
+    concept.setDescendants(sublist(concept.getDescendants(), 0, limit));
+    concept.setDisjointWith(sublist(concept.getDisjointWith(), 0, limit));
+    concept.setInverseAssociations(sublist(concept.getInverseAssociations(), 0, limit));
+    concept.setInverseRoles(sublist(concept.getInverseRoles(), 0, limit));
+    concept.setMaps(sublist(concept.getMaps(), 0, limit));
+    concept.setParents(sublist(concept.getParents(), 0, limit));
+    concept.getPaths().setPaths(sublist(concept.getPaths().getPaths(), 0, limit));
+    concept.setProperties(sublist(concept.getProperties(), 0, limit));
+    concept.setQualifiers(sublist(concept.getQualifiers(), 0, limit));
+    concept.setRoles(sublist(concept.getRoles(), 0, limit));
+    concept.setSynonyms(sublist(concept.getSynonyms(), 0, limit));
+  }
+
+  /**
+   * Sublist.
+   *
+   * @param <T> the
+   * @param list the list
+   * @param fromIndex the from index
+   * @param maxElements the max elements
+   * @return the list
+   */
+  public static <T> List<T> sublist(List<T> list, final int fromIndex, final int maxElements) {
+    if (list.size() > maxElements) {
+      return list.subList(fromIndex, Math.min(fromIndex + maxElements, list.size()));
+    }
+    return list;
+  }
+
+  /**
+   * Apply include.
+   *
    * @param concepts the list of concepts
    * @param ip the include param
    * @return the result concepts
    */
-  public static void applyInclude(Concept concept, final IncludeParam ip) {
+  public static void applyInclude(final Concept concept, final IncludeParam ip) {
 
-    if (concept == null)
+    if (concept == null) {
       return;
+    }
 
     if (!ip.isSynonyms()) {
       concept.setSynonyms(null);

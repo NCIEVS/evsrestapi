@@ -163,6 +163,12 @@ public class ConceptController extends BaseController {
           value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
           required = true, dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "limit",
+          value = "If set to an integer (between <i>1</i> and <i>100</i>), elements of the concept "
+              + "should be limited to a reasonable number. Thus a user interface can quickly retrieve"
+              + "initial data for a concept (even with <i>include=full</i>) and then call back"
+              + "for more data.",
+          required = false, dataTypeClass = Integer.class, paramType = "query"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions, "
@@ -174,7 +180,8 @@ public class ConceptController extends BaseController {
   })
   public @ResponseBody Concept getConcept(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam(required = false, name = "include")
+  final String code, @RequestParam(required = false, name = "limit")
+  final Optional<Integer> limit, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -184,6 +191,14 @@ public class ConceptController extends BaseController {
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+      if (limit.isPresent()) {
+        if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
+
+        }
+        ConceptUtils.applyLimit(null, limit.get().intValue());
       }
       return concept.get();
     } catch (Exception e) {
@@ -932,17 +947,31 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "limit",
+          value = "If set to an integer (between <i>1</i> and <i>100</i>), elements of the concept "
+              + "should be limited to a reasonable number. Thus a user interface can quickly retrieve"
+              + "initial data for a concept (even with <i>include=full</i>) and then call back"
+              + "for more data.",
+          required = false, dataTypeClass = Integer.class, paramType = "query")
   })
   public @ResponseBody List<HierarchyNode> getSubtree(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestParam(required = false, name = "limit")
+  final Optional<Integer> limit) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      if (limit.isPresent()) {
+        if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
+
+        }
       }
       // final List<HierarchyNode> nodes =
       // elasticQueryService.getPathInHierarchy(code, term);
@@ -1012,22 +1041,41 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. 'C3224' for <i>ncit</i>. "
               + "This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "limit",
+          value = "If set to an integer (between <i>1</i> and <i>100</i>), elements of the concept "
+              + "should be limited to a reasonable number. Thus a user interface can quickly retrieve"
+              + "initial data for a concept (even with <i>include=full</i>) and then call back"
+              + "for more data.",
+          required = false, dataTypeClass = Integer.class, paramType = "query")
   })
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestParam(required = false, name = "limit")
+  final Optional<Integer> limit) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      if (limit.isPresent()) {
+        if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
+
+        }
       }
       // If terminology is "ncim", there are no child nodes
       if ("ncim".equals(terminology)) {
         return new ArrayList<>();
       }
       final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, 0, term);
-      nodes.stream().peek(n -> n.setLevel(null)).count();
+      // "count" doesn't force it to use check the stream.
+      nodes.stream().peek(n -> n.setLevel(null)).collect(Collectors.toList());
+
+      if (limit.isPresent()) {
+        return ConceptUtils.sublist(nodes, 0, limit.get().intValue());
+      }
       return nodes;
     } catch (Exception e) {
       handleException(e);
