@@ -571,9 +571,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     BoolQueryBuilder subsetQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.matchQuery("associations.type", "Concept_In_Subset"))
-        .must(subsetListQuery);
+        .must(QueryBuilders.matchQuery("associations.type", "Concept_In_Subset"));
 
+    if (!(searchCriteria.getSubset().size() == 1
+        && searchCriteria.getSubset().get(0).contentEquals("*"))) {
+      subsetQuery.must(subsetListQuery);
+    }
     return QueryBuilders.nestedQuery("associations", subsetQuery, ScoreMode.Total);
   }
 

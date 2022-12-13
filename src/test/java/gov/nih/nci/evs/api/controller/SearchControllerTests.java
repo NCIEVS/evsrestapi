@@ -2089,6 +2089,14 @@ public class SearchControllerTests {
       assertThat(found).isTrue();
     }
 
+    log.info("Testing url - " + url + "?include=associations&subset=*&terminology=ncit");
+    result = mvc.perform(
+        get(url).param("terminology", "ncit").param("subset", "*").param("include", "associations"))
+        .andExpect(status().isOk()).andReturn();
+    list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
+        ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+
   }
 
   /**
