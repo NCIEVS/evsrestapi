@@ -19,7 +19,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 * Load/Compute Indexes (for NCI Thesaurus)
 
-    gradlew clean build -x test
+    make clean build
 
     version=ncit_21.08d
     export EVS_SERVER_PORT=8083
@@ -37,7 +37,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Configure application
     * see `src/main/resources/application-local.yml` file for local setup (these settings should be suitable for local deployment)
 * Build the application (MUST DO BEFORE RUNNING if using "external tools configuration")
-    * ./gradlew clean build -x test
+    * make clean build
     * Executable war file present in build/libs
 
 * Run application in Eclipse (SpringBoot)

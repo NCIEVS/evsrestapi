@@ -125,12 +125,12 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "conceptStatus",
           value = "Comma-separated list of concept status values to restrict search results by. "
               + "<p><a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a "
-              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>ncit</i>.</p>",
+              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
           value = "Comma-separated list of properties to restrict search results by (see also <i>value</i>). e.g."
-              + "<ul><li>'P106,P322' for <i>ncit</i></li>"
-              + "<li>'COLOR,SHAPE' for <i>ncim</i></li></ul>"
+              + "<ul><li>'P106,P322' for <i>terminology=ncit</i></li>"
+              + "<li>'COLOR,SHAPE' for <i>terminology=ncim</i></li></ul>"
               + "<p><a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a "
               + "list of NCI Thesaurus properties</a>.</p>"
               + "<p><a href='api/v1/metadata/ncim/properties' target='_blank'>Click here for a "
@@ -154,9 +154,9 @@ public class SearchController extends BaseController {
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionType",
           value = "Comma-separated list of definition types to restrict search results by, e.g. "
-              + "'DEFINITION,ALT_DEFINITION' for <i>ncit</i>. "
+              + "'DEFINITION,ALT_DEFINITION' for <i>terminology=ncit</i>. "
               + "<p><a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a "
-              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>ncit</i>.</p>",
+              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results by. "
@@ -169,7 +169,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of synonym types to restrict search results by, e.g. "
               + "'FULL_SYN'. <p><a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>"
               + "Click here for a list of NCI Thesaurus values</a>. This parameter is only "
-              + "meaningful for <i>ncit</i>.</p>",
+              + "meaningful for <i>terminology=ncit</i>.</p>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermType",
           value = "Single synonym term type value to restrict search results by. "
@@ -180,7 +180,8 @@ public class SearchController extends BaseController {
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",
           value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
-              + " This parameter is only meaningful for <i>ncit</i>",
+              + " The value '*' can also be used to return results that participate in at least one subset."
+              + " This parameter is only meaningful for <i>terminology=ncit</i>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
   // These are commented out because they are currently not supported
   // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
@@ -263,12 +264,12 @@ public class SearchController extends BaseController {
       @ApiImplicitParam(name = "conceptStatus",
           value = "Comma-separated list of concept status values to restrict search results by. "
               + "<p><a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a "
-              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>ncit</i>.</p>",
+              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "property",
           value = "Comma-separated list of properties to restrict search results by (see also <i>value</i>). e.g."
-              + "<ul><li>'P106,P322' for <i>ncit</i></li>"
-              + "<li>'COLOR,SHAPE' for <i>ncim</i></li></ul>"
+              + "<ul><li>'P106,P322' for <i>terminology=ncit</i></li>"
+              + "<li>'COLOR,SHAPE' for <i>terminology=ncim</i></li></ul>"
               + "<p><a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a "
               + "list of NCI Thesaurus properties</a>.</p>"
               + "<p><a href='api/v1/metadata/ncim/properties' target='_blank'>Click here for a "
@@ -292,9 +293,9 @@ public class SearchController extends BaseController {
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "definitionType",
           value = "Comma-separated list of definition types to restrict search results by, e.g. "
-              + "'DEFINITION,ALT_DEFINITION' for <i>ncit</i>. "
+              + "'DEFINITION,ALT_DEFINITION' for <i>terminology=ncit</i>. "
               + "<p><a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a "
-              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>ncit</i>.</p>",
+              + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymSource",
           value = "Comma-separated list of synonym sources to restrict search results by. "
@@ -307,7 +308,7 @@ public class SearchController extends BaseController {
           value = "Comma-separated list of synonym types to restrict search results by, e.g. "
               + "'FULL_SYN'. <p><a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>"
               + "Click here for a list of NCI Thesaurus values</a>. This parameter is only "
-              + "meaningful for <i>ncit</i>.</p>",
+              + "meaningful for <i>terminology=ncit</i>.</p>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "synonymTermType",
           value = "Single synonym term type value to restrict search results by. "
@@ -318,7 +319,8 @@ public class SearchController extends BaseController {
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",
           value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
-              + " This parameter is only meaningful for <i>ncit</i>",
+              + " The value '*' can also be used to return results that participate in at least one subset."
+              + " This parameter is only meaningful for <i>terminology=ncit</i>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
   // These are commented out because they are currently not supported
   // @ApiImplicitParam(name = "inverse", value = "Used with \"associations\"
