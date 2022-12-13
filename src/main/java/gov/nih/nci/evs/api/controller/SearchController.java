@@ -180,6 +180,7 @@ public class SearchController extends BaseController {
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",
           value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
+              + " The value '*' can also be used to return results that participate in at least one subset."
               + " This parameter is only meaningful for <i>ncit</i>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
   // These are commented out because they are currently not supported
@@ -318,6 +319,7 @@ public class SearchController extends BaseController {
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = ""),
       @ApiImplicitParam(name = "subset",
           value = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
+              + " The value '*' can also be used to return results that participate in at least one subset."
               + " This parameter is only meaningful for <i>ncit</i>",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "")
   // These are commented out because they are currently not supported
