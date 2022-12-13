@@ -5577,6 +5577,34 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         return new SortUtils().quickSort(v);
 	}
 
+	public String construct_get_labels(String named_graph) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_code ?x_label").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <" + named_graph + ">").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            {").append("\n");
+        buf.append("            ?x a owl:Class .").append("\n");
+        buf.append("            ?x :NHC0 ?x_code .").append("\n");
+        buf.append("            ?x rdfs:label ?x_label .").append("\n");
+        buf.append("            }").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getLabels(String named_graph) {
+        String query = construct_get_labels(named_graph);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String restURL = args[0];

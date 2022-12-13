@@ -240,7 +240,7 @@ public class FlatFileGenerator {
         buf.append(prefixes);
         buf.append("select distinct ?x_code ?x_label").append("\n");
         buf.append("{").append("\n");
-        buf.append("    graph <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl> ").append("\n");
+        buf.append("    graph <" + named_graph + ">").append("\n");
         buf.append("    {").append("\n");
         buf.append("            {").append("\n");
         buf.append("            ?x a owl:Class .").append("\n");
