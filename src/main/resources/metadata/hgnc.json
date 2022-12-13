@@ -22,5 +22,10 @@
 	"mapTargetTerminology": null,
 	"mapTargetTerminologyVersion": null,
 	"relationshipToTarget": null,
-	"hierarchy": true
+	"hierarchy": true,
+	"detailsColumns": {
+		"synonyms": {
+			"type": true
+		}
+	}
 }

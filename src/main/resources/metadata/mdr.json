@@ -13,5 +13,11 @@
 		"OL",
 		"SMQ"
 	],
-	"hierarchy": true
+	"hierarchy": true,
+	"detailsColumns": {
+		"synonyms": {
+			"source": true,
+			"termType": true
+		}
+	}
 }

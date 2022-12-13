@@ -134,6 +134,17 @@
 		"CAdsr",
 		"caDSR"
 	],
+	"detailsColumns": {
+		"definitions": {
+			"attribution": true
+		},
+		"synonyms": {
+			"source": true,
+			"termType": true,
+			"code": true,
+			"subsourceName": true
+		}
+	},
 	"subsetPrefix": "https://evs.nci.nih.gov/ftp1/",
 	"subsetLinks": {
 		"C100110": "CDISC/SDTM/",

@@ -86,6 +86,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources. */
   private Map<String, String> sources;
 
+  /** The details columns. */
+  private Map<String, Map<String, Boolean>> detailsColumns;
+
   /** The hierarchy flag. */
   private Boolean hierarchy;
 
@@ -177,6 +180,7 @@ public class TerminologyMetadata extends BaseModel {
     preferredName = other.getPreferredName();
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
+    detailsColumns = new HashMap<>(other.getDetailsColumns());
     sourceCt = sources.size();
     hierarchy = other.getHierarchy();
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
@@ -854,6 +858,27 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setSources(Map<String, String> sources) {
     this.sources = sources;
+  }
+
+  /**
+   * Returns the details columns.
+   *
+   * @return the details columns
+   */
+  public Map<String, Map<String, Boolean>> getDetailsColumns() {
+    if (detailsColumns == null) {
+      detailsColumns = new HashMap<>();
+    }
+    return detailsColumns;
+  }
+
+  /**
+   * Sets the details columns.
+   *
+   * @param detailsColumns the details columns
+   */
+  public void setDetailsColumns(Map<String, Map<String, Boolean>> detailsColumns) {
+    this.detailsColumns = detailsColumns;
   }
 
   /**

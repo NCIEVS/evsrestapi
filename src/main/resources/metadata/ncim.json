@@ -1,4 +1,11 @@
 {
 	"uiLabel": "NCI Metathesaurus",
-	"codeLabel": "CUI"
+	"codeLabel": "CUI",
+	"detailsColumns": {
+		"synonyms": {
+			"source": true,
+			"termType": true,
+			"code": true
+		}
+	}
 }
