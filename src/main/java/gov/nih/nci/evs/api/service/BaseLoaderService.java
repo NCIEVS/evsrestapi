@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -366,14 +367,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   public TerminologyMetadata getMetadata(final String terminology) throws Exception {
-    // Read from the configured URI where this data lives
-    final String uri = applicationProperties.getConfigBaseUri() + "/" + terminology + ".json";
-    logger.info("  get config = " + uri);
-    final URL url = new URL(uri);
-
-    final JsonNode node = new ObjectMapper()
-        .readTree(IOUtils.toString(url.openConnection().getInputStream(), "UTF-8"));
-    return new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+    return new ObjectMapper().treeToValue(getMetadataAsNode(terminology),
+        TerminologyMetadata.class);
   }
 
   /**
@@ -385,9 +380,30 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    */
   public JsonNode getMetadataAsNode(final String terminology) throws Exception {
     // Read from the configured URI where this data lives
-    final URL url = new URL(applicationProperties.getConfigBaseUri() + "/" + terminology + ".json");
+    // If terminology is {term}_{version} -> strip the version
+    final String uri = applicationProperties.getConfigBaseUri() + "/"
+        + terminology.replaceFirst("_.*", "") + ".json";
+    logger.info("  get config for " + terminology + " = " + uri);
+    final URL url = new URL(uri);
+
     return new ObjectMapper()
         .readTree(IOUtils.toString(url.openConnection().getInputStream(), "UTF-8"));
+  }
+
+  /**
+   * Returns the welcome text.
+   *
+   * @param terminology the terminology
+   * @return the welcome text
+   * @throws Exception the exception
+   */
+  public String getWelcomeText(final String terminology) throws Exception {
+    // Read from the configured URI where this data lives
+    // If terminology is {term}_{version} -> strip the version
+    final String uri = applicationProperties.getConfigBaseUri() + "/"
+        + terminology.replaceFirst("_.*", "") + ".html";
+    logger.info("  get welcome text for " + terminology + " = " + uri);
+    return IOUtils.toString(new URL(uri).openConnection().getInputStream(), StandardCharsets.UTF_8);
   }
 
 }

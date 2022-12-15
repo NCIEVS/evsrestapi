@@ -77,7 +77,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";
 
-    // Load from file
+    // Load samples from file
     final Set<String> samples = new HashSet<>();
     for (final String line : IOUtils
         .toString(terminology.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8")

@@ -189,23 +189,4 @@ public class TerminologyMetadataUnitTest {
     assertTrue(tester.testJsonSerialization());
   }
 
-  /**
-   * Test model serialization from input stream.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testModelSerializationFromInputStream() throws Exception {
-
-    for (final String term : new String[] {
-        "ncit", "go", "mdr", "ncim"
-    }) {
-      final JsonNode node = new ObjectMapper().readTree(IOUtils.toString(
-          this.getClass().getClassLoader().getResourceAsStream("metadata/" + term + ".json"),
-          "UTF-8"));
-      // If this fails, there is a problem.
-      new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
-    }
-
-  }
 }

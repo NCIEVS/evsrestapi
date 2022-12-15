@@ -16,7 +16,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -495,14 +494,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
-      final String welcomeResource = "metadata/" + term.getTerminology() + ".html";
-      try {
-        String welcomeText = IOUtils.toString(
-            term.getClass().getClassLoader().getResourceAsStream(welcomeResource), "UTF-8");
-        metadata.setWelcomeText(welcomeText);
-      } catch (Exception e) {
-        throw new Exception("Unexpected error trying to load = " + welcomeResource, e);
-      }
+      metadata.setWelcomeText(getWelcomeText(terminology));
       term.setMetadata(metadata);
 
       // Compute concept statuses
