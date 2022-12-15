@@ -134,7 +134,7 @@ fi
 # Verify docker elasticsearch is running
 echo "    verify docker elasticsearch is running"
 ct=`docker ps | grep 'elasticsearch/elasticsearch' | wc -l`
-if [[ $ct -ne 1 ]]; then
+if [[ $ct -lt 1 ]]; then
     echo "    ERROR: elasticsearch docker is not running"
     exit 1
 fi
