@@ -29,7 +29,7 @@ tag:
 	git push origin "v`/bin/date +%Y-%m-%d`-${APP_VERSION}"
 
 rmtag:
-	git tag -d "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE"
+	git tag -d "v`/bin/date +%Y-%m-%d`-${APP_VERSION}"
 	git push origin --delete "v`/bin/date +%Y-%m-%d`-${APP_VERSION}"
 
 version:
