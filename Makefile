@@ -4,7 +4,7 @@ SERVICE                 := evsrestapi
 #######################################################################
 #                 OVERRIDE THIS TO MATCH YOUR PROJECT                 #
 #######################################################################
-APP_VERSION             := $(shell echo `grep "version =" build.gradle | sed 's/version = //'`)
+APP_VERSION             := $(shell echo `grep "^version =" build.gradle | sed 's/version = //'`)
 
 # Builds should be repeatable, therefore we need a method to reference the git
 # sha where a version came from.
@@ -25,12 +25,12 @@ build:
 	./gradlew clean build -x test
 
 tag:
-	git tag -a "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE" -m "Release `/bin/date +%Y-%m-%d`"
-	git push origin "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE"
+	git tag -a "v`/bin/date +%Y-%m-%d`-${APP_VERSION}" -m "Release `/bin/date +%Y-%m-%d`"
+	git push origin "v`/bin/date +%Y-%m-%d`-${APP_VERSION}"
 
 rmtag:
 	git tag -d "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE"
-	git push origin --delete "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE"
+	git push origin --delete "v`/bin/date +%Y-%m-%d`-${APP_VERSION}"
 
 version:
 	@echo $(APP_VERSION)
