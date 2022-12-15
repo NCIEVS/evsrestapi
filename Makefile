@@ -24,5 +24,13 @@ clean:
 build:
 	./gradlew clean build -x test
 
+tag:
+	git tag -a "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE" -m "Release `/bin/date +%Y-%m-%d`"
+	git push origin "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE"
+
+rmtag:
+	git tag -d "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE"
+	git push origin --delete "v`/bin/date +%Y-%m-%d`-${APP_VERSION}.RELEASE"
+
 version:
 	@echo $(APP_VERSION)
