@@ -17,6 +17,9 @@ public class BaseModel {
   @Transient
   private String uri;
 
+  /** The ct - only used for limit calls. */
+  private Integer ct;
+
   /**
    * Instantiates an empty {@link BaseModel}.
    */
@@ -40,6 +43,24 @@ public class BaseModel {
    */
   public void setUri(final String uri) {
     this.uri = uri;
+  }
+
+  /**
+   * Returns the ct.
+   *
+   * @return the ct
+   */
+  public Integer getCt() {
+    return ct;
+  }
+
+  /**
+   * Sets the ct.
+   *
+   * @param ct the ct
+   */
+  public void setCt(Integer ct) {
+    this.ct = ct;
   }
 
   /* see superclass */
