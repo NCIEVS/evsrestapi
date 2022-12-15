@@ -135,15 +135,11 @@
 		"caDSR"
 	],
 	"detailsColumns": {
-		"definitions": {
-			"attribution": true
-		},
-		"synonyms": {
-			"source": true,
-			"termType": true,
-			"code": true,
-			"subsourceName": true
-		}
+		"definitions-attribution": true,
+		"synonyms-source": true,
+		"synonyms-termType": true,
+		"synonyms-code": true,
+		"synonyms-subsourceName": true
 	},
 	"subsetPrefix": "https://evs.nci.nih.gov/ftp1/",
 	"subsetLinks": {

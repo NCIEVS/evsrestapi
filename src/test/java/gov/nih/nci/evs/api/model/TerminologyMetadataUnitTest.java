@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
@@ -183,5 +187,25 @@ public class TerminologyMetadataUnitTest {
     tester.proxy(Set.class, 1, s1);
     tester.proxy("preferredTermTypes", 1, l1);
     assertTrue(tester.testJsonSerialization());
+  }
+
+  /**
+   * Test model serialization from input stream.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testModelSerializationFromInputStream() throws Exception {
+
+    for (final String term : new String[] {
+        "ncit", "go", "mdr", "ncim"
+    }) {
+      final JsonNode node = new ObjectMapper().readTree(IOUtils.toString(
+          this.getClass().getClassLoader().getResourceAsStream("metadata/" + term + ".json"),
+          "UTF-8"));
+      // If this fails, there is a problem.
+      new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+    }
+
   }
 }

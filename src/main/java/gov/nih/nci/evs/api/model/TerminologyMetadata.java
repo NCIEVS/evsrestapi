@@ -87,7 +87,7 @@ public class TerminologyMetadata extends BaseModel {
   private Map<String, String> sources;
 
   /** The details columns. */
-  private Map<String, Map<String, Boolean>> detailsColumns;
+  private Map<String, Boolean> detailsColumns;
 
   /** The hierarchy flag. */
   private Boolean hierarchy;
@@ -163,6 +163,7 @@ public class TerminologyMetadata extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final TerminologyMetadata other) {
+    setUri(other.getUri());
     uiLabel = other.getUiLabel();
     loader = other.getLoader();
     code = other.getCode();
@@ -865,7 +866,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the details columns
    */
-  public Map<String, Map<String, Boolean>> getDetailsColumns() {
+  public Map<String, Boolean> getDetailsColumns() {
     if (detailsColumns == null) {
       detailsColumns = new HashMap<>();
     }
@@ -877,7 +878,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param detailsColumns the details columns
    */
-  public void setDetailsColumns(Map<String, Map<String, Boolean>> detailsColumns) {
+  public void setDetailsColumns(Map<String, Boolean> detailsColumns) {
     this.detailsColumns = detailsColumns;
   }
 

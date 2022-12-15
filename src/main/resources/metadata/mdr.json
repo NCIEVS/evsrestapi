@@ -15,9 +15,7 @@
 	],
 	"hierarchy": true,
 	"detailsColumns": {
-		"synonyms": {
-			"source": true,
-			"termType": true
-		}
+		"synonyms-source": true,
+		"synonyms-termType": true
 	}
 }
