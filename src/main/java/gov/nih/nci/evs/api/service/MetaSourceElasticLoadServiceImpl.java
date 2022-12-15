@@ -1219,11 +1219,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // the config file is probably not there
       final String resource = "metadata/" + term.getTerminology() + ".json";
       try {
-        // Load from file
-        final JsonNode node = new ObjectMapper().readTree(IOUtils
-            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"));
-        TerminologyMetadata metadata =
+        // Load from config
+        final JsonNode node = getMetadataAsNode(terminology);
+        final TerminologyMetadata metadata =
             new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+
 
         // Set term name and description
         term.setName(metadata.getUiLabel() + " " + term.getVersion());
