@@ -2,9 +2,8 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,62 +11,81 @@ import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
 import gov.nih.nci.evs.api.model.Terminology;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 public class NcitSampleTest {
 
     private static Map<String, List<SampleRecord>> samples;
 
     /** The test properties. */
-    @Autowired
-    ConceptSampleTester conceptSampleTester;
+    ConceptSampleTester conceptSampleTester = new ConceptSampleTester();
 
-    @Value("${spring.sampleText.ncit}")
-    private static String ncitFile;
+    /** The mvc. */
+    @Autowired
+    private MockMvc mvc;
+
+    /** The logger. */
+    private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
+
+    private static String ncitFile = "src/test/resources/ThesaurusInferred_monthly_Sampling_OWL.txt";
 
     @BeforeClass
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
-        ClassLoader classLoader = NcitSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream("../../../../../../../resources/" + ncitFile);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
-        String line;
-        samples = new HashMap<>();
-        while ((line = bufferedReader.readLine()) != null) {
-            String[] parts = line.split("\t");
-            if (parts.length >= 3) {
-                SampleRecord record = new SampleRecord();
-                record.setUri(parts[0]);
-                record.setCode(parts[1]);
-                record.setKey(parts[2]);
-                if (parts.length > 3)
-                    record.setValue(parts[3]);
-                if (samples.containsKey(parts[1])) {
-                    List<SampleRecord> sampleList = samples.get(parts[1]);
-                    sampleList.add(record);
-                    samples.replace(parts[1], sampleList);
-                } else {
-                    List<SampleRecord> sampleList = new ArrayList<SampleRecord>();
-                    sampleList.add(record);
-                    samples.put(parts[1], sampleList);
+        try {
+            BufferedReader fileReader = new BufferedReader(new FileReader(ncitFile));
+            String line = "";
+            samples = new HashMap<>();
+            while ((line = fileReader.readLine()) != null) {
+                String[] parts = line.split("\t");
+                if (parts.length >= 3) {
+                    SampleRecord record = new SampleRecord();
+                    record.setUri(parts[0]);
+                    record.setCode(parts[1]);
+                    record.setKey(parts[2]);
+                    if (parts.length > 3)
+                        record.setValue(parts[3]);
+                    if (samples.containsKey(parts[1])) {
+                        List<SampleRecord> sampleList = samples.get(parts[1]);
+                        sampleList.add(record);
+                        samples.replace(parts[1], sampleList);
+                    } else {
+                        List<SampleRecord> sampleList = new ArrayList<SampleRecord>();
+                        sampleList.add(record);
+                        samples.put(parts[1], sampleList);
+                    }
                 }
             }
+            fileReader.close();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 
     @Test
     public void testMetadata() throws Exception {
-        this.conceptSampleTester.performMetadataTests(new Terminology(), samples);
+        this.conceptSampleTester.performMetadataTests(new Terminology(), samples, mvc);
     }
 
     @Test
     public void testContent() throws Exception {
-        this.conceptSampleTester.performContentTests(new Terminology(), samples);
+        this.conceptSampleTester.performContentTests(new Terminology(), samples, mvc);
     }
 
     @Test

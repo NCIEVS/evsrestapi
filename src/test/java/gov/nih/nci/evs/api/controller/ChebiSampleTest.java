@@ -12,8 +12,10 @@ import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
@@ -24,17 +26,22 @@ public class ChebiSampleTest {
     private static Map<String, List<SampleRecord>> samples;
 
     /** The test properties. */
-    @Autowired
-    ConceptSampleTester conceptSampleTester;
+    ConceptSampleTester conceptSampleTester = new ConceptSampleTester();
 
-    @Value("${spring.sampleText.chebi}")
-    private static String chebiFile;
+    /** The mvc. */
+    @Autowired
+    private MockMvc mvc;
+
+    /** The logger. */
+    private static final Logger log = LoggerFactory.getLogger(ChebiSampleTest.class);
+
+    private static String chebiFile = "src/test/resources/chebi_Sampling_OWL.txt";
 
     @BeforeClass
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
         ClassLoader classLoader = ChebiSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream("../../../../../../../resources/" + chebiFile);
+        InputStream resourceStream = classLoader.getResourceAsStream(chebiFile);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
         String line;
         samples = new HashMap<>();
@@ -62,12 +69,12 @@ public class ChebiSampleTest {
 
     @Test
     public void testMetadata() throws Exception {
-        this.conceptSampleTester.performMetadataTests(new Terminology(), samples);
+        this.conceptSampleTester.performMetadataTests(new Terminology(), samples, mvc);
     }
 
     @Test
     public void testContent() throws Exception {
-        this.conceptSampleTester.performContentTests(new Terminology(), samples);
+        this.conceptSampleTester.performContentTests(new Terminology(), samples, mvc);
     }
 
     @Test

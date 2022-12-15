@@ -14,8 +14,3 @@ spring:
     cache:
         jcache:
             config: classpath:ehcache.xml
-	sampleTest:
-		ncit: ThesaurusInferred_monthly_Sampling_OWL.txt
-		chebi: chebi_Sampling_OWL.txt
-		go: go_Sampling_OWL.txt
-		hgnc: hgnc_Sampling_OWL.txt

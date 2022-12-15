@@ -12,29 +12,44 @@ import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
 import gov.nih.nci.evs.api.model.Terminology;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 public class HgncSampleTest {
 
     private static Map<String, List<SampleRecord>> samples;
 
     /** The test properties. */
-    @Autowired
-    ConceptSampleTester conceptSampleTester;
+    ConceptSampleTester conceptSampleTester = new ConceptSampleTester();
 
-    @Value("${spring.sampleText.hgnc}")
-    private static String hgncFile;
+    /** The mvc. */
+    @Autowired
+    private MockMvc mvc;
+
+    /** The logger. */
+    private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
+
+    private static String hgncFile = "src/test/resources/hgnc_Sampling_OWL.txt";
 
     @BeforeClass
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
         ClassLoader classLoader = HgncSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream("../../../../../../../resources/" + hgncFile);
+        InputStream resourceStream = classLoader.getResourceAsStream(hgncFile);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
         String line;
         samples = new HashMap<>();
@@ -62,12 +77,12 @@ public class HgncSampleTest {
 
     @Test
     public void testMetadata() throws Exception {
-        this.conceptSampleTester.performMetadataTests(new Terminology(), samples);
+        this.conceptSampleTester.performMetadataTests(new Terminology(), samples, mvc);
     }
 
     @Test
     public void testContent() throws Exception {
-        this.conceptSampleTester.performContentTests(new Terminology(), samples);
+        this.conceptSampleTester.performContentTests(new Terminology(), samples, mvc);
     }
 
     @Test
