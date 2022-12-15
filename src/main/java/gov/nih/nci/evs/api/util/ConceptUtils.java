@@ -446,22 +446,5 @@ public final class ConceptUtils {
     return map;
   }
 
-  /**
-   * Add the roles from r2 to those from r1.
-   *
-   * @param r1 the r 1
-   * @param r2 the r 2
-   * @return the map
-   */
-  public static void combineRoles(final Map<String, List<Role>> r1,
-    final Map<String, List<Role>> r2) {
-    for (final String key : new HashSet<>(r1.keySet())) {
-      if (r2.containsKey(key)) {
-        final Set<Role> set = new HashSet<>(r1.get(key));
-        set.addAll(r2.get(key));
-        r1.put(key, new ArrayList<>(set));
-      }
-    }
-  }
 
 }

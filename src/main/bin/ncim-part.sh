@@ -142,7 +142,7 @@ fi
 
 # Handle the local setup
 echo ""
-export PATH="/usr/local/jdk1.8/bin/:$PATH"
+export PATH="/usr/local/corretto-jdk11/bin/:$PATH"
 local=""
 jar="../lib/evsrestapi.jar"
 if [[ $config -eq 0 ]]; then
