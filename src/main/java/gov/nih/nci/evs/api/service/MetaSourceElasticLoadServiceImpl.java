@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1219,10 +1218,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // the config file is probably not there
       final String resource = "metadata/" + term.getTerminology() + ".json";
       try {
-        // Load from file
-        final JsonNode node = new ObjectMapper().readTree(IOUtils
-            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"));
-        TerminologyMetadata metadata =
+        // Load from config
+        final JsonNode node = getMetadataAsNode(terminology);
+        final TerminologyMetadata metadata =
             new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
         // Set term name and description
@@ -1234,14 +1232,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(1);
-        final String welcomeResource = "metadata/" + term.getTerminology() + ".html";
-        try {
-          String welcomeText = IOUtils.toString(
-              term.getClass().getClassLoader().getResourceAsStream(welcomeResource), "UTF-8");
-          metadata.setWelcomeText(welcomeText);
-        } catch (Exception e) {
-          throw new Exception("Unexpected error trying to load = " + welcomeResource, e);
-        }
+        metadata.setWelcomeText(getWelcomeText(terminology));
         term.setMetadata(metadata);
       } catch (Exception e) {
         throw new Exception("Unexpected error trying to load = " + resource, e);

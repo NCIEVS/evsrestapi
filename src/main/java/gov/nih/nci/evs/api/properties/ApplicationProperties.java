@@ -8,15 +8,18 @@ public class ApplicationProperties {
 
   /** The admin key. */
   private String adminKey;
-  
+
   /** The context path. */
   private String contextPath;
 
   /** The metric log switch. */
   private Boolean metricsEnabled;
 
-  /** The metrics dir */
+  /** The metrics dir. */
   private String metricsDir;
+
+  /** The config base Uri. */
+  private String configBaseUri;
 
   /**
    * Returns the admin key.
@@ -35,7 +38,7 @@ public class ApplicationProperties {
   public void setAdminKey(String adminKey) {
     this.adminKey = adminKey;
   }
-  
+
   /**
    * Returns the context path.
    *
@@ -88,6 +91,24 @@ public class ApplicationProperties {
    */
   public void setMetricsDir(String metricsDir) {
     this.metricsDir = metricsDir;
+  }
+
+  /**
+   * Returns the config base uri.
+   *
+   * @return the config base uri
+   */
+  public String getConfigBaseUri() {
+    return configBaseUri;
+  }
+
+  /**
+   * Sets the config base uri.
+   *
+   * @param configBaseUri the config base uri
+   */
+  public void setConfigBaseUri(String configBaseUri) {
+    this.configBaseUri = configBaseUri;
   }
 
 }
