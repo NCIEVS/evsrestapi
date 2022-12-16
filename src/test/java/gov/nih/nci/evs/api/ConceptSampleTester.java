@@ -120,9 +120,9 @@ public class ConceptSampleTester {
                                 "ERROR: Wrong terminology code " + sample.getValue() + " of " + terminology.getName());
                     }
                 } else if (key.equals(terminology.getMetadata().getPreferredName())) {
-                    if (!checkCode(concept, sample)) {
+                    if (!checkPreferredName(concept, sample)) {
                         errors.add(
-                                "ERROR: Wrong terminology preferred name " + sample.getValue() + " of "
+                                "ERROR: Wrong terminology preferred name code " + sample.getKey() + " of "
                                         + terminology.getName());
                     }
                 } else if (terminology.getMetadata().getSynonym().contains(key)) {
@@ -140,6 +140,30 @@ public class ConceptSampleTester {
                     }
                 } else if (key.startsWith("qualifier")) {
                     continue;
+                } else if (key.equals("root")) {
+                    if (concept.getParents().size() > 0) {
+                        errors.add("ERROR: root " + sample.getCode() + " has parents");
+                    }
+                } else if (key.startsWith("parent-count")) {
+                    if (concept.getParents().size() != Integer.parseInt(key.substring("parent-count".length()))) {
+                        errors.add("ERROR: concept " + sample.getCode() + " has " + concept.getParents().size()
+                                + " parents, " + "stated number " + key.substring("parent-count".length()));
+                    }
+                } else if (key.startsWith("parent-style")) {
+                    if (!checkParent(concept, sample)) {
+                        errors.add("ERROR: incorrect parent relationship: " + key + " not a parent of "
+                                + sample.getValue());
+                    }
+                } else if (key.startsWith("child-style")) {
+                    if (!checkChildren(concept, sample)) {
+                        errors.add("ERROR: incorrect children relationship: " + key + " not a child of "
+                                + sample.getValue());
+                    }
+                } else if (key.equals("max-children")) {
+                    if (concept.getChildren().size() != Integer.parseInt(sample.getValue())) {
+                        errors.add("ERROR: concept " + sample.getCode() + " has " + concept.getChildren().size()
+                                + " children, " + "stated number " + sample.getValue());
+                    }
                 } else {
                     continue;
                 }
@@ -148,13 +172,18 @@ public class ConceptSampleTester {
         if (errors.size() > 0) {
             log.error("SAMPLING ERRORS FOUND. SEE LOG BELOW");
             for (String err : errors) {
-                log.error("ERROR: " + err);
+                log.error(err);
             }
         }
     }
 
     public boolean checkParent(Concept concept, SampleRecord sample) {
         return concept.getParents().stream().filter(o -> o.getCode().equals(sample.getValue())).findFirst().isPresent();
+    }
+
+    public boolean checkChildren(Concept concept, SampleRecord sample) {
+        return concept.getChildren().stream().filter(o -> o.getCode().equals(sample.getValue())).findFirst()
+                .isPresent();
     }
 
     public boolean checkCode(Concept concept, SampleRecord sample) {
