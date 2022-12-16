@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
+import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Definition;
@@ -22,7 +22,6 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
@@ -94,7 +93,7 @@ public final class ConceptUtils {
     // definitions
     for (final Definition def : concept.getDefinitions()) {
       String value = null;
-      for (Map.Entry<String, String> highlight : highlights.entrySet()) {
+      for (final Map.Entry<String, String> highlight : highlights.entrySet()) {
         if (def.getDefinition().contains(highlight.getKey())) {
           value = highlight.getValue();
         }
@@ -130,13 +129,14 @@ public final class ConceptUtils {
    * @return the result concepts
    */
   public static List<Concept> applyInclude(final List<Concept> concepts, final IncludeParam ip) {
-    if (CollectionUtils.isEmpty(concepts))
+    if (CollectionUtils.isEmpty(concepts)) {
       return Collections.emptyList();
+    }
 
     final List<Concept> result = new ArrayList<>(concepts.size());
 
-    for (Concept concept : concepts) {
-      Concept newConcept = new Concept();
+    for (final Concept concept : concepts) {
+      final Concept newConcept = new Concept();
       newConcept.setCode(concept.getCode());
       newConcept.setName(concept.getName());
       newConcept.setTerminology(concept.getTerminology());
@@ -198,14 +198,72 @@ public final class ConceptUtils {
   /**
    * Apply include.
    *
+   * @param concept the concept
+   * @param limit the limit
+   */
+  public static void applyLimit(final Concept concept, final int limit) throws Exception {
+
+    concept.setAssociations(sublist(concept.getAssociations(), 0, limit));
+    concept.setChildren(sublist(concept.getChildren(), 0, limit));
+    concept.setDefinitions(sublist(concept.getDefinitions(), 0, limit));
+    concept.setDescendants(sublist(concept.getDescendants(), 0, limit));
+    concept.setDisjointWith(sublist(concept.getDisjointWith(), 0, limit));
+    concept.setInverseAssociations(sublist(concept.getInverseAssociations(), 0, limit));
+    concept.setInverseRoles(sublist(concept.getInverseRoles(), 0, limit));
+    concept.setMaps(sublist(concept.getMaps(), 0, limit));
+    concept.setParents(sublist(concept.getParents(), 0, limit));
+    if (concept.getPaths() != null) {
+      concept.getPaths().setPaths(sublist(concept.getPaths().getPaths(), 0, limit));
+    }
+    concept.setProperties(sublist(concept.getProperties(), 0, limit));
+    concept.setQualifiers(sublist(concept.getQualifiers(), 0, limit));
+    concept.setRoles(sublist(concept.getRoles(), 0, limit));
+    concept.setSynonyms(sublist(concept.getSynonyms(), 0, limit));
+  }
+
+  /**
+   * Sublist.
+   *
+   * @param <T> the
+   * @param list the list
+   * @param fromIndex the from index
+   * @param maxElements the max elements
+   * @return the list
+   */
+  @SuppressWarnings("unchecked")
+  public static <T extends BaseModel> List<T> sublist(List<T> list, final int fromIndex,
+    final int maxElements) throws Exception {
+
+    if (fromIndex >= list.size()) {
+      return new ArrayList<>();
+    }
+    List<T> result =
+        new ArrayList<>(list).subList(fromIndex, Math.min(fromIndex + maxElements, list.size()));
+
+    // Add a placeholder "last element" with a "ct" for the total.
+    if (fromIndex == 0 && maxElements < list.size() && result.size() > 0) {
+
+      final T obj = (T) result.get(0).getClass().getDeclaredConstructor(new Class[0])
+          .newInstance(new Object[0]);
+      obj.setCt(list.size());
+      result.add(obj);
+    }
+
+    return result;
+  }
+
+  /**
+   * Apply include.
+   *
    * @param concepts the list of concepts
    * @param ip the include param
    * @return the result concepts
    */
-  public static void applyInclude(Concept concept, final IncludeParam ip) {
+  public static void applyInclude(final Concept concept, final IncludeParam ip) {
 
-    if (concept == null)
+    if (concept == null) {
       return;
+    }
 
     if (!ip.isSynonyms()) {
       concept.setSynonyms(null);
@@ -402,24 +460,6 @@ public final class ConceptUtils {
       }
     }
     return map;
-  }
-
-  /**
-   * Add the roles from r2 to those from r1.
-   *
-   * @param r1 the r 1
-   * @param r2 the r 2
-   * @return the map
-   */
-  public static void combineRoles(final Map<String, List<Role>> r1,
-    final Map<String, List<Role>> r2) {
-    for (final String key : new HashSet<>(r1.keySet())) {
-      if (r2.containsKey(key)) {
-        final Set<Role> set = new HashSet<>(r1.get(key));
-        set.addAll(r2.get(key));
-        r1.put(key, new ArrayList<>(set));
-      }
-    }
   }
 
 }

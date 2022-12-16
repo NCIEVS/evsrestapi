@@ -2,6 +2,8 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.client.RequestOptions;
@@ -20,7 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -36,6 +44,10 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(BaseLoaderService.class);
+
+  /** the metrics db path. */
+  @Autowired
+  ApplicationProperties applicationProperties;
 
   /** The Elasticsearch operations service instance *. */
   @Autowired
@@ -105,6 +117,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   /**
    * Clean stale indexes.
    *
+   * @param terminology the terminology
    * @throws Exception the exception
    */
   @Override
@@ -159,7 +172,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   /**
    * Update latest flag.
    *
-   * @param term the term
+   * @param terminology the terminology
    * @throws Exception the exception
    */
   @Override
@@ -344,6 +357,53 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // }
     return;
 
+  }
+
+  /**
+   * Returns the metadata.
+   *
+   * @param terminology the terminology
+   * @return the metadata
+   * @throws Exception the exception
+   */
+  public TerminologyMetadata getMetadata(final String terminology) throws Exception {
+    return new ObjectMapper().treeToValue(getMetadataAsNode(terminology),
+        TerminologyMetadata.class);
+  }
+
+  /**
+   * Returns the metadata as node.
+   *
+   * @param terminology the terminology
+   * @return the metadata as node
+   * @throws Exception the exception
+   */
+  public JsonNode getMetadataAsNode(final String terminology) throws Exception {
+    // Read from the configured URI where this data lives
+    // If terminology is {term}_{version} -> strip the version
+    final String uri = applicationProperties.getConfigBaseUri() + "/"
+        + terminology.replaceFirst("_.*", "") + ".json";
+    logger.info("  get config for " + terminology + " = " + uri);
+    final URL url = new URL(uri);
+
+    return new ObjectMapper()
+        .readTree(IOUtils.toString(url.openConnection().getInputStream(), "UTF-8"));
+  }
+
+  /**
+   * Returns the welcome text.
+   *
+   * @param terminology the terminology
+   * @return the welcome text
+   * @throws Exception the exception
+   */
+  public String getWelcomeText(final String terminology) throws Exception {
+    // Read from the configured URI where this data lives
+    // If terminology is {term}_{version} -> strip the version
+    final String uri = applicationProperties.getConfigBaseUri() + "/"
+        + terminology.replaceFirst("_.*", "") + ".html";
+    logger.info("  get welcome text for " + terminology + " = " + uri);
+    return IOUtils.toString(new URL(uri).openConnection().getInputStream(), StandardCharsets.UTF_8);
   }
 
 }

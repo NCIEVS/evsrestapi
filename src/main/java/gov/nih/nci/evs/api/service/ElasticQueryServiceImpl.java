@@ -18,7 +18,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
@@ -65,7 +64,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Autowired
   ElasticsearchOperations operations;
 
-  /** the term utils */
+  /** the term utils. */
   @Autowired
   TerminologyUtils termUtils;
 
@@ -274,8 +273,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   // does not work when called by other methods in this class
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #parent, #maxLevel, #terminology.getTerminologyVersion()}")
+  // @Cacheable(value = "terminology",
+  // key = "{#root.methodName, #parent, #maxLevel,
+  // #terminology.getTerminologyVersion()}")
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
     throws JsonParseException, JsonMappingException, IOException {
     List<HierarchyNode> nodes = new ArrayList<>();
@@ -601,7 +601,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * see superclass *.
    *
    * @param terminology the terminology
-   * @param ip the ip
+   * @param label the label
    * @param fromRecord the starting record for the search
    * @param pageSize the size of pages in returned result
    * @return the association entry list
@@ -792,6 +792,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     return Optional.of(objects.get(0));
   }
 
+  /* see superclass */
   @Override
   public List<Concept> getSubsets(Terminology term, IncludeParam ip)
     throws JsonMappingException, JsonProcessingException {

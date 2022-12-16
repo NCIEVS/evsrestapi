@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
@@ -184,4 +188,5 @@ public class TerminologyMetadataUnitTest {
     tester.proxy("preferredTermTypes", 1, l1);
     assertTrue(tester.testJsonSerialization());
   }
+
 }
