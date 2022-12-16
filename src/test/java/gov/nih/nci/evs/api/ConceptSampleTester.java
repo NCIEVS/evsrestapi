@@ -97,6 +97,9 @@ public class ConceptSampleTester {
         Concept concept;
         setTerminology(term, testMvc);
         for (Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
+            //if (!entry.getKey().startsWith("C")) {
+            //    continue;
+            //}
             url = baseUrl + term + "/" + entry.getKey() + "?include=full";
             log.info("Testing url - " + url);
             result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -105,32 +108,47 @@ public class ConceptSampleTester {
             concept = new ObjectMapper().readValue(content, Concept.class);
             assertThat(content).isNotNull();
             log.info(content);
-            boolean error = false;
             for (SampleRecord sample : entry.getValue()) {
                 final String key = sample.getKey();
-                boolean check = false;
                 if (key.startsWith("refs:subClassOf") && !key.contains("~")) {
-                    check = checkParent(concept, sample);
+                    if (!checkParent(concept, sample)) {
+                        errors.add("ERROR: Wrong parent " + sample.getValue() + " of " + sample.getCode());
+                    }
                 } else if (key.equals(terminology.getMetadata().getCode())) {
-                    check = checkCode(concept, sample);
+                    if (!checkCode(concept, sample)) {
+                        errors.add(
+                                "ERROR: Wrong terminology code " + sample.getValue() + " of " + terminology.getName());
+                    }
                 } else if (key.equals(terminology.getMetadata().getPreferredName())) {
-                    check = checkPreferredName(concept, sample);
+                    if (!checkCode(concept, sample)) {
+                        errors.add(
+                                "ERROR: Wrong terminology preferred name " + sample.getValue() + " of "
+                                        + terminology.getName());
+                    }
                 } else if (terminology.getMetadata().getSynonym().contains(key)) {
-                    check = checkSynonym(concept, sample);
+                    if (!checkSynonym(concept, sample)) {
+                        errors.add("ERROR: Wrong synonym " + sample.getValue() + " of " + sample.getCode());
+                    }
                 } else if (terminology.getMetadata().getDefinition().contains(key)) {
-                    check = checkDefinition(concept, sample);
+                    if (!checkDefinition(concept, sample)) {
+                        errors.add("ERROR: Wrong synonym " + sample.getValue() + " of " + sample.getCode());
+                    }
                 } else if ((key.startsWith("rdfs:subClassOf") || key.startsWith("owl:equivalentClass"))
                         && key.contains("~")) {
-                    check = checkRole(concept, sample);
+                    if (!checkRole(concept, sample)) {
+                        errors.add("ERROR: Wrong role " + sample.getValue() + " of " + sample.getCode());
+                    }
                 } else if (key.startsWith("qualifier")) {
+                    continue;
+                } else {
                     continue;
                 }
             }
-            if (errors.size() > 0) {
-                log.error("SAMPLING ERRORS FOUND. SEE LOG BELOW");
-                for (String err : errors) {
-                    log.error("ERROR: " + err);
-                }
+        }
+        if (errors.size() > 0) {
+            log.error("SAMPLING ERRORS FOUND. SEE LOG BELOW");
+            for (String err : errors) {
+                log.error("ERROR: " + err);
             }
         }
     }
