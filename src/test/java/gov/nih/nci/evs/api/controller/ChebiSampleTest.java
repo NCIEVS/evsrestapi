@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
-import gov.nih.nci.evs.api.model.Terminology;
 
 public class ChebiSampleTest {
 
@@ -36,6 +35,8 @@ public class ChebiSampleTest {
     private static final Logger log = LoggerFactory.getLogger(ChebiSampleTest.class);
 
     private static String chebiFile = "src/test/resources/chebi_Sampling_OWL.txt";
+
+    private String terminology = "chebi";
 
     @BeforeClass
     public static void setupClass() throws IOException {
@@ -69,12 +70,12 @@ public class ChebiSampleTest {
 
     @Test
     public void testMetadata() throws Exception {
-        this.conceptSampleTester.performMetadataTests(new Terminology(), samples, mvc);
+        this.conceptSampleTester.performMetadataTests(terminology, samples, mvc);
     }
 
     @Test
     public void testContent() throws Exception {
-        this.conceptSampleTester.performContentTests(new Terminology(), samples, mvc);
+        this.conceptSampleTester.performContentTests(terminology, samples, mvc);
     }
 
     @Test

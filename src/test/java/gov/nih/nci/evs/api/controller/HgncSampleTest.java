@@ -24,7 +24,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
-import gov.nih.nci.evs.api.model.Terminology;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -44,6 +43,8 @@ public class HgncSampleTest {
     private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 
     private static String hgncFile = "src/test/resources/hgnc_Sampling_OWL.txt";
+
+    private String terminology = "hgnc";
 
     @BeforeClass
     public static void setupClass() throws IOException {
@@ -77,12 +78,12 @@ public class HgncSampleTest {
 
     @Test
     public void testMetadata() throws Exception {
-        this.conceptSampleTester.performMetadataTests(new Terminology(), samples, mvc);
+        this.conceptSampleTester.performMetadataTests(terminology, samples, mvc);
     }
 
     @Test
     public void testContent() throws Exception {
-        this.conceptSampleTester.performContentTests(new Terminology(), samples, mvc);
+        this.conceptSampleTester.performContentTests(terminology, samples, mvc);
     }
 
     @Test

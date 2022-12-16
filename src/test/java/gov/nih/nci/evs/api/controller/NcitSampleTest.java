@@ -23,7 +23,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
-import gov.nih.nci.evs.api.model.Terminology;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -35,7 +34,11 @@ public class NcitSampleTest {
     /** The test properties. */
     ConceptSampleTester conceptSampleTester = new ConceptSampleTester();
 
-    /** The mvc. */
+    /**
+     * The Terminology. * /
+     * 
+     * /** The mvc.
+     */
     @Autowired
     private MockMvc mvc;
 
@@ -43,6 +46,8 @@ public class NcitSampleTest {
     private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 
     private static String ncitFile = "src/test/resources/ThesaurusInferred_monthly_Sampling_OWL.txt";
+
+    private String terminology = "ncit";
 
     @BeforeClass
     public static void setupClass() throws IOException {
@@ -80,12 +85,12 @@ public class NcitSampleTest {
 
     @Test
     public void testMetadata() throws Exception {
-        this.conceptSampleTester.performMetadataTests(new Terminology(), samples, mvc);
+        this.conceptSampleTester.performMetadataTests(terminology, samples, mvc);
     }
 
     @Test
     public void testContent() throws Exception {
-        this.conceptSampleTester.performContentTests(new Terminology(), samples, mvc);
+        this.conceptSampleTester.performContentTests(terminology, samples, mvc);
     }
 
     @Test
