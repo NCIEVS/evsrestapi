@@ -1,0 +1,360 @@
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	NHC0	C1000
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P106	Amino Acid, Peptide, or Protein
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P108	Recombinant Amphiregulin
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P207	C1514768
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P366	Recombinant_Amphiregulin
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P90	AR
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P97	A recombinant form of amphiregulin, a member of the heparin-binding epidermal growth factor (EGF) family. Endogenous amphiregulin is an autocrine growth factor, and binds to the EGF receptor. Overexpressed in several cancer cell types, endogenous amphiregulin may contribute to tumor cell proliferation and metastasis. (NCI04)
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	rdfs:label	Recombinant Amphiregulin
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10000	C10000	rdfs:subClassOf/owl:Restriction~R123	C405
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	rdfs:subClassOf/owl:Restriction~R163	C12686
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	A8	C101859
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	P322	CDISC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	P325	A percutaneous coronary intervention is necessary for a myocardial infarction that presents with ST segment elevation and the subject does not have recurrent or persistent symptoms, symptoms of heart failure or ventricular arrhythmia. The presentation is past twelve hours since onset of symptoms.
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100012	C100012	rdfs:subClassOf/owl:Restriction~R100	C12686
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100046	C100046	P208	CL433438
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100046	C100046	P329	725443
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100046	C100046	P330	725443
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100046	C100046	P399	725443
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R126	C3270
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R101	C12415
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R103	C45714
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R104	C12578
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R105	C12917
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R108	C36115
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R115	C3090
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R139	C36760
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	rdfs:subClassOf/owl:Restriction~R142	C36122
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	P107	Renal Cell Carcinoma Associated with Neuroblastoma
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	P363	Malignant
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100054	C100054	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R101	C12341
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100054	C100054	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R103	C32365
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100054	C100054	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R104	C12591
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100054	C100054	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R108	C36027
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100054	C100054	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R115	C35841
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	P171	12927386
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	P210	77538-19-3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	P319	R8WTH25YS2
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100088	C100088	rdfs:subClassOf/owl:Restriction~R124	C45547
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100088	C100088	rdfs:subClassOf/owl:Restriction~R125	C16298
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100088	C100088	rdfs:subClassOf/owl:Restriction~R146	C37279
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	A32	C1909
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	P375	Interferon Gamma-1b
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100091	C100091	rdfs:subClassOf/owl:Restriction~R50	C14073
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100091	C100091	rdfs:subClassOf/owl:Restriction~R52	C16701
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100091	C100091	rdfs:subClassOf/owl:Restriction~R53	C16702
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100091	C100091	rdfs:subClassOf/owl:Restriction~R54	C21281
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100091	C100091	P100	153310
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100091	C100091	P93	Q05315
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100093	C100093	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R139	C36897
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100093	C100093	rdfs:subClassOf/owl:Restriction~R135	C12725
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100097	C100097	P317	SPL Flavor (C-DRG-0934)
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100098	C100098	P350	C15H22N6O5S
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100099	C100099	A7	C104498
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1001	C1001	P175	616524
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100103	C100103	A17	C45300
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100103	C100103	A18	C149570
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100104	C100104	A24	C173262
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P372	Yes
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P376	&lt;p&gt;The terminology subset that includes terms pertaining to the CDISC questionnaire terminology.&lt;/p&gt; &lt;p&gt;The terminology can be downloaded at this location: &lt;a href=&quot;https://evs.nci.nih.gov/ftp1/CDISC/SDTM/&quot;&gt; CDISC Questionnaire Terminology&lt;/a&gt;.&lt;/p&gt;
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P398	No
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100120	C100120	P361	No
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100132	C100132	A25	C100131
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1003	C1003	P368	CHEBI:22565
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100428	C100428	A13	C84429
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R124	C40551
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R125	C17557
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R72	C13258
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	P302	Myelodysplastic syndrome; multiple myeloma; chronic myeloid leukemia; acute myelocytic leukemia
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1006	C1006	P98	Although its CN is AS101, it&apos;s not the same as 4-Arsanilic acid, NSC 2023, (C29883).
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100809	C100809	A35	C168870
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101043	C101043	rdfs:subClassOf/owl:Restriction~R116	C98898
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101046	C101046	rdfs:subClassOf/owl:Restriction~R175	C37193
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101048	C101048	rdfs:subClassOf/owl:Restriction~R37	C18497
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101056	C101056	rdfs:subClassOf/owl:Restriction~R133	C45208
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101063	C101063	P102	U41743
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101088	C101088	P369	HGNC:18037
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101089	C101089	rdfs:subClassOf/owl:Restriction~R40	C24930
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101089	C101089	P321	196528
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101090	C101090	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R46	C13197
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101090	C101090	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R49	C12412
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101090	C101090	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R50	C13294
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101090	C101090	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R51	C156920
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101090	C101090	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R52	C16518
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101090	C101090	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R53	C19077
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101090	C101090	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R54	C101088
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101092	C101092	rdfs:subClassOf/owl:Restriction~R130	C91675
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101093	C101093	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R131	C91675
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101097	C101097	rdfs:subClassOf/owl:Restriction~R46	C13197
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101110	C101110	rdfs:subClassOf/owl:Restriction~R41	C14225
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101111	C101111	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R130	C39233
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101111	C101111	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R40	C24979
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101118	C101118	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R44	C21256
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101138	C101138	A23	C25337
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101139	C101139	rdfs:subClassOf/owl:Restriction~R177	C17757
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101139	C101139	rdfs:subClassOf/owl:Restriction~R178	C101140
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101140	C101140	rdfs:subClassOf/owl:Restriction~R179	C101139
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101140	C101140	rdfs:subClassOf/owl:Restriction~R182	C17068
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101146	C101146	rdfs:subClassOf/owl:Restriction~R44	C16747
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101156	C101156	rdfs:subClassOf/owl:Restriction~R42	C78347
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101159	C101159	rdfs:subClassOf/owl:Restriction~R45	C14225
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101159	C101159	rdfs:subClassOf/owl:Restriction~R49	C12537
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101215	C101215	rdfs:subClassOf/owl:Restriction~R176	C101735
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101224	C101224	rdfs:subClassOf/owl:Restriction~R27	C26320
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101250	C101250	oboInOwl:hasDbXref	IMDRF:E0128
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101262	C101262	rdfs:subClassOf/owl:Restriction~R72	C12543
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101266	C101266	rdfs:subClassOf/owl:Restriction~R167	C13018
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101266	C101266	rdfs:subClassOf/owl:Restriction~R169	C13018
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101293	C101293	A28	C158954
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101403	C101403	rdfs:subClassOf/owl:Restriction~R131	C39187
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101461	C101461	A1	C43431
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101461	C101461	A2	C7057
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101527	C101527	rdfs:subClassOf/owl:Restriction~R82	C12754
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101534	C101534	A6	C77557
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101536	C101536	rdfs:subClassOf/owl:Restriction~R122	C17573
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101539	C101539	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R88	C140961
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101539	C101539	rdfs:subClassOf/owl:Restriction~R88	C27966
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1016	C1016	P353	CARTB
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1016	C1016	P354	321
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1016	C1016	P355	mcg
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101665	C101665	P362	MI0000783
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101763	C101763	P331	45894
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101804	C101804	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R47	C3099
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101845	C101845	A12	C99539
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1019	C1019	A5	C77218
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102471	C102471	rdfs:subClassOf/owl:Restriction~R38	C165531
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102475	C102475	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R155	C25111
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102562	C102562	A31	C17998
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102570	C102570	rdfs:subClassOf/owl:Restriction~R137	C45714
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102570	C102570	rdfs:subClassOf/owl:Restriction~R138	C12578
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1026	C1026	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R146	C17017
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102633	C102633	rdfs:subClassOf/owl:Restriction~R32	C1909
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102819	C102819	rdfs:subClassOf/owl:Restriction~R51	C26065
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102845	C102845	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R105	C37145
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102845	C102845	rdfs:subClassOf/owl:Restriction~R114	C36484
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102845	C102845	rdfs:subClassOf/owl:Restriction~R89	C36673
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102884	C102884	rdfs:subClassOf/owl:Restriction~R126	C26726
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102897	C102897	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R110	C14158
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102897	C102897	rdfs:subClassOf/owl:Restriction~R110	C14158
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10303	C10303	rdfs:subClassOf/owl:Restriction~R172	C3224
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C103239	C103239	rdfs:subClassOf/owl:Restriction~R171	C12382
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104080	C104080	rdfs:subClassOf/owl:Restriction~R30	C12439
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104109	C104109	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R45	C14225
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104457	C104457	rdfs:subClassOf/owl:Restriction~R81	C13226
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105362	C105362	P315	rs429358
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105364	C105364	rdfs:subClassOf/owl:Restriction~R48	C2866
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105555	C105555	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R106	C118396
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105555	C105555	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R140	C40430
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105555	C105555	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R176	C17359
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105555	C105555	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R89	C19635
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105908	C105908	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R179	C105909
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C106296	C106296	rdfs:subClassOf/owl:Restriction~R28	C16956
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C106296	C106296	rdfs:subClassOf/owl:Restriction~R34	C21186
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C106414	C106414	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R41	C14225
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107377	C107377	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R100	C12754
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107450	C107450	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R42	C18396
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107553	C107553	rdfs:subClassOf/owl:Restriction~R155	C13134
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107671	C107671	rdfs:subClassOf/owl:Restriction~R25	C22500
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107672	C107672	rdfs:subClassOf/owl:Restriction~R24	C2852
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107672	C107672	rdfs:subClassOf/owl:Restriction~R26	C14143
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1093	C1093	A33	C274
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111020	C111020	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R141	C36488
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111021	C111021	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R107	C43305
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111021	C111021	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R114	C36488
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111022	C111022	rdfs:subClassOf/owl:Restriction~R141	C36488
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111073	C111073	A34	C177310
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111658	C111658	A37	C17998
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111693	C111693	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R142	C35899
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1117	C1117	rdfs:subClassOf/owl:Restriction~R66	C20151
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111789	C111789	rdfs:subClassOf/owl:Restriction~R173	C13219
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111957	C111957	rdfs:subClassOf/owl:Restriction~R35	C17087
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C113106	C113106	A21	C149409
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C113525	C113525	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Restriction~R51	C565
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C113664	C113664	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R135	C113668
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C113688	C113688	P96	26S Proteasome-Associated UCH Interacting Protein 1
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114483	C114483	rdfs:subClassOf/owl:Restriction~R140	C36443
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114785	C114785	rdfs:subClassOf/owl:Restriction~R113	C36842
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114819	C114819	rdfs:subClassOf/owl:Restriction~R107	C13271
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114831	C114831	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R102	C12471
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114949	C114949	rdfs:subClassOf/owl:Restriction~R102	C12438
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C115150	C115150	rdfs:subClassOf/owl:Restriction~R106	C36451
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C115154	C115154	rdfs:subClassOf/owl:Restriction~R112	C12543
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C115203	C115203	rdfs:subClassOf/owl:Restriction~R174	C13214
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C116832	C116832	A26	C116833
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C116832	C116832	A36	C116833
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C117142	C117142	A29	C64855
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C118477	C118477	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R133	C45596
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C121842	C121842	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R116	C4705
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C121882	C121882	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R137	C53466
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12218	C12218	owl:disjointWith	C43431
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C122778	C122778	rdfs:subClassOf/owl:Restriction~R47	C35204
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C122866	C122866	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Restriction~R177	C17965
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C123845	C123845	rdfs:subClassOf/owl:Restriction~R132	C110963
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C125007	C125007	A27	C165233
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C126958	C126958	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R48	C119992
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12919	C12919	A30	C12378
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1293	C1293	A9	C20457
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C129969	C129969	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Restriction~R173	C13285
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C130208	C130208	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R54	C130206
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C13101	C13101	P92	MMM
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C131911	C131911	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R174	C13206
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C133091	C133091	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R138	C33152
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P351	Y
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P352	Y
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P358	Y
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1334	C1334	P359	Y
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C135731	C135731	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Restriction~R179	C135729
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1411	C1411	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R122	C17573
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C143164	C143164	A15	C143163
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C14424	C14424	P332	MGI:2159769
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C147579	C147579	A19	C149973
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C147579	C147579	A20	C25311
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C147579	C147579	A22	C149700
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C150443	C150443	rdfs:subClassOf/owl:Restriction~R153	C93106
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15179	C15179	P333	Severed Digit(s), (finger or toe)
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C151993	C151993	rdfs:subClassOf/owl:Restriction~R136	C12393
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15278	C15278	rdfs:subClassOf/owl:Restriction~R166	C12904
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15356	C15356	rdfs:subClassOf/owl:Restriction~R168	C12391
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15356	C15356	rdfs:subClassOf/owl:Restriction~R170	C12377
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C154919	C154919	A16	C154913
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C155852	C155852	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R136	C12393
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C157246	C157246	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R113	C37145
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C158541	C158541	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Restriction~R54	C158537
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16239	C16239	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R36	C17220
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16239	C16239	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R37	C18081
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16239	C16239	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R38	C2852
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16240	C16240	P101	CSF1R/PDGFR Family
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C164181	C164181	P367	31026031
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16465	C16465	rdfs:subClassOf/owl:Restriction~R31	C12601
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16547	C16547	rdfs:subClassOf/owl:Restriction~R29	C209
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1687	C1687	rdfs:subClassOf/owl:Restriction~R150	C37042
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C168764	C168764	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R177	C101057
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C170415	C170415	rdfs:comment	Polymorphisms in the INPPL1 gene are have been associated with susceptiblitity to type 2 diabetes mellitus. (J. Clin. Endocr. Metab.2005. 90: 2911-2919.)
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C172188	C172188	P356	NCT03901690
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C173740	C173740	P334	9290/3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C179320	C179320	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R111	C61581
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C179321	C179321	rdfs:subClassOf/owl:Restriction~R111	C61581
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18330	C18330	rdfs:subClassOf/owl:Restriction~R36	C18396
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18498	C18498	rdfs:subClassOf/owl:Restriction~R39	C4878
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18517	C18517	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R132	C13727
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18517	C18517	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R175	C80334
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18517	C18517	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R39	C80334
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18611	C18611	P215	map01100
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1863	C1863	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R124	C40502
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1863	C1863	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R125	C17557
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	P211	dopamine receptor activity
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19950	C19950	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R30	C14070
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C21781	C21781	rdfs:subClassOf/owl:Restriction~R23	C22543
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C2317	C2317	P360	Y
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C2563	C2563	P357	Y
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27262	C27262	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R140	C36715
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27262	C27262	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R141	C13271
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27350	C27350	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R112	C33331
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27361	C27361	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R114	C37885
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27361	C27361	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R89	C37884
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27483	C27483	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R114	C36540
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27483	C27483	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R89	C37241
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27497	C27497	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R115	C35960
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27502	C27502	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R114	C36393
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27502	C27502	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R89	C37235
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27558	C27558	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~R108	C35983
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27558	C27558	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~R115	C35984
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27558	C27558	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~R142	C38730
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27814	C27814	A14	C9292
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C2782	C2782	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R150	C37077
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C28610	C28610	rdfs:subClassOf/owl:Restriction~R145	C45002
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3177	C3177	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R107	C13271
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3246	C3246	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R108	C39626
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3246	C3246	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R115	C39627
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C35712	C35712	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R108	C35899
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C35712	C35712	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R142	C38730
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C36056	C36056	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R106	C37220
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C36080	C36080	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R113	C37010
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C36080	C36080	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R116	C3461
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C36265	C36265	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R108	C35524
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C36265	C36265	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R115	C3112
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C36265	C36265	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R116	C27145
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38112	C38112	rdfs:subClassOf/owl:Restriction~R165	C12389
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38969	C38969	P216	h_ace2Pathway
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C42636	C42636	P320	2.16.840.1.113883.3.26.1.1.2
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45454	C45454	A3	C43782
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45466	C45466	A4	C45465
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45598	C45598	rdfs:subClassOf/owl:Restriction~R159	C45424
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45600	C45600	rdfs:subClassOf/owl:Restriction~R158	C26533
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45600	C45600	P316	0
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45616	C45616	rdfs:subClassOf/owl:Restriction~R160	C265
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C45621	C45621	rdfs:subClassOf/owl:Restriction~R156	C13766
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C49349	C49349	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R145	C41648
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C7024	C7024	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R114	C36421
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C71269	C71269	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Restriction~R54	C28585
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C7164	C7164	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R112	C38434
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C7184	C7184	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R116	C26744
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C7184	C7184	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R126	C2889
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C7208	C7208	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R113	C39682
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C7850	C7850	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R142	C3047
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C81756	C81756	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~R38	C3099
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C82169	C82169	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R37	C19077
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C82169	C82169	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R41	C14225
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C84455	C84455	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~R132	C45582
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C9128	C9128	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R107	C13271
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C9128	C9128	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R89	C36712
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10000	C10000	P310	Obsolete_Concept
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100421	C100421	P310	Retired_Concept
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C129445	C129445	P310	Provisional_Concept
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C13037	C13037	P310	Header_Concept
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A1	A1	qualifier-P90~P383	Role_Has_Domain~PT
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A1	A1	qualifier-P90~P384	Role_Has_Domain~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A1	A1	qualifier-P97~P378	An association that specifies the parent of the branch encompassing a role&apos;s domain.~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P351	P351	qualifier-P325~P378	A property indicating that the Food and Nutrition Board of the National Academy of Science has established an average daily intake for this nutrient that is sufficient to meet the nutritional requirements of most individuals in the general U.S. population.~CRCH
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P387	P387	qualifier-P97~P381	A property representing a unique zero-padded seven digit identifier supplied by the Gene Ontology (GO) that has no inherent meaning or relation to the position of the term in GO and is prefixed by &quot;GO:&quot;.~http://www.geneontology.org/page/ontology-structure
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100021	C100021	qualifier-P90~P385	TIMI Flow~SDTM-CCRCLS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	qualifier-P90~P386	GLYCERYL DIBEHENATE~UNII
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P393	Interferon Gamma-1b~Has Synonym
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P394	Interferon Gamma-1b~PT
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P395	Interferon Gamma-1b~therapeutic_agents
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P396	Interferon Gamma-1b~GDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101034	C101034	qualifier-P375~P397	Intentional injury~18.1
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101250	C101250	qualifier-P325~P381	Injury to the peripheral nervous system.~CDRH
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P387	dopamine receptor activity~GO:0004952
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P389	dopamine receptor activity~TAS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P390	dopamine receptor activity~CGAP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P391	dopamine receptor activity~29-SEP-2003
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#term-group	term-group	qualifier-P97~P379	A property representing a two or three character abbreviation that indicates the nature of each FULL_SYN term associated with a concept. (e.g., PT=Preferred Term; SY=Synonym)~Hahn-Dantona, Elizabeth
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#term-group	term-group	qualifier-P97~P380	A property representing a two or three character abbreviation that indicates the nature of each FULL_SYN term associated with a concept. (e.g., PT=Preferred Term; SY=Synonym)~2018-11-07
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	parent-style1	C1504
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1504	child-style1	C1000
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	parent-style2	C9385
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C9385	child-style2	C100051
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107687	C107687	max-children	3234
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	parent-count1
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100063	C100063	parent-count2
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101132	C101132	parent-count3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104006	C104006	parent-count4
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114836	C114836	parent-count5
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160034	C160034	parent-count6
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160054	C160054	parent-count7
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160053	C160053	parent-count8
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160005	C160005	parent-count9
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C159984	C159984	parent-count10
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160108	C160108	parent-count12
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160024	C160024	parent-count13
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C160102	C160102	parent-count16
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12218	C12218	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12219	C12219	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12913	C12913	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C14250	C14250	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16612	C16612	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C17828	C17828	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1908	C1908	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C20047	C20047	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C20181	C20181	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C20189	C20189	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C20633	C20633	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C22187	C22187	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C22188	C22188	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C26548	C26548	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C28428	C28428	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3910	C3910	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C43431	C43431	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C7057	C7057	root
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C97325	C97325	root
