@@ -1037,11 +1037,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // Attempt to read the config, if anything goes wrong
       // the config file is probably not there
-      final String resource = "metadata/" + term.getTerminology() + ".json";
       try {
 
         // Load from config
-        final JsonNode node = getMetadataAsNode(terminology);
+        final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
         final TerminologyMetadata metadata =
             new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
@@ -1054,11 +1053,12 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(sourceMap.size());
-        metadata.setWelcomeText(getWelcomeText(terminology));
+        metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
         term.setMetadata(metadata);
 
       } catch (Exception e) {
-        throw new Exception("Unexpected error trying to load = " + resource, e);
+        throw new Exception("Unexpected error trying to load metadata = "
+            + applicationProperties.getConfigBaseUri(), e);
       }
 
       return term;

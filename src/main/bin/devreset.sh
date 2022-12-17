@@ -188,6 +188,9 @@ for i in `cat /tmp/x.$$.txt`; do
     fi
 done
 
+# pause for a few seconds to make sure prior step is done
+sleep 5
+
 # Reindex ncim
 echo "  Reindex ncim"
 src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'

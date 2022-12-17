@@ -478,10 +478,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
-    final String resource = "metadata/" + term.getTerminology() + ".json";
     try {
       // Load from config
-      final JsonNode node = getMetadataAsNode(terminology);
+      final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
       final TerminologyMetadata metadata =
           new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
@@ -494,7 +493,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
-      metadata.setWelcomeText(getWelcomeText(terminology));
+      metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
       term.setMetadata(metadata);
 
       // Compute concept statuses
@@ -517,7 +516,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
 
     } catch (Exception e) {
-      throw new Exception("Unexpected error trying to load = " + resource, e);
+      throw new Exception(
+          "Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
+          e);
     }
 
     // Compute tags because this is the new terminology
