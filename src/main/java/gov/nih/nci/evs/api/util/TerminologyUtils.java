@@ -90,23 +90,27 @@ public final class TerminologyUtils {
    * @return the stale terminologies
    * @throws Exception the exception
    */
-  public List<IndexMetadata> getStaleTerminologies(final List<String> dbs) throws Exception {
+  public List<IndexMetadata> getStaleStardogTerminologies(final List<String> dbs,
+    final Terminology terminology) throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
     if (CollectionUtils.isEmpty(iMetas)) {
       return Collections.emptyList();
     }
 
-    final Map<String, Terminology> termMap = new HashMap<>();
+    final Map<String, Terminology> stardogMap = new HashMap<>();
+
+    // Collect terminologies that are in stardog
     for (final String db : dbs) {
-      // get all terminologies and organize in a map by terminologyVersion as
-      // key
       List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies(db);
-      terminologies.stream().forEach(t -> termMap.putIfAbsent(t.getTerminologyVersion(), t));
+      terminologies.stream().forEach(t -> stardogMap.putIfAbsent(t.getTerminologyVersion(), t));
     }
 
-    // collect stale terminologies loaded in es
-    return iMetas.stream().filter(m -> !termMap.containsKey(m.getTerminologyVersion()))
+    // Stale means matching current terminology, not loaded via RRF, and in NOT in stardog
+    return iMetas.stream()
+        .filter(m -> m.getTerminology().getTerminology().equals(terminology.getTerminology())
+            && !m.getTerminology().getMetadata().getLoader().equals("rrf")
+            && !stardogMap.containsKey(m.getTerminologyVersion()))
         .collect(Collectors.toList());
   }
 
