@@ -29,6 +29,7 @@ allChildren = {} # all children to parent relationships
 parentCount = {} # list of parent count codes from 1 to n
 deprecated = {} # list of all deprecated concepts
 newRestriction = "" # restriction code
+hitClass = False # ignore axioms and stuff before hitting any classes
 
 def checkParamsValid(argv):
     if(len(argv) != 2):
@@ -131,7 +132,9 @@ if __name__ == "__main__":
             lastSpaces = spaces # previous line's number of leading spaces (for comparison)
             spaces = len(line) - len(line.lstrip()) # current number of spaces (for stack level checking)
             line = line.strip() # no need for leading spaces anymore
-            if(len(line) < 1 or line[0] != '<'): # blank lines or random text
+            if(line.startswith("// Annotations")):
+                hitClass = False
+            elif(len(line) < 1 or line[0] != '<'): # blank lines or random text
                 continue
             elif(line.startswith("<owl:deprecated")): # ignore deprecated classes
                 inClass = False
@@ -139,12 +142,14 @@ if __name__ == "__main__":
                 deprecated[currentClassURI] = True
                 
             elif(line.startswith("<owl:Class ") and not inEquivalentClass):
-                inClass = True
-                propertiesCurrentClass = {} # reset for new class
-                currentClassURI = re.findall('"([^"]*)"', line)[0] # set uri entry in line
-                currentClassCode = re.split("/|#", currentClassURI)[-1] # set initial class code
-                uri2Code[currentClassURI] = currentClassCode # set initial uri code value
-                continue
+              if not hitClass:
+                hitClass = True
+              inClass = True
+              propertiesCurrentClass = {} # reset for new class
+              currentClassURI = re.findall('"([^"]*)"', line)[0] # set uri entry in line
+              currentClassCode = re.split("/|#", currentClassURI)[-1] # set initial class code
+              uri2Code[currentClassURI] = currentClassCode # set initial uri code value
+              continue
             elif(line.startswith("</owl:Class>") and not inEquivalentClass):
                 for key, value in propertiesCurrentClass.items(): # replace code entry and write to file
                     properties[key] = value # add to master list
@@ -166,7 +171,7 @@ if __name__ == "__main__":
             elif(line.startswith("</rdfs:subClassOf>")) :
                 inSubclass = False
             
-            elif line.startswith("<owl:Axiom>"): # find complex subclass            
+            elif line.startswith("<owl:Axiom>") and hitClass: # find complex subclass            
                 inAxiom = True
             elif line.startswith("</owl:Axiom>"):
                 inAxiom = False
