@@ -563,12 +563,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setConceptStatus("DEFAULT");
       for (final Property property : properties) {
 
-        // Skip properties matching the concept code so as to not duplicate them
-        // e.g. for GO oboInOwl:id
-        if (property.getValue().equals(concept.getCode())) {
-          continue;
-        }
-
         // Set concept status for retired concepts
         if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
           // Set to retired if it matches config
