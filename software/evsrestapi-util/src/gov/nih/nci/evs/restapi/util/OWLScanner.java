@@ -2745,9 +2745,7 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		return w;
 	}
 
-
-
-    public static void main(String[] args) {
+    public static void main1(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
@@ -2792,59 +2790,39 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		String syn_file = "syn_" + owlfile.substring(0, n) + "_" + getToday() + ".owl";
 		Utils.saveToFile(syn_file, v);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-		*/
-        //Vector v = scanner.scanOwlTags();
-        //v = scanner.fileterTagData(v, "owl:Restriction");
-        //Utils.dumpVector("fileterTagData", v);
-        //scanner.printPaths(v);
-        /*
-        Vector class_vec = Utils.readFile("ThesaurusInferred_forTS.owl");
-        Vector w = new OWLScanner().extractProperties(class_vec);
-        for (int i=0; i<w.size(); i++) {
-			String p = (String) w.elementAt(i);
-			System.out.println(p);
-		}
-
-	private String code;
-	private String label;
-	private String termName;
-	private String termGroup;
-	private String termSource;
-	private String sourceCode;
-	private String subSourceName;
-	private String subSourceCode;
-
-		*/
-		Vector v = new Vector();
-
-		/*
-		List list = scanner.extractFULLSyns();
-		HashSet hset = new HashSet();
-		for (int i=0; i<list.size(); i++) {
-			Synonym syn = (Synonym) list.get(i);
-
-			//(H115D)VHL35 Peptisyn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName()de|C28776|FULL_SYN|(H115D)VHL35 Peptide
-
-			//String line = syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName();
-			//if (!hset.contains(line)) {
-			//	hset.add(line);
-			// 	v.add(syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName());
-			//}
-
-			v.add(syn.toJson());
-
-		}
-		v = new SortUtils().quickSort(v);
-		Utils.saveToFile("FULL_SYN_1.txt", v);
-		*/
 
         String propertyCode = "P319";
         //FDA_UNII_Code 	P319
 		v = scanner.extractProperties(scanner.get_owl_vec(), propertyCode);
         Utils.saveToFile(propertyCode + ".txt", v);
+        */
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 
     }
+
+    public void generate_FULL_SYN() {
+		List list = extractFULLSyns();
+		HashSet hset = new HashSet();
+		Vector v = new Vector();
+		for (int i=0; i<list.size(); i++) {
+			Synonym syn = (Synonym) list.get(i);
+			String line = syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName();
+			if (!hset.contains(line)) {
+				hset.add(line);
+			 	v.add(syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName());
+			}
+		}
+		v = new SortUtils().quickSort(v);
+		Utils.saveToFile("FULL_SYN.txt", v);
+	}
+
+
+    public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
+        String owlfile = args[0];
+		OWLScanner scanner = new OWLScanner(owlfile);
+		scanner.generate_FULL_SYN();
+	}
 }
 
 
