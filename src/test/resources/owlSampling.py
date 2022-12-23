@@ -77,7 +77,7 @@ def checkForNewProperty(line):
     if("rdf:resource=\"" in line): # grab stuff in quotes
         detail = re.split(r'[#/]', re.findall('"([^"]*)"', line)[0])[-1] # the code is the relevant part
     else: # grab stuff in tag
-        detail = re.findall(">(.*?)<", line)[0]
+        detail = re.findall(">(.=?)<", line)[0]
     return (splitLine[0], currentClassURI + "\t" + currentClassCode + "\t" + splitLine[0] + "\t" + detail + "\n")
 
 def handleRestriction(line):
@@ -107,13 +107,15 @@ def handleAxiom(line):
         sourceProperty = re.findall('"([^"]*)"', line)[0]
         axiomInfo.append("qualifier-" + re.split(r'[#/]', sourceProperty)[-1] + "~")
     elif(line.startswith("<owl:annotatedTarget")): # get target code
-        axiomInfo.append(re.findall(">(.*?)<", line)[0] + "~")
+        axiomInfo.append(re.findall(">(.=?)<", line)[0] + "~")
     elif(not line.startswith("<owl:annotated") and axiomInfo[0] + re.split(r'[< >]', line)[1] not in axiomProperties): # get connected properties
         newProperty = re.split(r'[< >]', line)[1] # extract property from line
-        if(len(re.findall(">(.*?)<", line)) > 0):
-            newCode = re.findall(">(.*?)<", line)[0] # extract code from line
-        else:
-            newCode = re.split(r'[#/]', re.findall('"([^"]*)"', line)[0])[-1]
+        if(len(re.findall(">(.+?)<", line)) > 0):
+          newCode = re.findall(">(.+?)<", line)[0] # extract code from line
+        elif(len(re.findall('"([^"]*)"', line)) > 0 and len(re.split(r'[#/]', re.findall('"([^"]*)"', line)[0])) > 0): # check for quotes with a #
+          newCode = re.split(r'[#/]', re.findall('"([^"]*)"', line)[0])[-1]
+        else: # couldn't find any property codes so we skip
+          return
         axiomProperties[axiomInfo[0] + newProperty] = currentClassURI + "\t" + currentClassCode + "\t" + axiomInfo[0] + newProperty + "\t" + axiomInfo[1] + newCode + "\n"
 
 if __name__ == "__main__":
@@ -147,7 +149,7 @@ if __name__ == "__main__":
             elif(line.startswith("</owl:ObjectProperty>")):
               inObjectProperty = False
             elif inObjectProperty and line.startswith(termCodeline):
-              uri2Code[currentClassURI] = re.findall(">(.*?)<", line)[0]
+              uri2Code[currentClassURI] = re.findall(">(.=?)<", line)[0]
               objectProperties[currentClassURI] = uri2Code[currentClassURI]
               
             elif(line.startswith("<owl:AnnotationProperty")):
@@ -156,7 +158,7 @@ if __name__ == "__main__":
             elif(line.startswith("</owl:AnnotationProperty>")):
               inObjectProperty = False
             elif inObjectProperty and line.startswith(termCodeline):
-              uri2Code[currentClassURI] = re.findall(">(.*?)<", line)[0]
+              uri2Code[currentClassURI] = re.findall(">(.=?)<", line)[0]
               annotationProperties[currentClassURI] = uri2Code[currentClassURI]
                 
             elif(len(line) < 1 or line[0] != '<'): # blank lines or random text
@@ -222,7 +224,7 @@ if __name__ == "__main__":
 
             elif(inClass and not inSubclass and not inEquivalentClass): # default property not in complex part of class
                 if(line.startswith(termCodeline)): # catch ID to return if it has properties
-                    currentClassCode = re.findall(">(.*?)<", line)[0]
+                    currentClassCode = re.findall(">(.=?)<", line)[0]
                     uri2Code[currentClassURI] = currentClassCode # store code for uri
                     continue
                 newEntry = checkForNewProperty(line)

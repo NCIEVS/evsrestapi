@@ -38,7 +38,6 @@ http://purl.obolibrary.org/obo/GO_0000027	GO:0000027	qualifier-hasNarrowSynonym~
 http://purl.obolibrary.org/obo/GO_0000038	GO:0000038	qualifier-hasExactSynonym~oboInOwl:hasDbXref	very long chain fatty acid metabolic process~GOC:bf
 http://purl.obolibrary.org/obo/GO_0000183	GO:0000183	qualifier-hasBroadSynonym~oboInOwl:hasDbXref	rDNA chromatin silencing~GOC:mah
 http://purl.obolibrary.org/obo/GO_0001525	GO:0001525	qualifier-hasExactSynonym~oboInOwl:hasSynonymType	blood vessel formation from pre-existing blood vessels~systematic_synonym
-http://purl.obolibrary.org/obo/GO_0003853	GO:0003853	qualifier-hasNarrowSynonym~oboInOwl:hasRelatedSynonym	2-methyl-branched-chain-enoyl-CoA reductase activity~
 http://purl.obolibrary.org/obo/GO_0004165	GO:0004165	qualifier-hasDbXref~oboInOwl:hasDbXref	MetaCyc:RXN-7931~skos:narrowMatch
 http://purl.obolibrary.org/obo/GO_0099565	GO:0099565	qualifier-hasRelatedSynonym~oboInOwl:hasSynonymType	postsynaptic process involved in chemical synaptic transmission~syngo_official_label
 http://purl.obolibrary.org/obo/GO_0120241	GO:0120241	qualifier-hasRelatedSynonym~rdfs:comment	imine intermediate deaminase activity~EC:3.5.99.10
