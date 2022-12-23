@@ -2,9 +2,8 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,12 +48,10 @@ public class HgncSampleTest {
     @BeforeClass
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
-        ClassLoader classLoader = HgncSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream(hgncFile);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
-        String line;
+        BufferedReader fileReader = new BufferedReader(new FileReader(hgncFile));
+        String line = "";
         samples = new HashMap<>();
-        while ((line = bufferedReader.readLine()) != null) {
+        while ((line = fileReader.readLine()) != null) {
             String[] parts = line.split("\t");
             if (parts.length >= 3) {
                 SampleRecord record = new SampleRecord();

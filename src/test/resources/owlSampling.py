@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import os
 import re
 import sys
@@ -8,6 +9,8 @@ inClass = False
 inRestriction = False
 inSubclass = False
 inEquivalentClass = False
+inObjectProperty = False
+inAnnotationProperty = False
 currentClassURI = ""
 currentClassCode = ""
 currentClassPath = []
@@ -15,7 +18,9 @@ lastSpaces = 0
 spaces = 0
 axiomInfo = [] # key value pair storing info about current axiom
 properties = {} # master list
-axiomProperties = {} # lsit of axiom properties
+axiomProperties = {} # list of axiom properties
+objectProperties = {} # list of object properties
+annotationProperties = {} # list of annotationProperties
 propertiesMultipleSamples = {} # properties that should show multiple examples
 propertiesMultipleSampleCodes = ['P310'] # the codes that should work with multiple samples
 propertiesCurrentClass = {} # current class list
@@ -30,15 +35,16 @@ parentCount = {} # list of parent count codes from 1 to n
 deprecated = {} # list of all deprecated concepts
 newRestriction = "" # restriction code
 hitClass = False # ignore axioms and stuff before hitting any classes
+termCodeline = "" # terminology Code identifier line
 
 def checkParamsValid(argv):
-    if(len(argv) != 2):
-        print("Usage: owlQA.py <terminology owl file path>")
+    if(len(argv) != 3):
+        print("Usage: owlQA.py <terminology owl file path> <terminology json path>")
         return False
-    elif(os.path.isfile(argv[1]) == False or argv[1][-4:] != ".owl"):
+    elif(os.path.isfile(argv[1]) == False or argv[1][-4:] != ".owl" or argv[2][-5:] != ".json"):
         print(argv[1][-4:])
         print("terminology owl file path is invalid")
-        print("Usage: owlQA.py <terminology owl file path>")
+        print("Usage: owlQA.py <terminology owl file path> <terminology json path>")
         return False
     return True
 
@@ -78,31 +84,25 @@ def handleRestriction(line):
     global newRestriction # grab newRestriction global
     detail = re.findall('"([^"]*)"', line)[0]
     pathCode = "/".join(currentClassPath) + "~" # prebuild tag stack for restriction
+    property = re.split(r'[#/]', detail)[-1] # extract property
     if(line.startswith("<owl:onProperty")): # property code
-        propertyCode = re.split(r'[#/]', detail)[-1] # extract code
-        if(pathCode + propertyCode in uriRestrictions2Code): # skip if already done
-            return
-        else:
-            uriRestrictions2Code[pathCode + propertyCode] = propertyCode
-            newRestriction = propertyCode # hold new code for next lines value code
+      if(detail in uri2Code):
+        newRestriction = uri2Code[detail]
+      else:
+        newRestriction = property
             
     elif(line.startswith("<owl:someValuesFrom")): # value code
-        valueCode = re.split(r'[#/]', detail)[-1]
-        if(detail in uriRestrictions2Code): # already found this code
-            pass
-        else:
-            uriRestrictions2Code[detail] = valueCode
-        if(newRestriction != ""): # new restriction code from previous line
-            pathCode += newRestriction
-            propertiesCurrentClass[pathCode] = currentClassURI + "\t" + currentClassCode + "\t" + pathCode + "\t" + valueCode + "\n" # add code/path to properties
-            newRestriction = "" # saved code now used, reset to empty
+      if(newRestriction == "" or pathCode + newRestriction in uriRestrictions2Code): # duplicate
+        return
+      propertiesCurrentClass[pathCode+newRestriction] = currentClassURI + "\t" + currentClassCode + "\t" + pathCode+newRestriction + "\t" + detail + "\n" # add code/path to properties
+      uriRestrictions2Code[pathCode+newRestriction] = newRestriction
+      newRestriction = "" # saved code now used, reset to empty
             
 def handleAxiom(line):
     global currentClassURI # grab globals
     global currentClassCode
     if(line.startswith("<owl:annotatedSource")): # get source uri and code
         currentClassURI = re.findall('"([^"]*)"', line)[0]
-        currentClassCode = re.split(r'[#/]', currentClassURI)[-1]
     elif(line.startswith("<owl:annotatedProperty")): # get property code
         sourceProperty = re.findall('"([^"]*)"', line)[0]
         axiomInfo.append("qualifier-" + re.split(r'[#/]', sourceProperty)[-1] + "~")
@@ -126,14 +126,39 @@ if __name__ == "__main__":
     with open (sys.argv[1], "r", encoding='utf-8') as owlFile:
         ontoLines = owlFile.readlines()
     terminology = sys.argv[1].split("/")[-1].split(".")[0].split("_")[0]
+    with open(sys.argv[2]) as termJSONFile: # import id identifier line for terminology
+      termJSONObject = json.load(termJSONFile)
+      if(not termJSONObject["code"]):
+        print("terminology json file does not have ID entry")
+        exit(1)
+      termCodeline = "<" + termJSONObject["code"] # data lines all start with #
     
     with open(terminology + "_Sampling_OWL.txt", "w") as termFile:
         for index, line in enumerate(ontoLines): # get index just in case
             lastSpaces = spaces # previous line's number of leading spaces (for comparison)
             spaces = len(line) - len(line.lstrip()) # current number of spaces (for stack level checking)
             line = line.strip() # no need for leading spaces anymore
-            if(line.startswith("// Annotations")):
+            if(line.startswith("// Annotations")): # skip ending annotation
                 hitClass = False
+                
+            elif(line.startswith("<owl:ObjectProperty")):
+              inObjectProperty = True;
+              currentClassURI = re.findall('"([^"]*)"', line)[0]
+            elif(line.startswith("</owl:ObjectProperty>")):
+              inObjectProperty = False
+            elif inObjectProperty and line.startswith(termCodeline):
+              uri2Code[currentClassURI] = re.findall(">(.*?)<", line)[0]
+              objectProperties[currentClassURI] = uri2Code[currentClassURI]
+              
+            elif(line.startswith("<owl:AnnotationProperty")):
+              inObjectProperty = True;
+              currentClassURI = re.findall('"([^"]*)"', line)[0]
+            elif(line.startswith("</owl:AnnotationProperty>")):
+              inObjectProperty = False
+            elif inObjectProperty and line.startswith(termCodeline):
+              uri2Code[currentClassURI] = re.findall(">(.*?)<", line)[0]
+              annotationProperties[currentClassURI] = uri2Code[currentClassURI]
+                
             elif(len(line) < 1 or line[0] != '<'): # blank lines or random text
                 continue
             elif(line.startswith("<owl:deprecated")): # ignore deprecated classes
@@ -196,7 +221,7 @@ if __name__ == "__main__":
                 handleRestriction(line)
 
             elif(inClass and not inSubclass and not inEquivalentClass): # default property not in complex part of class
-                if(line.startswith("<oboInOwl:id")): # catch ID to return if it has properties
+                if(line.startswith(termCodeline)): # catch ID to return if it has properties
                     currentClassCode = re.findall(">(.*?)<", line)[0]
                     uri2Code[currentClassURI] = currentClassCode # store code for uri
                     continue
@@ -211,6 +236,10 @@ if __name__ == "__main__":
         for key, value in properties.items(): # write normal properties
             splitLineTemp = value.split("\t") # split to get code isolated
             splitLineTemp[1] = uri2Code[splitLineTemp[0]]
+            if(splitLineTemp[2] in uri2Code):
+              splitLineTemp[2] = uri2Code[splitLineTemp[2]]
+            if(splitLineTemp[3] and splitLineTemp[3][:-1] in uri2Code): # deal with newline
+              splitLineTemp[3] = uri2Code[splitLineTemp[3][:-1]] + "\n"
             termFile.write("\t".join(splitLineTemp)) # rejoin and write
             
         for key, value in propertiesMultipleSamples.items(): # write properties with multiple examples
@@ -242,7 +271,7 @@ if __name__ == "__main__":
             termFile.write(parentCount[numParents] + "\t" + uri2Code[parentCount[numParents]] + "\t" + "parent-count" + str(numParents) + "\n")
             
         for code in uri2Code: # write out roots (all codes with no parents)
-            if code not in allParents and code not in deprecated: # deprecated codes are fake roots
+            if code not in allParents and code not in deprecated and code not in objectProperties and code not in annotationProperties: # deprecated codes, object properties, and annotation properties are fake roots
                 termFile.write(code + "\t" + uri2Code[code] + "\t" + "root" + "\n")
             
 
@@ -250,4 +279,3 @@ if __name__ == "__main__":
     print("--------------------------------------------------")
     print("Ending..." + datetime.now().strftime("%d-%b-%Y %H:%M:%S"))
     print("--------------------------------------------------")
-    

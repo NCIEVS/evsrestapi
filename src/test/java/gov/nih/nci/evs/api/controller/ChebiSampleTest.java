@@ -2,9 +2,8 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,14 +11,22 @@ import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 public class ChebiSampleTest {
 
     private static Map<String, List<SampleRecord>> samples;
@@ -41,12 +48,10 @@ public class ChebiSampleTest {
     @BeforeClass
     public static void setupClass() throws IOException {
         // load tab separated txt file as resource and load into samples
-        ClassLoader classLoader = ChebiSampleTest.class.getClassLoader();
-        InputStream resourceStream = classLoader.getResourceAsStream(chebiFile);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resourceStream));
-        String line;
+        BufferedReader fileReader = new BufferedReader(new FileReader(chebiFile));
+        String line = "";
         samples = new HashMap<>();
-        while ((line = bufferedReader.readLine()) != null) {
+        while ((line = fileReader.readLine()) != null) {
             String[] parts = line.split("\t");
             if (parts.length >= 3) {
                 SampleRecord record = new SampleRecord();
