@@ -28,6 +28,7 @@ public class ResultList extends BaseModel {
    * @param other the other
    */
   public ResultList(final ResultList other) {
+    super.populateFrom(other);
     populateFrom(other);
   }
 

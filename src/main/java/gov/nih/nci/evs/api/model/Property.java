@@ -83,6 +83,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    * @param other the other
    */
   public void populateFrom(final Property other) {
+    super.populateFrom(other);
     code = other.getCode();
     type = other.getType();
     value = other.getValue();

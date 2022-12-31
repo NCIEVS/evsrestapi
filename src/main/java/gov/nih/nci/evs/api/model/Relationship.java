@@ -74,6 +74,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    * @param other the other
    */
   public void populateFrom(final Relationship other) {
+    super.populateFrom(other);
     code = other.getCode();
     type = other.getType();
     relatedCode = other.getRelatedCode();

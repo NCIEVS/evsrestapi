@@ -70,6 +70,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    * @param other the other
    */
   public void populateFrom(final Definition other) {
+    super.populateFrom(other);
     definition = other.getDefinition();
     highlight = other.getHighlight();
     code = other.getCode();
