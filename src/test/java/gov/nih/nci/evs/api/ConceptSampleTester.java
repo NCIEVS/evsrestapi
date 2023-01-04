@@ -216,20 +216,20 @@ public class ConceptSampleTester {
             return checkDefinitionMetadata(concept, sample, qualValue, propertyValue);
         } else if (terminology.getMetadata().getMap() != null
                 && terminology.getMetadata().getMap().equals(propertyValue)) {
-            return checkMaps(concept, sample, qualKey, qualValue, propertyValue);
+            return checkMaps(concept, sample, qualValue, propertyValue);
         } else {
-            return checkGoAnnotation(concept, sample, qualValue, propertyValue);
+            return checkGoAnnotation(concept, sample, qualKey, qualValue, propertyValue);
         }
-        return true;
     }
 
-    public boolean checkGoAnnotation(Concept concept, SampleRecord sample, String qualKey, String qualValue, String propertyValue) {
+    public boolean checkGoAnnotation(Concept concept, SampleRecord sample, String qualKey, String qualValue,
+            String propertyValue) throws Exception {
         String url = "/api/v1/metadata/" + terminology.getTerminology() + "/properties?include=minimal&list=" + qualKey;
         MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         String content = result.getResponse().getContentAsString();
         log.info(" content = " + content);
-        Concept goAnnotationProperty = new ObjectMapper().readValue(content, Concept.class); 
-        if(!goAnnotationProperty.getName().equals("GO_Annotation")) {
+        Concept goAnnotationProperty = new ObjectMapper().readValue(content, Concept.class);
+        if (!goAnnotationProperty.getName().equals("GO_Annotation")) {
             return false;
         } else {
             url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifiers?include=minimal&list=" + qualKey;
@@ -238,44 +238,66 @@ public class ConceptSampleTester {
             log.info(" content = " + content);
             Concept goAnnotationQualifier = new ObjectMapper().readValue(content, Concept.class);
             return concept.getProperties().stream().filter(o -> o.getType().equals("GO_Annotation")
-            && o.getQualifiers() != null
-            && o.getQualifiers().stream().filter(o -> o.getType().equals(goAnnotationQualifier.getName()
-            && o.getValue().equals(propertyValue))).findFirst().isPresent()).findFirst().isPresent();
+                    && o.getQualifiers() != null
+                    && o.getQualifiers().stream().filter(p -> p.getType().equals(goAnnotationQualifier.getName())
+                            && p.getValue().equals(propertyValue)).findFirst().isPresent())
+                    .findFirst().isPresent();
         }
-        return false;
     }
 
     public boolean checkSynonymMetadata(Concept concept, SampleRecord sample, String qualValue, String propertyValue) {
-        if(qualValue.equals(terminology.getMetadata().getSynonymTermType())){
-            return concept.getSynonyms().stream().filter(o -> o.getName().equals(qualValue) && o.getTermType().equals(propertyValue)).findFirst().isPresent();
-        } else if(qualValue.equals(terminology.getMetadata().getSynonymSource())) {
-            return concept.getSynonyms().stream().filter(o -> o.getName().equals(qualValue) && o.getSource().equals(propertyValue)).findFirst().isPresent();
-        } else if(qualValue.equals(terminology.getMetadata().getSynonymCode())) {
-            return concept.getSynonyms().stream().filter(o -> o.getName().equals(qualValue) && o.getCode().equals(propertyValue)).findFirst().isPresent();
-        } else if(qualValue.equals(terminology.getMetadata().getSynonymSubSource())) {
-            return concept.getSynonyms().stream().filter(o -> o.getName().equals(qualValue) && o.getSubSource().equals(propertyValue)).findFirst().isPresent();
+        if (qualValue.equals(terminology.getMetadata().getSynonymTermType())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getTermType().equals(propertyValue)).findFirst()
+                    .isPresent();
+        } else if (qualValue.equals(terminology.getMetadata().getSynonymSource())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getSource().equals(propertyValue)).findFirst()
+                    .isPresent();
+        } else if (qualValue.equals(terminology.getMetadata().getSynonymCode())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getCode().equals(propertyValue)).findFirst()
+                    .isPresent();
+        } else if (qualValue.equals(terminology.getMetadata().getSynonymSubSource())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getSubSource().equals(propertyValue)).findFirst()
+                    .isPresent();
         }
         return false;
     }
 
-    public boolean checkDefinitionMetadata(Concept concept, SampleRecord sample, String qualValue, String propertyValue) {
-        return concept.getDefinitions().stream().filter(o -> o.getDefinition().equals(qualValue) && o.getSource().equals(propertyValue)).findFirst().isPresent();
+    public boolean checkDefinitionMetadata(Concept concept, SampleRecord sample, String qualValue,
+            String propertyValue) {
+        return concept.getDefinitions().stream()
+                .filter(o -> o.getDefinition().equals(qualValue) && o.getSource().equals(propertyValue)).findFirst()
+                .isPresent();
+    }
 
     public boolean checkMaps(Concept concept, SampleRecord sample, String qualValue, String propertyValue) {
-        if(qualValue.equals(terminology.getMetadata().getMapRelation())){
-            return concept.getMaps().stream().filter(o -> o.getTargetName().equals(qualValue) && o.getType().equals(propertyValue)).findFirst().isPresent();
+        if (qualValue.equals(terminology.getMetadata().getMapRelation())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getType().equals(propertyValue)).findFirst()
+                    .isPresent();
 
-        } else if(qualValue.equals(terminology.getMetadata().getMapTarget())) {
-            return concept.getMaps().stream().filter(o -> o.getTargetName().equals(qualValue) && o.getTargetCode().equals(propertyValue)).findFirst().isPresent();
+        } else if (qualValue.equals(terminology.getMetadata().getMapTarget())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetCode().equals(propertyValue))
+                    .findFirst().isPresent();
 
-        } else if(qualValue.equals(terminology.getMetadata().getMapTargetTermType())) {
-            return concept.getMaps().stream().filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTermType().equals(propertyValue)).findFirst().isPresent();
+        } else if (qualValue.equals(terminology.getMetadata().getMapTargetTermType())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTermType().equals(propertyValue))
+                    .findFirst().isPresent();
 
-        } else if(qualValue.equals(terminology.getMetadata().getMapTargetTerminology())) {
-            return concept.getMaps().stream().filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTerminology().equals(propertyValue)).findFirst().isPresent();
+        } else if (qualValue.equals(terminology.getMetadata().getMapTargetTerminology())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTerminology().equals(propertyValue))
+                    .findFirst().isPresent();
 
-        } else if(qualValue.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
-            return concept.getMaps().stream().filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTerminologyVersion().equals(propertyValue)).findFirst().isPresent();
+        } else if (qualValue.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
+            return concept.getMaps().stream().filter(
+                    o -> o.getTargetName().equals(qualValue) && o.getTargetTerminologyVersion().equals(propertyValue))
+                    .findFirst().isPresent();
         }
         return false;
     }
