@@ -38,6 +38,7 @@ public class ResultList extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final ResultList other) {
+    super.populateFrom(other);
     total = other.getTotal();
     timeTaken = other.getTimeTaken();
     parameters = other.getParameters();

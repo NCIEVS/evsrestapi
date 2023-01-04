@@ -163,7 +163,7 @@ public class TerminologyMetadata extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final TerminologyMetadata other) {
-    setUri(other.getUri());
+    super.populateFrom(other);
     uiLabel = other.getUiLabel();
     loader = other.getLoader();
     code = other.getCode();

@@ -200,9 +200,12 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
         logger.info("    start computing extensions {} to {}", start + 1, end);
         concepts.stream().forEach(c -> {
-          // logger.info(" concept = " + c.getCode() + " " + c.getName()))
+          // logger.info(" concept = " + c.getCode() + " " + c.getName());
           c.setExtensions(mainTypeHierarchy.getExtensions(c));
-          // logger.info(" extensions = " + c.getExtensions()))
+          // if (c.getExtensions() != null) {
+          // logger.info(" extensions " + c.getCode() + " = " +
+          // c.getExtensions());
+          // }
         });
         logger.info("    finish computing extensions {} to {}", start + 1, end);
 
