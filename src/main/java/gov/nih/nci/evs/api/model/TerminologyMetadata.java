@@ -23,6 +23,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The ui label. */
   private String uiLabel;
 
+  /** The max versions. */
+  private Integer maxVersions;
+
   /** The loader. */
   private String loader;
 
@@ -165,6 +168,7 @@ public class TerminologyMetadata extends BaseModel {
   public void populateFrom(final TerminologyMetadata other) {
     super.populateFrom(other);
     uiLabel = other.getUiLabel();
+    maxVersions = other.getMaxVersions();
     loader = other.getLoader();
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
@@ -212,6 +216,7 @@ public class TerminologyMetadata extends BaseModel {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((uiLabel == null) ? 0 : uiLabel.hashCode());
+    result = prime * result + ((maxVersions == null) ? 0 : maxVersions.hashCode());
     result = prime * result + ((loader == null) ? 0 : loader.hashCode());
     result = prime * result + ((code == null) ? 0 : code.hashCode());
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
@@ -261,6 +266,11 @@ public class TerminologyMetadata extends BaseModel {
       if (other.uiLabel != null)
         return false;
     } else if (!uiLabel.equals(other.uiLabel))
+      return false;
+    if (maxVersions == null) {
+      if (other.maxVersions != null)
+        return false;
+    } else if (!maxVersions.equals(other.maxVersions))
       return false;
     if (loader == null) {
       if (other.loader != null)
@@ -449,6 +459,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setUiLabel(String uiLabel) {
     this.uiLabel = uiLabel;
+  }
+
+  /**
+   * Returns the max versions.
+   *
+   * @return the max versions
+   */
+  public Integer getMaxVersions() {
+    return maxVersions;
+  }
+
+  /**
+   * Sets the max versions.
+   *
+   * @param maxVersions the max versions
+   */
+  public void setMaxVersions(Integer maxVersions) {
+    this.maxVersions = maxVersions;
   }
 
   /**
