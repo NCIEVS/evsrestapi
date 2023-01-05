@@ -488,7 +488,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // Set term name and description
       term.setName(metadata.getUiLabel() + " " + term.getVersion());
-      if (term.getDescription() == null) {
+      if (term.getDescription() == null || term.getDescription().isEmpty()) {
         term.setDescription(node.get("description").asText());
       }
 
