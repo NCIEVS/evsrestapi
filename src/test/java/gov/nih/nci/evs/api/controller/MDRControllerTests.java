@@ -213,7 +213,8 @@ public class MDRControllerTests {
     // single source children don't have terminology/version
     assertThat(concept.getChildren().get(0).getTerminology()).isNull();
     assertThat(concept.getChildren().get(0).getVersion()).isNull();
-    assertThat(concept.getChildren().get(0).getLeaf()).isNull();
+    // child "leaf" is computed - matching ncit.
+    assertThat(concept.getChildren().get(0).getLeaf()).isNotNull();
     assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10048498");
 
@@ -221,6 +222,7 @@ public class MDRControllerTests {
     // single source children don't have terminology/version
     assertThat(concept.getParents().get(0).getTerminology()).isNull();
     assertThat(concept.getParents().get(0).getVersion()).isNull();
+    // parent "leaf" is null because it's known to be true already
     assertThat(concept.getParents().get(0).getLeaf()).isNull();
     assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10053567");
