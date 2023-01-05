@@ -109,6 +109,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    * @param other the other
    */
   public void populateFrom(final Terminology other) {
+    super.populateFrom(other);
     terminology = other.getTerminology();
     version = other.getVersion();
     date = other.getDate();

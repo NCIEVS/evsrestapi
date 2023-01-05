@@ -199,12 +199,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         logger.info("    finish reading {} to {}", start + 1, end);
 
         logger.info("    start computing extensions {} to {}", start + 1, end);
-        concepts.stream()
-            // .peek(c -> logger.info(" concept = " + c.getCode() + " " +
-            // c.getName()))
-            .peek(c -> c.setExtensions(mainTypeHierarchy.getExtensions(c)))
-            // .peek(c -> logger.info(" extensions = " + c.getExtensions()))
-            .count();
+        concepts.stream().forEach(c -> {
+          // logger.info(" concept = " + c.getCode() + " " + c.getName());
+          c.setExtensions(mainTypeHierarchy.getExtensions(c));
+          // if (c.getExtensions() != null) {
+          // logger.info(" extensions " + c.getCode() + " = " +
+          // c.getExtensions());
+          // }
+        });
         logger.info("    finish computing extensions {} to {}", start + 1, end);
 
         int indexStart = 0;
@@ -486,7 +488,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // Set term name and description
       term.setName(metadata.getUiLabel() + " " + term.getVersion());
-      if (term.getDescription() == null) {
+      if (term.getDescription() == null || term.getDescription().isEmpty()) {
         term.setDescription(node.get("description").asText());
       }
 

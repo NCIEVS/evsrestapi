@@ -68,6 +68,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    * @param other the other
    */
   public void populateFrom(final Qualifier other) {
+    super.populateFrom(other);
     code = other.getCode();
     type = other.getType();
     value = other.getValue();

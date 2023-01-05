@@ -1253,4 +1253,29 @@ public class ConceptController extends BaseController {
     }
   }
 
+  // @Autowired
+  // MainTypeHierarchy mainTypeHierarchy;
+  //
+  // @RequestMapping(method = RequestMethod.GET, value = "/extensions/{code}",
+  // produces = "application/json")
+  // @ApiIgnore
+  // public @ResponseBody Concept calculateExtensions(@PathVariable(value =
+  // "code")
+  // final String code) throws Exception {
+  // try {
+  // final Terminology term = termUtils.getTerminology("ncit", true);
+  // mainTypeHierarchy.initialize(term,
+  // sparqlQueryManagerService.getHierarchyUtils(term));
+  // final IncludeParam ip = new IncludeParam("full");
+  // final Concept concept = sparqlQueryManagerService.getConcept(code, term,
+  // ip);
+  // concept.setPaths(sparqlQueryManagerService.getHierarchyUtils(term).getPaths(term,
+  // code));
+  // concept.setExtensions(mainTypeHierarchy.getExtensions(concept));
+  // return concept;
+  // } catch (Exception e) {
+  // handleException(e);
+  // return null;
+  // }
+  // }
 }

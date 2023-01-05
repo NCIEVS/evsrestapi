@@ -122,7 +122,8 @@ public class SparqlQueriesTests {
   public void testPreferredNameCode() {
 
     // This is an exception because it's always NCIt
-    final Set<String> exceptions = Set.of("subset","associations.all.ncit");
+    final Set<String> exceptions =
+        Set.of("subset", "associations.all.ncit", "association.entries.ncit");
     boolean found = false;
     boolean error = false;
     for (final Map.Entry<Object, Object> entry : prop.entrySet()) {
@@ -214,8 +215,8 @@ public class SparqlQueriesTests {
 
       // If query does not end in " . ", the next line should be " }"
       for (String line : query.split(" \\. ")) {
-        line = line.replaceFirst("ORDER BY.*","");
-        
+        line = line.replaceFirst("ORDER BY.*", "");
+
         // Skip certain lines lines
         if (line.toLowerCase().startsWith("select")) {
           continue;

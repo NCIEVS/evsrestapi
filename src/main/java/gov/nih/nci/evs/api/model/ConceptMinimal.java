@@ -91,6 +91,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    * @param other the other
    */
   public void populateFrom(final ConceptMinimal other) {
+    super.populateFrom(other);
     uri = other.getUri();
     code = other.getCode();
     name = other.getName();
