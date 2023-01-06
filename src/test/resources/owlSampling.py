@@ -133,14 +133,14 @@ if __name__ == "__main__":
     with open (sys.argv[1], "r", encoding='utf-8') as owlFile:
         ontoLines = owlFile.readlines()
     terminology = sys.argv[2].split("/")[-1].split(".")[0]
-    with open("samples/" sys.argv[2]) as termJSONFile: # import id identifier line for terminology
+    with open(sys.argv[2]) as termJSONFile: # import id identifier line for terminology
       termJSONObject = json.load(termJSONFile)
       if(not termJSONObject["code"]):
         print("terminology json file does not have ID entry")
         exit(1)
       termCodeline = "<" + termJSONObject["code"] # data lines all start with #
     
-    with open(terminology + "-samples.txt", "w") as termFile:
+    with open("samples/" + terminology + "-samples.txt", "w") as termFile:
         for index, line in enumerate(ontoLines): # get index just in case
             lastSpaces = spaces # previous line's number of leading spaces (for comparison)
             spaces = len(line) - len(line.lstrip()) # current number of spaces (for stack level checking)
