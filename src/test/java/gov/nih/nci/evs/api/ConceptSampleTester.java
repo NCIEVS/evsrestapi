@@ -210,9 +210,8 @@ public class ConceptSampleTester {
         String qualValue = sample.getValue().split("~")[0];
         String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
         String propertyValue = sample.getValue().split("~")[1];
-        log.info("ROW = " + qualKey + ":" + propertyKey + "::  " + qualValue + ":" + propertyValue);
         if (terminology.getMetadata().getSynonym().contains(qualKey)) {
-            return checkSynonymMetadata(concept, sample, propertyKey, qualValue, propertyValue);
+            return checkSynonymMetadata(concept, sample, qualKey, propertyKey, qualValue, propertyValue);
         } else if (terminology.getMetadata().getDefinition().contains(qualKey)) {
             return checkDefinitionMetadata(concept, sample, propertyKey, qualValue, propertyValue);
         } else if (terminology.getMetadata().getMap() != null
@@ -233,21 +232,23 @@ public class ConceptSampleTester {
         if (content.equals("[]")) {
             return false;
         }
+        Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
 
         url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
         log.info(" content = " + content);
         Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
-        return concept.getProperties().stream().filter(o -> o.getType().equals("GO_Annotation")
+        return concept.getProperties().stream().filter(o -> o.getType().equals(otherProperty.getName())
                 && o.getQualifiers() != null
                 && o.getQualifiers().stream().filter(p -> p.getType().equals(otherQualifier.getName())
                         && p.getValue().equals(propertyValue)).findAny().isPresent())
                 .findAny().isPresent();
     }
 
-    public boolean checkSynonymMetadata(Concept concept, SampleRecord sample, String propertyKey, String qualValue,
-            String propertyValue) {
+    public boolean checkSynonymMetadata(Concept concept, SampleRecord sample, String qualKey, String propertyKey,
+            String qualValue,
+            String propertyValue) throws Exception {
         if (propertyKey.equals(terminology.getMetadata().getSynonymTermType())) {
             return concept.getSynonyms().stream()
                     .filter(o -> o.getName().equals(qualValue) && o.getTermType() != null
@@ -272,8 +273,28 @@ public class ConceptSampleTester {
                             && o.getSubSource().equals(propertyValue))
                     .findAny()
                     .isPresent();
+        } else {
+            String url = "/api/v1/metadata/" + terminology.getTerminology() + "/synonymType/" + qualKey
+                    + "?include=minimal";
+            MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+            String content = result.getResponse().getContentAsString();
+            log.info(" content = " + content);
+            if (content.equals("[]")) {
+                return false;
+            }
+            Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
+
+            url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
+            result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+            content = result.getResponse().getContentAsString();
+            log.info(" content = " + content);
+            Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
+            return concept.getSynonyms().stream().filter(o -> o.getType().equals(otherProperty.getName())
+                    && o.getQualifiers() != null
+                    && o.getQualifiers().stream().filter(p -> p.getType().equals(otherQualifier.getName())
+                            && p.getValue().equals(propertyValue)).findAny().isPresent())
+                    .findAny().isPresent();
         }
-        return false;
     }
 
     public boolean checkDefinitionMetadata(Concept concept, SampleRecord sample, String propertyKey, String qualValue,
