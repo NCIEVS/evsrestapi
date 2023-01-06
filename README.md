@@ -8,26 +8,21 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
     * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 
-* Choose a local directory $dir (e.g. c:/evsrestapi)
+* Choose a local data directory $dir (e.g. c:/evsrestapi/dir)
 * mkdir -p $dir/elasticsearch/data
-* Download latest ThesaurusInf_*OWL.zip, unpack to $dir/ThesaurusInferred.owl (see [https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/](https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/))
+* Download the "Unit Test Data" folder from https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
 
 ### Steps for Loading NCI Thesaurus Data and Indexes Locally
 
 * Launch Stardog and load NCI Thesaurus data - (see [Stardog Resources](STARDOG.md))
 * Launch Elasticsearch docker container - (see [Elasticsearch Resources](ELASTICSEARCH.md))
 
-* Load/Compute Indexes (for NCI Thesaurus)
+* Load the UnitTestData set
 
+    cd evsrestapi
     make clean build
-
-    version=ncit_21.08d
-    export EVS_SERVER_PORT=8083
-    export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=500
-    export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
-    java -Dspring.profiles.active=local -jar build/libs/evsrestapi-*.jar --terminology $version --forceDeleteIndex > log 2>&1 &
+    src/main/bin/devreset.sh $dir/UnitTestData > log 2>&1 &
     tail -f log
-
 
 ### Steps for Building and Running EVSRESTAPI locally
 
@@ -40,36 +35,13 @@ Information on the build and deployment process for the EVSRESTAPI project
     * make clean build
     * Executable war file present in build/libs
 
-* Run application in Eclipse (SpringBoot)
-    * Click "Run" -> "External Tools" -> "External Tools Configurations"
-    * Create a new entry under "Program" and configure it as follows:
-        * location = <path to java executable, e.g. 'C:/Program Files/Java/jdk1.8.0_191/bin/java.exe'>
-        * working dir = <path to project, e.g. 'C:/Users/bcarl/Desktop/workspace/evsrestapi'>
-        * Arguments = command line args
-            * '-Xmx4096M' - ensure enough memory usage
-            * '-Dspring.profiles.active=local' - make sure to use application-local.yml
-            * '-jar *.war' - point to the war file
+* Run application in Eclipse
+    * Click "Run" -> "Run Configurations"
+    * Create a new "Java Application" configuration and name it "evsrestapi - local"
+    * Set the "Project" to the `evsrestapi` project
+    * Set the "Main Class" to `gov.nih.nci.evs.api.Application`
+    * In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
+    * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
 
-    * Test that it's up by looking for swagger docs: [http://localhost:8080/swagger-ui.html#/](http://localhost:8080/swagger-ui.html#/)
-
-### Steps for Loading NCI Metathesaurus Indexes Locally
-
-* Download the NCI Metathesaurus to a local directory
-* Properly configure the environment variables needed by ncim.sh
-* Run `ncim-part.sh`
-
-        dir=c:/evsrestapi/NCIM_202202/META
-        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=1000
-        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
-        src/main/bin/ncim-part.sh --noconfig $dir
-
-### Steps for Loading MDR from NCI Metathesaurus Indexes Locally
-
-* Download the NCI Metathesaurus to a local directory
-* Properly configure the environment variables needed by ncim.sh
-* Run `ncim-part.sh`
-
-        dir=c:/evsrestapi/NCIM_202202/META
-        export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=1000
-        export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
-        src/main/bin/ncim-part.sh --noconfig $dir --terminology MDR
+* Run application from command line
+     * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*jar`
