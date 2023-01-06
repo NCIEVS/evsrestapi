@@ -11,7 +11,7 @@ Information on downloading and using stardog with EVSRESTAPI.
       # Windows volume seems to have an "fsync" issue, try using a "local docker volume"
       docker volume create --name stardog-home2 -d local
 
-* Using an existing stardog license (in $dir)
+* Using an existing stardog license (in $dir). Make sure your license file is called `stardog-license-key.bin` and is in the $dir directory on you rlocal machine.
 
       dir=c:/Users/carlsenbr/eclipse-workspace/data/
       docker run -it --entrypoint "/bin/bash" -v "$dir":/data -v stardog-home2:/var/opt/stardog stardog/stardog
