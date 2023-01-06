@@ -47,10 +47,10 @@ http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	parent-style1	GO:0048308
 http://purl.obolibrary.org/obo/GO_0000001	GO:0048308	child-style1	GO:0000001
 http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	parent-style2	GO:0065007
 http://purl.obolibrary.org/obo/GO_0000018	GO:0065007	child-style2	GO:0000018
-http://purl.obolibrary.org/obo/GO_0065007	GO:0065007	max-children	5662
+http://purl.obolibrary.org/obo/GO_0065007	GO:0065007	max-children	9356
 http://purl.obolibrary.org/obo/GO_0000002	GO:0000002	parent-count1
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	parent-count2
-http://purl.obolibrary.org/obo/GO_0000050	GO:0000050	parent-count3
+http://purl.obolibrary.org/obo/GO_0000022	GO:0000022	parent-count3
 http://purl.obolibrary.org/obo/GO_0000054	GO:0000054	parent-count4
 http://purl.obolibrary.org/obo/GO_0000256	GO:0000256	parent-count5
 http://purl.obolibrary.org/obo/GO_0000515	GO:0000515	parent-count6

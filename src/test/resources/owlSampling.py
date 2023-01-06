@@ -57,12 +57,12 @@ def parentChildProcess(line):
         if(parentStyle2 == []): # first example of rdf:Description child
             parentStyle2.append((currentClassURI, uriToProcess)) # hold in the parentStyle2 object as tuple
             
-    if(currentClassURI in allParents and uriToProcess not in allParents[currentClassURI]): # process parent relationship
+    if(currentClassURI in allParents): # process parent relationship
         allParents[currentClassURI].append(uriToProcess)
     else:
         allParents[currentClassURI] = [uriToProcess]
         
-    if(uriToProcess in allChildren and currentClassURI not in allChildren[uriToProcess]): # process child relationship
+    if(uriToProcess in allChildren): # process child relationship
         allChildren[uriToProcess].append(currentClassURI)
     else:
         allChildren[uriToProcess] = [currentClassURI]
