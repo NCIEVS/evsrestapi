@@ -98,7 +98,7 @@ public class NCIMControllerTests {
     final Terminology ncim =
         terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).findFirst().get();
     assertThat(ncim.getTerminology()).isEqualTo("ncim");
-    assertThat(ncim.getName()).isEqualTo("NCIMTH");
+    assertThat(ncim.getName()).isEqualTo("NCI Metathesaurus 202102");
     assertThat(ncim.getMetadata().getUiLabel()).isEqualTo("NCI Metathesaurus");
     assertThat(ncim.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(ncim.getMetadata().getSourceCt()).isGreaterThan(1);

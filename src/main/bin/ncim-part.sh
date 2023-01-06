@@ -169,10 +169,28 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "  Remove any older versions indexes ($terminology $version)"
+echo "  Remove older versions indexes ($terminology $version)"
+
+# compute maxVersions from config
+lcterm=`echo $terminology | perl -ne 'print lc($_);'`
+maxVersions=1
+curl $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} > /tmp/x.$$
+if [[ `grep -c maxVersions /tmp/x.$$` -gt 0 ]]; then
+  maxVersions=`curl $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} | perl -pe 's/.*maxVersions"\s*\:\s*(\d+),.*/$1/'`
+fi
+echo "    maxVersions = $maxVersions"
+
+# get concept indexes for this terminology and sort by version (which should sort earlier versions at the top of the file)
 curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
-   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep -i ${terminology}_ > /tmp/x.$$
-for i in `cat /tmp/x.$$`; do    
+   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep concept | grep -i ${terminology}_ | sort > /tmp/x.$$
+ct=`cat /tmp/x.$$ | wc -l`
+ct=$(($ct - $maxVersions))
+if [[ $ct -lt 0 ]]; then
+    ct=0
+fi
+
+# Remove the top $ct versions (which may be zero)
+for i in `cat /tmp/x.$$ | head -$ct`; do
     lv=`echo $i | perl -pe 's/.*'${terminology}'_//i;'`
     # string compare versions
     if [ "$lv" \> "$version" ]; then
@@ -188,15 +206,23 @@ for i in `cat /tmp/x.$$`; do
         exit 1
     fi
 
-    # do this if it starts with "concept_"
-    if [[ $i =~ ^concept_.* ]]; then
-        curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i > /tmp/x.$$
-        if [[ $? -ne 0 ]]; then
-            cat /tmp/x.$$ | sed 's/^/    /'
-            echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
-            exit 1
-        fi
+    i2=`echo $i | perl -pe 's/concept/evs_object/;'`
+    echo "    delete $i2"
+    curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/$i2 > /tmp/x.$$
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$ | sed 's/^/    /'
+        echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/$i2"
+        exit 1
     fi
+
+    echo "    delete evs_metadata entry for $i"
+    curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i > /tmp/x.$$
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$ | sed 's/^/    /'
+        echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
+         exit 1
+    fi
+
 done
 
 echo "  Cleanup"

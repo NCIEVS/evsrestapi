@@ -106,7 +106,8 @@ public final class TerminologyUtils {
       terminologies.stream().forEach(t -> stardogMap.putIfAbsent(t.getTerminologyVersion(), t));
     }
 
-    // Stale means matching current terminology, not loaded via RRF, and in NOT in stardog
+    // Stale means matching current terminology, not loaded via RRF, and in NOT
+    // in stardog
     return iMetas.stream()
         .filter(m -> m.getTerminology().getTerminology().equals(terminology.getTerminology())
             && !m.getTerminology().getMetadata().getLoader().equals("rrf")
@@ -160,6 +161,9 @@ public final class TerminologyUtils {
     if (first != null) {
       return first;
     }
+
+    // IF we get this far, something is weird, show all terminologies
+    terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, terminology + " not found");
   }
 

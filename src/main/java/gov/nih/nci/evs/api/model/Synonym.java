@@ -87,6 +87,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    * @param other the other
    */
   public void populateFrom(final Synonym other) {
+    super.populateFrom(other);
     name = other.getName();
     highlight = other.getHighlight();
     termType = other.getTermType();

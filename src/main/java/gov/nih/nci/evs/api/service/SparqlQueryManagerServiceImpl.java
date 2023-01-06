@@ -563,12 +563,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setConceptStatus("DEFAULT");
       for (final Property property : properties) {
 
-        // Skip properties matching the concept code so as to not duplicate them
-        // e.g. for GO oboInOwl:id
-        if (property.getValue().equals(concept.getCode())) {
-          continue;
-        }
-
         // Set concept status for retired concepts
         if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
           // Set to retired if it matches config
@@ -1664,37 +1658,45 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       properties.add(property);
     }
 
-    // Get all qualifier codes (in case there is overlap with properties)
-    final String query2 = queryBuilderService.constructQuery("all.qualifiers", terminology);
-    final String res2 = restUtils.runSPARQL(queryPrefix + query2, getQueryURL());
-    final Set<String> qualifiers = new HashSet<>();
-    final Sparql sparqlResult2 = mapper.readValue(res2, Sparql.class);
-    final Bindings[] bindings2 = sparqlResult2.getResults().getBindings();
-    for (final Bindings b : bindings2) {
-      // This query just looks up the codes
-      qualifiers.add(b.getProperty().getValue());
-      qualifiers.add(EVSUtils.getPropertyCode(b));
-    }
+    // BAC: remove this - something can be a qualifier AND a property
+    // // Get all qualifier codes (in case there is overlap with properties)
+    // final String query2 =
+    // queryBuilderService.constructQuery("all.qualifiers", terminology);
+    // final String res2 = restUtils.runSPARQL(queryPrefix + query2,
+    // getQueryURL());
+    // final Set<String> qualifiers = new HashSet<>();
+    // final Sparql sparqlResult2 = mapper.readValue(res2, Sparql.class);
+    // final Bindings[] bindings2 = sparqlResult2.getResults().getBindings();
+    // for (final Bindings b : bindings2) {
+    // // This query just looks up the codes
+    // qualifiers.add(b.getProperty().getValue());
+    // qualifiers.add(EVSUtils.getPropertyCode(b));
+    // }
 
-    // Get all "properties never used"
-    final String query3 =
-        queryBuilderService.constructQuery("all.properties.never.used", terminology);
-    final String res3 = restUtils.runSPARQL(queryPrefix + query3, getQueryURL());
-    final Set<String> neverUsed = new HashSet<>();
-    final Sparql sparqlResult3 = mapper.readValue(res3, Sparql.class);
-    final Bindings[] bindings3 = sparqlResult3.getResults().getBindings();
-    for (final Bindings b : bindings3) {
-      neverUsed.add(b.getProperty().getValue());
-      neverUsed.add(EVSUtils.getPropertyCode(b));
-    }
+    // // Get all "properties never used"
+    // final String query3 =
+    // queryBuilderService.constructQuery("all.properties.never.used",
+    // terminology);
+    // final String res3 = restUtils.runSPARQL(queryPrefix + query3,
+    // getQueryURL());
+    // final Set<String> neverUsed = new HashSet<>();
+    // final Sparql sparqlResult3 = mapper.readValue(res3, Sparql.class);
+    // final Bindings[] bindings3 = sparqlResult3.getResults().getBindings();
+    // for (final Bindings b : bindings3) {
+    // neverUsed.add(b.getProperty().getValue());
+    // neverUsed.add(EVSUtils.getPropertyCode(b));
+    // }
 
     final TerminologyMetadata md = terminology.getMetadata();
     for (final Property property : properties) {
       // Exclude properties that are redefined as synonyms or definitions
       // any qualifiers, and also properties defined in the OWL but never used
       if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())
-          || qualifiers.contains(property.getCode()) || qualifiers.contains(property.getUri())
-          || neverUsed.contains(property.getCode()) || neverUsed.contains(property.getUri())) {
+      // || qualifiers.contains(property.getCode()) ||
+      // qualifiers.contains(property.getUri())
+      // || neverUsed.contains(property.getCode()) ||
+      // neverUsed.contains(property.getUri())
+      ) {
         continue;
       }
 

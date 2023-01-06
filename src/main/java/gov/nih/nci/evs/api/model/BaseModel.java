@@ -28,6 +28,25 @@ public class BaseModel {
   }
 
   /**
+   * Instantiates a {@link BaseModel} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public BaseModel(final BaseModel other) {
+    populateFrom(other);
+  }
+
+  /**
+   * Populate from.
+   *
+   * @param other the other
+   */
+  public void populateFrom(final BaseModel other) {
+    uri = other.getUri();
+    ct = other.getCt();
+  }
+
+  /**
    * Returns the uri.
    *
    * @return the uri

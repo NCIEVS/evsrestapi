@@ -418,7 +418,7 @@ public class MetadataServiceImpl implements MetadataService {
     if (!list.isPresent()) {
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
-          .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
+          .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
       return subsets;
     }
 
@@ -427,7 +427,7 @@ public class MetadataServiceImpl implements MetadataService {
         .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream().flatMap(Concept::streamSelfAndChildren)
         .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
-        .peek(c -> ConceptUtils.applyInclude(c, ip)).count();
+        .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
     return subsets;
 
