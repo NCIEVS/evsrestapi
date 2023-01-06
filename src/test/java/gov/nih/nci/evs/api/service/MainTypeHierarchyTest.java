@@ -57,7 +57,7 @@ public class MainTypeHierarchyTest {
   @Test
   public void test() throws Exception {
 
-    log.info("  Get terminology = ncit_22.07c");
+    log.info("  Get terminology = ncit");
     // Use true to get the metadata
     final Terminology terminology = termUtils.getTerminology("ncit", true);
     log.info("    terminology = " + terminology);
