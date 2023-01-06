@@ -22,11 +22,11 @@ http://purl.obolibrary.org/obo/CHEBI_10015	CHEBI:10015	rdfs:subClassOf/owl:Restr
 http://purl.obolibrary.org/obo/CHEBI_100241	CHEBI:100241	rdfs:subClassOf/owl:Restriction~is_conjugate_base_of	CHEBI:192486
 http://purl.obolibrary.org/obo/CHEBI_100241	CHEBI:100241	rdfs:subClassOf/owl:Restriction~is_tautomer_of	CHEBI:192484
 http://purl.obolibrary.org/obo/CHEBI_111516	CHEBI:111516	rdfs:subClassOf/owl:Restriction~is_substituent_group_from	CHEBI:111513
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	qualifier-hasDbXref~oboInOwl:source	CAS:21008-67-3~KEGG COMPOUND
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	qualifier-hasExactSynonym~oboInOwl:hasDbXref	(+)-Atherospermoline~KEGG_COMPOUND
-http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	qualifier-hasExactSynonym~oboInOwl:hasSynonymType	(6aR,11aR)-9-methoxy-6a,11a-dihydro-6H-[1]benzofuro[3,2-c]chromen-3-ol~IUPAC_NAME
-http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	qualifier-hasRelatedSynonym~oboInOwl:hasDbXref	medicarpin~ChemIDplus
-http://purl.obolibrary.org/obo/CHEBI_10003	CHEBI:10003	qualifier-hasRelatedSynonym~oboInOwl:hasSynonymType	Vistamycin~BRAND_NAME
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	qualifier-oboInOwl:hasDbXref~oboInOwl:source	CAS:21008-67-3~KEGG COMPOUND
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasDbXref	(+)-Atherospermoline~KEGG_COMPOUND
+http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasSynonymType	(6aR,11aR)-9-methoxy-6a,11a-dihydro-6H-[1]benzofuro[3,2-c]chromen-3-ol~IUPAC_NAME
+http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasDbXref	medicarpin~ChemIDplus
+http://purl.obolibrary.org/obo/CHEBI_10003	CHEBI:10003	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasSynonymType	Vistamycin~BRAND_NAME
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	parent-style1	CHEBI:133004
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:133004	child-style1	CHEBI:10
 http://purl.obolibrary.org/obo/CHEBI_24995	CHEBI:24995	max-children	7343

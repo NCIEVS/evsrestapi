@@ -41,7 +41,7 @@ public class ChebiSampleTest {
     /** The logger. */
     private static final Logger log = LoggerFactory.getLogger(ChebiSampleTest.class);
 
-    private static String chebiFile = "src/test/resources/chebi_Sampling_OWL.txt";
+    private static String chebiFile = "src/test/resources/samples/chebi-samples.txt";
 
     private String terminology = "chebi";
 

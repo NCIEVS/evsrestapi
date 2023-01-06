@@ -32,16 +32,16 @@ http://purl.obolibrary.org/obo/GO_0007127	GO:0007127	rdfs:subClassOf/owl:Restric
 http://purl.obolibrary.org/obo/GO_0016218	GO:0016218	oboInOwl:consider	GO:0034081
 http://purl.obolibrary.org/obo/GO_0106405	GO:0106405	go:creation_date	2021-10-13T20:29:36Z
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	qualifier-IAO_0000115~oboInOwl:hasDbXref	The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton.~GOC:mcc
-http://purl.obolibrary.org/obo/GO_0000009	GO:0000009	qualifier-hasDbXref~rdfs:label	Reactome:R-HSA-449718~Addition of a third mannose to the N-glycan precursor by ALG2
-http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	qualifier-hasRelatedSynonym~oboInOwl:hasDbXref	HepPP synthase activity~EC:2.5.1.30
-http://purl.obolibrary.org/obo/GO_0000027	GO:0000027	qualifier-hasNarrowSynonym~oboInOwl:hasDbXref	50S ribosomal subunit assembly~GOC:mah
-http://purl.obolibrary.org/obo/GO_0000038	GO:0000038	qualifier-hasExactSynonym~oboInOwl:hasDbXref	very long chain fatty acid metabolic process~GOC:bf
-http://purl.obolibrary.org/obo/GO_0000183	GO:0000183	qualifier-hasBroadSynonym~oboInOwl:hasDbXref	rDNA chromatin silencing~GOC:mah
-http://purl.obolibrary.org/obo/GO_0001525	GO:0001525	qualifier-hasExactSynonym~oboInOwl:hasSynonymType	blood vessel formation from pre-existing blood vessels~systematic_synonym
-http://purl.obolibrary.org/obo/GO_0004165	GO:0004165	qualifier-hasDbXref~oboInOwl:hasDbXref	MetaCyc:RXN-7931~skos:narrowMatch
-http://purl.obolibrary.org/obo/GO_0099565	GO:0099565	qualifier-hasRelatedSynonym~oboInOwl:hasSynonymType	postsynaptic process involved in chemical synaptic transmission~syngo_official_label
-http://purl.obolibrary.org/obo/GO_0120241	GO:0120241	qualifier-hasRelatedSynonym~rdfs:comment	imine intermediate deaminase activity~EC:3.5.99.10
-http://purl.obolibrary.org/obo/GO_0120326	GO:0120326	qualifier-hasExactSynonym~oboInOwl:hasExactSynonym	appressorium-mediated penetration into host~GOC:ach
+http://purl.obolibrary.org/obo/GO_0000009	GO:0000009	qualifier-oboInOwl:hasDbXref~rdfs:label	Reactome:R-HSA-449718~Addition of a third mannose to the N-glycan precursor by ALG2
+http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasDbXref	HepPP synthase activity~EC:2.5.1.30
+http://purl.obolibrary.org/obo/GO_0000027	GO:0000027	qualifier-oboInOwl:hasNarrowSynonym~oboInOwl:hasDbXref	50S ribosomal subunit assembly~GOC:mah
+http://purl.obolibrary.org/obo/GO_0000038	GO:0000038	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasDbXref	very long chain fatty acid metabolic process~GOC:bf
+http://purl.obolibrary.org/obo/GO_0000183	GO:0000183	qualifier-oboInOwl:hasBroadSynonym~oboInOwl:hasDbXref	rDNA chromatin silencing~GOC:mah
+http://purl.obolibrary.org/obo/GO_0001525	GO:0001525	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasSynonymType	blood vessel formation from pre-existing blood vessels~systematic_synonym
+http://purl.obolibrary.org/obo/GO_0004165	GO:0004165	qualifier-oboInOwl:hasDbXref~oboInOwl:hasDbXref	MetaCyc:RXN-7931~skos:narrowMatch
+http://purl.obolibrary.org/obo/GO_0099565	GO:0099565	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasSynonymType	postsynaptic process involved in chemical synaptic transmission~syngo_official_label
+http://purl.obolibrary.org/obo/GO_0120241	GO:0120241	qualifier-oboInOwl:hasRelatedSynonym~rdfs:comment	imine intermediate deaminase activity~EC:3.5.99.10
+http://purl.obolibrary.org/obo/GO_0120326	GO:0120326	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasExactSynonym	appressorium-mediated penetration into host~GOC:ach
 http://purl.obolibrary.org/obo/GO_0160029	GO:0160029	qualifier-comment~oboInOwl:hasDbXref	Following injury, renal cortex tubular epithelial cell appears to be undergoing epithelial-mesenchymal transition, detected by overexpression of vimentin.~PMID:31847447
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	parent-style1	GO:0048308
 http://purl.obolibrary.org/obo/GO_0000001	GO:0048308	child-style1	GO:0000001

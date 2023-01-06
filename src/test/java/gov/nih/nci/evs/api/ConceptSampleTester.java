@@ -179,11 +179,11 @@ public class ConceptSampleTester {
     }
 
     public boolean checkParent(Concept concept, SampleRecord sample) {
-        return concept.getParents().stream().filter(o -> o.getCode().equals(sample.getValue())).findFirst().isPresent();
+        return concept.getParents().stream().filter(o -> o.getCode().equals(sample.getValue())).findAny().isPresent();
     }
 
     public boolean checkChildren(Concept concept, SampleRecord sample) {
-        return concept.getChildren().stream().filter(o -> o.getCode().equals(sample.getValue())).findFirst()
+        return concept.getChildren().stream().filter(o -> o.getCode().equals(sample.getValue())).findAny()
                 .isPresent();
     }
 
@@ -196,12 +196,12 @@ public class ConceptSampleTester {
     }
 
     public boolean checkSynonym(Concept concept, SampleRecord sample) {
-        return concept.getSynonyms().stream().filter(o -> o.getName().equals(sample.getValue())).findFirst()
+        return concept.getSynonyms().stream().filter(o -> o.getName().equals(sample.getValue())).findAny()
                 .isPresent();
     }
 
     public boolean checkDefinition(Concept concept, SampleRecord sample) {
-        return concept.getDefinitions().stream().filter(o -> o.getDefinition().equals(sample.getValue())).findFirst()
+        return concept.getDefinitions().stream().filter(o -> o.getDefinition().equals(sample.getValue())).findAny()
                 .isPresent();
     }
 
@@ -210,6 +210,7 @@ public class ConceptSampleTester {
         String qualValue = sample.getValue().split("~")[0];
         String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
         String propertyValue = sample.getValue().split("~")[1];
+        log.info("ROW = " + qualKey + ":" + propertyKey + "::  " + qualValue + ":" + propertyValue);
         if (terminology.getMetadata().getSynonym().contains(qualKey)) {
             return checkSynonymMetadata(concept, sample, propertyKey, qualValue, propertyValue);
         } else if (terminology.getMetadata().getDefinition().contains(qualKey)) {
@@ -218,11 +219,11 @@ public class ConceptSampleTester {
                 && terminology.getMetadata().getMap().equals(qualKey)) {
             return checkMaps(concept, sample, propertyKey, qualValue, propertyValue);
         } else {
-            return checkGoAnnotation(concept, sample, qualKey, qualValue, propertyKey, propertyValue);
+            return checkOther(concept, sample, qualKey, qualValue, propertyKey, propertyValue);
         }
     }
 
-    public boolean checkGoAnnotation(Concept concept, SampleRecord sample, String qualKey, String qualValue,
+    public boolean checkOther(Concept concept, SampleRecord sample, String qualKey, String qualValue,
             String propertyKey,
             String propertyValue) throws Exception {
         String url = "/api/v1/metadata/" + terminology.getTerminology() + "/property/" + qualKey + "?include=minimal";
@@ -232,40 +233,44 @@ public class ConceptSampleTester {
         if (content.equals("[]")) {
             return false;
         }
-        Concept goAnnotationProperty = new ObjectMapper().readValue(content, Concept.class);
-        if (!goAnnotationProperty.getName().equals("GO_Annotation")) {
-            return false;
-        } else {
-            url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
-            result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-            content = result.getResponse().getContentAsString();
-            log.info(" content = " + content);
-            Concept goAnnotationQualifier = new ObjectMapper().readValue(content, Concept.class);
-            return concept.getProperties().stream().filter(o -> o.getType().equals("GO_Annotation")
-                    && o.getQualifiers() != null
-                    && o.getQualifiers().stream().filter(p -> p.getType().equals(goAnnotationQualifier.getName())
-                            && p.getValue().equals(propertyValue)).findFirst().isPresent())
-                    .findFirst().isPresent();
-        }
+
+        url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        log.info(" content = " + content);
+        Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
+        return concept.getProperties().stream().filter(o -> o.getType().equals("GO_Annotation")
+                && o.getQualifiers() != null
+                && o.getQualifiers().stream().filter(p -> p.getType().equals(otherQualifier.getName())
+                        && p.getValue().equals(propertyValue)).findAny().isPresent())
+                .findAny().isPresent();
     }
 
     public boolean checkSynonymMetadata(Concept concept, SampleRecord sample, String propertyKey, String qualValue,
             String propertyValue) {
         if (propertyKey.equals(terminology.getMetadata().getSynonymTermType())) {
             return concept.getSynonyms().stream()
-                    .filter(o -> o.getName().equals(qualValue) && o.getTermType().equals(propertyValue)).findFirst()
+                    .filter(o -> o.getName().equals(qualValue) && o.getTermType() != null
+                            && o.getTermType().equals(propertyValue))
+                    .findAny()
                     .isPresent();
         } else if (propertyKey.equals(terminology.getMetadata().getSynonymSource())) {
             return concept.getSynonyms().stream()
-                    .filter(o -> o.getName().equals(qualValue) && o.getSource().equals(propertyValue)).findFirst()
+                    .filter(o -> o.getName().equals(qualValue) && o.getSource() != null
+                            && o.getSource().equals(propertyValue))
+                    .findAny()
                     .isPresent();
         } else if (propertyKey.equals(terminology.getMetadata().getSynonymCode())) {
             return concept.getSynonyms().stream()
-                    .filter(o -> o.getName().equals(qualValue) && o.getCode().equals(propertyValue)).findFirst()
+                    .filter(o -> o.getName().equals(qualValue) && o.getCode() != null
+                            && o.getCode().equals(propertyValue))
+                    .findAny()
                     .isPresent();
         } else if (propertyKey.equals(terminology.getMetadata().getSynonymSubSource())) {
             return concept.getSynonyms().stream()
-                    .filter(o -> o.getName().equals(qualValue) && o.getSubSource().equals(propertyValue)).findFirst()
+                    .filter(o -> o.getName().equals(qualValue) && o.getSubSource() != null
+                            && o.getSubSource().equals(propertyValue))
+                    .findAny()
                     .isPresent();
         }
         return false;
@@ -275,14 +280,14 @@ public class ConceptSampleTester {
             String propertyValue) {
         if (propertyKey.equals(terminology.getMetadata().getDefinitionSource())) {
             return concept.getDefinitions().stream()
-                    .filter(o -> o.getDefinition().equals(qualValue) && o.getSource().equals(propertyValue)).findFirst()
+                    .filter(o -> o.getDefinition().equals(qualValue) && o.getSource().equals(propertyValue)).findAny()
                     .isPresent();
         } else {
             return concept.getDefinitions().stream()
                     .filter(o -> o.getDefinition().equals(qualValue)
                             && o.getQualifiers().stream()
-                                    .filter(p -> p.getValue().equals(propertyValue)).findFirst().isPresent())
-                    .findFirst().isPresent();
+                                    .filter(p -> p.getValue().equals(propertyValue)).findAny().isPresent())
+                    .findAny().isPresent();
         }
     }
 
@@ -290,35 +295,34 @@ public class ConceptSampleTester {
             String propertyValue) {
         if (propertyKey.equals(terminology.getMetadata().getMapRelation())) {
             return concept.getMaps().stream()
-                    .filter(o -> o.getTargetName().equals(qualValue) && o.getType().equals(propertyValue)).findFirst()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getType().equals(propertyValue)).findAny()
                     .isPresent();
 
         } else if (propertyKey.equals(terminology.getMetadata().getMapTarget())) {
             return concept.getMaps().stream()
                     .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetCode().equals(propertyValue))
-                    .findFirst().isPresent();
+                    .findAny().isPresent();
 
         } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTermType())) {
             return concept.getMaps().stream()
                     .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTermType().equals(propertyValue))
-                    .findFirst().isPresent();
+                    .findAny().isPresent();
 
         } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTerminology())) {
             return concept.getMaps().stream()
                     .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTerminology().equals(propertyValue))
-                    .findFirst().isPresent();
+                    .findAny().isPresent();
 
         } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
             return concept.getMaps().stream().filter(
                     o -> o.getTargetName().equals(qualValue) && o.getTargetTerminologyVersion().equals(propertyValue))
-                    .findFirst().isPresent();
+                    .findAny().isPresent();
         }
         return false;
     }
 
     public boolean checkRole(Concept concept, SampleRecord sample) throws Exception {
         String role = sample.getKey().split("~")[1];
-        log.warn(role);
         String url = "/api/v1/metadata/" + terminology.getTerminology() + "/role/" + sample.getKey().split("~")[1]
                 + "?include=minimal";
         MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -327,7 +331,7 @@ public class ConceptSampleTester {
         Concept minMatchedRole = new ObjectMapper().readValue(content, Concept.class);
         Role conceptMatchedRole = concept.getRoles().stream().filter(
                 o -> o.getRelatedCode().equals(sample.getValue()) && o.getType().equals(minMatchedRole.getName()))
-                .findFirst().orElse(null);
+                .findAny().orElse(null);
         return conceptMatchedRole != null
                 && conceptMatchedRole.getType().contentEquals(minMatchedRole.getName());
     }

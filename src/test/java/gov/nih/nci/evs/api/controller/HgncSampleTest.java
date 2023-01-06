@@ -41,7 +41,7 @@ public class HgncSampleTest {
     /** The logger. */
     private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 
-    private static String hgncFile = "src/test/resources/hgnc_Sampling_OWL.txt";
+    private static String hgncFile = "src/test/resources/samples/hgnc-samples.txt";
 
     private String terminology = "hgnc";
 
