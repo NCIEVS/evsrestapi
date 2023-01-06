@@ -42,7 +42,7 @@ http://purl.obolibrary.org/obo/GO_0004165	GO:0004165	qualifier-oboInOwl:hasDbXre
 http://purl.obolibrary.org/obo/GO_0099565	GO:0099565	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasSynonymType	postsynaptic process involved in chemical synaptic transmission~syngo_official_label
 http://purl.obolibrary.org/obo/GO_0120241	GO:0120241	qualifier-oboInOwl:hasRelatedSynonym~rdfs:comment	imine intermediate deaminase activity~EC:3.5.99.10
 http://purl.obolibrary.org/obo/GO_0120326	GO:0120326	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasExactSynonym	appressorium-mediated penetration into host~GOC:ach
-http://purl.obolibrary.org/obo/GO_0160029	GO:0160029	qualifier-comment~oboInOwl:hasDbXref	Following injury, renal cortex tubular epithelial cell appears to be undergoing epithelial-mesenchymal transition, detected by overexpression of vimentin.~PMID:31847447
+http://purl.obolibrary.org/obo/GO_0160029	GO:0160029	qualifier-rdfs:comment~oboInOwl:hasDbXref	Following injury, renal cortex tubular epithelial cell appears to be undergoing epithelial-mesenchymal transition, detected by overexpression of vimentin.~PMID:31847447
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	parent-style1	GO:0048308
 http://purl.obolibrary.org/obo/GO_0000001	GO:0048308	child-style1	GO:0000001
 http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	parent-style2	GO:0065007

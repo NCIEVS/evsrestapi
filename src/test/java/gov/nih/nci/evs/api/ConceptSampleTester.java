@@ -240,9 +240,10 @@ public class ConceptSampleTester {
         log.info(" content = " + content);
         Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
         return concept.getProperties().stream().filter(o -> o.getType().equals(otherProperty.getName())
-                && o.getQualifiers() != null
-                && o.getQualifiers().stream().filter(p -> p.getType().equals(otherQualifier.getName())
-                        && p.getValue().equals(propertyValue)).findAny().isPresent())
+                || o.getType().equals(otherProperty.getCode())
+                        && o.getQualifiers() != null
+                        && o.getQualifiers().stream().filter(p -> p.getType().equals(otherQualifier.getName())
+                                && p.getValue().equals(propertyValue)).findAny().isPresent())
                 .findAny().isPresent();
     }
 
