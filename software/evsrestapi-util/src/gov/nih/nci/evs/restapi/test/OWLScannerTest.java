@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.restapi.test;
-
 import gov.nih.nci.evs.restapi.util.*;
+
 import gov.nih.nci.evs.restapi.bean.*;
 import java.io.*;
 import java.io.BufferedReader;
@@ -76,6 +76,8 @@ public class OWLScannerTest {
 		String hierfile = args[1];
 		long ms = System.currentTimeMillis();
 		Vector w = new OWLScanner(owlfile).extractHierarchicalRelationships();
+		//Vector v = Utils.readFile(owlfile);
+		//Vector w = extractSuperclasses_test(v);
 		Utils.saveToFile(hierfile, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
@@ -133,8 +135,10 @@ public class OWLScannerTest {
 			String label = (String) u.elementAt(0);
 			String code = (String) u.elementAt(1);
 			String term = (String) u.elementAt(3);
-			String termType = null;
-			String termSource = null;
+			String termType = "";
+			String termSource = "";
+			String subsourceName = "";
+			String sourceCode = "";
 			for (int j=4; j<n; j++) {
 				String t = (String) u.elementAt(j);
 				Vector u2 = StringUtils.parseData(t, '$');
@@ -144,13 +148,15 @@ public class OWLScannerTest {
 					termType = prop_value;
 				} else if (prop_code.compareTo("P384") == 0) {
 					termSource = prop_value;
+				} else if (prop_code.compareTo("P386") == 0) {
+					subsourceName = prop_value;
+				} else if (prop_code.compareTo("P385") == 0) {
+					sourceCode = prop_value;
 				}
 			}
-			if (termType != null && termSource != null) {
-				w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource);
-			}
+			w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
 		}
-		String outputfile = "FULL_SYN.txt";
+		String outputfile = "FULL_SYN_" + owlfile + ".txt";
 		v.clear();
 		w = new SortUtils().quickSort(w);
 		Utils.saveToFile(outputfile, w);

@@ -2509,6 +2509,7 @@ C4910|<NHC0>C4910</NHC0>
 
 
     public Vector extractAxiomData(String prop_code) {
+		String rdfs_label = "rdfs:label";
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -2518,7 +2519,7 @@ C4910|<NHC0>C4910</NHC0>
         String def_curator_data = null;
         boolean axiom_property = false;
         boolean hasDefCurator = false; //<P318>drug-team</P318> (*)
-        String curator = null;
+        String label = null;
         boolean ncidef = false;
 
         w = new Vector();
@@ -2534,23 +2535,23 @@ C4910|<NHC0>C4910</NHC0>
 
 			if (istart) {
 
-			    if (t.indexOf("<" + prop_code + ">") != -1) { //P318
+			    if (t.indexOf("<" + rdfs_label + ">") != -1) { //P318
 					String retstr = parseProperty(t);
 					Vector u = split(retstr);
-					curator = (String) u.elementAt(1);
+					label = (String) u.elementAt(1);
 				}
 
 				//<owl:Class rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C127714">
 				if (t.startsWith("<owl:Class ")) {
 					buf = new StringBuffer();
-					curator = null;
+					label = null;
 
 				} else if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
 
 
 				} else if (t.startsWith("<owl:Axiom>")) {
                     buf = new StringBuffer();
-                    buf.append(curator);
+                    buf.append(label);
 
 				} else if (t.startsWith("</owl:Class>")) {
 
@@ -2558,7 +2559,7 @@ C4910|<NHC0>C4910</NHC0>
 
 
 				} else if (t.startsWith("</owl:Axiom>")) {
-					if (!isNull(curator)) {
+					if (!isNull(label)) {
 						String s = buf.toString();
 						Vector u = StringUtils.parseData(s, '|');
 						if (u.size() > 3) {
@@ -2567,6 +2568,8 @@ C4910|<NHC0>C4910</NHC0>
 								w.add(s);
 							}
 						}
+					} else {
+						System.out.println("WARNING: rdfs:label not found. " + t);
 					}
 					buf = new StringBuffer();
 
@@ -2600,7 +2603,7 @@ C4910|<NHC0>C4910</NHC0>
 				}
 			}
         }
-        if (!isNull(curator)) {
+        if (!isNull(label)) {
 			String t = buf.toString();
 			Vector u = StringUtils.parseData(t, '|');
 			if (u.size() > 3) {
@@ -2610,14 +2613,6 @@ C4910|<NHC0>C4910</NHC0>
 				}
 		    }
 		}
-/*
-Interferon Gamma-1b|C100089|P375|Interferon Gamma-1b|P393$Has Synonym|P394$PT|P395$therapeutic_agents|P396$GDC
-Interferon Gamma-1b|C100089|P90|Actimmune|P383$BR|P384$NCI
-Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
-*/
-
-        //w = extractNCIDefData(w);
-        //w = removeRetired(w, 1);
         return w;
     }
 
