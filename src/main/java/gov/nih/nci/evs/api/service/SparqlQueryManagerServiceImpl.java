@@ -368,6 +368,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             }
           }
 
+          // Handle subset link (and continue)
+          if (property.getCode().equals(terminology.getMetadata().getSubsetLink())) {
+            // e.g.EVS/CDISC/SDTM/SDTM Terminology.xls|2:all
+            String link = property.getValue().replaceFirst("EVS/", "").split("\\|")[0];
+            // If there is a filename, remove it and just link to the directory
+            // above
+            if (link.contains(".")) {
+              link = link.replaceFirst("(.*)/[^/]+\\.[^/]+", "$1");
+            }
+            if (!link.equals("null")) {
+              // Prepend the subset prefix, remove the "EVS" part.
+              concept.setSubsetLink(terminology.getMetadata().getSubsetPrefix()
+                  + property.getValue().replaceFirst("EVS/", ""));
+            }
+            continue;
+          }
+          
           // Handle if not a remodeled property (e.g. sy or definition)
           if (ip.isProperties()
               && !terminology.getMetadata().isRemodeledProperty(property.getCode())) {
@@ -563,6 +580,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setConceptStatus("DEFAULT");
       for (final Property property : properties) {
 
+        // Skip definitions rendered as properties
+        if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
+          continue;
+        }
+
         // Set concept status for retired concepts
         if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
           // Set to retired if it matches config
@@ -573,8 +595,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
         }
 
-        // Skip definitions rendered as properties
-        if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
+        // Handle subset link (and continue)
+        if (property.getCode().equals(terminology.getMetadata().getSubsetLink())) {
+          // e.g.EVS/CDISC/SDTM/SDTM Terminology.xls|2:all
+          String link = property.getValue().replaceFirst("EVS/", "").split("\\|")[0];
+          // If there is a filename, remove it and just link to the directory
+          // above
+          if (link.contains(".")) {
+            link = link.replaceFirst("(.*)/[^/]+\\.[^/]+", "$1");
+          }
+          if (!link.equals("null")) {
+            // Prepend the subset prefix, remove the "EVS" part.
+            concept.setSubsetLink(terminology.getMetadata().getSubsetPrefix()
+                + property.getValue().replaceFirst("EVS/", ""));
+          }
           continue;
         }
 
