@@ -56,6 +56,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    * @param other the other
    */
   public void populateFrom(final Map other) {
+    super.populateFrom(other);
     type = other.getType();
     targetName = other.getTargetName();
     targetTermType = other.getTargetTermType();

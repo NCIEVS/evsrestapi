@@ -988,12 +988,22 @@ public class ConceptController extends BaseController {
       HashMap<String, HierarchyNode> rootNodeMap = new HashMap<>();
       rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
 
+      // Limit to 10 paths if a limit of >10 is used.
+      int pathLimit =
+          (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
       final List<Path> ps = paths.getPaths();
+      int ct = 0;
       for (final Path path : ps) {
         final List<ConceptMinimal> concepts = path.getConcepts();
         if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2) {
           continue;
         }
+
+        // Stop processing if we've reached the path limit
+        if (++ct > pathLimit && limit.isPresent()) {
+          break;
+        }
+
         final ConceptMinimal rootConcept = concepts.get(concepts.size() - 1);
 
         final HierarchyNode root = rootNodeMap.get(rootConcept.getCode());
@@ -1044,7 +1054,7 @@ public class ConceptController extends BaseController {
         }
       }
 
-      if (limit.isPresent() && ps.size() > limit.get().intValue()) {
+      if (limit.isPresent() && ps.size() > pathLimit) {
         final HierarchyNode extra = new HierarchyNode();
         extra.setCt(ps.size());
         rootNodes.add(extra);
@@ -1243,4 +1253,29 @@ public class ConceptController extends BaseController {
     }
   }
 
+  // @Autowired
+  // MainTypeHierarchy mainTypeHierarchy;
+  //
+  // @RequestMapping(method = RequestMethod.GET, value = "/extensions/{code}",
+  // produces = "application/json")
+  // @ApiIgnore
+  // public @ResponseBody Concept calculateExtensions(@PathVariable(value =
+  // "code")
+  // final String code) throws Exception {
+  // try {
+  // final Terminology term = termUtils.getTerminology("ncit", true);
+  // mainTypeHierarchy.initialize(term,
+  // sparqlQueryManagerService.getHierarchyUtils(term));
+  // final IncludeParam ip = new IncludeParam("full");
+  // final Concept concept = sparqlQueryManagerService.getConcept(code, term,
+  // ip);
+  // concept.setPaths(sparqlQueryManagerService.getHierarchyUtils(term).getPaths(term,
+  // code));
+  // concept.setExtensions(mainTypeHierarchy.getExtensions(concept));
+  // return concept;
+  // } catch (Exception e) {
+  // handleException(e);
+  // return null;
+  // }
+  // }
 }

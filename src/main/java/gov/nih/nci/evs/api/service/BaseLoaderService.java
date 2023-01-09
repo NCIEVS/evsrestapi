@@ -123,7 +123,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Override
   public void cleanStaleIndexes(final Terminology terminology) throws Exception {
 
-    List<IndexMetadata> iMetas = termUtils.getStaleTerminologies(Arrays.asList(dbs.split(",")));
+    List<IndexMetadata> iMetas =
+        termUtils.getStaleStardogTerminologies(Arrays.asList(dbs.split(",")), terminology);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
       return;
@@ -131,11 +132,6 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     logger.info("Removing stale terminologies");
     for (IndexMetadata iMeta : iMetas) {
-
-      // Skip terminologies for a different loader
-      if (!iMeta.getTerminology().getTerminology().equals(terminology.getTerminology())) {
-        continue;
-      }
 
       logger.info("stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();

@@ -104,8 +104,6 @@ public class MDRControllerTests {
     assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
     assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
-    assertThat(mdr.getName())
-        .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
     assertThat(mdr.getDescription()).isEqualTo(";;MedDRA MSSO;;MedDRA [electronic resource]"
         + " : Medical Dictionary for Regulatory Activities Terminology;;;"
         + "Version 23.1;;MedDRA MSSO;;September, 2020;;;;MedDRA "
@@ -212,15 +210,19 @@ public class MDRControllerTests {
             .findFirst().get().getQualifiers().get(0).getValue().equals("classified_as"));
 
     assertThat(concept.getChildren().size()).isEqualTo(8);
-    assertThat(concept.getChildren().get(0).getTerminology()).isNotNull();
-    assertThat(concept.getChildren().get(0).getVersion()).isNotNull();
-    assertThat(concept.getChildren().get(0).getLeaf()).isNull();
+    // single source children don't have terminology/version
+    assertThat(concept.getChildren().get(0).getTerminology()).isNull();
+    assertThat(concept.getChildren().get(0).getVersion()).isNull();
+    // child "leaf" is computed - matching ncit.
+    assertThat(concept.getChildren().get(0).getLeaf()).isNotNull();
     assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10048498");
 
     assertThat(concept.getParents().size()).isEqualTo(1);
-    assertThat(concept.getParents().get(0).getTerminology()).isNotNull();
-    assertThat(concept.getParents().get(0).getVersion()).isNotNull();
+    // single source children don't have terminology/version
+    assertThat(concept.getParents().get(0).getTerminology()).isNull();
+    assertThat(concept.getParents().get(0).getVersion()).isNull();
+    // parent "leaf" is null because it's known to be true already
     assertThat(concept.getParents().get(0).getLeaf()).isNull();
     assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10053567");

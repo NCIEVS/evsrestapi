@@ -199,12 +199,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         logger.info("    finish reading {} to {}", start + 1, end);
 
         logger.info("    start computing extensions {} to {}", start + 1, end);
-        concepts.stream()
-            // .peek(c -> logger.info(" concept = " + c.getCode() + " " +
-            // c.getName()))
-            .peek(c -> c.setExtensions(mainTypeHierarchy.getExtensions(c)))
-            // .peek(c -> logger.info(" extensions = " + c.getExtensions()))
-            .count();
+        concepts.stream().forEach(c -> {
+          // logger.info(" concept = " + c.getCode() + " " + c.getName());
+          c.setExtensions(mainTypeHierarchy.getExtensions(c));
+          // if (c.getExtensions() != null) {
+          // logger.info(" extensions " + c.getCode() + " = " +
+          // c.getExtensions());
+          // }
+        });
         logger.info("    finish computing extensions {} to {}", start + 1, end);
 
         int indexStart = 0;
@@ -478,23 +480,22 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
-    final String resource = "metadata/" + term.getTerminology() + ".json";
     try {
       // Load from config
-      final JsonNode node = getMetadataAsNode(terminology);
+      final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
       final TerminologyMetadata metadata =
           new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
       // Set term name and description
       term.setName(metadata.getUiLabel() + " " + term.getVersion());
-      if (term.getDescription() == null) {
+      if (term.getDescription() == null || term.getDescription().isEmpty()) {
         term.setDescription(node.get("description").asText());
       }
 
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());
-      metadata.setWelcomeText(getWelcomeText(terminology));
+      metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
       term.setMetadata(metadata);
 
       // Compute concept statuses
@@ -517,7 +518,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
 
     } catch (Exception e) {
-      throw new Exception("Unexpected error trying to load = " + resource, e);
+      throw new Exception(
+          "Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
+          e);
     }
 
     // Compute tags because this is the new terminology
