@@ -71,90 +71,11 @@ public class OWLScannerTest {
 	public static String[] AXIOM_PROP_CODES = new String[] {
 		"P325", "P97", "P90", "P211", "P375"};
 
-	public static Vector extractSuperclasses(Vector class_vec) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
-			}
-			//<rdfs:subClassOf rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C35844"/>
-			if (istart) {
-				t = t.trim();
-				if (t.startsWith("<rdfs:subClassOf rdf:resource=") && t.endsWith("/>")) {
-					int n = t.lastIndexOf("#");
-				    t = t.substring(n, t.length());
-					n = t.indexOf("\"");
-					t = t.substring(1, n);
-					w.add(classId + "|" + t);
-				//<rdf:Description rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3161"/>
-				} else if (t.startsWith("<rdf:Description rdf:about=") && t.endsWith("/>")) {
-					int n = t.lastIndexOf("#");
-				    t = t.substring(n, t.length());
-					n = t.indexOf("\"");
-					t = t.substring(1, n);
-					w.add(classId + "|" + t);
-				}
-		    }
-		}
-		return w;
-	}
-
-	public static Vector extractSuperclasses_test(Vector class_vec) {
-        Vector w = new Vector();
-        String classId = null;
-
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-			}
-			//<rdfs:subClassOf rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C35844"/>
-			t = t.trim();
-			if (t.startsWith("<rdfs:subClassOf rdf:resource=") && t.endsWith("/>")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.indexOf("\"");
-				t = t.substring(1, n);
-				w.add(classId + "|" + t);
-			//<rdf:Description rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3161"/>
-			} else if (t.startsWith("<rdf:Description rdf:about=") && t.endsWith("/>")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.indexOf("\"");
-				t = t.substring(1, n);
-				w.add(classId + "|" + t);
-			}
-		}
-		return w;
-	}
-
 	public static void extractHierarchicalRelationships(String[] args) {
 		String owlfile = args[0];
-		String hierfile = args[1];
 		long ms = System.currentTimeMillis();
 		Vector w = new OWLScanner(owlfile).extractHierarchicalRelationships();
-		//Vector v = Utils.readFile(owlfile);
-		//Vector w = extractSuperclasses_test(v);
+		String hierfile = "hier_" + owlfile + ".txt";
 		Utils.saveToFile(hierfile, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
@@ -163,7 +84,7 @@ public class OWLScannerTest {
 		String owlfile = args[0];
 		String prop_code = args[1];
 		long ms = System.currentTimeMillis();
-		String outputfile = prop_code + "_" + owlfile;
+		String outputfile = prop_code + owlfile;
 		Vector w = new OWLScanner(owlfile).extractAxiomData(prop_code);
 		Utils.saveToFile(outputfile, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
@@ -185,7 +106,8 @@ public class OWLScannerTest {
 		String prop_code = null;
 		if (args.length > 1) {
 			prop_code = args[1];
-	    }
+			//OWLScanner.set_NAMESPACE(namespace);
+		}
 		long ms = System.currentTimeMillis();
 		String outputfile = "properties_" + owlfile;
 		Vector w = null;
@@ -209,55 +131,42 @@ public class OWLScannerTest {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
-	public static void generateFULLSYNforMapping(String[] args) {
+	public static void extractRDFSLabels(String[] args) {
 		String owlfile = args[0];
 		long ms = System.currentTimeMillis();
-		Vector v = new OWLScanner(owlfile).extractAxiomData("P90");
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			int n = u.size();
-			String label = (String) u.elementAt(0);
-			String code = (String) u.elementAt(1);
-			String term = (String) u.elementAt(3);
-			String termType = "";
-			String termSource = "";
-			String subsourceName = "";
-			String sourceCode = "";
-			for (int j=4; j<n; j++) {
-				String t = (String) u.elementAt(j);
-				Vector u2 = StringUtils.parseData(t, '$');
-				String prop_code = (String) u2.elementAt(0);
-				String prop_value = (String) u2.elementAt(1);
-				if (prop_code.compareTo("P383") == 0) {
-					termType = prop_value;
-				} else if (prop_code.compareTo("P384") == 0) {
-					termSource = prop_value;
-				} else if (prop_code.compareTo("P386") == 0) {
-					subsourceName = prop_value;
-				} else if (prop_code.compareTo("P385") == 0) {
-					sourceCode = prop_value;
-				}
-			}
-			w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
+		String outputfile = "label_" + owlfile;
+		OWLScanner scanner = new OWLScanner(owlfile);
+		if (args.length > 1) {
+			String namespace = args[1];
+			OWLScanner.set_NAMESPACE(namespace);
 		}
-		String outputfile = "FULL_SYN_" + owlfile + ".txt";
-		v.clear();
-		w = new SortUtils().quickSort(w);
+		Vector w = scanner.extractRDFSLabels(scanner.get_owl_vec());
 		Utils.saveToFile(outputfile, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
-	public static void main(String[] args) {
-		//generateFULLSYNforMapping(args);
-		extractProperties(args);
-		/*
+	public static void generate_FULL_SYN(String[] args) {
 		String owlfile = args[0];
-		String prop_code = "P90";
-		Vector w = extractAxiomData(owlfile, prop_code);
-		Utils.dumpVector(owlfile, w);
-		*/
+		long ms = System.currentTimeMillis();
+		OWLScanner scanner = new OWLScanner(owlfile);
+		scanner.generate_FULL_SYN();
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
+
+	public static void test(String[] args) {
+		long ms = System.currentTimeMillis();
+		extractHierarchicalRelationships(args);
+		extractAxiomData(args);
+		extractOWLRestrictions(args);
+		extractAssociations(args);
+		extractProperties(args);
+		extractRDFSLabels(args);
+		generate_FULL_SYN(args);
+		System.out.println("Grand total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
+
+	public static void main(String[] args) {
+		test(args);
 	}
 }
 
