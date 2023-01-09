@@ -38,7 +38,7 @@ public class ConceptSampleTester {
 
     private String baseUrl = "/api/v1/concept/";
 
-    private String termUrl = "/api/v1/metadata/terminologies/";
+    private String termUrl = "/api/v1/metadata/terminologies";
 
     private MockMvc testMvc;
 
@@ -51,7 +51,7 @@ public class ConceptSampleTester {
     }
 
     public void setTerminology(String term, MockMvc mvc) throws Exception {
-        String url = termUrl + "?latest=true&terminology" + term;
+        String url = termUrl + "?latest=true&terminology=" + term;
         if (term.equals("ncit")) {
             url += "&tag=monthly";
         }
@@ -97,9 +97,6 @@ public class ConceptSampleTester {
         Concept concept;
         setTerminology(term, testMvc);
         for (Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
-            //if (!entry.getKey().startsWith("C")) {
-            //    continue;
-            //}
             url = baseUrl + term + "/" + entry.getKey() + "?include=full";
             log.info("Testing url - " + url);
             result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -139,7 +136,9 @@ public class ConceptSampleTester {
                         errors.add("ERROR: Wrong role " + sample.getValue() + " of " + sample.getCode());
                     }
                 } else if (key.startsWith("qualifier")) {
-                    continue;
+                    if (!checkQualifier(concept, sample)) {
+                        errors.add("ERROR: Bad qualifier " + sample.getValue() + " of " + sample.getCode());
+                    }
                 } else if (key.equals("root")) {
                     if (concept.getParents().size() > 0) {
                         errors.add("ERROR: root " + sample.getCode() + " has parents");
@@ -170,19 +169,21 @@ public class ConceptSampleTester {
             }
         }
         if (errors.size() > 0) {
-            log.error("SAMPLING ERRORS FOUND. SEE LOG BELOW");
+            log.error("SAMPLING ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName() + ". SEE LOG BELOW");
             for (String err : errors) {
                 log.error(err);
             }
+        } else {
+            log.info("No sampling errors found for terminology " + terminology.getName());
         }
     }
 
     public boolean checkParent(Concept concept, SampleRecord sample) {
-        return concept.getParents().stream().filter(o -> o.getCode().equals(sample.getValue())).findFirst().isPresent();
+        return concept.getParents().stream().filter(o -> o.getCode().equals(sample.getValue())).findAny().isPresent();
     }
 
     public boolean checkChildren(Concept concept, SampleRecord sample) {
-        return concept.getChildren().stream().filter(o -> o.getCode().equals(sample.getValue())).findFirst()
+        return concept.getChildren().stream().filter(o -> o.getCode().equals(sample.getValue())).findAny()
                 .isPresent();
     }
 
@@ -195,26 +196,166 @@ public class ConceptSampleTester {
     }
 
     public boolean checkSynonym(Concept concept, SampleRecord sample) {
-        return concept.getSynonyms().stream().filter(o -> o.getName().equals(sample.getValue())).findFirst()
+        return concept.getSynonyms().stream().filter(o -> o.getName().equals(sample.getValue())).findAny()
                 .isPresent();
     }
 
     public boolean checkDefinition(Concept concept, SampleRecord sample) {
-        return concept.getDefinitions().stream().filter(o -> o.getDefinition().equals(sample.getValue())).findFirst()
+        return concept.getDefinitions().stream().filter(o -> o.getDefinition().equals(sample.getValue())).findAny()
                 .isPresent();
     }
 
+    public boolean checkQualifier(Concept concept, SampleRecord sample) throws Exception {
+        String qualKey = sample.getKey().split("-", 2)[1].split("~")[0];
+        String qualValue = sample.getValue().split("~")[0];
+        String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
+        String propertyValue = sample.getValue().split("~")[1];
+        if (terminology.getMetadata().getSynonym().contains(qualKey)) {
+            return checkSynonymMetadata(concept, sample, qualKey, propertyKey, qualValue, propertyValue);
+        } else if (terminology.getMetadata().getDefinition().contains(qualKey)) {
+            return checkDefinitionMetadata(concept, sample, propertyKey, qualValue, propertyValue);
+        } else if (terminology.getMetadata().getMap() != null
+                && terminology.getMetadata().getMap().equals(qualKey)) {
+            return checkMaps(concept, sample, propertyKey, qualValue, propertyValue);
+        } else {
+            return checkOther(concept, sample, qualKey, qualValue, propertyKey, propertyValue);
+        }
+    }
+
+    public boolean checkOther(Concept concept, SampleRecord sample, String qualKey, String qualValue,
+            String propertyKey,
+            String propertyValue) throws Exception {
+        String url = "/api/v1/metadata/" + terminology.getTerminology() + "/property/" + qualKey + "?include=minimal";
+        MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        String content = result.getResponse().getContentAsString();
+        log.info(" content = " + content);
+        if (content.equals("[]")) {
+            return false;
+        }
+        Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
+
+        url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        log.info(" content = " + content);
+        Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
+        return concept.getProperties().stream().filter(o -> o.getType().equals(otherProperty.getName())
+                || o.getType().equals(otherProperty.getCode())
+                        && o.getQualifiers() != null
+                        && o.getQualifiers().stream().filter(p -> p.getType().equals(otherQualifier.getName())
+                                && p.getValue().equals(propertyValue)).findAny().isPresent())
+                .findAny().isPresent();
+    }
+
+    public boolean checkSynonymMetadata(Concept concept, SampleRecord sample, String qualKey, String propertyKey,
+            String qualValue,
+            String propertyValue) throws Exception {
+        if (propertyKey.equals(terminology.getMetadata().getSynonymTermType())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getTermType() != null
+                            && o.getTermType().equals(propertyValue))
+                    .findAny()
+                    .isPresent();
+        } else if (propertyKey.equals(terminology.getMetadata().getSynonymSource())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getSource() != null
+                            && o.getSource().equals(propertyValue))
+                    .findAny()
+                    .isPresent();
+        } else if (propertyKey.equals(terminology.getMetadata().getSynonymCode())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getCode() != null
+                            && o.getCode().equals(propertyValue))
+                    .findAny()
+                    .isPresent();
+        } else if (propertyKey.equals(terminology.getMetadata().getSynonymSubSource())) {
+            return concept.getSynonyms().stream()
+                    .filter(o -> o.getName().equals(qualValue) && o.getSubSource() != null
+                            && o.getSubSource().equals(propertyValue))
+                    .findAny()
+                    .isPresent();
+        } else {
+            String url = "/api/v1/metadata/" + terminology.getTerminology() + "/synonymType/" + qualKey
+                    + "?include=minimal";
+            MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+            String content = result.getResponse().getContentAsString();
+            log.info(" content = " + content);
+            if (content.equals("[]")) {
+                return false;
+            }
+            Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
+
+            url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
+            result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+            content = result.getResponse().getContentAsString();
+            log.info(" content = " + content);
+            Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
+            return concept.getSynonyms().stream().filter(o -> o.getType().equals(otherProperty.getName())
+                    && o.getQualifiers() != null
+                    && o.getQualifiers().stream().filter(p -> p.getType().equals(otherQualifier.getName())
+                            && p.getValue().equals(propertyValue)).findAny().isPresent())
+                    .findAny().isPresent();
+        }
+    }
+
+    public boolean checkDefinitionMetadata(Concept concept, SampleRecord sample, String propertyKey, String qualValue,
+            String propertyValue) {
+        if (propertyKey.equals(terminology.getMetadata().getDefinitionSource())) {
+            return concept.getDefinitions().stream()
+                    .filter(o -> o.getDefinition().equals(qualValue) && o.getSource().equals(propertyValue)).findAny()
+                    .isPresent();
+        } else {
+            return concept.getDefinitions().stream()
+                    .filter(o -> o.getDefinition().equals(qualValue)
+                            && o.getQualifiers().stream()
+                                    .filter(p -> p.getValue().equals(propertyValue)).findAny().isPresent())
+                    .findAny().isPresent();
+        }
+    }
+
+    public boolean checkMaps(Concept concept, SampleRecord sample, String propertyKey, String qualValue,
+            String propertyValue) {
+        if (propertyKey.equals(terminology.getMetadata().getMapRelation())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getType().equals(propertyValue)).findAny()
+                    .isPresent();
+
+        } else if (propertyKey.equals(terminology.getMetadata().getMapTarget())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetCode().equals(propertyValue))
+                    .findAny().isPresent();
+
+        } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTermType())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTermType().equals(propertyValue))
+                    .findAny().isPresent();
+
+        } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTerminology())) {
+            return concept.getMaps().stream()
+                    .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTerminology().equals(propertyValue))
+                    .findAny().isPresent();
+
+        } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
+            return concept.getMaps().stream().filter(
+                    o -> o.getTargetName().equals(qualValue) && o.getTargetTerminologyVersion().equals(propertyValue))
+                    .findAny().isPresent();
+        }
+        return false;
+    }
+
     public boolean checkRole(Concept concept, SampleRecord sample) throws Exception {
+        String role = sample.getKey().split("~")[1];
         String url = "/api/v1/metadata/" + terminology.getTerminology() + "/role/" + sample.getKey().split("~")[1]
                 + "?include=minimal";
         MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         String content = result.getResponse().getContentAsString();
         log.info(" content = " + content);
         Concept minMatchedRole = new ObjectMapper().readValue(content, Concept.class);
-        Role conceptMatchedRole = concept.getRoles().stream().filter(o -> o.getRelatedCode().equals(sample.getValue()))
-                .findFirst().orElse(null);
+        Role conceptMatchedRole = concept.getRoles().stream().filter(
+                o -> o.getRelatedCode().equals(sample.getValue()) && o.getType().equals(minMatchedRole.getName()))
+                .findAny().orElse(null);
         return conceptMatchedRole != null
-                && minMatchedRole.getName() == conceptMatchedRole.getType();
+                && conceptMatchedRole.getType().contentEquals(minMatchedRole.getName());
     }
 
     public void performPathsSubtreeAndRootsTests(Terminology terminology, Map<String, List<SampleRecord>> sampleMap) {

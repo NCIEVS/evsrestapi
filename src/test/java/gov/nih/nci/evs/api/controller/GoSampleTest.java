@@ -41,7 +41,7 @@ public class GoSampleTest {
     /** The logger. */
     private static final Logger log = LoggerFactory.getLogger(GoSampleTest.class);
 
-    private static String goFile = "src/test/resources/go_Sampling_OWL.txt";
+    private static String goFile = "src/test/resources/samples/go-samples.txt";
 
     private String terminology = "go";
 

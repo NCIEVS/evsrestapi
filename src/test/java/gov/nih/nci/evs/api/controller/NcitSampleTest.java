@@ -45,7 +45,7 @@ public class NcitSampleTest {
     /** The logger. */
     private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 
-    private static String ncitFile = "src/test/resources/ThesaurusInferred_monthly_Sampling_OWL.txt";
+    private static String ncitFile = "src/test/resources/samples/ncit-samples.txt";
 
     private String terminology = "ncit";
 

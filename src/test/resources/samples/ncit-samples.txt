@@ -1,4 +1,3 @@
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	NHC0	C1000
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P106	Amino Acid, Peptide, or Protein
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P108	Recombinant Amphiregulin
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	P207	C1514768
@@ -302,11 +301,10 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10000	C10000	P310	Obsolete_C
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100421	C100421	P310	Retired_Concept
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C129445	C129445	P310	Provisional_Concept
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C13037	C13037	P310	Header_Concept
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A1	A1	qualifier-P90~P383	Role_Has_Domain~PT
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A1	A1	qualifier-P90~P384	Role_Has_Domain~NCI
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A1	A1	qualifier-P97~P378	An association that specifies the parent of the branch encompassing a role&apos;s domain.~NCI
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P351	P351	qualifier-P325~P378	A property indicating that the Food and Nutrition Board of the National Academy of Science has established an average daily intake for this nutrient that is sufficient to meet the nutritional requirements of most individuals in the general U.S. population.~CRCH
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P387	P387	qualifier-P97~P381	A property representing a unique zero-padded seven digit identifier supplied by the Gene Ontology (GO) that has no inherent meaning or relation to the position of the term in GO and is prefixed by &quot;GO:&quot;.~http://www.geneontology.org/page/ontology-structure
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P90~P383	AR~AB
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P90~P384	AR~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P97~P378	A recombinant form of amphiregulin, a member of the heparin-binding epidermal growth factor (EGF) family. Endogenous amphiregulin is an autocrine growth factor, and binds to the EGF receptor. Overexpressed in several cancer cell types, endogenous amphiregulin may contribute to tumor cell proliferation and metastasis. (NCI04)~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	qualifier-P325~P378	A percutaneous coronary intervention is necessary for a myocardial infarction that presents with ST segment elevation and the subject does not have recurrent or persistent symptoms, symptoms of heart failure or ventricular arrhythmia. The presentation is past twelve hours since onset of symptoms.~CDISC
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100021	C100021	qualifier-P90~P385	TIMI Flow~SDTM-CCRCLS
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	qualifier-P90~P386	GLYCERYL DIBEHENATE~UNII
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P393	Interferon Gamma-1b~Has Synonym
@@ -314,13 +312,12 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P37
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P395	Interferon Gamma-1b~therapeutic_agents
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P396	Interferon Gamma-1b~GDC
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101034	C101034	qualifier-P375~P397	Intentional injury~18.1
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101046	C101046	qualifier-P97~P381	A fusion gene that results from a chromosomal inversion inv(2)(p23q35) which fuses the first 7 exons of the ATIC gene with exon 20 of the ALK gene. This rearrangement is associated with rare cases of anaplastic large cell lymphoma.~COSMIC
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101250	C101250	qualifier-P325~P381	Injury to the peripheral nervous system.~CDRH
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P387	dopamine receptor activity~GO:0004952
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P389	dopamine receptor activity~TAS
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P390	dopamine receptor activity~CGAP
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P391	dopamine receptor activity~29-SEP-2003
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#term-group	term-group	qualifier-P97~P379	A property representing a two or three character abbreviation that indicates the nature of each FULL_SYN term associated with a concept. (e.g., PT=Preferred Term; SY=Synonym)~Hahn-Dantona, Elizabeth
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#term-group	term-group	qualifier-P97~P380	A property representing a two or three character abbreviation that indicates the nature of each FULL_SYN term associated with a concept. (e.g., PT=Preferred Term; SY=Synonym)~2018-11-07
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	parent-style1	C1504
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1504	child-style1	C1000
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	parent-style2	C9385
