@@ -1,0 +1,63 @@
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	obo1:IAO_0000115	The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton.
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	oboInOwl:hasExactSynonym	mitochondrial inheritance
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	oboInOwl:hasOBONamespace	biological_process
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	rdfs:label	mitochondrion inheritance
+http://purl.obolibrary.org/obo/GO_0000003	GO:0000003	owl:disjointWith	GO_0044848
+http://purl.obolibrary.org/obo/GO_0000003	GO:0000003	oboInOwl:hasAlternativeId	GO:0019952
+http://purl.obolibrary.org/obo/GO_0000003	GO:0000003	oboInOwl:hasDbXref	Wikipedia:Reproduction
+http://purl.obolibrary.org/obo/GO_0000003	GO:0000003	oboInOwl:inSubset	goslim_agr
+http://purl.obolibrary.org/obo/GO_0000006	GO:0000006	oboInOwl:hasRelatedSynonym	high-affinity zinc uptake transmembrane transporter activity
+http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	obo1:IAO_0000233	https://github.com/geneontology/go-ontology/issues/23472
+http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:created_by	bf
+http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:creation_date	2013-09-16T11:50:41Z
+http://purl.obolibrary.org/obo/GO_0000011	GO:0000011	obo1:RO_0002161	NCBITaxon_4896
+http://purl.obolibrary.org/obo/GO_0000015	GO:0000015	rdfs:subClassOf/owl:Restriction~part_of	GO:0005829
+http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~regulates	GO:0006310
+http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	rdfs:subClassOf/owl:Restriction~regulates	GO:0006310
+http://purl.obolibrary.org/obo/GO_0000019	GO:0000019	oboInOwl:hasNarrowSynonym	regulation of recombination within rDNA repeats
+http://purl.obolibrary.org/obo/GO_0000022	GO:0000022	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~part_of	GO:0000278
+http://purl.obolibrary.org/obo/GO_0000035	GO:0000035	oboInOwl:hasBroadSynonym	acyl-CoA or acyl binding
+http://purl.obolibrary.org/obo/GO_0000045	GO:0000045	rdfs:subClassOf/owl:Restriction~has_part	GO:0019778
+http://purl.obolibrary.org/obo/GO_0000075	GO:0000075	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~negatively_regulates	GO:0044770
+http://purl.obolibrary.org/obo/GO_0000075	GO:0000075	rdfs:comment	This term should not be used in direct manual annotation as it should always be possible to minimally designate mitotic or meiotic checkpoint, and usually to additionally specify the checkpoint (i.e mitotic spindle assembly checkpoint, mitotic DNA damage checkpoint etc). Note also that the effector processes are not part of the checkpoint but are positively regulated by the checkpoint signaling and should not be annotated here.
+http://purl.obolibrary.org/obo/GO_0000087	GO:0000087	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~happens_during	GO:0000278
+http://purl.obolibrary.org/obo/GO_0000122	GO:0000122	rdfs:subClassOf/owl:Restriction~negatively_regulates	GO:0006366
+http://purl.obolibrary.org/obo/GO_0000278	GO:0000278	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~has_part	GO:0140014
+http://purl.obolibrary.org/obo/GO_0000336	GO:0000336	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~positively_regulates	GO:0006313
+http://purl.obolibrary.org/obo/GO_0000336	GO:0000336	rdfs:subClassOf/owl:Restriction~positively_regulates	GO:0006313
+http://purl.obolibrary.org/obo/GO_0000957	GO:0000957	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~occurs_in	GO:0005739
+http://purl.obolibrary.org/obo/GO_0000959	GO:0000959	rdfs:subClassOf/owl:Restriction~occurs_in	GO:0005739
+http://purl.obolibrary.org/obo/GO_0007095	GO:0007095	rdfs:subClassOf/owl:Restriction~happens_during	GO:0000085
+http://purl.obolibrary.org/obo/GO_0007127	GO:0007127	rdfs:subClassOf/owl:Restriction~ends_during	GO:0007134
+http://purl.obolibrary.org/obo/GO_0016218	GO:0016218	oboInOwl:consider	GO:0034081
+http://purl.obolibrary.org/obo/GO_0106405	GO:0106405	go:creation_date	2021-10-13T20:29:36Z
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	qualifier-IAO_0000115~oboInOwl:hasDbXref	The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton.~GOC:mcc
+http://purl.obolibrary.org/obo/GO_0000009	GO:0000009	qualifier-oboInOwl:hasDbXref~rdfs:label	Reactome:R-HSA-449718~Addition of a third mannose to the N-glycan precursor by ALG2
+http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasDbXref	HepPP synthase activity~EC:2.5.1.30
+http://purl.obolibrary.org/obo/GO_0000027	GO:0000027	qualifier-oboInOwl:hasNarrowSynonym~oboInOwl:hasDbXref	50S ribosomal subunit assembly~GOC:mah
+http://purl.obolibrary.org/obo/GO_0000038	GO:0000038	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasDbXref	very long chain fatty acid metabolic process~GOC:bf
+http://purl.obolibrary.org/obo/GO_0000183	GO:0000183	qualifier-oboInOwl:hasBroadSynonym~oboInOwl:hasDbXref	rDNA chromatin silencing~GOC:mah
+http://purl.obolibrary.org/obo/GO_0001525	GO:0001525	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasSynonymType	blood vessel formation from pre-existing blood vessels~systematic_synonym
+http://purl.obolibrary.org/obo/GO_0004165	GO:0004165	qualifier-oboInOwl:hasDbXref~oboInOwl:hasDbXref	MetaCyc:RXN-7931~skos:narrowMatch
+http://purl.obolibrary.org/obo/GO_0099565	GO:0099565	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasSynonymType	postsynaptic process involved in chemical synaptic transmission~syngo_official_label
+http://purl.obolibrary.org/obo/GO_0120241	GO:0120241	qualifier-oboInOwl:hasRelatedSynonym~rdfs:comment	imine intermediate deaminase activity~EC:3.5.99.10
+http://purl.obolibrary.org/obo/GO_0120326	GO:0120326	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasExactSynonym	appressorium-mediated penetration into host~GOC:ach
+http://purl.obolibrary.org/obo/GO_0160029	GO:0160029	qualifier-rdfs:comment~oboInOwl:hasDbXref	Following injury, renal cortex tubular epithelial cell appears to be undergoing epithelial-mesenchymal transition, detected by overexpression of vimentin.~PMID:31847447
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	parent-style1	GO:0048308
+http://purl.obolibrary.org/obo/GO_0000001	GO:0048308	child-style1	GO:0000001
+http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	parent-style2	GO:0065007
+http://purl.obolibrary.org/obo/GO_0000018	GO:0065007	child-style2	GO:0000018
+http://purl.obolibrary.org/obo/GO_0065007	GO:0065007	max-children	9356
+http://purl.obolibrary.org/obo/GO_0000002	GO:0000002	parent-count1
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	parent-count2
+http://purl.obolibrary.org/obo/GO_0000022	GO:0000022	parent-count3
+http://purl.obolibrary.org/obo/GO_0000054	GO:0000054	parent-count4
+http://purl.obolibrary.org/obo/GO_0000256	GO:0000256	parent-count5
+http://purl.obolibrary.org/obo/GO_0000515	GO:0000515	parent-count6
+http://purl.obolibrary.org/obo/GO_0005542	GO:0005542	parent-count7
+http://purl.obolibrary.org/obo/GO_0000514	GO:0000514	parent-count8
+http://purl.obolibrary.org/obo/GO_1900498	GO:1900498	parent-count9
+http://purl.obolibrary.org/obo/GO_0106110	GO:0106110	parent-count11
+http://purl.obolibrary.org/obo/GO_0003674	GO:0003674	root
+http://purl.obolibrary.org/obo/GO_0005575	GO:0005575	root
+http://purl.obolibrary.org/obo/GO_0008150	GO:0008150	root
