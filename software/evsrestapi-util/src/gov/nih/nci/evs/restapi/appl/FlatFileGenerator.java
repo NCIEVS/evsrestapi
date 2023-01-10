@@ -134,31 +134,22 @@ public class FlatFileGenerator {
 		String prefixes = owlSPARQLUtils.getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
-		//buf.append("select distinct ?x_code ?x_label ?y_code ?y_label").append("\n");
+		buf.append("").append("\n");
+		//buf.append("select distinct ?y_label ?y_code ?x_label ?x_code ").append("\n");
 		buf.append("select distinct ?x_code ?y_code ").append("\n");
 		buf.append("{").append("\n");
-		buf.append("	graph <" + named_graph + "> ").append("\n");
-		buf.append("	{").append("\n");
-		buf.append("            {").append("\n");
-		buf.append("				?x :NHC0 ?x_code .").append("\n");
-		buf.append("				?x rdfs:label ?x_label .").append("\n");
-		buf.append("                ?y :NHC0 ?y_code .").append("\n");
-		buf.append("                ?y rdfs:label ?y_label .").append("\n");
-		buf.append("                ?x rdfs:subClassOf ?y . ").append("\n");
-		buf.append("            } union {").append("\n");
-		buf.append("				?x :NHC0 ?x_code .").append("\n");
-		buf.append("				?x rdfs:label ?x_label .").append("\n");
-		buf.append("                ?y :NHC0 ?y_code .").append("\n");
-		buf.append("                ?y rdfs:label ?y_label .").append("\n");
-		buf.append("                ?x rdfs:subClassOf ?rs . ").append("\n");
-		buf.append("                ?rs a owl:Restriction .  ").append("\n");
-		buf.append("				?rs owl:onProperty ?p .").append("\n");
-		buf.append("                ?rs owl:someValuesFrom ?y .  ").append("\n");
-		buf.append("            }").append("\n");
-		buf.append("	}").append("\n");
+		buf.append("    graph <" + named_graph + "> ").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("      ?x :NHC0 ?x_code .").append("\n");
+		buf.append("      ?x rdfs:label ?x_label .").append("\n");
+		buf.append("      ?y :NHC0 ?y_code .").append("\n");
+		buf.append("      ?y rdfs:label ?y_label .").append("\n");
+		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
+		buf.append("    }").append("\n");
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
+
 
 	public Vector getHierarchicalRelationships(String named_graph) {
 		String query = construct_get_hierarchical_relationships(named_graph);
@@ -240,7 +231,7 @@ public class FlatFileGenerator {
         buf.append(prefixes);
         buf.append("select distinct ?x_code ?x_label").append("\n");
         buf.append("{").append("\n");
-        buf.append("    graph <" + named_graph + ">").append("\n");
+        buf.append("    graph <" + named_graph + "> ").append("\n");
         buf.append("    {").append("\n");
         buf.append("            {").append("\n");
         buf.append("            ?x a owl:Class .").append("\n");
@@ -341,35 +332,42 @@ public class FlatFileGenerator {
 		Vector w = new Vector();
 //Parents
 		Vector v = getHierarchicalRelationships(named_graph);
+		System.out.println("getHierarchicalRelationships: " + v.size());
 		HashMap parentMap = createMultiValuedHashMap(v);
 		v.clear();
 
 //Synonyms
 		v = getSynonyms(named_graph);
+		System.out.println("getSynonyms: " + v.size());
 		HashMap synonymMap = createMultiValuedHashMap(v);
 		v.clear();
 
 //DEFINITION
 		v = getProp(named_graph, "P97");
+		System.out.println("getProp(P97): " + v.size());
 		HashMap defMap = createMultiValuedHashMap(v);
 		v.clear();
 
 //Display_Name
 		v = getProp(named_graph, "P107");
+		System.out.println("getProp(P107): " + v.size());
 		HashMap dnMap = createMultiValuedHashMap(v);
 		v.clear();
 
 //Cocept_Statu
 		v = getProp(named_graph, "P310");
+		System.out.println("getProp(P310): " + v.size());
 		HashMap statusMap = createMultiValuedHashMap(v);
 		v.clear();
 
 //Semantic_Type
 		v = getProp(named_graph, "P106");
+		System.out.println("getProp(P106): " + v.size());
 		HashMap styMap = createMultiValuedHashMap(v);
 		v.clear();
 
         v = getLabels(named_graph);
+        System.out.println("getLabels: " + v.size());
         for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -398,10 +396,14 @@ public class FlatFileGenerator {
 		String password = args[3];
 		Vector w = new Vector();
         FlatFileGenerator test = new FlatFileGenerator(serviceUrl, named_graph, username, password);
+
 		String flatfile = test.generate();
 
 		Vector cis_data = test.getConceptMembership(named_graph);
 		Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, cis_data);
+
+		//Vector v = test.getHierarchicalRelationships(named_graph);
+		//Utils.saveToFile("hier.txt", v);
 
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
