@@ -1079,7 +1079,7 @@ C4910|<NHC0>C4910</NHC0>
 		}
 	}
 
-/*
+
     public Vector extractProperties(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -1215,7 +1215,7 @@ C4910|<NHC0>C4910</NHC0>
 		}
 		return w;
 	}
-*/
+
     public Vector extractSuperclasses(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -1353,214 +1353,6 @@ C4910|<NHC0>C4910</NHC0>
 		return hashSet2Vector(parent_codes);
 	}
 
-    public Vector extractAnnotationProperties(Vector owl_vec) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-        String code = null;
-        String label = null;
-        String p108 = null;
-
-        for (int i=0; i<owl_vec.size(); i++) {
-			String t = (String) owl_vec.elementAt(i);
-
-		    if (t.indexOf("// Annotations") != -1) {
-				break;
-			}
-
-			if (t.indexOf("// Annotation properties") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-            } else {
-				t = t.trim();
-				if (t.startsWith("<owl:AnnotationProperty rdf:about=")) {
-                    istart = true;
-				}
-				if (istart) {
-					if (t.startsWith("<NHC0>") && t.endsWith("</NHC0>")) {
-						int n = t.lastIndexOf("</NHC0>");
-						code = t.substring("<NHC0>".length(), n);
-					}
-					if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
-						int n = t.lastIndexOf("</rdfs:label>");
-						label = t.substring("<rdfs:label>".length(), n);
-					}
-					if (t.startsWith("<P108>") && t.endsWith("</P108>")) {
-						int n = t.lastIndexOf("</P108>");
-						p108 = t.substring("<P108>".length(), n);
-					}
-				}
-				if (t.compareTo("</owl:AnnotationProperty>") == 0 && code != null) {
-					w.add(code + "|" + label + "|" + p108);
-					code = null;
-					label = null;
-					p108 = null;
-					istart = false;
-				}
-
-			}
-		}
-		return new SortUtils().quickSort(w);
-	}
-
-    public Vector extractAssociations0(Vector class_vec) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
-		    if (t.indexOf("// Annotations") != -1) {
-				break;
-			}
-
-			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
-			}
-			if (istart) {
-				String s = t.trim();
-				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
-					int n = s.indexOf(" ");
-					String a = s.substring(1, n);
-					w.add(classId + "|" + a + "|" + extractCode(s));
-				}
-		    }
-		}
-		return w;
-	}
-
-
-    public Vector extractAssociations0(Vector class_vec, String associationCode) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
-		    if (t.indexOf("// Annotations") != -1) {
-				break;
-			}
-
-			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
-			}
-			if (istart) {
-				String s = t.trim();
-				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
-					int n = s.indexOf(" ");
-					String a = s.substring(1, n);
-					if (a.compareTo(associationCode) == 0) {
-						w.add(classId + "|" + a + "|" + extractCode(s));
-					}
-				}
-		    }
-		}
-		return w;
-	}
-
-
-    public Vector getAssociationSources(Vector assoc_vec, String targetCode) {
-		Vector v = new Vector();
-		for (int i=0; i<assoc_vec.size(); i++) {
-			String t = (String) assoc_vec.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-
-
-			String s = (String) u.elementAt(2);
-			if (s.compareTo(targetCode) == 0) {
-				v.add((String) u.elementAt(0) + "|" + targetCode);
-			}
-		}
-		return v;
-	}
-
-    public HashMap tallyProperties(Vector v) {
-		HashMap hmap = new HashMap();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			t = t.trim();
-			int n = t.lastIndexOf("/");
-			if (n != -1) {
-				String s = t.substring(n+1, t.length()-1);
-				if (s.length() > 0 && s.indexOf("owl") == -1 && s.indexOf("rdfs:subClassOf") == -1) {
-					if (t.startsWith("<" + s + ">")) {
-						System.out.println(s);
-						Integer int_obj = new Integer(0);
-						if (hmap.containsKey(s)) {
-							int_obj = (Integer) hmap.get(s);
-						}
-						int knt = Integer.valueOf(int_obj);
-						int_obj = new Integer(knt+1);
-						hmap.put(s, int_obj);
-					}
-				}
-			}
-		}
-		return hmap;
-	}
-
-    public HashMap tallyAssociations(Vector v) {
-		HashMap hmap = new HashMap();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			t = t.trim();
-			if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
-				int n = t.indexOf(">");
-				if (n != -1) {
-					String s = t.substring(1, n-1);
-					String str = parseProperty(t);
-					Vector u = StringUtils.parseData(str, '|');
-					s = (String) u.elementAt(0);
-					Integer int_obj = new Integer(0);
-					if (hmap.containsKey(s)) {
-						int_obj = (Integer) hmap.get(s);
-					}
-					int knt = Integer.valueOf(int_obj);
-					int_obj = new Integer(knt+1);
-					hmap.put(s, int_obj);
-				}
-			}
-		}
-		return hmap;
-	}
-
     public Vector extractOWLDisjointWith(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -1611,19 +1403,6 @@ C4910|<NHC0>C4910</NHC0>
 
     public Vector extractHierarchicalRelationships() {
 		Vector w = extractHierarchicalRelationships(this.owl_vec);
-		/*
-		Vector v = extractSuperclasses();
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-			String code_1 = (String) u.elementAt(0);
-			String code_2 = (String) u.elementAt(1);
-			String label_1 = getLabel(code_1);
-			String label_2 = getLabel(code_2);
-			w.add(label_2 + "|" + code_2 + "|" + label_1 + "|" + code_1);
-		}
-		*/
 		return new SortUtils().quickSort(w);
 	}
 
@@ -2129,180 +1908,6 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public Vector extractPropertiesWithQualifiers(Vector v) {
-		HashMap hmap = new HashMap();
-		Vector prop_vec = new Vector();
-        Vector w = extract_axioms(v);
-        for (int i=0; i<w.size(); i++) {
-            OWLAxiom axiom = (OWLAxiom) w.elementAt(i);
-            String key = "" + axiom.getAxiomId();
-            String annotatedSource = axiom.getAnnotatedSource();
-			String qualifierName = axiom.getQualifierName();
-			if (qualifierName == null) {
-				qualifierName = "null";
-			}
-			String qualifierValue = axiom.getQualifierValue();
-            String annotatedPropertyCode = axiom.getAnnotatedProperty();
-            Object obj = hmap.get(key);
-			if (obj == null) {
-				if (annotatedPropertyCode.compareTo("P90") == 0) { // FULL_SYN
-					Synonym syn = new Synonym();
-					syn.setCode(annotatedSource);
-					syn.setLabel(axiom.getLabel());
-					syn.setTermName(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P383") == 0) {
-						syn.setTermGroup(qualifierValue);
-					} else if (qualifierName.compareTo("P384") == 0) {
-						syn.setTermSource(qualifierValue);
-					} else if (qualifierName.compareTo("P385") == 0) {
-						syn.setSourceCode(qualifierValue);
-					} else if (qualifierName.compareTo("P386") == 0) {
-						syn.setSubSourceName(qualifierValue);
-					}
-					hmap.put(key, syn);
-
-				} else if (annotatedPropertyCode.compareTo("P375") == 0) { // Maps_To
-					MapToEntry entry = new MapToEntry();
-					entry.setCode(annotatedSource);
-					entry.setPreferredName(axiom.getLabel());
-					entry.setTargetTerm(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P393") == 0) {
-						entry.setRelationshipToTarget(qualifierValue);
-					} else if (qualifierName.compareTo("P395") == 0) {
-						entry.setTargetCode(qualifierValue);
-					} else if (qualifierName.compareTo("P394") == 0) {
-						entry.setTargetTermType(qualifierValue);
-					} else if (qualifierName.compareTo("P397") == 0) {
-						entry.setTargetTerminology(qualifierValue);
-					} else if (qualifierName.compareTo("P396") == 0) {
-						entry.setTargetTerminologyVersion(qualifierValue);
-					}
-					hmap.put(key, entry);
-
-				} else if (annotatedPropertyCode.compareTo("P211") == 0) { // GO_Annotation
-					GoAnnotation go = new GoAnnotation();
-					go.setCode(annotatedSource);
-					go.setLabel(axiom.getLabel());
-					go.setAnnotation(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P389") == 0) {
-						go.setGoEvi(qualifierValue);
-					} else if (qualifierName.compareTo("P387") == 0) {
-						go.setGoId(qualifierValue);
-					} else if (qualifierName.compareTo("P390") == 0) {
-						go.setGoSource(qualifierValue);
-					} else if (qualifierName.compareTo("P391") == 0) {
-						go.setSourceDate(qualifierValue);
-					}
-					hmap.put(key, go);
-
-				} else if (annotatedPropertyCode.compareTo("P97") == 0) { // DEFINITION
-					Definition def = new Definition();
-					def.setCode(annotatedSource);
-					def.setLabel(axiom.getLabel());
-					def.setDescription(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P381") == 0) {
-						def.setAttribution(qualifierValue);
-					} else if (qualifierName.compareTo("P378") == 0) {
-						def.setSource(qualifierValue);
-					}
-				    hmap.put(key, def);
-				} else if (annotatedPropertyCode.compareTo("P325") == 0) { // ALT_DEFINITION
-					AltDefinition def = new AltDefinition();
-					def.setCode(annotatedSource);
-					def.setLabel(axiom.getLabel());
-					def.setDescription(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P381") == 0) {
-						def.setAttribution(qualifierValue);
-					} else if (qualifierName.compareTo("P378") == 0) {
-						def.setSource(qualifierValue);
-					}
-				    hmap.put(key, def);
-				}
-			} else {
-				if (obj instanceof Synonym) {
-                    Synonym syn = (Synonym) obj;
-					syn.setTermName(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P383") == 0) {
-						syn.setTermGroup(qualifierValue);
-					} else if (qualifierName.compareTo("P384") == 0) {
-						syn.setTermSource(qualifierValue);
-					} else if (qualifierName.compareTo("P385") == 0) {
-						syn.setSourceCode(qualifierValue);
-					} else if (qualifierName.compareTo("P386") == 0) {
-						syn.setSubSourceName(qualifierValue);
-					}
-					hmap.put(key, syn);
-
-				} else if (obj instanceof MapToEntry)  { // Maps_To
-					MapToEntry entry = (MapToEntry) obj;
-					entry.setTargetTerm(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P393") == 0) {
-						entry.setRelationshipToTarget(qualifierValue);
-					} else if (qualifierName.compareTo("P395") == 0) {
-						entry.setTargetCode(qualifierValue);
-					} else if (qualifierName.compareTo("P394") == 0) {
-						entry.setTargetTermType(qualifierValue);
-					} else if (qualifierName.compareTo("P397") == 0) {
-						entry.setTargetTerminology(qualifierValue);
-					} else if (qualifierName.compareTo("P396") == 0) {
-						entry.setTargetTerminologyVersion(qualifierValue);
-					}
-					hmap.put(key, entry);
-
-				} else if (obj instanceof GoAnnotation) { // GO_Annotation
-					GoAnnotation go = (GoAnnotation) obj;
-					go.setAnnotation(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P389") == 0) {
-						go.setGoEvi(qualifierValue);
-					} else if (qualifierName.compareTo("P387") == 0) {
-						go.setGoId(qualifierValue);
-					} else if (qualifierName.compareTo("P390") == 0) {
-						go.setGoSource(qualifierValue);
-					} else if (qualifierName.compareTo("P391") == 0) {
-						go.setSourceDate(qualifierValue);
-					}
-					hmap.put(key, go);
-
-				} else if (obj instanceof Definition) { // DEFINITION
-					Definition def = (Definition) obj;
-					def.setCode(annotatedSource);
-					def.setLabel(axiom.getLabel());
-					def.setDescription(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P381") == 0) {
-						def.setAttribution(qualifierValue);
-					} else if (qualifierName.compareTo("P378") == 0) {
-						def.setSource(qualifierValue);
-					}
-				    hmap.put(key, def);
-				} else if (obj instanceof AltDefinition) { // ALT_DEFINITION
-					AltDefinition def = (AltDefinition) obj;
-					def.setCode(annotatedSource);
-					def.setLabel(axiom.getLabel());
-					def.setDescription(axiom.getAnnotatedTarget());
-					if (qualifierName.compareTo("P381") == 0) {
-						def.setAttribution(qualifierValue);
-					} else if (qualifierName.compareTo("P378") == 0) {
-						def.setSource(qualifierValue);
-					}
-				    hmap.put(key, def);
-				}
-			}
-		}
-		Iterator it = hmap.keySet().iterator();
-		Vector key_vec = new Vector();
-		while (it.hasNext()) {
-			String key = (String) it.next();
-			key_vec.add(key);
-		}
-		key_vec = new SortUtils().quickSort(key_vec);
-		for (int i=0; i<key_vec.size(); i++) {
-			String key = (String) key_vec.elementAt(i);
-			prop_vec.add(hmap.get(key));
-		}
-		return prop_vec;
-	}
-
-
     public Vector axioms2Strings(Vector v) {
 		Vector u = new Vector();
 		for (int i=0; i<v.size(); i++) {
@@ -2338,109 +1943,6 @@ C4910|<NHC0>C4910</NHC0>
 			}
 		}
 		return w;
-	}
-
-    public Vector extractObjectProperties(Vector owl_vec) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-        String code = null;
-        String label = null;
-        String p108 = null;
-
-        for (int i=0; i<owl_vec.size(); i++) {
-			String t = (String) owl_vec.elementAt(i);
-
-		    if (t.indexOf("// Annotations") != -1) {
-				break;
-			}
-
-			if (t.indexOf("// Object Properties") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("// Classes") != -1) {
-				break;
-			}
-
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-            } else {
-				t = t.trim();
-				if (t.startsWith("<owl:ObjectProperty rdf:about=")) {
-                    istart = true;
-				}
-				if (istart) {
-					if (t.startsWith("<NHC0>") && t.endsWith("</NHC0>")) {
-						int n = t.lastIndexOf("</NHC0>");
-						code = t.substring("<NHC0>".length(), n);
-					}
-					if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
-						int n = t.lastIndexOf("</rdfs:label>");
-						label = t.substring("<rdfs:label>".length(), n);
-					}
-					if (t.startsWith("<P108>") && t.endsWith("</P108>")) {
-						int n = t.lastIndexOf("</P108>");
-						p108 = t.substring("<P108>".length(), n);
-					}
-				}
-				if (t.compareTo("</owl:ObjectProperty>") == 0 && code != null) {
-					w.add(code + "|" + label + "|" + p108);
-					code = null;
-					label = null;
-					p108 = null;
-					istart = false;
-				}
-
-			}
-		}
-		return new SortUtils().quickSort(w);
-	}
-
-	public Vector getAnnotationProperties() {
-		return getAnnotationProperties(this.owl_vec);
-	}
-
-	public Vector getAnnotationProperties(Vector owl_vec) {
-		Vector w = new Vector();
-		boolean istart = false;
-		String prop_label = null;
-		String prop_code = null;
-		for (int i=0; i<owl_vec.size(); i++) {
-			String line = (String) owl_vec.elementAt(i);
-			if (line.indexOf(OWL_ANNOTATION_PROPERTY_TARGET) != -1) {
-                //System.out.println(line);
-                prop_code = line.trim();
-                int n = prop_code.indexOf("#");
-                int m = prop_code.lastIndexOf(" ");
-                prop_code = prop_code.substring(n+1, m);
-                prop_code = prop_code.trim();
-
-
-			} else if (line.indexOf("</owl:AnnotationProperty>") != -1) {
-				if (prop_code != null) {
-					w.add(prop_code + "|" + prop_label);
-					prop_code = null;
-					prop_label = null;
-			    }
-			}
-			if (line.indexOf("<P108>") != -1) {
-				prop_label = line.trim();
-                int n = prop_label.indexOf(">");
-                int m = prop_label.lastIndexOf("<");
-                prop_label = prop_label.substring(n+1, m);
-                prop_label = prop_label.trim();
-
-			}
-		}
-		return w;
-	}
-
-    public Vector extractSemanticTypes(Vector class_vec) {
-        return extractEnum(class_vec, "Semantic_Type");
 	}
 
     public Vector extractEnum(Vector class_vec, String type) {
@@ -2511,75 +2013,6 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-
-
-    public List getSynonyms(Vector axiom_data) {
-		if (axiom_data == null) return null;
-		HashMap hmap = new HashMap();
-		for (int i=0; i<axiom_data.size(); i++) {
-			String t = (String) axiom_data.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-			String axiom_id = (String) u.elementAt(0); //bnode_21e4bb1f_2fc9_480b_bbdb_0d116398d610_2156686
-			String label = (String) u.elementAt(1);
-			String code = (String) u.elementAt(2);
-			String propertyName = (String) u.elementAt(3); // FULL_SYN
-			//String propertyCode = (String) u.elementAt(4); // P90
-			String term_name = (String) u.elementAt(4); //P90
-			String qualifier_name = (String) u.elementAt(5);
-			//String qualifier_code = (String) u.elementAt(7);
-			String qualifier_value = (String) u.elementAt(6);
-            Synonym syn = (Synonym) hmap.get(axiom_id);
-            if (syn == null) {
-				syn = new Synonym(
-							code,
-							label,
-							term_name,
-							null, //termGroup,
-							null, //termSource,
-							null, //sourceCode,
-							null, //subSourceName,
-		                    null); //subSourceCode
-			}
-			if (qualifier_name.compareTo("Term Type") == 0 ||
-			           qualifier_name.compareTo("tem-type") == 0 ||
-			           qualifier_name.compareTo("P383") == 0) {
-				syn.setTermGroup(qualifier_value);
-			} else if (qualifier_name.compareTo("Term Source") == 0 ||
-			           qualifier_name.compareTo("tem-source") == 0 ||
-			           qualifier_name.compareTo("P384") == 0) {
-				syn.setTermSource(qualifier_value);
-			} else if (qualifier_name.compareTo("Source Code") == 0 ||
-			           qualifier_name.compareTo("source-code") == 0 ||
-			           qualifier_name.compareTo("P385") == 0) {
-				syn.setSourceCode(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Name") == 0 ||
-			           qualifier_name.compareTo("subsource-name") == 0 ||
-			           qualifier_name.compareTo("P386") == 0) {
-				syn.setSubSourceName(qualifier_value);
-			} else if (qualifier_name.compareTo("Subsource Code") == 0 ||
-			           qualifier_name.compareTo("subsource-name") == 0) {
-				syn.setSubSourceCode(qualifier_value);
-			}
-			hmap.put(axiom_id, syn);
-		}
-		List syn_list = new ArrayList();
-		Iterator it = hmap.keySet().iterator();
-		while (it.hasNext()) {
-			String axiom_id = (String) it.next();
-			Synonym syn = (Synonym) hmap.get(axiom_id);
-			syn_list.add(syn);
-		}
-		return syn_list;
-	}
-
-
-    public List extractFULLSyns() {
-		Vector w = scanAxioms();
-		w = filterAxiomData(w, "P90");
-		List list = getSynonyms(w);
-		return list;
-	}
-
 	public String extractVersion() {
 		return extractVersion(this.owl_vec);
 	}
@@ -2618,26 +2051,6 @@ C4910|<NHC0>C4910</NHC0>
 		if (str.compareTo("null") == 0) return true;
 		return false;
 	}
-
-
-/*
-    <owl:Axiom>
-        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/UBERON_0012318"/>
-        <owl:annotatedProperty rdf:resource="http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"/>
-        <owl:annotatedTarget>a. ethmoidalis anterior</owl:annotatedTarget>
-        <oboInOwl:hasDbXref rdf:resource="http://en.wikipedia.org/wiki/Anterior_ethmoidal_artery"/>
-        <oboInOwl:hasSynonymType rdf:resource="http://purl.obolibrary.org/obo/uberon/core#LATIN"/>
-    </owl:Axiom>
-
-
-    <owl:Axiom>
-        <owl:annotatedSource rdf:resource="http://purl.obolibrary.org/obo/UBERON_0013708"/>
-        <owl:annotatedProperty rdf:resource="http://www.w3.org/2002/07/owl#disjointWith"/>
-        <owl:annotatedTarget rdf:resource="http://purl.obolibrary.org/obo/UBERON_0013710"/>
-        <oboInOwl:source rdf:datatype="http://www.w3.org/2001/XMLSchema#string">lexical</oboInOwl:source>
-    </owl:Axiom>
-
-*/
 
     public Vector extractAxiomData() {
 		String open_tag = "<owl:Axiom>";
@@ -2882,50 +2295,6 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-/*
-	public void generate_FULL_SYN() {
-		Vector w = extract_FULL_SYN();
-		String outputfile = "FULL_SYN.txt";
-		Utils.saveToFile(outputfile, w);
-	}
-
-	public Vector extract_FULL_SYN() {
-		Vector v = extractAxiomData("P90");
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			int n = u.size();
-			String label = (String) u.elementAt(0);
-			String code = (String) u.elementAt(1);
-			String term = (String) u.elementAt(3);
-			String termType = "";
-			String termSource = "";
-			String subsourceName = "";
-			String sourceCode = "";
-			for (int j=4; j<n; j++) {
-				String t = (String) u.elementAt(j);
-				Vector u2 = StringUtils.parseData(t, '$');
-				String prop_code = (String) u2.elementAt(0);
-				String prop_value = (String) u2.elementAt(1);
-				if (prop_code.compareTo("P383") == 0) {
-					termType = prop_value;
-				} else if (prop_code.compareTo("P384") == 0) {
-					termSource = prop_value;
-				} else if (prop_code.compareTo("P386") == 0) {
-					subsourceName = prop_value;
-				} else if (prop_code.compareTo("P385") == 0) {
-					sourceCode = prop_value;
-				}
-			}
-			w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
-		}
-		String outputfile = "FULL_SYN.txt";
-		v.clear();
-		w = new SortUtils().quickSort(w);
-		return w;
-	}
-*/
 	// <owl:AnnotationProperty rdf:about="http://purl.obolibrary.org/obo/BFO_0000179"/>
     public Vector extractAnnotationProperties() {
         Vector w = new Vector();
@@ -3088,6 +2457,29 @@ C4910|<NHC0>C4910</NHC0>
 		return tag + "|" + value;
 	}
 
+    public Vector extractObjectProperties() {
+        Vector w = new Vector();
+        boolean istart = false;
+        String classId = null;
+        w = new Vector();
+
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+			t = t.trim();
+			if (t.startsWith("<owl:ObjectProperty")) {
+				int n1 = t.indexOf("\"");
+				int n2 = t.lastIndexOf("\"");
+				String s = t.substring(n1+1, n2);
+				w.add(s);
+			}
+		}
+		return w;
+	}
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();

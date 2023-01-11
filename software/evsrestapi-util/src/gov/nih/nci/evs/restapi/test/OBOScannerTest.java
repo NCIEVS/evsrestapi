@@ -178,6 +178,16 @@ public class OBOScannerTest {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
+	public static void extractObjectProperties(String[] args) {
+		String owlfile = args[0];
+		long ms = System.currentTimeMillis();
+		String outputfile = "object_properties_" + owlfile;
+		OBOScanner scanner = new OBOScanner(owlfile);
+		Vector w = scanner.extractObjectProperties();
+		Utils.saveToFile(outputfile, w);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
+
 	public static void generateTermFile(String[] args) {
 		String owlfile = args[0];
 		long ms = System.currentTimeMillis();
@@ -223,6 +233,30 @@ public class OBOScannerTest {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
+    public static void removeRdfDatatype(String termfile) {
+		long ms = System.currentTimeMillis();
+		String target = "rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">";
+		String outputfile = "mod_" + termfile;
+		Vector v = Utils.readFile(termfile);
+		HashSet hset = new HashSet();
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '\t');
+			String code = (String) u.elementAt(0);
+			String term = (String) u.elementAt(1);
+			term = term.replace(target, "");
+			String s = code + "\t" + term;
+			if (!hset.contains(s)) {
+				hset.add(s);
+			    w.add(s);
+			}
+		}
+		Utils.saveToFile(outputfile, w);
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
+	}
+
+
 	public static void test(String[] args) {
 		long ms = System.currentTimeMillis();
 		//extractRDFSLabels(args);
@@ -233,7 +267,11 @@ public class OBOScannerTest {
         //extractProperties(args);
         //extractAssociations(args);
         //extractAxiomData(args);
-        generateTermFile(args);
+        //generateTermFile(args);
+
+        //String termfile = args[0];
+        //removeRdfDatatype(termfile);
+        extractObjectProperties(args);
 		System.out.println("Grand total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
