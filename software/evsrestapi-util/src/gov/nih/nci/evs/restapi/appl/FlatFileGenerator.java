@@ -135,7 +135,6 @@ public class FlatFileGenerator {
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
 		buf.append("").append("\n");
-		//buf.append("select distinct ?y_label ?y_code ?x_label ?x_code ").append("\n");
 		buf.append("select distinct ?x_code ?y_code ").append("\n");
 		buf.append("{").append("\n");
 		buf.append("    graph <" + named_graph + "> ").append("\n");
@@ -164,20 +163,18 @@ public class FlatFileGenerator {
         String prefixes = owlSPARQLUtils.getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
-        //buf.append("SELECT distinct ?x_code ?x_label ?p_label ?p_value").append("\n");
         buf.append("SELECT distinct ?x_code ?p_value").append("\n");
         buf.append("from <" + named_graph + "> ").append("\n");
         buf.append("where { ").append("\n");
         buf.append("                    ?x a owl:Class .").append("\n");
         buf.append("                    ?x :NHC0 ?x_code .").append("\n");
-        buf.append("                    ?x rdfs:label ?x_label .").append("\n");
+        //buf.append("                    ?x rdfs:label ?x_label .").append("\n");
         buf.append("                    ?p :NHC0 \"" + propertyCode + "\"^^xsd:string .").append("\n");
-        buf.append("                    ?p rdfs:label ?p_label .").append("\n");
-        buf.append("                    ?x ?p ?p_value .                ").append("\n");
+        //buf.append("                    ?p rdfs:label ?p_label .").append("\n");
+        buf.append("                    ?x ?p ?p_value .").append("\n");
         buf.append("}").append("\n");
         return buf.toString();
 	}
-
 
 	public Vector getProp(String named_graph, String propertyCode) {
         String query = construct_get_prop(named_graph, propertyCode);
@@ -188,42 +185,10 @@ public class FlatFileGenerator {
         return new SortUtils().quickSort(v);
 	}
 
-	public String construct_get_synonyms(String named_graph) {
-        String prefixes = owlSPARQLUtils.getPrefixes();
-        StringBuffer buf = new StringBuffer();
-        buf.append(prefixes);
-        buf.append("select ?x_code ?a1_target ").append("\n");
-        buf.append("").append("\n");
-        buf.append("from <" + named_graph + "> ").append("\n");
-        buf.append("where  { ").append("\n");
-        buf.append("                ?x a owl:Class .").append("\n");
-        buf.append("                ?x :NHC0 ?x_code .").append("\n");
-        buf.append("                ?x rdfs:label ?x_label .").append("\n");
-        buf.append("").append("\n");
-        buf.append("                ?p a owl:AnnotationProperty .").append("\n");
-        buf.append("                ?p rdfs:label ?p_label .").append("\n");
-        buf.append("                ?p :NHC0 \"P90\"^^xsd:string .").append("\n");
-        buf.append(" ").append("\n");
-        buf.append("                ?a1 a owl:Axiom .").append("\n");
-        buf.append("                ?a1 owl:annotatedSource ?x .").append("\n");
-        buf.append("                ?a1 owl:annotatedProperty ?p .").append("\n");
-        buf.append("                ?a1 owl:annotatedTarget ?a1_target .").append("\n");
-        buf.append("").append("\n");
-        buf.append("}").append("\n");
-        buf.append("").append("\n");
-        return buf.toString();
-	}
-
-
 	public Vector getSynonyms(String named_graph) {
-        String query = construct_get_synonyms(named_graph);
-        Vector v = owlSPARQLUtils.executeQuery(query);
-        if (v == null) return null;
-        if (v.size() == 0) return v;
-        v = new ParserUtils().getResponseValues(v);
-        return new SortUtils().quickSort(v);
+        String propertyCode = "P90";
+        return getProp(named_graph, propertyCode);
 	}
-
 
 	public String construct_get_labels(String named_graph) {
         String prefixes = owlSPARQLUtils.getPrefixes();
@@ -256,7 +221,6 @@ public class FlatFileGenerator {
 	public String getClassUri(String code) {
 		return "<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#" + code + ">";
 	}
-//C100000	<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000>	C99521	Percutaneous Coronary Intervention for ST Elevation Myocardial Infarction-Stable-Over 12 Hours From Symptom Onset|PERCUTANEOUS CORONARY INTERVENTION (PCI) FOR ST ELEVATION MYOCARDIAL INFARCTION (STEMI) (STABLE, >12 HRS FROM SYMPTOM ONSET)	A percutaneous coronary intervention is necessary for a myocardial infarction that presents with ST segment elevation and the subject does not have recurrent or persistent symptoms, symptoms of heart failure or ventricular arrhythmia. The presentation is past twelve hours since onset of symptoms. (ACC)			Therapeutic or Preventive Procedure
 
 	public String construct_get_concept_membership(String named_graph) {
         String prefixes = owlSPARQLUtils.getPrefixes();
@@ -298,6 +262,7 @@ public class FlatFileGenerator {
 			if (!w.contains(value)) {
 				w.add(value);
 			}
+			w = new SortUtils().quickSort(w);
 			hmap.put(key, w);
 		}
 		return hmap;
@@ -368,6 +333,7 @@ public class FlatFileGenerator {
 
         v = getLabels(named_graph);
         System.out.println("getLabels: " + v.size());
+
         for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -382,7 +348,6 @@ public class FlatFileGenerator {
 			w.add(code + "\t" + classUri + "\t" + parents + "\t" + synonms + "\t" + defs + "\t" + dns + "\t" + status + "\t" + sty);
 		}
 		v.clear();
-		//String outputfile = "Thesaurus_" + StringUtils.getToday() + ".txt";
 		String outputfile = "Thesaurus.txt";
 		Utils.saveToFile(outputfile, w);
 		return outputfile;
@@ -396,15 +361,9 @@ public class FlatFileGenerator {
 		String password = args[3];
 		Vector w = new Vector();
         FlatFileGenerator test = new FlatFileGenerator(serviceUrl, named_graph, username, password);
-
 		String flatfile = test.generate();
-
 		Vector cis_data = test.getConceptMembership(named_graph);
 		Utils.saveToFile(CONCEPT_MEMBESHIP_FILE, cis_data);
-
-		//Vector v = test.getHierarchicalRelationships(named_graph);
-		//Utils.saveToFile("hier.txt", v);
-
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
 }
