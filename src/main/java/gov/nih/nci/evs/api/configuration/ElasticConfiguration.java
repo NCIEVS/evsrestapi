@@ -22,6 +22,7 @@ public class ElasticConfiguration {
   @Autowired
   Environment env;
 
+  @SuppressWarnings("deprecation")
   @Bean
   RestHighLevelClient client() {
     String esHost = env.getProperty("nci.evs.elasticsearch.server.host");
