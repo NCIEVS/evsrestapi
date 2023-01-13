@@ -131,14 +131,14 @@ public class TerminologyMetadataUnitTest {
         tester.include("synonymSourceSet");
         tester.include("termTypes");
         tester.include("subsetMember");
-        tester.include("subsetLinks");
+        tester.include("subsetLink");
         tester.include("subsetPrefix");
         tester.include("unpublished");
         tester.include("monthlyDb");
         tester.include("licenseText");
         tester.include("metaConceptField");
         tester.include("preferredTermTypes");
-        tester.include("subsetLinks");
+        tester.include("subsetLink");
         tester.include("subsetPrefix");
         tester.include("codeLabel");
         tester.include("welcomeText");
