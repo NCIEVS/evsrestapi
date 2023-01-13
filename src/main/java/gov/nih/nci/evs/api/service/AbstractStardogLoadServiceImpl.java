@@ -251,23 +251,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Done loading concepts!");
   }
 
-  /**
-   * add subset links to subset hierarchy.
-   *
-   * @param subset the subset
-   * @param subsetLinks the subset links
-   * @param subsetPrefix the subset prefix
-   */
-  private void addSubsetLinks(Concept subset, Map<String, String> subsetLinks,
-    String subsetPrefix) {
-    if (subsetLinks.containsKey(subset.getCode())) {
-      subset.setSubsetLink(subsetPrefix + subsetLinks.get(subset.getCode()));
-    }
-    for (Concept child : subset.getChildren()) {
-      addSubsetLinks(child, subsetLinks, subsetPrefix);
-    }
-  }
-
   /* see superclass */
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
@@ -372,9 +355,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     ElasticObject subsetsObject = new ElasticObject("subsets");
-    for (Concept subset : subsets)
-      addSubsetLinks(subset, terminology.getMetadata().getSubsetLinks(),
-          terminology.getMetadata().getSubsetPrefix());
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);

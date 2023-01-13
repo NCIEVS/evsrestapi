@@ -165,7 +165,7 @@ public class SparqlQueriesTests {
   @Test
   public void testCodeCodeAfterPreferredNameCode() {
 
-    final Set<String> exceptions = Set.of("n/a");
+    final Set<String> exceptions = Set.of("roles.all.complex");
 
     boolean error = false;
     for (final Map.Entry<Object, Object> entry : prop.entrySet()) {

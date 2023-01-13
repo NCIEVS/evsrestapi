@@ -112,7 +112,7 @@ public class TerminologyMetadata extends BaseModel {
   private String subsetPrefix;
 
   /** The subset links. */
-  private Map<String, String> subsetLinks;
+  private String subsetLink;
 
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
@@ -198,7 +198,7 @@ public class TerminologyMetadata extends BaseModel {
     definitionSourceSet = new HashSet<>(other.getDefinitionSourceSet());
     synonymSourceSet = new HashSet<>(other.getSynonymSourceSet());
     termTypes = new HashMap<>(other.getTermTypes());
-    subsetLinks = new HashMap<>(other.getSubsetLinks());
+    subsetLink = other.getSubsetLink();
     subsetMember = new HashSet<>(other.getSubsetMember());
     unpublished = new HashSet<>(other.getUnpublished());
     monthlyDb = other.getMonthlyDb();
@@ -245,7 +245,7 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((metaConceptField == null) ? 0 : metaConceptField.hashCode());
     result = prime * result + ((preferredTermTypes == null) ? 0 : preferredTermTypes.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
-    result = prime * result + ((subsetLinks == null) ? 0 : subsetLinks.hashCode());
+    result = prime * result + ((subsetLink == null) ? 0 : subsetLink.hashCode());
     result = prime * result + ((subsetPrefix == null) ? 0 : subsetPrefix.hashCode());
     result = prime * result + ((codeLabel == null) ? 0 : codeLabel.hashCode());
     result = prime * result + ((welcomeText == null) ? 0 : welcomeText.hashCode());
@@ -402,10 +402,10 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!subset.equals(other.subset))
       return false;
-    if (subsetLinks == null) {
-      if (other.subsetLinks != null)
+    if (subsetLink == null) {
+      if (other.subsetLink != null)
         return false;
-    } else if (!subsetLinks.equals(other.subsetLinks))
+    } else if (!subsetLink.equals(other.subsetLink))
       return false;
     if (subsetPrefix == null) {
       if (other.subsetPrefix != null)
@@ -984,24 +984,21 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the subset links.
+   * Returns the subset link property.
    *
-   * @return the subsetLinks
+   * @return the subset link property
    */
-  public Map<String, String> getSubsetLinks() {
-    if (subsetLinks == null) {
-      subsetLinks = new HashMap<>();
-    }
-    return subsetLinks;
+  public String getSubsetLink() {
+    return subsetLink;
   }
 
   /**
-   * Sets the subset links.
+   * Sets the subset link property.
    *
-   * @param subsetLinks the subsetLinks to set
+   * @param subsetLink the subset link property
    */
-  public void setSubsetLinks(Map<String, String> subsetLinks) {
-    this.subsetLinks = subsetLinks;
+  public void setSubsetLink(String subsetLink) {
+    this.subsetLink = subsetLink;
   }
 
   /**
@@ -1261,7 +1258,8 @@ public class TerminologyMetadata extends BaseModel {
     if (code == null) {
       return false;
     }
-    return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code);
+    return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code)
+        || code.equals(subsetLink);
 
   }
 
