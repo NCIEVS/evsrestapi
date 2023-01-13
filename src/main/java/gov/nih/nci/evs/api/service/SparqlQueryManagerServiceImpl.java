@@ -379,12 +379,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             }
             if (!link.equals("null")) {
               // Prepend the subset prefix, remove the "EVS" part.
-              concept.setSubsetLink(terminology.getMetadata().getSubsetPrefix()
-                  + property.getValue().replaceFirst("EVS/", ""));
+              concept.setSubsetLink(terminology.getMetadata().getSubsetPrefix() + link);
             }
             continue;
           }
-          
+
           // Handle if not a remodeled property (e.g. sy or definition)
           if (ip.isProperties()
               && !terminology.getMetadata().isRemodeledProperty(property.getCode())) {
@@ -597,7 +596,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         // Handle subset link (and continue)
         if (property.getCode().equals(terminology.getMetadata().getSubsetLink())) {
-          // e.g.EVS/CDISC/SDTM/SDTM Terminology.xls|2:all
+          // e.g. EVS/CDISC/SDTM/SDTM Terminology.xls|2:all => EVS/CDISC/SDTM/
           String link = property.getValue().replaceFirst("EVS/", "").split("\\|")[0];
           // If there is a filename, remove it and just link to the directory
           // above
@@ -606,8 +605,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
           if (!link.equals("null")) {
             // Prepend the subset prefix, remove the "EVS" part.
-            concept.setSubsetLink(terminology.getMetadata().getSubsetPrefix()
-                + property.getValue().replaceFirst("EVS/", ""));
+            concept.setSubsetLink(terminology.getMetadata().getSubsetPrefix() + link);
           }
           continue;
         }
