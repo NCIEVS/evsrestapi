@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class NcitSampleTest extends SampleTest {
+
   /**
    * Setup class.
    *

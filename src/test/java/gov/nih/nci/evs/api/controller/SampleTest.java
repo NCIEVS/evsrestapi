@@ -8,13 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
@@ -23,9 +19,7 @@ import gov.nih.nci.evs.api.SampleRecord;
 /**
  * Superclass for the terminology sample tests.
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
+@Ignore
 public class SampleTest {
 
   /** The mvc. */
@@ -51,8 +45,8 @@ public class SampleTest {
    */
   public static void loadSamples(final String terminology, final String sampleFile)
     throws Exception {
-    final Map<String, List<SampleRecord>> samples = new HashMap<>();
 
+    samples = new HashMap<>();
     SampleTest.terminology = terminology;
     // load tab separated txt file as resource and load into samples
     try (BufferedReader fileReader = new BufferedReader(new FileReader(sampleFile));) {
