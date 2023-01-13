@@ -57,6 +57,11 @@ public final class ConceptUtils {
     if (value == null) {
       return null;
     }
+    // If the value is in the style of GO\:12345, then return it as-is.
+    if (value.matches("^[A-Z]+\\\\:\\d+$")) {
+      return value;
+    }
+
     return value.replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "").toLowerCase()
         .replaceAll(PUNCTUATION_REGEX, " ").replaceAll("\\s+", " ").trim();
   }
