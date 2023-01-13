@@ -11,6 +11,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Choose a local data directory $dir (e.g. c:/evsrestapi/dir)
 * mkdir -p $dir/elasticsearch/data
 * Download the "Unit Test Data" folder from https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
+    * run `prep.sh`
 
 ### Steps for Loading NCI Thesaurus Data and Indexes Locally
 
