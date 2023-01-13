@@ -33,10 +33,10 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class NCIControllerTests {
+public class NciControllerTests {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(NCIControllerTests.class);
+  private static final Logger log = LoggerFactory.getLogger(NciControllerTests.class);
 
   /** The mvc. */
   @Autowired
