@@ -389,10 +389,8 @@ public class SearchController extends BaseController {
 
       // Look up info for all the concepts
       for (final Concept result : results.getConcepts()) {
-        logger.info("XXX result.highlights = " + result.getHighlights());
         ConceptUtils.applyHighlights(result, result.getHighlights());
         // Clear highlights now that they have been applied
-        logger.info("  XXX result.highlight = " + result.getHighlight());
         result.setHighlights(null);
       }
 
