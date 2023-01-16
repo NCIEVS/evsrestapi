@@ -271,6 +271,16 @@ public class OWLScanner {
 		boolean istart = false;
 		for (int i=0; i<owl_vec.size(); i++) {
 			String line = (String) owl_vec.elementAt(i);
+
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">")) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+
+
 			if (line.indexOf(target) != -1) {
 				istart = true;
 			} else if (istart && line.indexOf(OWL_CLS_TARGET) != -1) {
@@ -293,6 +303,16 @@ public class OWLScanner {
 		boolean istart = false;
 		for (int i=0; i<owl_vec.size(); i++) {
 			String line = (String) owl_vec.elementAt(i);
+
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">")) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+
+
 			String line_trimmed = line.trim();
 			if (targets.contains(line_trimmed)) {
 				istart = true;
@@ -963,6 +983,15 @@ public class OWLScanner {
         HashSet hset = new HashSet();
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
@@ -1049,6 +1078,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1123,6 +1160,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1195,6 +1240,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1237,6 +1291,15 @@ C4910|<NHC0>C4910</NHC0>
         String classId = null;
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -1287,6 +1350,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			t = t.trim();
 			if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
 				int n = t.lastIndexOf("</rdfs:label>");
@@ -1334,6 +1406,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -1391,6 +1472,14 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
 
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1432,6 +1521,13 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
 
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1485,6 +1581,15 @@ C4910|<NHC0>C4910</NHC0>
 		HashMap hmap = new HashMap();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < v.size()-1) {
+				i++;
+				String nextLine = (String) v.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			t = t.trim();
 			int n = t.lastIndexOf("/");
 			if (n != -1) {
@@ -1510,6 +1615,16 @@ C4910|<NHC0>C4910</NHC0>
 		HashMap hmap = new HashMap();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < v.size()-1) {
+				i++;
+				String nextLine = (String) v.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+
 			t = t.trim();
 			if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
 				int n = t.indexOf(">");
@@ -1539,6 +1654,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -1581,19 +1704,6 @@ C4910|<NHC0>C4910</NHC0>
 
     public Vector extractHierarchicalRelationships() {
 		Vector w = extractHierarchicalRelationships(this.owl_vec);
-		/*
-		Vector v = extractSuperclasses();
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-			String code_1 = (String) u.elementAt(0);
-			String code_2 = (String) u.elementAt(1);
-			String label_1 = getLabel(code_1);
-			String label_2 = getLabel(code_2);
-			w.add(label_2 + "|" + code_2 + "|" + label_1 + "|" + code_1);
-		}
-		*/
 		return new SortUtils().quickSort(w);
 	}
 
@@ -1619,6 +1729,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf("<owl:AllDisjointClasses") != -1) {
 				istart = true;
 			}
@@ -1686,6 +1805,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			String t_save = t;
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
@@ -1733,6 +1861,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			String t_save = t;
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
@@ -1772,6 +1909,15 @@ C4910|<NHC0>C4910</NHC0>
         Vector v = new Vector();
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				knt++;
 				if (classId != null) {
@@ -1797,6 +1943,13 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
 
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1855,6 +2008,14 @@ C4910|<NHC0>C4910</NHC0>
         String classId = null;
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -1926,6 +2087,14 @@ C4910|<NHC0>C4910</NHC0>
         HashSet hset = new HashSet();
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -2078,6 +2247,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -2421,6 +2598,14 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
 
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -2607,6 +2792,14 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
 
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -2648,7 +2841,9 @@ C4910|<NHC0>C4910</NHC0>
 						Vector u = StringUtils.parseData(s, '|');
 						if (u.size() > 3) {
 							String propCode = (String) u.elementAt(2);
-							if (propCode.compareTo(prop_code) == 0) {
+							if (prop_code == null) {
+								w.add(s);
+							} else if (propCode.compareTo(prop_code) == 0) {
 								w.add(s);
 							}
 						}
@@ -2692,7 +2887,9 @@ C4910|<NHC0>C4910</NHC0>
 			Vector u = StringUtils.parseData(t, '|');
 			if (u.size() > 3) {
 				String propCode = (String) u.elementAt(2);
-				if (propCode.compareTo(prop_code) == 0) {
+				if (prop_code == null) {
+					w.add(t);
+				} else if (propCode.compareTo(prop_code) == 0) {
 					w.add(t);
 				}
 		    }
@@ -2718,6 +2915,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -2774,6 +2979,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
@@ -2809,6 +3022,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			String t0 = t;
 			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");

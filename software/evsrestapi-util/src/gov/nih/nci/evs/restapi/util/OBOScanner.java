@@ -294,6 +294,16 @@ public class OBOScanner {
 		boolean istart = false;
 		for (int i=0; i<owl_vec.size(); i++) {
 			String line = (String) owl_vec.elementAt(i);
+
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+
+
 			String line_trimmed = line.trim();
 			if (targets.contains(line_trimmed)) {
 				istart = true;
@@ -953,7 +963,7 @@ public class OBOScanner {
 	}
 
 
-    public Vector extractOWLRestrictions(Vector class_vec) {
+    public Vector extractOWLRestrictions(Vector owl_vec) {
         Vector w = new Vector();
         boolean istart = false;
         boolean restriction_start = false;
@@ -962,8 +972,16 @@ public class OBOScanner {
         String onProperty = null;
         String someValueFrom = null;
         HashSet hset = new HashSet();
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 
 				int n = t.lastIndexOf("#");
@@ -1012,7 +1030,7 @@ public class OBOScanner {
                     if (t.startsWith("<owl:someValuesFrom>")) {
 						i++;
 						i++;
-						t = (String) class_vec.elementAt(i);
+						t = (String) owl_vec.elementAt(i);
                         t = t.trim();
 
 						int n = t.indexOf(NAMESPACE);
@@ -1080,15 +1098,23 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
 
-    public Vector extractProperties(Vector class_vec) {
+    public Vector extractProperties(Vector owl_vec) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
         String classId = null;
         boolean switch_off = false;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1143,15 +1169,23 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public Vector extractProperties(Vector class_vec, String propertyCode) {
+    public Vector extractProperties(Vector owl_vec, String propertyCode) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
         String classId = null;
         boolean switch_off = false;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1216,14 +1250,22 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public Vector extractSuperclasses(Vector class_vec) {
+    public Vector extractSuperclasses(Vector owl_vec) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
         String classId = null;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1260,14 +1302,20 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public Vector extractRDFSLabels(Vector class_vec) {
+    public Vector extractRDFSLabels(Vector owl_vec) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
         String classId = null;
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 
@@ -1311,12 +1359,19 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public String extractRDFSLabel(Vector class_vec) {
+    public String extractRDFSLabel(Vector owl_vec) {
         Vector w = new Vector();
         String classId = null;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			t = t.trim();
 			if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
 				int n = t.lastIndexOf("</rdfs:label>");
@@ -1353,15 +1408,21 @@ C4910|<NHC0>C4910</NHC0>
 		return hashSet2Vector(parent_codes);
 	}
 
-    public Vector extractOWLDisjointWith(Vector class_vec) {
+    public Vector extractOWLDisjointWith(Vector owl_vec) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
         String classId = null;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1421,13 +1482,20 @@ C4910|<NHC0>C4910</NHC0>
 		return new SortUtils().quickSort(w);
 	}
 
-    public Vector extractAllDisjointClasses(Vector class_vec) {
+    public Vector extractAllDisjointClasses(Vector owl_vec) {
         Vector w = new Vector();
         boolean istart = false;
         String classId = null;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			if (t.indexOf("<owl:AllDisjointClasses") != -1) {
 				istart = true;
 			}
@@ -1483,7 +1551,7 @@ C4910|<NHC0>C4910</NHC0>
         return getAllOWLClassHashCode(this.owl_vec);
     }
 
-    public Vector getAllOWLClassHashCode(Vector class_vec) {
+    public Vector getAllOWLClassHashCode(Vector owl_vec) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -1493,8 +1561,15 @@ C4910|<NHC0>C4910</NHC0>
 
         boolean startPrint = false;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			String t_save = t;
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
@@ -1530,7 +1605,7 @@ C4910|<NHC0>C4910</NHC0>
 		this.owl_vec.clear();
 	}
 
-    public Vector getOWLClassDataByCode(Vector class_vec, Vector codes) {
+    public Vector getOWLClassDataByCode(Vector owl_vec, Vector codes) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -1540,8 +1615,15 @@ C4910|<NHC0>C4910</NHC0>
 
         boolean startPrint = false;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			String t_save = t;
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
@@ -1574,13 +1656,20 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public HashMap getOWLClassId2DataHashMap(Vector class_vec) {
+    public HashMap getOWLClassId2DataHashMap(Vector owl_vec) {
 		int knt = 0;
 		HashMap hmap = new HashMap();
         String classId = null;
         Vector v = new Vector();
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				knt++;
 				if (classId != null) {
@@ -1598,14 +1687,20 @@ C4910|<NHC0>C4910</NHC0>
 		return hmap;
 	}
 
-    public Vector extract_properties(Vector class_vec) {
+    public Vector extract_properties(Vector owl_vec) {
         int m = 0;
         Vector w = new Vector();
         String classId = null;
         boolean start = false;
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1659,12 +1754,18 @@ C4910|<NHC0>C4910</NHC0>
 		return classId + "|" + hashcode;
 	}
 
-    public Vector extract_superclasses(Vector class_vec) {
+    public Vector extract_superclasses(Vector owl_vec) {
         Vector w = new Vector();
         String classId = null;
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1725,7 +1826,7 @@ C4910|<NHC0>C4910</NHC0>
 		Utils.dumpVector("Added", v2_minus_v1);
 	}
 
-    public Vector extract_owlrestrictions(Vector class_vec) {
+    public Vector extract_owlrestrictions(Vector owl_vec) {
         Vector w = new Vector();
         String classId = null;
         boolean restriction_start = false;
@@ -1733,9 +1834,16 @@ C4910|<NHC0>C4910</NHC0>
         String onProperty = null;
         String someValueFrom = null;
         HashSet hset = new HashSet();
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1881,13 +1989,19 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
 
-    public Vector extract_associations(Vector class_vec) {
+    public Vector extract_associations(Vector owl_vec) {
         Vector w = new Vector();
         String classId = null;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1945,14 +2059,20 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-    public Vector extractEnum(Vector class_vec, String type) {
+    public Vector extractEnum(Vector owl_vec, String type) {
         Vector w = new Vector();
         boolean istart = false;
         String classId = null;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -1980,6 +2100,15 @@ C4910|<NHC0>C4910</NHC0>
 		String classId = null;
 		for (int i=0; i<owl_vec.size(); i++) {
 			String line = (String) owl_vec.elementAt(i);
+
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+
 		    if (line.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -2066,6 +2195,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			t = t.trim();
 
 		    if (t.indexOf("// Annotations") != -1) {
@@ -2219,6 +2357,13 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
 
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}
@@ -2266,15 +2411,22 @@ C4910|<NHC0>C4910</NHC0>
     }
 
 
-    public Vector extractNonRetiredConcepts(Vector class_vec, HashSet retiredConcepts) {
+    public Vector extractNonRetiredConcepts(Vector owl_vec, HashSet retiredConcepts) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
         boolean toSave = true;
         String classId = null;
 
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
+        for (int i=0; i<owl_vec.size(); i++) {
+			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			String t0 = t;
 			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
@@ -2304,6 +2456,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
@@ -2358,6 +2518,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			String t0 = t;
 			t = t.trim();
 
@@ -2411,6 +2580,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+
 			String t0 = t;
 			t = t.trim();
 
@@ -2466,6 +2644,13 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
 
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 		    if (t.indexOf("// Annotations") != -1) {
 				break;
 			}

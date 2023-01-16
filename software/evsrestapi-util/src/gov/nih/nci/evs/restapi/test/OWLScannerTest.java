@@ -82,9 +82,12 @@ public class OWLScannerTest {
 
 	public static void extractAxiomData(String[] args) {
 		String owlfile = args[0];
-		String prop_code = args[1];
+		String prop_code = null;//args[1];
 		long ms = System.currentTimeMillis();
-		String outputfile = prop_code + owlfile;
+		String outputfile = "axiom_" + owlfile;
+		if (prop_code != null) {
+			outputfile = "axiom_" + prop_code + "_" + owlfile;
+		}
 		Vector w = new OWLScanner(owlfile).extractAxiomData(prop_code);
 		Utils.saveToFile(outputfile, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
@@ -155,12 +158,19 @@ public class OWLScannerTest {
 
 	public static void test(String[] args) {
 		long ms = System.currentTimeMillis();
+		System.out.println("extractHierarchicalRelationships ...");
 		extractHierarchicalRelationships(args);
+		System.out.println("extractAxiomData ...");
 		extractAxiomData(args);
+		System.out.println("extractOWLRestrictions ...");
 		extractOWLRestrictions(args);
+		System.out.println("extractAssociations ...");
 		extractAssociations(args);
+		System.out.println("extractProperties ...");
 		extractProperties(args);
+		System.out.println("extractRDFSLabels ...");
 		extractRDFSLabels(args);
+		System.out.println("generate_FULL_SYN ...");
 		generate_FULL_SYN(args);
 		System.out.println("Grand total run time (ms): " + (System.currentTimeMillis() - ms));
 	}

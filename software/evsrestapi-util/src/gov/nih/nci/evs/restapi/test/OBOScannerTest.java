@@ -259,19 +259,29 @@ public class OBOScannerTest {
 
 	public static void test(String[] args) {
 		long ms = System.currentTimeMillis();
-		//extractRDFSLabels(args);
-		//extractHierarchicalRelationships(args);
-        //extractOWLRestrictions(args);
-        //extractAxiomData(args);
-        //extractAnnotationProperties(args);
-        //extractProperties(args);
-        //extractAssociations(args);
-        //extractAxiomData(args);
-        //generateTermFile(args);
-
+		System.out.println("extractRDFSLabels ...");
+		extractRDFSLabels(args);
+		System.out.println("extractHierarchicalRelationships ...");
+		extractHierarchicalRelationships(args);
+		System.out.println("extractOWLRestrictions ...");
+        extractOWLRestrictions(args);
+        System.out.println("extractAxiomData ...");
+        extractAxiomData(args);
+        System.out.println("extractAnnotationProperties ...");
+        extractAnnotationProperties(args);
+        System.out.println("extractProperties ...");
+        extractProperties(args);
+        System.out.println("extractAssociations ...");
+        extractAssociations(args);
+        System.out.println("extractObjectProperties ...");
+        extractObjectProperties(args);
+        System.out.println("extractAxiomData ...");
+        extractAxiomData(args);
+        System.out.println("generateTermFile ...");
+        generateTermFile(args);
         //String termfile = args[0];
         //removeRdfDatatype(termfile);
-        extractObjectProperties(args);
+
 		System.out.println("Grand total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
