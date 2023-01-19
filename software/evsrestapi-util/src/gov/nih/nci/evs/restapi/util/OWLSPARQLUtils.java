@@ -5122,24 +5122,41 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 	}
 
 	public String construct_get_hierarchical_relationships(String named_graph) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("").append("\n");
-		buf.append("select distinct ?y_label ?y_code ?x_label ?x_code ").append("\n");
-		buf.append("{").append("\n");
-		buf.append("    graph <" + named_graph + "> ").append("\n");
-		buf.append("    {").append("\n");
-		buf.append("      ?x :NHC0 ?x_code .").append("\n");
-		buf.append("      ?x rdfs:label ?x_label .").append("\n");
-		buf.append("      ?y :NHC0 ?y_code .").append("\n");
-		buf.append("      ?y rdfs:label ?y_label .").append("\n");
-		buf.append("      ?x (rdfs:subClassOf|(owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first)) ?y . ").append("\n");
-		buf.append("    }").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        //buf.append("select distinct ?x_label ?x_code ?y_label ?y_code").append("\n");
+        //buf.append("select distinct ?x_code ?y_code").append("\n");
+        buf.append("select distinct ?y_label ?y_code ?x_label ?x_code ").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where  { ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?y a owl:Class .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ").append("\n");
+        buf.append("                ?x (rdfs:subClassOf|owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first) ?y .  ").append("\n");
+        buf.append("    } UNION {").append("\n");
+        buf.append("    ").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?y a owl:Class .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ").append("\n");
+        buf.append("                ?x (rdfs:subClassOf/owl:intersectionOf/rdf:rest*/rdf:first) ?y .  ").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        buf.append("").append("\n");
+        return buf.toString();
 	}
-
 
 	public String construct_get_semantictypes(String named_graph) {
 		String prefixes = getPrefixes();
