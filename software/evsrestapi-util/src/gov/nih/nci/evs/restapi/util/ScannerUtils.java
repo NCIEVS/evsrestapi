@@ -88,6 +88,16 @@ public class ScannerUtils {
 		return false;
 	}
 
+    public static String getTagKey(String line) {
+		Vector u = StringUtils.parseData(line, '|');
+		return (String) u.elementAt(0);
+	}
+
+    public static String getTagValue(String line) {
+		Vector u = StringUtils.parseData(line, '|');
+		return (String) u.elementAt(1);
+	}
+
     public static String xml2Delimited(String line) {
 		line = line.trim();
 		if (line.length() == 0) return null;
@@ -130,23 +140,24 @@ public class ScannerUtils {
 		return t.replace(ns, "");
 	}
 
-	public boolean isOpenClass(String line0) {
+//    <owl:Class rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104431">
+	public static boolean isOpenClass(String line0) {
 		String line = line0;
-		line = line.trim();
-		if (line.startsWith("<owl:Class ") && line.endsWith(">")) {
+		//line = line.trim();
+		if (line.indexOf("owl:Class rdf:about=") != -1 && line.endsWith(">")) {
 			return true;
 		}
 		return false;
 	}
 
-	public boolean isCloseClass(String line0) {
+	public static boolean isCloseClass(String line0) {
 		String line = line0;
-		line = line.trim();
-		if (line.compareTo("</owl:Class>") == 0) return true;
+		//line = line.trim();
+		if (line.compareTo("    </owl:Class>") == 0) return true;
 		return false;
 	}
 
-	public String extractIdFromOpenClassLine(String line) {
+	public static String extractIdFromOpenClassLine(String line) {
 		line = line.replace(">", "/>");
 		String t = xml2Delimited(line);
 		Vector u = StringUtils.parseData(t, '|');

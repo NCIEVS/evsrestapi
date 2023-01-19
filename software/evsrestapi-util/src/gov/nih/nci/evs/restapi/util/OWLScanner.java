@@ -1702,26 +1702,6 @@ C4910|<NHC0>C4910</NHC0>
 		return extractSuperclasses(owl_vec);
 	}
 
-    public Vector extractHierarchicalRelationships() {
-		Vector w = extractHierarchicalRelationships(this.owl_vec);
-		return new SortUtils().quickSort(w);
-	}
-
-    public Vector extractHierarchicalRelationships(Vector owl_vec) {
-		Vector v = extractSuperclasses(owl_vec);
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-			String code_1 = (String) u.elementAt(0);
-			String code_2 = (String) u.elementAt(1);
-			String label_1 = getLabel(code_1);
-			String label_2 = getLabel(code_2);
-			w.add(label_2 + "|" + code_2 + "|" + label_1 + "|" + code_1);
-		}
-		return new SortUtils().quickSort(w);
-	}
-
     public Vector extractAllDisjointClasses(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -3091,6 +3071,49 @@ C4910|<NHC0>C4910</NHC0>
 		v.clear();
 		w = new SortUtils().quickSort(w);
 		return w;
+	}
+
+
+
+	public Vector extractHierarchicalRelationships() {
+		Vector v = new Vector();
+		Vector w = new Vector();
+		HashSet hset = new HashSet();
+		String id = null;
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			//////////////////////////////////
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+			//////////////////////////////////
+			if (ScannerUtils.isOpenClass(line)) {
+				w = new Vector();
+				id = ScannerUtils.extractIdFromOpenClassLine(line);
+
+			} else if (ScannerUtils.isCloseClass(line)) {
+				if (w != null && w.size() > 0) {
+					v.addAll(w);
+				}
+			} else {
+				String t = ScannerUtils.xml2Delimited(line);
+				if (t != null) {
+					if (t.startsWith("rdfs:subClassOf|") || t.startsWith("rdf:Description|")) {
+						String s = id + "|" + ScannerUtils.getTagValue(t);
+						s = ScannerUtils.removePrefix(NAMESPACE, s);
+						if (!hset.contains(s)) {
+							hset.add(s);
+							w.add(s);
+						}
+					}
+				}
+			}
+		}
+		return v;
 	}
 
     public static void main(String[] args) {
