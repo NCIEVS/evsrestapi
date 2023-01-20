@@ -1,5 +1,4 @@
 package gov.nih.nci.evs.restapi.appl;
-
 import gov.nih.nci.evs.restapi.util.*;
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
@@ -135,7 +134,6 @@ public class FlatFileGenerator {
         String prefixes = owlSPARQLUtils.getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
-        //buf.append("select distinct ?x_label ?x_code ?y_label ?y_code").append("\n");
         buf.append("select distinct ?x_code ?y_code").append("\n");
         buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where  { ").append("\n");
@@ -149,19 +147,7 @@ public class FlatFileGenerator {
         buf.append("                ?y rdfs:label ?y_label .").append("\n");
         buf.append("                ").append("\n");
         buf.append("                ?x (rdfs:subClassOf|owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first) ?y .  ").append("\n");
-        buf.append("    } UNION {").append("\n");
-        buf.append("    ").append("\n");
-        buf.append("                ?x a owl:Class .").append("\n");
-        buf.append("                ?x :NHC0 ?x_code .").append("\n");
-        buf.append("").append("\n");
-        buf.append("                ?x rdfs:label ?x_label .").append("\n");
-        buf.append("").append("\n");
-        buf.append("                ?y a owl:Class .").append("\n");
-        buf.append("                ?y :NHC0 ?y_code .").append("\n");
-        buf.append("                ?y rdfs:label ?y_label .").append("\n");
-        buf.append("                ").append("\n");
-        buf.append("                ?x (rdfs:subClassOf/owl:intersectionOf/rdf:rest*/rdf:first) ?y .  ").append("\n");
-        buf.append("    }").append("\n");
+        buf.append("    } ").append("\n");
         buf.append("}").append("\n");
         buf.append("").append("\n");
         return buf.toString();
