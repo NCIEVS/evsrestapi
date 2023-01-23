@@ -6,9 +6,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +22,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
@@ -34,6 +38,9 @@ public class ConceptSampleTester {
 
     /** The base url. */
     private String baseUrl = "/api/v1/concept/";
+
+    /** The base metadata url. */
+    private String baseMetadataUrl = "/api/v1/metadata/";
 
     /** The term url. */
     private String termUrl = "/api/v1/metadata/terminologies";
@@ -86,12 +93,76 @@ public class ConceptSampleTester {
      */
     public void performMetadataTests(final String term,
             final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
-        String url = baseUrl;
+        String url = baseMetadataUrl;
         MvcResult result = null;
         testMvc = mvc;
         String content = null;
         Concept concept = null;
         lookupTerminology(term, testMvc);
+
+        // get associations
+        url = baseMetadataUrl + term + "/associations?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> associations = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+        // get qualifiers
+        url = baseMetadataUrl + term + "/qualifiers?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> qualifiers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+        // get roles
+        url = baseMetadataUrl + term + "/roles?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> roles = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+        // get synonym term types
+        url = baseMetadataUrl + term + "/termTypes?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> termTypes = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+        // get synonym sources
+        url = baseMetadataUrl + term + "/synonymSources?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> synonymSources = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+        // get definition types
+        url = baseMetadataUrl + term + "/definitionTypes?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> definitionTypes = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+        // get definition sources
+        url = baseMetadataUrl + term + "/definitionSources?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> definitionSources = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+        // get properties
+        url = baseMetadataUrl + term + "/properties?include=minimal";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<String> properties = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
         for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
             url = baseUrl + term + "/" + entry.getKey() + "?include=full";
@@ -105,21 +176,92 @@ public class ConceptSampleTester {
             log.info(content);
             for (final SampleRecord sample : entry.getValue()) {
                 // TODO
-                // * if association - verify /metadata/{terminology}/association/{code} exists
-                // * if qualifier - verify /metadata/{terminology}/qualifier/{code} exists
-                // * if role - verify /metadata/{terminology}/role/{code} exists
-                // * if synonym term type - verify /metadata/{terminology}/termType/{code}
-                // exists
-                // * if synonym source - verify /metadata/{terminology}/synonymSource/{code}
-                // exists
-                // * if definition type - verify /metadata/{terminology}/definitionType/{code}
-                // exists
-                // * if definition source - verify
-                // /metadata/{terminology}/definitionSource/{code} exists
-                // * if property - verify /metadata/{terminology}/property/{code} exists
+                String sampleKey = sample.getKey();
+                if (sample.getKey().contains("~")) {
+                    sampleKey = sample.getKey().split("~")[1];
+                }
 
+                if (associations.contains(sampleKey)) {
+                    url = baseMetadataUrl + term + "/association/" + sampleKey;
+                    if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
+                        associations.remove(sampleKey);
+                    } else {
+                        errors.add("Association error: " + sampleKey + " does not exist in " + term
+                                + " associations");
+                    }
+                } else if (qualifiers.contains(sampleKey)) {
+                    url = baseMetadataUrl + term + "/qualifier/" + sampleKey;
+                    if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
+                        qualifiers.remove(sampleKey);
+                    } else {
+                        errors.add("Qualifier error: " + sampleKey + " does not exist in " + term
+                                + " qualifiers");
+                    }
+                } else if (roles.contains(sampleKey)) {
+                    url = baseMetadataUrl + term + "/role/" + sampleKey;
+                    if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
+                        roles.remove(sampleKey);
+                    } else {
+                        errors.add("Role error: " + sampleKey + " does not exist in " + term
+                                + " roles");
+                    }
+                } else if (definitionTypes.contains(sampleKey)) {
+                    url = baseMetadataUrl + term + "/definitionType/" + sampleKey;
+                    if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
+                        definitionTypes.remove(sampleKey);
+                    } else {
+                        errors.add("Definition Type error: " + sampleKey + " does not exist in " + term
+                                + " definition types");
+                    }
+                } else if (properties.contains(sampleKey)) {
+                    url = baseMetadataUrl + term + "/property/" + sampleKey;
+                    if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
+                        properties.remove(sampleKey);
+                    } else {
+                        errors.add("Property error: " + sampleKey + " does not exist in " + term
+                                + " properties");
+                    }
+                }
+                for (Synonym syn : concept.getSynonyms()) {
+                    if (termTypes.contains(syn.getTermType())) {
+                        termTypes.remove(syn.getTermType());
+                    }
+                    if (synonymSources.contains(syn.getSource())) {
+                        synonymSources.remove(syn.getSource());
+                    }
+                }
+                for (Definition def : concept.getDefinitions()) {
+                    if (definitionSources.contains(def.getSource())) {
+                        definitionSources.remove(def.getSource());
+                    }
+                }
             }
         }
+        if (errors.size() > 0) {
+            log.error("METADATA ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName()
+                    + ". SEE LOG BELOW");
+            for (final String err : errors) {
+                log.error(err);
+            }
+        } else {
+            log.info("No metadata errors found for terminology " + terminology.getName());
+        }
+        if (associations.size() > 0)
+            log.info("Associations not covered in sampling: " + Arrays.toString(associations.toArray()));
+        if (qualifiers.size() > 0)
+            log.info("Qualifiers not covered in sampling: " + Arrays.toString(qualifiers.toArray()));
+        if (roles.size() > 0)
+            log.info("Roles not covered in sampling: " + Arrays.toString(roles.toArray()));
+        if (termTypes.size() > 0)
+            log.info("Synonym term types not covered in sampling: " + Arrays.toString(termTypes.toArray()));
+        if (synonymSources.size() > 0)
+            log.info("Synonym sources not covered in sampling: " + Arrays.toString(synonymSources.toArray()));
+        if (definitionTypes.size() > 0)
+            log.info("Definition types not covered in sampling: " + Arrays.toString(definitionTypes.toArray()));
+        if (definitionSources.size() > 0)
+            log.info("Definition sources not covered in sampling: " + Arrays.toString(definitionSources.toArray()));
+        if (properties.size() > 0)
+            log.info("Properties not covered in sampling: " + Arrays.toString(properties.toArray()));
     }
 
     /**
