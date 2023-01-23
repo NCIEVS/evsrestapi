@@ -70,11 +70,11 @@ public class ScannerUtils {
     public static String openAxiomTag = "<owl:Axiom>";
     public static String closeAxiomTag = "</owl:Axiom>";
     public static String ns = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
-    Vector owl_vec = null;
+    //Vector owl_vec = null;
 
-    public ScannerUtils(Vector owl_vec) {
-		this.owl_vec = owl_vec;
-	}
+    //public ScannerUtils(Vector owl_vec) {
+	//	this.owl_vec = owl_vec;
+	//}
 
     public static boolean isIDCommentLine(String line) {
 		line = line.trim();
@@ -140,6 +140,15 @@ public class ScannerUtils {
 		return t.replace(ns, "");
 	}
 
+    public static Vector removePrefix(String ns, Vector v) {
+		Vector w = new  Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			w.add(removePrefix(ns, t));
+	    }
+	    return w;
+	}
+
 //    <owl:Class rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104431">
 	public static boolean isOpenClass(String line0) {
 		String line = line0;
@@ -164,7 +173,7 @@ public class ScannerUtils {
 		return (String) u.elementAt(1);
 	}
 
-	public Vector extractClassIDs() {
+	public static Vector extractClassIDs(Vector owl_vec) {
 		Vector w = new Vector();
 		String id = null;
 		for (int i=0; i<owl_vec.size(); i++) {
@@ -177,7 +186,11 @@ public class ScannerUtils {
 		return w;
 	}
 
-	public Vector extractProperties() {
+	public static Vector extractProperties(Vector owl_vec) {
+		return extractProperties(null);
+	}
+
+	public static Vector extractProperties(Vector owl_vec, String propertyCode) {
 		Vector v = new Vector();
 		Vector w = new Vector();
 		String id = null;
@@ -202,14 +215,21 @@ public class ScannerUtils {
 			} else {
 				String t = xml2Delimited(line);
 				if (t != null) {
-					w.add(t);
+					if (propertyCode != null) {
+						String tagKey = getTagKey(t);
+						if (tagKey.compareTo(propertyCode) == 0) {
+							w.add(t);
+						}
+					} else {
+						w.add(t);
+					}
 				}
 			}
 		}
 		return v;
 	}
 
-	public Vector prefixId(String id, Vector v) {
+	public static Vector prefixId(String id, Vector v) {
 		Vector w = new Vector();
         for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
@@ -219,7 +239,7 @@ public class ScannerUtils {
 	}
 
 
-    public Vector extractAxioms() {
+    public static Vector extractAxioms(Vector owl_vec) {
 		Vector v = new Vector();
 		String annotatedSource = null;
 		String annotatedProperty = null;
@@ -314,10 +334,10 @@ public class ScannerUtils {
 
     public static void main(String[] args) {
         String owlfile = args[0];
-        ScannerUtils utils = new ScannerUtils(Utils.readFile(owlfile));
-        Vector w = utils.extractProperties();
+        Vector owl_vec = Utils.readFile(owlfile);
+        Vector w = ScannerUtils.extractProperties(owl_vec);
         Utils.saveToFile("property_" + owlfile, w);
-        w = utils.extractAxioms();
+        w = ScannerUtils.extractAxioms(owl_vec);
         Utils.saveToFile("axiom_" + owlfile, w);
 	}
 }

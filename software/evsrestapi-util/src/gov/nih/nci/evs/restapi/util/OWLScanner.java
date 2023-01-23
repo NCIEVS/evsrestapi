@@ -1464,6 +1464,8 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractAssociations(Vector class_vec) {
+		return ScannerUtils.extractProperties(class_vec);
+		/*
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -1509,10 +1511,13 @@ C4910|<NHC0>C4910</NHC0>
 		    }
 		}
 		return w;
+		*/
 	}
 
 
     public Vector extractAssociations(Vector class_vec, String associationCode) {
+		return ScannerUtils.extractProperties(class_vec, associationCode);
+		/*
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -1559,6 +1564,7 @@ C4910|<NHC0>C4910</NHC0>
 		    }
 		}
 		return w;
+		*/
 	}
 
 
@@ -1701,7 +1707,27 @@ C4910|<NHC0>C4910</NHC0>
     public Vector extractSuperclasses() {
 		return extractSuperclasses(owl_vec);
 	}
+/*
+    public Vector extractHierarchicalRelationships0() {
+		Vector w = extractHierarchicalRelationships0(this.owl_vec);
+		return new SortUtils().quickSort(w);
+	}
 
+    public Vector extractHierarchicalRelationships0(Vector owl_vec) {
+		Vector v = extractSuperclasses(owl_vec);
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(t, '|');
+			String code_1 = (String) u.elementAt(0);
+			String code_2 = (String) u.elementAt(1);
+			String label_1 = getLabel(code_1);
+			String label_2 = getLabel(code_2);
+			w.add(label_2 + "|" + code_2 + "|" + label_1 + "|" + code_1);
+		}
+		return new SortUtils().quickSort(w);
+	}
+*/
     public Vector extractAllDisjointClasses(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
