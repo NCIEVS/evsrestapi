@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -42,6 +43,7 @@ public class NcitSampleTest extends SampleTest {
     private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 
     /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+    @Autowired
     private MockMvc testMvc;
 
     @BeforeClass
@@ -77,7 +79,6 @@ public class NcitSampleTest extends SampleTest {
         assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.06e");
         assertThat(ncit.getDescription()).isNotEmpty();
 
-        // TODO: These need fixing
         assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
         assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
         assertThat(ncit.getMetadata().getLicenseText()).isNull();
@@ -119,7 +120,6 @@ public class NcitSampleTest extends SampleTest {
         assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.07a");
         assertThat(ncit.getDescription()).isNotEmpty();
 
-        // TODO: These need fixing
         assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
         assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
         assertThat(ncit.getMetadata().getLicenseText()).isNull();
