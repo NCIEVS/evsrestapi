@@ -296,6 +296,26 @@ public class FlatFileGenerator {
         return new SortUtils().quickSort(v);
 	}
 
+	public String sortSynonyms(String synonyms, String pt) {
+		Vector u = StringUtils.parseData(synonyms, '|');
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<u.size(); i++) {
+			String t = (String)u .elementAt(i);
+			if (t.compareTo(pt) == 0) {
+				buf.append(t);
+				break;
+			}
+		}
+		for (int i=0; i<u.size(); i++) {
+			String t = (String)u .elementAt(i);
+			if (t.compareTo(pt) != 0) {
+				buf.append("|");
+				buf.append(t);
+			}
+		}
+		return buf.toString();
+    }
+
 	public String generate() {
 		Vector w = new Vector();
 //Parents
@@ -314,6 +334,12 @@ public class FlatFileGenerator {
 		v = getProp(named_graph, "P97");
 		System.out.println("getProp(P97): " + v.size());
 		HashMap defMap = createMultiValuedHashMap(v);
+		v.clear();
+
+//Preferred_Name
+		v = getProp(named_graph, "P108");
+		System.out.println("getProp(P108): " + v.size());
+		HashMap ptMap = createMultiValuedHashMap(v);
 		v.clear();
 
 //Display_Name
@@ -344,6 +370,9 @@ public class FlatFileGenerator {
 			String classUri = getClassUri(code);
 			String parents = getTabDelimitedValues(parentMap, code);
 			String synonms = getTabDelimitedValues(synonymMap, code);
+			Vector pts = (Vector) ptMap.get(code);
+			String pt = (String) pts.elementAt(0);
+			synonms = sortSynonyms(synonms, pt);
             String defs = getTabDelimitedValues(defMap, code);
 			String dns = getTabDelimitedValues(dnMap, code);
 			String status = getTabDelimitedValues(statusMap, code);
