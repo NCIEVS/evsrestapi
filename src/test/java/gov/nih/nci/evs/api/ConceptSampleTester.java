@@ -22,9 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Role;
-import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
@@ -222,19 +220,6 @@ public class ConceptSampleTester {
                                 + " properties");
                     }
                 }
-                for (Synonym syn : concept.getSynonyms()) {
-                    if (termTypes.contains(syn.getTermType())) {
-                        termTypes.remove(syn.getTermType());
-                    }
-                    if (synonymSources.contains(syn.getSource())) {
-                        synonymSources.remove(syn.getSource());
-                    }
-                }
-                for (Definition def : concept.getDefinitions()) {
-                    if (definitionSources.contains(def.getSource())) {
-                        definitionSources.remove(def.getSource());
-                    }
-                }
             }
         }
         if (errors.size() > 0) {
@@ -252,14 +237,19 @@ public class ConceptSampleTester {
             log.info("Qualifiers not covered in sampling: " + Arrays.toString(qualifiers.toArray()));
         if (roles.size() > 0)
             log.info("Roles not covered in sampling: " + Arrays.toString(roles.toArray()));
-        if (termTypes.size() > 0)
-            log.info("Synonym term types not covered in sampling: " + Arrays.toString(termTypes.toArray()));
-        if (synonymSources.size() > 0)
-            log.info("Synonym sources not covered in sampling: " + Arrays.toString(synonymSources.toArray()));
+        /*
+         * if (termTypes.size() > 0)
+         * log.info("Synonym term types not covered in sampling: " +
+         * Arrays.toString(termTypes.toArray()));
+         * if (synonymSources.size() > 0)
+         * log.info("Synonym sources not covered in sampling: " +
+         * Arrays.toString(synonymSources.toArray()));
+         * if (definitionSources.size() > 0)
+         * log.info("Definition sources not covered in sampling: " +
+         * Arrays.toString(definitionSources.toArray()));
+         */
         if (definitionTypes.size() > 0)
             log.info("Definition types not covered in sampling: " + Arrays.toString(definitionTypes.toArray()));
-        if (definitionSources.size() > 0)
-            log.info("Definition sources not covered in sampling: " + Arrays.toString(definitionSources.toArray()));
         if (properties.size() > 0)
             log.info("Properties not covered in sampling: " + Arrays.toString(properties.toArray()));
     }

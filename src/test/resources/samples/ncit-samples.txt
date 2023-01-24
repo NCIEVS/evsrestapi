@@ -60,18 +60,22 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P398	No
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100120	C100120	P361	No
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100132	C100132	A25	C100131
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1003	C1003	P368	CHEBI:22565
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100421	C100421	P200	Coagulation_Study
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100421	C100421	P98	Tue Jun 18 14:23:59 EDT 2013 - See &apos;Activated_PTT_Standard_Ratio_Measurement&apos;
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100421	C100421	owl:deprecated	true
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100428	C100428	A13	C84429
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R124	C40551
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R125	C17557
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R72	C13258
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1005	C1005	P302	Myelodysplastic syndrome; multiple myeloma; chronic myeloid leukemia; acute myelocytic leukemia
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1006	C1006	P98	Although its CN is AS101, it&apos;s not the same as 4-Arsanilic acid, NSC 2023, (C29883).
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100807	C100807	P364	A8|C100130
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100809	C100809	A35	C168870
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101043	C101043	rdfs:subClassOf/owl:Restriction~R116	C98898
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101046	C101046	rdfs:subClassOf/owl:Restriction~R175	C37193
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101048	C101048	rdfs:subClassOf/owl:Restriction~R37	C18497
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101056	C101056	rdfs:subClassOf/owl:Restriction~R133	C45208
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101063	C101063	P102	U41743
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101071	C101071	P204	Gene_Involved_In_Pathogenesis_Of_Disease some &apos;Acute Myeloid Leukemia with inv(3) (q21.3;q26.2) or t(3;3) (q21.3;q26.2); GATA2, MECOM&apos;
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101088	C101088	P369	HGNC:18037
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101089	C101089	rdfs:subClassOf/owl:Restriction~R40	C24930
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101089	C101089	P321	196528
@@ -140,6 +144,7 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C103239	C103239	rdfs:subClass
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104080	C104080	rdfs:subClassOf/owl:Restriction~R30	C12439
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104109	C104109	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R45	C14225
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104457	C104457	rdfs:subClassOf/owl:Restriction~R81	C13226
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105104	C105104	P201	Lamina-Associated_Polypeptide_2_Isoform_Alpha
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105362	C105362	P315	rs429358
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105364	C105364	rdfs:subClassOf/owl:Restriction~R48	C2866
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C105555	C105555	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R106	C118396
@@ -156,6 +161,7 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107553	C107553	rdfs:subClass
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107671	C107671	rdfs:subClassOf/owl:Restriction~R25	C22500
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107672	C107672	rdfs:subClassOf/owl:Restriction~R24	C2852
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107672	C107672	rdfs:subClassOf/owl:Restriction~R26	C14143
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10906	C10906	P203	Chemicals_and_Drugs_Kind
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1093	C1093	A33	C274
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111020	C111020	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R141	C36488
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111021	C111021	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R107	C43305
@@ -179,6 +185,7 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114949	C114949	rdfs:subClass
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C115150	C115150	rdfs:subClassOf/owl:Restriction~R106	C36451
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C115154	C115154	rdfs:subClassOf/owl:Restriction~R112	C12543
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C115203	C115203	rdfs:subClassOf/owl:Restriction~R174	C13214
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C116779	C116779	P371	Spondylitis
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C116832	C116832	A26	C116833
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C116832	C116832	A36	C116833
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C117142	C117142	A29	C64855
@@ -243,7 +250,9 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1863	C1863	rdfs:subClassOf/o
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1863	C1863	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R125	C17557
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	P211	dopamine receptor activity
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19950	C19950	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R30	C14070
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C21560	C21560	P205	Defined
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C21781	C21781	rdfs:subClassOf/owl:Restriction~R23	C22543
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C22192	C22192	P167	http://ccm.ucdavis.edu/cfsidserver/view.cfm?cat=Mouse_N_Prostate&amp;img=MP19.sid&amp;rgn=&amp;nlvl=5&amp;iwid=26150&amp;ihei=27998
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C2317	C2317	P360	Y
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C2563	C2563	P357	Y
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C27262	C27262	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Class/owl:intersectionOf/owl:Restriction~R140	C36715

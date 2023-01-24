@@ -14,6 +14,7 @@ inAnnotationProperty = False
 currentClassURI = ""
 currentClassCode = ""
 currentClassPath = []
+classHasCode = "" # check for deprecated classes having a concept code
 lastSpaces = 0
 spaces = 0
 axiomInfo = [] # key value pair storing info about current axiom
@@ -158,17 +159,17 @@ if __name__ == "__main__":
               objectProperties[currentClassURI] = uri2Code[currentClassURI]
               
             elif(line.startswith("<owl:AnnotationProperty")):
-              inObjectProperty = True;
+              inAnnotationProperty = True;
               currentClassURI = re.findall('"([^"]*)"', line)[0]
             elif(line.startswith("</owl:AnnotationProperty>")):
-              inObjectProperty = False
-            elif inObjectProperty and line.startswith(termCodeline):
+              inAnnotationProperty = False
+            elif inAnnotationProperty and line.startswith(termCodeline):
               uri2Code[currentClassURI] = re.findall(">(.+?)<", line)[0]
               annotationProperties[currentClassURI] = uri2Code[currentClassURI]
                 
             elif(len(line) < 1 or line[0] != '<'): # blank lines or random text
                 continue
-            elif(line.startswith("<owl:deprecated")): # ignore deprecated classes
+            elif(line.startswith("<owl:deprecated") and classHasCode is False): # ignore deprecated classes if they don't have a concept code
                 inClass = False
                 propertiesCurrentClass = {} # ignore properties in deprecated class
                 deprecated[currentClassURI] = True
@@ -186,6 +187,7 @@ if __name__ == "__main__":
                 for key, value in propertiesCurrentClass.items(): # replace code entry and write to file
                     properties[key] = value # add to master list
                 inClass = False
+                classHasCode = False # reset check for next deprecated class
                 currentClassPath = []
                 continue
                 
@@ -230,6 +232,7 @@ if __name__ == "__main__":
             elif(inClass and not inSubclass and not inEquivalentClass): # default property not in complex part of class
                 if(line.startswith(termCodeline)): # catch ID to return if it has properties
                     currentClassCode = re.findall(">(.+?)<", line)[0]
+                    classHasCode = True
                     uri2Code[currentClassURI] = currentClassCode # store code for uri
                     continue
                 newEntry = checkForNewProperty(line)
