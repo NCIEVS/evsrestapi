@@ -3120,6 +3120,9 @@ C4910|<NHC0>C4910</NHC0>
 			if (ScannerUtils.isOpenClass(line)) {
 				w = new Vector();
 				id = ScannerUtils.extractIdFromOpenClassLine(line);
+                id = ScannerUtils.removePrefix(NAMESPACE, id);
+				System.out.println(id);
+
 
 			} else if (ScannerUtils.isCloseClass(line)) {
 				if (w != null && w.size() > 0) {
@@ -3129,8 +3132,12 @@ C4910|<NHC0>C4910</NHC0>
 				String t = ScannerUtils.xml2Delimited(line);
 				if (t != null) {
 					if (t.startsWith("rdfs:subClassOf|") || t.startsWith("rdf:Description|")) {
-						String s = id + "|" + ScannerUtils.getTagValue(t);
-						s = ScannerUtils.removePrefix(NAMESPACE, s);
+						String parentCode = ScannerUtils.getTagValue(t);
+						parentCode = ScannerUtils.removePrefix(NAMESPACE, parentCode);
+						String childCode = id;
+					    String parentLabel = (String) code2LabelMap.get(parentCode);
+						String childLabel = (String) code2LabelMap.get(id);
+				        String s = parentLabel + "|" + parentCode + "|" + childLabel + "|" + childCode;
 						if (!hset.contains(s)) {
 							hset.add(s);
 							w.add(s);
@@ -3139,7 +3146,7 @@ C4910|<NHC0>C4910</NHC0>
 				}
 			}
 		}
-		return v;
+		return new SortUtils().quickSort(v);
 	}
 
     public static void main(String[] args) {
