@@ -187,7 +187,7 @@ public class ScannerUtils {
 	}
 
 	public static Vector extractProperties(Vector owl_vec) {
-		return extractProperties(null);
+		return extractProperties(owl_vec, null);
 	}
 
 	public static Vector extractProperties(Vector owl_vec, String propertyCode) {

@@ -1464,7 +1464,14 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractAssociations(Vector class_vec) {
-		return ScannerUtils.extractProperties(class_vec);
+		Vector v = ScannerUtils.extractProperties(class_vec);
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			t = ScannerUtils.removePrefix(NAMESPACE, t);
+			w.add(t);
+		}
+		return w;
 		/*
         Vector w = new Vector();
         boolean istart = false;
@@ -1516,7 +1523,16 @@ C4910|<NHC0>C4910</NHC0>
 
 
     public Vector extractAssociations(Vector class_vec, String associationCode) {
-		return ScannerUtils.extractProperties(class_vec, associationCode);
+		Vector v = ScannerUtils.extractProperties(class_vec, associationCode);
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			t = ScannerUtils.removePrefix(NAMESPACE, t);
+			w.add(t);
+		}
+		return w;
+
+
 		/*
         Vector w = new Vector();
         boolean istart = false;
@@ -3121,8 +3137,6 @@ C4910|<NHC0>C4910</NHC0>
 				w = new Vector();
 				id = ScannerUtils.extractIdFromOpenClassLine(line);
                 id = ScannerUtils.removePrefix(NAMESPACE, id);
-				System.out.println(id);
-
 
 			} else if (ScannerUtils.isCloseClass(line)) {
 				if (w != null && w.size() > 0) {
