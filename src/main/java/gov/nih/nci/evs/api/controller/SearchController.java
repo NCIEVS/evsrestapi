@@ -259,7 +259,7 @@ public class SearchController extends BaseController {
           required = false, dataTypeClass = String.class, paramType = "query", example = "0",
           defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataTypeClass = String.class, paramType = "query", example = "0",
+          required = false, dataTypeClass = String.class, paramType = "query", example = "10",
           defaultValue = "10"),
       @ApiImplicitParam(name = "conceptStatus",
           value = "Comma-separated list of concept status values to restrict search results by. "
