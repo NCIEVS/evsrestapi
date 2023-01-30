@@ -37,6 +37,7 @@ deprecated = {} # list of all deprecated concepts
 newRestriction = "" # restriction code
 hitClass = False # ignore axioms and stuff before hitting any classes
 termCodeline = "" # terminology Code identifier line
+uniquePropertiesList = [] # store potential synonym/definition metadata values
 
 def checkParamsValid(argv):
     if(len(argv) != 3):
@@ -106,7 +107,7 @@ def handleAxiom(line):
         currentClassURI = re.findall('"([^"]*)"', line)[0]
     elif(line.startswith("<owl:annotatedProperty")): # get property code
         sourceProperty = re.findall('"([^"]*)"', line)[0]
-        if(sourceProperty.find("oboInOwl#")):
+        if(sourceProperty.find("oboInOwl#") != -1):
           axiomInfo.append("qualifier-" + re.split(r'[/]', sourceProperty)[-1].replace("#", ":") + "~")
         elif(sourceProperty.find("rdf-schema#") != -1):
           axiomInfo.append("qualifier-" + re.split(r'[/]', sourceProperty)[-1].replace("rdf-schema#", "rdfs:") + "~")
@@ -114,7 +115,7 @@ def handleAxiom(line):
           axiomInfo.append("qualifier-" + re.split(r'[#/]', sourceProperty)[-1] + "~")
     elif(line.startswith("<owl:annotatedTarget")): # get target code
         axiomInfo.append(re.findall(">(.+?)<", line)[0] + "~")
-    elif(not line.startswith("<owl:annotated") and axiomInfo[0] + re.split(r'[< >]', line)[1] not in axiomProperties): # get connected properties
+    elif(not line.startswith("<owl:annotated") and len(re.split(r'[< >]', line)) == 1 and axiomInfo[0] + re.split(r'[< >]', line)[1] + "~" + re.findall(">(.+?)<", line)[0] not in axiomProperties): # get connected properties
         newProperty = re.split(r'[< >]', line)[1] # extract property from line
         if(len(re.findall(">(.+?)<", line)) > 0):
           newCode = re.findall(">(.+?)<", line)[0] # extract code from line
@@ -122,6 +123,8 @@ def handleAxiom(line):
           newCode = re.split(r'[#/]', re.findall('"([^"]*)"', line)[0])[-1]
         else: # couldn't find any property codes so we skip
           return
+        if(newProperty in uniquePropertiesList):
+          newProperty += ("~" + newCode)
         axiomProperties[axiomInfo[0] + newProperty] = currentClassURI + "\t" + currentClassCode + "\t" + axiomInfo[0] + newProperty + "\t" + axiomInfo[1] + newCode + "\n"
 
 if __name__ == "__main__":
@@ -140,6 +143,13 @@ if __name__ == "__main__":
         print("terminology json file does not have ID entry")
         exit(1)
       termCodeline = "<" + termJSONObject["code"] # data lines all start with #
+      if("synonymSource" in termJSONObject): # get unique properties list (the ones we want to track all possible properties of for sampling)
+        uniquePropertiesList.append(termJSONObject["synonymSource"])
+      if("synonymTermType" in termJSONObject):
+        uniquePropertiesList.append(termJSONObject["synonymTermType"])
+      if("definitionSource" in termJSONObject):
+        uniquePropertiesList.append(termJSONObject["definitionSource"])
+      
     
     with open("samples/" + terminology + "-samples.txt", "w") as termFile:
         for index, line in enumerate(ontoLines): # get index just in case
@@ -289,3 +299,4 @@ if __name__ == "__main__":
     print("--------------------------------------------------")
     print("Ending..." + datetime.now().strftime("%d-%b-%Y %H:%M:%S"))
     print("--------------------------------------------------")
+    

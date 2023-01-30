@@ -1,3 +1,6 @@
+http://purl.obolibrary.org/obo/CHEBI_1	CHEBI_1	obo:IAO_0000231	IAO_0000227
+http://purl.obolibrary.org/obo/CHEBI_1	CHEBI_1	obo:IAO_0100001	CHEBI_18357
+http://purl.obolibrary.org/obo/CHEBI_1	CHEBI_1	owl:deprecated	true
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:charge	0
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:formula	C36H38N2O6
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:inchi	InChI=1S/C36H38N2O6/c1-37-13-11-23-18-31(41-3)32-20-26(23)27(37)15-21-5-8-25(9-6-21)43-30-17-22(7-10-29(30)39)16-28-34-24(12-14-38(28)2)19-33(42-4)35(40)36(34)44-32/h5-10,17-20,27-28,39-40H,11-16H2,1-4H3/t27-,28-/m0/s1
@@ -22,11 +25,6 @@ http://purl.obolibrary.org/obo/CHEBI_10015	CHEBI:10015	rdfs:subClassOf/owl:Restr
 http://purl.obolibrary.org/obo/CHEBI_100241	CHEBI:100241	rdfs:subClassOf/owl:Restriction~is_conjugate_base_of	CHEBI:192486
 http://purl.obolibrary.org/obo/CHEBI_100241	CHEBI:100241	rdfs:subClassOf/owl:Restriction~is_tautomer_of	CHEBI:192484
 http://purl.obolibrary.org/obo/CHEBI_111516	CHEBI:111516	rdfs:subClassOf/owl:Restriction~is_substituent_group_from	CHEBI:111513
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	qualifier-oboInOwl:hasDbXref~oboInOwl:source	CAS:21008-67-3~KEGG COMPOUND
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasDbXref	(+)-Atherospermoline~KEGG_COMPOUND
-http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasSynonymType	(6aR,11aR)-9-methoxy-6a,11a-dihydro-6H-[1]benzofuro[3,2-c]chromen-3-ol~IUPAC_NAME
-http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasDbXref	medicarpin~ChemIDplus
-http://purl.obolibrary.org/obo/CHEBI_10003	CHEBI:10003	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasSynonymType	Vistamycin~BRAND_NAME
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	parent-style1	CHEBI:133004
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:133004	child-style1	CHEBI:10
 http://purl.obolibrary.org/obo/CHEBI_24995	CHEBI:24995	max-children	7343
@@ -42,6 +40,4 @@ http://purl.obolibrary.org/obo/CHEBI_10041	CHEBI:10041	parent-count9
 http://purl.obolibrary.org/obo/CHEBI_132640	CHEBI:132640	parent-count10
 http://purl.obolibrary.org/obo/CHEBI_167670	CHEBI:167670	parent-count11
 http://purl.obolibrary.org/obo/CHEBI_85616	CHEBI:85616	parent-count14
-http://purl.obolibrary.org/obo/CHEBI_24431	CHEBI:24431	root
-http://purl.obolibrary.org/obo/CHEBI_36342	CHEBI:36342	root
-http://purl.obolibrary.org/obo/CHEBI_50906	CHEBI:50906	root
+http://purl.obolibrary.org/obo/CHEBI_1	CHEBI_1	root

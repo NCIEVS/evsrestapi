@@ -310,23 +310,133 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10000	C10000	P310	Obsolete_C
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100421	C100421	P310	Retired_Concept
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C129445	C129445	P310	Provisional_Concept
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C13037	C13037	P310	Header_Concept
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P90~P383	AR~AB
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P90~P384	AR~NCI
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P97~P378	A recombinant form of amphiregulin, a member of the heparin-binding epidermal growth factor (EGF) family. Endogenous amphiregulin is an autocrine growth factor, and binds to the EGF receptor. Overexpressed in several cancer cell types, endogenous amphiregulin may contribute to tumor cell proliferation and metastasis. (NCI04)~NCI
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	qualifier-P325~P378	A percutaneous coronary intervention is necessary for a myocardial infarction that presents with ST segment elevation and the subject does not have recurrent or persistent symptoms, symptoms of heart failure or ventricular arrhythmia. The presentation is past twelve hours since onset of symptoms.~CDISC
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100021	C100021	qualifier-P90~P385	TIMI Flow~SDTM-CCRCLS
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	qualifier-P90~P386	GLYCERYL DIBEHENATE~UNII
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P393	Interferon Gamma-1b~Has Synonym
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P394	Interferon Gamma-1b~PT
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P395	Interferon Gamma-1b~therapeutic_agents
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100089	C100089	qualifier-P375~P396	Interferon Gamma-1b~GDC
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101034	C101034	qualifier-P375~P397	Intentional injury~18.1
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101046	C101046	qualifier-P97~P381	A fusion gene that results from a chromosomal inversion inv(2)(p23q35) which fuses the first 7 exons of the ATIC gene with exon 20 of the ALK gene. This rearrangement is associated with rare cases of anaplastic large cell lymphoma.~COSMIC
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101250	C101250	qualifier-P325~P381	Injury to the peripheral nervous system.~CDRH
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P387	dopamine receptor activity~GO:0004952
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P389	dopamine receptor activity~TAS
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P390	dopamine receptor activity~CGAP
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C19799	C19799	qualifier-P211~P391	dopamine receptor activity~29-SEP-2003
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P90~P383~AB	AR~AB
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P90~P384~NCI	AR~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P90~P383~PT	Recombinant Amphiregulin~PT
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	qualifier-P97~P378~NCI	A recombinant form of amphiregulin, a member of the heparin-binding epidermal growth factor (EGF) family. Endogenous amphiregulin is an autocrine growth factor, and binds to the EGF receptor. Overexpressed in several cancer cell types, endogenous amphiregulin may contribute to tumor cell proliferation and metastasis. (NCI04)~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	qualifier-P325~P378~CDISC	A percutaneous coronary intervention is necessary for a myocardial infarction that presents with ST segment elevation and the subject does not have recurrent or persistent symptoms, symptoms of heart failure or ventricular arrhythmia. The presentation is past twelve hours since onset of symptoms.~CDISC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100000	C100000	qualifier-P90~P384~CDISC	PERCUTANEOUS CORONARY INTERVENTION (PCI) FOR ST ELEVATION MYOCARDIAL INFARCTION (STEMI) (STABLE, &gt;12 HRS FROM SYMPTOM ONSET)~CDISC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10001	C10001	qualifier-P90~P384~SEER	COPADRI-I~SEER
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C10001	C10001	qualifier-P90~P383~SY	Cyclophosphamide-Vincristine-Melphalan-Doxorubicin~SY
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99996	C99996	qualifier-P90~P385	Number of Diseased Coronary Vessels~SDTM-CVTEST
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100022	C100022	qualifier-P90~P384~CPTAC	Transcatheter Aortic Valve Implantation~CPTAC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100046	C100046	qualifier-P90~P383~FB	Evozac~FB
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100047	C100047	qualifier-P325~P378~CDISC-GLOSS	A standard protocol for exchanging files between computers on the internet. See also TCP/IP.~CDISC-GLOSS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100047	C100047	qualifier-P90~P384~CDISC-GLOSS	File Transfer Protocol (FTP)~CDISC-GLOSS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	qualifier-P90~P383~DN	Renal Cell Cancer Associated with Neuroblastoma~DN
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	qualifier-P90~P384~CTRP	Renal Cell Cancer Associated with Neuroblastoma~CTRP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100054	C100054	qualifier-P90~P383~AQS	Conjunctival Precancerous Melanosis~AQS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	qualifier-P90~P383~BR	Compritol 888 ATO~BR
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	qualifier-P90~P383~SN	Docosanoic Acid, Diester with 1,2,3-propanetriol~SN
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100065	C100065	qualifier-P90~P384~FDA	GLYCERYL DIBEHENATE~FDA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99905	C99905	qualifier-P90~P386	ROCILETINIB~UNII
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100068	C100068	qualifier-P325~P378~ACC/AHA	Catheter ablation is an invasive procedure used to remove or terminate a faulty electrical pathway from sections of the hearts of those who are prone to developing cardiac arrhythmias such as atrial fibrillation, atrial flutter, SVT and Wolff-Parkinson-White syndrome.~ACC/AHA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100068	C100068	qualifier-P90~P384~ACC/AHA	Catheter ablation~ACC/AHA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99957	C99957	qualifier-P375~P393	Dependent relative needing care at home~Related To
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99957	C99957	qualifier-P375~P394	Dependent relative needing care at home~PT
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99957	C99957	qualifier-P375~P395	Dependent relative needing care at home~Z63.6
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99957	C99957	qualifier-P375~P396	Dependent relative needing care at home~ICD10CM 2017
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100093	C100093	qualifier-P90~P384~CTEP	Nongerminomatous GCT - CNS~CTEP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100096	C100096	qualifier-P90~P384~caDSR	OMRS~caDSR
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1001	C1001	qualifier-P90~P384~DTP	Ampligen~DTP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100100	C100100	qualifier-P90~P383~CN	AP611074~CN
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100104	C100104	qualifier-P90~P384~PCDC	Clinical Signs or Symptoms~PCDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100104	C100104	qualifier-P90~P384~NICHD	Sign or Symptom~NICHD
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1003	C1003	qualifier-P325~P378~NCI-GLOSS	An anticancer drug that belongs to the family of drugs called antineoplastic antibiotics.~NCI-GLOSS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1003	C1003	qualifier-P90~P384~NCI-GLOSS	ansamycin~NCI-GLOSS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1004	C1004	qualifier-P90~P384~DCP	Antineoplaston A10~DCP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100805	C100805	qualifier-P90~P384~GDC	Natural Grandchild~GDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100897	C100897	qualifier-P90~P384~UCUM	10*3.{copies}/mL~UCUM
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101028	C101028	qualifier-P325~P378~NICHD	Aspiration of amniotic fluid around the time of delivery resulting in severe respiratory distress.~NICHD
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101029	C101029	qualifier-P90~P384~Cellosaurus	Atrioventricular Septal Defect~Cellosaurus
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99537	C99537	qualifier-P375~P397	Venous thromboembolism~18.1
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99865	C99865	qualifier-P97~P381	A fusion gene that results from a complex chromosomal rearrangement where inversion of 22q12 is followed by a translocation t(1;22)(p34;q12) that disrupts intron 3 of the UQCRH gene. PCR analysis of tumor cDNA and genomic DNA detected a UQCRH/EWSR1 fusion transcript but it is out-of-frame and contains premature stop codons.~OMIM
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101088	C101088	qualifier-P90~P384~HGNC	ARID2~HGNC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101125	C101125	qualifier-P90~P383~AD	Discordant~AD
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101129	C101129	qualifier-P325~P378~CareLex	A single activity that has occurred within a business process.~CareLex
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101129	C101129	qualifier-P90~P384~CareLex	Task~CareLex
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101138	C101138	qualifier-P90~P384~BRIDG 5.3	ctdiVol~BRIDG 5.3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101221	C101221	qualifier-P325~P378~INC	The occipitofrontal circumference of a neonate&apos;s head at birth.  Measurement to the nearest 0.1 cm should be taken at the broadest part of the forehead above the eyebrow and above the ears, most prominent part of the back of the head on the day of birth or the day after birth.~INC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101221	C101221	qualifier-P90~P384~INC	Head Circumference at Birth~INC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101224	C101224	qualifier-P90~P383~CNU	535~CNU
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101224	C101224	qualifier-P90~P384~GENC	535~GENC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101224	C101224	qualifier-P90~P383~CA3	BES~CA3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101224	C101224	qualifier-P90~P383~CA2	BQ~CA2
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101250	C101250	qualifier-P325~P378~FDA	Injury to the peripheral nervous system.~FDA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99286	C99286	qualifier-P325~P381	The catalog, reference, or product number found on the device label or accompanying packaging to identify a particular product.~CDRH-GUDID
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101294	C101294	qualifier-P90~P384~ICDC	WGS~ICDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101294	C101294	qualifier-P90~P384~CTDC	WGS (whole genome sequencing)~CTDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1016	C1016	qualifier-P325~P378~CRCH	Carotenoid consisting of a cyclic structure on each end with additional double bonds at the number 5 and 5&apos; carbon atoms of the cyclic structures.~CRCH
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1016	C1016	qualifier-P90~P384~CRCH	3,7,12,16-tetramethyl-1,18-bis(2,6,6-trimethyl-1-cyclohexenyl)-octadeca-1,3,5,7,9,11,13,15,17-nonaene~CRCH
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102405	C102405	qualifier-P90~P384~NCPDP	Capful~NCPDP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102556	C102556	qualifier-P90~P384~BRIDG 3.0.3	IVL.LOW&lt;TS.DATE&gt;~BRIDG 3.0.3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102559	C102559	qualifier-P325~P378~BRIDG 5.3	Any sign, symptom, disease, or other medical occurrence.  EXAMPLE(S): death, back pain, headache, pulmonary embolism, heart attack, pregnancy, flu, broken bone, menstrual period, depression  OTHER NAME(S): Clinical Events Medical History  NOTE(S): This condition may have been recalled by the subject or a caregiver or provided in their medical record.~BRIDG 5.3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102559	C102559	qualifier-P325~P378~BRIDG 3.0.3	Any sign, symptom, disease, or other medical occurrence. EXAMPLE(S): death, back pain, headache, pulmonary embolism, heart attack, pregnancy, flu, broken bone, menstrual period, depression. NOTE(S): This condition may have been recalled by the subject or a caregiver or provided in their medical record.~BRIDG 3.0.3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C102821	C102821	qualifier-P90~P384~CCPS	SPRED1~CCPS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104030	C104030	qualifier-P90~P383~HD	Adrenal Cortex Carcinoma by ENSAT Stage~HD
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104438	C104438	qualifier-P325~P378~BRIDG	Specifies whether this device bears a CE (Conformite Europeenne) mark. NOTE(S): CE is a mark for device products placed on the market in the European Economic Area (EEA). By placing the CE marking on a product, the manufacturer affirms that the product conforms with the requirements of the applicable European Community directives.~BRIDG
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104495	C104495	qualifier-P90~P384~CDC	OTHER RACE~CDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C104495	C104495	qualifier-P90~P384~SeroNet	Other~SeroNet
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107101	C107101	qualifier-P325~P378~CTCAE	A disorder characterized by an acute inflammatory reaction resulting from the release of histamine and histamine-like substances from mast cells, causing a hypersensitivity immune response. Clinically, it presents with breathing difficulty, dizziness, hypotension, cyanosis and loss of consciousness and may lead to death.~CTCAE
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C107101	C107101	qualifier-P90~P384~CTCAE	Anaphylaxis~CTCAE
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111326	C111326	qualifier-P325~P378~EDQM-HC	Exposure of a breast-feeding infant to a medicinal product administered to the lactating mother. Comment: This term is not intended to describe an authorised route of administration for use in marketing authorisations, and does not cover intentional administration of a medicinal product to a breastfeeding infant. It is intended for use in adverse event reporting for pharmacovigilance purposes.~EDQM-HC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111326	C111326	qualifier-P90~P384~EDQM-HC	Transmammary~EDQM-HC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111860	C111860	qualifier-P325~P378~GAIA	The death of a woman while pregnant or within 42 days of termination of pregnancy, irrespective of the duration and the site of the pregnancy (as defined by Maternal Death guidelines: http:www.brightoncollaboration.org).~GAIA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111860	C111860	qualifier-P90~P384~GAIA	Maternal Death~GAIA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C114560	C114560	qualifier-P90~P383~AQ	Childhood L1 Acute Lymphoblastic Leukemia~AQ
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C118618	C118618	qualifier-P325~P378~CTEP	Systemic chemotherapy with a regimen containing multiple agents.~CTEP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12241	C12241	qualifier-P90~P384~CTRM	Branchial Cleft~CTRM
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12261	C12261	qualifier-P325~P378~ICDO3	not classifiable to C16.1 to C16.4~ICDO3
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12558	C12558	qualifier-P325~P378~NCI	A cell that arises from stem cells and/or bone marrow-derived monocytes that function in different aspects of host defense and tissue repair; such as phagocytosis, cytotoxic activity, and regulation of the immune response (antigen presentation and T-cell activation).~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12599	C12599	qualifier-P325~P378~MSH2001	Female germ cells in stages between the prophase of the first maturation division and the completion of the second maturation division.~MSH2001
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12719	C12719	qualifier-P325~P378~UWDA142	is a macroscopic organ component of one or more nerves, which primarily consists of cell bodies of neurons located outside the central nervous system; together with nerve fibers, it constitutes a nerve or a nerve plexus. Example(s): spinal ganglion, trigeminal ganglion, superior cervical ganglion, celiac ganglion, inferior hypogastric (pelvic) ganglion.~UWDA142
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12741	C12741	qualifier-P325~P378~CSP2000	type of cytotoxic leukocytes which attack and kill virus-infected or neoplastic cells independent of antibody coating or MHC restriction; may be derived from lymphocytes or monocytes.~CSP2000
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12842	C12842	qualifier-P325~P378~UMD2001	Grafts used in the treatment of skin loss, usually caused by burn injuries.~UMD2001
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C128574	C128574	qualifier-P90~P384~PI-RADS	Apex L AS~PI-RADS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C13061	C13061	qualifier-P325~P378~MeSH	The cells of the body which stain with chromium salts. They occur along the sympathetic nerves, in the adrenal gland, and in various other organs.~MeSH
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1396	C1396	qualifier-P325~P378~CSP2002	family of polypeptide growth factors produced by peripheral target tissues as well as the nervous system, which are critical to neuronal growth, regeneration, survival, and differentiation.~CSP2002
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C142787	C142787	qualifier-P90~P384~CBDD	Transduction~CBDD
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C14294	C14294	qualifier-P90~P384~JAX	severe combined immune deficiency~JAX
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C143190	C143190	qualifier-P325~P378~CTCAE 5.0	A disorder characterized by laboratory test results that indicate an increased number of eosinophils in the blood.~CTCAE 5.0
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C143190	C143190	qualifier-P90~P384~CTCAE 5.0	Eosinophilia~CTCAE 5.0
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1446	C1446	qualifier-P325~P378~DICOM	A drug that contains a radioactive substance and is used to diagnose or treat disease, including cancer.~DICOM
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1446	C1446	qualifier-P90~P384~DICOM	Radiopharmaceutical~DICOM
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C153106	C153106	qualifier-P90~P384~BRIDG	IntegratedStatisticalAnalysisPlan~BRIDG
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15538	C15538	qualifier-P325~P378~PCDC	Assigned Treatment Arm by Intention-To-Treat~PCDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C155838	C155838	qualifier-P90~P384~NDC	ME~NDC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C15843	C15843	qualifier-P90~P384~HL7	PRYLX~HL7
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C168622	C168622	qualifier-P325~P378~PQCMC	A mathematical symbol that denotes equality or inequality between two values Note: This is typically applicable to biologics.~PQCMC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16904	C16904	qualifier-P90~P383~CS	NN~CS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C17051	C17051	qualifier-P325~P378~MSH2002_06_01	The ability of some cells or tissues to withstand ionizing radiation without serious injury. Tolerance depends on the species, cell type, and physical and chemical variables, including RADIATION-PROTECTIVE AGENTS and RADIATION-SENSITIZING AGENTS.~MSH2002_06_01
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C179573	C179573	qualifier-P90~P384~WHO	Alpha~WHO
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18063	C18063	qualifier-P90~P384~ICH	Gy~ICH
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C18611	C18611	qualifier-P90~P384~KEGG	Metabolism~KEGG
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99760	C99760	qualifier-P211~P387	extracellular~GO:0005576
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99760	C99760	qualifier-P211~P389	extracellular~NAS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99760	C99760	qualifier-P211~P390	extracellular~CGAP
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C99760	C99760	qualifier-P211~P391	extracellular~29-SEP-2003
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C21639	C21639	qualifier-P325~P378~MMHCC	Inflammation of the mammary gland~MMHCC
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C23247	C23247	qualifier-P325~P378~DCCPS	The Corpus uteri, or body of uterus, is the part of the uterus above the isthmus, comprising about two thirds of the non-pregnant organ. The endometrium, or tunica mucosa, is the mucous membrane comprising the inner layer of the uterine wall; it consists of a simple columnar epithelium and a lamina propria that contains simple tubular uterine glands. The structure, thickness, and state of the endometrium undergo marked change with the menstrual cycle.~DCCPS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C23372	C23372	qualifier-P325~P378~DCTD-CD	That portion of the nervous system consisting of the brain and spinal cord. (Dorland, 28th ed) (MSH98)~DCTD-CD
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C23373	C23373	qualifier-P325~P378~FMB-BUDGET	That part of the central nervous system contained within the cranium, comprising the prosencephalon, mesencephalon, and rhombencephalon. It is derived from the anterior part of the embryonic neural tube. Functions include muscle control and coordination, sensory reception and integration, speech production, memory storage, and the elaboration of thought and emotions. (Dorland, 28th ed) (MSH98)~FMB-BUDGET
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C23404	C23404	qualifier-P325~P378~OMS94	The natural covering of the body; the skin.~OMS94
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C23415	C23415	qualifier-P325~P378~DCB-CB2	The layer of epithelial cells that lines the cavities of the heart and of the blood vessels (ENDOTHELIUM, VASCULAR) and lymph vessels (ENDOTHELIUM, LYMPHATIC), and the serous cavities of the body, originating from the MESODERM. (From Dorland, 28th ed) (MSH98)~DCB-CB2
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C23593	C23593	qualifier-P325~P378~MTH	Primitive blood cells derived from embryonic mesenchyme capable of differentiating into any of the blood cell line progenitor cells (erythroblasts, young granulocytic series cells, megakaryocytes, etc.)~MTH
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C23887	C23887	qualifier-P325~P378~DEA-DEAIS	exocrine gland. a gland from which secretions reach a free surface of the body by ducts.~DEA-DEAIS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C25296	C25296	qualifier-P90~P384~CADSR	BD~CADSR
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C26719	C26719	qualifier-P325~P378~MSH2003_2003_05_12	Presence of calcium salts, especially calcium pyrophosphate, in the cartilaginous structures of one or more joints. When accompanied by attacks of goutlike symptoms, it is called pseudogout. (Dorland, 27th ed)~MSH2003_2003_05_12
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C26914	C26914	qualifier-P325~P378~CSP2003	abnormal development of secondary male sexual characteristics such as facial hair; in females, can be caused by androgen secretion by adrenal cortex.~CSP2003
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C28245	C28245	qualifier-P90~P384~CTCAE 3.0	Aspiration~CTCAE 3.0
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C28517	C28517	qualifier-P325~P378~MSH2002	Small containers or pellets of a solid drug implanted in the body to achieve sustained release of the drug.~MSH2002
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38778	C38778	qualifier-P325~P378~KEGG	Alzheimer&apos;s disease (AD) is a chronic disorder that slowly destroys neurons and causes serious cognitive disability. AD is associated with senile plaques and neurofibrillary tangles (NFTs). Amyloid-beta (Abeta), a major component of senile plaques, has various pathological effects on cell and organelle function. The extracellular Abeta oligomers may activate caspases through activation of cell surface death receptors. Alternatively, intracellular Abeta may contribute to pathology by facilitating tau hyper-phosphorylation, disrupting mitochondria function, and triggering calcium dysfunction. To date genetic studies have revealed four genes that may be linked to autosomal dominant or familial early onset AD (FAD). These four genes include: amyloid precursor protein (APP), presenilin 1 (PS1), presenilin 2 (PS2) and apolipoprotein E (ApoE). All mutations associated with APP and PS proteins can lead to an increase in the production of Abeta peptides, specifically the more amyloidogenic form, Abeta42. FAD-linked PS1 mutation downregulates the unfolded protein response and leads to vulnerability to ER stress.~KEGG
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38969	C38969	qualifier-P325~P378~BIOCARTA	Cardiovascular diseases are predicted to be the most common cause of death worldwide by 2020. The major regulator of blood pressure homeostasis is the renin-angiotensin system. Angiotensinogen is digested by renin to produce angiotensin I (AGT I). AGT I is an inactive 10 amino-acid peptide that is further degraded to produce angiotensin II by the angiotensin-converting enzyme (ACE). Angiotensin II is the master regulator of blood pressure increase acting on the heart, kidneys and blood vessels. Angiotensin II causes direct constriction of the resistance vessels and stimulation of the adrenal thereby increasing blood volume and sodium absorption. In 2000, Tipnis et al. discovered ACE 2 a second carboxypeptidase that digests angiotensin. ACE is a di-peptidase, cleaving off 2 peptides from the c-terminal end of angiotensin. ACE 2 only cleaves 1 amino acid to produce angiotensin 1-9 (AGT 1-9) which has no identified function at this time. AGT 1-9 is not converted to angiotensin II but further degraded by ACE to AGT 1-7, a vasodilator. It would appear that ACE 2 inhibits the formation of angiotensin and reduces blood pressure increases. Crackower et al determined that ace2 -/- mice suffered significant heart defects at 6 months. Further deletion of ACE resulted in restored cardiac functions. (This definition may be outdated - see the DesignNote.)~BIOCARTA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38969	C38969	qualifier-P90~P384~BIOCARTA	Angiotensin-converting enzyme 2 regulates heart function~BIOCARTA
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C42692	C42692	qualifier-P90~P384~NCICB	latestVersionIndicator~NCICB
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C54742	C54742	qualifier-P325~P378~CTCAE 3.0	Transient flushing or rash; drug fever &lt;38 degrees C (&lt;100.4 degrees F)~CTCAE 3.0
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C60314	C60314	qualifier-P90~P384~RENI	Tissue autolysed, diagnosis not possible (RENI)~RENI
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C79954	C79954	qualifier-P90~P384~ZFin	WIK~ZFin
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C8498	C8498	qualifier-P325~P378~CCPS	A genetic predispostion to developing melanoma due to germline mutation in CDKN2A or CDK4. Subsets of patients are also at risk for pancreatic cancer or astrocytoma.~CCPS
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C91532	C91532	qualifier-P90~P384~PID	Signaling events mediated by the Hedgehog family~PID
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1000	parent-style1	C1504
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1000	C1504	child-style1	C1000
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100051	C100051	parent-style2	C9385
