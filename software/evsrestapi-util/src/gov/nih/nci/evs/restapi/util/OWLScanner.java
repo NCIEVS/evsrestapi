@@ -3168,6 +3168,8 @@ C4910|<NHC0>C4910</NHC0>
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
 		scanner.generate_FULL_SYN();
+		Vector w = scanner.extractOWLRestrictions(scanner.get_owl_vec());
+		Utils.saveToFile("roles.txt", w);
 	}
 }
 
