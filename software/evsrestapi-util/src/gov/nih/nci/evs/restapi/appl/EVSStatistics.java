@@ -110,6 +110,8 @@ public class EVSStatistics {
 	HashMap valuesetCode2NameMap = new HashMap();
 	HashMap valuesetName2CodeMap = new HashMap();
 
+	static HashMap propertyCode2CountMap = null;
+
     static {
 		ANNOTATED_TARGETS = new String[] {"term-name", "go-term", "TARGET TERM"};
 		ANNOTATED_TARGET_CODES = new String[] {"P382", "P388", "P392"};
@@ -118,6 +120,11 @@ public class EVSStatistics {
 		ANNOTATED_TARGET_HASHMAP.put("P382", "P90");
 		ANNOTATED_TARGET_HASHMAP.put("P388", "P211");
 		ANNOTATED_TARGET_HASHMAP.put("P392", "P375");
+
+		OWLScanner scanner = new OWLScanner("ThesaurusInferred_forTS.owl");
+		propertyCode2CountMap = scanner.getPropertyCode2CountMap();
+		//scanner.dumpPropertyCode2CountMap(propertyCode2CountMap);
+		scanner.get_owl_vec().clear();
 	}
 
 
@@ -144,6 +151,7 @@ public class EVSStatistics {
 		properties = getSupportedProperties(named_graph);
 
 		System.out.println("properties: " + properties.size());
+		Utils.saveToFile("proeprties.txt", properties);
 
 		propertyCode2NameHashMap = new HashMap();
 		propertyName2CodeHashMap = new HashMap();
@@ -185,7 +193,6 @@ public class EVSStatistics {
 			if (status.compareTo(property_value) == 0) {
 				String code = (String) u.elementAt(0);
 				retired_concepts.add(code);
-				System.out.println(line);
 			}
 		}
 		System.out.println("Number of retired concepts: " + retired_concepts.size());
@@ -210,7 +217,7 @@ public class EVSStatistics {
         System.out.println("getValueSetsWithContributingSource ...");
 	    w = getValueSetsWithContributingSource(named_graph, publishedOnly);
 
-Utils.saveToFile("value_set_w_cs.txt", w);
+		Utils.saveToFile("value_set_w_cs.txt", w);
 
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
@@ -220,6 +227,14 @@ Utils.saveToFile("value_set_w_cs.txt", w);
 			valueset2ContributingSourceMap.put(code, source);
 		}
 		System.out.println("EVSStatistics instantiated.");
+	}
+
+	public int getPropertyCount(String propertyCode) {
+		if (!propertyCode2CountMap.containsKey(propertyCode)) {
+			return 0;
+		}
+		Integer int_obj = (Integer) propertyCode2CountMap.get(propertyCode);
+		return int_obj.intValue();
 	}
 
 	public void addTitle(String title) {
@@ -800,7 +815,7 @@ Utils.saveToFile("value_set_w_cs.txt", w);
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("select distinct ?p_label ?p_code ?q1_label ?q1_code").append("\n");
-        buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where  { ").append("\n");
         buf.append("                ?x a owl:Class .").append("\n");
         buf.append("                ?x :NHC0 ?x_code .").append("\n");
@@ -853,7 +868,7 @@ Utils.saveToFile("value_set_w_cs.txt", w);
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("SELECT ?x_label ?x_code ?q1_label ?q1_value ").append("\n");
-        buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where  { ").append("\n");
         buf.append("                ?x a owl:Class .").append("\n");
         buf.append("                ?x :NHC0 ?x_code .").append("\n");
@@ -1032,6 +1047,62 @@ Utils.saveToFile("value_set_w_cs.txt", w);
 				v.add(property_name + " (" + property_code + ")" + "|" + knt);
 				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
 			} else if (property_code.startsWith("P") && !hmap.containsKey(property_code)) {
+				Vector w = null;
+				try {
+					w = getConceptsWithProperty(named_graph, property_code);
+					if (w == null) {
+						w = new Vector();
+					}
+					count = count + w.size();
+					v.add(property_name + " (" + property_code + ")" + "|" +  w.size());
+					System.out.println(property_name + " (" + property_code + ")" + "|" + w.size());
+				} catch (Exception ex) {
+					int knt = getPropertyCount(property_code);
+					count = count + knt;
+					v.add(property_name + " (" + property_code + ")" + "|" +  knt);
+					System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
+				}
+
+			} else if (property_code.startsWith("P") && hmap.containsKey(property_code)) {
+				Vector v2 = (Vector) hmap.get(property_code);
+				for (int k=0; k<v2.size(); k++) {
+					String prop_code = (String) v2.elementAt(k);
+					int knt = getAnnotatedTargetCount(named_graph, prop_code, property_code);
+					count = count + knt;
+					String label1 = property_name + " (" + property_code + ")";
+					String prop_name = (String) propertyCode2NameHashMap.get(prop_code);
+					String label2 = prop_name + " (" + prop_code + ")";
+					v.add(label1 + " of " + label2 + "|" + knt);
+					System.out.println(label1 + " of " + label2 + "|" + knt);
+				}
+			}
+		}
+		v = new SortUtils().quickSort(v);
+		v.add("Total" + "|" + count);
+		return v;
+	}
+
+	public Vector getPropertyCountsV2(String named_graph) {
+		HashMap hmap = createQualifierCode2PropertyCodeHashMap(named_graph);
+		int count = 0;
+        Vector v = new Vector();
+        for (int i=0; i<properties.size(); i++) {
+
+			String line = (String) properties.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String property_name = (String) u.elementAt(0);
+			String property_code = (String) u.elementAt(1);
+
+
+			System.out.println(property_name + " (" + property_code + ")");
+/*
+            if (is_ANNOTATED_TARGET_CODES(property_code)) {
+				String prop_code = (String) ANNOTATED_TARGET_HASHMAP.get(property_code);
+				int knt = getAnnotatedTargetCount(named_graph, prop_code);
+				count = count + knt;
+				v.add(property_name + " (" + property_code + ")" + "|" + knt);
+				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
+			} else if (property_code.startsWith("P") && !hmap.containsKey(property_code)) {
 				Vector w = getConceptsWithProperty(named_graph, property_code);
 				if (w == null) {
 					w = new Vector();
@@ -1051,6 +1122,31 @@ Utils.saveToFile("value_set_w_cs.txt", w);
 					v.add(label1 + " of " + label2 + "|" + knt);
 					System.out.println(label1 + " of " + label2 + "|" + knt);
 				}
+			}
+*/
+			if (property_code.startsWith("P") && hmap.containsKey(property_code)) {
+				Vector v2 = (Vector) hmap.get(property_code);
+				for (int k=0; k<v2.size(); k++) {
+					String prop_code = (String) v2.elementAt(k);
+					int knt = getAnnotatedTargetCount(named_graph, prop_code, property_code);
+					count = count + knt;
+					String label1 = property_name + " (" + property_code + ")";
+					String prop_name = (String) propertyCode2NameHashMap.get(prop_code);
+					String label2 = prop_name + " (" + prop_code + ")";
+					v.add(label1 + " of " + label2 + "|" + knt);
+					System.out.println(label1 + " of " + label2 + "|" + knt);
+				}
+            } else if (is_ANNOTATED_TARGET_CODES(property_code)) {
+				String prop_code = (String) ANNOTATED_TARGET_HASHMAP.get(property_code);
+				int knt = getPropertyCount(prop_code);
+				count = count + knt;
+				v.add(property_name + " (" + property_code + ")" + "|" + knt);
+				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
+			} else if (property_code.startsWith("P") && !hmap.containsKey(property_code)) {
+				int knt = getPropertyCount(property_code);
+				count = count + knt;
+				v.add(property_name + " (" + property_code + ")" + "|" +  knt);
+				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
 			}
 		}
 		v = new SortUtils().quickSort(v);
@@ -1077,7 +1173,7 @@ Utils.saveToFile("value_set_w_cs.txt", w);
 		return getPropertyValueTableData(named_graph, propertyCode);
 	}
 
-
+/*
 	public String construct_get_hierarchy_part1(String named_graph) {
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
@@ -1102,7 +1198,7 @@ Utils.saveToFile("value_set_w_cs.txt", w);
         buf.append("}").append("\n");
         return buf.toString();
 	}
-
+*/
 
 	public static Vector dumpTallies(HashMap hmap) {
 		Vector v = new Vector();
@@ -1857,7 +1953,6 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 		Vector th_vec = null;
 		addTitle("NCI Thesaurus Statistics");
 
-
 		System.out.println("generateBranchSizeTableData ...");
         v = generateBranchSizeTableData();
 	    tableName = addTableNumber("Branch Size");
@@ -1868,7 +1963,6 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 	    th_vec.add("Retired");
 	    th_vec.add("Total");
 	    addTable(tableName, th_vec, v);
-
 
 		if (checkIfFileExists(RESTRICTION_FILE)) {
 			System.out.println("Loading " + RESTRICTION_FILE);
@@ -1885,7 +1979,6 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 			v = convert(v);
 			Utils.saveToFile(RESTRICTION_FILE, v);
 		}
-
 
         Vector spec_roots = new Vector();
         spec_roots.add("C2991");

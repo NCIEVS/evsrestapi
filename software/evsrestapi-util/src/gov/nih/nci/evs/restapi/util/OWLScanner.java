@@ -1070,84 +1070,7 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractProperties(Vector class_vec) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-        boolean switch_off = false;
-
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
-			if (t.indexOf("General axioms") != -1) break;
-			while (!t.endsWith(">") && i < class_vec.size()-1) {
-				i++;
-				String nextLine = (String) class_vec.elementAt(i);
-				nextLine = nextLine.trim();
-				t = t + " " + nextLine;
-			}
-			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-
-			if (t.indexOf("<owl:Axiom>") != -1) {
-				switch_off = true;
-			}
-			if (t.indexOf("</owl:Axiom>") != -1) {
-				switch_off = false;
-			}
-
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				/*
-				int n = t.lastIndexOf("#");
-				if (n != -1) {
-					t = t.substring(n, t.length());
-					n = t.lastIndexOf(" ");
-					classId = t.substring(1, n);
-					if (istart0) {
-						istart = true;
-					}
-				}
-				*/
-				int n = t.lastIndexOf("#");
-				if (n == -1) {
-					n = t.lastIndexOf("/");
-				}
-
-				if (n != -1) {
-					t = t.substring(n, t.length());
-					n = t.lastIndexOf(" ");
-					classId = t.substring(1, n);
-					if (istart0) {
-						istart = true;
-					}
-				}
-			}
-			if (istart) {
-				t = t.trim();
-				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1 && t.indexOf("rdfs:isDefinedBy") == -1) {
-					int n = t.indexOf(">");
-                    if (n != -1) {
-						if (!switch_off) {
-							w.add(classId + "|" + parseProperty(t));
-					    }
-					}
-
-				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
-				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
-					int n = t.indexOf(">");
-                    if (n != -1) {
-						//String s = t.substring(1, n-1);
-						if (!switch_off) {
-						    w.add(classId + "|" + parseProperty(t));
-						}
-					}
-				}
-		    }
-		}
+		Vector w = ScannerUtils.extractProperties(class_vec);
 		return w;
 	}
 
@@ -2927,6 +2850,7 @@ C4910|<NHC0>C4910</NHC0>
 		return StringUtils.parseData(t, ch);
 	}
 
+
     public Vector extractPropertyData(String prop_code) {
         Vector w = new Vector();
         boolean istart = false;
@@ -2937,6 +2861,10 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
 
 			if (t.indexOf("General axioms") != -1) break;
 			while (!t.endsWith(">") && i < owl_vec.size()-1) {
@@ -2977,7 +2905,9 @@ C4910|<NHC0>C4910</NHC0>
 						String str = buf.toString();
 						Vector u = split(str);
 						if (u.size() > 1) {
-							if (!w.contains(str)) w.add(str);
+							if (!w.contains(str)) {
+								w.add(str);
+							}
 						}
 					}
 
@@ -3115,8 +3045,6 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-
-
 	public Vector extractHierarchicalRelationships() {
 		Vector v = new Vector();
 		Vector w = new Vector();
@@ -3163,14 +3091,48 @@ C4910|<NHC0>C4910</NHC0>
 		return new SortUtils().quickSort(v);
 	}
 
+    public void dumpPropertyCode2CountMap(HashMap hmap) {
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Integer int_obj = (Integer) hmap.get(key);
+			System.out.println(key + " " + int_obj.intValue());
+		}
+	}
+
+    public HashMap getPropertyCode2CountMap() {
+		HashMap hmap = new HashMap();
+		Vector w = extractProperties(get_owl_vec());
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String code = (String) u.elementAt(0);
+			String prop_code = (String) u.elementAt(1);
+			//prop_code = prop_code.replace(NAMESPACE, "");
+			Integer int_obj = new Integer(0);
+			if (hmap.containsKey(prop_code)) {
+				int_obj = (Integer) hmap.get(prop_code);
+			}
+			int count = int_obj.intValue();
+			int_obj = new Integer(count+1);
+			hmap.put(prop_code, int_obj);
+		}
+		w.clear();
+		return hmap;
+	}
+
+
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
-		scanner.generate_FULL_SYN();
-		Vector w = scanner.extractOWLRestrictions(scanner.get_owl_vec());
-		Utils.saveToFile("roles.txt", w);
+		//scanner.extractProperties(scanner.get_owl_vec());
+		//HashMap hmap = scanner.getPropertyCode2CountMap();
+		//scanner.dumpPropertyCode2CountMap(hmap);
+		Vector roles = scanner.extractOWLRestrictions(scanner.get_owl_vec());
+		Utils.saveToFile("roles.txt", roles);
 	}
+
 }
 
 
