@@ -175,8 +175,12 @@ public class ConceptSampleTester {
             for (final SampleRecord sample : entry.getValue()) {
                 // TODO
                 String sampleKey = sample.getKey();
+                String synDefProperty = null;
                 if (sample.getKey().contains("~")) {
                     sampleKey = sample.getKey().split("~")[1];
+                    if (sample.getKey().split("~").length > 2) {
+                        synDefProperty = sample.getKey().split("~")[2];
+                    }
                 }
 
                 if (associations.contains(sampleKey)) {
@@ -203,6 +207,12 @@ public class ConceptSampleTester {
                         errors.add("Role error: " + sampleKey + " does not exist in " + term
                                 + " roles");
                     }
+                } else if (synDefProperty != null && termTypes.contains(synDefProperty)) {
+                    termTypes.remove(synDefProperty);
+                } else if (synDefProperty != null && synonymSources.contains(synDefProperty)) {
+                    synonymSources.remove(synDefProperty);
+                } else if (synDefProperty != null && definitionSources.contains(synDefProperty)) {
+                    definitionSources.remove(synDefProperty);
                 } else if (definitionTypes.contains(sampleKey)) {
                     url = baseMetadataUrl + term + "/definitionType/" + sampleKey;
                     if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
@@ -237,17 +247,15 @@ public class ConceptSampleTester {
             log.info("Qualifiers not covered in sampling: " + Arrays.toString(qualifiers.toArray()));
         if (roles.size() > 0)
             log.info("Roles not covered in sampling: " + Arrays.toString(roles.toArray()));
-        /*
-         * if (termTypes.size() > 0)
-         * log.info("Synonym term types not covered in sampling: " +
-         * Arrays.toString(termTypes.toArray()));
-         * if (synonymSources.size() > 0)
-         * log.info("Synonym sources not covered in sampling: " +
-         * Arrays.toString(synonymSources.toArray()));
-         * if (definitionSources.size() > 0)
-         * log.info("Definition sources not covered in sampling: " +
-         * Arrays.toString(definitionSources.toArray()));
-         */
+        if (termTypes.size() > 0)
+            log.info("Synonym term types not covered in sampling: " +
+                    Arrays.toString(termTypes.toArray()));
+        if (synonymSources.size() > 0)
+            log.info("Synonym sources not covered in sampling: " +
+                    Arrays.toString(synonymSources.toArray()));
+        if (definitionSources.size() > 0)
+            log.info("Definition sources not covered in sampling: " +
+                    Arrays.toString(definitionSources.toArray()));
         if (definitionTypes.size() > 0)
             log.info("Definition types not covered in sampling: " + Arrays.toString(definitionTypes.toArray()));
         if (properties.size() > 0)
