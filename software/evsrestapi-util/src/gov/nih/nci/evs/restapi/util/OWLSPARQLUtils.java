@@ -404,7 +404,11 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getNamedGraph() {
-		return executeQuery(construct_get_named_graphs());
+        Vector v = executeQuery(construct_get_named_graphs());
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_label_by_code(String named_graph, String code) {
@@ -424,11 +428,19 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getLabelByCode(String code) {
-		return executeQuery(construct_get_label_by_code(this.named_graph, code));
+        Vector v = executeQuery(construct_get_label_by_code(this.named_graph, code));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getLabelByCode(String named_graph, String code) {
-		return executeQuery(construct_get_label_by_code(named_graph, code));
+        Vector v = executeQuery(construct_get_label_by_code(named_graph, code));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getInverseRolesByCode(String named_graph, String code) {
@@ -453,7 +465,11 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getCodeAndLabel(String named_graph) {
-		return executeQuery(construct_get_code_and_label(named_graph));
+        Vector v = executeQuery(construct_get_code_and_label(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_class_counts() {
@@ -470,7 +486,11 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getClassCounts() {
-		return executeQuery(construct_get_class_counts());
+        Vector v = executeQuery(construct_get_class_counts());
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_class_count(String named_graph) {
@@ -489,7 +509,11 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getClassCount(String named_graph) {
-		return executeQuery(construct_get_class_count(named_graph));
+        Vector v = executeQuery(construct_get_class_count(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_triple_count(String named_graph) {
@@ -507,7 +531,11 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getTripleCount(String named_graph) {
-		return executeQuery(construct_get_triple_count(named_graph));
+        Vector v = executeQuery(construct_get_triple_count(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 
@@ -670,7 +698,12 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getPropertiesByCode(String named_graph, String code) {
-		return executeQuery(construct_get_properties_by_code(named_graph, code));
+	    String query = construct_get_properties_by_code(named_graph, code);
+	    Vector v = executeQuery(query);
+	    if (v == null) return null;
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
 	}
 
 
@@ -723,7 +756,11 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getOntologyVersionInfo(String named_graph) {
-		return executeQuery(construct_get_ontology_version_info(named_graph));
+        Vector v = executeQuery(construct_get_ontology_version_info(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String get_ontology_version(String named_graph) {
@@ -794,7 +831,11 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getAnnotationProperties(String named_graph) {
-		return executeQuery(construct_get_annotation_properties(named_graph));
+        Vector v = executeQuery(construct_get_annotation_properties(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_object_properties(String named_graph) {
@@ -815,7 +856,11 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getObjectProperties(String named_graph) {
-		return executeQuery(construct_get_object_properties(named_graph));
+        Vector v = executeQuery(construct_get_object_properties(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_axioms_by_code(String named_graph, String code) {
@@ -897,7 +942,11 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getInverseAssociationsByCode(String named_graph, String code) {
-		return executeQuery(construct_get_inverse_associations_by_code(named_graph, code));
+        Vector v = executeQuery(construct_get_inverse_associations_by_code(named_graph, code));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -927,7 +976,11 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getAssociationsByCode(String named_graph, String code) {
-		return executeQuery(construct_get_associations_by_code(named_graph, code));
+        Vector v = executeQuery(construct_get_associations_by_code(named_graph, code));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_associations(String named_graph, String associationName) {
@@ -956,7 +1009,11 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getAssociations(String named_graph, String associationName) {
-		return executeQuery(construct_get_associations(named_graph, associationName));
+        Vector v = executeQuery(construct_get_associations(named_graph, associationName));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1016,23 +1073,43 @@ public class OWLSPARQLUtils {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public Vector getDiseaseIsStageSourceCodes(String named_graph) {
-		return executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Stage", true));
+        Vector v = executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Stage", true));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getDiseaseIsGradeSourceCodes(String named_graph) {
-		return executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Grade", true));
+        Vector v = executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Grade", true));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getDiseaseIsStageSources(String named_graph, boolean code_only) {
-		return executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Stage", code_only));
+        Vector v = executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Stage", code_only));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getDiseaseIsGradeSources(String named_graph, boolean code_only) {
-		return executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Grade", code_only));
+        Vector v = executeQuery(construct_get_association_sources(named_graph, "Disease_Is_Grade", code_only));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getAssociationSourceCodes(String named_graph, String associationName) {
-		return executeQuery(construct_get_association_sources(named_graph, associationName, true));
+        Vector v = executeQuery(construct_get_association_sources(named_graph, associationName, true));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_association_source_by_code(String named_graph, String associationName) {
@@ -1096,7 +1173,11 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getDisjointWithByCode(String named_graph, String code) {
-		return executeQuery(construct_get_disjoint_with_by_code(named_graph, code));
+        Vector v = executeQuery(construct_get_disjoint_with_by_code(named_graph, code));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_object_properties_domain_range(String named_graph) {
@@ -1182,7 +1263,11 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getStringValuedAnnotationProperties(String named_graph) {
-		return executeQuery(construct_get_string_valued_annotation_properties(named_graph));
+        Vector v = executeQuery(construct_get_string_valued_annotation_properties(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getSupportedProperties(String named_graph) {
@@ -1287,7 +1372,11 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getConceptsInSubset(String named_graph, String code, boolean codeOnly) {
-		return executeQuery(construct_get_concepts_in_subset(named_graph, code, codeOnly));
+        Vector v = executeQuery(construct_get_concepts_in_subset(named_graph, code, codeOnly));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 
@@ -1373,15 +1462,27 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector getAssociatedConcepts(String named_graph, String association) {
-		return executeQuery(construct_get_associated_concepts(named_graph, association));
+        Vector v = executeQuery(construct_get_associated_concepts(named_graph, association));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getAssociatedConcepts(String named_graph, String target_code, String association) {
-		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association));
+        Vector v = executeQuery(construct_get_associated_concepts(named_graph, target_code, association));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public Vector getAssociatedConcepts(String named_graph, String target_code, String association, boolean outbound) {
-		return executeQuery(construct_get_associated_concepts(named_graph, target_code, association, outbound));
+        Vector v = executeQuery(construct_get_associated_concepts(named_graph, target_code, association, outbound));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String[] get_concept_in_subset_codes(String named_graph, String subset_code) {
@@ -1545,13 +1646,21 @@ public class OWLSPARQLUtils {
 
 
 	public Vector getOntology(String named_graph) {
-		return executeQuery(construct_get_ontology(named_graph));
+        Vector v = executeQuery(construct_get_ontology(named_graph));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 
 	public Vector getNamedGraphs() {
 		String query = construct_get_named_graphs();
-		return executeQuery(query);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_ontology_version(String named_graph, String predicate) {
@@ -2078,7 +2187,11 @@ public class OWLSPARQLUtils {
 
 	public Vector getPropertyQualifierValues(String named_graph, String property_name, Vector inclusions, Vector exclusions) {
 	    String query = construct_get_property_qualifier_values(named_graph, property_name, inclusions, exclusions);
-	    return executeQuery(query);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_predicate_labels(String named_graph) {
@@ -2098,7 +2211,11 @@ public class OWLSPARQLUtils {
 
 	public Vector getPredicateLabels(String named_graph) {
 	    String query = construct_get_predicate_labels(named_graph);
-	    return executeQuery(query);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 
@@ -2125,7 +2242,11 @@ public class OWLSPARQLUtils {
 
 	public Vector getPropertiesByCode(String named_graph, String code, boolean use_filter) {
 	    String query = construct_get_properties_by_code(named_graph, code, use_filter);
-	    return executeQuery(query);
+	    Vector v = executeQuery(query);
+	    if (v == null) return null;
+		v = new ParserUtils().getResponseValues(v);
+		v = new SortUtils().quickSort(v);
+		return v;
 	}
 
 	public String construct_get_owl_class_data(String named_graph, String identifier, String code, String ns, boolean by_code) {
@@ -2154,7 +2275,11 @@ public class OWLSPARQLUtils {
 
 	public Vector getOWLClassData(String named_graph, String identifier, String code, String ns, boolean by_code) {
 	    String query = construct_get_owl_class_data(named_graph, identifier, code, ns, by_code);
-	    return executeQuery(query);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String generate_get_property_values_by_code(String named_graph, String code, String property_name) {
@@ -2179,7 +2304,11 @@ public class OWLSPARQLUtils {
 
 	public Vector getPropertyValuesByCode(String named_graph, String code, String property_name) {
 	    String query = generate_get_property_values_by_code(named_graph, code, property_name);
-	    return executeQuery(query);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 
@@ -2204,7 +2333,11 @@ public class OWLSPARQLUtils {
 
 	public Vector getPropertyValues(String named_graph, String property_name) {
 	    String query = generate_get_property_values(named_graph, property_name);
-	    return executeQuery(query);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 	public String construct_get_owl_class_data(String named_graph, String uri) {
@@ -3201,7 +3334,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 			}
 		}
 		Vector w = getConceptsWithProperty(named_graph, prop_code);
-		w = SortUtils.multiValuedSortBy(w, 1);
+		w = gov.nih.nci.evs.restapi.util.SortUtils.multiValuedSortBy(w, 1);
         return w;
 	}
 
@@ -3888,7 +4021,11 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 	}
 
 	public Vector getCodeByLabel(String named_graph, String label) {
-		return executeQuery(construct_get_code_by_label(named_graph, label));
+        Vector v = executeQuery(construct_get_code_by_label(named_graph, label));
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
 	}
 
 
@@ -3991,7 +4128,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
  	    for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			if (formatted) {
-				line = StringUtils.formatAssociation(line);
+				line = gov.nih.nci.evs.restapi.util.StringUtils.formatAssociation(line);
 			}
 			w.add(line);
 		}
