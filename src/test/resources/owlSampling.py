@@ -4,6 +4,8 @@ import os
 import re
 import sys
 
+oboURL = "http://purl.obolibrary.org/obo/"
+oboPrefix = False
 inAxiom = False
 inClass = False
 inRestriction = False
@@ -73,6 +75,8 @@ def parentChildProcess(line):
 def checkForNewProperty(line):
     splitLine = re.split("[<>= \"]", line.strip()) # split by special characters
     splitLine = [x for x in splitLine if x != ''] # remove empty entries for consistency
+    if(oboPrefix and splitLine[0].startswith(oboPrefix)):
+      splitLine[0] = splitLine[0].replace(oboPrefix + ":", "")
     if(splitLine[0] in properties or splitLine[0] in propertiesCurrentClass): # check duplicates
         return ""
     detail = ""
@@ -115,7 +119,7 @@ def handleAxiom(line):
           axiomInfo.append("qualifier-" + re.split(r'[#/]', sourceProperty)[-1] + "~")
     elif(line.startswith("<owl:annotatedTarget")): # get target code
         axiomInfo.append(re.findall(">(.+?)<", line)[0] + "~")
-    elif(not line.startswith("<owl:annotated") and len(re.split(r'[< >]', line)) == 1 and axiomInfo[0] + re.split(r'[< >]', line)[1] + "~" + re.findall(">(.+?)<", line)[0] not in axiomProperties): # get connected properties
+    elif(not line.startswith("<owl:annotated") and len(re.split(r'[< >]', line)) > 1 and len(re.findall(">(.+?)<", line)) > 0 and axiomInfo[0] + re.split(r'[< >]', line)[1] + "~" + re.findall(">(.+?)<", line)[0] not in axiomProperties): # get connected properties
         newProperty = re.split(r'[< >]', line)[1] # extract property from line
         if(len(re.findall(">(.+?)<", line)) > 0):
           newCode = re.findall(">(.+?)<", line)[0] # extract code from line
@@ -176,7 +180,9 @@ if __name__ == "__main__":
             elif inAnnotationProperty and line.startswith(termCodeline):
               uri2Code[currentClassURI] = re.findall(">(.+?)<", line)[0]
               annotationProperties[currentClassURI] = uri2Code[currentClassURI]
-                
+              
+            elif(line.startswith("xml") and oboURL in line): # handle obo prefixes
+                oboPrefix = line.split(':')[1].split("=")[0] # get oboPrefix
             elif(len(line) < 1 or line[0] != '<'): # blank lines or random text
                 continue
             elif(line.startswith("<owl:deprecated") and classHasCode is False): # ignore deprecated classes if they don't have a concept code

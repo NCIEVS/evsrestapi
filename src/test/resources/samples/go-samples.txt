@@ -1,4 +1,4 @@
-http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	obo1:IAO_0000115	The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton.
+http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	IAO_0000115	The distribution of mitochondria, including the mitochondrial genome, into daughter cells after mitosis or meiosis, mediated by interactions between mitochondria and the cytoskeleton.
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	oboInOwl:hasExactSynonym	mitochondrial inheritance
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	oboInOwl:hasOBONamespace	biological_process
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	rdfs:label	mitochondrion inheritance
@@ -10,10 +10,10 @@ http://purl.obolibrary.org/obo/GO_0000005	GO:0000005	oboInOwl:consider	GO:004225
 http://purl.obolibrary.org/obo/GO_0000005	GO:0000005	rdfs:comment	This term was made obsolete because it refers to a class of gene products and a biological process rather than a molecular function.
 http://purl.obolibrary.org/obo/GO_0000005	GO:0000005	owl:deprecated	true
 http://purl.obolibrary.org/obo/GO_0000006	GO:0000006	oboInOwl:hasRelatedSynonym	high-affinity zinc uptake transmembrane transporter activity
-http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	obo1:IAO_0000233	https://github.com/geneontology/go-ontology/issues/23472
+http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	IAO_0000233	https://github.com/geneontology/go-ontology/issues/23472
 http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:created_by	bf
 http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:creation_date	2013-09-16T11:50:41Z
-http://purl.obolibrary.org/obo/GO_0000011	GO:0000011	obo1:RO_0002161	NCBITaxon_4896
+http://purl.obolibrary.org/obo/GO_0000011	GO:0000011	RO_0002161	NCBITaxon_4896
 http://purl.obolibrary.org/obo/GO_0000015	GO:0000015	rdfs:subClassOf/owl:Restriction~part_of	GO:0005829
 http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~regulates	GO:0006310
 http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	rdfs:subClassOf/owl:Restriction~regulates	GO:0006310
@@ -23,17 +23,27 @@ http://purl.obolibrary.org/obo/GO_0000035	GO:0000035	oboInOwl:hasBroadSynonym	ac
 http://purl.obolibrary.org/obo/GO_0000045	GO:0000045	rdfs:subClassOf/owl:Restriction~has_part	GO:0019778
 http://purl.obolibrary.org/obo/GO_0000075	GO:0000075	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~negatively_regulates	GO:0044770
 http://purl.obolibrary.org/obo/GO_0000087	GO:0000087	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~happens_during	GO:0000278
-http://purl.obolibrary.org/obo/GO_0000108	GO:0000108	obo1:IAO_0100001	GO:0000109
+http://purl.obolibrary.org/obo/GO_0000108	GO:0000108	IAO_0100001	GO:0000109
 http://purl.obolibrary.org/obo/GO_0000122	GO:0000122	rdfs:subClassOf/owl:Restriction~negatively_regulates	GO:0006366
 http://purl.obolibrary.org/obo/GO_0000278	GO:0000278	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~has_part	GO:0140014
 http://purl.obolibrary.org/obo/GO_0000336	GO:0000336	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~positively_regulates	GO:0006313
 http://purl.obolibrary.org/obo/GO_0000336	GO:0000336	rdfs:subClassOf/owl:Restriction~positively_regulates	GO:0006313
 http://purl.obolibrary.org/obo/GO_0000957	GO:0000957	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~occurs_in	GO:0005739
 http://purl.obolibrary.org/obo/GO_0000959	GO:0000959	rdfs:subClassOf/owl:Restriction~occurs_in	GO:0005739
-http://purl.obolibrary.org/obo/GO_0005623	GO:0005623	obo1:IAO_0000589	cell and encapsulating structures
+http://purl.obolibrary.org/obo/GO_0005623	GO:0005623	IAO_0000589	cell and encapsulating structures
 http://purl.obolibrary.org/obo/GO_0007095	GO:0007095	rdfs:subClassOf/owl:Restriction~happens_during	GO:0000085
 http://purl.obolibrary.org/obo/GO_0007127	GO:0007127	rdfs:subClassOf/owl:Restriction~ends_during	GO:0007134
 http://purl.obolibrary.org/obo/GO_0106405	GO:0106405	go:creation_date	2021-10-13T20:29:36Z
+http://purl.obolibrary.org/obo/GO_2001317	GO:2001317	qualifier-IAO_0000115~oboInOwl:hasDbXref	The chemical reactions and pathways resulting in the formation of kojic acid.~GOC:di
+http://purl.obolibrary.org/obo/GO_1990380	GO:1990380	qualifier-oboInOwl:hasDbXref~rdfs:label	Reactome:R-HSA-5690870~OTUD7B,TNFAIP3 deubiquitinate TRAF6
+http://purl.obolibrary.org/obo/GO_2001317	GO:2001317	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasDbXref	C6H6O4 synthesis~GOC:obol
+http://purl.obolibrary.org/obo/GO_2001307	GO:2001307	qualifier-oboInOwl:hasNarrowSynonym~oboInOwl:hasDbXref	xanthone biosynthetic process~CHEBI:37647
+http://purl.obolibrary.org/obo/GO_2001317	GO:2001317	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasDbXref	kojic acid synthesis~GOC:obol
+http://purl.obolibrary.org/obo/GO_2000749	GO:2000749	qualifier-oboInOwl:hasBroadSynonym~oboInOwl:hasDbXref	positive regulation of rDNA chromatin silencing~GOC:obol
+http://purl.obolibrary.org/obo/GO_0033770	GO:0033770	qualifier-oboInOwl:hasDbXref~oboInOwl:hasDbXref	EC:1.14.14.87~skos:exactMatch
+http://purl.obolibrary.org/obo/GO_0120241	GO:0120241	qualifier-oboInOwl:hasRelatedSynonym~rdfs:comment	imine intermediate deaminase activity~EC:3.5.99.10
+http://purl.obolibrary.org/obo/GO_0120326	GO:0120326	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasExactSynonym	appressorium-mediated penetration into host~GOC:ach
+http://purl.obolibrary.org/obo/GO_0160029	GO:0160029	qualifier-rdfs:comment~oboInOwl:hasDbXref	Following injury, renal cortex tubular epithelial cell appears to be undergoing epithelial-mesenchymal transition, detected by overexpression of vimentin.~PMID:31847447
 http://purl.obolibrary.org/obo/GO_0000001	GO:0000001	parent-style1	GO:0048308
 http://purl.obolibrary.org/obo/GO_0000001	GO:0048308	child-style1	GO:0000001
 http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	parent-style2	GO:0065007

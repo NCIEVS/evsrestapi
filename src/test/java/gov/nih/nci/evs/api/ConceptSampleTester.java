@@ -95,7 +95,6 @@ public class ConceptSampleTester {
         MvcResult result = null;
         testMvc = mvc;
         String content = null;
-        Concept concept = null;
         lookupTerminology(term, testMvc);
 
         // get associations
@@ -168,10 +167,7 @@ public class ConceptSampleTester {
             result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
             content = result.getResponse().getContentAsString();
             log.info(" content = " + content);
-            concept = new ObjectMapper().readValue(content, Concept.class);
             assertThat(content).isNotNull();
-            assertThat(concept).isNotNull();
-            log.info(content);
             for (final SampleRecord sample : entry.getValue()) {
                 // TODO
                 String sampleKey = sample.getKey();
@@ -181,6 +177,9 @@ public class ConceptSampleTester {
                     if (sample.getKey().split("~").length > 2) {
                         synDefProperty = sample.getKey().split("~")[2];
                     }
+                }
+                if (sampleKey.startsWith(term + ":")) {
+                    sampleKey = sampleKey.replace(term + ":", ""); // temp fix for classpaths #1
                 }
 
                 if (associations.contains(sampleKey)) {
@@ -227,6 +226,15 @@ public class ConceptSampleTester {
                         properties.remove(sampleKey);
                     } else {
                         errors.add("Property error: " + sampleKey + " does not exist in " + term
+                                + " properties");
+                    }
+                } else if (properties.contains(term + ":" + sampleKey)) { // some terms actually do need the term name
+                    String termNameAndTerm = term + ":" + sampleKey;
+                    url = baseMetadataUrl + term + "/property/" + termNameAndTerm;
+                    if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
+                        properties.remove(termNameAndTerm);
+                    } else {
+                        errors.add("Property error: " + termNameAndTerm + " does not exist in " + term
                                 + " properties");
                     }
                 }

@@ -12,7 +12,7 @@ http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	oboInOwl:inSubset	2_STAR
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	rdfs:label	(+)-Atherospermoline
 http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	rdfs:subClassOf/owl:Restriction~has_role	CHEBI:76924
 http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	rdfs:subClassOf/owl:Restriction~is_enantiomer_of	CHEBI:6714
-http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	obo:IAO_0000115	The (-)-enantiomer of medicarpin.
+http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	IAO_0000115	The (-)-enantiomer of medicarpin.
 http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	oboInOwl:hasRelatedSynonym	medicarpin
 http://purl.obolibrary.org/obo/CHEBI_10002	CHEBI:10002	rdfs:subClassOf/owl:Restriction~has_functional_parent	CHEBI:173072
 http://purl.obolibrary.org/obo/CHEBI_10003	CHEBI:10003	rdfs:subClassOf/owl:Restriction~has_part	CHEBI:65028
@@ -23,6 +23,9 @@ http://purl.obolibrary.org/obo/CHEBI_100241	CHEBI:100241	rdfs:subClassOf/owl:Res
 http://purl.obolibrary.org/obo/CHEBI_100241	CHEBI:100241	rdfs:subClassOf/owl:Restriction~is_tautomer_of	CHEBI:192484
 http://purl.obolibrary.org/obo/CHEBI_111516	CHEBI:111516	rdfs:subClassOf/owl:Restriction~is_substituent_group_from	CHEBI:111513
 http://purl.obolibrary.org/obo/CHEBI_131515	CHEBI:131515	owl:deprecated	true
+http://purl.obolibrary.org/obo/CHEBI_9999	CHEBI:9999	qualifier-oboInOwl:hasDbXref~oboInOwl:source	CAS:35144-10-6~KEGG COMPOUND
+http://purl.obolibrary.org/obo/CHEBI_9999	CHEBI:9999	qualifier-oboInOwl:hasExactSynonym~oboInOwl:hasDbXref	Viscidulin B~KEGG_COMPOUND
+http://purl.obolibrary.org/obo/CHEBI_9997	CHEBI:9997	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasDbXref	Virginiamycin factor M1~ChemIDplus
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	parent-style1	CHEBI:133004
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:133004	child-style1	CHEBI:10
 http://purl.obolibrary.org/obo/CHEBI_24995	CHEBI:24995	max-children	7343
