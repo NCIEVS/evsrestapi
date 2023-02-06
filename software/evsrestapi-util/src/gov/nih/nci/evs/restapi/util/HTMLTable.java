@@ -203,6 +203,10 @@ public class HTMLTable {
 
 		for (int i=0; i<data_vec.size(); i++) {
 			String data = (String) data_vec.elementAt(i);
+
+
+			System.out.println(data);
+
 			out.println("<tr>");
 			Vector u = StringUtils.parseData(data, '|');
 

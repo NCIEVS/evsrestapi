@@ -859,8 +859,7 @@ public class OWLSPARQLUtils {
         Vector v = executeQuery(construct_get_object_properties(named_graph));
         if (v == null) return null;
         if (v.size() == 0) return v;
-        v = new ParserUtils().getResponseValues(v);
-        return new SortUtils().quickSort(v);
+        return v;
 	}
 
 	public String construct_get_axioms_by_code(String named_graph, String code) {
@@ -1267,14 +1266,13 @@ public class OWLSPARQLUtils {
         if (v == null) return null;
         if (v.size() == 0) return v;
         v = new ParserUtils().getResponseValues(v);
-        return new SortUtils().quickSort(v);
+        v = new SortUtils().quickSort(v);
+        return v;
 	}
 
 	public Vector getSupportedProperties(String named_graph) {
 		Vector v = getStringValuedAnnotationProperties(named_graph);
-		Vector w = new ParserUtils().getResponseValues(v);
-		w = new SortUtils().quickSort(w);
-		return w;
+		return v;
 	}
 
 	public Vector getSupportedAssociations(String named_graph) {
