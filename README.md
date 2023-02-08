@@ -18,12 +18,21 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Launch Stardog and load NCI Thesaurus data - (see [Stardog Resources](STARDOG.md))
 * Launch Elasticsearch docker container - (see [Elasticsearch Resources](ELASTICSEARCH.md))
 
+* Make sure to set at least the following environment variables
+    * ES_SCHEME=http
+    * ES_HOST=localhost
+    * ES_PORT=9301
+    * STARDOG_HOST=localhost
+    * STARDOG_PORT=5820
+    * STARDOG_DB=NCIT2
+    * STARDOG_USERNAME=admin
+    * STARDOG_PASSWORD=admin
+
 * Load the UnitTestData set
 
     cd evsrestapi
     make clean build
-    src/main/bin/devreset.sh $dir/UnitTestData > log 2>&1 &
-    tail -f log
+    src/main/bin/devreset.sh $dir/UnitTestData > log 2>&1 & tail -f log
 
 ### Steps for Building and Running EVSRESTAPI locally
 
@@ -42,7 +51,7 @@ Information on the build and deployment process for the EVSRESTAPI project
     * Set the "Project" to the `evsrestapi` project
     * Set the "Main Class" to `gov.nih.nci.evs.api.Application`
     * In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
-    * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
+    * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 * Run application from command line
      * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*jar`

@@ -204,6 +204,14 @@ public class ConceptSampleTester {
             errors.add("ERROR: concept " + sample.getCode() + " has " + concept.getChildren().size()
                 + " children, " + "stated number " + sample.getValue());
           }
+        } else if (key.equals("synonym")) {
+            if (!concept.getName().equals(sample.getValue())) {
+              errors.add("ERROR: Wrong synonym " + sample.getValue() + " of " + sample.getCode());
+            }
+        } else if (key.equals("term-type")) {
+            if (!checkTermType(concept, sample)) {
+              errors.add("ERROR: Wrong term type " + sample.getValue() + " of " + sample.getCode());
+            }
         } else {
           continue;
         }
@@ -275,6 +283,18 @@ public class ConceptSampleTester {
    */
   private boolean checkSynonym(final Concept concept, final SampleRecord sample) {
     return concept.getSynonyms().stream().filter(o -> o.getName().equals(sample.getValue()))
+        .findAny().isPresent();
+  }
+  
+  /**
+   * Check term type.
+   *
+   * @param concept the concept
+   * @param sample the sample
+   * @return true, if successful
+   */
+  private boolean checkTermType(final Concept concept, final SampleRecord sample) {
+    return concept.getSynonyms().stream().filter(o -> o.getTermType().equals(sample.getValue()))
         .findAny().isPresent();
   }
 
