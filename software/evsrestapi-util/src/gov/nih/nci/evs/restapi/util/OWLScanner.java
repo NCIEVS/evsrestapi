@@ -3046,6 +3046,11 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
 	public Vector extractHierarchicalRelationships() {
+		return extractHierarchicalRelationships(this.owl_vec);
+	}
+
+
+	public Vector extractHierarchicalRelationships(Vector owl_vec) {
 		Vector v = new Vector();
 		Vector w = new Vector();
 		HashSet hset = new HashSet();
