@@ -1,9 +1,12 @@
+#!/usr/bin/python
 from datetime import datetime
 import json
 import os
 import re
 import sys
 
+oboURL = "http://purl.obolibrary.org/obo/"
+oboPrefix = False
 inAxiom = False
 inClass = False
 inRestriction = False
@@ -14,6 +17,7 @@ inAnnotationProperty = False
 currentClassURI = ""
 currentClassCode = ""
 currentClassPath = []
+classHasCode = False # check for deprecated classes having a concept code
 lastSpaces = 0
 spaces = 0
 axiomInfo = [] # key value pair storing info about current axiom
@@ -36,15 +40,16 @@ deprecated = {} # list of all deprecated concepts
 newRestriction = "" # restriction code
 hitClass = False # ignore axioms and stuff before hitting any classes
 termCodeline = "" # terminology Code identifier line
+uniquePropertiesList = [] # store potential synonym/definition metadata values
 
 def checkParamsValid(argv):
     if(len(argv) != 3):
-        print("Usage: owlQA.py <terminology owl file path> <terminology json path>")
+        print("Usage: owl_sampling.py <terminology owl file path> <terminology json path>")
         return False
     elif(os.path.isfile(argv[1]) == False or argv[1][-4:] != ".owl" or argv[2][-5:] != ".json"):
         print(argv[1][-4:])
         print("terminology owl file path is invalid")
-        print("Usage: owlQA.py <terminology owl file path> <terminology json path>")
+        print("Usage: owl_sampling.py <terminology owl file path> <terminology json path>")
         return False
     return True
 
@@ -71,6 +76,8 @@ def parentChildProcess(line):
 def checkForNewProperty(line):
     splitLine = re.split("[<>= \"]", line.strip()) # split by special characters
     splitLine = [x for x in splitLine if x != ''] # remove empty entries for consistency
+    if(oboPrefix and splitLine[0].startswith(oboPrefix)):
+      splitLine[0] = splitLine[0].replace(oboPrefix + ":", "")
     if(splitLine[0] in properties or splitLine[0] in propertiesCurrentClass): # check duplicates
         return ""
     detail = ""
@@ -105,7 +112,7 @@ def handleAxiom(line):
         currentClassURI = re.findall('"([^"]*)"', line)[0]
     elif(line.startswith("<owl:annotatedProperty")): # get property code
         sourceProperty = re.findall('"([^"]*)"', line)[0]
-        if(sourceProperty.find("oboInOwl#")):
+        if(sourceProperty.find("oboInOwl#") != -1):
           axiomInfo.append("qualifier-" + re.split(r'[/]', sourceProperty)[-1].replace("#", ":") + "~")
         elif(sourceProperty.find("rdf-schema#") != -1):
           axiomInfo.append("qualifier-" + re.split(r'[/]', sourceProperty)[-1].replace("rdf-schema#", "rdfs:") + "~")
@@ -113,7 +120,7 @@ def handleAxiom(line):
           axiomInfo.append("qualifier-" + re.split(r'[#/]', sourceProperty)[-1] + "~")
     elif(line.startswith("<owl:annotatedTarget")): # get target code
         axiomInfo.append(re.findall(">(.+?)<", line)[0] + "~")
-    elif(not line.startswith("<owl:annotated") and axiomInfo[0] + re.split(r'[< >]', line)[1] not in axiomProperties): # get connected properties
+    elif(not line.startswith("<owl:annotated") and len(re.split(r'[< >]', line)) > 1 and len(re.findall(">(.+?)<", line)) > 0 and axiomInfo[0] + re.split(r'[< >]', line)[1] + "~" + re.findall(">(.+?)<", line)[0] not in axiomProperties): # get connected properties
         newProperty = re.split(r'[< >]', line)[1] # extract property from line
         if(len(re.findall(">(.+?)<", line)) > 0):
           newCode = re.findall(">(.+?)<", line)[0] # extract code from line
@@ -121,6 +128,8 @@ def handleAxiom(line):
           newCode = re.split(r'[#/]', re.findall('"([^"]*)"', line)[0])[-1]
         else: # couldn't find any property codes so we skip
           return
+        if(newProperty in uniquePropertiesList):
+          newProperty += ("~" + newCode)
         axiomProperties[axiomInfo[0] + newProperty] = currentClassURI + "\t" + currentClassCode + "\t" + axiomInfo[0] + newProperty + "\t" + axiomInfo[1] + newCode + "\n"
 
 if __name__ == "__main__":
@@ -139,8 +148,15 @@ if __name__ == "__main__":
         print("terminology json file does not have ID entry")
         exit(1)
       termCodeline = "<" + termJSONObject["code"] # data lines all start with #
+      if("synonymSource" in termJSONObject): # get unique properties list (the ones we want to track all possible properties of for sampling)
+        uniquePropertiesList.append(termJSONObject["synonymSource"])
+      if("synonymTermType" in termJSONObject):
+        uniquePropertiesList.append(termJSONObject["synonymTermType"])
+      if("definitionSource" in termJSONObject):
+        uniquePropertiesList.append(termJSONObject["definitionSource"])
+      
     
-    with open("samples/" + terminology + "-samples.txt", "w") as termFile:
+    with open(terminology + "-samples.txt", "w") as termFile:
         for index, line in enumerate(ontoLines): # get index just in case
             lastSpaces = spaces # previous line's number of leading spaces (for comparison)
             spaces = len(line) - len(line.lstrip()) # current number of spaces (for stack level checking)
@@ -157,21 +173,27 @@ if __name__ == "__main__":
               uri2Code[currentClassURI] = re.findall(">(.+?)<", line)[0]
               objectProperties[currentClassURI] = uri2Code[currentClassURI]
               
-            elif(line.startswith("<owl:AnnotationProperty")):
-              inObjectProperty = True;
+            elif(line.startswith("<owl:AnnotationProperty")and not line.endswith("/>")):
+              inAnnotationProperty = True;
               currentClassURI = re.findall('"([^"]*)"', line)[0]
             elif(line.startswith("</owl:AnnotationProperty>")):
-              inObjectProperty = False
-            elif inObjectProperty and line.startswith(termCodeline):
+              inAnnotationProperty = False
+            elif (inAnnotationProperty and line.startswith(termCodeline)):
               uri2Code[currentClassURI] = re.findall(">(.+?)<", line)[0]
               annotationProperties[currentClassURI] = uri2Code[currentClassURI]
-                
+            elif(line.startswith("<owl:AnnotationProperty")and line.endswith("/>")):
+              annotationProperties[line.split("\"")[-2].split("/")[-1]] = line.split("\"")[-2].split("/")[-1]
+              
+            elif(line.startswith("xml") and oboURL in line): # handle obo prefixes
+                oboPrefix = line.split(':')[1].split("=")[0] # get oboPrefix
             elif(len(line) < 1 or line[0] != '<'): # blank lines or random text
                 continue
-            elif(line.startswith("<owl:deprecated")): # ignore deprecated classes
+            elif(line.startswith("<owl:deprecated") and classHasCode is False): # ignore deprecated classes if they don't have a concept code
                 inClass = False
                 propertiesCurrentClass = {} # ignore properties in deprecated class
                 deprecated[currentClassURI] = True
+            elif(line.startswith("<owl:deprecated")): # track deprecated but still used classes for root filtering
+                deprecated[currentClassURI] = False;
                 
             elif(line.startswith("<owl:Class ") and not inEquivalentClass):
               if not hitClass:
@@ -186,6 +208,7 @@ if __name__ == "__main__":
                 for key, value in propertiesCurrentClass.items(): # replace code entry and write to file
                     properties[key] = value # add to master list
                 inClass = False
+                classHasCode = False # reset check for next deprecated class
                 currentClassPath = []
                 continue
                 
@@ -230,6 +253,7 @@ if __name__ == "__main__":
             elif(inClass and not inSubclass and not inEquivalentClass): # default property not in complex part of class
                 if(line.startswith(termCodeline)): # catch ID to return if it has properties
                     currentClassCode = re.findall(">(.+?)<", line)[0]
+                    classHasCode = True
                     uri2Code[currentClassURI] = currentClassCode # store code for uri
                     continue
                 newEntry = checkForNewProperty(line)
