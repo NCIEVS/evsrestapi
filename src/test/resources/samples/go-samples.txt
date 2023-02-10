@@ -59,6 +59,3 @@ http://purl.obolibrary.org/obo/GO_0005542	GO:0005542	parent-count7
 http://purl.obolibrary.org/obo/GO_0000514	GO:0000514	parent-count8
 http://purl.obolibrary.org/obo/GO_1900498	GO:1900498	parent-count9
 http://purl.obolibrary.org/obo/GO_0106110	GO:0106110	parent-count11
-http://purl.obolibrary.org/obo/GO_0003674	GO:0003674	root
-http://purl.obolibrary.org/obo/GO_0005575	GO:0005575	root
-http://purl.obolibrary.org/obo/GO_0008150	GO:0008150	root
