@@ -179,8 +179,8 @@ if __name__ == "__main__":
             elif(line.startswith("</owl:AnnotationProperty>")):
               inAnnotationProperty = False
             elif (inAnnotationProperty and line.startswith(termCodeline)):
-              uri2Code[currentClassURI] = re.findall(">(.+?)<", line)[0]
-              annotationProperties[currentClassURI] = uri2Code[currentClassURI]
+              uri2Code[currentClassURI.split("/")[-1]] = re.findall(">(.+?)<", line)[0]
+              annotationProperties[currentClassURI] = uri2Code[currentClassURI.split("/")[-1]]
             elif(line.startswith("<owl:AnnotationProperty")and line.endswith("/>")):
               annotationProperties[line.split("\"")[-2].split("/")[-1]] = line.split("\"")[-2].split("/")[-1]
               
