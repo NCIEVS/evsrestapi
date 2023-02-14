@@ -687,6 +687,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (source != null) {
       prop.setSource(source.toString());
     }
+    // Skip if STY exists already
+    if (type.equals("Semantic_Type") && !concept.getProperties().stream()
+        .filter(p -> p.getType().equals("Semantic_Type") && p.getValue().equals(value)).findFirst()
+        .isEmpty()) {
+      return;
+    }
     concept.getProperties().add(prop);
   }
 
