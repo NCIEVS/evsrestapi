@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 
@@ -656,24 +657,89 @@ public class ConceptSampleTester {
      * @param term      the term
      * @param sampleMap the sample map
      * @param mvc       the mvc
+     * @throws Exception
      */
     public void performPathsSubtreeAndRootsTests(final String term,
-            final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) {
+            final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
 
-        // TODO (Perform a search for "cancer" and pick the first result)
-        // 1. /roots (already verified by "root" entries) - so just call and gather
-        // the roots (shouldbe non-zero if terminology.getMetadata().isHierarchy()
-        // )
-        // 2. /pathsToRoot
-        // - call and verify that each path starts with this concept and ends with
-        // one of the roots
-        // 3. /pathsFromRoot
-        // - same as #2, but verify the reverse order
-        // 4. /pathsToAncestor (use values from #2 to determine how to make this
-        // call)
-        // - choose an intermediate node from the #2 results and compute paths to
-        // that ancestor, and then verify that the paths start with this concept and
-        // end with that concept
+        String url = "/api/v1/concept/" + terminology.getTerminology() + "/search?term=cancer&include=minimal";
+        MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        String content = result.getResponse().getContentAsString();
+        final Concept testConcept = new ObjectMapper().readValue(content, ConceptResultList.class).getConcepts().get(0);
+        final String testConceptCode = testConcept.getCode();
+
+        // roots testing
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/roots";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+        });
+        List<String> rootCodes = roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+        if (terminology.getMetadata().getHierarchy() == true && roots.size() == 0) {
+            errors.add("ERROR: roots could not be found in hierarchy temrinology " + term);
+        } else if (terminology.getMetadata().getHierarchy() == false && roots.size() > 0) {
+            errors.add("ERROR: roots found in non-hierarchy temrinology " + term);
+        }
+
+        // pathsToRoot testing
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + testConceptCode
+                + "/pathsToRoot?include=minimal";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        String ancestorCode = null;
+        List<List<Concept>> pathsToRoot = new ObjectMapper().readValue(content,
+                new TypeReference<List<List<Concept>>>() {
+                    // n/a
+                });
+        for (List<Concept> path : pathsToRoot) {
+            if (!rootCodes.contains(path.get(path.size() - 1).getCode())) {
+                errors.add("ERROR: path too root for concept " + testConceptCode + " ends in non-root concept "
+                        + path.get(path.size() - 1).getCode() + " in terminology " + term);
+            }
+            // hold an intermediate code for pathToAncestor
+            if (path.size() > 2 && ancestorCode == null) {
+                ancestorCode = path.get(path.size() - 2).getCode();
+            }
+        }
+
+        // pathsFromRoot testing
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + testConceptCode
+                + "/pathsFromRoot?include=minimal";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<List<Concept>> pathsFromRoot = new ObjectMapper().readValue(content,
+                new TypeReference<List<List<Concept>>>() {
+                    // n/a
+                });
+        for (List<Concept> path : pathsToRoot) {
+            if (!rootCodes.contains(path.get(0).getCode())) {
+                errors.add("ERROR: path from root for concept " + testConceptCode + " starts in non-root concept "
+                        + path.get(0).getCode() + " in terminology " + term);
+            }
+        }
+
+        // pathsToAncestor testing
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + testConceptCode
+                + "/pathsToAncestor/" + ancestorCode + "?include=minimal";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        List<List<Concept>> pathsToAncestor = new ObjectMapper().readValue(content,
+                new TypeReference<List<List<Concept>>>() {
+                    // n/a
+                });
+        for (List<Concept> path : pathsToAncestor) {
+            if (!path.get(0).getCode().equals(testConceptCode)) {
+                errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + testConceptCode
+                        + " starts with different concept from stated "
+                        + path.get(0).getCode() + " in terminology " + term);
+            }
+            if (!path.get(path.size() - 1).getCode().equals(ancestorCode)) {
+                errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + testConceptCode
+                        + " ends in different concept from stated "
+                        + path.get(path.size() - 1).getCode() + " in terminology " + term);
+            }
+        }
 
     }
 
