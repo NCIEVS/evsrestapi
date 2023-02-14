@@ -1187,7 +1187,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     // will eventually read and build differently
     this.setFilepath(new File(filepath));
     if (!this.getFilepath().exists()) {
-      throw new Exception("Given filepath does not exist");
+      throw new Exception("Given filepath does not exist = " + filepath);
     }
     try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
         final BufferedReader in =
@@ -1202,7 +1202,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
         if (terminology.equals(fields[3]) && !fields[0].isEmpty()) {
           sourceMap.put(fields[3], fields[4]);
-          term.setTerminology(terminology.toLowerCase());
+          term.setTerminology(terminology.toLowerCase().replaceFirst("_us", ""));
           term.setVersion(fields[6]);
           // No info about the date
           term.setDate(null);
