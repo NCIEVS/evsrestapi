@@ -2208,6 +2208,8 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     boolean currentExact = true;
+    boolean foundC125904 = false;
+    int ct = 0;
     for (Concept concept : list.getConcepts()) {
       // found match
       if ((concept.getName().toLowerCase().contains("double")
@@ -2220,9 +2222,71 @@ public class SearchControllerTests {
         if (!currentExact)
           // exact matches not inorder
           fail("Matches with both 'double' and 'lymphoma' not before others");
-      } else
+      } else {
         // should be at end of exact matches
         currentExact = false;
+      }
+
+      // also verify these two concepts are in the top 5 results
+      // C125904 double hit lymphoma
+      if (concept.getCode().equals("C125904") && ct < 5) {
+        foundC125904 = true;
+      }
+
+    }
+
+    // Verify C125904 in top 5 results
+    if (!foundC125904) {
+      fail("C125904 (double hit lymphoma) not found in first 5 results");
+    }
+
+    // Search for "breast cancer" - things with "breast cancer" together should
+    // show up before separated
+    log.info("Testing url - " + url
+        + "?terminology=ncit&pageSize=100&term=breast+cancer&type=contains&include=synonyms");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("pageSize", "100")
+            .param("term", "breast cancer").param("type", "contains").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    currentExact = true;
+    ct = 0;
+    boolean foundC12959 = false;
+    boolean foundC142819 = false;
+    for (Concept concept : list.getConcepts()) {
+      // found match
+      if ((concept.getName().toLowerCase().contains("breast cancer")) || !concept.getSynonyms()
+          .stream().filter(s -> s.getName().toLowerCase().contains("breast cancer"))
+          .collect(Collectors.toList()).isEmpty()) {
+        // check still in front
+        if (!currentExact)
+          // exact matches not inorder
+          fail("Matches with both 'breast cancer' not before others");
+      } else {
+        // should be at end of exact matches
+        currentExact = false;
+      }
+      ct++;
+
+      // also verify these two concepts are in the top 5 results
+      // C12959 Breast Cancer Cell Breast Cancer Cell
+      if (concept.getCode().equals("C12959") && ct < 5) {
+        foundC12959 = true;
+      }
+      // C142819 Breast Cancer Locator
+      if (concept.getCode().equals("C142819") && ct < 5) {
+        foundC142819 = true;
+      }
+    }
+
+    if (!foundC12959) {
+      fail("C12959 (Breast Cancer Cell Breast Cancer Cell) not found in first 5 results");
+    }
+    if (!foundC142819) {
+      fail("C142819 (Breast Cancer Locator) not found in first 5 results");
     }
 
   }
