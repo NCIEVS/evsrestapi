@@ -9,3 +9,20 @@
 10018847	10018847	term-type	MTH_HT
 10021460	10021460	term-type	HG
 10064477	10064477	term-type	MTH_HG
+10000647	10000647	PRIMARY_PATH	10000647$10027678$10018012$10017947$Acute abdomen$Gastrointestinal signs and symptoms NEC$Gastrointestinal signs and symptoms$Gastrointestinal disorders
+10000647	10000647	PT_IN_VERSION	15.1
+10000647	10000647	SMQ_TERM_LEVEL	4
+10000647	10000647	PRIMARY_SOC	10017947
+10014698	10014698	INTL_SOC_SORT_ORDER	05
+10000647	10000647	Semantic_Type	Sign or Symptom
+10000077	10000077	Semantic_Type	Finding
+10048830	10048830	Semantic_Type	Neoplastic Process
+10083885	10083885	Semantic_Type	Disease or Syndrome
+10010316	10010316	Semantic_Type	Congenital Abnormality
+10012704	10012704	Semantic_Type	Body Part, Organ, or Organ Component
+10013661	10013661	Semantic_Type	Pathologic Function
+10013746	10013746	Semantic_Type	Injury or Poisoning
+10019909	10019909	Semantic_Type	Anatomical Abnormality
+10023693	10023693	Semantic_Type	Diagnostic Procedure
+10061609	10061609	Semantic_Type	Therapeutic or Preventive Procedure
+10019928	10019928	Semantic_Type	Acquired Abnormality

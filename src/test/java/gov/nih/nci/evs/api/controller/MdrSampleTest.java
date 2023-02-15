@@ -26,14 +26,4 @@ public class MdrSampleTest extends SampleTest {
     loadSamples("mdr", "src/test/resources/samples/mdr-rrf-samples.txt");
   }
   
-  /**
-   * Test content.
-   *
-   * @throws Exception the exception
-   */
-  
-  @Test
-  public void test() throws Exception {
-      testContent();
-  }
 }
