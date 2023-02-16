@@ -1,6 +1,9 @@
 
 package gov.nih.nci.evs.api.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Transient;
@@ -425,28 +429,39 @@ public class HierarchyUtils {
         && terminology.getMetadata().getHierarchy()) {
 
       // This finds paths for leaf nodes, and we need to turn into full paths
-      // for each code
+      // for each code. Write to a file because this can be a lot of data.
       final Set<String> paths = findPaths();
-      int partCt = 0;
-      for (final String path : paths) {
-        final List<String> parts = Arrays.asList(path.split("\\|"));
-
-        for (int i = 1; i < parts.size(); i++) {
-          partCt++;
-          final String key = parts.get(i);
-          final String ptr = String.join("|", parts.subList(0, i + 1));
-
-          if (!pathsMap.containsKey(key)) {
-            pathsMap.put(key, new HashSet<>());
-          }
-
-          if (!pathsMap.get(key).contains(ptr)) {
+      final File file = File.createTempFile("tmp", "txt");
+      logger.info("    write file");
+      FileUtils.writeLines(file, "UTF-8", paths, "\n", false);
+      paths.clear();
+      logger.info("    start build paths map");
+      try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
+        int partCt = 0;
+        // Go from the end so we can remove entries as we work through
+        String path = null;
+        while ((path = in.readLine()) != null) {
+          final List<String> parts = Arrays.asList(path.split("\\|"));
+          for (int i = 1; i < parts.size(); i++) {
             partCt++;
-            pathsMap.get(key).add(ptr);
+            final String key = parts.get(i);
+            final String ptr = String.join("|", parts.subList(0, i + 1));
+
+            if (!pathsMap.containsKey(key)) {
+              // Keep set size to a minimum as most things have small numbers of
+              // paths
+              pathsMap.put(key, new HashSet<>(5));
+            }
+
+            if (!pathsMap.get(key).contains(ptr)) {
+              partCt++;
+              pathsMap.get(key).add(ptr);
+            }
           }
         }
+        logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+        FileUtils.deleteQuietly(file);
       }
-      logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
     }
 
     return pathsMap;
@@ -476,7 +491,7 @@ public class HierarchyUtils {
         paths.add(path);
       } else {
         for (final String subclass : subclasses) {
-          if (path.contains(subclass + "|")) {
+          if (path.contains("|" + subclass + "|")) {
             logger.error("  unexpected cycle = " + path + ", " + subclass);
           }
           stack.push(path + "|" + subclass);
@@ -559,12 +574,12 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public Paths getPaths(Terminology terminology, String code) throws Exception {
-
-    final Paths paths = new Paths();
     // Handle things without paths
     if (!getPathsMap(terminology).containsKey(code)) {
       return null;
     }
+
+    final Paths paths = new Paths();
 
     // Sort in code-path order
     for (final String pathstr : getPathsMap(terminology).get(code).stream().sorted()

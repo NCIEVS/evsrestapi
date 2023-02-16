@@ -215,7 +215,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
         // Cache concept preferred names
         int rank = terminology.getMetadata().getPreferredTermTypes().indexOf(fields[12]);
-        if (fields[11].toLowerCase().equals(terminology.getTerminology()) && rank != -1) {
+        if (sabMatch(fields[11], terminology.getTerminology()) && rank != -1) {
           // If the new rank is lower than the previously assigned rank
           // or we've never assigned a name, assign the name
           // Lower index in preferred term types is better rank
@@ -227,7 +227,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // If this MRCONSO entry has a "code" in this CUI, remember it
-        if (fields[11].toLowerCase().equals(terminology.getTerminology())) {
+        if (sabMatch(fields[11], terminology.getTerminology())) {
           if (!codeCuisMap.containsKey(code)) {
             codeCuisMap.put(code, new HashSet<>());
             codeAuisMap.put(code, new HashSet<>());
@@ -316,7 +316,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // REL=PAR
         // parent is not an SRC atom
         // codes of AUI1 and AUI2 do not match (self-referential)
-        if (fields[10].toLowerCase().equals(terminology.getTerminology()) && fields[3].equals("PAR")
+        if (sabMatch(fields[10], terminology.getTerminology()) && fields[3].equals("PAR")
             && !srcAuis.contains(fields[5])
             && !auiCodeMap.get(fields[5]).equals(auiCodeMap.get(fields[1]))) {
           final StringBuffer str = new StringBuffer();
@@ -338,6 +338,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
+    logger.info("    parentChild = " + parentChild.size());
 
   }
 
@@ -419,7 +420,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
               concept.setDescendants(hierarchy.getDescendants(code));
+
               concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
+              // Clear space/memory
+              hierarchy.getPathsMap(terminology).remove(concept.getCode());
               handleConcept(concept, batch, false, terminology.getIndexName());
 
               // Count number of source concepts
@@ -441,7 +445,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // If this is a line for the source we care about
-        if (sab.toLowerCase().equals(terminology.getTerminology())) {
+        if (sabMatch(sab, terminology.getTerminology())) {
 
           // Lookup the code
           final String code = getCode(terminology, fields);
@@ -541,6 +545,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     throws Exception {
     // Each line of MRCONSO is a synonym
     final Synonym sy = new Synonym();
+    // Put the AUI into the URI field for the time being (to be removed later)
+    sy.setUri(fields[7]);
     sy.setType(fields[14].equals(concept.getName())
         && terminology.getMetadata().getPreferredTermTypes().contains(fields[12]) ? "Preferred_Name"
             : "Synonym");
@@ -618,7 +624,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Skip non-matching SAB lines
-      if (!fields[9].toLowerCase().equals(terminology.getTerminology())) {
+      if (!sabMatch(fields[9], terminology.getTerminology())) {
         continue;
       }
 
@@ -657,14 +663,34 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           throw new Exception("Concept for attribute cannot be resolved = " + line);
         }
 
-        // De-duplicate concept attributes
-        final String key = concept.getCode() + sab + atn + atv;
-        if (seen.contains(key)) {
-          continue;
-        }
-        seen.add(key);
+        // Handle AUI attributes as qualifiers on synonyms
+        if (fields[4].equals("AUI")) {
+          // Add entry to qualifier map for metadata
+          if (!qualMap.containsKey(atn)) {
+            qualMap.put(atn, new HashSet<>());
+          }
+          qualMap.get(atn).add(atv);
 
-        buildProperty(concept, atn, atv, sab);
+          // find synonym
+          final Synonym syn = concept.getSynonyms().stream()
+              .filter(s -> s.getUri().equals(fields[3])).findFirst().orElse(null);
+          if (syn == null) {
+            throw new Exception("Synonym for attribute cannot be resolved = " + line);
+          }
+          syn.getQualifiers().add(new Qualifier(atn, atv));
+        }
+
+        // Otherwise handle as a concept attribute
+        else {
+          // De-duplicate concept attributes
+          final String key = concept.getCode() + sab + atn + atv;
+          if (seen.contains(key)) {
+            continue;
+          }
+          seen.add(key);
+
+          buildProperty(concept, atn, atv, sab);
+        }
       }
     }
   }
@@ -718,7 +744,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Skip non-matching SAB lines
-      if (!fields[4].toLowerCase().equals(terminology.getTerminology())) {
+      if (!sabMatch(fields[4], terminology.getTerminology())) {
         continue;
       }
 
@@ -779,7 +805,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // Skip non-matching SAB lines
-      if (!fields[10].toLowerCase().equals(terminology.getTerminology())) {
+      if (!sabMatch(fields[10], terminology.getTerminology())) {
         continue;
       }
 
@@ -1157,6 +1183,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
 
+    // Remove synonym "uris" as no longer needed
+    concept.getSynonyms().forEach(s -> s.setUri(null));
+
     // Put concept lists in natural sort order
     concept.sortLists();
 
@@ -1290,6 +1319,19 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       throw new Exception("Missing or incorrect metaConceptField = "
           + terminology.getMetadata().getMetaConceptField());
     }
+  }
+
+  /**
+   * Indicates whether the two terminology arguments match. Mostly this is about
+   * being equal, but SNOMEDCT_US<==>snomedct is an exception.
+   *
+   * @param sab1 the sab 1
+   * @param sab2 the sab 2
+   * @return true, if successful
+   */
+  private boolean sabMatch(final String sab1, final String sab2) {
+    return sab1.toLowerCase().equals(sab2)
+        || (sab1.equals("SNOMEDCT_US") && sab2.equals("snomedct"));
   }
 
 }
