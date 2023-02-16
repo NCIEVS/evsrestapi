@@ -700,7 +700,7 @@ public class ConceptSampleTester {
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
         String ancestorCode = null;
-        List<String> toRootPath = null;
+        List<String> reverseToRootPath = null;
         List<List<Concept>> pathsToRoot = new ObjectMapper().readValue(content,
                 new TypeReference<List<List<Concept>>>() {
                     // n/a
@@ -719,9 +719,10 @@ public class ConceptSampleTester {
                 if (path.size() > 2 && ancestorCode == null) {
                     ancestorCode = path.get(path.size() - 2).getCode();
                 }
-                // hold a root path for pathsFromRoot
-                if (path.size() > 1 && toRootPath == null) {
-                    toRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+                // hold a reverse root path for pathsFromRoot
+                if (path.size() > 1 && reverseToRootPath == null) {
+                    reverseToRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+                    Collections.reverse(reverseToRootPath);
                 }
             }
         }
@@ -732,7 +733,6 @@ public class ConceptSampleTester {
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
         List<String> fromRootPath = null;
-        Collections.reverse(toRootPath);
         Boolean reversePathFound = false;
         List<List<Concept>> pathsFromRoot = new ObjectMapper().readValue(content,
                 new TypeReference<List<List<Concept>>>() {
@@ -747,8 +747,9 @@ public class ConceptSampleTester {
                     errors.add("ERROR: path from root for concept " + parentCode1 + " starts in non-root concept "
                             + path.get(0).getCode() + " in terminology " + term);
                 }
+                // check for reverse of path found in pathsToRoot
                 fromRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-                if (fromRootPath.equals(toRootPath)) {
+                if (fromRootPath.equals(reverseToRootPath)) {
                     reversePathFound = true;
                 }
             }
