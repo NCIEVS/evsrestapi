@@ -75,6 +75,12 @@ abstract public class ConfigurationController {
 	public final static String ontology_release_date = properties.getProperty("ontology_release_date");
 	public final static String ontology_description = properties.getProperty("ontology_description");
 
+	public final static String termfiles = properties.getProperty("termfiles");
+	public final static String term_file_heading = properties.getProperty("term_file_heading");
+	public final static String term_file_delim = properties.getProperty("term_file_delim");
+	public final static String match_file_heading = properties.getProperty("match_file_heading");
+	public final static String term_column = properties.getProperty("term_column");
+
 	/**
 	 * To be implemented by each descendant testcase.
 	 *
