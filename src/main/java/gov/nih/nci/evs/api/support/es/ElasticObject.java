@@ -192,6 +192,9 @@ public class ElasticObject extends BaseModel {
    * @throws Exception the exception
    */
   public Map<String, Set<String>> getMap() throws Exception {
+
+    // The X is to trick elasticsearch into avoiding trying to index this like a
+    // map
     if (map == null || !map.startsWith("X")) {
       return new HashMap<>();
     }
@@ -212,6 +215,8 @@ public class ElasticObject extends BaseModel {
     if (map == null) {
       this.map = null;
     } else {
+      // The X is to trick elasticsearch into avoiding trying to index this like
+      // a map
       this.map = new ObjectMapper().writeValueAsString("X" + map);
     }
   }
