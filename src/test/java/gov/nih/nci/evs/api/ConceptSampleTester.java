@@ -759,18 +759,19 @@ public class ConceptSampleTester {
                     + parentCode1 + " in terminology "
                     + term);
         }
-
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2
-                + "/pathsFromRoot?include=minimal";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        pathsFromRoot = new ObjectMapper().readValue(content,
-                new TypeReference<List<List<Concept>>>() {
-                    // n/a
-                });
-        if (pathsFromRoot.size() < 1) {
-            errors.add("ERROR: no paths from root found for non-root concept " + parentCode2 + " in terminology "
-                    + term);
+        if (parentCode2 != null) {
+            url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2
+                    + "/pathsFromRoot?include=minimal";
+            result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+            content = result.getResponse().getContentAsString();
+            pathsFromRoot = new ObjectMapper().readValue(content,
+                    new TypeReference<List<List<Concept>>>() {
+                        // n/a
+                    });
+            if (pathsFromRoot.size() < 1) {
+                errors.add("ERROR: no paths from root found for non-root concept " + parentCode2 + " in terminology "
+                        + term);
+            }
         }
 
         // pathsToAncestor testing
