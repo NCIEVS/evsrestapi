@@ -1,4 +1,5 @@
 package gov.nih.nci.evs.restapi.util;
+
 import gov.nih.nci.evs.restapi.config.*;
 import gov.nih.nci.evs.restapi.bean.*;
 import gov.nih.nci.evs.restapi.common.*;
@@ -111,8 +112,10 @@ Midline	Midline|C81170$Tumor Laterality Midline|C162614
 				String codes = codes_buf.toString();
 				codes = codes.substring(0, codes.length()-1);
 
-                w.add((String) u.elementAt(0) + "\t" + codes + "\t" + pts);
-
+				int m = line.lastIndexOf("\t");
+				line = line.substring(0, m);
+                w.add(line + "\t" + codes + "\t" + pts);
+                System.out.println(line + "\t" + codes + "\t" + pts);
                 knt++;
 
 			} else {
@@ -144,7 +147,7 @@ Midline	Midline|C81170$Tumor Laterality Midline|C162614
 			String t = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(t, '|');
 			String code = (String) u.elementAt(1);
-			if (t.indexOf("PT|NCI") != -1 || t.indexOf("HD|NCI") != -1) {
+			if (t.indexOf("PT|NCI|") != -1 || t.indexOf("HD|NCI|") != -1) {
 				String pt = (String) u.elementAt(3);
 				hmap.put(code, pt);
 			}
@@ -205,7 +208,10 @@ Midline	Midline|C81170$Tumor Laterality Midline|C162614
 			if (heading) {
 				istart = 1;
 				String firstLine = (String) vbts.elementAt(0);
-				firstLine = firstLine.replace("" + delim, "\t");
+				if (firstLine.endsWith("\t")) {
+					firstLine = firstLine.substring(0, firstLine.length()-1);
+				}
+				//firstLine = firstLine.replace("" + delim, "\t");
 				w.add(firstLine + "\t" + match_file_heading);
 			}	else {
 				w.add("Term\t" + match_file_heading);
@@ -213,6 +219,9 @@ Midline	Midline|C81170$Tumor Laterality Midline|C162614
 
 			for (int j=istart; j<vbts.size(); j++) {
 				String line = (String) vbts.elementAt(j);
+				if (line.endsWith("\t")) {
+					line = line.substring(0, line.length()-1);
+				}
 				Vector u = StringUtils.parseData(line, delim);
 				String vbt = (String) u.elementAt(vbt_col);
 				String s = vbt;
