@@ -27,7 +27,8 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US; do
+# add this in when ready SNOMEDCT_US
+for t in MDR ICD10CM ICD9CM LNC; do
 
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
