@@ -344,6 +344,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Each line of MRCONSO is a synonym
         final Synonym sy = new Synonym();
+
+        // Put the AUI into the URI field for the time being (to be removed
+        // later)
+        sy.setUri(fields[7]);
         sy.setType(fields[14].equals(concept.getName()) ? "Preferred_Name" : "Synonym");
         if (!fields[13].equals("NOCODE")) {
           sy.setCode(fields[13]);
@@ -470,7 +474,24 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         ruiQualMap.get(fields[3]).add(atn + "|" + atv);
       }
 
-      // Handle other attributes
+      // Handle AUI attributes as qualifiers on synonyms
+      else if (fields[4].equals("AUI")) {
+        // Add entry to qualifier map for metadata
+        if (!qualMap.containsKey(atn)) {
+          qualMap.put(atn, new HashSet<>());
+        }
+        qualMap.get(atn).add(atv);
+
+        // find synonym
+        final Synonym syn = concept.getSynonyms().stream().filter(s -> s.getUri().equals(fields[3]))
+            .findFirst().orElse(null);
+        if (syn == null) {
+          throw new Exception("Synonym for attribute cannot be resolved = " + line);
+        }
+        syn.getQualifiers().add(new Qualifier(atn, ConceptUtils.substr(atv, 1000)));
+      }
+
+      // Otherwise handle as a concept attribute
       else {
 
         // De-duplicate concept attributes
@@ -761,7 +782,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(fields[8])) {
       for (final String atnatv : ruiQualMap.get(fields[8])) {
         final String[] parts = atnatv.split("\\|");
-        association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+        association.getQualifiers()
+            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
     }
 
@@ -806,7 +828,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(fields[8])) {
       for (final String atnatv : ruiQualMap.get(fields[8])) {
         final String[] parts = atnatv.split("\\|");
-        iassociation.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+        iassociation.getQualifiers()
+            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
       ruiQualMap.remove(fields[8]);
     }
@@ -967,6 +990,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
     throws IOException {
+
+    // Remove synonym "uris" as no longer needed
+    concept.getSynonyms().forEach(s -> s.setUri(null));
 
     // Put concept lists in natural sort order
     concept.sortLists();

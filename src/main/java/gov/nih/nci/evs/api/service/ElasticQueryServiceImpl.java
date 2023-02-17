@@ -503,8 +503,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
   /* see superclass */
   @Override
-  public Map<String, Set<String>> getQualifierValues(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException {
+  public Map<String, Set<String>> getQualifierValues(Terminology terminology) throws Exception {
     Optional<ElasticObject> esObject = getElasticObject("qualifiers", terminology);
     if (!esObject.isPresent()) {
       return new HashMap<>();

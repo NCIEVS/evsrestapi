@@ -118,7 +118,7 @@ if [[ $download -eq 1 ]]; then
 	fi
     
     echo "  Unpack NCI Metathesaurus"
-    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM > /tmp/x.$$ 2>&1
+    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM "META/*" -x "*MRX*" > /tmp/x.$$ 2>&1
 	if [[ $? -ne 0 ]]; then
 	    cat /tmp/x.$$
 	    echo "ERROR: problem unpacking $DOWNLOAD_DIR/Metathesaurus.RRF.zip"
