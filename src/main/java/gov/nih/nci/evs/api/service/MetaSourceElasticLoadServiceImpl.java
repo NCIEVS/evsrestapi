@@ -677,7 +677,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           if (syn == null) {
             throw new Exception("Synonym for attribute cannot be resolved = " + line);
           }
-          syn.getQualifiers().add(new Qualifier(atn, atv));
+          syn.getQualifiers().add(new Qualifier(atn, ConceptUtils.substr(atv, 1000)));
         }
 
         // Otherwise handle as a concept attribute
@@ -972,7 +972,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(fields[8])) {
       for (final String atnatv : ruiQualMap.get(fields[8])) {
         final String[] parts = atnatv.split("\\|");
-        association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+        association.getQualifiers()
+            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
     }
 
@@ -997,7 +998,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(fields[8])) {
       for (final String atnatv : ruiQualMap.get(fields[8])) {
         final String[] parts = atnatv.split("\\|");
-        iassociation.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+        iassociation.getQualifiers()
+            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
       ruiQualMap.remove(fields[8]);
     }
