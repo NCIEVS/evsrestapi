@@ -17,7 +17,6 @@ import java.util.regex.*;
 import org.json.*;
 import opennlp.tools.stemmer.PorterStemmer;
 
-
 /**
  * <!-- LICENSE_TEXT_START -->
  * Copyright 2008-2017 NGIS. This software was developed in conjunction
@@ -108,6 +107,32 @@ public class LexicalMatching {
 		System.out.println("Total initialization run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
+	public static Vector readFile(String datafile) {
+		Vector v = new Vector();
+        try {
+			File file = new File(datafile);
+			FileInputStream fis = new FileInputStream(file);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new InputStreamReader(bis));
+			} catch (Exception ex) {
+				return null;
+			}
+
+            while (true) {
+                String line = br.readLine();
+				if (line == null) {
+					break;
+				}
+				v.add(line);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return v;
+	}
+
 	public static String getLabel(String id) {
 		return (String) id2LabelMap.get(id);
 	}
@@ -192,7 +217,7 @@ public class LexicalMatching {
 
 	public static HashSet createKeywordSet(String filename) {
 		HashSet hset = new HashSet();
-		Vector v = Utils.readFile(filename);
+		Vector v = readFile(filename);
         for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector values = StringUtils.parseData(line, '|');
@@ -232,7 +257,7 @@ public class LexicalMatching {
 
 	public static HashSet createStopWordSet(String filename) {
 		HashSet hset = new HashSet();
-		Vector v = Utils.readFile(filename);
+		Vector v = readFile(filename);
         for (int i=0; i<v.size(); i++) {
 			String word = (String) v.elementAt(i);
 			if (!hset.contains(word)) {
@@ -244,7 +269,7 @@ public class LexicalMatching {
 	}
 
 
-	public static String stemTerm (String term) {
+	public static String stemTerm(String term) {
 	    return stemmer.stem(term);
 	}
 
@@ -269,7 +294,7 @@ public class LexicalMatching {
 
 		Vector w = new Vector();
         LexicalMatching test = new LexicalMatching(serviceUrl, named_graph, username, password);
-        Vector v = Utils.readFile(termfile);
+        Vector v = readFile(termfile);
         Vector res_vec = new Vector();
         System.out.println(v.size());
         int knt = 0;
@@ -309,7 +334,7 @@ public class LexicalMatching {
 
     public static void sort(String filename) {
 		HashMap hmap = new HashMap();
-		Vector v = Utils.readFile(filename);
+		Vector v = readFile(filename);
         for (int i=1; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			line = line.trim();
@@ -346,7 +371,7 @@ public class LexicalMatching {
 
 	public static HashMap createId2LabelMap() {
 		HashMap hmap = new HashMap();
-		Vector v = Utils.readFile(FULL_SYN_FILE);
+		Vector v = readFile(FULL_SYN_FILE);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -359,7 +384,7 @@ public class LexicalMatching {
 
 	public static HashMap createSignatureMap() {
 		HashMap hmap = new HashMap();
-		Vector v = Utils.readFile(FULL_SYN_FILE);
+		Vector v = readFile(FULL_SYN_FILE);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -378,9 +403,28 @@ public class LexicalMatching {
 		return hmap;
 	}
 
-    public static void run(String termfile) {
+	public static String lexicalMatch(String term) {
+		if (term.length() == 0) return "No match";
+		Vector w = tokenize(term);
+		String signature = getSignature(term);
+		if (signatureMap.containsKey(signature)) {
+			StringBuffer buf = new StringBuffer();
+			w = (Vector) signatureMap.get(signature);
+			for (int k=0; k<w.size(); k++) {
+				String code = (String) w.elementAt(k);
+				String label = (String) getLabel(code);
+				buf.append(label + "|" + code).append("$");
+			}
+			String t = buf.toString();
+			return t.substring(0, t.length()-1);
+		} else {
+			return "No match";
+		}
+	}
+
+    public static void match(String termfile) {
 		int total = 0;
-		Vector v = Utils.readFile(termfile);
+		Vector v = readFile(termfile);
 		int num_matches = 0;
         for (int i=1; i<v.size(); i++) {
 			String term = (String) v.elementAt(i);
@@ -415,6 +459,62 @@ public class LexicalMatching {
 				}
 			}
 		}
+        System.out.println("" + num_matches + " out of " + total + " matches.");
+	}
+
+	public static boolean checkCoocurrence(String stemmed_wd_1, String stemmed_wd_2) {
+		stemmed_wd_1 = stemTerm(stemmed_wd_1);
+		stemmed_wd_2 = stemTerm(stemmed_wd_2);
+		stemmed_wd_1 = stemmed_wd_1.toLowerCase();
+		stemmed_wd_2 = stemmed_wd_2.toLowerCase();
+
+		Iterator it = signatureMap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			key = key + "$";
+			if (key.indexOf(stemmed_wd_1) != -1 && key.indexOf(stemmed_wd_2) != -1) {
+				System.out.println(key);
+				return true;
+			}
+		}
+		return false;
+	}
+
+    public static void run(String termfile) {
+		run(termfile, true, 0);
+	}
+
+    public static void run(String termfile, boolean header, int term_col) {
+		int total = 0;
+		int num_matches = 0;
+		Vector v = readFile(termfile);
+		Vector w = new Vector();
+		int istart = 0;
+		if (header) {
+			String t = (String) v.elementAt(0);
+			if (t.endsWith("\t")) {
+				t = t.substring(0, t.length()-1);
+			}
+			w.add(t + "\tMatches");
+			istart = 1;
+		}
+
+        for (int i=istart; i<v.size(); i++) {
+			total++;
+			String line = (String) v.elementAt(i);
+			if (line.endsWith("\t")) {
+				line = line.substring(0, line.length()-1);
+			}
+			Vector u = StringUtils.parseData(line, '\t');
+			String term0 = (String) u.elementAt(term_col);
+			String term = term0.trim();
+			String result = lexicalMatch(term);
+			if (result.compareTo("No match") != 0) {
+				num_matches++;
+			}
+			w.add(line + "\t" + result);
+		}
+		Utils.saveToFile("result_" + termfile, w);
         System.out.println("" + num_matches + " out of " + total + " matches.");
 	}
 
