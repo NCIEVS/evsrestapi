@@ -405,11 +405,11 @@ public class LexicalMatching {
 
 	public static String lexicalMatch(String term) {
 		if (term.length() == 0) return "No match";
-		Vector w = tokenize(term);
+		//Vector w = tokenize(term);
 		String signature = getSignature(term);
 		if (signatureMap.containsKey(signature)) {
 			StringBuffer buf = new StringBuffer();
-			w = (Vector) signatureMap.get(signature);
+			Vector w = (Vector) signatureMap.get(signature);
 			for (int k=0; k<w.size(); k++) {
 				String code = (String) w.elementAt(k);
 				String label = (String) getLabel(code);
@@ -462,9 +462,9 @@ public class LexicalMatching {
         System.out.println("" + num_matches + " out of " + total + " matches.");
 	}
 
-	public static boolean checkCoocurrence(String stemmed_wd_1, String stemmed_wd_2) {
-		stemmed_wd_1 = stemTerm(stemmed_wd_1);
-		stemmed_wd_2 = stemTerm(stemmed_wd_2);
+	public static boolean checkCoocurrence(String wd_1, String wd_2) {
+		String stemmed_wd_1 = stemTerm(wd_1);
+		String stemmed_wd_2 = stemTerm(wd_2);
 		stemmed_wd_1 = stemmed_wd_1.toLowerCase();
 		stemmed_wd_2 = stemmed_wd_2.toLowerCase();
 
@@ -473,7 +473,6 @@ public class LexicalMatching {
 			String key = (String) it.next();
 			key = key + "$";
 			if (key.indexOf(stemmed_wd_1) != -1 && key.indexOf(stemmed_wd_2) != -1) {
-				System.out.println(key);
 				return true;
 			}
 		}
