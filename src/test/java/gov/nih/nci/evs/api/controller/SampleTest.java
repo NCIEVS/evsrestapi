@@ -96,9 +96,11 @@ public class SampleTest {
 
     /**
      * Test paths subtree and roots.
+     * 
+     * @throws Exception
      */
     @Test
-    public void testPathsSubtreeAndRoots() {
+    public void testPathsSubtreeAndRoots() throws Exception {
         conceptSampleTester.performPathsSubtreeAndRootsTests(terminology, samples, mvc);
     }
 
