@@ -51,7 +51,7 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
   })
   @Override
   public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz,
-    Pageable pageable) {
+      Pageable pageable) {
     if (response.getHits().getHits().length <= 0) {
       return new AggregatedPageImpl(Collections.emptyList(), pageable, 0L);
     }

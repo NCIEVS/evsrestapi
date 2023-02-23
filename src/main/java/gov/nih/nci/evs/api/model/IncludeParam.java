@@ -1,6 +1,10 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -203,6 +207,115 @@ public class IncludeParam extends BaseModel {
     return synonyms || definitions || properties || children || descendants || parents
         || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
         || paths || extensions;
+  }
+
+  /**
+   * Returns included fields
+   * 
+   */
+  public String[] getIncludedFields() {
+    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
+    if (synonyms) {
+      fields.add("synonyms");
+    }
+    if (definitions) {
+      fields.add("definitions");
+    }
+    if (properties) {
+      fields.add("properties");
+    }
+    if (children) {
+      fields.add("children");
+    }
+    if (parents) {
+      fields.add("parents");
+    }
+    if (associations) {
+      fields.add("associations");
+    }
+    if (inverseAssociations) {
+      fields.add("inverseAssociations");
+    }
+    if (roles) {
+      fields.add("roles");
+    }
+    if (inverseRoles) {
+      fields.add("inverseRoles");
+    }
+    if (maps) {
+      fields.add("maps");
+    }
+    if (highlights) {
+      fields.add("highlights");
+    }
+    if (disjointWith) {
+      fields.add("disjointWith");
+    }
+    if (subsetLink) {
+      fields.add("subsetLink");
+    }
+    if (paths) {
+      fields.add("paths");
+    }
+    if (descendants) {
+      fields.add("descendants");
+    }
+    return fields.toArray(new String[fields.size()]);
+  }
+
+  /**
+   * Returns excluded fields
+   * 
+   */
+  public String[] getExcludedFields() {
+    List<String> fields = new ArrayList<>();
+    fields.add("normName"); // normName always excluded
+    if (!synonyms) {
+      fields.add("synonyms");
+    }
+    if (!definitions) {
+      fields.add("definitions");
+    }
+    if (!properties) {
+      fields.add("properties");
+    }
+    if (!children) {
+      fields.add("children");
+    }
+    if (!parents) {
+      fields.add("parents");
+    }
+    if (!associations) {
+      fields.add("associations");
+    }
+    if (!inverseAssociations) {
+      fields.add("inverseAssociations");
+    }
+    if (!roles) {
+      fields.add("roles");
+    }
+    if (!inverseRoles) {
+      fields.add("inverseRoles");
+    }
+    if (!maps) {
+      fields.add("maps");
+    }
+    if (!highlights) {
+      fields.add("highlights");
+    }
+    if (!disjointWith) {
+      fields.add("disjointWith");
+    }
+    if (!subsetLink) {
+      fields.add("subsetLink");
+    }
+    if (!paths) {
+      fields.add("paths");
+    }
+    if (!descendants) {
+      fields.add("descendants");
+    }
+    return fields.toArray(new String[fields.size()]);
   }
 
   /**

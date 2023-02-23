@@ -28,7 +28,7 @@ public class EVSElasticsearchRestTemplate extends ElasticsearchRestTemplate {
 
   @Override
   public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz,
-    SearchResultMapper mapper) {
+      SearchResultMapper mapper) {
 
     if (logger.isDebugEnabled() && query != null && query.getQuery() != null) {
       logger.debug("  elasticsearch query = \n" + query.getQuery());

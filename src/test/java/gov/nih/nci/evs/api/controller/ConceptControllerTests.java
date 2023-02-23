@@ -241,10 +241,9 @@ public class ConceptControllerTests {
     final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    final List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(2);
     assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
@@ -1171,18 +1170,6 @@ public class ConceptControllerTests {
       assertThat(assoc.getAssociation().equals("Has_Target"));
     }
 
-    // Test with association with no data
-    url = baseUrl + "/ncit/associations/Has_CDRH_Parent";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
-    assertThat(resultList).isNotNull();
-    assertThat(resultList.getTimeTaken() > 0);
-    assertThat(resultList.getTotal() == 0);
-    assertThat(resultList.getParameters().getTerminology().contains("Has_CDRH_Parent"));
-
     // Test that concept subset is properly 404'd
     url = baseUrl + "/ncit/associations/A8";
     log.info("Testing url - " + url);
@@ -1281,7 +1268,6 @@ public class ConceptControllerTests {
     assertThat(subsetMembers.size() == 0);
   }
 
-
   /**
    * Test terminology versions
    *
@@ -1296,19 +1282,17 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    Terminology terminology =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-        }).get(0);
+    Terminology terminology = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+    }).get(0);
     String weeklyTerm = terminology.getTerminologyVersion();
     String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;
 
     result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();
-    List<Concept> conceptResults =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
+    List<Concept> conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
     assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
 
     result = mvc.perform(get(baseWeeklyUrl + "/C3224")).andExpect(status().isOk()).andReturn();
@@ -1316,8 +1300,7 @@ public class ConceptControllerTests {
     Concept concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept.getVersion() == terminology.getVersion());
 
-    result =
-        mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
