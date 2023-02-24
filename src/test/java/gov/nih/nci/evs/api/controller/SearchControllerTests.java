@@ -593,7 +593,11 @@ public class SearchControllerTests {
 
     result = this.mvc.perform(get(url).param("value",
         "XAV05295I5").param("property", "P999999"))
-        .andExpect(status().isBadRequest()).andReturn();
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal() == 0);
     log.info("Done Testing testSearchProperty ");
 
     // search by property and term
