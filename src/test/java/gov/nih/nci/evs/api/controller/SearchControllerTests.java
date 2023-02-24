@@ -614,8 +614,9 @@ public class SearchControllerTests {
     // all should have a name containing "Toluene" and have an FDA_UNII_CODE
     assertThat(list.getConcepts().stream().filter(
         c -> c.getProperties().stream().filter(p -> p.getType().equals("FDA_UNII_Code")).count() > 0
-            && (c.getName().toLowerCase().contains("toluene") || c.getSynonyms().stream()
-                .filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0))
+            && (c.getName().toLowerCase().contains("toluene")
+                || c.getSynonyms().stream().filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0)
+            || c.getDefinitions().stream().filter(s -> s.getDefinition().toLowerCase().contains("toluene")).count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
   }
