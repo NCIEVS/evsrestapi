@@ -467,4 +467,19 @@ public final class ConceptUtils {
     return map;
   }
 
+  /**
+   * Substr.
+   *
+   * @param string the string
+   * @param len the len
+   * @return the string
+   */
+  public static String substr(final String string, final int len) {
+    if (len >= string.length()) {
+      return string;
+    }
+    return string.substring(0, Math.min(len, string.length()))
+        + (string.length() > len ? "..." : "");
+  }
+
 }

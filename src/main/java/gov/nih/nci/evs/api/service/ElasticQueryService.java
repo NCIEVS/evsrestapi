@@ -153,7 +153,6 @@ public interface ElasticQueryService {
    */
   List<String> getAllChildNodes(String code, Terminology terminology);
 
- 
   /**
    * Returns the path to root.
    *
@@ -235,9 +234,9 @@ public interface ElasticQueryService {
    * @return the qualifier values
    * @throws JsonMappingException the json mapping exception
    * @throws JsonProcessingException the json processing exception
+   * @throws Exception
    */
-  Map<String, Set<String>> getQualifierValues(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException;
+  Map<String, Set<String>> getQualifierValues(Terminology terminology) throws Exception;
 
   /**
    * Get qualifier.
