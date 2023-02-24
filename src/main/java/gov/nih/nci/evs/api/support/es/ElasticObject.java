@@ -2,15 +2,20 @@
 package gov.nih.nci.evs.api.support.es;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.BaseModel;
@@ -22,8 +27,6 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * The elasticsearch wrapper object for cached objects.
- *
- * @author Arun
  */
 @Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
 @JsonInclude(content = Include.NON_EMPTY)
@@ -48,13 +51,15 @@ public class ElasticObject extends BaseModel {
   /** The association entries. */
   private List<AssociationEntry> associationEntries;
 
-  /** The map. */
-  private Map<String, Set<String>> map;
+  /** The map. Store this as a string to avoid complicated indexing */
+  @Field(type = FieldType.Keyword, index = false)
+  private String map;
 
   /**
    * Instantiates an empty {@link ElasticObject}.
    */
   public ElasticObject() {
+    // n/a
   }
 
   /**
@@ -184,18 +189,36 @@ public class ElasticObject extends BaseModel {
    * Returns the map.
    *
    * @return the map
+   * @throws Exception the exception
    */
-  public Map<String, Set<String>> getMap() {
-    return map;
+  public Map<String, Set<String>> getMap() throws Exception {
+
+    // The X is to trick elasticsearch into avoiding trying to index this like a
+    // map
+    if (map == null || !map.startsWith("X")) {
+      return new HashMap<>();
+    }
+    // Turn back into a map
+    return new ObjectMapper().readValue(map.substring(1),
+        new TypeReference<Map<String, Set<String>>>() {
+          // n/a
+        });
   }
 
   /**
    * Sets the map.
    *
    * @param map the map
+   * @throws Exception the exception
    */
-  public void setMap(Map<String, Set<String>> map) {
-    this.map = map;
+  public void setMap(Map<String, Set<String>> map) throws Exception {
+    if (map == null) {
+      this.map = null;
+    } else {
+      // The X is to trick elasticsearch into avoiding trying to index this like
+      // a map
+      this.map = new ObjectMapper().writeValueAsString("X" + map);
+    }
   }
 
 }
