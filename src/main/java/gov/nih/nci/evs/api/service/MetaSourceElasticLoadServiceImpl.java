@@ -104,6 +104,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** The maps. */
   private Map<String, Set<gov.nih.nci.evs.api.model.Map>> maps = new HashMap<>();
 
+  /** The rui inverse map. */
+  private Map<String, String> ruiInverseMap = new HashMap<>();
+
   /** The rel inverse map. */
   private Map<String, String> relInverseMap = new HashMap<>();
 
@@ -184,6 +187,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
         final PushBackReader mrrel = readers.getReader(RrfReaders.Keys.MRREL);
+        final PushBackReader mrsat = readers.getReader(RrfReaders.Keys.MRSAT);
         final PushBackReader mrmap = readers.getReader(RrfReaders.Keys.MRMAP);
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
@@ -307,6 +311,35 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         colMap.put(fields[0], fields[1]);
       }
 
+      // Handle RUI attributes
+      while ((line = mrsat.readLine()) != null) {
+        final String[] fields = line.split("\\|", -1);
+        // e.g.
+        // C4227882|||R114264673|RUI||AT148954088||SMQ_TERM_LEVEL|MDR|5|N||
+
+        if (!sabMatch(fields[9], terminology.getTerminology())) {
+          continue;
+        }
+
+        // Skip certain high-volume not very useful qualifiers
+        if (fields[4].equals("RUI") && !fields[8].equals("MODIFIER_ID")
+            && !fields[8].equals("CHARACTERISTIC_TYPE_ID")) {
+          final String atn = fields[8];
+          final String atv = fields[10];
+          if (!qualMap.containsKey(atn)) {
+            qualMap.put(atn, new HashSet<>());
+          }
+          qualMap.get(atn).add(atv);
+
+          if (!ruiQualMap.containsKey(fields[3])) {
+            ruiQualMap.put(fields[3], new HashSet<>(4));
+          }
+          ruiQualMap.get(fields[3]).add(atn + "|" + atv);
+        }
+
+      }
+
+      final Map<String, String> helper = new HashMap<>();
       // Prepare parent/child relationships for getHierarchyUtils
       while ((line = mrrel.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
@@ -316,8 +349,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // REL=PAR
         // parent is not an SRC atom
         // codes of AUI1 and AUI2 do not match (self-referential)
-        if (sabMatch(fields[10], terminology.getTerminology()) && fields[3].equals("PAR")
-            && !srcAuis.contains(fields[5])
+
+        if (!sabMatch(fields[10], terminology.getTerminology())) {
+          continue;
+        }
+
+        if (fields[3].equals("PAR") && !srcAuis.contains(fields[5])
             && !auiCodeMap.get(fields[5]).equals(auiCodeMap.get(fields[1]))) {
           final StringBuffer str = new StringBuffer();
           str.append(auiCodeMap.get(fields[5]));
@@ -330,15 +367,40 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           str.append("\n");
           parentChild.add(str.toString());
         }
+
+        // for non parent/children, build inverse rui map
+        // (but only if ruiQualMap has entries)
+        if (ruiQualMap.size() > 0 && !fields[3].equals("PAR") && !fields[3].equals("CHD")) {
+          // C4229995|A5970983|AUI|PAR|C4229995|A5963886|AUI||R91875256||MDR|MDR|||N||
+          final String key = fields[1] + fields[5] + fields[3] + fields[7];
+          helper.put(key, fields[8]);
+          final String key2 =
+              fields[5] + fields[1] + relInverseMap.get(fields[3]) + relaInverseMap.get(fields[7]);
+          if (helper.containsKey(key2)) {
+            ruiInverseMap.put(fields[8], helper.get(key2));
+            ruiInverseMap.put(helper.get(key2), fields[8]);
+            helper.remove(key);
+            helper.remove(key2);
+          }
+        }
       }
 
-    } finally
+      // Remove any entries ruiInverseMap where the inverse RUIs do not have RUI
+      // qualifiers
+      for (final String key : new HashSet<>(ruiInverseMap.keySet())) {
+        final String value = ruiInverseMap.get(key);
+        if (!ruiQualMap.containsKey(value)) {
+          ruiInverseMap.remove(key);
+        }
+      }
 
-    {
+    } finally {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
     logger.info("    parentChild = " + parentChild.size());
+    logger.info("    ruiInverseMap = " + ruiInverseMap.size());
+    logger.info("    ruiQualMap = " + ruiQualMap.size());
 
   }
 
@@ -633,21 +695,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       final String sab = fields[9];
       final String atv = fields[10];
 
-      // Handle RUI attributes as qualifiers on relationships
-      if (fields[4].equals("RUI")) {
-        if (!qualMap.containsKey(atn)) {
-          qualMap.put(atn, new HashSet<>());
-        }
-        qualMap.get(atn).add(atv);
-
-        if (!ruiQualMap.containsKey(fields[3])) {
-          ruiQualMap.put(fields[3], new HashSet<>(4));
-        }
-        ruiQualMap.get(fields[3]).add(atn + "|" + atv);
-      }
-
-      // Handle other attributes
-      else {
+      // Handle non- RUI attributes as qualifiers on relationships
+      if (!fields[4].equals("RUI")) {
         // Determine which concept this definition applies to
         Concept concept = null;
         for (final String code : codes) {
@@ -969,8 +1018,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
 
-    if (ruiQualMap.containsKey(fields[8])) {
-      for (final String atnatv : ruiQualMap.get(fields[8])) {
+    final String inverseRui = ruiInverseMap.get(fields[8]);
+    if (ruiQualMap.containsKey(inverseRui)) {
+      for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
         association.getQualifiers()
             .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
@@ -995,13 +1045,14 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     }
 
     // Add RUI qualifiers on inverse associations also
-    if (ruiQualMap.containsKey(fields[8])) {
-      for (final String atnatv : ruiQualMap.get(fields[8])) {
+    if (ruiQualMap.containsKey(inverseRui)) {
+      for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
         iassociation.getQualifiers()
             .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
-      ruiQualMap.remove(fields[8]);
+      ruiQualMap.remove(inverseRui);
+      ruiInverseMap.remove(fields[8]);
     }
 
     // avoid self-referential rels
