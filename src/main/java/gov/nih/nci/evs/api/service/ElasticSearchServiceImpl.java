@@ -103,12 +103,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // build final search query
-    final NativeSearchQueryBuilder searchQuery =
-        new NativeSearchQueryBuilder().withQuery(boolQuery).withIndices(buildIndicesArray(searchCriteria))
-            .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable);
-    // .withSourceFilter(new FetchSourceFilter(new String[] {
-    // "name", "code", "leaf", "terminology", "version"
-    // }, null));
+    final NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
+        .withIndices(buildIndicesArray(searchCriteria)).withTypes(ElasticOperationsService.CONCEPT_TYPE)
+        .withPageable(pageable).withSourceFilter(
+            new FetchSourceFilter(new IncludeParam(searchCriteria.getInclude()).getIncludedFields(), new String[] {}));
 
     // avoid setting min score
     // .withMinScore(0.01f);
@@ -131,8 +129,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // query on operations
-    searchQuery.withSourceFilter(
-        new FetchSourceFilter(new IncludeParam(searchCriteria.getInclude()).getIncludedFields(), new String[] {}));
     final Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class,
         new EVSConceptResultMapper(searchCriteria.computeIncludeParam()));
 
