@@ -204,9 +204,8 @@ public class IncludeParam extends BaseModel {
    * @return true, if successful
    */
   public boolean hasAnyTrue() {
-    return synonyms || definitions || properties || children || descendants || parents
-        || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
-        || paths || extensions;
+    return synonyms || definitions || properties || children || descendants || parents || associations
+        || inverseAssociations || roles || inverseRoles || maps || disjointWith || paths || extensions;
   }
 
   /**
