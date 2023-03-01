@@ -668,7 +668,7 @@ public class ConceptSampleTester {
     }
     
     /**
-     * Check maps.
+     * Check Associations.
      *
      * @param concept       the concept
      * @param sample        the sample
