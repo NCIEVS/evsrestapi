@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,7 +22,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 
@@ -170,10 +168,12 @@ public class ConceptSampleTester {
             content = result.getResponse().getContentAsString();
             log.info(" content = " + content);
             assertThat(content).isNotNull();
+            
             for (final SampleRecord sample : entry.getValue()) {
                 // TODO
                 String sampleKey = sample.getKey();
                 String synDefProperty = null;
+
                 if (sample.getKey().contains("~")) {
                     sampleKey = sample.getKey().split("~")[1];
                     if (sample.getKey().split("~").length > 2) {
@@ -298,8 +298,10 @@ public class ConceptSampleTester {
             concept = new ObjectMapper().readValue(content, Concept.class);
             assertThat(content).isNotNull();
             log.info(content);
+            
             for (final SampleRecord sample : entry.getValue()) {
                 final String key = sample.getKey();
+                
                 if (key.startsWith("refs:subClassOf") && !key.contains("~")) {
                     if (!checkParent(concept, sample)) {
                         errors.add("ERROR: Wrong parent " + sample.getValue() + " of " + sample.getCode());
@@ -473,18 +475,34 @@ public class ConceptSampleTester {
     private boolean checkQualifier(final Concept concept, final SampleRecord sample)
             throws Exception {
         final String qualKey = sample.getKey().split("-", 2)[1].split("~")[0];
-        final String qualValue = sample.getValue().split("~")[0];
         final String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
-        final String propertyValue = sample.getValue().split("~")[1];
-        if (terminology.getMetadata().getSynonym().contains(qualKey)) {
-            return checkSynonymMetadata(concept, sample, qualKey, propertyKey, qualValue, propertyValue);
-        } else if (terminology.getMetadata().getDefinition().contains(qualKey)) {
-            return checkDefinitionMetadata(concept, sample, propertyKey, qualValue, propertyValue);
-        } else if (terminology.getMetadata().getMap() != null
-                && terminology.getMetadata().getMap().equals(qualKey)) {
-            return checkMaps(concept, sample, propertyKey, qualValue, propertyValue);
+        final int propertyValueLength = sample.getValue().split("~").length;
+        
+        if (propertyValueLength == 2) {
+            
+            final String qualValue = sample.getValue().split("~")[0];
+            final String propertyValue = sample.getValue().split("~")[1];
+            
+            if (terminology.getMetadata().getSynonym().contains(qualKey)) {
+                return checkSynonymMetadata(concept, sample, qualKey, propertyKey, qualValue, propertyValue);
+            } else if (terminology.getMetadata().getDefinition().contains(qualKey)) {
+                return checkDefinitionMetadata(concept, sample, propertyKey, qualValue, propertyValue);
+            } else if (terminology.getMetadata().getMap() != null
+                    && terminology.getMetadata().getMap().equals(qualKey)) {
+                return checkMaps(concept, sample, propertyKey, qualValue, propertyValue);
+            } else {
+                return checkOther(concept, sample, qualKey, qualValue, propertyKey, propertyValue);
+            }
+            
         } else {
-            return checkOther(concept, sample, qualKey, qualValue, propertyKey, propertyValue);
+            
+            final String propertyValue = sample.getValue();
+            
+            if (!concept.getAssociations().isEmpty()) {
+                return checkAssociations(concept, sample, qualKey, propertyKey, propertyValue);
+            }
+            
+            return false;
         }
     }
 
@@ -648,6 +666,25 @@ public class ConceptSampleTester {
         }
         return false;
     }
+    
+    /**
+     * Check maps.
+     *
+     * @param concept       the concept
+     * @param sample        the sample
+     * @param qualValue     the qualifier key
+     * @param propertyKey   the property key
+     * @param propertyValue the property value
+     * @return true, if successful
+     */
+    private boolean checkAssociations(final Concept concept, final SampleRecord sample,
+        final String qualKey, final String propertyKey, final String propertyValue) {
+        
+        return concept.getAssociations().stream()
+            .filter(o -> o.getType().equals(qualKey) && o.getQualifiers().stream()
+                .filter(q -> q.getType().equals(propertyKey) && q.getValue().equals(propertyValue)).findAny().isPresent()
+            ).findAny().isPresent();
+    }
 
     /**
      * Check role.
@@ -678,184 +715,24 @@ public class ConceptSampleTester {
      * @param term      the term
      * @param sampleMap the sample map
      * @param mvc       the mvc
-     * @throws Exception
      */
     public void performPathsSubtreeAndRootsTests(final String term,
-            final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
+            final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) {
 
-        MvcResult result = null;
-        testMvc = mvc;
-        lookupTerminology(term, testMvc);
-        String parentCode1 = null;
-        String parentCode2 = null;
-        for (List<SampleRecord> values : sampleMap.values()) {
-            for (SampleRecord property : values) {
-                if (property.getKey().equals("parent-count1")) {
-                    parentCode1 = property.getCode();
-                } else if (property.getKey().equals("parent-count2")) {
-                    parentCode2 = property.getCode();
-                }
-            }
-            if (parentCode1 != null && parentCode2 != null)
-                break;
-        }
-
-        // roots testing
-        String url = "/api/v1/concept/" + terminology.getTerminology() + "/roots";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        String content = result.getResponse().getContentAsString();
-        List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-            // n/a
-        });
-        List<String> rootCodes = roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-        if (terminology.getMetadata().getHierarchy() == true && roots.size() == 0) {
-            errors.add("ERROR: roots could not be found in hierarchy temrinology " + term);
-        } else if (terminology.getMetadata().getHierarchy() == false && roots.size() > 0) {
-            errors.add("ERROR: roots found in non-hierarchy temrinology " + term);
-        }
-
-        // pathsToRoot testing
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-                + "/pathsToRoot?include=minimal";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        String ancestorCode = null;
-        List<String> reverseToRootPath = null;
-        List<List<Concept>> pathsToRoot = new ObjectMapper().readValue(content,
-                new TypeReference<List<List<Concept>>>() {
-                    // n/a
-                });
-        if (pathsToRoot.size() < 1) {
-            errors.add("ERROR: no paths to root found for non-root concept " + parentCode1 + " in terminology "
-                    + term);
-
-        } else {
-            for (List<Concept> path : pathsToRoot) {
-                if (!rootCodes.contains(path.get(path.size() - 1).getCode())) {
-                    errors.add("ERROR: path too root for concept " + parentCode1 + " ends in non-root concept "
-                            + path.get(path.size() - 1).getCode() + " in terminology " + term);
-                }
-                // hold an intermediate code for pathToAncestor
-                if (path.size() > 2 && ancestorCode == null) {
-                    ancestorCode = path.get(path.size() - 2).getCode();
-                }
-                // hold a reverse root path for pathsFromRoot
-                if (path.size() > 1 && reverseToRootPath == null) {
-                    reverseToRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-                    Collections.reverse(reverseToRootPath);
-                }
-            }
-        }
-
-        // pathsFromRoot testing
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-                + "/pathsFromRoot?include=minimal";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        List<String> fromRootPath = null;
-        Boolean reversePathFound = false;
-        List<List<Concept>> pathsFromRoot = new ObjectMapper().readValue(content,
-                new TypeReference<List<List<Concept>>>() {
-                    // n/a
-                });
-        if (pathsFromRoot.size() < 1) {
-            errors.add("ERROR: no paths from root found for non-root concept " + parentCode1 + " in terminology "
-                    + term);
-        } else {
-            for (List<Concept> path : pathsFromRoot) {
-                if (!rootCodes.contains(path.get(0).getCode())) {
-                    errors.add("ERROR: path from root for concept " + parentCode1 + " starts in non-root concept "
-                            + path.get(0).getCode() + " in terminology " + term);
-                }
-                // check for reverse of path found in pathsToRoot
-                fromRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-                if (fromRootPath.equals(reverseToRootPath)) {
-                    reversePathFound = true;
-                }
-            }
-
-        }
-        if (!reversePathFound) {
-            errors.add("ERROR: Chosen reverse path from pathsToRoot not found in pathsFromRoot for concept "
-                    + parentCode1 + " in terminology "
-                    + term);
-        }
-        if (parentCode2 != null) {
-            url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2
-                    + "/pathsFromRoot?include=minimal";
-            result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-            content = result.getResponse().getContentAsString();
-            pathsFromRoot = new ObjectMapper().readValue(content,
-                    new TypeReference<List<List<Concept>>>() {
-                        // n/a
-                    });
-            if (pathsFromRoot.size() < 1) {
-                errors.add("ERROR: no paths from root found for non-root concept " + parentCode2 + " in terminology "
-                        + term);
-            }
-        }
-
-        // pathsToAncestor testing
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-                + "/pathsToAncestor/" + ancestorCode + "?include=minimal";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        List<List<Concept>> pathsToAncestor = new ObjectMapper().readValue(content,
-                new TypeReference<List<List<Concept>>>() {
-                    // n/a
-                });
-        for (List<Concept> path : pathsToAncestor) {
-            if (!path.get(0).getCode().equals(parentCode1)) {
-                errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-                        + " starts with different concept from stated "
-                        + path.get(0).getCode() + " in terminology " + term);
-            }
-            if (!path.get(path.size() - 1).getCode().equals(ancestorCode)) {
-                errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-                        + " ends in different concept from stated "
-                        + path.get(path.size() - 1).getCode() + " in terminology " + term);
-            }
-        }
-
-        // subtree testing
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-                + "/subtree";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        List<HierarchyNode> subtree = new ObjectMapper().readValue(content,
-                new TypeReference<List<HierarchyNode>>() {
-                    // n/a
-                });
-        for (HierarchyNode root : subtree) {
-            if (!rootCodes.contains(root.getCode())) {
-                errors.add("ERROR: non-root found at top level of subtree call for concept " + parentCode1
-                        + " in terminology " + term);
-            }
-        }
-
-        // subtree/children testing
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-                + "/subtree";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        List<HierarchyNode> children = new ObjectMapper().readValue(content,
-                new TypeReference<List<HierarchyNode>>() {
-                    // n/a
-                });
-        if (children.size() < 1) {
-
-        }
-
-        if (errors.size() > 0) {
-            log.error("SAMPLING ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName()
-                    + ". SEE LOG BELOW");
-            for (final String err : errors) {
-                log.error(err);
-            }
-        } else {
-            log.info("No sampling errors found for terminology " + terminology.getName()
-                    + " in paths, subtree, and root testing.");
-        }
+        // TODO (Perform a search for "cancer" and pick the first result)
+        // 1. /roots (already verified by "root" entries) - so just call and gather
+        // the roots (shouldbe non-zero if terminology.getMetadata().isHierarchy()
+        // )
+        // 2. /pathsToRoot
+        // - call and verify that each path starts with this concept and ends with
+        // one of the roots
+        // 3. /pathsFromRoot
+        // - same as #2, but verify the reverse order
+        // 4. /pathsToAncestor (use values from #2 to determine how to make this
+        // call)
+        // - choose an intermediate node from the #2 results and compute paths to
+        // that ancestor, and then verify that the paths start with this concept and
+        // end with that concept
 
     }
 
