@@ -26,3 +26,10 @@
 10023693	10023693	Semantic_Type	Diagnostic Procedure
 10061609	10061609	Semantic_Type	Therapeutic or Preventive Procedure
 10019928	10019928	Semantic_Type	Acquired Abnormality
+10036030	10036030	qualifier-RQ~SMQ_TERM_LEVEL	4
+10036030	10036030	qualifier-RQ~RELA	classifies
+10036030	10036030	qualifier-RQ~SMQ_TERM_CAT	testvalue
+10036030	10036030	RQ	10045965
+10045965	10045965	qualifier-RQ~SMQ_TERM_LEVEL	5
+10045965	10045965	qualifier-RQ~RELA	classified_as
+10045965	10045965	qualifier-RQ~SMQ_TERM_CAT	testvalue2
