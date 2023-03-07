@@ -67,7 +67,6 @@ import java.time.Duration;
  *
  */
 
-
 public class ExternalLinkPageGenerator {
 	static String NCI_BROWSER_PROPERTYES_XML = "NCItBrowserProperties.xml";
 	String restURL = null;
@@ -76,6 +75,10 @@ public class ExternalLinkPageGenerator {
 	String password = null;
 	OWLSPARQLUtils owlSPARQLUtils = null;
 	HashMap propertyCode2labelHashMap = null;
+
+    public ExternalLinkPageGenerator() {
+
+	}
 
     public ExternalLinkPageGenerator(String restURL, String namedGraph, String username, String password) {
 		this.restURL = restURL;
@@ -202,7 +205,6 @@ public class ExternalLinkPageGenerator {
         }
         return null;
 	}
-
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();

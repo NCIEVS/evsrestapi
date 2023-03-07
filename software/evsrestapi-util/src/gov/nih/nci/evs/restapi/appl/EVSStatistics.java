@@ -110,6 +110,8 @@ public class EVSStatistics {
 	HashMap valuesetCode2NameMap = new HashMap();
 	HashMap valuesetName2CodeMap = new HashMap();
 
+	static HashMap propertyCode2CountMap = null;
+
     static {
 		ANNOTATED_TARGETS = new String[] {"term-name", "go-term", "TARGET TERM"};
 		ANNOTATED_TARGET_CODES = new String[] {"P382", "P388", "P392"};
@@ -118,6 +120,11 @@ public class EVSStatistics {
 		ANNOTATED_TARGET_HASHMAP.put("P382", "P90");
 		ANNOTATED_TARGET_HASHMAP.put("P388", "P211");
 		ANNOTATED_TARGET_HASHMAP.put("P392", "P375");
+
+		OWLScanner scanner = new OWLScanner("ThesaurusInferred_forTS.owl");
+		propertyCode2CountMap = scanner.getPropertyCode2CountMap();
+		//scanner.dumpPropertyCode2CountMap(propertyCode2CountMap);
+		scanner.get_owl_vec().clear();
 	}
 
 
@@ -142,6 +149,10 @@ public class EVSStatistics {
 		System.out.println("httpUtils instantiated.");
 		System.out.println("getSupportedProperties ...");
 		properties = getSupportedProperties(named_graph);
+
+		System.out.println("properties: " + properties.size());
+		Utils.saveToFile("proeprties.txt", properties);
+
 		propertyCode2NameHashMap = new HashMap();
 		propertyName2CodeHashMap = new HashMap();
         for (int i=0; i<properties.size(); i++) {
@@ -172,20 +183,27 @@ public class EVSStatistics {
 		retired_concepts = new HashSet();
 	    String property_name = "Concept_Status";
 	    String property_value = "Retired_Concept";
-	    System.out.println("findConceptsWithPropertyMatching property_value: " + property_value);
-		Vector w = findConceptsWithPropertyMatching(named_graph, property_name, property_value);
+	    System.out.println("findConceptsWithProperty property_value: " + property_value);
+
+		Vector w = owlSPARQLUtils.findConceptsWithProperty(named_graph, property_name);
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
-			String code = (String) u.elementAt(0);
-			retired_concepts.add(code);
+			String status = (String) u.elementAt(u.size()-1);
+			if (status.compareTo(property_value) == 0) {
+				String code = (String) u.elementAt(0);
+				retired_concepts.add(code);
+			}
 		}
+		System.out.println("Number of retired concepts: " + retired_concepts.size());
+
 		valuesetCode2NameMap = new HashMap();
 		valuesetName2CodeMap = new HashMap();
 		valueset2ContributingSourceMap = new HashMap();
 
 		System.out.println("getValueSets ...");
-	    w = getValueSets(named_graph);
+		boolean publishedOnly = false;
+	    w = getValueSets(named_graph, publishedOnly);
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -197,7 +215,10 @@ public class EVSStatistics {
 		}
 
         System.out.println("getValueSetsWithContributingSource ...");
-	    w = getValueSetsWithContributingSource(named_graph);
+	    w = getValueSetsWithContributingSource(named_graph, publishedOnly);
+
+		Utils.saveToFile("value_set_w_cs.txt", w);
+
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
@@ -206,6 +227,14 @@ public class EVSStatistics {
 			valueset2ContributingSourceMap.put(code, source);
 		}
 		System.out.println("EVSStatistics instantiated.");
+	}
+
+	public int getPropertyCount(String propertyCode) {
+		if (!propertyCode2CountMap.containsKey(propertyCode)) {
+			return 0;
+		}
+		Integer int_obj = (Integer) propertyCode2CountMap.get(propertyCode);
+		return int_obj.intValue();
 	}
 
 	public void addTitle(String title) {
@@ -229,7 +258,7 @@ public class EVSStatistics {
 	}
 
     public void addFooter() {
-		table_data.add("<footer>(Source: NCI Thesaurus, version " + this.version + ")");
+		table_data.add("<footer>(Source; NCI Thesaurus, version " + this.version + ")");
 	}
 
     public boolean is_ANNOTATED_TARGET_CODES(String propertyCode) {
@@ -736,7 +765,7 @@ public class EVSStatistics {
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("select distinct ?p_label ?p_code ").append("\n");
-        buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where  { ").append("\n");
         buf.append("                ?p :NHC0 ?p_code .").append("\n");
         buf.append("                ?p rdfs:label ?p_label .").append("\n");
@@ -748,7 +777,7 @@ public class EVSStatistics {
 
 	public Vector getSupportedProperties(String named_graph) {
 		String query = construct_get_supported_properties(named_graph);
-		Vector v = executeQuery(query);
+    	Vector v = executeQuery(query);
 		return v;
 	}
 
@@ -786,7 +815,7 @@ public class EVSStatistics {
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("select distinct ?p_label ?p_code ?q1_label ?q1_code").append("\n");
-        buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where  { ").append("\n");
         buf.append("                ?x a owl:Class .").append("\n");
         buf.append("                ?x :NHC0 ?x_code .").append("\n");
@@ -839,7 +868,7 @@ public class EVSStatistics {
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("SELECT ?x_label ?x_code ?q1_label ?q1_value ").append("\n");
-        buf.append("from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
         buf.append("where  { ").append("\n");
         buf.append("                ?x a owl:Class .").append("\n");
         buf.append("                ?x :NHC0 ?x_code .").append("\n");
@@ -1018,6 +1047,62 @@ public class EVSStatistics {
 				v.add(property_name + " (" + property_code + ")" + "|" + knt);
 				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
 			} else if (property_code.startsWith("P") && !hmap.containsKey(property_code)) {
+				Vector w = null;
+				try {
+					w = getConceptsWithProperty(named_graph, property_code);
+					if (w == null) {
+						w = new Vector();
+					}
+					count = count + w.size();
+					v.add(property_name + " (" + property_code + ")" + "|" +  w.size());
+					System.out.println(property_name + " (" + property_code + ")" + "|" + w.size());
+				} catch (Exception ex) {
+					int knt = getPropertyCount(property_code);
+					count = count + knt;
+					v.add(property_name + " (" + property_code + ")" + "|" +  knt);
+					System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
+				}
+
+			} else if (property_code.startsWith("P") && hmap.containsKey(property_code)) {
+				Vector v2 = (Vector) hmap.get(property_code);
+				for (int k=0; k<v2.size(); k++) {
+					String prop_code = (String) v2.elementAt(k);
+					int knt = getAnnotatedTargetCount(named_graph, prop_code, property_code);
+					count = count + knt;
+					String label1 = property_name + " (" + property_code + ")";
+					String prop_name = (String) propertyCode2NameHashMap.get(prop_code);
+					String label2 = prop_name + " (" + prop_code + ")";
+					v.add(label1 + " of " + label2 + "|" + knt);
+					System.out.println(label1 + " of " + label2 + "|" + knt);
+				}
+			}
+		}
+		v = new SortUtils().quickSort(v);
+		v.add("Total" + "|" + count);
+		return v;
+	}
+
+	public Vector getPropertyCountsV2(String named_graph) {
+		HashMap hmap = createQualifierCode2PropertyCodeHashMap(named_graph);
+		int count = 0;
+        Vector v = new Vector();
+        for (int i=0; i<properties.size(); i++) {
+
+			String line = (String) properties.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String property_name = (String) u.elementAt(0);
+			String property_code = (String) u.elementAt(1);
+
+
+			System.out.println(property_name + " (" + property_code + ")");
+/*
+            if (is_ANNOTATED_TARGET_CODES(property_code)) {
+				String prop_code = (String) ANNOTATED_TARGET_HASHMAP.get(property_code);
+				int knt = getAnnotatedTargetCount(named_graph, prop_code);
+				count = count + knt;
+				v.add(property_name + " (" + property_code + ")" + "|" + knt);
+				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
+			} else if (property_code.startsWith("P") && !hmap.containsKey(property_code)) {
 				Vector w = getConceptsWithProperty(named_graph, property_code);
 				if (w == null) {
 					w = new Vector();
@@ -1037,6 +1122,31 @@ public class EVSStatistics {
 					v.add(label1 + " of " + label2 + "|" + knt);
 					System.out.println(label1 + " of " + label2 + "|" + knt);
 				}
+			}
+*/
+			if (property_code.startsWith("P") && hmap.containsKey(property_code)) {
+				Vector v2 = (Vector) hmap.get(property_code);
+				for (int k=0; k<v2.size(); k++) {
+					String prop_code = (String) v2.elementAt(k);
+					int knt = getAnnotatedTargetCount(named_graph, prop_code, property_code);
+					count = count + knt;
+					String label1 = property_name + " (" + property_code + ")";
+					String prop_name = (String) propertyCode2NameHashMap.get(prop_code);
+					String label2 = prop_name + " (" + prop_code + ")";
+					v.add(label1 + " of " + label2 + "|" + knt);
+					System.out.println(label1 + " of " + label2 + "|" + knt);
+				}
+            } else if (is_ANNOTATED_TARGET_CODES(property_code)) {
+				String prop_code = (String) ANNOTATED_TARGET_HASHMAP.get(property_code);
+				int knt = getPropertyCount(prop_code);
+				count = count + knt;
+				v.add(property_name + " (" + property_code + ")" + "|" + knt);
+				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
+			} else if (property_code.startsWith("P") && !hmap.containsKey(property_code)) {
+				int knt = getPropertyCount(property_code);
+				count = count + knt;
+				v.add(property_name + " (" + property_code + ")" + "|" +  knt);
+				System.out.println(property_name + " (" + property_code + ")" + "|" + knt);
 			}
 		}
 		v = new SortUtils().quickSort(v);
@@ -1063,7 +1173,7 @@ public class EVSStatistics {
 		return getPropertyValueTableData(named_graph, propertyCode);
 	}
 
-
+/*
 	public String construct_get_hierarchy_part1(String named_graph) {
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
@@ -1088,7 +1198,7 @@ public class EVSStatistics {
         buf.append("}").append("\n");
         return buf.toString();
 	}
-
+*/
 
 	public static Vector dumpTallies(HashMap hmap) {
 		Vector v = new Vector();
@@ -1112,9 +1222,14 @@ public class EVSStatistics {
 	}
 
 
-//ACC/AHA EHR Terminology|C167405|Contributing_Source|ACC/AHA|Publish_Value_Set|Yes
+//ACC/AHA EHR Terminology|C167405|Contributing_Source|ACC/AHA|Publish_Value_Set|
 
 	public String construct_get_value_sets(String named_graph) {
+		boolean publishedOnly = true;
+		return construct_get_value_sets(named_graph, publishedOnly);
+	}
+
+	public String construct_get_value_sets(String named_graph, boolean publishedOnly) {
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
@@ -1131,18 +1246,32 @@ public class EVSStatistics {
         buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
         buf.append("                ").append("\n");
         buf.append("                ?x ?p2 ?p2_value .").append("\n");
-        buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+        if (publishedOnly) {
+       	    buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+		}
         buf.append("}").append("\n");
         return buf.toString();
 	}
 
 	public Vector getValueSets(String named_graph) {
-		String query = construct_get_value_sets(named_graph);
+		boolean publishedOnly = true;
+		String query = construct_get_value_sets(named_graph, publishedOnly);
+		Vector v = executeQuery(query);
+		return v;
+	}
+
+	public Vector getValueSets(String named_graph, boolean publishedOnly) {
+		String query = construct_get_value_sets(named_graph, publishedOnly);
 		Vector v = executeQuery(query);
 		return v;
 	}
 
 	public String construct_get_value_sets_with_contributing_source(String named_graph) {
+		boolean publishedOnly = true;
+		return construct_get_value_sets_with_contributing_source(named_graph, publishedOnly);
+	}
+
+	public String construct_get_value_sets_with_contributing_source(String named_graph, boolean publishedOnly) {
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
@@ -1166,13 +1295,22 @@ public class EVSStatistics {
         buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
         buf.append("                ").append("\n");
         buf.append("                ?x ?p2 ?p2_value .").append("\n");
-        buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+        if (publishedOnly) {
+        	buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+		}
         buf.append("}").append("\n");
         return buf.toString();
 	}
 
 	public Vector getValueSetsWithContributingSource(String named_graph) {
-		String query = construct_get_value_sets_with_contributing_source(named_graph);
+		boolean publishedOnly = true;
+		String query = construct_get_value_sets_with_contributing_source(named_graph, publishedOnly);
+		Vector v = executeQuery(query);
+		return v;
+	}
+
+	public Vector getValueSetsWithContributingSource(String named_graph, boolean publishedOnly) {
+		String query = construct_get_value_sets_with_contributing_source(named_graph, publishedOnly);
 		Vector v = executeQuery(query);
 		return v;
 	}
@@ -1205,49 +1343,12 @@ public class EVSStatistics {
 		return executeQuery(construct_get_concepts_in_subset(named_graph, code, codeOnly));
 	}
 
-/*
 	public String construct_get_value_set_data(String named_graph) {
-		String prefixes = getPrefixes();
-		StringBuffer buf = new StringBuffer();
-		buf.append(prefixes);
-		buf.append("select distinct ?y_label ?y_code ?p0_label ?x_label ?x_code ?p1_label ?p1_value ?p2_label ?p2_value ").append("\n");
-		buf.append("from <" + named_graph + ">").append("\n");
-		buf.append("where  { ").append("\n");
-		buf.append("                ?y a owl:Class .").append("\n");
-		buf.append("                ?y :NHC0 ?y_code .").append("\n");
-		buf.append("                ?y rdfs:label ?y_label .").append("\n");
-		buf.append("").append("\n");
-		buf.append("                ?p0 a owl:AnnotationProperty .").append("\n");
-		buf.append("                ?p0 :NHC0 ?p0_code .").append("\n");
-		buf.append("                ?p0 rdfs:label ?p0_label .").append("\n");
-		buf.append("                ?p0 rdfs:label \"Concept_In_Subset\"^^xsd:string .  ").append("\n");
-		buf.append(" ").append("\n");
-		buf.append("                ?x a owl:Class .").append("\n");
-		buf.append("                ?x :NHC0 ?x_code .").append("\n");
-		buf.append("                ?x rdfs:label ?x_label .").append("\n");
-		buf.append("").append("\n");
-		buf.append("                ?y ?p0 ?x .   ").append("\n");
-		buf.append("").append("\n");
-		buf.append("                ?p1 a owl:AnnotationProperty .").append("\n");
-		buf.append("                ?p1 :NHC0 ?p1_code .").append("\n");
-		buf.append("                ?p1 rdfs:label ?p1_label .").append("\n");
-		buf.append("                ?p1 rdfs:label \"Contributing_Source\"^^xsd:string .").append("\n");
-		buf.append("                ?x  ?p1 ?p1_value .").append("\n");
-		buf.append("").append("\n");
-		buf.append("                ?p2 a owl:AnnotationProperty .").append("\n");
-		buf.append("                ?p2 :NHC0 ?p2_code .").append("\n");
-		buf.append("                ?p2 rdfs:label ?p2_label .").append("\n");
-		buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
-		buf.append("                ").append("\n");
-		buf.append("                ?x ?p2 ?p2_value .").append("\n");
-		buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
-		buf.append("}").append("\n");
-		return buf.toString();
+		boolean publishedOnly = true;
+		return construct_get_value_set_data(named_graph, publishedOnly);
 	}
-*/
 
-
-	public String construct_get_value_set_data(String named_graph) {
+	public String construct_get_value_set_data(String named_graph, boolean publishedOnly) {
 		String prefixes = getPrefixes();
 		StringBuffer buf = new StringBuffer();
 		buf.append(prefixes);
@@ -1284,7 +1385,9 @@ public class EVSStatistics {
 		buf.append("                ?p2 rdfs:label \"Publish_Value_Set\"^^xsd:string .").append("\n");
 		buf.append("                ").append("\n");
 		buf.append("                ?x ?p2 ?p2_value .").append("\n");
-		buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+		if (publishedOnly) {
+			buf.append("                ?x ?p2 \"Yes\"^^xsd:string .").append("\n");
+		}
 		buf.append("}").append("\n");
 		return buf.toString();
 	}
@@ -1293,11 +1396,67 @@ public class EVSStatistics {
 //	(221972) CTRP Disease Finding|C173902|Concept_In_Subset|CTS-API Disease Broad Category Terminology|C138189|Contributing_Source|Publish_Value_Set|null|Yes
 
 	public Vector getValueSetData(String named_graph) {
-		Vector v = executeQuery(construct_get_value_set_data(named_graph));
+		boolean publishedOnly = true;
+		return getValueSetData(named_graph, publishedOnly);
+	}
+
+	public Vector getValueSetData(String named_graph, boolean publishedOnly) {
+		Vector v = executeQuery(construct_get_value_set_data(named_graph, publishedOnly));
+
+Utils.saveToFile("value_set_data.txt", v);
+
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			if (line.endsWith("null|Yes")) {
+////COVID-19 Infection|C171133|Concept_In_Subset|CTS-API Disease Main Type Terminology|C138190|Contributing_Source|Publish_Value_Set|null|Yes
+
+//Contributing_Source|Publish_Value_Set|null
+
+line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_Source|null|Publish_Value_Set");
+
+
+			Vector u = StringUtils.parseData(line, '|');
+			String code = (String) u.elementAt(1);
+			boolean include = true;
+			boolean is_retired = is_retired(code);
+
+			String subset_code = (String) u.elementAt(4);
+			boolean is_subset_code_retired = is_retired(subset_code);
+
+			if (publishedOnly) {
+				if (!line.endsWith("Publish_Value_Set|Yes")) {
+					include = false;
+				}
+			}
+			if (include && !is_retired && !is_subset_code_retired) {
+				String name = (String) u.elementAt(0);
+				//String code = (String) u.elementAt(1);
+				String Concept_In_Subset = (String) u.elementAt(2);
+				String subset_name = (String) u.elementAt(3);
+				//String subset_code = (String) u.elementAt(4);
+				String Contributing_Source = (String) u.elementAt(5);
+				String Contributing_Source_value = (String) u.elementAt(6);
+
+				if (Contributing_Source_value.compareTo("null") == 0) {
+					Contributing_Source_value = "No External Source";
+				}
+
+//COVID-19 Infection|C171133|Concept_In_Subset|CTS-API Disease Main Type Terminology|C138190|Contributing_Source|Publish_Value_Set|null|Yes
+
+//		buf.append("select distinct ?y_label ?y_code ?p0_label ?x_label ?x_code ?p1_label ?p1_value ?p2_label ?p2_value ").append("\n");
+				String Publish_Value_Set = (String) u.elementAt(7);
+				String Publish_Value_Set_value = (String) u.elementAt(8);
+				String t = name + "|" + code + "|" + Concept_In_Subset + "|" + subset_name + "|" + subset_code
+				    + "|Contributing_Source|" + Contributing_Source_value + "|"
+				    + Publish_Value_Set + "|" + Publish_Value_Set_value;
+
+				w.add(t);
+
+			}
+		}
+		return w;
+	}
+
                 /*
                 0 CTRP Disease Finding
                 1 C173902|
@@ -1309,26 +1468,6 @@ public class EVSStatistics {
                 7 null|
                 8 Yes
                 */
-				Vector u = StringUtils.parseData(line, '|');
-				String name = (String) u.elementAt(0);
-				String code = (String) u.elementAt(1);
-				String Concept_In_Subset = (String) u.elementAt(2);
-				String subset_name = (String) u.elementAt(3);
-				String subset_code = (String) u.elementAt(4);
-				String Contributing_Source = (String) u.elementAt(5);
-				String Publish_Value_Set = (String) u.elementAt(6);
-				String Contributing_Source_value = (String) u.elementAt(7);
-				String Publish_Value_Set_value = (String) u.elementAt(8);
-				String t = name + "|" + code + "|" + Concept_In_Subset + "|" + subset_name + "|" + subset_code
-				    + "|Contributing_Source|No External Source|"
-				    + Publish_Value_Set + "|" + Publish_Value_Set_value;
-				w.add(t);
-			} else {
-				w.add(line);
-			}
-		}
-		return w;
-	}
 
 	public static HashMap getTallyHashMap(String datafile) {
 		HashMap hmap = new HashMap();
@@ -1547,22 +1686,25 @@ public class EVSStatistics {
 
     public Vector generateValueSetTableData() {
 		Vector ret_vec = new Vector();
-		Vector v = getValueSets(named_graph);
+		boolean publishedOnly = false;
+		Vector v = getValueSets(named_graph, publishedOnly);
 		int total = 0;
 		for (int i=0 ; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String label = (String) u.elementAt(0);
 			String code = (String) u.elementAt(1);
-			String contributing_source = (String) valueset2ContributingSourceMap.get(code);
-			Vector w = getConceptsInSubset(named_graph, code, true);
-			int count = 0;
-			if (w != null) {
-				count = w.size();
+			if (!is_retired(code)) {
+				String contributing_source = (String) valueset2ContributingSourceMap.get(code);
+				Vector w = getConceptsInSubset(named_graph, code, true);
+				int count = 0;
+				if (w != null) {
+					count = w.size();
+				}
+				total = total + count;
+				String key = label + " (" + code + ")";
+				ret_vec.add(key + "|" + contributing_source + "|" + count);
 			}
-			total = total + count;
-			String key = label + " (" + code + ")";
-			ret_vec.add(key + "|" + contributing_source + "|" + count);
 		}
 		ret_vec = new SortUtils().quickSort(ret_vec);
 		ret_vec.add("Total||" + total);
@@ -1624,7 +1766,6 @@ public class EVSStatistics {
 			w = new SortUtils().quickSort(w);
 			w.add("Subtotal (" + key + ")|" + "" + "|" + sub_total);
 			w0.addAll(w);
-			//countMap.put(key, new Integer(sub_total));
 		}
 		w0.add("Total||" + total);
 		return w0;
@@ -1717,7 +1858,8 @@ public class EVSStatistics {
 	}
 
 	public void run_valuse_set() {
-		Vector v = getValueSetData(named_graph);
+		boolean publishedOnly = false;
+		Vector v = getValueSetData(named_graph, publishedOnly);
 
 		int number_of_valueses = 0;
 		int number_of_sources = 0;
@@ -1811,7 +1953,6 @@ public class EVSStatistics {
 		Vector th_vec = null;
 		addTitle("NCI Thesaurus Statistics");
 
-
 		System.out.println("generateBranchSizeTableData ...");
         v = generateBranchSizeTableData();
 	    tableName = addTableNumber("Branch Size");
@@ -1822,7 +1963,6 @@ public class EVSStatistics {
 	    th_vec.add("Retired");
 	    th_vec.add("Total");
 	    addTable(tableName, th_vec, v);
-
 
 		if (checkIfFileExists(RESTRICTION_FILE)) {
 			System.out.println("Loading " + RESTRICTION_FILE);
@@ -1839,7 +1979,6 @@ public class EVSStatistics {
 			v = convert(v);
 			Utils.saveToFile(RESTRICTION_FILE, v);
 		}
-
 
         Vector spec_roots = new Vector();
         spec_roots.add("C2991");

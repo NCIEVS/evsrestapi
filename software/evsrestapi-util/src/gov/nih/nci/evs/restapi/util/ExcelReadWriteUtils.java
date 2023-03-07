@@ -118,24 +118,6 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 
 public class ExcelReadWriteUtils {
 
-	public static Vector readFile(String filename)
-	{
-		Vector v = new Vector();
-		try {
-			BufferedReader in = new BufferedReader(
-			   new InputStreamReader(
-						  new FileInputStream(filename), "UTF8"));
-			String str;
-			while ((str = in.readLine()) != null) {
-				v.add(str);
-			}
-            in.close();
-		} catch (Exception ex) {
-            ex.printStackTrace();
-		}
-		return v;
-	}
-
 	 public static void saveToFile(String outputfile, String t) {
 		 Vector v = new Vector();
 		 v.add(t);
@@ -213,7 +195,7 @@ public class ExcelReadWriteUtils {
 
 	public static String delimited2CSV(String tabfile, char delim) {
 		Vector w = new Vector();
-		Vector v = readFile(tabfile);
+		Vector v = Utils.readFile(tabfile);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			w.add(tab2CSV(line, delim));
@@ -226,7 +208,7 @@ public class ExcelReadWriteUtils {
 
 	public static String tabDelimited2CSV(String tabfile) {
 		Vector w = new Vector();
-		Vector v = readFile(tabfile);
+		Vector v = Utils.readFile(tabfile);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			w.add(tab2CSV(line, '\t'));
@@ -284,7 +266,7 @@ public class ExcelReadWriteUtils {
 
 		//iterating r number of rows
 		Vector w = new Vector();
-		Vector v = readFile(textfile);
+		Vector v = Utils.readFile(textfile);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, delim);
@@ -382,7 +364,7 @@ public class ExcelReadWriteUtils {
 
 		//iterating r number of rows
 		Vector w = new Vector();
-		Vector v = readFile(textfile);
+		Vector v = Utils.readFile(textfile);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, delim);
@@ -519,7 +501,7 @@ public class ExcelReadWriteUtils {
 		hlink_style.setFont(hlink_font);
 
 		Vector w = new Vector();
-		Vector v = readFile(textfile);
+		Vector v = Utils.readFile(textfile);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, delim);
@@ -564,7 +546,7 @@ public class ExcelReadWriteUtils {
 		hlink_style.setFont(hlink_font);
 
 		Vector w = new Vector();
-		Vector v = readFile(textfile);
+		Vector v = Utils.readFile(textfile);
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = parseData(line, delim);
@@ -625,7 +607,7 @@ public class ExcelReadWriteUtils {
 			String sheetName = (String) sheetNames.elementAt(i);
 			XSSFSheet sheet = wb.createSheet(sheetName);
 			Vector w = new Vector();
-			Vector v = readFile(textfile);
+			Vector v = Utils.readFile(textfile);
 			for (int j=0; j<v.size(); j++) {
 				String line = (String) v.elementAt(j);
 				Vector u = parseData(line, delim);
@@ -654,7 +636,7 @@ public class ExcelReadWriteUtils {
 			HSSFSheet sheet = wb.createSheet(sheetName) ;
 			//iterating r number of rows
 			Vector w = new Vector();
-			Vector v = readFile(textfile);
+			Vector v = Utils.readFile(textfile);
 			for (int j=0; j<v.size(); j++) {
 				String line = (String) v.elementAt(j);
 				Vector u = parseData(line, delim);

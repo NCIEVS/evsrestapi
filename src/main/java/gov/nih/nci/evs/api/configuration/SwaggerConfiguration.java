@@ -36,7 +36,10 @@ public class SwaggerConfiguration {
     // http://springfox.github.io/springfox/docs/current
     return new Docket(DocumentationType.SWAGGER_2)
         // Disable default responses (e.g. 401, 403)
-        .useDefaultResponseMessages(false)
+        .useDefaultResponseMessages(false).select().apis(RequestHandlerSelectors.any())
+        // .paths(Predicates.or(PathSelectors.ant("/api/v1/**"),
+        // PathSelectors.ant("/version/**")))
+        .paths(PathSelectors.regex("/(api/v1/.*|version)")).build().apiInfo(apiInfo());
 
         .select().apis(RequestHandlerSelectors.any())
         .paths(PathSelectors.regex("/(api/v1/.*|version)"))

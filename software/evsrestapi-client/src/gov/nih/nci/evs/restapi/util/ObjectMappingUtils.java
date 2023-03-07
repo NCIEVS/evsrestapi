@@ -238,6 +238,51 @@ public class ObjectMappingUtils {
 		return cls;
 	}
 
+	public static TreeNode[] json2TreeNodeList(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		TreeNode[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, TreeNode[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
+	public static List json2PathList(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		List cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, List.class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
+	public static Metadata[] json2MetadataList(String jsonInString) {
+		ObjectMapper mapper = new ObjectMapper();
+		Metadata[] cls = null;
+		try {
+			cls = mapper.readValue(jsonInString, Metadata[].class);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return cls;
+	}
+
     public gov.nih.nci.evs.restapi.client.bean.SearchResult searchTerm(String terminology, String term, int fromRecord, int pageSize, String algorithm) {
         String url = BASE_URL + "concept/" + terminology + "/search?fromRecord=" + fromRecord + "&include=minimal&pageSize=" + pageSize
            + "&term=" + term + "&type=" + algorithm;
@@ -293,7 +338,91 @@ public class ObjectMappingUtils {
 	    return list;
 	}
 
+    public gov.nih.nci.evs.restapi.client.bean.TreeNode[] getSubtree(String terminology, String code) {
+		String relationship = "subtree";
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
+	    String json = EVSRESTAPIClient.getJson(url);
 
+	    gov.nih.nci.evs.restapi.client.bean.TreeNode[] list = ObjectMappingUtils.json2TreeNodeList(json);
+	    return list;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Node[] getChildren(String terminology, String code) {
+		String relationship = "children";
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship;
+	    String json = EVSRESTAPIClient.getJson(url);
+	    gov.nih.nci.evs.restapi.client.bean.Node[] list = ObjectMappingUtils.json2NodeList(json);
+	    return list;
+	}
+
+	static boolean getPrimitive(Boolean value) {
+			return Boolean.parseBoolean("" + value);
+	}
+
+    public static Vertex linkedHashMap2Vertex(LinkedHashMap hmap) {
+		String code = (String) hmap.get("code");
+		String name = (String) hmap.get("name");
+		String terminology = (String) hmap.get("terminology");
+		String version = (String) hmap.get("version");
+		Integer level_obj = (Integer) hmap.get("level");
+		int level = level_obj.intValue();
+
+		Boolean leaf_obj = (Boolean) hmap.get("leaf");
+		boolean leaf = getPrimitive(leaf_obj);
+
+		return new Vertex(
+			code,
+			name,
+			terminology,
+			version,
+			level,
+			leaf);
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Paths getPaths(String terminology, String code) {
+		return getPaths(terminology, code, true);
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Paths getPaths(String terminology, String code, boolean traverseUp) {
+		String relationship = "pathsToRoot";
+		if (!traverseUp) {
+			relationship = "pathsFromRoot";
+		}
+		String url = BASE_URL + "concept/" + terminology + "/" + code + "/" + relationship + "?include=minimal";
+	    String json = EVSRESTAPIClient.getJson(url);
+        List list = ObjectMappingUtils.json2PathList(json);
+        gov.nih.nci.evs.restapi.client.bean.Paths paths = new gov.nih.nci.evs.restapi.client.bean.Paths();
+        List pathList = new ArrayList();
+        for (int i=0; i<list.size(); i++) {
+			List linkedHashMapList = (List) list.get(i);
+			gov.nih.nci.evs.restapi.client.bean.Path path = new gov.nih.nci.evs.restapi.client.bean.Path();
+			List vertexList = new ArrayList();
+			for (int j=0; j<linkedHashMapList.size(); j++) {
+				LinkedHashMap hmap = (LinkedHashMap) linkedHashMapList.get(j);
+				Vertex vertex = linkedHashMap2Vertex(hmap);
+				vertexList.add(vertex);
+			}
+			path.setPath(vertexList);
+			pathList.add(path);
+		}
+		paths.setPaths(pathList);
+		return paths;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Concept[] resolveSubset(String terminology, String code) {
+		String relationship = "subsetMembers";
+		String url = BASE_URL + "concept/" + terminology + "/" + relationship + "/" + code;
+		String json = EVSRESTAPIClient.getJson(url);
+        gov.nih.nci.evs.restapi.client.bean.Concept[] concepts = ObjectMappingUtils.json2ConceptList(json);
+        return concepts;
+	}
+
+    public gov.nih.nci.evs.restapi.client.bean.Metadata[] getMetadata(String terminology, String type) {
+		String url = BASE_URL + "metadata/" + terminology + "/" + type + "?include=minimal";
+		String json = EVSRESTAPIClient.getJson(url);
+        gov.nih.nci.evs.restapi.client.bean.Metadata[] list = ObjectMappingUtils.json2MetadataList(json);
+        return list;
+	}
 }
 
 
