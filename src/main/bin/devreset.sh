@@ -89,6 +89,26 @@ if [[ ! -e "$dir/ThesaurusInferred_monthly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_monthly.owl file"
     exit 1
 fi
+# Check GO monthly
+echo "    check GO monthly"
+if [[ ! -e "$dir/GO/go.2022-07-01.owl" ]]; then
+    echo "ERROR: unexpectedly missing GO/go.2022-07-01.owl file"
+    exit 1
+fi
+
+# Check HGNC monthly
+echo "    check HGNC monthly"
+if [[ ! -e "$dir/HGNC/HGNC_202209.owl" ]]; then
+    echo "ERROR: unexpectedly missing HGNC/HGNC_202209.owl file"
+    exit 1
+fi
+
+# Check ChEBI monthly
+echo "    check ChEBI monthly"
+if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
+    echo "ERROR: unexpectedly missing ChEBI/chebi_213.owl file"
+    exit 1
+fi
 
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
@@ -101,7 +121,7 @@ fi
 # Verify docker stardog has a volume mounted that contains UnitTestData
 echo "    verify docker stardog has /data/UnitTestData mounted"
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
-datadir=`docker inspect -f '{{ .Mounts }}' $pid | perl -ne '/.*bind\s+([^\s]+)\s+\/data\s+.*/; print $1' | perl -pe 's/\/host_mnt\/([cde])/$1:\//'`
+datadir=`docker inspect -f '{{ .Mounts }}' $pid | perl -ne '/.*bind\s+([^\s]+)\s+\/data\s+.*/; print $1' | perl -pe 's/.*\/(host_mnt|mnt\/host)\/([cde])/$2:\//'`
 if [[ -z "$datadir" ]]; then
     echo "ERROR: unable to determine volume mounted to /data in docker $pid"
     exit 1
@@ -114,7 +134,7 @@ fi
 # Verify docker elasticsearch is running
 echo "    verify docker elasticsearch is running"
 ct=`docker ps | grep 'elasticsearch/elasticsearch' | wc -l`
-if [[ $ct -ne 1 ]]; then
+if [[ $ct -lt 1 ]]; then
     echo "    ERROR: elasticsearch docker is not running"
     exit 1
 fi
@@ -200,7 +220,10 @@ echo "    create databases"
 echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://NCI_T_weekly CTRP /data/UnitTestData/ThesaurusInferred_+1weekly.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly CTRP /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/      /'
-/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly NCIT2 /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/     /'
+/opt/stardog/bin/stardog data add --named-graph http://NCI_T_monthly NCIT2 /data/UnitTestData/ThesaurusInferred_monthly.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://GO_monthly NCIT2 /data/UnitTestData/GO/go.2022-07-01.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://HGNC_monthly NCIT2 /data/UnitTestData/HGNC/HGNC_202209.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://ChEBI_monthly NCIT2 /data/UnitTestData/ChEBI/chebi_213.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
@@ -216,8 +239,8 @@ if [[ $? -ne 0 ]]; then
 fi
 /bin/rm -f $dir/x.sh
 
-# Reindex ncit
-echo "  Reindex ncit weekly/monthly"
+# Reindex stardog terminologies
+echo "  Reindex stardog terminologies"
 src/main/bin/reindex.sh --noconfig | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem running reindex.sh script"

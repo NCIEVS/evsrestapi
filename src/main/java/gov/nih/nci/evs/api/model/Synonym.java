@@ -44,6 +44,11 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   @Field(type = FieldType.Keyword)
   private String type;
 
+  /** The "code" of the synonym type, so it can be searched by. */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
+  private String typeCode;
+
   /** The source. */
   @Field(type = FieldType.Keyword)
   private String source;
@@ -82,10 +87,12 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    * @param other the other
    */
   public void populateFrom(final Synonym other) {
+    super.populateFrom(other);
     name = other.getName();
     highlight = other.getHighlight();
     termType = other.getTermType();
     type = other.getType();
+    typeCode = other.getTypeCode();
     normName = other.getNormName();
     source = other.getSource();
     code = other.getCode();
@@ -167,7 +174,8 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   }
 
   /**
-   * Sets the term group. This is a bridge to support naming convention normalization.
+   * Sets the term group. This is a bridge to support naming convention
+   * normalization.
    *
    * @param termGroup the term group
    */
@@ -191,6 +199,24 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    */
   public void setType(final String type) {
     this.type = type;
+  }
+
+  /**
+   * Returns the type code.
+   *
+   * @return the type code
+   */
+  public String getTypeCode() {
+    return typeCode;
+  }
+
+  /**
+   * Sets the type code.
+   *
+   * @param type the type code
+   */
+  public void setTypeCode(final String typeCode) {
+    this.typeCode = typeCode;
   }
 
   /**

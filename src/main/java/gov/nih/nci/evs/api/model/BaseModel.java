@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.data.annotation.Transient;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -9,10 +11,75 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class BaseModel {
 
   /**
+   * The rdf:about - used for situations where there is not a defined code
+   * property.
+   */
+  @Transient
+  private String uri;
+
+  /** The ct - only used for limit calls. */
+  private Integer ct;
+
+  /**
    * Instantiates an empty {@link BaseModel}.
    */
   public BaseModel() {
     // n/a
+  }
+
+  /**
+   * Instantiates a {@link BaseModel} from the specified parameters.
+   *
+   * @param other the other
+   */
+  public BaseModel(final BaseModel other) {
+    populateFrom(other);
+  }
+
+  /**
+   * Populate from.
+   *
+   * @param other the other
+   */
+  public void populateFrom(final BaseModel other) {
+    uri = other.getUri();
+    ct = other.getCt();
+  }
+
+  /**
+   * Returns the uri.
+   *
+   * @return the uri
+   */
+  public String getUri() {
+    return uri;
+  }
+
+  /**
+   * Sets the uri.
+   *
+   * @param uri the uri
+   */
+  public void setUri(final String uri) {
+    this.uri = uri;
+  }
+
+  /**
+   * Returns the ct.
+   *
+   * @return the ct
+   */
+  public Integer getCt() {
+    return ct;
+  }
+
+  /**
+   * Sets the ct.
+   *
+   * @param ct the ct
+   */
+  public void setCt(Integer ct) {
+    this.ct = ct;
   }
 
   /* see superclass */

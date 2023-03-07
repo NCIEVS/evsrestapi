@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -134,7 +135,7 @@ public class ConceptControllerExtensionTests {
       concept.getExtensions().getMainMenuAncestors().stream().flatMap(p -> p.getPaths().stream())
           .flatMap(p -> p.getConcepts().stream()).peek(c -> c.setName(null))
           .peek(c -> c.setTerminology(null)).peek(c -> c.setLevel(null))
-          .peek(c -> c.setVersion(null)).count();
+          .peek(c -> c.setVersion(null)).collect(Collectors.toList());
       final String pretty = mapper.writerWithDefaultPrettyPrinter()
           .writeValueAsString(concept.getExtensions()).replaceAll("\r", "") + "\n";
       map.put(code, pretty);
@@ -244,7 +245,7 @@ public class ConceptControllerExtensionTests {
     return map;
   }
 
-  // For testing computation of extensions - no longer needed
+  // // For testing computation of extensions - no longer needed
   // @Test
   // public void testExtensions() throws Exception {
   // String url = null;
@@ -254,7 +255,7 @@ public class ConceptControllerExtensionTests {
   //
   // // Test a few codes to make sure they're not null
   // for (final String code : new String[] {
-  // "C7280"
+  // "C102897", "C7280"
   // }) {
   // url = "/api/v1/extensions/" + code;
   //
@@ -270,29 +271,8 @@ public class ConceptControllerExtensionTests {
   // }
 
   // TO USE THE ABOVE TEST
-  // put this code back at the end of concept controller
-  //
-  // @Autowired
-  // MainTypeHierarchy mainTypeHierarchy;
-  //
-  // @RequestMapping(method = RequestMethod.GET, value = "/extensions/{code}",
-  // produces = "application/json")
-  // @ApiIgnore
+  // enable this at the end of concept controller
   // public @ResponseBody Concept calculateExtensions(@PathVariable(value =
-  // "code")
-  // final String code) throws Exception {
-  // try {
-  // final Terminology term = termUtils.getTerminology("ncit", true);
-  // mainTypeHierarchy.initialize(term);
-  // final IncludeParam ip = new IncludeParam("full");
-  // final Concept concept = sparqlQueryManagerService.getConcept(code, term,
-  // ip);
-  // concept.setPaths(sparqlQueryManagerService.getPathToRoot(code, term));
-  // concept.setExtensions(mainTypeHierarchy.getExtensions(concept));
-  // return concept;
-  // } catch (Exception e) {
-  // handleException(e);
-  // return null;
-  // }
-  // }
+  // "code") ...
+
 }

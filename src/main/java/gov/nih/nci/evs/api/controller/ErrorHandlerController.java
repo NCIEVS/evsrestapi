@@ -122,8 +122,16 @@ public class ErrorHandlerController implements ErrorController {
           sb.append(StringEscapeUtils.escapeHtml4(line));
           sb.append("\n");
         }
-        // remove the trailing \n
-        body.put("message", sb.toString().replaceFirst("\\n$",""));
+        // If the message is a stack trace, then obscure it
+        if (sb.toString().contains("Exception")) {
+          logger.error("path = " + body.get("path").toString());
+          logger.error("queryString = " + request.getQueryString());
+          logger.error("message = " + sb.toString());
+          body.put("message", "Unexpected error, see logs for more info");
+        } else {
+          // remove the trailing \n
+          body.put("message", sb.toString().replaceFirst("\\n$", ""));
+        }
       } catch (Exception e) {
         body.put("message", body.get("message").toString().replaceAll("<", "&lt;"));
       }

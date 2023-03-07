@@ -70,18 +70,24 @@ public class RESTUtils {
    */
   public String runSPARQL(String query, String restURL) {
 
-    RestTemplate restTemplate = new RestTemplate();
-    restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
-    restTemplate.getMessageConverters().add(0,
-        new StringHttpMessageConverter(Charset.forName("UTF-8")));
-    MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
-    body.add("query", query);
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-    headers.setAccept(Arrays.asList(new MediaType("application", "sparql-results+json")));
-    HttpEntity<?> entity = new HttpEntity<Object>(body, headers);
-    String results = restTemplate.postForObject(restURL, entity, String.class);
-    return results;
+    try {
+      RestTemplate restTemplate = new RestTemplate();
+      restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
+      restTemplate.getMessageConverters().add(0,
+          new StringHttpMessageConverter(Charset.forName("UTF-8")));
+      MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
+      body.add("query", query);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+      headers.setAccept(Arrays.asList(new MediaType("application", "sparql-results+json")));
+      HttpEntity<?> entity = new HttpEntity<Object>(body, headers);
+      String results = restTemplate.postForObject(restURL, entity, String.class);
+      return results;
+    } catch (Exception e) {
+      log.error("Unexpected error running query = \n" + query);
+      throw e;
+    }
+
   }
 
 }

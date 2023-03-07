@@ -72,7 +72,7 @@ public class MainTypeHierarchyTest {
     }) {
       log.info("  Get concept and compute paths = " + code);
       final Concept concept = service.getConcept(code, terminology, new IncludeParam("full"));
-      concept.setPaths(hierarchy.getPaths(concept.getCode(), terminology));
+      concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
 
       final List<Paths> paths = mainTypeHierarchy.getMainMenuAncestors(concept);
       log.info("  Get main menu anc = " + paths);

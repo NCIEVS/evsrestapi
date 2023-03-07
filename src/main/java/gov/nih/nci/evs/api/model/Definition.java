@@ -10,6 +10,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -28,6 +30,11 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   @JsonSerialize
   @JsonDeserialize
   private String highlight;
+
+  /** The "code" of the definition type. */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
+  private String code;
 
   /** The type. */
   @Field(type = FieldType.Keyword)
@@ -63,8 +70,10 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    * @param other the other
    */
   public void populateFrom(final Definition other) {
+    super.populateFrom(other);
     definition = other.getDefinition();
     highlight = other.getHighlight();
+    code = other.getCode();
     type = other.getType();
     source = other.getSource();
     qualifiers = new ArrayList<>(other.getQualifiers());
@@ -104,6 +113,24 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    */
   public void setHighlight(final String highlight) {
     this.highlight = highlight;
+  }
+
+  /**
+   * Returns the code.
+   *
+   * @return the code
+   */
+  public String getCode() {
+    return code;
+  }
+
+  /**
+   * Sets the code.
+   *
+   * @param code the code
+   */
+  public void setCode(final String code) {
+    this.code = code;
   }
 
   /**

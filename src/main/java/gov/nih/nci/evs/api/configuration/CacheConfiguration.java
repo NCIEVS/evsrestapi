@@ -11,25 +11,24 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Cache configuration
- * 
+ * Cache configuration.
+ *
  * @author Arun
  */
 @Configuration
 public class CacheConfiguration {
 
-  /** the constant logger **/
+  /** the constant logger *. */
   private static final Logger logger = LoggerFactory.getLogger(CacheConfiguration.class);
-  
-  /** the cache manager **/
+
+  /** the cache manager *. */
   @Autowired
   CacheManager cacheManager;
-  
+
   /**
-   * Scheduled method to evict all cache managed by spring cache manager.
-   * NOTE: while @Cacheable is no longer used, we'll keep this becuase
-   * it has no major effect and will be desired if we bring back any
-   * caching features
+   * Scheduled method to evict all cache managed by spring cache manager. NOTE:
+   * while @Cacheable is no longer used, we'll keep this becuase it has no major
+   * effect and will be desired if we bring back any caching features
    * 
    * The schedule is defined by the cron expression.
    */
@@ -37,9 +36,10 @@ public class CacheConfiguration {
   public void evictAll() {
     logger.info("evictAll()");
     Collection<String> cacheNames = cacheManager.getCacheNames();
-    if (CollectionUtils.isEmpty(cacheNames)) return;
+    if (CollectionUtils.isEmpty(cacheNames))
+      return;
 
     cacheNames.stream().forEach(name -> cacheManager.getCache(name).clear());
   }
-  
+
 }

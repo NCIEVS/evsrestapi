@@ -6,7 +6,8 @@ setenv.sh
 .project
 .pydevproject
 .settings/
-bin/
+!src/main/bin/
+/bin
 __pycache__
 /build/
 WEB-INF/*
@@ -18,3 +19,4 @@ WEB-INF/*
 .vscode/launch.json
 .vscode/settings.json
 .idea/.gitignore
+

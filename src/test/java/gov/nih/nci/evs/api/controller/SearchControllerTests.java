@@ -170,6 +170,37 @@ public class SearchControllerTests {
 
     assertThat(content).isEqualToIgnoringCase(content2);
 
+    // Test an NCIM search for C192 -> expect synonym to be highlighted
+    url = "/api/v1/concept/ncim/search";
+    log.info("Testing url - " + url + "?term=C192&include=synonyms,highlights");
+    result =
+        this.mvc.perform(get(url).param("term", "C192").param("include", "synonyms,highlights"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null).count()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null && s.getHighlight().contains("<em>C192")).count())
+            .isGreaterThan(0);
+
+    // Test an NCIt search for 10053571 -> expect synonym to be highlighted
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url + "?term=10053571&include=synonyms,highlights");
+    result =
+        this.mvc.perform(get(url).param("term", "10053571").param("include", "synonyms,highlights"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null).count()).isEqualTo(1);
+    assertThat(list.getConcepts().get(0).getSynonyms().stream()
+        .filter(s -> s.getHighlight() != null && s.getHighlight().contains("<em>10053571")).count())
+            .isEqualTo(1);
+
   }
 
   /**
@@ -459,7 +490,7 @@ public class SearchControllerTests {
 
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV0").param("property", "P999"))
+            .param("value", "XAV0").param("property", "P999"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -467,11 +498,11 @@ public class SearchControllerTests {
     assertThat(list.getTotal() == 0);
 
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=XAV05295I5&property=FDA_UNII_Code&include=properties");
+        + "?terminology=ncit&value=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV05295I5").param("property", "FDA_UNII_Code"))
+            .param("value", "XAV05295I5").param("property", "FDA_UNII_Code"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -482,15 +513,19 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Sivifene");
     assertThat(list.getConcepts().get(0).getProperties().stream()
         .filter(p -> p.getType().equals("FDA_UNII_Code")).count()).isGreaterThan(0);
-    assertThat(list.getConcepts().get(0).getProperties().stream()
-        .filter(p -> p.getType().equals("FDA_UNII_Code")).findFirst().get().getValue())
-            .isEqualTo("XAV05295I5");
+    // All results an FDA_UNII_Code property with the specified value
+    assertThat(list.getConcepts().stream()
+        .filter(c -> c.getProperties().stream()
+            .filter(p -> p.getType().equals("FDA_UNII_Code") && p.getValue().equals("XAV05295I5"))
+            .count() > 0)
+        .count()).isEqualTo(list.getConcepts().size());
 
     // Test with single terminology form
     url = "/api/v1/concept/ncit/search";
-    log.info("Testing url - " + url + "?term=XAV05295I5&property=FDA_UNII_Code&include=properties");
+    log.info(
+        "Testing url - " + url + "?value=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
-    result = this.mvc.perform(get(url).param("include", "properties").param("term", "XAV05295I5")
+    result = this.mvc.perform(get(url).param("include", "properties").param("value", "XAV05295I5")
         .param("property", "FDA_UNII_Code")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
@@ -504,11 +539,11 @@ public class SearchControllerTests {
     // With property code also - P319
     url = baseUrl;
     log.info("Testing url - " + url
-        + "?terminology=ncit&term=XAV05295I5&property=P319&include=properties");
+        + "?terminology=ncit&value=XAV05295I5&property=P319&include=properties");
 
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV05295I5").param("property", "P319"))
+            .param("value", "XAV05295I5").param("property", "P319"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -525,9 +560,9 @@ public class SearchControllerTests {
 
     // Test with single terminology form
     url = "/api/v1/concept/ncit/search";
-    log.info("Testing url - " + url + "?term=XAV05295I5&property=P319&include=properties");
+    log.info("Testing url - " + url + "?value=XAV05295I5&property=P319&include=properties");
 
-    result = this.mvc.perform(get(url).param("include", "properties").param("term", "XAV05295I5")
+    result = this.mvc.perform(get(url).param("include", "properties").param("value", "XAV05295I5")
         .param("property", "P319")).andExpect(status().isOk()).andReturn();
     content2 = result.getResponse().getContentAsString();
     log.info("content2 -" + content2);
@@ -541,10 +576,10 @@ public class SearchControllerTests {
     // BAD property type
     // url = baseUrl;
     // log.info("Testing url - " + url +
-    // "?terminology=ncit&term=XAV05295I5&property=P999999");
+    // "?terminology=ncit&value=XAV05295I5&property=P999999");
     //
     // result = mvc.perform(get(url).param("terminology",
-    // "ncit").param("term",
+    // "ncit").param("value",
     // "XAV05295I5")
     // .param("property",
     // "P999999")).andExpect(status().isBadRequest()).andReturn();
@@ -552,12 +587,31 @@ public class SearchControllerTests {
     // // Test with single terminology form
     // url = "/api/v1/concept/ncit/search";
     // log.info("Testing url - " + url +
-    // "?term=XAV05295I5&property=P999999");
+    // "?value=XAV05295I5&property=P999999");
     //
-    // result = this.mvc.perform(get(url).param("term",
+    // result = this.mvc.perform(get(url).param("value",
     // "XAV05295I5").param("property", "P999999"))
     // .andExpect(status().isBadRequest()).andReturn();
     log.info("Done Testing testSearchProperty ");
+
+    // search by property and term
+    // property=FDA_UNII_CODE and term=Toluene
+    log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code&term=Toluene");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
+            .param("include", "properties,synonyms").param("term", "Toluene"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    // all should have a name containing "Toluene" and have an FDA_UNII_CODE
+    assertThat(list.getConcepts().stream().filter(
+        c -> c.getProperties().stream().filter(p -> p.getType().equals("FDA_UNII_Code")).count() > 0
+            && (c.getName().toLowerCase().contains("toluene") || c.getSynonyms().stream()
+                .filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0))
+        .count()).isEqualTo(list.getConcepts().size());
+
   }
 
   /**
@@ -911,8 +965,7 @@ public class SearchControllerTests {
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
-            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource()))
-            .count() > 0)
+            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource())).count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
     // Test synonymSource + synonymTermType without a term
@@ -930,8 +983,7 @@ public class SearchControllerTests {
     // Verify that each concept contains a CDISC/SY synonym
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
-            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource()))
-            .count() > 0)
+            .filter(s -> "SY".equals(s.getTermType()) && "CDISC".equals(s.getSource())).count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
     log.info("Done Testing testSynonymTermType");
@@ -1037,6 +1089,11 @@ public class SearchControllerTests {
 
   }
 
+  /**
+   * Test definition type.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testDefinitionType() throws Exception {
 
@@ -1123,15 +1180,17 @@ public class SearchControllerTests {
     List<Concept> conceptList = list.getConcepts();
     boolean currentExact = true;
     for (Concept concept : conceptList) {
+      // found match
       if (concept.getName().equalsIgnoreCase("braf")
           || !concept.getSynonyms().stream().filter(p -> p.getName().equalsIgnoreCase("braf"))
-              .collect(Collectors.toList()).isEmpty()) { // found
-                                                         // match
-        if (!currentExact) // check still in front
-          fail("Exact Matches not in order"); // exact matches not in
-                                              // order
+              .collect(Collectors.toList()).isEmpty()) {
+        // check still in front
+        if (!currentExact)
+          // exact matches not inorder
+          fail("Exact Matches not in order");
       } else
-        currentExact = false; // should be at end of exact matches
+        // should be at end of exact matches
+        currentExact = false;
     }
 
     // phrase term check
@@ -1203,7 +1262,7 @@ public class SearchControllerTests {
     // The first one should contain the word "corona" (e.g. crown, corona
     // dentist)
     assertThat(list.getConcepts().get(0).getSynonyms().stream()
-        .filter(s -> s.getName().toLowerCase().contains("corona ")).count()).isGreaterThan(0);
+        .filter(s -> s.getName().toLowerCase().contains("corona")).count()).isGreaterThan(0);
     assertThat(list.getConcepts().stream()
         .filter(c -> c.getSynonyms().stream()
             .filter(s -> s.getName().toLowerCase().contains("coronaviridae")).count() > 0)
@@ -1927,12 +1986,12 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code");
     result = mvc.perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
         .param("include", "properties")).andExpect(status().isOk()).andReturn();
-    list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
-        ConceptResultList.class);
+    String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
-    for (final Concept conc : list.getConcepts()) { // test that have match
-                                                    // to
-                                                    // synonymSource = GDC
+    // test that have match to synonymSource = GDC
+    for (final Concept conc : list.getConcepts()) {
       boolean found = false;
       for (Property prop : conc.getProperties()) {
         if (prop.getType() != null && prop.getType().equals("FDA_UNII_Code")) {
@@ -1942,6 +2001,12 @@ public class SearchControllerTests {
       }
       assertThat(found).isTrue();
     }
+    // NOT all should have a name containing "Toluene" (see testSearchProperty)
+    assertThat(list.getConcepts().stream()
+        .filter(c -> (c.getName().toLowerCase().contains("toluene") || c.getSynonyms().stream()
+            .filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0))
+        .count()).isNotEqualTo(list.getConcepts().size());
+
   }
 
   /**
@@ -1968,12 +2033,11 @@ public class SearchControllerTests {
       log.info("  content = " + content);
       assertThat(content).isNotNull();
       list = new ObjectMapper().readValue(content, ConceptResultList.class);
-      if (type.equals("contains") || type.equals("OR")) {
+      if (type.equals("contains") || type.equals("OR") || type.equals("fuzzy")) {
         assertThat(list.getConcepts()).isNotEmpty();
       } else {
         assertThat(list.getConcepts()).isEmpty();
       }
-
     }
 
     for (final String type : new String[] {
@@ -2025,10 +2089,18 @@ public class SearchControllerTests {
       assertThat(found).isTrue();
     }
 
+    log.info("Testing url - " + url + "?include=associations&subset=*&terminology=ncit");
+    result = mvc.perform(
+        get(url).param("terminology", "ncit").param("subset", "*").param("include", "associations"))
+        .andExpect(status().isOk()).andReturn();
+    list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
+        ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+
   }
 
   /**
-   * Test that search deboosts retired concepts
+   * Test that search deboosts retired concepts.
    *
    * @throws Exception the exception
    */
@@ -2095,7 +2167,225 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // test first result is Malignant Digestive System Neoplasm
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C0685938");
-}
+  }
+
+  /**
+   * Test search quality.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchQuality() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Search for "mg/dL", the first result should be C67015
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&term=mg%2Fdl&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "mg/dL").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C67015");
+
+    // Search for "double lymphoma" - everything with "double" and "lymphoma"
+    // should come
+    // before anything that doesn't have both.
+    log.info("Testing url - " + url
+        + "?terminology=ncit&pageSize=100&term=double+lymphoma&type=contains&include=synonyms");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("pageSize", "100")
+        .param("term", "double lymphoma").param("type", "contains").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    boolean currentExact = true;
+    boolean foundC125904 = false;
+    int ct = 0;
+    for (Concept concept : list.getConcepts()) {
+      // found match
+      if ((concept.getName().toLowerCase().contains("double")
+          && concept.getName().toLowerCase().contains("lymphoma"))
+          || !concept.getSynonyms().stream()
+              .filter(s -> s.getName().toLowerCase().contains("double")
+                  && s.getName().toLowerCase().contains("lymphoma"))
+              .collect(Collectors.toList()).isEmpty()) {
+        // check still in front
+        if (!currentExact)
+          // exact matches not inorder
+          fail("Matches with both 'double' and 'lymphoma' not before others");
+      } else {
+        // should be at end of exact matches
+        currentExact = false;
+      }
+
+      // also verify these two concepts are in the top 5 results
+      // C125904 double hit lymphoma
+      if (concept.getCode().equals("C125904") && ct < 5) {
+        foundC125904 = true;
+      }
+
+    }
+
+    // Verify C125904 in top 5 results
+    if (!foundC125904) {
+      fail("C125904 (double hit lymphoma) not found in first 5 results");
+    }
+
+    // Search for "breast cancer" - things with "breast cancer" together should
+    // show up before separated
+    log.info("Testing url - " + url
+        + "?terminology=ncit&pageSize=100&term=breast+cancer&type=contains&include=synonyms");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("pageSize", "100")
+            .param("term", "breast cancer").param("type", "contains").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    currentExact = true;
+    ct = 0;
+    boolean foundC12959 = false;
+    boolean foundC142819 = false;
+    for (Concept concept : list.getConcepts()) {
+      // found match
+      if ((concept.getName().toLowerCase().contains("breast cancer")) || !concept.getSynonyms()
+          .stream().filter(s -> s.getName().toLowerCase().contains("breast cancer"))
+          .collect(Collectors.toList()).isEmpty()) {
+        // check still in front
+        if (!currentExact)
+          // exact matches not inorder
+          fail("Matches with both 'breast cancer' not before others");
+      } else {
+        // should be at end of exact matches
+        currentExact = false;
+      }
+      ct++;
+
+      // also verify these two concepts are in the top 5 results
+      // C12959 Breast Cancer Cell Breast Cancer Cell
+      if (concept.getCode().equals("C12959") && ct < 5) {
+        foundC12959 = true;
+      }
+      // C142819 Breast Cancer Locator
+      if (concept.getCode().equals("C142819") && ct < 5) {
+        foundC142819 = true;
+      }
+    }
+
+    if (!foundC12959) {
+      fail("C12959 (Breast Cancer Cell Breast Cancer Cell) not found in first 5 results");
+    }
+    if (!foundC142819) {
+      fail("C142819 (Breast Cancer Locator) not found in first 5 results");
+    }
+
+  }
+
+  /**
+   * Test search weekly.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchWeekly() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Basic search using the weekly version of NCIt
+    log.info("Testing url - " + url + "?terminology=ncit_21.07a&term=cancer");
+    result = mvc.perform(get(url).param("terminology", "ncit_21.07a").param("term", "cancer"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal()).isGreaterThan(0);
+  }
+
+  /**
+   * Test search with sort.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchWithSort() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    List<String> values = null;
+    List<String> sortedValues = null;
+
+    // Sort members of C128784 ascending by code
+    log.info("Testing url - " + url + "?terminology=ncit&subset=C128784&sort=code&ascending=true");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "code").param("ascending", "true"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList());
+    sortedValues =
+        list.getConcepts().stream().map(c -> c.getCode()).sorted().collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+    // Sort members of C128784 descending by code
+    log.info("Testing url - " + url + "?terminology=ncit&subset=C128784&sort=code&ascending=false");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "code").param("ascending", "false"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList());
+    sortedValues = list.getConcepts().stream().map(c -> c.getCode())
+        .sorted((a, b) -> b.toLowerCase().compareTo(a.toLowerCase())).collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+    // Sort members of C128784 ascending by norm name
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&subset=C128784&sort=normName&ascending=true");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "normName").param("ascending", "true"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    sortedValues =
+        list.getConcepts().stream().map(c -> c.getName()).sorted().collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+    // Sort members of C128784 ascending by norm name
+    log.info(
+        "Testing url - " + url + "?terminology=ncit&subset=C128784&sort=normName&ascending=false");
+    result = mvc
+        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
+            .param("sort", "normName").param("ascending", "false"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    values = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    sortedValues = list.getConcepts().stream().map(c -> c.getName())
+        .sorted((a, b) -> b.toLowerCase().compareTo(a.toLowerCase())).collect(Collectors.toList());
+    assertThat(values).isEqualTo(sortedValues);
+
+  }
 
   /**
    * Removes the time taken.
@@ -2106,4 +2396,5 @@ public class SearchControllerTests {
   private String removeTimeTaken(String response) {
     return response.replaceAll("\"timeTaken\"\\s*:\\s*\\d+\\s*,", "");
   }
+
 }

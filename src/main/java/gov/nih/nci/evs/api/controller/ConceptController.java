@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,6 +31,7 @@ import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -101,7 +104,8 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List (comma-separated) of codes to return concepts for, e.g."
               + "<ul><li>'C2291,C3224' for <i>ncit</i></li>"
@@ -110,7 +114,7 @@ public class ConceptController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
+  final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam("list")
   final String list) throws Exception {
     try {
@@ -159,17 +163,27 @@ public class ConceptController extends BaseController {
           value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
           required = true, dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "limit",
+          value = "If set to an integer (between <i>1</i> and <i>100</i>), elements of the concept "
+              + "should be limited to that specified number of entries. Thus a user interface can "
+              + "quickly retrieve initial data for a concept (even with <i>include=full</i>) and "
+              + "then call back for more data. "
+              + "An extra placeholder entry with just a <i>ct</i> field will be included "
+              + "to indicate the total count.",
+          required = false, dataTypeClass = Integer.class, paramType = "query"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions, "
               + "disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, "
               + "roles, synonyms. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   public @ResponseBody Concept getConcept(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "limit")
+  final Optional<Integer> limit, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -179,6 +193,14 @@ public class ConceptController extends BaseController {
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+      if (limit.isPresent()) {
+        if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
+
+        }
+        ConceptUtils.applyLimit(concept.get(), limit.get().intValue());
       }
       return concept.get();
     } catch (Exception e) {
@@ -272,8 +294,8 @@ public class ConceptController extends BaseController {
   public @ResponseBody AssociationEntryResultList getAssociationEntries(
     @PathVariable(value = "terminology")
     final String terminology, @PathVariable(value = "codeOrLabel")
-    String codeOrLabel, @RequestParam("fromRecord")
-    Optional<Integer> fromRecord, @RequestParam("pageSize")
+    String codeOrLabel, @RequestParam(required = false, name = "fromRecord")
+    Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
     Optional<Integer> pageSize) throws Exception {
     // Get the association "label"
     Long startTime = System.currentTimeMillis();
@@ -349,7 +371,10 @@ public class ConceptController extends BaseController {
    * Returns the subsets.
    *
    * @param terminology the terminology
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @param code the code
+   * @param include the include
    * @return the subsets
    * @throws Exception the exception
    */
@@ -372,7 +397,8 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
@@ -383,8 +409,8 @@ public class ConceptController extends BaseController {
       produces = "application/json")
   public @ResponseBody List<Concept> getSubsetMembers(@PathVariable(value = "terminology")
   final String terminology, @RequestParam("fromRecord")
-  final Optional<Integer> fromRecord, @RequestParam(value = "pageSize")
-  final Optional<Integer> pageSize, @PathVariable(value = "code")
+  final Optional<Integer> fromRecord, @RequestParam(required = false, value = "pageSize")
+  final Optional<Integer> pageSize, @PathVariable(required = false, value = "code")
   final String code, @RequestParam("include")
   final Optional<String> include) throws Exception {
     try {
@@ -646,15 +672,17 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "10000"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "10000"),
       @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "10000")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("fromRecord")
-  final Optional<Integer> fromRecord, @RequestParam("pageSize")
-  final Optional<Integer> pageSize, @RequestParam("maxLevel")
+  final String code, @RequestParam(required = false, name = "fromRecord")
+  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Optional<Integer> pageSize, @RequestParam(required = false, name = "maxLevel")
   final Optional<Integer> maxLevel) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -813,10 +841,11 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal")
   })
   public @ResponseBody List<Concept> getRoots(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
+  final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -871,11 +900,12 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -885,7 +915,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathToRoot(code, term);
+      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
@@ -919,11 +949,20 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "limit",
+          value = "If set to an integer (between <i>1</i> and <i>100</i>), subtrees and siblings "
+              + "at each level will be limited to the specified number of entries. Thus a user "
+              + "interface can quickly retrieve initial data for a subtree and then call back "
+              + "for more data. "
+              + "An extra placeholder entry with just a <i>ct</i> field will be included "
+              + "to indicate the total count.",
+          required = false, dataTypeClass = Integer.class, paramType = "query")
   })
   public @ResponseBody List<HierarchyNode> getSubtree(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestParam(required = false, name = "limit")
+  final Optional<Integer> limit) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -931,9 +970,98 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final List<HierarchyNode> nodes = elasticQueryService.getPathInHierarchy(code, term);
+      if (limit.isPresent()) {
+        if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
 
-      return nodes;
+        }
+      }
+      // final List<HierarchyNode> nodes =
+      // elasticQueryService.getPathInHierarchy(code, term);
+      // return nodes;
+
+      List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(term);
+      Paths paths = elasticQueryService.getPathsToRoot(code, term);
+
+      // root hierarchy node map for quick look up
+      HashMap<String, HierarchyNode> rootNodeMap = new HashMap<>();
+      rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
+
+      // Limit to 10 paths if a limit of >10 is used.
+      int pathLimit =
+          (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
+      final List<Path> ps = paths.getPaths();
+      int ct = 0;
+      for (final Path path : ps) {
+        final List<ConceptMinimal> concepts = path.getConcepts();
+        if (CollectionUtils.isEmpty(concepts) || concepts.size() < 2) {
+          continue;
+        }
+
+        // Stop processing if we've reached the path limit
+        if (++ct > pathLimit && limit.isPresent()) {
+          break;
+        }
+
+        final ConceptMinimal rootConcept = concepts.get(concepts.size() - 1);
+
+        final HierarchyNode root = rootNodeMap.get(rootConcept.getCode());
+        HierarchyNode previous = root;
+        for (int j = concepts.size() - 2; j >= 0; j--) {
+          ConceptMinimal c = concepts.get(j);
+          if (!previous.getChildren().stream()
+              .anyMatch(n -> n.getCt() == null && n.getCode().equals(c.getCode()))) {
+            List<HierarchyNode> children =
+                elasticQueryService.getChildNodes(previous.getCode(), 0, term);
+
+            // Apply the limit
+            if (limit.isPresent() && children.size() > limit.get().intValue()) {
+
+              // Save the matching node as it should be included
+              final HierarchyNode child =
+                  children.stream().filter(h -> h.getCode().equals(c.getCode())).findFirst().get();
+
+              final int i = children.indexOf(child);
+              final int l = limit.get().intValue();
+              // generate sublist (if the matching node isn't within limit, take
+              // one less)
+              children = ConceptUtils.sublist(children, 0, l);
+              // If matching node is beyond the limit, remove the last entry and
+              // add it
+              if (i > (l - 1)) {
+                // Remove and save the ct node
+                final HierarchyNode ctNode = children.remove(children.size() - 1);
+                // Remove second-to-last element (last one is the "ct" entry)
+                if (children.size() > 0) {
+                  children.remove(children.size() - 1);
+                }
+                // Add the node and the ct node
+                children.add(child);
+                children.add(ctNode);
+              }
+            }
+
+            for (HierarchyNode child : children) {
+              child.setLevel(null);
+              previous.getChildren().add(child);
+            }
+            previous.setExpanded(true);
+          }
+          previous = previous.getChildren().stream()
+              .filter(n -> n.getCt() == null && n.getCode().equals(c.getCode())).findFirst()
+              .orElse(null);
+        }
+      }
+
+      if (limit.isPresent() && ps.size() > pathLimit) {
+        final HierarchyNode extra = new HierarchyNode();
+        extra.setCt(ps.size());
+        rootNodes.add(extra);
+      }
+
+      return rootNodes;
+
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -964,23 +1092,44 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. 'C3224' for <i>ncit</i>. "
               + "This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "limit",
+          value = "If set to an integer (between <i>1</i> and <i>100</i>), children will "
+              + "be limited to the specified number of entries. Thus a user interface can "
+              + "quickly retrieve initial data for a subtree and then call back for more data. "
+              + "An extra placeholder entry with just a <i>ct</i> field will be included "
+              + "to indicate the total count.",
+          required = false, dataTypeClass = Integer.class, paramType = "query")
   })
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestParam(required = false, name = "limit")
+  final Optional<Integer> limit) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
+      }
+      if (limit.isPresent()) {
+        if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
+
+        }
       }
       // If terminology is "ncim", there are no child nodes
       if ("ncim".equals(terminology)) {
         return new ArrayList<>();
       }
       final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, 0, term);
-      nodes.stream().peek(n -> n.setLevel(null)).count();
+      // "count" doesn't force it to use check the stream.
+      nodes.stream().peek(n -> n.setLevel(null)).collect(Collectors.toList());
+
+      if (limit.isPresent() && nodes.size() > limit.get().intValue()) {
+        return ConceptUtils.sublist(nodes, 0, limit.get().intValue());
+      }
       return nodes;
+
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -1020,11 +1169,12 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -1033,7 +1183,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathToRoot(code, term);
+      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
     } catch (Exception e) {
       handleException(e);
@@ -1079,12 +1229,13 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @PathVariable(value = "ancestorCode")
-  final String ancestorCode, @RequestParam("include")
+  final String ancestorCode, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -1093,7 +1244,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathToParent(code, ancestorCode, term);
+      final Paths paths = elasticQueryService.getPathsToParent(code, ancestorCode, term);
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
 
     } catch (Exception e) {
@@ -1102,4 +1253,29 @@ public class ConceptController extends BaseController {
     }
   }
 
+  // @Autowired
+  // MainTypeHierarchy mainTypeHierarchy;
+  //
+  // @RequestMapping(method = RequestMethod.GET, value = "/extensions/{code}",
+  // produces = "application/json")
+  // @ApiIgnore
+  // public @ResponseBody Concept calculateExtensions(@PathVariable(value =
+  // "code")
+  // final String code) throws Exception {
+  // try {
+  // final Terminology term = termUtils.getTerminology("ncit", true);
+  // mainTypeHierarchy.initialize(term,
+  // sparqlQueryManagerService.getHierarchyUtils(term));
+  // final IncludeParam ip = new IncludeParam("full");
+  // final Concept concept = sparqlQueryManagerService.getConcept(code, term,
+  // ip);
+  // concept.setPaths(sparqlQueryManagerService.getHierarchyUtils(term).getPaths(term,
+  // code));
+  // concept.setExtensions(mainTypeHierarchy.getExtensions(concept));
+  // return concept;
+  // } catch (Exception e) {
+  // handleException(e);
+  // return null;
+  // }
+  // }
 }

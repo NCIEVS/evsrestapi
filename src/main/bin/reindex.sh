@@ -44,6 +44,7 @@ if [[ $config -eq 1 ]]; then
     . $CONFIG_ENV_FILE
     if [[ $? -ne 0 ]]; then
         echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
+        echo "       consider using --noconfig (if working in dev environment)"
         exit 1
     fi
 elif [[ -z $STARDOG_HOST ]]; then
@@ -94,7 +95,7 @@ fi
 
 
 # Prep query to read all version info
-echo "  Lookup version info for latest terminology in stardog"
+echo "  Lookup terminology, version info in stardog"
 cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
@@ -102,12 +103,18 @@ PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#> 
 PREFIX dc:<http://purl.org/dc/elements/1.1/> 
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-select ?graphName ?version where {
+select distinct ?source ?graphName ?version where {
   graph ?graphName {
-    ?source a owl:Ontology .
-    ?source owl:versionInfo ?version .
-    ?source dc:date ?date .
-    ?source rdfs:comment ?comment .
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionInfo ?version
+    }
+    UNION
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionIRI ?version .
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo }
+    }
   }
 }
 EOF
@@ -120,17 +127,25 @@ for db in `cat /tmp/db.$$.txt`; do
     curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
         http://${STARDOG_HOST}:${STARDOG_PORT}/$db/query \
         --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
-        $jq | perl -ne 'chop; $x=1 if /"version"/; $x=0 if /\}/; if ($x && /"value"/) { 
-            s/.* "//; s/".*//; print "$_|'$db'\n"; } ' >> /tmp/y.$$.txt
+        $jq | perl -ne '
+            chop; $x="version" if /"version"/; 
+            $x="source" if /"source"/; 
+            $x=0 if /\}/; 
+            if ($x && /"value"/) { 
+                s/.* "//; s/".*//;
+                ${$x} = $_;                
+                print "$version|'$db'|$source\n" if $x eq "version"; 
+            } ' >> /tmp/y.$$.txt
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected problem obtaining $db versions from stardog"
         exit 1
-    fi    
+    fi
 done
 
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
+# NOTE: version isn't cleaned up here so from where versionIRI is still an IRI
 /bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
@@ -160,7 +175,7 @@ fi
 
 # For each DB|version, check whether indexes already exist for that version
 echo ""
-export PATH="/usr/local/jdk1.8/bin/:$PATH"
+export PATH="/usr/local/corretto-jdk11/bin:$PATH"
 # Handle the local setup
 local=""
 jar="../lib/evsrestapi.jar"
@@ -168,12 +183,14 @@ if [[ $config -eq 0 ]]; then
     local="-Dspring.profiles.active=local"
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 fi
-export EVS_SERVER_PORT="8083"
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
-    version=`echo $x | cut -d\| -f 1`
-    cv=`echo $version | perl -pe 's/\.//;'`
+    version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
+    cv=`echo $version | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
+    uri=`echo $x | cut -d\| -f 3`
+    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
@@ -183,7 +200,7 @@ for x in `cat /tmp/y.$$.txt`; do
     fi
 
     exists=1
-    for y in `echo "evs_metadata concept_ncit_$cv evs_object_ncit_$cv"`; do
+    for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
         # Check for index
         curl -s -o /tmp/x.$$.txt ${ES_SCHEME}://${ES_HOST}:${ES_PORT}/_cat/indices    
@@ -200,19 +217,38 @@ for x in `cat /tmp/y.$$.txt`; do
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-        echo "    FOUND indexes for $version, continue"
+        echo "    FOUND indexes for $term $version"
+        
+        if [[ $term == $pt ]]; then
+            echo "    SKIP RECONCILE $term stale indexes and update flags"
+            continue
+        fi
+        
+        # Stale indexes are automatically cleaned up by the indexing process
+        # It checks against stardog and reconciles everything and updates latest flags
+        # regardless of whether there was new data
+        echo "    RECONCILE $term stale indexes and update flags"
+        export EVS_SERVER_PORT="8083"
+        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+        if [[ $? -ne 0 ]]; then
+            cat /tmp/x.$$.log | sed 's/^/    /'
+            echo "ERROR: unexpected error building indexes"
+            exit 1
+        fi
+        /bin/rm -rf /tmp/x.$$.log
+        
     else
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-            echo "    FOUND indexes for $version, force reindex anyway"        
+            echo "    FOUND indexes for $term $version, force reindex anyway"        
 
             # Remove if this already exists
             version=`echo $cv | perl -pe 's/.*_//;'`
-            echo "    Remove indexes for ncit $version"
+            echo "    Remove indexes for $term $version"
             DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-            $DIR/remove.sh ncit $version > /tmp/x.$$ 2>&1
+            $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
             if [[ $? -ne 0 ]]; then
                 cat /tmp/x.$$ | sed 's/^/    /'
-                echo "ERROR: removing ncit $version indexes"
+                echo "ERROR: removing $term $version indexes"
                 exit 1
             fi
         fi
@@ -220,18 +256,18 @@ for x in `cat /tmp/y.$$.txt`; do
         # Run reindexing process (choose a port other than the one that it runs on)
         export STARDOG_DB=$db
         export EVS_SERVER_PORT="8083"
-        echo "    Generate indexes for $STARDOG_DB $version"
+        echo "    Generate indexes for $STARDOG_DB ${term} $version"
 
-        echo "java $local -Xmx4096M -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-        java $local -Xmx4096M -jar $jar --terminology ncit_$version --realTime --forceDeleteIndex
+        echo "java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
         fi
 
         # Set the indexes to have a larger max_result_window
-        echo "    Set max result window to 150000 for concept_ncit_$cv"
-        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_ncit_$cv/_settings" \
+        echo "    Set max result window to 150000 for concept_${term}_$cv"
+        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
              -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error setting max_result_window"
@@ -239,21 +275,11 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
     fi
-
+    
     # track previous version, if next one is the same, don't index again.
     pv=$cv
+    pt=$term
 done
-
-# Stale indexes are automatically cleaned up by the indexing process
-# It checks against stardog and reconciles everything and updates latest flags
-# regardless of whether there was new data
-echo "  Reconcile stale indexes and update flags"
-echo "    java $local -jar $jar --terminology ncit --skipConcepts --skipMetadata"
-java $local -jar $jar --terminology ncit --skipConcepts --skipMetadata
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building indexes"
-    exit 1
-fi
 
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$

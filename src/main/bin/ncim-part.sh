@@ -3,11 +3,13 @@
 config=1
 download=0
 rm=1
+help=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --download) download=1;;
   --terminology) terminology="$2"; shift;;
   --keep) rm=0;;
+  --help) help=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
@@ -17,7 +19,7 @@ if [ ${#arr[@]} -eq 1 ]; then
 elif [ ${#arr[@]} -eq 0 ] && [ $download -eq 1 ]; then
   ok=1
 fi
-if [ $ok -eq 0 ]; then
+if [ $ok -eq 0 ] || [ $help -eq 1 ]; then
   echo "Usage: $0 [--noconfig] [--download] [<dir>]"
   echo "Usage:    [--terminology <terminology, e.g. MDR>]"
   echo "  e.g. $0 /data/evs/ncim"
@@ -140,7 +142,7 @@ fi
 
 # Handle the local setup
 echo ""
-export PATH="/usr/local/jdk1.8/bin/:$PATH"
+export PATH="/usr/local/corretto-jdk11/bin/:$PATH"
 local=""
 jar="../lib/evsrestapi.jar"
 if [[ $config -eq 0 ]]; then
@@ -155,16 +157,6 @@ if [[ $terminology == "ncim" ]]; then
 else
     version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
 fi
-lcterm=`echo $terminology | perl -ne 'print lc($_);'`
-echo "  Remove indexes for $lcterm $version"
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-$DIR/remove.sh $lcterm $version > /tmp/x.$$ 2>&1
-if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$ | sed 's/^/    /'
-    echo "ERROR: removing $lcterm $version indexes"
-    exit 1
-fi
-cat /tmp/x.$$ | sed 's/^/    /'
 
 # Run reindexing process (choose a port other than the one that it runs on)
 echo "  Generate indexes"
@@ -177,12 +169,31 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "  Remove any older versions indexes"
+echo "  Remove older versions indexes ($terminology $version)"
+
+# compute maxVersions from config
+lcterm=`echo $terminology | perl -ne 'print lc($_);'`
+maxVersions=1
+curl $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} > /tmp/x.$$
+if [[ `grep -c maxVersions /tmp/x.$$` -gt 0 ]]; then
+  maxVersions=`curl $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} | perl -pe 's/.*maxVersions"\s*\:\s*(\d+),.*/$1/'`
+fi
+echo "    maxVersions = $maxVersions"
+
+# get concept indexes for this terminology and sort by version (which should sort earlier versions at the top of the file)
 curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices |\
-   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep -v $version | grep ${terminology}_ > /tmp/x.$$
-for i in `cat /tmp/x.$$`; do    
-    lv=`echo $i | perl -pe 's/.*_//;'`
-    if [[ $lv -ge $version ]]; then
+   perl -pe 's/^.* open ([^ ]+).*/$1/; s/\r//;' | grep concept | grep -i ${terminology}_ | sort > /tmp/x.$$
+ct=`cat /tmp/x.$$ | wc -l`
+ct=$(($ct - $maxVersions))
+if [[ $ct -lt 0 ]]; then
+    ct=0
+fi
+
+# Remove the top $ct versions (which may be zero)
+for i in `cat /tmp/x.$$ | head -$ct`; do
+    lv=`echo $i | perl -pe 's/.*'${terminology}'_//i;'`
+    # string compare versions
+    if [ "$lv" \> "$version" ]; then
         echo "    skip $lv - later than $version"
         continue
     fi
@@ -195,15 +206,23 @@ for i in `cat /tmp/x.$$`; do
         exit 1
     fi
 
-    # do this if it starts with "concept_"
-    if [[ $i =~ ^concept_.* ]]; then
-        curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i > /tmp/x.$$
-        if [[ $? -ne 0 ]]; then
-            cat /tmp/x.$$ | sed 's/^/    /'
-            echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
-            exit 1
-        fi
+    i2=`echo $i | perl -pe 's/concept/evs_object/;'`
+    echo "    delete $i2"
+    curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/$i2 > /tmp/x.$$
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$ | sed 's/^/    /'
+        echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/$i2"
+        exit 1
     fi
+
+    echo "    delete evs_metadata entry for $i"
+    curl -s -X DELETE $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i > /tmp/x.$$
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$ | sed 's/^/    /'
+        echo "ERROR: problem deleting $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$i"
+         exit 1
+    fi
+
 done
 
 echo "  Cleanup"

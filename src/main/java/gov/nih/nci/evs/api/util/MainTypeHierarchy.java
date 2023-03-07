@@ -19,7 +19,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.service.StardogElasticLoadServiceImpl;
+import gov.nih.nci.evs.api.service.AbstractStardogLoadServiceImpl;
 
 /**
  * Handler for the main type hierarchy CTRP extension computations.
@@ -29,7 +29,7 @@ public class MainTypeHierarchy {
 
   /** The Constant logger. */
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(StardogElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
 
   /** The sparql query manager service. */
   @Autowired
@@ -419,7 +419,7 @@ public class MainTypeHierarchy {
     }
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
-    List<Paths> paths =
+    final List<Paths> paths =
         concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
 
     // if (subtypeFlag) {

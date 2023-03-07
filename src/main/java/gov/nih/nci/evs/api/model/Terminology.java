@@ -77,6 +77,9 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   private String objectIndexName;
 
   /** The metadata. */
+  // TODO: we really should leave this off, but requires 4.1.RC 
+  // or greater (spring data elasticsearch)
+  //  @Field(type = FieldType.Object, enabled = false)
   @Field(type = FieldType.Object)
   private TerminologyMetadata metadata;
 
@@ -106,6 +109,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    * @param other the other
    */
   public void populateFrom(final Terminology other) {
+    super.populateFrom(other);
     terminology = other.getTerminology();
     version = other.getVersion();
     date = other.getDate();

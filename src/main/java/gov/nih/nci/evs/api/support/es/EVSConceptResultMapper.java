@@ -30,23 +30,25 @@ import gov.nih.nci.evs.api.model.IncludeParam;
  *
  */
 public class EVSConceptResultMapper extends BaseResultMapper implements SearchResultMapper {
-  
+
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(EVSConceptResultMapper.class);
 
   /** the object mapper **/
   private ObjectMapper mapper;
-  
+
   /** the include param **/
   private IncludeParam ip;
-  
+
   public EVSConceptResultMapper(IncludeParam ip) {
     this.ip = ip;
     this.mapper = new ObjectMapper();
   }
-  
+
   /** see superclass **/
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @SuppressWarnings({
+      "rawtypes", "unchecked"
+  })
   @Override
   public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz,
     Pageable pageable) {
@@ -77,10 +79,14 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
         applyIncludeParam(sourceMap, ip);
         concept = mapper.convertValue(sourceMap, Concept.class);
       }
-      
+
       Map<String, HighlightField> highlightMap = searchHit.getHighlightFields();
       for (String key : highlightMap.keySet()) {
         HighlightField field = highlightMap.get(key);
+        // Avoid highlights from "terminology" match
+        if (field.getName().equals("terminology")) {
+          continue;
+        }
         for (Text text : field.getFragments()) {
           String highlight = text.string();
           concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""),

@@ -35,6 +35,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The include. */
   private String include = "minimal";
 
+  /** The sort. */
+  private String sort;
+
+  /** Ascending/Descending. */
+  private Boolean ascending = null;
+
   /** The from record. */
   private Integer fromRecord = 0;
 
@@ -46,6 +52,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The property. */
   private List<String> property;
+
+  /** The value. */
+  private String value;
 
   /** The synonym source. */
   private List<String> synonymSource;
@@ -62,7 +71,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The synonym term type. */
   private List<String> synonymTermType;
 
-  /** The subset group */
+  /** The subset group. */
   private List<String> subset;
 
   /** The inverse. */
@@ -103,9 +112,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     definitionType = new ArrayList<>(other.getDefinitionType());
     fromRecord = other.getFromRecord();
     include = other.getInclude();
+    sort = other.getSort();
+    ascending = other.getAscending();
     // inverse = other.getInverse();
     pageSize = other.getPageSize();
     property = new ArrayList<>(other.getProperty());
+    value = other.getValue();
+
     // role = new ArrayList<>(other.getRole());
     synonymSource = new ArrayList<>(other.getSynonymSource());
     synonymType = new ArrayList<>(other.getSynonymType());
@@ -167,6 +180,42 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void setInclude(final String include) {
     this.include = include;
+  }
+
+  /**
+   * Returns the sort by.
+   *
+   * @return the sort
+   */
+  public String getSort() {
+    return sort;
+  }
+
+  /**
+   * Sets the sort by.
+   *
+   * @param sort the sort to set
+   */
+  public void setSort(final String sort) {
+    this.sort = sort;
+  }
+
+  /**
+   * Returns the ascending.
+   *
+   * @return the ascending
+   */
+  public Boolean getAscending() {
+    return ascending;
+  }
+
+  /**
+   * Sets the ascending.
+   *
+   * @param aescending the ascending
+   */
+  public void setAscending(final Boolean aescending) {
+    this.ascending = aescending;
   }
 
   /**
@@ -245,6 +294,24 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void setProperty(final List<String> property) {
     this.property = property;
+  }
+
+  /**
+   * Returns the value.
+   *
+   * @return the value
+   */
+  public String getValue() {
+    return value;
+  }
+
+  /**
+   * Sets the value.
+   *
+   * @param value the value
+   */
+  public void setValue(final String value) {
+    this.value = value;
   }
 
   /**
@@ -423,7 +490,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
-   * @param the to set
+   * Sets the subset.
+   *
+   * @param subset the subset
    */
   public void setSubset(List<String> subset) {
     this.subset = subset;
@@ -507,12 +576,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
-    if (pageSize < 1) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
-    }
-
-    if (pageSize > 1000) {
+    if ((pageSize < 1) || (pageSize > 1000)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
     }
@@ -574,9 +638,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
     result = prime * result + ((fromRecord == null) ? 0 : fromRecord.hashCode());
     result = prime * result + ((include == null) ? 0 : include.hashCode());
+    result = prime * result + ((sort == null) ? 0 : sort.hashCode());
+    result = prime * result + ((ascending == null) ? 0 : ascending.hashCode());
     // result = prime * result + ((inverse == null) ? 0 : inverse.hashCode());
     result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
     result = prime * result + ((property == null) ? 0 : property.hashCode());
+    result = prime * result + ((value == null) ? 0 : value.hashCode());
     // result = prime * result + ((role == null) ? 0 : role.hashCode());
     result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
     result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
@@ -598,10 +665,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     if (this == obj) {
       return true;
     }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
+    if ((obj == null) || (getClass() != obj.getClass())) {
       return false;
     }
     final SearchCriteriaWithoutTerminology other = (SearchCriteriaWithoutTerminology) obj;
@@ -640,6 +704,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     } else if (!include.equals(other.include)) {
       return false;
     }
+    if (sort == null) {
+      if (other.sort != null) {
+        return false;
+      }
+    } else if (!sort.equals(other.sort)) {
+      return false;
+    }
+    if (ascending == null) {
+      if (other.ascending != null) {
+        return false;
+      }
+    } else if (!ascending.equals(other.ascending)) {
+      return false;
+    }
     // if (inverse == null) {
     // if (other.inverse != null) {
     // return false;
@@ -659,6 +737,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!property.equals(other.property)) {
+      return false;
+    }
+    if (value == null) {
+      if (other.value != null) {
+        return false;
+      }
+    } else if (!value.equals(other.value)) {
       return false;
     }
     // if (role == null) {

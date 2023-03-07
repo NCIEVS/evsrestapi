@@ -6,8 +6,6 @@ import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.base.Predicates;
-
 import gov.nih.nci.evs.api.controller.VersionController;
 import gov.nih.nci.evs.api.support.ApplicationVersion;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -53,8 +51,7 @@ public class SwaggerConfiguration {
    */
   ApiInfo apiInfo() throws IOException {
     final ApplicationVersion data = new VersionController().getApplicationVersion();
-    return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("")
-        .licenseUrl("")
+    return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("").licenseUrl("")
         .termsOfServiceUrl("https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm")
         .version(data.getVersion()).contact(new Contact("", "", "")).build();
   }

@@ -235,6 +235,11 @@ public class Concept extends ConceptMinimal {
     }
   }
 
+  /**
+   * Populate from.
+   *
+   * @param other the other
+   */
   public void populateFrom(final Concept other) {
     populateFrom(other, false);
   }
@@ -243,23 +248,25 @@ public class Concept extends ConceptMinimal {
    * Populate from.
    *
    * @param other the other
-   * @param noChildren the no children - used for subsets retrieval
+   * @param subsetFlag the no children - used for subsets retrieval
    */
-  public void populateFrom(final Concept other, final boolean noChildren) {
+  public void populateFrom(final Concept other, final boolean subsetFlag) {
     super.populateFrom(other);
     highlight = other.getHighlight();
     highlights = new HashMap<>(other.getHighlights());
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
     normName = other.getNormName();
-    subsetLink = other.getSubsetLink();
+    if (!subsetFlag) {
+      subsetLink = other.getSubsetLink();
+    }
     conceptStatus = other.getConceptStatus();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
     properties = new ArrayList<>(other.getProperties());
     qualifiers = new ArrayList<>(other.getQualifiers());
     source = other.getSource();
-    if (!noChildren) {
+    if (!subsetFlag) {
       children = new ArrayList<>(other.getChildren());
     }
     parents = new ArrayList<>(other.getParents());

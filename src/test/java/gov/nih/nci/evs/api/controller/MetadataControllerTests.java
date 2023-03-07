@@ -153,6 +153,120 @@ public class MetadataControllerTests {
   }
 
   /**
+   * Test get terminology metadata.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetTerminologyMetadata() throws Exception {
+
+    // Test NCIt
+    String url = baseUrl + "/terminologies?terminology=ncit&tag=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    List<Terminology> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+    Terminology term = list.get(0);
+    assertThat(term.getMetadata()).isNotNull();
+    // term types are no longer returned with the terminology metadata
+    // these are retrievable from the /termTypes metdata endpoint
+    // assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(10);
+
+    // Test NCIm
+    url = baseUrl + "/terminologies?terminology=ncim&latest=true";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    term = list.get(0);
+    assertThat(term.getMetadata()).isNotNull();
+    // term types are no longer returned with the terminology metadata
+    // these are retrievable from the /termTypes metdata endpoint
+    // assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(10);
+
+    // Test mdr
+    url = baseUrl + "/terminologies?terminology=mdr&latest=true";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    term = list.get(0);
+    assertThat(term.getMetadata()).isNotNull();
+    // term types are no longer returned with the terminology metadata
+    // these are retrievable from the /termTypes metdata endpoint
+    // assertThat(term.getMetadata().getTermTypes().size()).isGreaterThan(5);
+
+  }
+
+  /**
+   * Test get hierarchy flag.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetHierarchy() throws Exception {
+
+    String url = baseUrl + "/terminologies?terminology=ncit&tag=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    List<Terminology> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        });
+
+    for (Terminology term : list) {
+      assertThat(term.getMetadata().getHierarchy() == true);
+    }
+
+    url = baseUrl + "/terminologies?terminology=ncim";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+
+    for (Terminology term : list) {
+      assertThat(term.getMetadata().getHierarchy() == null);
+    }
+
+    url = baseUrl + "/terminologies?terminology=mdr";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
+
+    for (Terminology term : list) {
+      assertThat(term.getMetadata().getHierarchy() == true);
+    }
+  }
+
+  /**
    * Test get associations.
    *
    * @throws Exception the exception
@@ -1131,6 +1245,14 @@ public class MetadataControllerTests {
     // check that no subsetLink (no valid download)
     assertThat(list.getSubsetLink() == null);
 
+    // This value is specifically set in the unit test data via P374
+    url = baseUrl + "/ncit/subset/C100110";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, Concept.class);
+    // make sure there is a valid and correct subset link
+    assertThat(list.getSubsetLink() != null && list.getSubsetLink().equals("CDISC/SDTM/"));
+
     url = baseUrl + "/ncit/subset/C116977";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1174,109 +1296,125 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 4).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(7);
 
     result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc.perform(get(url).param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc.perform(get(url).param("tag", "weekly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("latest", "true"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 2).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("latest", "false"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualByComparingTo(0);
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("tag", "monthly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc.perform(get(url).param("latest", "true").param("tag", "monthly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc.perform(get(url).param("latest", "true").param("tag", "weekly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc.perform(get(url).param("latest", "false").param("tag", "monthly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc.perform(get(url).param("latest", "false").param("tag", "weekly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc.perform(get(url).param("terminology", "ncim").param("latest", "true"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc.perform(get(url).param("terminology", "ncim").param("latest", "false"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc.perform(get(url).param("terminology", "ncim").param("tag", "monthly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc.perform(get(url).param("terminology", "ncim").param("tag", "weekly"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc
         .perform(
@@ -1285,7 +1423,8 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc
         .perform(
@@ -1294,7 +1433,8 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 1).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result = mvc
         .perform(
@@ -1303,7 +1443,8 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc
         .perform(
@@ -1312,7 +1453,8 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc
         .perform(
@@ -1321,7 +1463,8 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc
         .perform(
@@ -1330,7 +1473,8 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc
         .perform(
@@ -1339,7 +1483,8 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc
         .perform(
@@ -1348,13 +1493,15 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 0).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(0);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
-    assertThat(terminologies != null && terminologies.size() == 4).isTrue();
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(7);
 
   }
 

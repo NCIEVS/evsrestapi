@@ -37,10 +37,10 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class NCIMControllerTests {
+public class NcimControllerTests {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(NCIMControllerTests.class);
+  private static final Logger log = LoggerFactory.getLogger(NcimControllerTests.class);
 
   /** The mvc. */
   @Autowired
@@ -68,7 +68,7 @@ public class NCIMControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
-    // baseUrlMetadata = "/api/v1/metadata";
+
   }
 
   /**
@@ -98,7 +98,7 @@ public class NCIMControllerTests {
     final Terminology ncim =
         terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).findFirst().get();
     assertThat(ncim.getTerminology()).isEqualTo("ncim");
-    assertThat(ncim.getName()).isEqualTo("NCIMTH");
+    assertThat(ncim.getName()).isEqualTo("NCI Metathesaurus 202102");
     assertThat(ncim.getMetadata().getUiLabel()).isEqualTo("NCI Metathesaurus");
     assertThat(ncim.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(ncim.getMetadata().getSourceCt()).isGreaterThan(1);
@@ -693,6 +693,33 @@ public class NCIMControllerTests {
     assertThat(list.size()).isGreaterThan(30);
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("AB");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
+
+  }
+
+  /**
+   * Test qualifier values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testQualifierValues() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<String> list = null;
+
+    // NCIM qualifier values
+    url = "/api/v1/metadata/ncim/qualifier/SMQ_TERM_CAT/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
 
   }
 

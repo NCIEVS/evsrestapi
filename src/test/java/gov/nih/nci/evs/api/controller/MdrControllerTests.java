@@ -37,10 +37,10 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class MDRControllerTests {
+public class MdrControllerTests {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(MDRControllerTests.class);
+  private static final Logger log = LoggerFactory.getLogger(MdrControllerTests.class);
 
   /** The mvc. */
   @Autowired
@@ -98,12 +98,12 @@ public class MDRControllerTests {
     final Terminology mdr =
         terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
-    assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA");
+    assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities");
+    assertThat(mdr.getName()).isEqualTo("MedDRA 23_1");
+    assertThat(mdr.getDescription()).isNotEmpty();
     assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
     assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
-    assertThat(mdr.getName())
-        .isEqualTo("Medical Dictionary for Regulatory Activities Terminology (MedDRA), 23_1");
     assertThat(mdr.getDescription()).isEqualTo(";;MedDRA MSSO;;MedDRA [electronic resource]"
         + " : Medical Dictionary for Regulatory Activities Terminology;;;"
         + "Version 23.1;;MedDRA MSSO;;September, 2020;;;;MedDRA "
@@ -210,15 +210,19 @@ public class MDRControllerTests {
             .findFirst().get().getQualifiers().get(0).getValue().equals("classified_as"));
 
     assertThat(concept.getChildren().size()).isEqualTo(8);
+    // single source children don't have terminology/version
     assertThat(concept.getChildren().get(0).getTerminology()).isNull();
     assertThat(concept.getChildren().get(0).getVersion()).isNull();
+    // child "leaf" is computed - matching ncit.
     assertThat(concept.getChildren().get(0).getLeaf()).isNotNull();
     assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10048498");
 
     assertThat(concept.getParents().size()).isEqualTo(1);
+    // single source children don't have terminology/version
     assertThat(concept.getParents().get(0).getTerminology()).isNull();
     assertThat(concept.getParents().get(0).getVersion()).isNull();
+    // parent "leaf" is null because it's known to be true already
     assertThat(concept.getParents().get(0).getLeaf()).isNull();
     assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("10053567");
@@ -309,8 +313,9 @@ public class MDRControllerTests {
     log.info("Testing url - " + url
         + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Hepatitis, non-infectious (SMQ)&type=contains");
     result = mvc
-        .perform(get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-            .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+        .perform(
+            get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
+                .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
 
@@ -318,11 +323,12 @@ public class MDRControllerTests {
     log.info("Testing url - " + url
         + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Hepatitis, non-infectious (SMQ)&type=match");
     result = mvc
-        .perform(get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-            .param("pageSize", "100").param("type", "match").param("include", "synonyms"))
+        .perform(
+            get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
+                .param("pageSize", "100").param("type", "match").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
-}
+  }
 
   /**
    * Test mdr metadata.
@@ -497,6 +503,33 @@ public class MDRControllerTests {
     assertThat(list.size()).isEqualTo(10);
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("LLT");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
+
+  }
+
+  /**
+   * Test qualifier values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testQualifierValues() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<String> list = null;
+
+    // NCIM qualifier values
+    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_CAT/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
 
   }
 

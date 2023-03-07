@@ -1,0 +1,4 @@
+# Sample concepts to include in report
+gene_with_protein_product
+HGNC:10218
+HGCN:54003

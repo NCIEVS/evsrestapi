@@ -24,7 +24,6 @@ repositories {
     mavenCentral()
 }
 
-
 ext['log4j2.version'] = '2.17.1'
 
 apply plugin: 'java'
@@ -42,10 +41,10 @@ apply plugin: 'maven-publish'
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "1.6.1.RELEASE"
+version = "1.7.0.RELEASE"
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 springBoot {
     // generate file META-INF/build-info.properties during the build

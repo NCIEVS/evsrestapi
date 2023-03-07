@@ -22,16 +22,19 @@ public class ElasticConfiguration {
   @Autowired
   Environment env;
 
+  @SuppressWarnings("deprecation")
   @Bean
   RestHighLevelClient client() {
     String esHost = env.getProperty("nci.evs.elasticsearch.server.host");
     int esPort = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.server.port"));
     String esScheme = env.getProperty("nci.evs.elasticsearch.server.scheme");
     int timeout = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.timeout"));
-    logger.info(String.format("Configuring es client for host %s", esHost));
-    return new RestHighLevelClient(
-        RestClient.builder(new HttpHost(esHost, esPort, esScheme)).setRequestConfigCallback(
-            builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
+    logger.info(String.format("Configuring es client for host %s %s %s", esHost, esPort, timeout));
+    return new RestHighLevelClient(RestClient.builder(new HttpHost(esHost, esPort, esScheme))
+        .setRequestConfigCallback(
+            builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout))
+        // Deprecated but indicated to work by stack overflow
+        .setMaxRetryTimeoutMillis(timeout));
 
     // ClientConfiguration clientConfiguration =
     // ClientConfiguration.builder().connectedTo(esHost)..build();

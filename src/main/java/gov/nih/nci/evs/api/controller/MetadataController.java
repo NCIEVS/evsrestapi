@@ -56,6 +56,9 @@ public class MetadataController extends BaseController {
   /**
    * Returns the terminologies.
    *
+   * @param latest the latest
+   * @param tag the tag
+   * @param terminology the terminology
    * @return the terminologies
    * @throws Exception the exception
    */
@@ -67,20 +70,25 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "latest", value = "Return terminologies with matching <i>latest</i> value. e.g. true or false",
-          required = false, dataTypeClass = Boolean.class, paramType = "query", defaultValue = "true"),
-      @ApiImplicitParam(name = "tag", value = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
+      @ApiImplicitParam(name = "latest",
+          value = "Return terminologies with matching <i>latest</i> value. e.g. true or false",
+          required = false, dataTypeClass = Boolean.class, paramType = "query",
+          defaultValue = "true"),
+      @ApiImplicitParam(name = "tag",
+          value = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
           required = false, dataTypeClass = String.class, paramType = "query"),
-      @ApiImplicitParam(name = "terminology", value = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'", required = false,
-          dataTypeClass = String.class, paramType = "query")
+      @ApiImplicitParam(name = "terminology",
+          value = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'",
+          required = false, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
       produces = "application/json")
-  public @ResponseBody List<Terminology> getTerminologies(@RequestParam("latest")
-  final Optional<Boolean> latest, @RequestParam("tag")
-  final Optional<String> tag, @RequestParam("terminology")
-  final Optional<String> terminology) throws Exception {
+  public @ResponseBody List<Terminology> getTerminologies(
+    @RequestParam(required = false, name = "latest")
+    final Optional<Boolean> latest, @RequestParam(required = false, name = "tag")
+    final Optional<String> tag, @RequestParam(required = false, name = "terminology")
+    final Optional<String> terminology) throws Exception {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
       List<Terminology> terms = termUtils.getTerminologies(true);
@@ -101,15 +109,18 @@ public class MetadataController extends BaseController {
       }
 
       for (Terminology term : terms) {
-        TerminologyMetadata meta = term.getMetadata();
+        final TerminologyMetadata meta = term.getMetadata();
         // Some terminologies may not have metadata
         if (meta != null) {
+          meta.setMonthlyDb(null);
           meta.setSources(null);
           meta.setTermTypes(null);
           meta.setSourcesToRemove(null);
           meta.setUnpublished(null);
           meta.setSubsetPrefix(null);
-          meta.setSubsetLinks(null);
+          meta.setConceptStatus(null);
+          meta.setDefinitionSourceSet(null);
+          meta.setWelcomeText(null);
         }
       }
 
@@ -148,15 +159,16 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return associations for (or leave blank for all). If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   public @ResponseBody List<Concept> getAssociations(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getAssociations(terminology, include, list);
@@ -196,14 +208,15 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/association/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getAssociation(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
 
@@ -253,15 +266,16 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return roles for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   public @ResponseBody List<Concept> getRoles(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getRoles(terminology, include, list);
@@ -301,14 +315,15 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrName}",
       produces = "application/json")
   public @ResponseBody Concept getRole(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       // If the code contains a comma, just bail
@@ -355,15 +370,16 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return properties for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   public @ResponseBody List<Concept> getProperties(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
 
     try {
@@ -403,15 +419,16 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return subsets for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   public @ResponseBody List<Concept> getSubsets(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getSubsets(terminology, include, list);
@@ -449,7 +466,8 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return qualifiers for (or leave blank for all)",
           required = false, dataTypeClass = String.class, paramType = "query")
@@ -457,8 +475,8 @@ public class MetadataController extends BaseController {
   })
   @RecordMetric
   public @ResponseBody List<Concept> getQualifiers(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
       return metadataService.getQualifiers(terminology, include, list);
@@ -498,14 +516,15 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/qualifier/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getQualifier(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -557,6 +576,36 @@ public class MetadataController extends BaseController {
   }
 
   /**
+   * Returns the welcome text.
+   *
+   * @param terminology the terminology
+   * @return the welcome text
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get welcome text for the specified terminology", response = String.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/welcomeText",
+      produces = "text/html")
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+  })
+  @RecordMetric
+  public @ResponseBody String getWelcomeText(@PathVariable(value = "terminology")
+  final String terminology) throws Exception {
+    try {
+      return metadataService.getWelcomeText(terminology);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
    * Returns the property.
    *
    * @param terminology the terminology
@@ -586,14 +635,15 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/property/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getProperty(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -630,25 +680,26 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology",
-          value = "Terminology, e.g. 'ncit'.",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code", value = "Subset code, e.g. 'C116978' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.", required = true, dataTypeClass = String.class,
-          paramType = "path"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'.", required = true,
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code",
+          value = "Subset code, e.g. 'C116978' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data tc return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subset/{code}",
       produces = "application/json")
   public @ResponseBody Concept getSubset(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       // If the code contains a comma, just bail
@@ -695,6 +746,7 @@ public class MetadataController extends BaseController {
         // this should never happen
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
       }
+
       return result.get();
     } catch (Exception e) {
       handleException(e);
@@ -841,15 +893,16 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return synonym types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   public @ResponseBody List<Concept> getSynonymTypes(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
 
     try {
@@ -860,6 +913,15 @@ public class MetadataController extends BaseController {
     }
   }
 
+  /**
+   * Returns the synonym type.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the synonym type
+   * @throws Exception the exception
+   */
   @ApiOperation(value = "Get the synonym type for the specified terminology and code/name",
       response = Concept.class)
   @ApiResponses(value = {
@@ -881,14 +943,15 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/synonymType/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getSynonymType(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {
@@ -938,15 +1001,16 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List of codes or labels to return definition types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
           required = false, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
   public @ResponseBody List<Concept> getDefinitionTypes(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam("include")
-  final Optional<String> include, @RequestParam("list")
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
 
     try {
@@ -987,14 +1051,15 @@ public class MetadataController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/definitionType/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getDefinitionType(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
-  final String code, @RequestParam("include")
+  final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
 
     try {

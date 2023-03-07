@@ -1281,6 +1281,7 @@ public class ConceptControllerTests {
     assertThat(subsetMembers.size() == 0);
   }
 
+
   /**
    * Test terminology versions
    *
@@ -1300,6 +1301,7 @@ public class ConceptControllerTests {
         }).get(0);
     String weeklyTerm = terminology.getTerminologyVersion();
     String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;
+
     result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();

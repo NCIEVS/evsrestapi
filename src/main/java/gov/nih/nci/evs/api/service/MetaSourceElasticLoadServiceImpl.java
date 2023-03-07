@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
@@ -132,7 +132,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   private Set<String> relSet = new HashSet<>();
 
   /** The qual set. */
-  private Set<String> qualSet = new HashSet<>();
+  private Map<String, Set<String>> qualMap = new HashMap<>();
 
   /** The batch size. */
   private int batchSize = 0;
@@ -419,7 +419,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
               concept.setDescendants(hierarchy.getDescendants(code));
-              concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
+              concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
               handleConcept(concept, batch, false, terminology.getIndexName());
 
               // Count number of source concepts
@@ -494,7 +494,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept = codeConceptMap.get(code);
             concept.setLeaf(concept.getChildren().size() > 0);
             concept.setDescendants(hierarchy.getDescendants(code));
-            concept.setPaths(hierarchy.getPathsMap(terminology).get(concept.getCode()));
+            concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
             handleConcept(concept, batch, true, terminology.getIndexName());
 
             // Count number of source concepts
@@ -629,7 +629,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
       // Handle RUI attributes as qualifiers on relationships
       if (fields[4].equals("RUI")) {
-        qualSet.add(atn);
+        if (!qualMap.containsKey(atn)) {
+          qualMap.put(atn, new HashSet<>());
+        }
+        qualMap.get(atn).add(atv);
+
         if (!ruiQualMap.containsKey(fields[3])) {
           ruiQualMap.put(fields[3], new HashSet<>(4));
         }
@@ -1021,11 +1025,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle hierarchy
     //
-    ElasticObject hierarchyObject = new ElasticObject("hierarchy");
-    hierarchyObject.setHierarchy(hierarchy);
-    operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
-    logger.info("  Hierarchy loaded");
+    if (terminology.getMetadata().getHierarchy() != null
+        && terminology.getMetadata().getHierarchy()) {
+      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      hierarchyObject.setHierarchy(hierarchy);
+      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+          ElasticObject.class);
+      logger.info("  Hierarchy loaded");
+    } else {
+      logger.info("  Hierarchy skipped");
+    }
 
     //
     // Handle associations
@@ -1068,7 +1077,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
     // MRSAT: property metadata for MRSAT
     // Remove ATNs that are qualifiers
-    atnSet.removeAll(qualSet);
+    atnSet.removeAll(qualMap.keySet());
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -1089,9 +1098,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     }) {
       qualifiers.getConcepts().add(buildMetadata(terminology, col, colMap.get(col)));
     }
-    for (final String qual : qualSet) {
+    for (final String qual : qualMap.keySet()) {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
+    qualifiers.setMap(qualMap);
 
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
         ElasticObject.class);
@@ -1191,7 +1201,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           // No info about the date
           term.setDate(null);
           if (line != null) {
-            term.setName(line.split("\\|", -1)[4]);
+            // term.setName(line.split("\\|", -1)[4]);
             term.setDescription(line.split("\\|", -1)[24]);
           }
           term.setGraph(null);
@@ -1206,18 +1216,26 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
       // Attempt to read the config, if anything goes wrong
       // the config file is probably not there
-      final String resource = "metadata/" + term.getTerminology() + ".json";
       try {
-        TerminologyMetadata metadata = new ObjectMapper().readValue(IOUtils
-            .toString(term.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8"),
-            TerminologyMetadata.class);
+        // Load from config
+        final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
+        final TerminologyMetadata metadata =
+            new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+
+        // Set term name and description
+        term.setName(metadata.getUiLabel() + " " + term.getVersion());
+        if (term.getDescription() == null || term.getDescription().isEmpty()) {
+          term.setDescription(node.get("description").asText());
+        }
+
         metadata.setLoader("rrf");
         metadata.setSources(sourceMap);
         metadata.setSourceCt(1);
-
+        metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
         term.setMetadata(metadata);
       } catch (Exception e) {
-        throw new Exception("Unexpected error trying to load = " + resource, e);
+        throw new Exception("Unexpected error trying to load metadata = "
+            + applicationProperties.getConfigBaseUri(), e);
       }
 
       return term;

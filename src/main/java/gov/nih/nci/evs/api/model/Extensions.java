@@ -73,6 +73,7 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
    * @param other the other
    */
   public void populateFrom(final Extensions other) {
+    super.populateFrom(other);
     isDisease = other.getIsDisease();
     isDiseaseStage = other.getIsDiseaseStage();
     isDiseaseGrade = other.getIsDiseaseGrade();

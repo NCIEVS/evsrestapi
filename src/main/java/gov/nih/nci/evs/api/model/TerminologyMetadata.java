@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -16,10 +17,14 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * from OWL structures to the terminology model.
  */
 @JsonInclude(Include.NON_EMPTY)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TerminologyMetadata extends BaseModel {
 
   /** The ui label. */
   private String uiLabel;
+
+  /** The max versions. */
+  private Integer maxVersions;
 
   /** The loader. */
   private String loader;
@@ -29,6 +34,9 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The concept status. */
   private String conceptStatus;
+
+  /** The concept statuses. */
+  private List<String> conceptStatuses;
 
   /** The retired status value. */
   private String retiredStatusValue;
@@ -81,6 +89,12 @@ public class TerminologyMetadata extends BaseModel {
   /** The sources. */
   private Map<String, String> sources;
 
+  /** The details columns. */
+  private Map<String, Boolean> detailsColumns;
+
+  /** The hierarchy flag. */
+  private Boolean hierarchy;
+
   /** The source ct. */
   @SuppressWarnings("unused")
   private int sourceCt;
@@ -94,14 +108,11 @@ public class TerminologyMetadata extends BaseModel {
   /** The term types. */
   private Map<String, String> termTypes;
 
-  /** The property names. */
-  private Map<String, String> propertyNames;
-
   /** The subset link prefix. */
   private String subsetPrefix;
 
   /** The subset links. */
-  private Map<String, String> subsetLinks;
+  private String subsetLink;
 
   /** The sources to remove. */
   private Set<String> sourcesToRemove;
@@ -127,6 +138,12 @@ public class TerminologyMetadata extends BaseModel {
   /** The preferred term types. */
   private List<String> preferredTermTypes;
 
+  /** The code label. */
+  private String codeLabel;
+
+  /** The welcome text. */
+  private String welcomeText;
+
   /**
    * Instantiates an empty {@link TerminologyMetadata}.
    */
@@ -149,10 +166,13 @@ public class TerminologyMetadata extends BaseModel {
    * @param other the other
    */
   public void populateFrom(final TerminologyMetadata other) {
+    super.populateFrom(other);
     uiLabel = other.getUiLabel();
+    maxVersions = other.getMaxVersions();
     loader = other.getLoader();
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
+    conceptStatuses = new ArrayList<>(other.getConceptStatuses());
     retiredStatusValue = other.getRetiredStatusValue();
     definitionSource = other.getDefinitionSource();
     definition = new HashSet<>(other.getDefinition());
@@ -165,7 +185,9 @@ public class TerminologyMetadata extends BaseModel {
     preferredName = other.getPreferredName();
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
+    detailsColumns = new HashMap<>(other.getDetailsColumns());
     sourceCt = sources.size();
+    hierarchy = other.getHierarchy();
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
     synonym = new HashSet<>(other.getSynonym());
     synonymCode = other.getSynonymCode();
@@ -176,8 +198,7 @@ public class TerminologyMetadata extends BaseModel {
     definitionSourceSet = new HashSet<>(other.getDefinitionSourceSet());
     synonymSourceSet = new HashSet<>(other.getSynonymSourceSet());
     termTypes = new HashMap<>(other.getTermTypes());
-    propertyNames = new HashMap<>(other.getPropertyNames());
-    subsetLinks = new HashMap<>(other.getSubsetLinks());
+    subsetLink = other.getSubsetLink();
     subsetMember = new HashSet<>(other.getSubsetMember());
     unpublished = new HashSet<>(other.getUnpublished());
     monthlyDb = other.getMonthlyDb();
@@ -185,6 +206,8 @@ public class TerminologyMetadata extends BaseModel {
     metaConceptField = other.getMetaConceptField();
     preferredTermTypes = new ArrayList<>(other.getPreferredTermTypes());
     subset = new HashSet<>(other.getSubset());
+    codeLabel = other.getCodeLabel();
+    welcomeText = other.getWelcomeText();
   }
 
   /* see superclass */
@@ -193,6 +216,7 @@ public class TerminologyMetadata extends BaseModel {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((uiLabel == null) ? 0 : uiLabel.hashCode());
+    result = prime * result + ((maxVersions == null) ? 0 : maxVersions.hashCode());
     result = prime * result + ((loader == null) ? 0 : loader.hashCode());
     result = prime * result + ((code == null) ? 0 : code.hashCode());
     result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
@@ -221,8 +245,10 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((metaConceptField == null) ? 0 : metaConceptField.hashCode());
     result = prime * result + ((preferredTermTypes == null) ? 0 : preferredTermTypes.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
-    result = prime * result + ((subsetLinks == null) ? 0 : subsetLinks.hashCode());
+    result = prime * result + ((subsetLink == null) ? 0 : subsetLink.hashCode());
     result = prime * result + ((subsetPrefix == null) ? 0 : subsetPrefix.hashCode());
+    result = prime * result + ((codeLabel == null) ? 0 : codeLabel.hashCode());
+    result = prime * result + ((welcomeText == null) ? 0 : welcomeText.hashCode());
     return result;
   }
 
@@ -240,6 +266,11 @@ public class TerminologyMetadata extends BaseModel {
       if (other.uiLabel != null)
         return false;
     } else if (!uiLabel.equals(other.uiLabel))
+      return false;
+    if (maxVersions == null) {
+      if (other.maxVersions != null)
+        return false;
+    } else if (!maxVersions.equals(other.maxVersions))
       return false;
     if (loader == null) {
       if (other.loader != null)
@@ -371,15 +402,25 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!subset.equals(other.subset))
       return false;
-    if (subsetLinks == null) {
-      if (other.subsetLinks != null)
+    if (subsetLink == null) {
+      if (other.subsetLink != null)
         return false;
-    } else if (!subsetLinks.equals(other.subsetLinks))
+    } else if (!subsetLink.equals(other.subsetLink))
       return false;
     if (subsetPrefix == null) {
       if (other.subsetPrefix != null)
         return false;
     } else if (!subsetPrefix.equals(other.subsetPrefix))
+      return false;
+    if (codeLabel == null) {
+      if (other.codeLabel != null)
+        return false;
+    } else if (!codeLabel.equals(other.codeLabel))
+      return false;
+    if (welcomeText == null) {
+      if (other.welcomeText != null)
+        return false;
+    } else if (!welcomeText.equals(other.welcomeText))
       return false;
     return true;
   }
@@ -418,6 +459,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setUiLabel(String uiLabel) {
     this.uiLabel = uiLabel;
+  }
+
+  /**
+   * Returns the max versions.
+   *
+   * @return the max versions
+   */
+  public Integer getMaxVersions() {
+    return maxVersions;
+  }
+
+  /**
+   * Sets the max versions.
+   *
+   * @param maxVersions the max versions
+   */
+  public void setMaxVersions(Integer maxVersions) {
+    this.maxVersions = maxVersions;
   }
 
   /**
@@ -472,6 +531,27 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setConceptStatus(String conceptStatus) {
     this.conceptStatus = conceptStatus;
+  }
+
+  /**
+   * Returns the concept statuses.
+   *
+   * @return the concept statuses
+   */
+  public List<String> getConceptStatuses() {
+    if (conceptStatuses == null) {
+      conceptStatuses = new ArrayList<>();
+    }
+    return conceptStatuses;
+  }
+
+  /**
+   * Sets the concept statuses.
+   *
+   * @param conceptStatuses the concept statuses
+   */
+  public void setConceptStatuses(List<String> conceptStatuses) {
+    this.conceptStatuses = conceptStatuses;
   }
 
   /**
@@ -725,9 +805,10 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the map target term group. This is a bridge to support naming convention normalization.
+   * Sets the map target term group. This is a bridge to support naming
+   * convention normalization.
    *
-   * @param mapTargetTermType the map target term group
+   * @param mapTargetTermGroup the map target term group
    */
   public void setMapTargetTermGroup(String mapTargetTermGroup) {
     this.mapTargetTermType = mapTargetTermGroup;
@@ -809,6 +890,27 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the details columns.
+   *
+   * @return the details columns
+   */
+  public Map<String, Boolean> getDetailsColumns() {
+    if (detailsColumns == null) {
+      detailsColumns = new HashMap<>();
+    }
+    return detailsColumns;
+  }
+
+  /**
+   * Sets the details columns.
+   *
+   * @param detailsColumns the details columns
+   */
+  public void setDetailsColumns(Map<String, Boolean> detailsColumns) {
+    this.detailsColumns = detailsColumns;
+  }
+
+  /**
    * Returns the definition source set.
    *
    * @return the definition source set
@@ -872,7 +974,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the term groups. This is a bridge to support naming convention normalization.
+   * Sets the term groups. This is a bridge to support naming convention
+   * normalization.
    *
    * @param termGroups the term groups
    */
@@ -881,55 +984,21 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the property names.
+   * Returns the subset link property.
    *
-   * @return the property names
+   * @return the subset link property
    */
-  public Map<String, String> getPropertyNames() {
-    if (propertyNames == null) {
-      propertyNames = new HashMap<>();
-    }
-    return propertyNames;
+  public String getSubsetLink() {
+    return subsetLink;
   }
 
   /**
-   * Sets the property names.
+   * Sets the subset link property.
    *
-   * @param propertyNames the property names
+   * @param subsetLink the subset link property
    */
-  public void setPropertyNames(Map<String, String> propertyNames) {
-    this.propertyNames = propertyNames;
-  }
-
-  /**
-   * Returns the property name.
-   *
-   * @param code the code
-   * @return the property name
-   */
-  public String getPropertyName(String code) {
-    return getPropertyNames().get(code);
-  }
-
-  /**
-   * Returns the subset links.
-   *
-   * @return the subsetLinks
-   */
-  public Map<String, String> getSubsetLinks() {
-    if (subsetLinks == null) {
-      subsetLinks = new HashMap<>();
-    }
-    return subsetLinks;
-  }
-
-  /**
-   * Sets the subset links.
-   *
-   * @param subsetLinks the subsetLinks to set
-   */
-  public void setSubsetLinks(Map<String, String> subsetLinks) {
-    this.subsetLinks = subsetLinks;
+  public void setSubsetLink(String subsetLink) {
+    this.subsetLink = subsetLink;
   }
 
   /**
@@ -1089,7 +1158,44 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the preferred term groups. This is a bridge to support naming convention normalization.
+   * Returns the code label.
+   *
+   * @return the codeLabel
+   */
+  public String getCodeLabel() {
+    return codeLabel;
+  }
+
+  /**
+   * Sets the code label.
+   *
+   * @param codeLabel the codeLabel to set
+   */
+  public void setCodeLabel(String codeLabel) {
+    this.codeLabel = codeLabel;
+  }
+
+  /**
+   * Returns the welcome text.
+   *
+   * @return the welcomeText
+   */
+  public String getWelcomeText() {
+    return welcomeText;
+  }
+
+  /**
+   * Sets the welcome text.
+   *
+   * @param welcomeText the welcomeText to set
+   */
+  public void setWelcomeText(String welcomeText) {
+    this.welcomeText = welcomeText;
+  }
+
+  /**
+   * Sets the preferred term groups. This is a bridge to support naming
+   * convention normalization.
    *
    * @param preferredTermGroups the preferred term groups
    */
@@ -1119,6 +1225,27 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the hierarchy.
+   *
+   * @return the hierarchy
+   */
+  public Boolean getHierarchy() {
+    if (hierarchy == null) {
+      hierarchy = false;
+    }
+    return hierarchy;
+  }
+
+  /**
+   * Sets the hierarchy.
+   *
+   * @param hierarchy the hierarchy to set
+   */
+  public void setHierarchy(Boolean hierarchy) {
+    this.hierarchy = hierarchy;
+  }
+
+  /**
    * Indicates whether or not property exclusion is the case.
    *
    * @param code the code
@@ -1128,7 +1255,11 @@ public class TerminologyMetadata extends BaseModel {
     // IT was requested that Maps_To remain as property metadata for NCIt
     // to accommodate report writer use cases
     // || getMap().equals(code)
-    return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code);
+    if (code == null) {
+      return false;
+    }
+    return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code)
+        || code.equals(subsetLink);
 
   }
 
@@ -1139,6 +1270,9 @@ public class TerminologyMetadata extends BaseModel {
    * @return <code>true</code> if so, <code>false</code> otherwise
    */
   public boolean isRemodeledQualifier(final String code) {
+    if (code == null) {
+      return false;
+    }
     return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
         || code.equals(synonymSubSource) || code.equals(definitionSource)
         || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
