@@ -284,7 +284,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       }
 
-      logger.info("XXX before mrrel inverse rui");
       logger.info("    ruiQualMap = " + ruiQualMap.size());
       final Map<String, String> helper = new HashMap<>();
       // Prepare parent/child relationships for getHierarchyUtils
@@ -310,7 +309,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           }
         }
       }
-      logger.info("XXX after mrrel inverse rui");
 
       // Remove any entries ruiInverseMap where the inverse RUIs do not have RUI
       // qualifiers
