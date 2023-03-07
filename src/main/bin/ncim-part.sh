@@ -118,7 +118,7 @@ if [[ $download -eq 1 ]]; then
 	fi
     
     echo "  Unpack NCI Metathesaurus"
-    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM "META/*" -x "*MRX*" > /tmp/x.$$ 2>&1
+    echo "A" | unzip $DOWNLOAD_DIR/Metathesaurus.RRF.zip -d $DOWNLOAD_DIR/NCIM > /tmp/x.$$ 2>&1
 	if [[ $? -ne 0 ]]; then
 	    cat /tmp/x.$$
 	    echo "ERROR: problem unpacking $DOWNLOAD_DIR/Metathesaurus.RRF.zip"
@@ -162,8 +162,8 @@ fi
 echo "  Generate indexes"
 # need to override this setting to make sure it's not too big
 export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
-echo "java $local -Xmx3572M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-java $local -Xmx3572M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+echo "java $local -Xmx3072M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+java $local -Xmx3072M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building indexes"
     exit 1

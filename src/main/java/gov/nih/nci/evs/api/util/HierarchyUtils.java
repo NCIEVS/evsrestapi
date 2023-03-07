@@ -1,9 +1,6 @@
 
 package gov.nih.nci.evs.api.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Transient;
@@ -87,8 +83,8 @@ public class HierarchyUtils {
   private Map<String, List<Role>> inverseRoleMap = new HashMap<>(10000);
 
   /**
-   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
-   * HierarchyUtils.
+   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work.
+   * Use a different HierarchyUtils.
    */
   @Transient
   private Map<String, Set<String>> pathsMap = new HashMap<>();
@@ -130,8 +126,8 @@ public class HierarchyUtils {
    */
   public void initialize(List<String> parentchild) {
     /*
-     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode,
-     * childLabel and Tab sepearated.
+     * The parentchild string is expected to be in the order of parentCode,
+     * parentLabel childCode, childLabel and Tab sepearated.
      */
     for (String str : parentchild) {
       String[] values = str.trim().split("\t");
@@ -305,7 +301,8 @@ public class HierarchyUtils {
       return nodes;
     }
     for (final String code : children) {
-      final HierarchyNode node = new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
+      final HierarchyNode node =
+          new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
       getChildNodesLevel(node, maxLevel, 0);
       nodes.add(node);
     }
@@ -326,7 +323,8 @@ public class HierarchyUtils {
       return nodes;
     }
     for (final String code : parents) {
-      final HierarchyNode node = new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
+      final HierarchyNode node =
+          new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
       nodes.add(node);
     }
     nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
@@ -427,41 +425,28 @@ public class HierarchyUtils {
         && terminology.getMetadata().getHierarchy()) {
 
       // This finds paths for leaf nodes, and we need to turn into full paths
-      // for each code. Write to a file because this can be a lot of data.
+      // for each code
       final Set<String> paths = findPaths();
-      final File file = File.createTempFile("tmp", "txt");
-      logger.info("    write file = " + file.getAbsolutePath());
-      FileUtils.writeLines(file, "UTF-8", paths, "\n", false);
-      paths.clear();
-      logger.info("    start build paths map");
-      try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
-        int partCt = 0;
-        // Go from the end so we can remove entries as we work through
-        String path = null;
-        while ((path = in.readLine()) != null) {
-          final List<String> parts = Arrays.asList(path.split("\\|"));
-          for (int i = 1; i < parts.size(); i++) {
-            final String key = parts.get(i);
-            final String ptr = String.join("|", parts.subList(0, i + 1));
+      int partCt = 0;
+      for (final String path : paths) {
+        final List<String> parts = Arrays.asList(path.split("\\|"));
 
-            if (!pathsMap.containsKey(key)) {
-              // Keep set size to a minimum as most things have small numbers of
-              // paths
-              pathsMap.put(key, new HashSet<>(5));
-            }
+        for (int i = 1; i < parts.size(); i++) {
+          partCt++;
+          final String key = parts.get(i);
+          final String ptr = String.join("|", parts.subList(0, i + 1));
 
-            if (!pathsMap.get(key).contains(ptr)) {
-              partCt++;
-              pathsMap.get(key).add(ptr);
-            }
+          if (!pathsMap.containsKey(key)) {
+            pathsMap.put(key, new HashSet<>());
           }
-          if (partCt % 5000 == 0) {
-            logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+
+          if (!pathsMap.get(key).contains(ptr)) {
+            partCt++;
+            pathsMap.get(key).add(ptr);
           }
         }
-        logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
-        FileUtils.deleteQuietly(file);
       }
+      logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
     }
 
     return pathsMap;
@@ -491,7 +476,7 @@ public class HierarchyUtils {
         paths.add(path);
       } else {
         for (final String subclass : subclasses) {
-          if (path.contains("|" + subclass + "|")) {
+          if (path.contains(subclass + "|")) {
             logger.error("  unexpected cycle = " + path + ", " + subclass);
           }
           stack.push(path + "|" + subclass);
@@ -502,7 +487,7 @@ public class HierarchyUtils {
       }
     }
     logger.debug("    total paths = " + ct);
-    logger.debug("    total paths size = " + paths.stream().mapToInt(p -> p.length()).sum());
+
     return paths;
   }
 
@@ -574,15 +559,16 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public Paths getPaths(Terminology terminology, String code) throws Exception {
+
+    final Paths paths = new Paths();
     // Handle things without paths
     if (!getPathsMap(terminology).containsKey(code)) {
       return null;
     }
 
-    final Paths paths = new Paths();
-
     // Sort in code-path order
-    for (final String pathstr : getPathsMap(terminology).get(code).stream().sorted().collect(Collectors.toList())) {
+    for (final String pathstr : getPathsMap(terminology).get(code).stream().sorted()
+        .collect(Collectors.toList())) {
       final Path path = new Path();
       path.setDirection(1);
       int level = 0;
@@ -607,7 +593,8 @@ public class HierarchyUtils {
    * @return the paths map
    * @throws Exception the exception
    */
-  public Map<String, Paths> getPathsMap(Terminology terminology, List<String> codes) throws Exception {
+  public Map<String, Paths> getPathsMap(Terminology terminology, List<String> codes)
+    throws Exception {
     final Map<String, Paths> map = new HashMap<>();
     for (final String code : codes) {
       map.put(code, getPaths(terminology, code));
