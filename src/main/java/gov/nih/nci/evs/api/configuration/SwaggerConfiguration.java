@@ -41,10 +41,6 @@ public class SwaggerConfiguration {
         // PathSelectors.ant("/version/**")))
         .paths(PathSelectors.regex("/(api/v1/.*|version)")).build().apiInfo(apiInfo());
 
-        .select().apis(RequestHandlerSelectors.any())
-        .paths(PathSelectors.regex("/(api/v1/.*|version)"))
-        .build().apiInfo(apiInfo());
-
   }
 
   /**
@@ -55,8 +51,7 @@ public class SwaggerConfiguration {
    */
   ApiInfo apiInfo() throws IOException {
     final ApplicationVersion data = new VersionController().getApplicationVersion();
-    return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("")
-        .licenseUrl("")
+    return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("").licenseUrl("")
         .termsOfServiceUrl("https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm")
         .version(data.getVersion()).contact(new Contact("", "", "")).build();
   }
