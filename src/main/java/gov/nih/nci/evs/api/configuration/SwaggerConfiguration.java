@@ -36,11 +36,10 @@ public class SwaggerConfiguration {
     // http://springfox.github.io/springfox/docs/current
     return new Docket(DocumentationType.SWAGGER_2)
         // Disable default responses (e.g. 401, 403)
-        .useDefaultResponseMessages(false)
-
-        .select().apis(RequestHandlerSelectors.any())
-        .paths(PathSelectors.regex("/(api/v1/.*|version)"))
-        .build().apiInfo(apiInfo());
+        .useDefaultResponseMessages(false).select().apis(RequestHandlerSelectors.any())
+        // .paths(Predicates.or(PathSelectors.ant("/api/v1/**"),
+        // PathSelectors.ant("/version/**")))
+        .paths(PathSelectors.regex("/(api/v1/.*|version)")).build().apiInfo(apiInfo());
 
   }
 
@@ -52,8 +51,7 @@ public class SwaggerConfiguration {
    */
   ApiInfo apiInfo() throws IOException {
     final ApplicationVersion data = new VersionController().getApplicationVersion();
-    return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("")
-        .licenseUrl("")
+    return new ApiInfoBuilder().title(data.getName()).description(data.getDescription()).license("").licenseUrl("")
         .termsOfServiceUrl("https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm")
         .version(data.getVersion()).contact(new Contact("", "", "")).build();
   }

@@ -30,7 +30,10 @@ public class VisUtils {
                                                            "type_association",
                                                            "type_inverse_association"};
     public static HashMap RELATIONSHIP_LABEL_MAP;
+    String serviceUrl = null;
     String named_graph = null;
+    String username = null;
+    String password = null;
 
     static {
 		RELATIONSHIP_LABEL_MAP = new HashMap();
@@ -54,9 +57,16 @@ public class VisUtils {
 
 	}
 
-	public VisUtils(String sparql_service) {
-        this.sparql_service = sparql_service;
-        owlSPARQLUtils = new OWLSPARQLUtils(sparql_service);
+	public VisUtils(String serviceUrl, String named_graph, String username, String password) {
+        this.serviceUrl = serviceUrl;
+        this.sparql_service = serviceUrl;
+        this.username = username;
+        this.password = password;
+
+        owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+        owlSPARQLUtils.set_named_graph(named_graph);
+
+        /*
         String serviceUrl = sparql_service;
         int n = sparql_service.lastIndexOf("?");
         if (n != -1) {
@@ -64,8 +74,9 @@ public class VisUtils {
 		}
 
 		System.out.println("serviceUrl: " + serviceUrl);
+		*/
 
-		MetadataUtils metadataUtils = new MetadataUtils(serviceUrl);
+		MetadataUtils metadataUtils = new MetadataUtils(serviceUrl, username, password);
 		String codingScheme = "NCI_Thesaurus";
 		long ms = System.currentTimeMillis();
 		String version = metadataUtils.getLatestVersion(codingScheme);
@@ -134,7 +145,7 @@ public class VisUtils {
 
         String focused_node_label = "\"" + getLabel(name, code) + "\"" ;
 
-        RelationshipHelper relUtils = new RelationshipHelper(sparql_service);
+        RelationshipHelper relUtils = new RelationshipHelper(serviceUrl, named_graph, username, password);
         HashMap relMap = relUtils.getRelationshipHashMap(scheme, version, code, namespace, useNamespace);
 
 		String key = "type_superconcept";
@@ -388,7 +399,7 @@ System.out.println("useNamespace..." + useNamespace);
 
         HashMap relMap = null;
         if (hmap == null) {
-			RelationshipHelper relUtils = new RelationshipHelper(sparql_service);
+			RelationshipHelper relUtils = new RelationshipHelper(serviceUrl, named_graph, username, password);
 			relMap = relUtils.getRelationshipHashMap(scheme, version, code, namespace, useNamespace);
 	    } else {
 			relMap = hmap;

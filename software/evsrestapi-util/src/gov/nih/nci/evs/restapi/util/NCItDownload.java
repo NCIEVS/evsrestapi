@@ -62,6 +62,9 @@ import java.util.*;
 
 public class NCItDownload {
 
+    public static String NCI_THESAURUS_URI = "https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/";
+    public static String NCIT_FLAT_ZIP_FILE = "Thesaurus.FLAT.zip";
+
     public static String NCIt_URI = "https://evs.nci.nih.gov/ftp1/upload/";
     public static String NCIT_ZIP_FILE = "ThesaurusInferred_forTS.zip";
 
@@ -141,6 +144,13 @@ public class NCItDownload {
 		String currentWorkingDirectory = System.getProperty("user.dir");
         download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
         String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
+        unzip(zipFilePath, currentWorkingDirectory);
+	}
+
+    public static void downloadFlatfile() {
+		String currentWorkingDirectory = System.getProperty("user.dir");
+        download(NCI_THESAURUS_URI + NCIT_FLAT_ZIP_FILE, NCIT_FLAT_ZIP_FILE);
+        String zipFilePath = currentWorkingDirectory + "/" + NCIT_FLAT_ZIP_FILE;
         unzip(zipFilePath, currentWorkingDirectory);
 	}
 

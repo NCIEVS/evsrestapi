@@ -3,7 +3,13 @@ import gov.nih.nci.evs.restapi.bean.*;
 
 import java.io.*;
 import java.text.*;
+import java.net.*;
 import java.util.*;
+import java.nio.file.*;
+import java.nio.charset.Charset;
+import java.nio.CharBuffer;
+import java.nio.charset.CoderResult;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -198,32 +204,8 @@ public class Utils {
 		 v.add(t);
 		 saveToFile(outputfile, v);
 	 }
-/*
-	 public static void saveToFile(String outputfile, Vector v) {
-		if (outputfile.indexOf(" ") != -1) {
-			outputfile = replaceFilename(outputfile);
-		}
-		PrintWriter pw = null;
-		try {
-			pw = new PrintWriter(outputfile, "UTF-8");
-			if (v != null && v.size() > 0) {
-				for (int i=0; i<v.size(); i++) {
-					String t = (String) v.elementAt(i);
-					pw.println(t);
-				}
-		    }
-		} catch (Exception ex) {
 
-		} finally {
-			try {
-				pw.close();
-				System.out.println("Output file " + outputfile + " generated.");
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-	 }
-*/
+/*
     public static void saveToFile(String outputfile, Vector v) {
         try {
             FileOutputStream output = new FileOutputStream(outputfile);
@@ -240,7 +222,7 @@ public class Utils {
             e.getStackTrace();
         }
     }
-
+*/
 
 	public static void saveToFile(PrintWriter pw, Vector v) {
 		if (v != null && v.size() > 0) {
@@ -251,6 +233,7 @@ public class Utils {
 		}
 	}
 
+/*
 	public static Vector readFile(String datafile) {
 		Vector v = new Vector();
         try {
@@ -277,7 +260,7 @@ public class Utils {
 		return v;
 	}
 
-	/*
+
 	public static Vector readFile(String filename)
 	{
 		Vector v = new Vector();
@@ -515,6 +498,42 @@ public class Utils {
             return false;
         }
     }
+
+
+    public static Vector readFile(String filename) {
+		Vector w = new Vector();
+		try (FileInputStream fis = new FileInputStream(filename);
+			InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
+			BufferedReader reader = new BufferedReader(isr)) {
+			String str;
+			while ((str = reader.readLine()) != null) {
+				w.add(str);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return w;
+	}
+
+    public static void saveToFile(String fileName, Vector lines) {
+        java.nio.file.Path path = java.nio.file.Paths.get(fileName);
+        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+            for (int i=0; i<lines.size(); i++) {
+				String line = (String) lines.elementAt(i);
+                writer.append(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void copyFile(String filename) {
+		Vector v = readFile(filename);
+		saveToFile("copy_" + filename, v);
+	}
+
 
 	public static Table constructTable(String label, Vector heading_vec, Vector data_vec) {
         return Table.construct_table(label, heading_vec, data_vec);

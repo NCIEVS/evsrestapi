@@ -85,6 +85,9 @@ public class TermSearchUtils {
 
 	Vector restricted_codes = null;
 
+	public TermSearchUtils() {
+
+	}
 
 	public TermSearchUtils(String serviceUrl, String namedGraph) {
 		this.serviceUrl = serviceUrl;
@@ -505,6 +508,43 @@ public class TermSearchUtils {
 	public Vector findConceptsWithPropertyMatching(String property_name, String property_value) {
 		return owlSPARQLUtils.findConceptsWithPropertyMatching(this.namedGraph, property_name, property_value);
 	}
+
+	public HashMap createTermMap(Vector v, HashMap obsoleteConceptMap, boolean exclude_retired) {
+		HashMap termMap = new HashMap();
+		for (int i=1; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, "|");
+			for (int j=0; j<u.size(); j++) {
+				String label = (String) u.elementAt(0);
+				String code = (String) u.elementAt(1);
+				if (!exclude_retired) { // include every term
+					String term = (String) u.elementAt(3);
+					String term_lc = term.toLowerCase();
+					Vector w = new Vector();
+					if (termMap.containsKey(term_lc)) {
+						w = (Vector) termMap.get(term_lc);
+					}
+					if (!w.contains(line)) {
+						w.add(line);
+					}
+					termMap.put(term_lc, w);
+				} else if (!obsoleteConceptMap.containsKey(code)) { // only include active terms
+					String term = (String) u.elementAt(3);
+					String term_lc = term.toLowerCase();
+					Vector w = new Vector();
+					if (termMap.containsKey(term_lc)) {
+						w = (Vector) termMap.get(term_lc);
+					}
+					if (!w.contains(line)) {
+						w.add(line);
+					}
+					termMap.put(term_lc, w);
+				}
+			}
+		}
+		return termMap;
+	}
+
 
     public static void main(String [] args) {
 		long ms = System.currentTimeMillis();
