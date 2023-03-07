@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.configuration;
 
 import org.elasticsearch.client.RestHighLevelClient;
@@ -20,12 +21,20 @@ import org.springframework.data.elasticsearch.core.query.SearchQuery;
  */
 public class EVSElasticsearchRestTemplate extends ElasticsearchRestTemplate {
 
+  /** The Constant logger. */
   private static final Logger logger = LoggerFactory.getLogger(EVSElasticsearchRestTemplate.class);
 
+  /**
+   * Instantiates a {@link EVSElasticsearchRestTemplate} from the specified
+   * parameters.
+   *
+   * @param client the client
+   */
   public EVSElasticsearchRestTemplate(RestHighLevelClient client) {
     super(client);
   }
 
+  /* see superclass */
   @Override
   public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz,
     SearchResultMapper mapper) {
