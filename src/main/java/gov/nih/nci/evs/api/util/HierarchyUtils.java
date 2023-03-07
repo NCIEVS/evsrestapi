@@ -87,8 +87,8 @@ public class HierarchyUtils {
   private Map<String, List<Role>> inverseRoleMap = new HashMap<>(10000);
 
   /**
-   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work.
-   * Use a different HierarchyUtils.
+   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
+   * HierarchyUtils.
    */
   @Transient
   private Map<String, Set<String>> pathsMap = new HashMap<>();
@@ -130,8 +130,8 @@ public class HierarchyUtils {
    */
   public void initialize(List<String> parentchild) {
     /*
-     * The parentchild string is expected to be in the order of parentCode,
-     * parentLabel childCode, childLabel and Tab sepearated.
+     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode,
+     * childLabel and Tab sepearated.
      */
     for (String str : parentchild) {
       String[] values = str.trim().split("\t");
@@ -305,8 +305,7 @@ public class HierarchyUtils {
       return nodes;
     }
     for (final String code : children) {
-      final HierarchyNode node =
-          new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
+      final HierarchyNode node = new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
       getChildNodesLevel(node, maxLevel, 0);
       nodes.add(node);
     }
@@ -327,8 +326,7 @@ public class HierarchyUtils {
       return nodes;
     }
     for (final String code : parents) {
-      final HierarchyNode node =
-          new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
+      final HierarchyNode node = new HierarchyNode(code, code2label.get(code), parent2child.get(code) != null);
       nodes.add(node);
     }
     nodes.sort(Comparator.comparing(HierarchyNode::getLabel));
@@ -432,7 +430,7 @@ public class HierarchyUtils {
       // for each code. Write to a file because this can be a lot of data.
       final Set<String> paths = findPaths();
       final File file = File.createTempFile("tmp", "txt");
-      logger.info("    write file");
+      logger.info("    write file = " + file.getAbsolutePath());
       FileUtils.writeLines(file, "UTF-8", paths, "\n", false);
       paths.clear();
       logger.info("    start build paths map");
@@ -443,7 +441,6 @@ public class HierarchyUtils {
         while ((path = in.readLine()) != null) {
           final List<String> parts = Arrays.asList(path.split("\\|"));
           for (int i = 1; i < parts.size(); i++) {
-            partCt++;
             final String key = parts.get(i);
             final String ptr = String.join("|", parts.subList(0, i + 1));
 
@@ -457,6 +454,9 @@ public class HierarchyUtils {
               partCt++;
               pathsMap.get(key).add(ptr);
             }
+          }
+          if (partCt % 5000 == 0) {
+            logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
           }
         }
         logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
@@ -502,7 +502,7 @@ public class HierarchyUtils {
       }
     }
     logger.debug("    total paths = " + ct);
-
+    logger.debug("    total paths size = " + paths.stream().mapToInt(p -> p.length()).sum());
     return paths;
   }
 
@@ -582,8 +582,7 @@ public class HierarchyUtils {
     final Paths paths = new Paths();
 
     // Sort in code-path order
-    for (final String pathstr : getPathsMap(terminology).get(code).stream().sorted()
-        .collect(Collectors.toList())) {
+    for (final String pathstr : getPathsMap(terminology).get(code).stream().sorted().collect(Collectors.toList())) {
       final Path path = new Path();
       path.setDirection(1);
       int level = 0;
@@ -608,8 +607,7 @@ public class HierarchyUtils {
    * @return the paths map
    * @throws Exception the exception
    */
-  public Map<String, Paths> getPathsMap(Terminology terminology, List<String> codes)
-    throws Exception {
+  public Map<String, Paths> getPathsMap(Terminology terminology, List<String> codes) throws Exception {
     final Map<String, Paths> map = new HashMap<>();
     for (final String code : codes) {
       map.put(code, getPaths(terminology, code));
