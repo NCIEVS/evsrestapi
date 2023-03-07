@@ -1,2 +1,0 @@
-# Sample concept for synonym qualifier (CASE_SIGNIFICANCE_ID, TYPE_ID)
-130090009

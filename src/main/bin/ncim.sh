@@ -27,17 +27,12 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# add this in when ready SNOMEDCT_US
-for t in MDR ICD10CM ICD9CM LNC; do
-
-    # Keep the NCIM folder around while we run
-    echo "Load $t (from downloaded data)"
-    $DIR/ncim-part.sh ./NCIM/META --keep --terminology $t | sed 's/^/    /'
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: loading $t"
-        exit 1
-    fi
-done
+echo "Load MDR (from downloaded data)"
+$DIR/ncim-part.sh ./NCIM/META --terminology MDR | sed 's/^/    /'
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: loading ncim"
+    exit 1
+fi
 
 echo "Cleanup"
 /bin/rm -rf ./NCIM
