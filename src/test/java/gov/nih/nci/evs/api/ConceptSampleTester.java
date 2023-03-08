@@ -975,7 +975,8 @@ public class ConceptSampleTester {
         assertThat(list.getTotal() > 0);
         for (Concept conc : list.getConcepts()) {
             assertThat(conc.getName().equals(testName)
-                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().equals(testName)));
+                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().equals(testName))
+                    || conc.getDefinitions().stream().anyMatch(o -> o.getDefinition().toLowerCase().equals(testName)));
         }
 
         url = "/api/v1/concept/search?include=minimal&type=startsWith&terminology="
@@ -987,7 +988,9 @@ public class ConceptSampleTester {
         assertThat(list.getTotal() > 0);
         for (Concept conc : list.getConcepts()) {
             assertThat(conc.getName().startsWith(testName)
-                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().startsWith(testName)));
+                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().startsWith(testName))
+                    || conc.getDefinitions().stream()
+                            .anyMatch(o -> o.getDefinition().toLowerCase().startsWith(testName)));
         }
 
         url = "/api/v1/concept/search?include=minimal&type=phrase&terminology="
@@ -998,7 +1001,10 @@ public class ConceptSampleTester {
         list = new ObjectMapper().readValue(content, ConceptResultList.class);
         assertThat(list.getTotal() > 0);
         for (Concept conc : list.getConcepts()) {
-
+            assertThat(conc.getName().startsWith(testName)
+                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().contains(testName))
+                    || conc.getDefinitions().stream()
+                            .anyMatch(o -> o.getDefinition().toLowerCase().contains(testName)));
         }
 
         url = "/api/v1/concept/search?include=minimal&type=AND&terminology="
