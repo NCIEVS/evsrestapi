@@ -110,7 +110,7 @@ public class SampleTest {
      * @throws Exception
      */
     @Test
-    public void testSearch() {
+    public void testSearch() throws Exception {
         conceptSampleTester.performSearchTests(terminology, samples, mvc);
     }
 
@@ -120,7 +120,7 @@ public class SampleTest {
      * @throws Exception
      */
     @Test
-    public void testSubsets() {
+    public void testSubsets() throws Exception {
         conceptSampleTester.performSearchTests(terminology, samples, mvc);
     }
 
