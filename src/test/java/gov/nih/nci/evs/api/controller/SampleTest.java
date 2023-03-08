@@ -114,17 +114,19 @@ public class SampleTest {
 
     /**
      * Test subsets.
+     * 
+     * @throws Exception
      */
     @Test
-    public void testSubsets() {
-        conceptSampleTester.performSearchTests(terminology, samples, mvc);
+    public void testSubsets() throws Exception {
+        conceptSampleTester.performSubsetTests(terminology, samples, mvc);
     }
 
     /**
      * Test association entries.
      */
     @Test
-    public void testAssociationEntries() {
+    public void testAssociationEntries() throws Exception {
         conceptSampleTester.performAssociationEntryTests(terminology, samples, mvc);
     }
 
