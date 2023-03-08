@@ -260,7 +260,7 @@ public class EVSRESTAPIClient {
 			Vector codes = new Vector();
 			List inverseAssociations = conceptDetails.getInverseAssociations();
 			for (int i=0; i<inverseAssociations.size(); i++) {
-				InverseAssociation inverseAssociation = (InverseAssociation) inverseAssociations.get(i);
+				gov.nih.nci.evs.restapi.model.InverseAssociation inverseAssociation = (InverseAssociation) inverseAssociations.get(i);
 				codes.add(inverseAssociation.getRelatedCode());
 			}
 			vs = new ValueSet(conceptDetails.getCode(),
@@ -295,7 +295,7 @@ public class EVSRESTAPIClient {
 	}
 
 	public static String getConceptDetailsInJSON(String terminology, String code) {
-		ConceptDetails cd = getConceptDetails(terminology, code);
+		gov.nih.nci.evs.restapi.model.ConceptDetails cd = getConceptDetails(terminology, code);
 		return flattenJSON(cd.toJson());
 	}
 
@@ -468,7 +468,7 @@ public class EVSRESTAPIClient {
             //System.out.println(c.toJson());
             String flattened_json = flattenJSON(json);
             System.out.println(flattened_json);
-            gov.nih.nci.evs.restapi.model.ConceptDetails c2 = (ConceptDetails) deserialize("ConceptDetails", flattened_json);
+            gov.nih.nci.evs.restapi.model.ConceptDetails c2 = (gov.nih.nci.evs.restapi.model.ConceptDetails) deserialize("ConceptDetails", flattened_json);
             System.out.println(c2.toJson());
 
 		} catch (Exception ex) {

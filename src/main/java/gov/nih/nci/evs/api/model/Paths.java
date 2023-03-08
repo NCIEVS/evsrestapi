@@ -127,22 +127,22 @@ public class Paths extends BaseModel {
    */
   public List<Path> getPathsWithAncestors(final Set<String> ancestors) {
     // Return filtered paths that contain a reference to specified code
-    return getPaths().stream().filter(p -> p.getConcepts().stream()
-        .filter(c -> ancestors.contains(c.getCode())).findFirst().orElse(null) != null)
+    return getPaths().stream()
+        .filter(
+            p -> p.getConcepts().stream().filter(c -> ancestors.contains(c.getCode())).findFirst().orElse(null) != null)
         .collect(Collectors.toList());
   }
 
   /**
-   * Rewrite paths for ancestor. This method is for the CTRP "main menu
-   * ancestors" computation.
+   * Rewrite paths for ancestor. This method is for the CTRP "main menu ancestors" computation.
    *
    * @param mainTypeHierarchy the main type hierarchy
    * @param mainTypeSet the ancestors
    * @param broadCategorySet the broad category set
    * @return the list
    */
-  public List<Paths> rewritePaths(final Map<String, Paths> mainTypeHierarchy,
-    final Set<String> mainTypeSet, final Set<String> broadCategorySet) {
+  public List<Paths> rewritePaths(final Map<String, Paths> mainTypeHierarchy, final Set<String> mainTypeSet,
+    final Set<String> broadCategorySet) {
 
     final Set<String> combined = Sets.union(mainTypeSet, broadCategorySet);
     final Map<String, Paths> map = new HashMap<>();
@@ -188,9 +188,8 @@ public class Paths extends BaseModel {
     // C2991) and concepts belonging to the broad category.
     long longestLength = -1;
     final List<Path> longestPathsRewritten = new ArrayList<>();
-    for (final Path path : getPaths()
-        .stream().filter(p -> p.getConcepts().stream()
-            .filter(c -> broadCategorySet.contains(c.getCode())).count() > 0)
+    for (final Path path : getPaths().stream()
+        .filter(p -> p.getConcepts().stream().filter(c -> broadCategorySet.contains(c.getCode())).count() > 0)
         .collect(Collectors.toList())) {
 
       // logger.info(" path = "
@@ -199,15 +198,15 @@ public class Paths extends BaseModel {
 
       // If there are paths through main type concepts, skip paths that don't
       // have them
-      if (mtFlag && path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode()))
-          .findFirst().orElse(null) == null) {
+      if (mtFlag && path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode())).findFirst()
+          .orElse(null) == null) {
         // logger.info(" SKIP mtFlag ");
         continue;
       }
 
       // Find the first main menu ancestor concept
-      final String mma = path.getConcepts().stream().filter(c -> combined.contains(c.getCode()))
-          .findFirst().get().getCode();
+      final String mma =
+          path.getConcepts().stream().filter(c -> combined.contains(c.getCode())).findFirst().get().getCode();
 
       // if mma is an ancestor of another main type concept that's in one of the
       // candidate paths, then skip it
@@ -243,8 +242,8 @@ public class Paths extends BaseModel {
     rewritePaths.getPaths().addAll(longestPathsRewritten);
 
     // For each main menu ancestor, get the corresponding paths
-    for (final String mma : rewritePaths.getPaths().stream()
-        .map(p -> p.getConcepts().get(0).getCode()).collect(Collectors.toSet())) {
+    for (final String mma : rewritePaths.getPaths().stream().map(p -> p.getConcepts().get(0).getCode())
+        .collect(Collectors.toSet())) {
 
       // Proceed if the main type hierarchy has an entry for mma
       // An example of a mma that does not is: C173902 "CTRP Disease Finding"
@@ -254,10 +253,8 @@ public class Paths extends BaseModel {
     }
 
     // Sort paths by name of first concept
-    final List<Paths> sortedPaths = map.values().stream()
-        .sorted((a, b) -> a.getPaths().get(0).getConcepts().get(0).getCode()
-            .compareTo(b.getPaths().get(0).getConcepts().get(0).getCode()))
-        .collect(Collectors.toList());
+    final List<Paths> sortedPaths = map.values().stream().sorted((a, b) -> a.getPaths().get(0).getConcepts().get(0)
+        .getCode().compareTo(b.getPaths().get(0).getConcepts().get(0).getCode())).collect(Collectors.toList());
 
     return sortedPaths;
   }

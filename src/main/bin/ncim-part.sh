@@ -151,32 +151,45 @@ if [[ $config -eq 0 ]]; then
 fi
 export EVS_SERVER_PORT="8083"
 
-# Remove if this already exists
+# Compute version
+lcterm=`echo $terminology | perl -ne 'print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
     version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 else
     version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
 fi
 
-# Run reindexing process (choose a port other than the one that it runs on)
-echo "  Generate indexes"
-# need to override this setting to make sure it's not too big
-export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
-echo "java $local -Xmx3072M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-java $local -Xmx3072M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building indexes"
-    exit 1
+## check whether this index exists already, and if so skip indexing call
+echo "  Check whether indexes exist already"
+ct1=`curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} | grep '"found":false' | wc -l`
+ct2=`curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | grep concept | grep ${lcterm} | grep ${version} | wc -l`
+if [[ $ct1 -eq 0 ]] && [[ $ct2 -eq 1 ]]; then
+    echo "    SKIP - indexes found"
+    skip=1
+else
+    echo "    REINDEX - indexes not found"
+    skip=0
 fi
 
-echo "  Remove older versions indexes ($terminology $version)"
+# Run reindexing process (choose a port other than the one that it runs on)
+if [[ $skip -eq 0 ]]; then
+    echo "  Generate indexes"
+    # need to override this setting to make sure it's not too big
+    export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
+    echo "java $local -Xmx3572M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+    java $local -Xmx3572M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error building indexes"
+        exit 1
+    fi
+fi
 
 # compute maxVersions from config
-lcterm=`echo $terminology | perl -ne 'print lc($_);'`
+echo "  Remove older versions indexes ($terminology $version)"
 maxVersions=1
-curl $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} > /tmp/x.$$
+curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} > /tmp/x.$$
 if [[ `grep -c maxVersions /tmp/x.$$` -gt 0 ]]; then
-  maxVersions=`curl $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} | perl -pe 's/.*maxVersions"\s*\:\s*(\d+),.*/$1/'`
+  maxVersions=`curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} | perl -pe 's/.*maxVersions"\s*\:\s*(\d+),.*/$1/'`
 fi
 echo "    maxVersions = $maxVersions"
 

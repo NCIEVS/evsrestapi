@@ -1054,14 +1054,6 @@ public class ConceptSampleTester {
         list = new ObjectMapper().readValue(content, ConceptResultList.class);
         assertThat(list.getTotal() > 0);
         assertThat(list.getConcepts().get(0)).isEqualTo(eleventhConcept);
-
-        // TODO
-        // 3. Search by type
-        // - contains
-        // - phrase
-        // 4. test fromRecord/pageSize
-        //
-
     }
 
     public boolean matchOrAnd(String stringToMatch, String[] termStrings, String orAnd) {

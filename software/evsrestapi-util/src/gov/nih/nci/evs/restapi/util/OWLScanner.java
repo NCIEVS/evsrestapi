@@ -69,9 +69,10 @@ import java.text.*;
 public class OWLScanner {
     String owlfile = null;
     Vector owl_vec = null;
-    static String NCIT_NAMESPACE_TARGET = "<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
-    static String OWL_CLS_TARGET = NCIT_NAMESPACE_TARGET + "C"; //"<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C";
-    static String OWL_ANNOTATION_PROPERTY_TARGET = NCIT_NAMESPACE_TARGET + "A"; //"<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#A";
+    static String NAMESPACE = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
+    static String NAMESPACE_TARGET = "<!-- " + NAMESPACE;
+    static String OWL_CLS_TARGET = NAMESPACE_TARGET + "C";
+    static String OWL_ANNOTATION_PROPERTY_TARGET = NAMESPACE_TARGET + "A";
 
 	static String open_tag = "<owl:Axiom>";
 	static String close_tag = "</owl:Axiom>";
@@ -89,6 +90,11 @@ public class OWLScanner {
     public OWLScanner() {
 
     }
+
+    public static void set_NAMESPACE(String namespace) {
+		NAMESPACE = namespace;
+		NAMESPACE_TARGET = "<!-- " + NAMESPACE;
+	}
 
     public OWLScanner(String owlfile) {
         this.owlfile = owlfile;
@@ -261,10 +267,20 @@ public class OWLScanner {
 
 	public Vector getOWLClassDataByCode(String code) {
 		Vector w = new Vector();
-		String target = NCIT_NAMESPACE_TARGET + code + " -->";
+		String target = NAMESPACE_TARGET + code + " -->";
 		boolean istart = false;
 		for (int i=0; i<owl_vec.size(); i++) {
 			String line = (String) owl_vec.elementAt(i);
+
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">")) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+
+
 			if (line.indexOf(target) != -1) {
 				istart = true;
 			} else if (istart && line.indexOf(OWL_CLS_TARGET) != -1) {
@@ -281,12 +297,22 @@ public class OWLScanner {
 		Vector targets = new Vector();
 		for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
-			targets.add(NCIT_NAMESPACE_TARGET + code + " -->");
+			targets.add(NAMESPACE_TARGET + code + " -->");
 		}
 		Vector w = new Vector();
 		boolean istart = false;
 		for (int i=0; i<owl_vec.size(); i++) {
 			String line = (String) owl_vec.elementAt(i);
+
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">")) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+
+
 			String line_trimmed = line.trim();
 			if (targets.contains(line_trimmed)) {
 				istart = true;
@@ -947,7 +973,6 @@ public class OWLScanner {
 
 
     public Vector extractOWLRestrictions(Vector class_vec) {
-//    <!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C4910 -->
         Vector w = new Vector();
         boolean istart = false;
         boolean restriction_start = false;
@@ -958,8 +983,16 @@ public class OWLScanner {
         HashSet hset = new HashSet();
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
-				//System.out.println(t);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1037,62 +1070,7 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractProperties(Vector class_vec) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-        boolean switch_off = false;
-
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-
-			if (t.indexOf("<owl:Axiom>") != -1) {
-				switch_off = true;
-			}
-			if (t.indexOf("</owl:Axiom>") != -1) {
-				switch_off = false;
-			}
-
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
-			}
-			if (istart) {
-				t = t.trim();
-				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
-
-					int n = t.indexOf(">");
-                    if (n != -1) {
-						//String s = t.substring(1, n-1);
-						if (!switch_off) {
-							w.add(classId + "|" + parseProperty(t));
-					    }
-					}
-
-
-				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
-				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
-					int n = t.indexOf(">");
-                    if (n != -1) {
-						//String s = t.substring(1, n-1);
-						if (!switch_off) {
-						    w.add(classId + "|" + parseProperty(t));
-						}
-					}
-				}
-		    }
-		}
+		Vector w = ScannerUtils.extractProperties(class_vec);
 		return w;
 	}
 
@@ -1105,6 +1083,14 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
@@ -1119,7 +1105,7 @@ C4910|<NHC0>C4910</NHC0>
 				switch_off = false;
 			}
 
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1177,13 +1163,22 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1192,7 +1187,6 @@ C4910|<NHC0>C4910</NHC0>
 					istart = true;
 				}
 			}
-			//<rdfs:subClassOf rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C35844"/>
 			if (istart) {
 				t = t.trim();
 				if (t.startsWith("<rdfs:subClassOf rdf:resource=") && t.endsWith("/>")) {
@@ -1201,7 +1195,6 @@ C4910|<NHC0>C4910</NHC0>
 					n = t.indexOf("\"");
 					t = t.substring(1, n);
 					w.add(classId + "|" + t);
-				//<rdf:Description rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3161"/>
 				} else if (t.startsWith("<rdf:Description rdf:about=") && t.endsWith("/>")) {
 					int n = t.lastIndexOf("#");
 				    t = t.substring(n, t.length());
@@ -1219,42 +1212,57 @@ C4910|<NHC0>C4910</NHC0>
         boolean istart = false;
         boolean istart0 = false;
         String classId = null;
-
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-			if (t.indexOf("<!-- http://") != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				if (n == -1) {
-					n = t.lastIndexOf("/");
-				}
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
-			}
-			if (istart) {
-				t = t.trim();
 
-				if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
-					int n = t.lastIndexOf("</rdfs:label>");
-				    t = t.substring("<rdfs:label>".length(), n);
-					w.add(classId + "|" + t);
-				} else if (t.startsWith("<rdfs:label") && t.endsWith("</rdfs:label>")) {
-					int n = t.lastIndexOf("</rdfs:label>");
-					t = t.substring(0, n);
-					n = t.lastIndexOf(">");
-				    t = t.substring(n+1, t.length());
-					w.add(classId + "|" + t);
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+
+			} else {
+				if (t.indexOf("// Classes") != -1) {
+					istart0 = true;
 				}
-		    }
+
+				if (t.indexOf("</rdf:RDF>") != -1) {
+					break;
+				}
+				if (t.indexOf("<!-- http://") != -1 && t.endsWith("-->")) {
+					int n = t.lastIndexOf("#");
+					if (n == -1) {
+						n = t.lastIndexOf("/");
+					}
+					t = t.substring(n, t.length());
+					n = t.lastIndexOf(" ");
+					classId = t.substring(1, n);
+					if (istart0) {
+						istart = true;
+					}
+				}
+				if (istart) {
+					t = t.trim();
+
+					if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
+						int n = t.lastIndexOf("</rdfs:label>");
+						t = t.substring("<rdfs:label>".length(), n);
+						w.add(classId + "|" + t);
+					} else if (t.startsWith("<rdfs:label") && t.endsWith("</rdfs:label>")) {
+						int n = t.lastIndexOf("</rdfs:label>");
+						t = t.substring(0, n);
+						n = t.lastIndexOf(">");
+						t = t.substring(n+1, t.length());
+						w.add(classId + "|" + t);
+					}
+				}
+			}
 		}
 		return w;
 	}
@@ -1265,6 +1273,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			t = t.trim();
 			if (t.startsWith("<rdfs:label>") && t.endsWith("</rdfs:label>")) {
 				int n = t.lastIndexOf("</rdfs:label>");
@@ -1312,13 +1329,27 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			if (t.indexOf("// Annotation properties") != -1) {
 				istart0 = true;
 			}
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1356,6 +1387,15 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractAssociations(Vector class_vec) {
+		Vector v = ScannerUtils.extractProperties(class_vec);
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			t = ScannerUtils.removePrefix(NAMESPACE, t);
+			w.add(t);
+		}
+		return w;
+		/*
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -1363,13 +1403,26 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1388,10 +1441,22 @@ C4910|<NHC0>C4910</NHC0>
 		    }
 		}
 		return w;
+		*/
 	}
 
 
     public Vector extractAssociations(Vector class_vec, String associationCode) {
+		Vector v = ScannerUtils.extractProperties(class_vec, associationCode);
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String t = (String) v.elementAt(i);
+			t = ScannerUtils.removePrefix(NAMESPACE, t);
+			w.add(t);
+		}
+		return w;
+
+
+		/*
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -1399,13 +1464,25 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1426,6 +1503,7 @@ C4910|<NHC0>C4910</NHC0>
 		    }
 		}
 		return w;
+		*/
 	}
 
 
@@ -1448,6 +1526,15 @@ C4910|<NHC0>C4910</NHC0>
 		HashMap hmap = new HashMap();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < v.size()-1) {
+				i++;
+				String nextLine = (String) v.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			t = t.trim();
 			int n = t.lastIndexOf("/");
 			if (n != -1) {
@@ -1473,6 +1560,16 @@ C4910|<NHC0>C4910</NHC0>
 		HashMap hmap = new HashMap();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < v.size()-1) {
+				i++;
+				String nextLine = (String) v.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+
 			t = t.trim();
 			if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
 				int n = t.indexOf(">");
@@ -1502,13 +1599,26 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
 			}
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1536,26 +1646,13 @@ C4910|<NHC0>C4910</NHC0>
     public Vector extractSuperclasses() {
 		return extractSuperclasses(owl_vec);
 	}
-
-    public Vector extractHierarchicalRelationships() {
-		Vector w = extractHierarchicalRelationships(this.owl_vec);
-		/*
-		Vector v = extractSuperclasses();
-		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(t, '|');
-			String code_1 = (String) u.elementAt(0);
-			String code_2 = (String) u.elementAt(1);
-			String label_1 = getLabel(code_1);
-			String label_2 = getLabel(code_2);
-			w.add(label_2 + "|" + code_2 + "|" + label_1 + "|" + code_1);
-		}
-		*/
+/*
+    public Vector extractHierarchicalRelationships0() {
+		Vector w = extractHierarchicalRelationships0(this.owl_vec);
 		return new SortUtils().quickSort(w);
 	}
 
-    public Vector extractHierarchicalRelationships(Vector owl_vec) {
+    public Vector extractHierarchicalRelationships0(Vector owl_vec) {
 		Vector v = extractSuperclasses(owl_vec);
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
@@ -1569,7 +1666,7 @@ C4910|<NHC0>C4910</NHC0>
 		}
 		return new SortUtils().quickSort(w);
 	}
-
+*/
     public Vector extractAllDisjointClasses(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -1577,6 +1674,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			if (t.indexOf("<owl:AllDisjointClasses") != -1) {
 				istart = true;
 			}
@@ -1596,7 +1702,7 @@ C4910|<NHC0>C4910</NHC0>
     public String extractClassId(String line) {
         String t = line;
         String classId = null;
-		if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+		if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 			int n = t.lastIndexOf("#");
 			t = t.substring(n, t.length());
 			n = t.lastIndexOf(" ");
@@ -1616,7 +1722,7 @@ C4910|<NHC0>C4910</NHC0>
 			if (line.length() > 0) {
 				hashcode = hashcode + line.hashCode();
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				classId = extractClassId(t);
 			}
 			String t3 = t.trim();
@@ -1644,6 +1750,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			String t_save = t;
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
@@ -1651,7 +1766,7 @@ C4910|<NHC0>C4910</NHC0>
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				if (istart0 && v.size() > 0) {
 					String hc = getOWLClassHashCode(v);
 					//System.out.println(hc);
@@ -1691,6 +1806,15 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
 			String t_save = t;
 			if (t.indexOf("// Classes") != -1) {
 				istart0 = true;
@@ -1698,7 +1822,7 @@ C4910|<NHC0>C4910</NHC0>
 		    if (t.indexOf("</rdf:RDF>") != -1) {
 				break;
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				if (istart0 && v.size() > 0) {
 					if (classId != null && codes.contains(classId)) {
 						w.addAll(v);
@@ -1730,7 +1854,16 @@ C4910|<NHC0>C4910</NHC0>
         Vector v = new Vector();
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				knt++;
 				if (classId != null) {
 					hmap.put(classId, v);
@@ -1754,7 +1887,20 @@ C4910|<NHC0>C4910</NHC0>
         boolean start = false;
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				start = true;
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
@@ -1795,7 +1941,7 @@ C4910|<NHC0>C4910</NHC0>
 			if (line.length() > 0) {
 				hashcode = hashcode + line.hashCode();
 			}
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				classId = extractClassId(t);
 			}
 		}
@@ -1807,7 +1953,20 @@ C4910|<NHC0>C4910</NHC0>
         String classId = null;
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1864,7 +2023,6 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extract_owlrestrictions(Vector class_vec) {
-//    <!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C4910 -->
         Vector w = new Vector();
         String classId = null;
         boolean restriction_start = false;
@@ -1874,7 +2032,20 @@ C4910|<NHC0>C4910</NHC0>
         HashSet hset = new HashSet();
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -1889,7 +2060,6 @@ C4910|<NHC0>C4910</NHC0>
 			} else if (r != null) {
 				t = t.trim();
 				if (t.startsWith("<owl:onProperty")) {
-					//<owl:onProperty rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#R101"/>
 					int n = t.lastIndexOf("#");
 					t = t.substring(n, t.length());
 					n = t.lastIndexOf("\"");
@@ -1897,7 +2067,6 @@ C4910|<NHC0>C4910</NHC0>
 					r.setOnProperty(onProperty);
 				}
 				if (t.startsWith("<owl:someValuesFrom")) {
-					// <owl:someValuesFrom rdf:resource="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12382"/>
 					int n = t.lastIndexOf("#");
 					t = t.substring(n, t.length());
 					n = t.lastIndexOf("\"");
@@ -1938,6 +2107,11 @@ C4910|<NHC0>C4910</NHC0>
 
 		while (i < data_vec.size()) {
 			String line = (String) data_vec.elementAt(i);
+
+		    if (line.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			if (line.indexOf(OWL_CLS_TARGET) != -1 && line.indexOf("enum") == -1) {
 				class_knt++;
 			} else if (line.indexOf(axiom_open_tag) != -1) {
@@ -2018,7 +2192,20 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -2257,6 +2444,10 @@ C4910|<NHC0>C4910</NHC0>
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
 
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			if (t.indexOf("// Object Properties") != -1) {
 				istart0 = true;
 			}
@@ -2264,7 +2455,7 @@ C4910|<NHC0>C4910</NHC0>
 				break;
 			}
 
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -2351,7 +2542,21 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#" + type + "-enum -->") != -1) {
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+
+			if (t.indexOf(NAMESPACE_TARGET + type + "-enum -->") != -1) {
 				istart = true;
 			}
 			if (istart && t.indexOf("</rdfs:Datatype>") != -1) {
@@ -2373,6 +2578,10 @@ C4910|<NHC0>C4910</NHC0>
 		String classId = null;
 		for (int i=0; i<owl_vec.size(); i++) {
 			String line = (String) owl_vec.elementAt(i);
+		    if (line.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			line = line.trim();
 			if (line.endsWith(" -->")) {
 			    int n = line.lastIndexOf("#");
@@ -2509,6 +2718,7 @@ C4910|<NHC0>C4910</NHC0>
 
 
     public Vector extractAxiomData(String prop_code) {
+		String rdfs_label = "rdfs:label";
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -2518,7 +2728,7 @@ C4910|<NHC0>C4910</NHC0>
         String def_curator_data = null;
         boolean axiom_property = false;
         boolean hasDefCurator = false; //<P318>drug-team</P318> (*)
-        String curator = null;
+        String label = null;
         boolean ncidef = false;
 
         w = new Vector();
@@ -2526,6 +2736,20 @@ C4910|<NHC0>C4910</NHC0>
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+
 			t = t.trim();
 
 			if (t.indexOf("// Classes") != -1) {
@@ -2534,23 +2758,22 @@ C4910|<NHC0>C4910</NHC0>
 
 			if (istart) {
 
-			    if (t.indexOf("<" + prop_code + ">") != -1) { //P318
+			    if (t.indexOf("<" + rdfs_label + ">") != -1) { //P318
 					String retstr = parseProperty(t);
 					Vector u = split(retstr);
-					curator = (String) u.elementAt(1);
+					label = (String) u.elementAt(1);
 				}
 
-				//<owl:Class rdf:about="http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C127714">
 				if (t.startsWith("<owl:Class ")) {
 					buf = new StringBuffer();
-					curator = null;
+					label = null;
 
-				} else if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+				} else if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 
 
 				} else if (t.startsWith("<owl:Axiom>")) {
                     buf = new StringBuffer();
-                    buf.append(curator);
+                    buf.append(label);
 
 				} else if (t.startsWith("</owl:Class>")) {
 
@@ -2558,15 +2781,19 @@ C4910|<NHC0>C4910</NHC0>
 
 
 				} else if (t.startsWith("</owl:Axiom>")) {
-					if (!isNull(curator)) {
+					if (!isNull(label)) {
 						String s = buf.toString();
 						Vector u = StringUtils.parseData(s, '|');
 						if (u.size() > 3) {
 							String propCode = (String) u.elementAt(2);
-							if (propCode.compareTo(prop_code) == 0) {
+							if (prop_code == null) {
+								w.add(s);
+							} else if (propCode.compareTo(prop_code) == 0) {
 								w.add(s);
 							}
 						}
+					} else {
+						System.out.println("WARNING: rdfs:label not found. " + t);
 					}
 					buf = new StringBuffer();
 
@@ -2600,24 +2827,18 @@ C4910|<NHC0>C4910</NHC0>
 				}
 			}
         }
-        if (!isNull(curator)) {
+        if (!isNull(label)) {
 			String t = buf.toString();
 			Vector u = StringUtils.parseData(t, '|');
 			if (u.size() > 3) {
 				String propCode = (String) u.elementAt(2);
-				if (propCode.compareTo(prop_code) == 0) {
+				if (prop_code == null) {
+					w.add(t);
+				} else if (propCode.compareTo(prop_code) == 0) {
 					w.add(t);
 				}
 		    }
 		}
-/*
-Interferon Gamma-1b|C100089|P375|Interferon Gamma-1b|P393$Has Synonym|P394$PT|P395$therapeutic_agents|P396$GDC
-Interferon Gamma-1b|C100089|P90|Actimmune|P383$BR|P384$NCI
-Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
-*/
-
-        //w = extractNCIDefData(w);
-        //w = removeRetired(w, 1);
         return w;
     }
 
@@ -2629,6 +2850,7 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		return StringUtils.parseData(t, ch);
 	}
 
+
     public Vector extractPropertyData(String prop_code) {
         Vector w = new Vector();
         boolean istart = false;
@@ -2639,6 +2861,23 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 
         for (int i=0; i<owl_vec.size(); i++) {
 			String t = (String) owl_vec.elementAt(i);
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+
+		    if (t.indexOf("// Annotations") != -1) {
+				break;
+			}
+
 			t = t.trim();
 			if (t.indexOf("// Classes") != -1) {
 				istart = true;
@@ -2666,7 +2905,9 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 						String str = buf.toString();
 						Vector u = split(str);
 						if (u.size() > 1) {
-							if (!w.contains(str)) w.add(str);
+							if (!w.contains(str)) {
+								w.add(str);
+							}
 						}
 					}
 
@@ -2690,7 +2931,15 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -2725,8 +2974,16 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 
         for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
+
+			if (t.indexOf("General axioms") != -1) break;
+			while (!t.endsWith(">") && i < class_vec.size()-1) {
+				i++;
+				String nextLine = (String) class_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				t = t + " " + nextLine;
+			}
 			String t0 = t;
-			if (t.indexOf("<!-- http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#") != -1 && t.endsWith("-->")) {
+			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
 				int n = t.lastIndexOf("#");
 				t = t.substring(n, t.length());
 				n = t.lastIndexOf(" ");
@@ -2745,106 +3002,142 @@ Interferon Gamma-1b|C100089|P90|IFN-g-1b|P383$AB|P384$NCI
 		return w;
 	}
 
+	public void generate_FULL_SYN() {
+		Vector w = extract_FULL_SYN();
+		String outputfile = "FULL_SYN.txt";
+		Utils.saveToFile(outputfile, w);
+	}
+
+	public Vector extract_FULL_SYN() {
+		Vector v = extractAxiomData("P90");
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			int n = u.size();
+			String label = (String) u.elementAt(0);
+			String code = (String) u.elementAt(1);
+			String term = (String) u.elementAt(3);
+			String termType = "";
+			String termSource = "";
+			String subsourceName = "";
+			String sourceCode = "";
+			for (int j=4; j<n; j++) {
+				String t = (String) u.elementAt(j);
+				Vector u2 = StringUtils.parseData(t, '$');
+				String prop_code = (String) u2.elementAt(0);
+				String prop_value = (String) u2.elementAt(1);
+				if (prop_code.compareTo("P383") == 0) {
+					termType = prop_value;
+				} else if (prop_code.compareTo("P384") == 0) {
+					termSource = prop_value;
+				} else if (prop_code.compareTo("P386") == 0) {
+					subsourceName = prop_value;
+				} else if (prop_code.compareTo("P385") == 0) {
+					sourceCode = prop_value;
+				}
+			}
+			w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
+		}
+		String outputfile = "FULL_SYN.txt";
+		v.clear();
+		w = new SortUtils().quickSort(w);
+		return w;
+	}
+
+	public Vector extractHierarchicalRelationships() {
+		return extractHierarchicalRelationships(this.owl_vec);
+	}
+
+
+	public Vector extractHierarchicalRelationships(Vector owl_vec) {
+		Vector v = new Vector();
+		Vector w = new Vector();
+		HashSet hset = new HashSet();
+		String id = null;
+		for (int i=0; i<owl_vec.size(); i++) {
+			String line = (String) owl_vec.elementAt(i);
+			//////////////////////////////////
+			if (line.indexOf("General axioms") != -1) break;
+			while (!line.endsWith(">") && i < owl_vec.size()-1) {
+				i++;
+				String nextLine = (String) owl_vec.elementAt(i);
+				nextLine = nextLine.trim();
+				line = line + " " + nextLine;
+			}
+			//////////////////////////////////
+			if (ScannerUtils.isOpenClass(line)) {
+				w = new Vector();
+				id = ScannerUtils.extractIdFromOpenClassLine(line);
+                id = ScannerUtils.removePrefix(NAMESPACE, id);
+
+			} else if (ScannerUtils.isCloseClass(line)) {
+				if (w != null && w.size() > 0) {
+					v.addAll(w);
+				}
+			} else {
+				String t = ScannerUtils.xml2Delimited(line);
+				if (t != null) {
+					if (t.startsWith("rdfs:subClassOf|") || t.startsWith("rdf:Description|")) {
+						String parentCode = ScannerUtils.getTagValue(t);
+						parentCode = ScannerUtils.removePrefix(NAMESPACE, parentCode);
+						String childCode = id;
+					    String parentLabel = (String) code2LabelMap.get(parentCode);
+						String childLabel = (String) code2LabelMap.get(id);
+				        String s = parentLabel + "|" + parentCode + "|" + childLabel + "|" + childCode;
+						if (!hset.contains(s)) {
+							hset.add(s);
+							w.add(s);
+						}
+					}
+				}
+			}
+		}
+		return new SortUtils().quickSort(v);
+	}
+
+    public void dumpPropertyCode2CountMap(HashMap hmap) {
+		Iterator it = hmap.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			Integer int_obj = (Integer) hmap.get(key);
+			System.out.println(key + " " + int_obj.intValue());
+		}
+	}
+
+    public HashMap getPropertyCode2CountMap() {
+		HashMap hmap = new HashMap();
+		Vector w = extractProperties(get_owl_vec());
+		for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String code = (String) u.elementAt(0);
+			String prop_code = (String) u.elementAt(1);
+			//prop_code = prop_code.replace(NAMESPACE, "");
+			Integer int_obj = new Integer(0);
+			if (hmap.containsKey(prop_code)) {
+				int_obj = (Integer) hmap.get(prop_code);
+			}
+			int count = int_obj.intValue();
+			int_obj = new Integer(count+1);
+			hmap.put(prop_code, int_obj);
+		}
+		w.clear();
+		return hmap;
+	}
 
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
-/*
-		Vector w = scanner.extractAnnotationProperties(scanner.get_owl_vec());
-        Utils.dumpVector("w", w);
+		//scanner.extractProperties(scanner.get_owl_vec());
+		//HashMap hmap = scanner.getPropertyCode2CountMap();
+		//scanner.dumpPropertyCode2CountMap(hmap);
+		Vector roles = scanner.extractOWLRestrictions(scanner.get_owl_vec());
+		Utils.saveToFile("roles.txt", roles);
+	}
 
-		w = scanner.extractObjectProperties(scanner.get_owl_vec());
-        Utils.dumpVector("w", w);
-*/
-        //Vector w = scanner.extractProperties(scanner.get_owl_vec(), "P108");
-        //Utils.dumpVector("w", w);
-
-        /*
-        String RESTRICTION_FILE = "roles.txt";
-
-		Vector v = scanner.extractOWLRestrictions(scanner.get_owl_vec());
-		Utils.saveToFile(RESTRICTION_FILE, v);
-		*/
-
-		/*
-        String owlfile = args[0];
-		OWLScanner scanner = new OWLScanner(owlfile);
-		int n = owlfile.lastIndexOf(".");
-		String outputfile = owlfile.substring(0, n) + "_" + getToday() + ".owl";
-		*/
-		/*
-		Vector w = scanner.scanAxioms();
-		Vector v = new Vector();
-		for (int i=0; i<w.size(); i++) {
-			OWLAxiom axiom = (OWLAxiom) w.elementAt(i);
-			//v.add(axiom.toJson());
-			v.add(axiom.toString());
-		}
-		Utils.saveToFile(outputfile, v);
-		Vector synoym_vec = scanner.parseSynonymData(v);
-		v = new Vector();
-		for (int i=0; i<synoym_vec.size(); i++) {
-			Synonym syn = (Synonym) synoym_vec.elementAt(i);
-			v.add(syn.toJson());
-		}
-		String syn_file = "syn_" + owlfile.substring(0, n) + "_" + getToday() + ".owl";
-		Utils.saveToFile(syn_file, v);
-		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-		*/
-        //Vector v = scanner.scanOwlTags();
-        //v = scanner.fileterTagData(v, "owl:Restriction");
-        //Utils.dumpVector("fileterTagData", v);
-        //scanner.printPaths(v);
-        /*
-        Vector class_vec = Utils.readFile("ThesaurusInferred_forTS.owl");
-        Vector w = new OWLScanner().extractProperties(class_vec);
-        for (int i=0; i<w.size(); i++) {
-			String p = (String) w.elementAt(i);
-			System.out.println(p);
-		}
-
-	private String code;
-	private String label;
-	private String termName;
-	private String termGroup;
-	private String termSource;
-	private String sourceCode;
-	private String subSourceName;
-	private String subSourceCode;
-
-		*/
-		Vector v = new Vector();
-
-		/*
-		List list = scanner.extractFULLSyns();
-		HashSet hset = new HashSet();
-		for (int i=0; i<list.size(); i++) {
-			Synonym syn = (Synonym) list.get(i);
-
-			//(H115D)VHL35 Peptisyn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName()de|C28776|FULL_SYN|(H115D)VHL35 Peptide
-
-			//String line = syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName();
-			//if (!hset.contains(line)) {
-			//	hset.add(line);
-			// 	v.add(syn.getLabel() + "|" + syn.getCode() + "|FULL_SYN|" + syn.getTermName());
-			//}
-
-			v.add(syn.toJson());
-
-		}
-		v = new SortUtils().quickSort(v);
-		Utils.saveToFile("FULL_SYN_1.txt", v);
-		*/
-
-        String propertyCode = "P319";
-        //FDA_UNII_Code 	P319
-		v = scanner.extractProperties(scanner.get_owl_vec(), propertyCode);
-        Utils.saveToFile(propertyCode + ".txt", v);
-        System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
-
-    }
 }
 
 
