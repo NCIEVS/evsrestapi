@@ -216,7 +216,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
         map.setSourceCode(fields[8]);
-        map.setSourceTerminology(fields[8]);
+        map.setSourceTerminology(fields[1]);
         map.setTargetCode(fields[16]);
         map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermType("PT");
@@ -230,10 +230,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         final String cui = codeCuiMap.get(fields[8]);
-        if (!maps.containsKey(cui)) {
-          maps.put(cui, new HashSet<>());
+        // Some MRMAP entries in sample meta will not resolve to a CUI given the subset.
+        if (cui != null) {
+          if (!maps.containsKey(cui)) {
+            maps.put(cui, new HashSet<>());
+          }
+          logger.info("XXX add map = " + map);
+          maps.get(cui).add(map);
         }
-        maps.get(cui).add(map);
       }
 
       // read inverses from MRDOC
@@ -323,6 +327,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
+    logger.info("    maps = " + maps.size());
     logger.info("    ruiInverseMap = " + ruiInverseMap.size());
     logger.info("    ruiQualMap = " + ruiQualMap.size());
 
@@ -381,6 +386,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           handleRelationships(concept, mrrel, prevCui);
 
           if (maps.containsKey(cui)) {
+            logger.info("YYY maps = " + maps.get(cui));
             concept.getMaps().addAll(maps.get(cui));
           }
 

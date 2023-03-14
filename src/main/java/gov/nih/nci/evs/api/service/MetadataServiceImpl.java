@@ -412,13 +412,17 @@ public class MetadataServiceImpl implements MetadataService {
     ip.setChildren(true);
     // ip.setProperties(true);
     ip.setSubsetLink(true);
+    log.info("XXX start get subsets");
     List<Concept> subsets = esQueryService.getSubsets(term, ip);
+    log.info("XXX end get subsets");
 
     // No list of codes supplied
     if (!list.isPresent()) {
+      log.info("XXX start reading subset concepts");
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
           .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
+      log.info("XXX finish reading subset concepts");
       return subsets;
     }
 
