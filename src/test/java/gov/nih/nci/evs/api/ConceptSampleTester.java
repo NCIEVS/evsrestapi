@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import gov.nih.nci.evs.api.controller.NciControllerTests;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -31,7 +30,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 public class ConceptSampleTester {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(NciControllerTests.class);
+  private static final Logger log = LoggerFactory.getLogger(ConceptSampleTester.class);
 
   /** The base url. */
   private String baseUrl = "/api/v1/concept/";
