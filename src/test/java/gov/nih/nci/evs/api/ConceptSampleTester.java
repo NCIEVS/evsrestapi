@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -781,7 +782,7 @@ public class ConceptSampleTester {
                 }
             }
         }
-
+      
         // pathsFromRoot testing
         url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsFromRoot?include=minimal";
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -807,7 +808,6 @@ public class ConceptSampleTester {
                     reversePathFound = true;
                 }
             }
-
         }
         if (!reversePathFound) {
             errors.add(
@@ -895,29 +895,162 @@ public class ConceptSampleTester {
      * @param term      the term
      * @param sampleMap the sample map
      * @param mvc       the mvc
+     * @throws Exception
      */
     public void performSearchTests(final String term, final Map<String, List<SampleRecord>> sampleMap,
-            final MockMvc mvc) {
+            final MockMvc mvc) throws Exception {
 
-        // TODO
-        // code = pick the first code from samples and look it up
-        // term = pick the preferred name of that code
-        // term2 = remove the shortest word from term
-        // term3 = pick the first 2 words
-        // word = pick the longest word from term
-        // word2 = pick the first
-        // 1. Search by code (pick the first code from "samples")
-        // 2. Search by lowercase code (pick the first code from "samples")
-        // 3. Search by type
-        // - contains
-        // - match
-        // - phrase
-        // - startsWith
-        // - and
-        // - or
-        // 4. test fromRecord/pageSize
-        //
+        MvcResult result = null;
+        testMvc = mvc;
+        String url = null;
+        String content = null;
+        Concept testConcept = null;
+        lookupTerminology(term, testMvc);
+        for (List<SampleRecord> values : sampleMap.values()) {
+            for (SampleRecord property : values) {
+                url = "/api/v1/concept/" + terminology.getTerminology() + "/" + property.getCode() + "?include=minimal";
+                result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+                content = result.getResponse().getContentAsString();
+                testConcept = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
+                    // n/a
+                });
+                // make sure we have a 2+ word concept to test with
+                if (testConcept.getName().split(" ").length > 1) {
+                    break;
+                }
+            }
+        }
+        ConceptResultList list = null;
+        if (testConcept == null) {
+            log.error("No valid search concept tests found");
+            return;
+        }
 
+        final String testCode = testConcept.getCode();
+        final String testName = testConcept.getName().toLowerCase();
+        final String[] splitTestName = testName.toLowerCase().split(" ");
+        url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology() + "&term="
+                + testCode;
+        log.info(url);
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        assertThat(list.getConcepts().stream().anyMatch(o -> o.getName().toLowerCase().equals(testName)
+                && o.getCode().equals(testCode)));
+
+        url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology() + "&term="
+                + testConcept.getCode().toLowerCase();
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        assertThat(list.getConcepts().stream().anyMatch(o -> o.getName().equals(testName)
+                && o.getCode().equals(testCode)));
+
+        // testing the types
+
+        url = "/api/v1/concept/search?include=minimal&type=match&terminology="
+                + terminology.getTerminology() + "&term="
+                + testConcept.getName();
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        for (Concept conc : list.getConcepts()) {
+            assertThat(conc.getName().equals(testName)
+                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().equals(testName))
+                    || conc.getDefinitions().stream().anyMatch(o -> o.getDefinition().toLowerCase().equals(testName)));
+        }
+
+        url = "/api/v1/concept/search?include=minimal&type=startsWith&terminology="
+                + terminology.getTerminology() + "&term="
+                + testConcept.getName();
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        for (Concept conc : list.getConcepts()) {
+            assertThat(conc.getName().startsWith(testName)
+                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().startsWith(testName))
+                    || conc.getDefinitions().stream()
+                            .anyMatch(o -> o.getDefinition().toLowerCase().startsWith(testName)));
+        }
+
+        url = "/api/v1/concept/search?include=minimal&type=phrase&terminology="
+                + terminology.getTerminology() + "&term="
+                + testConcept.getName();
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        for (Concept conc : list.getConcepts()) {
+            assertThat(conc.getName().startsWith(testName)
+                    || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().contains(testName))
+                    || conc.getDefinitions().stream()
+                            .anyMatch(o -> o.getDefinition().toLowerCase().contains(testName)));
+        }
+
+        url = "/api/v1/concept/search?include=minimal&type=AND&terminology="
+                + terminology.getTerminology() + "&term="
+                + testConcept.getName();
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        for (Concept conc : list.getConcepts()) {
+            assertThat(Arrays.stream(splitTestName).anyMatch(conc.getName()::contains)
+                    || conc.getSynonyms().stream()
+                            .anyMatch(o -> matchOrAnd(o.getName().toLowerCase(), splitTestName, "AND"))
+                    || conc.getDefinitions().stream()
+                            .anyMatch(o -> matchOrAnd(o.getDefinition().toLowerCase(), splitTestName, "AND")));
+
+        }
+
+        url = "/api/v1/concept/search?include=minimal&type=OR&terminology=" + terminology.getTerminology()
+                + "&term=" + testConcept.getName();
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        for (Concept conc : list.getConcepts()) {
+            assertThat(Arrays.stream(splitTestName).anyMatch(conc.getName()::contains)
+                    || conc.getSynonyms().stream()
+                            .anyMatch(o -> matchOrAnd(o.getName().toLowerCase(), splitTestName, "OR"))
+                    || conc.getDefinitions().stream()
+                            .anyMatch(o -> matchOrAnd(o.getDefinition().toLowerCase(), splitTestName, "OR")));
+        }
+
+        // test fromRecord and page size
+        url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology()
+                + "&term=" + testConcept.getName() + "&pageSize=12";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        list = new ObjectMapper().readValue(content, ConceptResultList.class);
+        assertThat(list.getTotal() > 0);
+        assertThat(list.getConcepts().size()).isLessThanOrEqualTo(12);
+        if (list.getConcepts().size() > 10) {
+            Concept eleventhConcept = list.getConcepts().get(10);
+
+            url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology()
+                    + "&term=" + testConcept.getName() + "&fromRecord=10";
+            result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+            content = result.getResponse().getContentAsString();
+            list = new ObjectMapper().readValue(content, ConceptResultList.class);
+            assertThat(list.getTotal() > 0);
+            assertThat(list.getConcepts().get(0)).isEqualTo(eleventhConcept);
+        }
+
+        log.info("No errors found in search tests for " + terminology.getName());
+    }
+
+    public boolean matchOrAnd(String stringToMatch, String[] termStrings, String orAnd) {
+        if (orAnd.equals("AND")) {
+            return Arrays.stream(termStrings).allMatch(stringToMatch::contains);
+        } else if (orAnd.equals("OR")) {
+            return Arrays.stream(termStrings).anyMatch(stringToMatch::contains);
+        }
+        return false;
     }
 
     /**

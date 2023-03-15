@@ -106,9 +106,11 @@ public class SampleTest {
 
     /**
      * Test search.
+     * 
+     * @throws Exception
      */
     @Test
-    public void testSearch() {
+    public void testSearch() throws Exception {
         conceptSampleTester.performSearchTests(terminology, samples, mvc);
     }
 
