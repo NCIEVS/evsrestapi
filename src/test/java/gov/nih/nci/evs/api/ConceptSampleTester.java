@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Role;
@@ -988,24 +989,47 @@ public class ConceptSampleTester {
             return;
         }
 
-        url = "/api/v1/metadata/" + terminology.getTerminology() + "/association/" + firstAssociation.getCode();
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getCode();
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
-        Concept fullFirstAssociationByCode = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
-            // n/a
-        });
+        AssociationEntryResultList fullFirstAssociationByCode = new ObjectMapper().readValue(content,
+                new TypeReference<AssociationEntryResultList>() {
+                    // n/a
+                });
 
-        url = "/api/v1/metadata/" + terminology.getTerminology() + "/association/" + firstAssociation.getName();
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getName();
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
-        Concept fullFirstAssociationByName = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
-            // n/a
-        });
+        AssociationEntryResultList fullFirstAssociationByName = new ObjectMapper().readValue(content,
+                new TypeReference<AssociationEntryResultList>() {
+                    // n/a
+                });
 
         if (!fullFirstAssociationByCode.equals(fullFirstAssociationByName)) {
             errors.add("search of association by matching code and name " + firstAssociation.getCode() + "/"
                     + firstAssociation.getName() + "returned different results");
         }
+
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getCode()
+                + "?fromRecord=0&pageSize=2";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        AssociationEntryResultList firstFromRecord = new ObjectMapper().readValue(content,
+                new TypeReference<AssociationEntryResultList>() {
+                    // n/a
+                });
+
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getCode()
+                + "?fromRecord=1&pageSize=2";
+        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        AssociationEntryResultList secondFromRecord = new ObjectMapper().readValue(content,
+                new TypeReference<AssociationEntryResultList>() {
+                    // n/a
+                });
+        assertThat(fullFirstAssociationByCode.getTotal()).isEqualTo(fullFirstAssociationByName.getTotal());
+        assertThat(
+                firstFromRecord.getAssociationEntries().get(1).equals(secondFromRecord.getAssociationEntries().get(0)));
 
         // TODO
         // 1. Call /metadata/ncit/associations and choose the first association that

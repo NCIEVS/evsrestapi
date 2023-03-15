@@ -122,9 +122,11 @@ public class SampleTest {
 
     /**
      * Test association entries.
+     * 
+     * @throws Exception
      */
     @Test
-    public void testAssociationEntries() {
+    public void testAssociationEntries() throws Exception {
         conceptSampleTester.performAssociationEntryTests(terminology, samples, mvc);
     }
 
