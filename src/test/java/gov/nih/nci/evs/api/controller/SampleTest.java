@@ -121,14 +121,14 @@ public class SampleTest {
      */
     @Test
     public void testSubsets() throws Exception {
-        conceptSampleTester.performSearchTests(terminology, samples, mvc);
+        conceptSampleTester.performSubsetTests(terminology, samples, mvc);
     }
 
     /**
      * Test association entries.
      */
     @Test
-    public void testAssociationEntries() {
+    public void testAssociationEntries() throws Exception {
         conceptSampleTester.performAssociationEntryTests(terminology, samples, mvc);
     }
 
