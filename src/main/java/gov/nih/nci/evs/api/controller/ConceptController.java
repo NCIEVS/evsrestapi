@@ -162,7 +162,7 @@ public class ConceptController extends BaseController {
               + "then call back for more data. "
               + "An extra placeholder entry with just a <i>ct</i> field will be included "
               + "to indicate the total count.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "10"),
+          required = false, dataTypeClass = Integer.class, paramType = "query", example = "100"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions, "
@@ -383,7 +383,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
           dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "100000", example = "10"),
+          dataTypeClass = Integer.class, paramType = "query", example = "10000"),
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
@@ -843,7 +843,8 @@ public class ConceptController extends BaseController {
       @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot",
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/concept/{terminology}/{code}/pathsFromRoot",
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
@@ -862,7 +863,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
           dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "100")
+          dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -925,7 +926,7 @@ public class ConceptController extends BaseController {
               + "interface can quickly retrieve initial data for a subtree and then call back " + "for more data. "
               + "An extra placeholder entry with just a <i>ct</i> field will be included "
               + "to indicate the total count.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<HierarchyNode> getSubtree(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -1059,7 +1060,7 @@ public class ConceptController extends BaseController {
           + "be limited to the specified number of entries. Thus a user interface can "
           + "quickly retrieve initial data for a subtree and then call back for more data. "
           + "An extra placeholder entry with just a <i>ct</i> field will be included " + "to indicate the total count.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -1131,7 +1132,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
           dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "100")
+          dataTypeClass = Integer.class, paramType = "query",  example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -1204,7 +1205,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
           dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "100")
+          dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
