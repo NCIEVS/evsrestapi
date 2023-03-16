@@ -126,6 +126,8 @@ public class SampleTest {
 
     /**
      * Test association entries.
+     * 
+     * @throws Exception
      */
     @Test
     public void testAssociationEntries() throws Exception {
