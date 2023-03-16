@@ -854,12 +854,14 @@ public class ConceptController extends BaseController {
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-              + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-              + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+          + "for detailed information</a>. For this call, it is recommended to avoid using this "
+          + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
+          + "may produce very large payload results. ",
+      required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
           dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
@@ -1123,12 +1125,14 @@ public class ConceptController extends BaseController {
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-              + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-              + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+          + "for detailed information</a>. For this call, it is recommended to avoid using this "
+          + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
+          + "may produce very large payload results. ",
+      required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
           dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
@@ -1196,12 +1200,14 @@ public class ConceptController extends BaseController {
               + "'C2991' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-              + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-              + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          + "inverseRoles, maps, parents, properties, roles, synonyms. "
+          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+          + "for detailed information</a>. For this call, it is recommended to avoid using this "
+          + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
+          + "may produce very large payload results. ",
+      required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
           dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
