@@ -858,12 +858,18 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
-  final Optional<String> include) throws Exception {
+  final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
+  Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  Optional<Integer> pageSize) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -873,6 +879,13 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       final Paths paths = elasticQueryService.getPathsToRoot(code, term);
+
+      if (fromRecord.orElse(0) >= paths.getPaths().size()) {
+        return new ArrayList<>();
+      } else if (pageSize.isPresent()) {
+        final int toIndex = fromRecord.orElse(0) + pageSize.get();
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+      }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (Exception e) {
@@ -1114,12 +1127,18 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
-  final Optional<String> include) throws Exception {
+  final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
+  Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  Optional<Integer> pageSize) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -1128,6 +1147,14 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       final Paths paths = elasticQueryService.getPathsToRoot(code, term);
+
+      if (fromRecord.orElse(0) >= paths.getPaths().size()) {
+        return new ArrayList<>();
+      } else if (pageSize.isPresent()) {
+        final int toIndex = fromRecord.orElse(0) + pageSize.get();
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+      }
+
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
     } catch (Exception e) {
       handleException(e);
@@ -1142,6 +1169,8 @@ public class ConceptController extends BaseController {
    * @param code the code
    * @param ancestorCode the ancestor code
    * @param include the include
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the paths to ancestor
    * @throws Exception the exception
    */
@@ -1171,13 +1200,19 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @PathVariable(value = "ancestorCode")
   final String ancestorCode, @RequestParam(required = false, name = "include")
-  final Optional<String> include) throws Exception {
+  final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
+  Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  Optional<Integer> pageSize) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -1186,6 +1221,14 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       final Paths paths = elasticQueryService.getPathsToParent(code, ancestorCode, term);
+
+      if (fromRecord.orElse(0) >= paths.getPaths().size()) {
+        return new ArrayList<>();
+      } else if (pageSize.isPresent()) {
+        final int toIndex = fromRecord.orElse(0) + pageSize.get();
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+      }
+
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
 
     } catch (Exception e) {

@@ -441,6 +441,7 @@ public class HierarchyUtils {
         while ((path = in.readLine()) != null) {
           final List<String> parts = Arrays.asList(path.split("\\|"));
           for (int i = 1; i < parts.size(); i++) {
+            partCt++;
             final String key = parts.get(i);
             final String ptr = String.join("|", parts.subList(0, i + 1));
 

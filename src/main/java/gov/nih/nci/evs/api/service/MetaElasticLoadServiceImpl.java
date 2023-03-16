@@ -1045,6 +1045,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // Remove synonym "uris" as no longer needed
     concept.getSynonyms().forEach(s -> s.setUri(null));
 
+    // Remove synonym "uris" as no longer needed
+    concept.getSynonyms().forEach(s -> s.setUri(null));
+
     // Put concept lists in natural sort order
     concept.sortLists();
 
