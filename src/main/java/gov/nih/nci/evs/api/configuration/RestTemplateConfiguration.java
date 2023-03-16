@@ -1,10 +1,9 @@
 
 package gov.nih.nci.evs.api.configuration;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Bean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Rest template configuration.
@@ -12,15 +11,14 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RestTemplateConfiguration {
 
-  /**
-   * Rest template.
-   *
-   * @param builder the builder
-   * @return the rest template
-   */
-  @Bean
-  public RestTemplate restTemplate(RestTemplateBuilder builder) {
-    // Do any additional configuration here
-    return builder.build();
-  }
+  /** The Constant logger. */
+  private static final Logger logger = LoggerFactory.getLogger(RestTemplateConfiguration.class);
+
+  // See ElasticConfiguration instead
+  // @Bean
+  // public RestTemplate restTemplate(RestTemplateBuilder builder) {
+  // logger.info("XXX is this called?");
+  // // Do any additional configuration here
+  // return builder.build();
+  // }
 }

@@ -33,103 +33,130 @@ import gov.nih.nci.evs.api.model.Terminology;
 @AutoConfigureMockMvc
 public class NcitSampleTest extends SampleTest {
 
-    /**
-     * Setup class.
-     *
-     * @throws Exception the exception
-     */
+  /**
+   * Setup class.
+   *
+   */
 
-    /** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 
-    /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-    @Autowired
-    private MockMvc testMvc;
+  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+  @Autowired
+  private MockMvc testMvc;
 
-    @BeforeClass
-    public static void setupClass() throws Exception {
-        loadSamples("ncit", "src/test/resources/samples/ncit-samples.txt");
-    }
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
+  @BeforeClass
+  public static void setupClass() throws Exception {
+    loadSamples("ncit", "src/test/resources/samples/ncit-samples.txt");
+  }
 
-    @Test
-    public void testNCITerminologyMonthly() throws Exception {
-        String url = null;
-        MvcResult result = null;
-        String content = null;
+  /**
+   * Test large call.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testLargeCall() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-        // test if mdr term exists
-        url = "/api/v1/metadata/terminologies";
-        log.info("Testing url - " + url);
-        result = testMvc.perform(
-                get(url).param("latest", "true").param("tag", "monthly").param("terminology", "ncit"))
-                .andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        log.info(" content = " + content);
+    // Problematic query, test it - ?include=synonyms,children,parents,properties
+    url = "/api/v1/concept/ncit/C162271/pathsFromRoot";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url).param("include", "synonyms,children,parents,properties"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+  }
 
-        final List<Terminology> terminologies = new ObjectMapper().readValue(content,
-                new TypeReference<List<Terminology>>() {
-                });
-        assertThat(terminologies.size()).isGreaterThan(0);
-        assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count())
-                .isEqualTo(1);
-        final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst()
-                .get();
-        assertThat(ncit.getTerminology()).isEqualTo("ncit");
-        assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
-        assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.06e");
-        assertThat(ncit.getDescription()).isNotEmpty();
+  /**
+   * Test NCI terminology monthly.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNCITerminologyMonthly() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-        assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
-        assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
-        assertThat(ncit.getMetadata().getLicenseText()).isNull();
-        assertThat(ncit.getDescription())
-                .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
-                        + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
-                        + "a project by the NCI Center for Biomedical Informatics and Information "
-                        + "Technology. National Cancer Institute, National Institutes of Health, "
-                        + "Bethesda, MD 20892, U.S.A.");
+    // test if mdr term exists
+    url = "/api/v1/metadata/terminologies";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url).param("latest", "true").param("tag", "monthly").param("terminology", "ncit"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
 
-        assertThat(ncit.getLatest()).isTrue();
-    }
+    final List<Terminology> terminologies =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        });
+    assertThat(terminologies.size()).isGreaterThan(0);
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count()).isEqualTo(1);
+    final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(ncit.getTerminology()).isEqualTo("ncit");
+    assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
+    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.06e");
+    assertThat(ncit.getDescription()).isNotEmpty();
 
-    @Test
-    public void testNCITerminologyWeekly() throws Exception {
-        String url = null;
-        MvcResult result = null;
-        String content = null;
+    assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
+    assertThat(ncit.getMetadata().getLicenseText()).isNull();
+    assertThat(ncit.getDescription())
+        .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
+            + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
+            + "a project by the NCI Center for Biomedical Informatics and Information "
+            + "Technology. National Cancer Institute, National Institutes of Health, " + "Bethesda, MD 20892, U.S.A.");
 
-        // test if mdr term exists
-        url = "/api/v1/metadata/terminologies";
-        log.info("Testing url - " + url);
-        result = testMvc.perform(
-                get(url).param("latest", "true").param("tag", "weekly").param("terminology", "ncit"))
-                .andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        log.info(" content = " + content);
+    assertThat(ncit.getLatest()).isTrue();
+  }
 
-        final List<Terminology> terminologies = new ObjectMapper().readValue(content,
-                new TypeReference<List<Terminology>>() {
-                });
-        assertThat(terminologies.size()).isGreaterThan(0);
-        assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count())
-                .isEqualTo(1);
-        final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst()
-                .get();
-        assertThat(ncit.getTerminology()).isEqualTo("ncit");
-        assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
-        assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.07a");
-        assertThat(ncit.getDescription()).isNotEmpty();
+  /**
+   * Test NCI terminology weekly.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNCITerminologyWeekly() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-        assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
-        assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
-        assertThat(ncit.getMetadata().getLicenseText()).isNull();
-        assertThat(ncit.getDescription())
-                .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
-                        + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
-                        + "a project by the NCI Center for Biomedical Informatics and Information "
-                        + "Technology. National Cancer Institute, National Institutes of Health, "
-                        + "Bethesda, MD 20892, U.S.A.");
+    // test if mdr term exists
+    url = "/api/v1/metadata/terminologies";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url).param("latest", "true").param("tag", "weekly").param("terminology", "ncit"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
 
-        assertThat(ncit.getLatest()).isTrue();
-    }
+    final List<Terminology> terminologies =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        });
+    assertThat(terminologies.size()).isGreaterThan(0);
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count()).isEqualTo(1);
+    final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(ncit.getTerminology()).isEqualTo("ncit");
+    assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
+    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.07a");
+    assertThat(ncit.getDescription()).isNotEmpty();
+
+    assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
+    assertThat(ncit.getMetadata().getLicenseText()).isNull();
+    assertThat(ncit.getDescription())
+        .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
+            + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
+            + "a project by the NCI Center for Biomedical Informatics and Information "
+            + "Technology. National Cancer Institute, National Institutes of Health, " + "Bethesda, MD 20892, U.S.A.");
+
+    assertThat(ncit.getLatest()).isTrue();
+  }
 }
