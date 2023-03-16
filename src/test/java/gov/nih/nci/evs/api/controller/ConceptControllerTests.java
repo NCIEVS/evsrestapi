@@ -930,6 +930,49 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(700);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=0&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    String origContent = content;
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=10&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(content).isNotEqualTo(origContent);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=1000&include=full";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isEmpty();
   }
 
   /**
@@ -1017,6 +1060,50 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(700);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=0&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    String origContent = content;
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=10&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(content).isNotEqualTo(origContent);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=1000&include=full";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isEmpty();
+
   }
 
   /**
