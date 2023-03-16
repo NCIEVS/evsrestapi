@@ -917,6 +917,19 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getTerminology()).isNotNull();
     assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(700);
   }
 
   /**
@@ -991,6 +1004,19 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getTerminology()).isNotNull();
     assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(700);
   }
 
   /**

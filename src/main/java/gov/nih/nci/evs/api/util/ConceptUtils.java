@@ -28,8 +28,7 @@ import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /**
- * Utilities for handling the "include" flag, and converting EVSConcept to
- * Concept.
+ * Utilities for handling the "include" flag, and converting EVSConcept to Concept.
  */
 public final class ConceptUtils {
 
@@ -44,7 +43,8 @@ public final class ConceptUtils {
     // n/a
   }
 
-  public static final String PUNCTUATION_REGEX = "[ \\t\\-\\(\\{\\[\\)\\}\\]_!@#%&\\*\\\\:;\\\"',\\.\\?\\/~\\+=\\|<>$`^]";
+  public static final String PUNCTUATION_REGEX =
+      "[ \\t\\-\\(\\{\\[\\)\\}\\]_!@#%&\\*\\\\:;\\\"',\\.\\?\\/~\\+=\\|<>$`^]";
 
   /**
    * Normalize.
@@ -61,19 +61,19 @@ public final class ConceptUtils {
       return value;
     }
 
-    return value.replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "").toLowerCase()
-        .replaceAll(PUNCTUATION_REGEX, " ").replaceAll("\\s+", " ").trim();
+    return value.replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "").toLowerCase().replaceAll(PUNCTUATION_REGEX, " ")
+        .replaceAll("\\s+", " ").trim();
   }
 
   /**
    * Apply highlights.
    *
-   * @param concept    the concept
+   * @param concept the concept
    * @param highlights the highlights
    * @throws Exception the exception
    */
-  public static void applyHighlights(final Concept concept,
-      final java.util.Map<String, String> highlights) throws Exception {
+  public static void applyHighlights(final Concept concept, final java.util.Map<String, String> highlights)
+    throws Exception {
 
     // concept
     if (highlights.containsKey(concept.getName())) {
@@ -129,7 +129,7 @@ public final class ConceptUtils {
    * Apply include.
    *
    * @param concepts the list of concepts
-   * @param ip       the include param
+   * @param ip the include param
    * @return the result concepts
    */
   public static List<Concept> applyInclude(final List<Concept> concepts, final IncludeParam ip) {
@@ -203,7 +203,7 @@ public final class ConceptUtils {
    * Apply include.
    *
    * @param concept the concept
-   * @param limit   the limit
+   * @param limit the limit
    */
   public static void applyLimit(final Concept concept, final int limit) throws Exception {
 
@@ -228,15 +228,15 @@ public final class ConceptUtils {
   /**
    * Sublist.
    *
-   * @param <T>         the
-   * @param list        the list
-   * @param fromIndex   the from index
+   * @param <T> the
+   * @param list the list
+   * @param fromIndex the from index
    * @param maxElements the max elements
    * @return the list
    */
   @SuppressWarnings("unchecked")
-  public static <T extends BaseModel> List<T> sublist(List<T> list, final int fromIndex,
-      final int maxElements) throws Exception {
+  public static <T extends BaseModel> List<T> sublist(List<T> list, final int fromIndex, final int maxElements)
+    throws Exception {
 
     if (fromIndex >= list.size()) {
       return new ArrayList<>();
@@ -246,8 +246,7 @@ public final class ConceptUtils {
     // Add a placeholder "last element" with a "ct" for the total.
     if (fromIndex == 0 && maxElements < list.size() && result.size() > 0) {
 
-      final T obj = (T) result.get(0).getClass().getDeclaredConstructor(new Class[0])
-          .newInstance(new Object[0]);
+      final T obj = (T) result.get(0).getClass().getDeclaredConstructor(new Class[0]).newInstance(new Object[0]);
       obj.setCt(list.size());
       result.add(obj);
     }
@@ -259,7 +258,7 @@ public final class ConceptUtils {
    * Apply include.
    *
    * @param concepts the list of concepts
-   * @param ip       the include param
+   * @param ip the include param
    * @return the result concepts
    */
   public static void applyInclude(final Concept concept, final IncludeParam ip) {
@@ -314,18 +313,17 @@ public final class ConceptUtils {
    * Apply list.
    *
    * @param concepts the evs concepts
-   * @param ip       the ip
-   * @param list     the list
+   * @param ip the ip
+   * @param list the list
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyList(final List<Concept> concepts, final IncludeParam ip,
-      final String list) throws Exception {
-    final Set<String> codes = (list == null || list.isEmpty()) ? null
-        : Arrays.stream(list.split(",")).collect(Collectors.toSet());
+  public static List<Concept> applyList(final List<Concept> concepts, final IncludeParam ip, final String list)
+    throws Exception {
+    final Set<String> codes =
+        (list == null || list.isEmpty()) ? null : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
-    return concepts.stream()
-        .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+    return concepts.stream().filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
         .collect(Collectors.toList());
   }
 
@@ -333,15 +331,15 @@ public final class ConceptUtils {
    * Apply include with children.
    *
    * @param concepts the evs concepts
-   * @param ip       the ip
-   * @param list     the list
+   * @param ip the ip
+   * @param list the list
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyListWithChildren(final List<Concept> concepts,
-      final IncludeParam ip, final String list) throws Exception {
-    final Set<String> codes = (list == null || list.isEmpty()) ? null
-        : Arrays.stream(list.split(",")).collect(Collectors.toSet());
+  public static List<Concept> applyListWithChildren(final List<Concept> concepts, final IncludeParam ip,
+    final String list) throws Exception {
+    final Set<String> codes =
+        (list == null || list.isEmpty()) ? null : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
     return concepts.stream().flatMap(Concept::streamSelfAndChildren)
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
@@ -351,16 +349,15 @@ public final class ConceptUtils {
   /**
    * Convert concepts fy with include.
    *
-   * @param service     the service
-   * @param ip          the ip
+   * @param service the service
+   * @param ip the ip
    * @param terminology the terminology
-   * @param concepts    the concepts
+   * @param concepts the concepts
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> convertConceptsWithInclude(final SparqlQueryManagerService service,
-      final IncludeParam ip, final Terminology terminology, final List<Concept> concepts)
-      throws Exception {
+  public static List<Concept> convertConceptsWithInclude(final SparqlQueryManagerService service, final IncludeParam ip,
+    final Terminology terminology, final List<Concept> concepts) throws Exception {
 
     // final List<Concept> concepts = convertConcepts(list);
     if (ip.hasAnyTrue()) {
@@ -378,7 +375,7 @@ public final class ConceptUtils {
   /**
    * Convert paths.
    *
-   * @param paths   the paths
+   * @param paths the paths
    * @param reverse the reverse
    * @return the list
    */
@@ -407,23 +404,26 @@ public final class ConceptUtils {
   /**
    * Convert paths with include.
    *
-   * @param service     the service
-   * @param ip          the ip
+   * @param service the service
+   * @param ip the ip
    * @param terminology the terminology
-   * @param paths       the paths
-   * @param reverse     the reverse
+   * @param paths the paths
+   * @param reverse the reverse
    * @return the list
    * @throws Exception the exception
    */
-  public static List<List<Concept>> convertPathsWithInclude(final ElasticQueryService service,
-      final IncludeParam ip, final Terminology terminology, final Paths paths, final boolean reverse)
-      throws Exception {
+  public static List<List<Concept>> convertPathsWithInclude(final ElasticQueryService service, final IncludeParam ip,
+    final Terminology terminology, final Paths paths, final boolean reverse) throws Exception {
 
     final List<List<Concept>> list = convertPaths(paths, reverse);
+
+    // Get all the codes an unique them, to make it faster.
+    // Most of the top level concepts are all the same
+    final Set<String> codes = list.stream().flatMap(l -> l.stream()).map(c -> c.getCode()).collect(Collectors.toSet());
+    final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
+
     // final java.util.Map<String, Concept> cache = new HashMap<>();
     for (final List<Concept> concepts : list) {
-      final List<String> codes = concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
-      final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
       for (final Concept concept : concepts) {
         final int level = concept.getLevel();
         // if (cache.containsKey(concept.getCode())) {
@@ -452,8 +452,7 @@ public final class ConceptUtils {
     }
     for (int i = 0; i < values.length; i += 2) {
       // Patch for default namespace where appropriate
-      if (values[i].endsWith("Code") && !values[i].equals("conceptCode")
-          && !values[i + 1].contains(":")) {
+      if (values[i].endsWith("Code") && !values[i].equals("conceptCode") && !values[i + 1].contains(":")) {
         map.put(values[i], ":" + values[i + 1]);
       } else if (values[i].endsWith("Code") && values[i + 1].startsWith("http")) {
         map.put(values[i], "<" + values[i + 1] + ">");
@@ -468,15 +467,14 @@ public final class ConceptUtils {
    * Substr.
    *
    * @param string the string
-   * @param len    the len
+   * @param len the len
    * @return the string
    */
   public static String substr(final String string, final int len) {
     if (len >= string.length()) {
       return string;
     }
-    return string.substring(0, Math.min(len, string.length()))
-        + (string.length() > len ? "..." : "");
+    return string.substring(0, Math.min(len, string.length())) + (string.length() > len ? "..." : "");
   }
 
 }

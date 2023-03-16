@@ -106,18 +106,22 @@ public class SampleTest {
 
     /**
      * Test search.
+     * 
+     * @throws Exception
      */
     @Test
-    public void testSearch() {
+    public void testSearch() throws Exception {
         conceptSampleTester.performSearchTests(terminology, samples, mvc);
     }
 
     /**
      * Test subsets.
+     * 
+     * @throws Exception
      */
     @Test
-    public void testSubsets() {
-        conceptSampleTester.performSearchTests(terminology, samples, mvc);
+    public void testSubsets() throws Exception {
+        conceptSampleTester.performSubsetTests(terminology, samples, mvc);
     }
 
     /**
