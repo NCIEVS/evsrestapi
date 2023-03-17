@@ -1289,6 +1289,9 @@ public class TerminologyMetadata extends BaseModel {
     }
 
     public String getRemodeledAsType(String code) {
+        if (code.equals(null)) {
+            return null;
+        }
         if (code.equals(preferredName)) {
             return "preferred name";
         } else if (code.equals(relationshipToTarget)) {
