@@ -1289,7 +1289,7 @@ public class TerminologyMetadata extends BaseModel {
     }
 
     public String getRemodeledAsType(String code) {
-        if (code.equals(null)) {
+        if (code == null) {
             return null;
         }
         if (code.equals(preferredName)) {
