@@ -62,6 +62,8 @@ public class HTMLTableDataConverter {
 				StringBuffer buf = new StringBuffer();
 				for (int j=0; j<u.size(); j++) {
 				    String s = (String) u.elementAt(j);
+
+				    /*
 				    boolean bool = isCode(s);
 				    if (bool) {
 						s = HyperlinkHelper.toHyperlink(s);
@@ -69,6 +71,33 @@ public class HTMLTableDataConverter {
 					buf = buf.append(s);
 					if (j < u.size()-1) {
 						buf.append("" + delimiter);
+					}
+					*/
+					if (s.indexOf("|") != -1) {
+						StringBuffer buf2 = new StringBuffer();
+						Vector u2 = StringUtils.parseData(s, '|');
+						for (int k=0; k<u2.size(); k++) {
+							String s2 = (String) u2.elementAt(k);
+							boolean bool = isCode(s2);
+							if (bool) {
+								s2 = HyperlinkHelper.toHyperlink(s2);
+							}
+							buf2.append(s2);
+							if (k < u2.size()-1) {
+								buf2.append("|");
+							}
+						}
+						buf.append(buf2.toString() + delimiter);
+
+					} else {
+						boolean bool = isCode(s);
+						if (bool) {
+							s = HyperlinkHelper.toHyperlink(s);
+						}
+						buf = buf.append(s);
+						if (j < u.size()-1) {
+							buf.append("" + delimiter);
+						}
 					}
 				}
 				pw.println(buf.toString());
