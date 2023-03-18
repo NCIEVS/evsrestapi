@@ -43,7 +43,7 @@ public class HTMLTableDataConverter {
 	}
 
 	public String convert(String inputfile, String outputfile, String title, String table,
-	    Vector th_vec) {
+	    Vector th_vec, char delimiter) {
 		Vector v = Utils.readFile(inputfile);
 
 		PrintWriter pw = null;
@@ -58,7 +58,7 @@ public class HTMLTableDataConverter {
 			pw.println("<data>");
 			for (int i=1; i<v.size(); i++) {
 				String t = (String) v.elementAt(i);
-				Vector u = StringUtils.parseData(t, '|');
+				Vector u = StringUtils.parseData(t, delimiter);
 				StringBuffer buf = new StringBuffer();
 				for (int j=0; j<u.size(); j++) {
 				    String s = (String) u.elementAt(j);
@@ -68,7 +68,7 @@ public class HTMLTableDataConverter {
 					}
 					buf = buf.append(s);
 					if (j < u.size()-1) {
-						buf.append("|");
+						buf.append("" + delimiter);
 					}
 				}
 				pw.println(buf.toString());
@@ -95,17 +95,20 @@ public class HTMLTableDataConverter {
 		String table = title;
 		Vector v = Utils.readFile(inputfile);
 		String firstLine = (String) v.elementAt(0);
-		Vector u = StringUtils.parseData(firstLine, '|');
+		char delimiter = '\t';
+		if (firstLine.indexOf("\t") == -1) {
+			delimiter = '|';
+		}
+		Vector u = StringUtils.parseData(firstLine, delimiter);
 		int numberOfColumns = u.size();
 		Vector th_vec = new Vector();
 		for (int i=0; i<numberOfColumns; i++) {
-			//th_vec.add("Column " + i);
 			th_vec.add((String) u.elementAt(i));
 		}
 		String outputfile = title + "_" + StringUtils.getToday() + ".txt";
 	    return convert(inputfile, outputfile,
 			title, table,
-			th_vec);
+			th_vec, delimiter);
 	}
 
 	public static void main(String[] args) {
