@@ -48,6 +48,9 @@ import org.apache.poi.xssf.usermodel.XSSFHyperlink;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import org.apache.poi.ss.usermodel.FillPatternType;
+
+
 public class ExcelWriter {
 	public static final String AQUA = "AQUA";
 	public static final String AUTOMATIC = "AUTOMATIC";
@@ -383,42 +386,28 @@ public class ExcelWriter {
 			System.out.println(datafile);
 			try {
 				XSSFSheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
-
-				//XSSFSheet spreadsheet = workbook.createSheet("Hyperlinks");
-
 				Vector lines = Utils.readFile(datafile);
-				if (lines.size() > 0) {
-					String heading = (String) lines.elementAt(0);
-					String[] columns = getColumnHeadings(heading, delim);
+				String line = (String) lines.elementAt(0);
+				writeHeading(workbook, sheet, line, delim);
 
-					XSSFRow headerRow = sheet.createRow(0);
-					for(int i = 0; i < columns.length; i++) {
-						//cell = headerRow.createCell(i);
-						cell = headerRow.createCell((short) i);
-						cell.setCellValue(columns[i]);
-						cell.setCellStyle(headerCellStyle);
-					}
-					//if (lines.size() > 1) {
-					for (int i=1;i<lines.size(); i++) {
-						String line = (String) lines.elementAt(i);
-						Vector values = StringUtils.parseData(line, delim);
-						XSSFRow row = sheet.createRow(i);
-						for(int k = 0; k < values.size(); k++) {
-							//cell = row.createCell(k);
+				String heading = (String) lines.elementAt(0);
+				String[] columns = getColumnHeadings(heading, delim);
 
-							cell = row.createCell((short) k);
-
-							String value = (String) values.elementAt(k);
-							cell.setCellValue(value);
-							if (isNCItCode(value)) {
-								cell = createHyperlinkXSSFCell(createHelper, hlinkstyle, cell, value);
-							}
+				for (int i=1;i<lines.size(); i++) {
+					line = (String) lines.elementAt(i);
+					Vector values = StringUtils.parseData(line, delim);
+					XSSFRow row = sheet.createRow(i);
+					for(int k = 0; k < values.size(); k++) {
+						cell = row.createCell((short) k);
+						String value = (String) values.elementAt(k);
+						cell.setCellValue(value);
+						if (isNCItCode(value)) {
+							cell = createHyperlinkXSSFCell(createHelper, hlinkstyle, cell, value);
 						}
 					}
-					for(int i = 0; i < columns.length; i++) {
-						sheet.autoSizeColumn(i);
-					}
-				    //}
+				}
+				for(int i = 0; i < columns.length; i++) {
+					sheet.autoSizeColumn(i);
 				}
 
 			} catch (Exception ex) {
@@ -508,6 +497,25 @@ public class ExcelWriter {
 			ex.printStackTrace();
 		}
 		return false;
+	}
+
+    public static void writeHeading(XSSFWorkbook workbook, XSSFSheet spreadsheet, String line, char delim){
+		CellStyle cellStyle = workbook.createCellStyle();
+		Font font = workbook.createFont();
+		font.setColor(HSSFColor.WHITE.index);
+		font.setBold(true);
+		cellStyle.setFont(font);
+		cellStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+		cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		Vector u = StringUtils.parseData(line, delim);
+
+		XSSFRow row = spreadsheet.createRow(0);
+		for (int i=0; i<u.size(); i++) {
+			String value = (String) u.elementAt(i);
+			XSSFCell cell0 = row.createCell((short) i);
+			cell0.setCellValue(value);
+    		cell0.setCellStyle(cellStyle);
+		}
 	}
 
     public static void main(String[] args) throws IOException, InvalidFormatException {
