@@ -501,11 +501,13 @@ public class ExcelWriter {
 
     public static void writeHeading(XSSFWorkbook workbook, XSSFSheet spreadsheet, String line, char delim){
 		CellStyle cellStyle = workbook.createCellStyle();
+		cellStyle.setAlignment(HorizontalAlignment.LEFT);
 		Font font = workbook.createFont();
+		font.setFontHeightInPoints((short) 14);
 		font.setColor(HSSFColor.WHITE.index);
 		font.setBold(true);
 		cellStyle.setFont(font);
-		cellStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+		cellStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
 		cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 		Vector u = StringUtils.parseData(line, delim);
 
@@ -526,6 +528,7 @@ public class ExcelWriter {
 		String excelfile = (String) u.elementAt(0);
 		char delim = '|';
 		String s = (String) u.elementAt(1);
+
 		if (s.compareTo("tab") == 0) {
 			delim = '\t';
 		}
