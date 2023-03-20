@@ -359,24 +359,42 @@ public class ExcelWriter {
 
 	}
 
+    public static Boolean isEven (Integer i) {
+        return (i % 2) == 0;
+    }
+
+    public static CellStyle createCellStyle(XSSFWorkbook workbook, XSSFSheet spreadsheet, short foregroundColorIndex, short textColorIndex, HorizontalAlignment alignment, int fontsize, boolean bold){
+		CellStyle cellStyle = workbook.createCellStyle();
+		cellStyle.setAlignment(alignment);
+		Font font = workbook.createFont();
+		font.setFontHeightInPoints((short) fontsize);
+		font.setColor(textColorIndex);
+		font.setBold(bold);
+		cellStyle.setFont(font);
+		cellStyle.setFillForegroundColor(foregroundColorIndex);
+		cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return cellStyle;
+	}
+
+
+    public static void writeHeading(XSSFWorkbook workbook, XSSFSheet spreadsheet, String line, char delim){
+        CellStyle cellStyle = createCellStyle(workbook, spreadsheet, IndexedColors.GREEN.getIndex(),
+                                              HSSFColor.WHITE.index, HorizontalAlignment.LEFT, (short)14, true);
+        Vector u = StringUtils.parseData(line, delim);
+		XSSFRow row = spreadsheet.createRow(0);
+		for (int i=0; i<u.size(); i++) {
+			String value = (String) u.elementAt(i);
+			XSSFCell cell0 = row.createCell((short) i);
+			cell0.setCellValue(value);
+    		cell0.setCellStyle(cellStyle);
+		}
+	}
+
+
     public void writeToXSSF(Vector datafile_vec, String excelfile, char delim, Vector sheetLabel_vec) {
-		//Workbook workbook = new XSSFWorkbook();
 		XSSFWorkbook workbook = new XSSFWorkbook();
-		XSSFCell cell;
+		XSSFCell cell = null;
 		CreationHelper createHelper = workbook.getCreationHelper();
-		XSSFCellStyle hlinkstyle = workbook.createCellStyle();
-		XSSFFont hlinkfont = workbook.createFont();
-		hlinkfont.setUnderline(XSSFFont.U_SINGLE);
-		hlinkfont.setColor(IndexedColors.BLUE.index);
-		hlinkstyle.setFont(hlinkfont);
-
-		boolean bold = true;
-		int size = 14;
-		String color = RED;
-		Font headerFont = createFont(workbook, bold, size, color);
-
-		CellStyle headerCellStyle = workbook.createCellStyle();
-		headerCellStyle.setFont(headerFont);
 
 		CellStyle dateCellStyle = workbook.createCellStyle();
 		dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-MM-yyyy"));
@@ -386,14 +404,24 @@ public class ExcelWriter {
 			System.out.println(datafile);
 			try {
 				XSSFSheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
+
+				CellStyle cellStyle_odd = createCellStyle(workbook, sheet, IndexedColors.LIGHT_GREEN.getIndex(),
+													  HSSFColor.BLACK.index, HorizontalAlignment.LEFT, 12, false);
+
+				CellStyle cellStyle_even = createCellStyle(workbook, sheet, IndexedColors.WHITE.getIndex(),
+													  HSSFColor.BLACK.index, HorizontalAlignment.LEFT, 12, false);
+
+
 				Vector lines = Utils.readFile(datafile);
 				String line = (String) lines.elementAt(0);
+
 				writeHeading(workbook, sheet, line, delim);
 
 				String heading = (String) lines.elementAt(0);
 				String[] columns = getColumnHeadings(heading, delim);
 
 				for (int i=1;i<lines.size(); i++) {
+					Boolean is_even = isEven(new Integer(i));
 					line = (String) lines.elementAt(i);
 					Vector values = StringUtils.parseData(line, delim);
 					XSSFRow row = sheet.createRow(i);
@@ -401,8 +429,29 @@ public class ExcelWriter {
 						cell = row.createCell((short) k);
 						String value = (String) values.elementAt(k);
 						cell.setCellValue(value);
+
 						if (isNCItCode(value)) {
+
+							XSSFCellStyle hlinkstyle = workbook.createCellStyle();
+							XSSFFont hlinkfont = workbook.createFont();
+							hlinkfont.setUnderline(XSSFFont.U_SINGLE);
+							hlinkfont.setColor(IndexedColors.BLUE.index);
+							hlinkstyle.setFont(hlinkfont);
+
+                            if (is_even.equals(Boolean.TRUE)) {
+							    hlinkstyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+							} else {
+                                hlinkstyle.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+							}
+							hlinkstyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 							cell = createHyperlinkXSSFCell(createHelper, hlinkstyle, cell, value);
+						} else {
+
+							if (is_even.equals(Boolean.TRUE)) {
+								cell.setCellStyle(cellStyle_odd);
+							} else {
+								cell.setCellStyle(cellStyle_even);
+							}
 						}
 					}
 				}
@@ -499,26 +548,7 @@ public class ExcelWriter {
 		return false;
 	}
 
-    public static void writeHeading(XSSFWorkbook workbook, XSSFSheet spreadsheet, String line, char delim){
-		CellStyle cellStyle = workbook.createCellStyle();
-		cellStyle.setAlignment(HorizontalAlignment.LEFT);
-		Font font = workbook.createFont();
-		font.setFontHeightInPoints((short) 14);
-		font.setColor(HSSFColor.WHITE.index);
-		font.setBold(true);
-		cellStyle.setFont(font);
-		cellStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
-		cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-		Vector u = StringUtils.parseData(line, delim);
 
-		XSSFRow row = spreadsheet.createRow(0);
-		for (int i=0; i<u.size(); i++) {
-			String value = (String) u.elementAt(i);
-			XSSFCell cell0 = row.createCell((short) i);
-			cell0.setCellValue(value);
-    		cell0.setCellStyle(cellStyle);
-		}
-	}
 
     public static void main(String[] args) throws IOException, InvalidFormatException {
 		ExcelWriter writer = new ExcelWriter();
