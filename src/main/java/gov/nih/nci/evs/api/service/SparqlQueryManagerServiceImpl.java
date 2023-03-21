@@ -1878,8 +1878,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                     || md.isRemodeledQualifier(qualifier.getUri()) || md.isUnpublished(qualifier.getCode())
                     || md.isUnpublished(qualifier.getUri())) {
                 concept.getQualifiers().add(new Qualifier("remodeled", "true"));
-                concept.getQualifiers().add(new Qualifier("remodeledDescription",
-                        "Remodeled as a " + md.getRemodeledAsType(null, qualifier, md)));
+                if (qualifier.getCode() != null) {
+                    concept.getQualifiers().add(new Qualifier("remodeledDescription",
+                            "Remodeled as a " + md.getRemodeledAsType(null, qualifier, md)));
+                }
             }
             concepts.add(concept);
         }
