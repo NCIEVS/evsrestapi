@@ -404,6 +404,7 @@ public class MetadataServiceImpl implements MetadataService {
 
       subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.populateFrom(conceptMap.get(c.getCode())))
           .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
+
       return subsets;
     }
 

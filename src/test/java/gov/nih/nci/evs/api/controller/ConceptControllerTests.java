@@ -989,6 +989,7 @@ public class ConceptControllerTests {
     String content = null;
     List<List<Concept>> list = null;
 
+    // C3224
     url = baseUrl + "/ncit/C3224/pathsToRoot";
     log.info("Testing url - " + url);
 
@@ -1184,7 +1185,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test that we don't have erroneous definitions or synonyms
+   * Test that we don't have erroneous definitions or synonyms.
    *
    * @throws Exception the exception
    */
@@ -1233,7 +1234,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test association entries API call
+   * Test association entries API call.
    *
    * @throws Exception the exception
    */
@@ -1328,7 +1329,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test getting subsets members for code and terminology
+   * Test getting subsets members for code and terminology.
    *
    * @throws Exception the exception
    */
@@ -1373,7 +1374,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test terminology versions
+   * Test terminology versions.
    *
    * @throws Exception the exception
    */

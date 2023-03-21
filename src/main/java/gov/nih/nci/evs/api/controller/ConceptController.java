@@ -881,6 +881,7 @@ public class ConceptController extends BaseController {
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
+
       final Paths paths = elasticQueryService.getPathsToRoot(code, term);
 
       if (fromRecord.orElse(0) >= paths.getPaths().size()) {
@@ -1142,8 +1143,8 @@ public class ConceptController extends BaseController {
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
-  Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  Optional<Integer> pageSize) throws Exception {
+  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Optional<Integer> pageSize) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -1218,8 +1219,8 @@ public class ConceptController extends BaseController {
   final String code, @PathVariable(value = "ancestorCode")
   final String ancestorCode, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
-  Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  Optional<Integer> pageSize) throws Exception {
+  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Optional<Integer> pageSize) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse(null));

@@ -82,6 +82,11 @@ public class SimpleTreeUtils {
     private boolean collapse_all_at_initialization = false;
     private boolean hyperlink_code = false;
 
+    public SimpleTreeUtils() {
+        this.checkboxid2NodeIdMap = new HashMap();
+        this.vocabularyNameSet = new HashSet();
+    }
+
     public SimpleTreeUtils(Set vocabularyNameSet) {
         this.checkboxid2NodeIdMap = new HashMap();
         this.vocabularyNameSet = vocabularyNameSet;

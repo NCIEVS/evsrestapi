@@ -208,11 +208,16 @@ public class HTMLTable {
 			System.out.println(data);
 
 			out.println("<tr>");
-			Vector u = StringUtils.parseData(data, '|');
+			Vector u = StringUtils.parseData(data, '\t');
 
 			for (int j=0; j<u.size(); j++) {
 				String value = (String) u.elementAt(j);
+
+				System.out.println("value: " + value);
+
 				int percent = getWidth(num_fields, num_wide_fields, (String) th_vec.elementAt(j));
+
+
 				out.println("<td width=\"" + percent + "%\">");
 				out.println(value);
 				out.println("</td>");
@@ -302,13 +307,6 @@ public class HTMLTable {
 		System.out.println(outputfile + " generated.");
 	}
 
-/*
-	public static void main(String[] args) {
-		String filename = args[0];
-		Vector v = Utils.readFile(filename);
-		generate(v);
-	}
-*/
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
 		String named_graph = args[1];
