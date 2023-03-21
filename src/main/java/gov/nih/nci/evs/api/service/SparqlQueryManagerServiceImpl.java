@@ -1709,8 +1709,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                     property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
             if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())) {
                 concept.getProperties().add(new Property("remodeled", "true"));
-                concept.getProperties().add(new Property("remodeledDescription",
-                        "Remodeled as a " + md.getRemodeledAsType(property.getValue())));
+                if (property.getCode() != null) {
+                    concept.getProperties().add(new Property("remodeledDescription",
+                            "Remodeled as a " + md.getRemodeledAsType(property, null, md)));
+                }
             }
             concepts.add(concept);
         }
@@ -1877,7 +1879,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                     || md.isUnpublished(qualifier.getUri())) {
                 concept.getQualifiers().add(new Qualifier("remodeled", "true"));
                 concept.getQualifiers().add(new Qualifier("remodeledDescription",
-                        "Remodeled as a " + md.getRemodeledAsType(qualifier.getValue())));
+                        "Remodeled as a " + md.getRemodeledAsType(null, qualifier, md)));
             }
             concepts.add(concept);
         }

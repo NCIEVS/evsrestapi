@@ -1288,14 +1288,21 @@ public class TerminologyMetadata extends BaseModel {
         return getUnpublished().contains(code);
     }
 
-    public String getRemodeledAsType(String code) {
-        if (code == null) {
+    public String getRemodeledAsType(Property prop, Qualifier qual, TerminologyMetadata md) {
+        String code = null;
+        if (prop != null) {
+            code = prop.getCode();
+        } else if (qual != null) {
+            code = qual.getCode();
+        } else
             return null;
-        }
+
         if (code.equals(preferredName)) {
             return "preferred name";
         } else if (code.equals(relationshipToTarget)) {
             return "relationship to target";
+        } else if (code.equals(code)) {
+            return "code";
         } else if (code.equals(synonymTermType)) {
             return "synonym term type";
         } else if (code.equals(synonymSource)) {
@@ -1305,7 +1312,7 @@ public class TerminologyMetadata extends BaseModel {
         } else if (code.equals(synonymSubSource)) {
             return "synonym subsource";
         } else if (code.equals(definitionSource)) {
-            return "definition source";
+            return "prop source";
         } else if (code.equals(mapRelation)) {
             return "map relation";
         } else if (code.equals(map)) {
@@ -1318,8 +1325,15 @@ public class TerminologyMetadata extends BaseModel {
             return "map target terminology";
         } else if (code.equals(mapTargetTerminologyVersion)) {
             return "map target terminology version";
+        } else if (md.getDefinition().contains(code)) {
+            return "definition";
+        } else if (md.getSynonym().contains(code)) {
+            return "synonym";
+        } else if (prop != null) {
+            return prop.getValue();
+        } else {
+            return qual.getValue();
         }
-        return null;
     }
 
 }
