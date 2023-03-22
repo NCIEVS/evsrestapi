@@ -79,9 +79,10 @@ public class ConceptSampleTester {
     final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Terminology> list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-      // n/a
-    });
+    final List<Terminology> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        });
     terminology = list.get(0);
   }
 
@@ -93,8 +94,8 @@ public class ConceptSampleTester {
    * @param mvc the mvc
    * @throws Exception the exception
    */
-  public void performMetadataTests(final String term, final Map<String, List<SampleRecord>> sampleMap,
-    final MockMvc mvc) throws Exception {
+  public void performMetadataTests(final String term,
+    final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
     String url = baseMetadataUrl;
     MvcResult result = null;
     testMvc = mvc;
@@ -105,17 +106,19 @@ public class ConceptSampleTester {
     url = baseMetadataUrl + term + "/associations?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> associations = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> associations =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     // get qualifiers
     url = baseMetadataUrl + term + "/qualifiers?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> qualifiers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> qualifiers =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     // get roles
     url = baseMetadataUrl + term + "/roles?include=minimal";
@@ -129,41 +132,46 @@ public class ConceptSampleTester {
     url = baseMetadataUrl + term + "/termTypes?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> termTypes = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> termTypes =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     // get synonym sources
     url = baseMetadataUrl + term + "/synonymSources?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> synonymSources = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> synonymSources =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     // get definition types
     url = baseMetadataUrl + term + "/definitionTypes?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> definitionTypes = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> definitionTypes =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     // get definition sources
     url = baseMetadataUrl + term + "/definitionSources?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> definitionSources = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> definitionSources =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     // get properties
     url = baseMetadataUrl + term + "/properties?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> properties = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> properties =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
       url = baseUrl + term + "/" + entry.getKey() + "?include=full";
@@ -185,7 +193,8 @@ public class ConceptSampleTester {
           }
         }
         if (sampleKey.startsWith(term + ":")) {
-          sampleKey = sampleKey.replace(term + ":", ""); // temp fix for classpaths #1
+          sampleKey = sampleKey.replace(term + ":", ""); // temp fix for
+                                                         // classpaths #1
         }
 
         if (associations.contains(sampleKey)) {
@@ -193,14 +202,16 @@ public class ConceptSampleTester {
           if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
             associations.remove(sampleKey);
           } else {
-            errors.add("Association error: " + sampleKey + " does not exist in " + term + " associations");
+            errors.add(
+                "Association error: " + sampleKey + " does not exist in " + term + " associations");
           }
         } else if (qualifiers.contains(sampleKey)) {
           url = baseMetadataUrl + term + "/qualifier/" + sampleKey;
           if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
             qualifiers.remove(sampleKey);
           } else {
-            errors.add("Qualifier error: " + sampleKey + " does not exist in " + term + " qualifiers");
+            errors.add(
+                "Qualifier error: " + sampleKey + " does not exist in " + term + " qualifiers");
           }
         } else if (roles.contains(sampleKey)) {
           url = baseMetadataUrl + term + "/role/" + sampleKey;
@@ -220,29 +231,35 @@ public class ConceptSampleTester {
           if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
             definitionTypes.remove(sampleKey);
           } else {
-            errors.add("Definition Type error: " + sampleKey + " does not exist in " + term + " definition types");
+            errors.add("Definition Type error: " + sampleKey + " does not exist in " + term
+                + " definition types");
           }
         } else if (properties.contains(sampleKey)) {
           url = baseMetadataUrl + term + "/property/" + sampleKey;
           if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
             properties.remove(sampleKey);
           } else {
-            errors.add("Property error: " + sampleKey + " does not exist in " + term + " properties");
+            errors
+                .add("Property error: " + sampleKey + " does not exist in " + term + " properties");
           }
-        } else if (properties.contains(term + ":" + sampleKey)) { // some terms actually do need the
+        } else if (properties.contains(term + ":" + sampleKey)) { // some terms
+                                                                  // actually do
+                                                                  // need the
                                                                   // term name
           String termNameAndTerm = term + ":" + sampleKey;
           url = baseMetadataUrl + term + "/property/" + termNameAndTerm;
           if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
             properties.remove(termNameAndTerm);
           } else {
-            errors.add("Property error: " + termNameAndTerm + " does not exist in " + term + " properties");
+            errors.add("Property error: " + termNameAndTerm + " does not exist in " + term
+                + " properties");
           }
         }
       }
     }
     if (errors.size() > 0) {
-      log.error("METADATA ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName() + ". SEE LOG BELOW");
+      log.error("METADATA ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName()
+          + ". SEE LOG BELOW");
       for (final String err : errors) {
         log.error(err);
       }
@@ -256,13 +273,17 @@ public class ConceptSampleTester {
     if (roles.size() > 0)
       log.info("Roles not covered in sampling: " + Arrays.toString(roles.toArray()));
     if (termTypes.size() > 0)
-      log.info("Synonym term types not covered in sampling: " + Arrays.toString(termTypes.toArray()));
+      log.info(
+          "Synonym term types not covered in sampling: " + Arrays.toString(termTypes.toArray()));
     if (synonymSources.size() > 0)
-      log.info("Synonym sources not covered in sampling: " + Arrays.toString(synonymSources.toArray()));
+      log.info(
+          "Synonym sources not covered in sampling: " + Arrays.toString(synonymSources.toArray()));
     if (definitionSources.size() > 0)
-      log.info("Definition sources not covered in sampling: " + Arrays.toString(definitionSources.toArray()));
+      log.info("Definition sources not covered in sampling: "
+          + Arrays.toString(definitionSources.toArray()));
     if (definitionTypes.size() > 0)
-      log.info("Definition types not covered in sampling: " + Arrays.toString(definitionTypes.toArray()));
+      log.info("Definition types not covered in sampling: "
+          + Arrays.toString(definitionTypes.toArray()));
     if (properties.size() > 0)
       log.info("Properties not covered in sampling: " + Arrays.toString(properties.toArray()));
   }
@@ -275,8 +296,8 @@ public class ConceptSampleTester {
    * @param mvc the mvc
    * @throws Exception the exception
    */
-  public void performContentTests(final String term, final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc)
-    throws Exception {
+  public void performContentTests(final String term,
+    final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
     String url = baseUrl;
     MvcResult result = null;
     testMvc = mvc;
@@ -303,12 +324,13 @@ public class ConceptSampleTester {
           }
         } else if (key.equals(terminology.getMetadata().getCode())) {
           if (!checkCode(concept, sample)) {
-            errors.add("ERROR: Wrong terminology code " + sample.getValue() + " of " + terminology.getName());
+            errors.add("ERROR: Wrong terminology code " + sample.getValue() + " of "
+                + terminology.getName());
           }
         } else if (key.equals(terminology.getMetadata().getPreferredName())) {
           if (!checkPreferredName(concept, sample)) {
-            errors.add(
-                "ERROR: Wrong terminology preferred name code " + sample.getKey() + " of " + terminology.getName());
+            errors.add("ERROR: Wrong terminology preferred name code " + sample.getKey() + " of "
+                + terminology.getName());
           }
         } else if (terminology.getMetadata().getSynonym().contains(key)) {
           if (!checkSynonym(concept, sample)) {
@@ -318,7 +340,8 @@ public class ConceptSampleTester {
           if (!checkDefinition(concept, sample)) {
             errors.add("ERROR: Wrong synonym " + sample.getValue() + " of " + sample.getCode());
           }
-        } else if ((key.startsWith("rdfs:subClassOf") || key.startsWith("owl:equivalentClass")) && key.contains("~")) {
+        } else if ((key.startsWith("rdfs:subClassOf") || key.startsWith("owl:equivalentClass"))
+            && key.contains("~")) {
           if (!checkRole(concept, sample)) {
             errors.add("ERROR: Wrong role " + sample.getValue() + " of " + sample.getCode());
           }
@@ -331,22 +354,25 @@ public class ConceptSampleTester {
             errors.add("ERROR: root " + sample.getCode() + " has parents");
           }
         } else if (key.startsWith("parent-count")) {
-          if (concept.getParents().size() != Integer.parseInt(key.substring("parent-count".length()))) {
-            errors.add("ERROR: concept " + sample.getCode() + " has " + concept.getParents().size() + " parents, "
-                + "stated number " + key.substring("parent-count".length()));
+          if (concept.getParents().size() != Integer
+              .parseInt(key.substring("parent-count".length()))) {
+            errors.add("ERROR: concept " + sample.getCode() + " has " + concept.getParents().size()
+                + " parents, " + "stated number " + key.substring("parent-count".length()));
           }
         } else if (key.startsWith("parent-style")) {
           if (!checkParent(concept, sample)) {
-            errors.add("ERROR: incorrect parent relationship: " + key + " not a parent of " + sample.getValue());
+            errors.add("ERROR: incorrect parent relationship: " + key + " not a parent of "
+                + sample.getValue());
           }
         } else if (key.startsWith("child-style")) {
           if (!checkChildren(concept, sample)) {
-            errors.add("ERROR: incorrect children relationship: " + key + " not a child of " + sample.getValue());
+            errors.add("ERROR: incorrect children relationship: " + key + " not a child of "
+                + sample.getValue());
           }
         } else if (key.equals("max-children")) {
           if (concept.getChildren().size() != Integer.parseInt(sample.getValue())) {
-            errors.add("ERROR: concept " + sample.getCode() + " has " + concept.getChildren().size() + " children, "
-                + "stated number " + sample.getValue());
+            errors.add("ERROR: concept " + sample.getCode() + " has " + concept.getChildren().size()
+                + " children, " + "stated number " + sample.getValue());
           }
         } else if (key.equals("synonym")) {
           if (!concept.getName().equals(sample.getValue())) {
@@ -362,7 +388,8 @@ public class ConceptSampleTester {
       }
     }
     if (errors.size() > 0) {
-      log.error("SAMPLING ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName() + ". SEE LOG BELOW");
+      log.error("SAMPLING ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName()
+          + ". SEE LOG BELOW");
       for (final String err : errors) {
         log.error(err);
       }
@@ -379,7 +406,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    */
   private boolean checkParent(final Concept concept, final SampleRecord sample) {
-    return concept.getParents().stream().filter(o -> o.getCode().equals(sample.getValue())).findAny().isPresent();
+    return concept.getParents().stream().filter(o -> o.getCode().equals(sample.getValue()))
+        .findAny().isPresent();
   }
 
   /**
@@ -390,7 +418,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    */
   private boolean checkChildren(final Concept concept, final SampleRecord sample) {
-    return concept.getChildren().stream().filter(o -> o.getCode().equals(sample.getValue())).findAny().isPresent();
+    return concept.getChildren().stream().filter(o -> o.getCode().equals(sample.getValue()))
+        .findAny().isPresent();
   }
 
   /**
@@ -423,7 +452,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    */
   private boolean checkSynonym(final Concept concept, final SampleRecord sample) {
-    return concept.getSynonyms().stream().filter(o -> o.getName().equals(sample.getValue())).findAny().isPresent();
+    return concept.getSynonyms().stream().filter(o -> o.getName().equals(sample.getValue()))
+        .findAny().isPresent();
   }
 
   /**
@@ -434,8 +464,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    */
   private boolean checkDefinition(final Concept concept, final SampleRecord sample) {
-    return concept.getDefinitions().stream().filter(o -> o.getDefinition().equals(sample.getValue())).findAny()
-        .isPresent();
+    return concept.getDefinitions().stream()
+        .filter(o -> o.getDefinition().equals(sample.getValue())).findAny().isPresent();
   }
 
   /**
@@ -446,7 +476,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    */
   private boolean checkTermType(final Concept concept, final SampleRecord sample) {
-    return concept.getSynonyms().stream().filter(o -> o.getTermType().equals(sample.getValue())).findAny().isPresent();
+    return concept.getSynonyms().stream().filter(o -> o.getTermType().equals(sample.getValue()))
+        .findAny().isPresent();
   }
 
   /**
@@ -457,7 +488,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    * @throws Exception the exception
    */
-  private boolean checkQualifier(final Concept concept, final SampleRecord sample) throws Exception {
+  private boolean checkQualifier(final Concept concept, final SampleRecord sample)
+    throws Exception {
     final String qualKey = sample.getKey().split("-", 2)[1].split("~")[0];
     final String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
     final int propertyValueLength = sample.getValue().split("~").length;
@@ -468,11 +500,16 @@ public class ConceptSampleTester {
       final String propertyValue = sample.getValue().split("~")[1];
 
       if (terminology.getMetadata().getSynonym().contains(qualKey)) {
-        return checkSynonymMetadata(concept, sample, qualKey, propertyKey, qualValue, propertyValue);
+        return checkSynonymMetadata(concept, sample, qualKey, propertyKey, qualValue,
+            propertyValue);
       } else if (terminology.getMetadata().getDefinition().contains(qualKey)) {
         return checkDefinitionMetadata(concept, sample, propertyKey, qualValue, propertyValue);
-      } else if (terminology.getMetadata().getMap() != null && terminology.getMetadata().getMap().equals(qualKey)) {
+      } else if (terminology.getMetadata().getMap() != null
+          && terminology.getMetadata().getMap().equals(qualKey)) {
         return checkMaps(concept, sample, propertyKey, qualValue, propertyValue);
+      } else if (qualKey.equals("synonym")) {
+        return checkSynonymQualifiers(concept, sample, qualKey, propertyKey, qualValue,
+            propertyValue);
       } else {
         return checkOther(concept, sample, qualKey, qualValue, propertyKey, propertyValue);
       }
@@ -503,7 +540,8 @@ public class ConceptSampleTester {
    */
   private boolean checkOther(final Concept concept, final SampleRecord sample, final String qualKey,
     final String qualValue, final String propertyKey, final String propertyValue) throws Exception {
-    String url = "/api/v1/metadata/" + terminology.getTerminology() + "/property/" + qualKey + "?include=minimal";
+    String url = "/api/v1/metadata/" + terminology.getTerminology() + "/property/" + qualKey
+        + "?include=minimal";
     MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -512,7 +550,8 @@ public class ConceptSampleTester {
     }
     final Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
 
-    url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
+    url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey
+        + "?include=minimal";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -521,7 +560,8 @@ public class ConceptSampleTester {
         .filter(o -> o.getType().equals(otherProperty.getName())
             || o.getType().equals(otherProperty.getCode()) && o.getQualifiers() != null
                 && o.getQualifiers().stream()
-                    .filter(p -> p.getType().equals(otherQualifier.getName()) && p.getValue().equals(propertyValue))
+                    .filter(p -> p.getType().equals(otherQualifier.getName())
+                        && p.getValue().equals(propertyValue))
                     .findAny().isPresent())
         .findAny().isPresent();
   }
@@ -538,28 +578,28 @@ public class ConceptSampleTester {
    * @return true, if successful
    * @throws Exception the exception
    */
-  private boolean checkSynonymMetadata(final Concept concept, final SampleRecord sample, final String qualKey,
-    final String propertyKey, final String qualValue, final String propertyValue) throws Exception {
+  private boolean checkSynonymMetadata(final Concept concept, final SampleRecord sample,
+    final String qualKey, final String propertyKey, final String qualValue,
+    final String propertyValue) throws Exception {
     if (propertyKey.equals(terminology.getMetadata().getSynonymTermType())) {
-      return concept.getSynonyms().stream()
-          .filter(
-              o -> o.getName().equals(qualValue) && o.getTermType() != null && o.getTermType().equals(propertyValue))
+      return concept
+          .getSynonyms().stream().filter(o -> o.getName().equals(qualValue)
+              && o.getTermType() != null && o.getTermType().equals(propertyValue))
           .findAny().isPresent();
     } else if (propertyKey.equals(terminology.getMetadata().getSynonymSource())) {
-      return concept.getSynonyms().stream()
-          .filter(o -> o.getName().equals(qualValue) && o.getSource() != null && o.getSource().equals(propertyValue))
-          .findAny().isPresent();
+      return concept.getSynonyms().stream().filter(o -> o.getName().equals(qualValue)
+          && o.getSource() != null && o.getSource().equals(propertyValue)).findAny().isPresent();
     } else if (propertyKey.equals(terminology.getMetadata().getSynonymCode())) {
-      return concept.getSynonyms().stream()
-          .filter(o -> o.getName().equals(qualValue) && o.getCode() != null && o.getCode().equals(propertyValue))
-          .findAny().isPresent();
+      return concept.getSynonyms().stream().filter(o -> o.getName().equals(qualValue)
+          && o.getCode() != null && o.getCode().equals(propertyValue)).findAny().isPresent();
     } else if (propertyKey.equals(terminology.getMetadata().getSynonymSubSource())) {
-      return concept.getSynonyms().stream()
-          .filter(
-              o -> o.getName().equals(qualValue) && o.getSubSource() != null && o.getSubSource().equals(propertyValue))
+      return concept
+          .getSynonyms().stream().filter(o -> o.getName().equals(qualValue)
+              && o.getSubSource() != null && o.getSubSource().equals(propertyValue))
           .findAny().isPresent();
     } else {
-      String url = "/api/v1/metadata/" + terminology.getTerminology() + "/synonymType/" + qualKey + "?include=minimal";
+      String url = "/api/v1/metadata/" + terminology.getTerminology() + "/synonymType/" + qualKey
+          + "?include=minimal";
       MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
       String content = result.getResponse().getContentAsString();
       log.info(" content = " + content);
@@ -568,7 +608,8 @@ public class ConceptSampleTester {
       }
       final Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
 
-      url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey + "?include=minimal";
+      url = "/api/v1/metadata/" + terminology.getTerminology() + "/qualifier/" + propertyKey
+          + "?include=minimal";
       result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
       content = result.getResponse().getContentAsString();
       log.info(" content = " + content);
@@ -576,7 +617,8 @@ public class ConceptSampleTester {
       return concept.getSynonyms().stream()
           .filter(o -> o.getType().equals(otherProperty.getName()) && o.getQualifiers() != null
               && o.getQualifiers().stream()
-                  .filter(p -> p.getType().equals(otherQualifier.getName()) && p.getValue().equals(propertyValue))
+                  .filter(p -> p.getType().equals(otherQualifier.getName())
+                      && p.getValue().equals(propertyValue))
                   .findAny().isPresent())
           .findAny().isPresent();
     }
@@ -592,16 +634,16 @@ public class ConceptSampleTester {
    * @param propertyValue the property value
    * @return true, if successful
    */
-  private boolean checkDefinitionMetadata(final Concept concept, final SampleRecord sample, final String propertyKey,
-    final String qualValue, final String propertyValue) {
+  private boolean checkDefinitionMetadata(final Concept concept, final SampleRecord sample,
+    final String propertyKey, final String qualValue, final String propertyValue) {
     if (propertyKey.equals(terminology.getMetadata().getDefinitionSource())) {
       return concept.getDefinitions().stream()
-          .filter(o -> o.getDefinition().equals(qualValue) && o.getSource().equals(propertyValue)).findAny()
-          .isPresent();
+          .filter(o -> o.getDefinition().equals(qualValue) && o.getSource().equals(propertyValue))
+          .findAny().isPresent();
     } else {
       return concept.getDefinitions().stream()
-          .filter(o -> o.getDefinition().equals(qualValue)
-              && o.getQualifiers().stream().filter(p -> p.getValue().equals(propertyValue)).findAny().isPresent())
+          .filter(o -> o.getDefinition().equals(qualValue) && o.getQualifiers().stream()
+              .filter(p -> p.getValue().equals(propertyValue)).findAny().isPresent())
           .findAny().isPresent();
     }
   }
@@ -616,31 +658,31 @@ public class ConceptSampleTester {
    * @param propertyValue the property value
    * @return true, if successful
    */
-  private boolean checkMaps(final Concept concept, final SampleRecord sample, final String propertyKey,
-    final String qualValue, final String propertyValue) {
+  private boolean checkMaps(final Concept concept, final SampleRecord sample,
+    final String propertyKey, final String qualValue, final String propertyValue) {
     if (propertyKey.equals(terminology.getMetadata().getMapRelation())) {
       return concept.getMaps().stream()
-          .filter(o -> o.getTargetName().equals(qualValue) && o.getType().equals(propertyValue)).findAny().isPresent();
+          .filter(o -> o.getTargetName().equals(qualValue) && o.getType().equals(propertyValue))
+          .findAny().isPresent();
 
     } else if (propertyKey.equals(terminology.getMetadata().getMapTarget())) {
       return concept.getMaps().stream()
-          .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetCode().equals(propertyValue)).findAny()
-          .isPresent();
+          .filter(
+              o -> o.getTargetName().equals(qualValue) && o.getTargetCode().equals(propertyValue))
+          .findAny().isPresent();
 
     } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTermType())) {
-      return concept.getMaps().stream()
-          .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTermType().equals(propertyValue)).findAny()
-          .isPresent();
+      return concept.getMaps().stream().filter(
+          o -> o.getTargetName().equals(qualValue) && o.getTargetTermType().equals(propertyValue))
+          .findAny().isPresent();
 
     } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTerminology())) {
-      return concept.getMaps().stream()
-          .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTerminology().equals(propertyValue)).findAny()
-          .isPresent();
+      return concept.getMaps().stream().filter(o -> o.getTargetName().equals(qualValue)
+          && o.getTargetTerminology().equals(propertyValue)).findAny().isPresent();
 
     } else if (propertyKey.equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
-      return concept.getMaps().stream()
-          .filter(o -> o.getTargetName().equals(qualValue) && o.getTargetTerminologyVersion().equals(propertyValue))
-          .findAny().isPresent();
+      return concept.getMaps().stream().filter(o -> o.getTargetName().equals(qualValue)
+          && o.getTargetTerminologyVersion().equals(propertyValue)).findAny().isPresent();
     }
     return false;
   }
@@ -655,12 +697,35 @@ public class ConceptSampleTester {
    * @param propertyValue the property value
    * @return true, if successful
    */
-  private boolean checkAssociations(final Concept concept, final SampleRecord sample, final String qualKey,
-    final String propertyKey, final String propertyValue) {
+  private boolean checkAssociations(final Concept concept, final SampleRecord sample,
+    final String qualKey, final String propertyKey, final String propertyValue) {
 
     return concept.getAssociations().stream()
         .filter(o -> o.getType().equals(qualKey) && o.getQualifiers().stream()
-            .filter(q -> q.getType().equals(propertyKey) && q.getValue().equals(propertyValue)).findAny().isPresent())
+            .filter(q -> q.getType().equals(propertyKey) && q.getValue().equals(propertyValue))
+            .findAny().isPresent())
+        .findAny().isPresent();
+  }
+
+  /**
+   * Check Synonym Qualifiers.
+   *
+   * @param concept the concept
+   * @param sample the sample
+   * @param qualKey the qual key
+   * @param propertyKey the property key
+   * @param qualValue the qual value
+   * @param propertyValue the property value
+   * @return true, if successful
+   */
+  private boolean checkSynonymQualifiers(final Concept concept, final SampleRecord sample,
+    final String qualKey, final String propertyKey, final String qualValue,
+    final String propertyValue) {
+
+    return concept.getSynonyms().stream()
+        .filter(o -> o.getName().equals(qualValue) && o.getQualifiers().stream()
+            .filter(q -> q.getType().equals(propertyKey) && q.getValue().equals(propertyValue))
+            .findAny().isPresent())
         .findAny().isPresent();
   }
 
@@ -674,15 +739,17 @@ public class ConceptSampleTester {
    */
   private boolean checkRole(final Concept concept, final SampleRecord sample) throws Exception {
     final String role = sample.getKey().split("~")[1];
-    final String url = "/api/v1/metadata/" + terminology.getTerminology() + "/role/" + role + "?include=minimal";
+    final String url =
+        "/api/v1/metadata/" + terminology.getTerminology() + "/role/" + role + "?include=minimal";
     final MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     final Concept minMatchedRole = new ObjectMapper().readValue(content, Concept.class);
-    final Role conceptMatchedRole = concept.getRoles().stream()
-        .filter(o -> o.getRelatedCode().equals(sample.getValue()) && o.getType().equals(minMatchedRole.getName()))
-        .findAny().orElse(null);
-    return conceptMatchedRole != null && conceptMatchedRole.getType().contentEquals(minMatchedRole.getName());
+    final Role conceptMatchedRole =
+        concept.getRoles().stream().filter(o -> o.getRelatedCode().equals(sample.getValue())
+            && o.getType().equals(minMatchedRole.getName())).findAny().orElse(null);
+    return conceptMatchedRole != null
+        && conceptMatchedRole.getType().contentEquals(minMatchedRole.getName());
   }
 
   /**
@@ -693,8 +760,8 @@ public class ConceptSampleTester {
    * @param mvc the mvc
    * @throws Exception the exception
    */
-  public void performPathsSubtreeAndRootsTests(final String term, final Map<String, List<SampleRecord>> sampleMap,
-    final MockMvc mvc) throws Exception {
+  public void performPathsSubtreeAndRootsTests(final String term,
+    final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
 
     MvcResult result = null;
     testMvc = mvc;
@@ -713,6 +780,12 @@ public class ConceptSampleTester {
         break;
     }
 
+    if (parentCode1 == null && parentCode2 == null) {
+
+      log.warn("No parent relationships found for " + terminology.getName());
+      return;
+    }
+
     // roots testing
     String url = "/api/v1/concept/" + terminology.getTerminology() + "/roots";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -720,7 +793,8 @@ public class ConceptSampleTester {
     List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    List<String> rootCodes = roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<String> rootCodes =
+        roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
     if (terminology.getMetadata().getHierarchy() == true && roots.size() == 0) {
       errors.add("ERROR: roots could not be found in hierarchy temrinology " + term);
     } else if (terminology.getMetadata().getHierarchy() == false && roots.size() > 0) {
@@ -728,22 +802,26 @@ public class ConceptSampleTester {
     }
 
     // pathsToRoot testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsToRoot?include=minimal";
+    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
+        + "/pathsToRoot?include=minimal";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     String ancestorCode = null;
     List<String> reverseToRootPath = null;
-    List<List<Concept>> pathsToRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-      // n/a
-    });
+    List<List<Concept>> pathsToRoot =
+        new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+          // n/a
+        });
     if (pathsToRoot.size() < 1) {
-      errors.add("ERROR: no paths to root found for non-root concept " + parentCode1 + " in terminology " + term);
+      errors.add("ERROR: no paths to root found for non-root concept " + parentCode1
+          + " in terminology " + term);
 
     } else {
       for (List<Concept> path : pathsToRoot) {
         if (!rootCodes.contains(path.get(path.size() - 1).getCode())) {
-          errors.add("ERROR: path too root for concept " + parentCode1 + " ends in non-root concept "
-              + path.get(path.size() - 1).getCode() + " in terminology " + term);
+          errors
+              .add("ERROR: path too root for concept " + parentCode1 + " ends in non-root concept "
+                  + path.get(path.size() - 1).getCode() + " in terminology " + term);
         }
         // hold an intermediate code for pathToAncestor
         if (path.size() > 2 && ancestorCode == null) {
@@ -751,28 +829,32 @@ public class ConceptSampleTester {
         }
         // hold a reverse root path for pathsFromRoot
         if (path.size() > 1 && reverseToRootPath == null) {
-          reverseToRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+          reverseToRootPath =
+              path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
           Collections.reverse(reverseToRootPath);
         }
       }
     }
 
     // pathsFromRoot testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsFromRoot?include=minimal";
+    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
+        + "/pathsFromRoot?include=minimal";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     List<String> fromRootPath = null;
     Boolean reversePathFound = false;
-    List<List<Concept>> pathsFromRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-      // n/a
-    });
+    List<List<Concept>> pathsFromRoot =
+        new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+          // n/a
+        });
     if (pathsFromRoot.size() < 1) {
-      errors.add("ERROR: no paths from root found for non-root concept " + parentCode1 + " in terminology " + term);
+      errors.add("ERROR: no paths from root found for non-root concept " + parentCode1
+          + " in terminology " + term);
     } else {
       for (List<Concept> path : pathsFromRoot) {
         if (!rootCodes.contains(path.get(0).getCode())) {
-          errors.add("ERROR: path from root for concept " + parentCode1 + " starts in non-root concept "
-              + path.get(0).getCode() + " in terminology " + term);
+          errors.add("ERROR: path from root for concept " + parentCode1
+              + " starts in non-root concept " + path.get(0).getCode() + " in terminology " + term);
         }
         // check for reverse of path found in pathsToRoot
         fromRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
@@ -780,26 +862,31 @@ public class ConceptSampleTester {
           reversePathFound = true;
         }
       }
+
     }
     if (!reversePathFound) {
-      errors.add("ERROR: Chosen reverse path from pathsToRoot not found in pathsFromRoot for concept " + parentCode1
-          + " in terminology " + term);
+      errors
+          .add("ERROR: Chosen reverse path from pathsToRoot not found in pathsFromRoot for concept "
+              + parentCode1 + " in terminology " + term);
     }
     if (parentCode2 != null) {
-      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2 + "/pathsFromRoot?include=minimal";
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2
+          + "/pathsFromRoot?include=minimal";
       result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
       content = result.getResponse().getContentAsString();
-      pathsFromRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-        // n/a
-      });
+      pathsFromRoot =
+          new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+            // n/a
+          });
       if (pathsFromRoot.size() < 1) {
-        errors.add("ERROR: no paths from root found for non-root concept " + parentCode2 + " in terminology " + term);
+        errors.add("ERROR: no paths from root found for non-root concept " + parentCode2
+            + " in terminology " + term);
       }
     }
 
     // pathsToAncestor testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsToAncestor/" + ancestorCode
-        + "?include=minimal";
+    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
+        + "/pathsToAncestor/" + ancestorCode + "?include=minimal";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     List<List<Concept>> pathsToAncestor =
@@ -809,12 +896,13 @@ public class ConceptSampleTester {
     for (List<Concept> path : pathsToAncestor) {
       if (!path.get(0).getCode().equals(parentCode1)) {
         errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-            + " starts with different concept from stated " + path.get(0).getCode() + " in terminology " + term);
+            + " starts with different concept from stated " + path.get(0).getCode()
+            + " in terminology " + term);
       }
       if (!path.get(path.size() - 1).getCode().equals(ancestorCode)) {
         errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-            + " ends in different concept from stated " + path.get(path.size() - 1).getCode() + " in terminology "
-            + term);
+            + " ends in different concept from stated " + path.get(path.size() - 1).getCode()
+            + " in terminology " + term);
       }
     }
 
@@ -822,13 +910,14 @@ public class ConceptSampleTester {
     url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/subtree";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<HierarchyNode> subtree = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
-      // n/a
-    });
+    List<HierarchyNode> subtree =
+        new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+          // n/a
+        });
     for (HierarchyNode root : subtree) {
       if (!rootCodes.contains(root.getCode())) {
-        errors.add("ERROR: non-root found at top level of subtree call for concept " + parentCode1 + " in terminology "
-            + term);
+        errors.add("ERROR: non-root found at top level of subtree call for concept " + parentCode1
+            + " in terminology " + term);
       }
     }
 
@@ -836,15 +925,17 @@ public class ConceptSampleTester {
     url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/subtree";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<HierarchyNode> children = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
-      // n/a
-    });
+    List<HierarchyNode> children =
+        new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+          // n/a
+        });
     if (children.size() < 1) {
 
     }
 
     if (errors.size() > 0) {
-      log.error("SAMPLING ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName() + ". SEE LOG BELOW");
+      log.error("SAMPLING ERRORS FOUND IN SAMPLING FOR TERMINOLOGY " + terminology.getName()
+          + ". SEE LOG BELOW");
       for (final String err : errors) {
         log.error(err);
       }
@@ -863,8 +954,8 @@ public class ConceptSampleTester {
    * @param mvc the mvc
    * @throws Exception the exception
    */
-  public void performSearchTests(final String term, final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc)
-    throws Exception {
+  public void performSearchTests(final String term, final Map<String, List<SampleRecord>> sampleMap,
+    final MockMvc mvc) throws Exception {
 
     MvcResult result = null;
     testMvc = mvc;
@@ -874,7 +965,8 @@ public class ConceptSampleTester {
     lookupTerminology(term, testMvc);
     for (List<SampleRecord> values : sampleMap.values()) {
       for (SampleRecord property : values) {
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + property.getCode() + "?include=minimal";
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + property.getCode()
+            + "?include=minimal";
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
         testConcept = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
@@ -895,7 +987,8 @@ public class ConceptSampleTester {
     final String testCode = testConcept.getCode();
     final String testName = testConcept.getName().toLowerCase();
     final String[] splitTestName = testName.toLowerCase().split(" ");
-    url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology() + "&term=" + testCode;
+    url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology()
+        + "&term=" + testCode;
     log.info(url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -904,18 +997,19 @@ public class ConceptSampleTester {
     assertThat(list.getConcepts().stream()
         .anyMatch(o -> o.getName().toLowerCase().equals(testName) && o.getCode().equals(testCode)));
 
-    url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology() + "&term="
-        + testConcept.getCode().toLowerCase();
+    url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology()
+        + "&term=" + testConcept.getCode().toLowerCase();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
-    assertThat(list.getConcepts().stream().anyMatch(o -> o.getName().equals(testName) && o.getCode().equals(testCode)));
+    assertThat(list.getConcepts().stream()
+        .anyMatch(o -> o.getName().equals(testName) && o.getCode().equals(testCode)));
 
     // testing the types
 
-    url = "/api/v1/concept/search?include=minimal&type=match&terminology=" + terminology.getTerminology() + "&term="
-        + testConcept.getName();
+    url = "/api/v1/concept/search?include=minimal&type=match&terminology="
+        + terminology.getTerminology() + "&term=" + testConcept.getName();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -923,23 +1017,26 @@ public class ConceptSampleTester {
     for (Concept conc : list.getConcepts()) {
       assertThat(conc.getName().equals(testName)
           || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().equals(testName))
-          || conc.getDefinitions().stream().anyMatch(o -> o.getDefinition().toLowerCase().equals(testName)));
+          || conc.getDefinitions().stream()
+              .anyMatch(o -> o.getDefinition().toLowerCase().equals(testName)));
     }
 
-    url = "/api/v1/concept/search?include=minimal&type=startsWith&terminology=" + terminology.getTerminology()
-        + "&term=" + testConcept.getName();
+    url = "/api/v1/concept/search?include=minimal&type=startsWith&terminology="
+        + terminology.getTerminology() + "&term=" + testConcept.getName();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(conc.getName().startsWith(testName)
-          || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().startsWith(testName))
-          || conc.getDefinitions().stream().anyMatch(o -> o.getDefinition().toLowerCase().startsWith(testName)));
+          || conc.getSynonyms().stream()
+              .anyMatch(o -> o.getName().toLowerCase().startsWith(testName))
+          || conc.getDefinitions().stream()
+              .anyMatch(o -> o.getDefinition().toLowerCase().startsWith(testName)));
     }
 
-    url = "/api/v1/concept/search?include=minimal&type=phrase&terminology=" + terminology.getTerminology() + "&term="
-        + testConcept.getName();
+    url = "/api/v1/concept/search?include=minimal&type=phrase&terminology="
+        + terminology.getTerminology() + "&term=" + testConcept.getName();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -947,39 +1044,42 @@ public class ConceptSampleTester {
     for (Concept conc : list.getConcepts()) {
       assertThat(conc.getName().startsWith(testName)
           || conc.getSynonyms().stream().anyMatch(o -> o.getName().toLowerCase().contains(testName))
-          || conc.getDefinitions().stream().anyMatch(o -> o.getDefinition().toLowerCase().contains(testName)));
+          || conc.getDefinitions().stream()
+              .anyMatch(o -> o.getDefinition().toLowerCase().contains(testName)));
     }
 
-    url = "/api/v1/concept/search?include=minimal&type=AND&terminology=" + terminology.getTerminology() + "&term="
-        + testConcept.getName();
+    url = "/api/v1/concept/search?include=minimal&type=AND&terminology="
+        + terminology.getTerminology() + "&term=" + testConcept.getName();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(Arrays.stream(splitTestName).anyMatch(conc.getName()::contains)
-          || conc.getSynonyms().stream().anyMatch(o -> matchOrAnd(o.getName().toLowerCase(), splitTestName, "AND"))
+          || conc.getSynonyms().stream()
+              .anyMatch(o -> matchOrAnd(o.getName().toLowerCase(), splitTestName, "AND"))
           || conc.getDefinitions().stream()
               .anyMatch(o -> matchOrAnd(o.getDefinition().toLowerCase(), splitTestName, "AND")));
 
     }
 
-    url = "/api/v1/concept/search?include=minimal&type=OR&terminology=" + terminology.getTerminology() + "&term="
-        + testConcept.getName();
+    url = "/api/v1/concept/search?include=minimal&type=OR&terminology="
+        + terminology.getTerminology() + "&term=" + testConcept.getName();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(Arrays.stream(splitTestName).anyMatch(conc.getName()::contains)
-          || conc.getSynonyms().stream().anyMatch(o -> matchOrAnd(o.getName().toLowerCase(), splitTestName, "OR"))
+          || conc.getSynonyms().stream()
+              .anyMatch(o -> matchOrAnd(o.getName().toLowerCase(), splitTestName, "OR"))
           || conc.getDefinitions().stream()
               .anyMatch(o -> matchOrAnd(o.getDefinition().toLowerCase(), splitTestName, "OR")));
     }
 
     // test fromRecord and page size
-    url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology() + "&term="
-        + testConcept.getName() + "&pageSize=12";
+    url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology()
+        + "&term=" + testConcept.getName() + "&pageSize=12";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -988,8 +1088,8 @@ public class ConceptSampleTester {
     if (list.getConcepts().size() > 10) {
       Concept eleventhConcept = list.getConcepts().get(10);
 
-      url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology() + "&term="
-          + testConcept.getName() + "&fromRecord=10";
+      url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology()
+          + "&term=" + testConcept.getName() + "&fromRecord=10";
       result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
       content = result.getResponse().getContentAsString();
       list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1025,8 +1125,8 @@ public class ConceptSampleTester {
    * @param mvc the mvc
    * @throws Exception the exception
    */
-  public void performSubsetTests(final String term, final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc)
-    throws Exception {
+  public void performSubsetsTests(final String term,
+    final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
     // Only perform these tests on ncit
     if (!term.equals("ncit")) {
       return;
@@ -1047,8 +1147,8 @@ public class ConceptSampleTester {
     Boolean childChecked = false;
     for (Concept root : roots) {
       if (!root.getTerminology().equals("ncit")) {
-        errors.add(
-            "Subset root code " + root.getCode() + " has terminology " + root.getTerminology() + " instead of ncit");
+        errors.add("Subset root code " + root.getCode() + " has terminology "
+            + root.getTerminology() + " instead of ncit");
       }
       if (!childChecked) {
         if (root.getChildren().size() == 0) {
@@ -1063,25 +1163,28 @@ public class ConceptSampleTester {
           errors.add("No leaf found in subset " + root.getCode());
           break;
         }
-        url = "/api/v1/metadata/" + terminology.getTerminology() + "/subset/" + leafCode + "?include=summary";
+        url = "/api/v1/metadata/" + terminology.getTerminology() + "/subset/" + leafCode
+            + "?include=summary";
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
         Concept firstLeaf = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
           // n/a
         });
         /*
-         * if (firstLeaf.getSubsetLink() == null) { errors.add("Subset leaf " + leafCode +
-         * " has no subset link"); }
+         * if (firstLeaf.getSubsetLink() == null) { errors.add("Subset leaf " +
+         * leafCode + " has no subset link"); }
          */
-        String firstLeafDesc =
-            firstLeaf.getProperties().stream().filter(p -> p.getType().equals("Term_Browser_Value_Set_Description"))
-                .collect(Collectors.toList()).get(0).getValue();
-        if (root.getProperties().stream().noneMatch(
-            d -> d.getType().equals("Term_Browser_Value_Set_Description") && d.getValue().equals(firstLeafDesc))) {
-          errors.add(
-              "No matching Term_Browser_Value_Set_Description property found in subset leaf " + firstLeaf.getCode());
+        String firstLeafDesc = firstLeaf.getProperties().stream()
+            .filter(p -> p.getType().equals("Term_Browser_Value_Set_Description"))
+            .collect(Collectors.toList()).get(0).getValue();
+        if (root.getProperties().stream()
+            .noneMatch(d -> d.getType().equals("Term_Browser_Value_Set_Description")
+                && d.getValue().equals(firstLeafDesc))) {
+          errors.add("No matching Term_Browser_Value_Set_Description property found in subset leaf "
+              + firstLeaf.getCode());
         }
-        if (firstLeaf.getProperties().stream().anyMatch(p -> p.getType().equals("Value_Set_Location"))) {
+        if (firstLeaf.getProperties().stream()
+            .anyMatch(p -> p.getType().equals("Value_Set_Location"))) {
           errors.add("Value_Set_Location property found in subset leaf " + firstLeaf.getCode());
         }
 
@@ -1089,23 +1192,26 @@ public class ConceptSampleTester {
             + "?include=minimal&fromRecord=0";
         result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
-        List<Concept> firstLeafMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
+        List<Concept> firstLeafMembers =
+            new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+              // n/a
+            });
         if (firstLeafMembers.size() < 10) {
-          errors.add("Leaf Node " + firstLeaf.getCode() + " has fewer than 10 subsets containing it");
+          errors
+              .add("Leaf Node " + firstLeaf.getCode() + " has fewer than 10 subsets containing it");
         }
         leafChecked = true;
       }
     }
     if (errors.size() > 0) {
-      log.error(
-          "SAMPLING ERRORS FOUND IN SUBSET SAMPLING FOR TERMINOLOGY " + terminology.getName() + ". SEE LOG BELOW");
+      log.error("SAMPLING ERRORS FOUND IN SUBSET SAMPLING FOR TERMINOLOGY " + terminology.getName()
+          + ". SEE LOG BELOW");
       for (final String err : errors) {
         log.error(err);
       }
     } else {
-      log.info("No sampling errors found for terminology " + terminology.getName() + " in subset testing.");
+      log.info("No sampling errors found for terminology " + terminology.getName()
+          + " in subset testing.");
     }
   }
 
@@ -1137,8 +1243,8 @@ public class ConceptSampleTester {
    * @param mvc the mvc
    * @throws Exception the exception
    */
-  public void performAssociationEntryTests(final String term, final Map<String, List<SampleRecord>> sampleMap,
-    final MockMvc mvc) throws Exception {
+  public void performAssociationEntryTests(final String term,
+    final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc) throws Exception {
     // Only perform these tests on ncit
     if (!term.equals("ncit")) {
       return;
@@ -1152,13 +1258,15 @@ public class ConceptSampleTester {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
 
-    List<Concept> associations = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    List<Concept> associations =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
     Concept firstAssociation = null;
     for (Concept assoc : associations) {
       if (!assoc.getTerminology().equals("ncit")) {
-        errors.add("ncit association " + assoc.getCode() + " has terminology " + assoc.getTerminology());
+        errors.add(
+            "ncit association " + assoc.getCode() + " has terminology " + assoc.getTerminology());
       } else if (firstAssociation == null && !assoc.getCode().equals("A8")) {
         firstAssociation = assoc;
         break;
@@ -1169,7 +1277,8 @@ public class ConceptSampleTester {
       return;
     }
 
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getCode();
+    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/"
+        + firstAssociation.getCode();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList fullFirstAssociationByCode =
@@ -1177,7 +1286,8 @@ public class ConceptSampleTester {
           // n/a
         });
 
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getName();
+    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/"
+        + firstAssociation.getName();
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList fullFirstAssociationByName =
@@ -1186,12 +1296,12 @@ public class ConceptSampleTester {
         });
 
     if (!fullFirstAssociationByCode.equals(fullFirstAssociationByName)) {
-      errors.add("search of association by matching code and name " + firstAssociation.getCode() + "/"
-          + firstAssociation.getName() + "returned different results");
+      errors.add("search of association by matching code and name " + firstAssociation.getCode()
+          + "/" + firstAssociation.getName() + "returned different results");
     }
 
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getCode()
-        + "?fromRecord=0&pageSize=2";
+    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/"
+        + firstAssociation.getCode() + "?fromRecord=0&pageSize=2";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList firstFromRecord =
@@ -1199,16 +1309,18 @@ public class ConceptSampleTester {
           // n/a
         });
 
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/" + firstAssociation.getCode()
-        + "?fromRecord=1&pageSize=2";
+    url = "/api/v1/concept/" + terminology.getTerminology() + "/associations/"
+        + firstAssociation.getCode() + "?fromRecord=1&pageSize=2";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList secondFromRecord =
         new ObjectMapper().readValue(content, new TypeReference<AssociationEntryResultList>() {
           // n/a
         });
-    assertThat(fullFirstAssociationByCode.getTotal()).isEqualTo(fullFirstAssociationByName.getTotal());
-    assertThat(firstFromRecord.getAssociationEntries().get(1).equals(secondFromRecord.getAssociationEntries().get(0)));
+    assertThat(fullFirstAssociationByCode.getTotal())
+        .isEqualTo(fullFirstAssociationByName.getTotal());
+    assertThat(firstFromRecord.getAssociationEntries().get(1)
+        .equals(secondFromRecord.getAssociationEntries().get(0)));
 
   }
 
