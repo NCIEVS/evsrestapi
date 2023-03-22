@@ -13,7 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class MdrSampleTest extends SampleTest {
+public class LncSampleTest extends SampleTest {
 
   /**
    * Setup class.
@@ -22,7 +22,7 @@ public class MdrSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("mdr", "src/test/resources/samples/mdr-samples.txt");
+    loadSamples("lnc", "src/test/resources/samples/lnc-samples.txt");
   }
-  
+
 }
