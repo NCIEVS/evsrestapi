@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class RestTemplateConfiguration {
 
   /** The Constant logger. */
+  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(RestTemplateConfiguration.class);
 
   // See ElasticConfiguration instead

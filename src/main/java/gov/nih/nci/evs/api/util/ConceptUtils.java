@@ -43,6 +43,7 @@ public final class ConceptUtils {
     // n/a
   }
 
+  /** The Constant PUNCTUATION_REGEX. */
   public static final String PUNCTUATION_REGEX =
       "[ \\t\\-\\(\\{\\[\\)\\}\\]_!@#%&\\*\\\\:;\\\"',\\.\\?\\/~\\+=\\|<>$`^]";
 
@@ -204,6 +205,7 @@ public final class ConceptUtils {
    *
    * @param concept the concept
    * @param limit the limit
+   * @throws Exception the exception
    */
   public static void applyLimit(final Concept concept, final int limit) throws Exception {
 
@@ -233,6 +235,7 @@ public final class ConceptUtils {
    * @param fromIndex the from index
    * @param maxElements the max elements
    * @return the list
+   * @throws Exception the exception
    */
   @SuppressWarnings("unchecked")
   public static <T extends BaseModel> List<T> sublist(List<T> list, final int fromIndex, final int maxElements)
@@ -257,7 +260,7 @@ public final class ConceptUtils {
   /**
    * Apply include.
    *
-   * @param concepts the list of concepts
+   * @param concept the concept
    * @param ip the include param
    * @return the result concepts
    */
