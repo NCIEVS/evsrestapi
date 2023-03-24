@@ -120,7 +120,7 @@ public class SampleTest {
    */
   @Test
   public void testSubsets() throws Exception {
-    conceptSampleTester.performSubsetTests(terminology, samples, mvc);
+    conceptSampleTester.performSubsetsTests(terminology, samples, mvc);
   }
 
   /**

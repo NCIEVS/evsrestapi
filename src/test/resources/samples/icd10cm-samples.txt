@@ -1,0 +1,94 @@
+R10.0	R10.0	synonym	Acute abdomen
+R10.0	R10.0	term-type	PT
+R10.0	R10.0	term-type	AB
+E78.6	E78.6	term-type	ET
+M14.6	M14.6	term-type	HT
+R10.0	R10.0	qualifier-synonym~EXCLUDES1	Acute abdomen~abdominal rigidity NOS (R19.3); generalized abdominal pain NOS (R10.84); localized abdominal pain (R10.1-R10.3-)
+R10.0	R10.0	qualifier-synonym~ORDER_NO	Acute abdomen~29149
+M14.6	M14.6	qualifier-synonym~EXCLUDES1	Charcôt's joint~Charcôt's joint in diabetes mellitus (E08-E13 with .610); Charcôt's joint in tabes dorsalis (A52.16)
+M14.6	M14.6	qualifier-synonym~ORDER_NO	Charcôt's joint~17264
+K90.0	K90.0	qualifier-synonym~CODE_ALSO	Celiac disease~exocrine pancreatic insufficiency (K86.81)
+K90.0	K90.0	qualifier-synonym~USE_ADDITIONAL	Celiac disease~code for associated disorders including: dermatitis herpetiformis (L13.0); gluten ataxia (G32.81)
+N30	N30	qualifier-synonym~USE_ADDITIONAL	Cystitis~code to identify infectious agent (B95-B97)
+K40-K46	K40-K46	qualifier-synonym~NOTE	Hernia (K40-K46)~Hernia with both gangrene and obstruction is classified to hernia with gangrene.
+G00-G99	G00-G99	qualifier-synonym~EXCLUDES2	Diseases of the nervous system (G00-G99)~certain conditions originating in the perinatal period (P04-P96); certain infectious and parasitic diseases (A00-B99); complications of pregnancy, childbirth and the puerperium (O00-O9A); congenital malformations, deformations, and chromosomal abnormalities (Q00-Q99); endocrine, nutritional and metabolic diseases (E00-E88); injury, poisoning and certain other consequences of external causes (S00-T88); neoplasms (C00-D49); symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified (R00-R94)
+K65	K65	qualifier-synonym~CODE_ALSO	Peritonitis~if applicable diverticular disease of intestine (K57.-)
+K12.2	K12.2	qualifier-synonym~EXCLUDES2	Cellulitis and abscess of mouth~abscess of salivary gland (K11.3); abscess of tongue (K14.0); periapical abscess (K04.6-K04.7); periodontal abscess (K05.21); peritonsillar abscess (J36)
+R10.0	R10.0	Semantic_Type	Sign or Symptom
+E78.6	E78.6	Semantic_Type	Disease or Syndrome
+Q89.9	Q89.9	Semantic_Type	Congenital Abnormality
+T88.7	T88.7	Semantic_Type	Pathologic Function
+K46	K46	Semantic_Type	Anatomical Abnormality
+C76.2	C76.2	Semantic_Type	Neoplastic Process
+R19.2	R19.2	Semantic_Type	Finding
+S36	S36	Semantic_Type	Injury or Poisoning
+K09	K09	Semantic_Type	Acquired Abnormality
+ICD-10-CM	ICD-10-CM	Semantic_Type	Intellectual Product
+R10.0	R10.0	root
+Q89.9	Q89.9	root
+A42.1	A42.1	root
+M14.6	M14.6	root
+K83.9	K83.9	root
+K90.0	K90.0	root
+D67	D67	root
+D83	D83	root
+N30.9	N30.9	root
+K92.9	K92.9	root
+E34.9	E34.9	root
+K22.9	K22.9	root
+K52.9	K52.9	root
+R19.6	R19.6	root
+D75.9	D75.9	root
+D69.9	D69.9	root
+K40-K46	K40-K46	root
+K46	K46	root
+D84.9	D84.9	root
+K56.60	K56.60	root
+M25.9	M25.9	root
+M12.9	M12.9	root
+R11	R11	root
+G00-G99	G00-G99	root
+K09.1	K09.1	root
+K86.9	K86.9	root
+K66.9	K66.9	root
+K65	K65	root
+C76.2	C76.2	root
+K63	K63	root
+P78.9	P78.9	root
+R19.2	R19.2	root
+R19.1	R19.1	root
+R19.30	R19.30	root
+K20-K31	K20-K31	root
+R10.83	R10.83	root
+R10.819	R10.819	root
+M00-M99	M00-M99	root
+Q89.3	Q89.3	root
+Q89.3	Q89.3	root
+K38.9	K38.9	root
+S36	S36	root
+S36.89	S36.89	root
+R10.84	R10.84	root
+K55.9	K55.9	root
+O99.6	O99.6	root
+K12	K12	root
+K13	K13	root
+K31.9	K31.9	root
+R19.0	R19.0	root
+Z83.7	Z83.7	root
+H57.9	H57.9	root
+H00-H59	H00-H59	root
+K08.9	K08.9	root
+Q45.9	Q45.9	root
+T21	T21	root
+K43.4	K43.4	root
+K59.00	K59.00	root
+K76.9	K76.9	root
+R10.9	R10.9	root
+R18	R18	root
+K92.81	K92.81	root
+I85.0	I85.0	root
+D89.9	D89.9	root
+M13.0	M13.0	root
+M06.4	M06.4	root
+D68.9	D68.9	root
+M14.6	M14.6	parent-count1

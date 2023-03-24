@@ -970,9 +970,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     final ElasticObject properties = new ElasticObject("properties");
 
-    // MRSTY: Semantic_Type property
-    properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
-
     // MRSAT: property metadata for MRSAT
     // Remove ATNs that are qualifiers
     atnSet.removeAll(qualMap.keySet());
@@ -1041,9 +1038,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName) throws IOException {
-
-    // Remove synonym "uris" as no longer needed
-    concept.getSynonyms().forEach(s -> s.setUri(null));
 
     // Remove synonym "uris" as no longer needed
     concept.getSynonyms().forEach(s -> s.setUri(null));

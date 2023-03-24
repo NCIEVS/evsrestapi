@@ -1,0 +1,122 @@
+C0000294	C0000294	synonym	Mesna
+C0000294	C0000294	term-type	PT
+C0000294	C0000294	term-type	SY
+C0000294	C0000294	term-type	CSN
+C0000294	C0000294	term-type	CCN
+C0000294	C0000294	term-type	FBD
+C0000294	C0000294	term-type	BN
+C0000477	C0000477	term-type	AB
+C0012238	C0012238	term-type	AD
+C1333305	C1333305	term-type	HD
+C0000294	C0000294	PDQ_Closed_Trial_Search_ID	39759
+C0000294	C0000294	Contributing_Source	CTRP
+C0000294	C0000294	Chemical_Formula	C2H5O3S2.Na
+C0000294	C0000294	PDQ_Open_Trial_Search_ID	39759
+C0000294	C0000294	CAS_Registry	19767-45-4
+C0000294	C0000294	Accepted_Therapeutic_Use_For	Ifosfamide-induced hemorrhagic cystitis, prophylaxis
+C0000294	C0000294	FDA_UNII_Code	NR7O1405Q9
+C0000294	C0000294	NSC_Number	113891
+C0000477	C0000477	CHEBI_ID	CHEBI:34385
+C0000768	C0000768	NICHD_Hierarchy_Term	Congenital Malformation
+C0000768	C0000768	FDA_Table	Patient Code (Appendix B)
+C0000850	C0000850	NCBI_Taxon_ID	4828
+C0013227	C0013227	Design_Note	This category represents drug products, not their individual ingredients.
+C0019080	C0019080	Use_For	Blood pooling
+C0206646	C0206646	Neoplastic_Status	Undetermined
+C0206646	C0206646	ICD-O-3_Code	8822/1
+C1880653	C1880653	Publish_Value_Set	Yes
+C1880653	C1880653	Term_Browser_Value_Set_Description	The terminology that includes terms pertaining to FDA/USP Substance Registration System (SRS), which is to support health information technology initiatives by generating unique ingredient identifiers (UNIIs) for substances in drugs, biologics, foods, and devices The text and Microsoft Excel versions of this subset can be downloaded from here: <a href="http://evs.nci.nih.gov/ftp1/FDA/UNII" alt="FDA UNII ftp">FDA UNII ftp</a>
+C0000294	C0000294	Semantic_Type	Organic Chemical
+C0000294	C0000294	Semantic_Type	Pharmacologic Substance
+C0000734	C0000734	Semantic_Type	Finding
+C0000739	C0000739	Semantic_Type	Body Part, Organ, or Organ Component
+C0000744	C0000744	Semantic_Type	Disease or Syndrome
+C0000768	C0000768	Semantic_Type	Congenital Abnormality
+C0000850	C0000850	Semantic_Type	Fungus
+C0005898	C0005898	Semantic_Type	Body Location or Region
+C0008902	C0008902	Semantic_Type	Classification
+C0012238	C0012238	Semantic_Type	Organism Function
+C0012240	C0012240	Semantic_Type	Body System
+C0013221	C0013221	Semantic_Type	Injury or Poisoning
+C0013395	C0013395	Semantic_Type	Sign or Symptom
+C0013557	C0013557	Semantic_Type	Functional Concept
+C0018943	C0018943	Semantic_Type	Biomedical Occupation or Discipline
+C0019080	C0019080	Semantic_Type	Pathologic Function
+C0019270	C0019270	Semantic_Type	Anatomical Abnormality
+C0021423	C0021423	Semantic_Type	Occupation or Discipline
+C0027672	C0027672	Semantic_Type	Neoplastic Process
+C0031150	C0031150	Semantic_Type	Diagnostic Procedure
+C0033613	C0033613	Semantic_Type	Chemical Viewed Functionally
+C0035359	C0035359	Semantic_Type	Body Space or Junction
+C0052796	C0052796	Semantic_Type	Antibiotic
+C0065541	C0065541	Semantic_Type	Therapeutic or Preventive Procedure
+C0220965	C0220965	Semantic_Type	Intellectual Product
+C0242481	C0242481	Semantic_Type	Research Activity
+C0444868	C0444868	Semantic_Type	Quantitative Concept
+C0494710	C0494710	Semantic_Type	Acquired Abnormality
+C0718043	C0718043	Semantic_Type	Amino Acid, Peptide, or Protein
+C0718043	C0718043	Semantic_Type	Enzyme
+C0993159	C0993159	Semantic_Type	Biomedical or Dental Material
+C1511989	C1511989	Semantic_Type	Conceptual Entity
+C1512910	C1512910	Semantic_Type	Spatial Concept
+C1619351	C1619351	Semantic_Type	Qualitative Concept
+C1710021	C1710021	Semantic_Type	Regulation or Law
+CL343444	CL343444	Semantic_Type	Professional or Occupational Group
+CL555329	CL555329	Semantic_Type	Manufactured Object
+C0000294	C0000294	DEFINITION	A sulfhydryl compound that is used to reduce the incidence of hemorrhagic cystitis associated with certain chemotherapeutic agents. Mesna is converted to a free thiol compound in the kidney, where it binds to and inactivates acrolein and other urotoxic metabolites of ifosfamide and cyclophosphamide, thereby reducing their toxic effects on the urinary tract during urinary excretion. (NCI04)
+C0000294	C0000294	root
+C0000477	C0000477	root
+C0000739	C0000739	root
+C0001175	C0001175	root
+C0001625	C0001625	root
+C0004057	C0004057	root
+C0005423	C0005423	root
+C0005898	C0005898	root
+C0007570	C0007570	root
+C0008533	C0008533	root
+C0008902	C0008902	root
+C0009447	C0009447	root
+C0011980	C0011980	root
+C0012238	C0012238	root
+C0012634	C0012634	root
+C0013221	C0013221	root
+C0014130	C0014130	root
+C0018939	C0018939	root
+C0019080	C0019080	root
+C0019270	C0019270	root
+C0021051	C0021051	root
+C0021423	C0021423	root
+C0021843	C0021843	root
+C0023884	C0023884	root
+C0024090	C0024090	root
+C0027498	C0027498	root
+C0027765	C0027765	root
+C0030274	C0030274	root
+C0030797	C0030797	root
+C0031142	C0031142	root
+C0031150	C0031150	root
+C0037993	C0037993	root
+C0052796	C0052796	root
+C0085704	C0085704	root
+C0114346	C0114346	root
+C0165279	C0165279	root
+C0206646	C0206646	root
+C0216971	C0216971	root
+C0220965	C0220965	root
+C0222166	C0222166	root
+C0227613	C0227613	root
+C0227614	C0227614	root
+C0229962	C0229962	root
+C0230165	C0230165	root
+C0272315	C0272315	root
+C0412038	C0412038	root
+C0521362	C0521362	root
+C0521587	C0521587	root
+C0718043	C0718043	root
+C0993159	C0993159	root
+C1291077	C1291077	root
+C1516728	C1516728	root
+C1999262	C1999262	root
+CL018612	CL018612	root
+C0000294	C0000294	parent-count1
+C0008533	C0008533	parent-count2
