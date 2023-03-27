@@ -115,6 +115,10 @@ public class ExcelWriter {
 
 	static String CONFIGFILE = "config.txt";
 	static String hypperlinkURL = "https://nciterms.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&ns=ncit&code=";
+	static String browserURL = "https://nciterms.nci.nih.gov/ncitbrowser/";
+
+	short oddRowForegroundColor = IndexedColors.LIGHT_GREEN.getIndex();
+    short evenRowForegroundColor = IndexedColors.WHITE.getIndex();
 
     public Workbook createWorkbook(int type) {
 		if (type == XLSX) {
@@ -132,9 +136,17 @@ public class ExcelWriter {
 	}
 
 	public static XSSFCell createHyperlinkXSSFCell(CreationHelper createHelper, XSSFCellStyle hlinkstyle, XSSFCell cell, String code) {
+		return createHyperlinkXSSFCell(createHelper, hlinkstyle, cell, code, false);
+	}
+
+	public static XSSFCell createHyperlinkXSSFCell(CreationHelper createHelper, XSSFCellStyle hlinkstyle, XSSFCell cell, String code, boolean multiple) {
 		cell.setCellValue(code);
 		XSSFHyperlink link = (XSSFHyperlink)createHelper.createHyperlink(HyperlinkType.URL);
-		link.setAddress(hypperlinkURL + code);
+		if (multiple) {
+			link.setAddress(browserURL);
+		} else {
+			link.setAddress(hypperlinkURL + code);
+		}
 		cell.setHyperlink((XSSFHyperlink) link);
 		cell.setCellStyle(hlinkstyle);
 		return cell;
@@ -390,6 +402,14 @@ public class ExcelWriter {
 		}
 	}
 
+    public void setOddRowForegroundColor(short i) {
+		this.oddRowForegroundColor = i;
+	}
+
+    public void setEvenRowForegroundColor(short i) {
+		this.evenRowForegroundColor = i;
+	}
+
 
     public void writeToXSSF(Vector datafile_vec, String excelfile, char delim, Vector sheetLabel_vec) {
 		XSSFWorkbook workbook = new XSSFWorkbook();
@@ -405,10 +425,10 @@ public class ExcelWriter {
 			try {
 				XSSFSheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
 
-				CellStyle cellStyle_odd = createCellStyle(workbook, sheet, IndexedColors.LIGHT_GREEN.getIndex(),
+				CellStyle cellStyle_odd = createCellStyle(workbook, sheet, oddRowForegroundColor,
 													  HSSFColor.BLACK.index, HorizontalAlignment.LEFT, 12, false);
 
-				CellStyle cellStyle_even = createCellStyle(workbook, sheet, IndexedColors.WHITE.getIndex(),
+				CellStyle cellStyle_even = createCellStyle(workbook, sheet, evenRowForegroundColor,
 													  HSSFColor.BLACK.index, HorizontalAlignment.LEFT, 12, false);
 
 
@@ -439,12 +459,29 @@ public class ExcelWriter {
 							hlinkstyle.setFont(hlinkfont);
 
                             if (is_even.equals(Boolean.TRUE)) {
-							    hlinkstyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+							    hlinkstyle.setFillForegroundColor(oddRowForegroundColor);
 							} else {
-                                hlinkstyle.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+                                hlinkstyle.setFillForegroundColor(evenRowForegroundColor);
 							}
 							hlinkstyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 							cell = createHyperlinkXSSFCell(createHelper, hlinkstyle, cell, value);
+
+						} else if (isNCItCodes(value)) {
+
+							XSSFCellStyle hlinkstyle = workbook.createCellStyle();
+							XSSFFont hlinkfont = workbook.createFont();
+							hlinkfont.setUnderline(XSSFFont.U_SINGLE);
+							hlinkfont.setColor(IndexedColors.BLUE.index);
+							hlinkstyle.setFont(hlinkfont);
+
+                            if (is_even.equals(Boolean.TRUE)) {
+							    hlinkstyle.setFillForegroundColor(oddRowForegroundColor);
+							} else {
+                                hlinkstyle.setFillForegroundColor(evenRowForegroundColor);
+							}
+							hlinkstyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+							cell = createHyperlinkXSSFCell(createHelper, hlinkstyle, cell, value, true);
+
 						} else {
 
 							if (is_even.equals(Boolean.TRUE)) {
@@ -548,7 +585,21 @@ public class ExcelWriter {
 		return false;
 	}
 
-
+    public static boolean isNCItCodes(String line) {
+		Vector w = StringUtils.parseData(line, '|');
+		for (int i=0; i<w.size(); i++) {
+			String code = (String) w.elementAt(i);
+			char c = code.charAt(0);
+			if (c != 'C') return false;
+			try {
+				int n = Integer.parseInt(code.substring(1, code.length()-1));
+			} catch (Exception ex) {
+				//ex.printStackTrace();
+				return false;
+			}
+		}
+		return true;
+	}
 
     public static void main(String[] args) throws IOException, InvalidFormatException {
 		ExcelWriter writer = new ExcelWriter();

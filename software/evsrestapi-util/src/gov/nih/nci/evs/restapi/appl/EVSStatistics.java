@@ -151,7 +151,7 @@ public class EVSStatistics {
 		properties = getSupportedProperties(named_graph);
 
 		System.out.println("properties: " + properties.size());
-		Utils.saveToFile("proeprties.txt", properties);
+		Utils.saveToFile("properties.txt", properties);
 
 		propertyCode2NameHashMap = new HashMap();
 		propertyName2CodeHashMap = new HashMap();
