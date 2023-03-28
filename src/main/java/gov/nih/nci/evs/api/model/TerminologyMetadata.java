@@ -1061,7 +1061,8 @@ public class TerminologyMetadata extends BaseModel {
     }
 
     /**
-     * Returns the unpublished.
+     * Returns the unpublished properties or qualifiers.  These are things where
+     * the data defines the metadata but then no uses of that metadata occur.
      *
      * @return the unpublished
      */
