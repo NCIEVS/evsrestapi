@@ -1,0 +1,233 @@
+MTHU010538	MTHU010538	synonym	Dipalmitoylphosphatidylcholine
+MTHU010538	MTHU010538	term-type	CN
+MTHU001425	MTHU001425	term-type	LS
+LA12706-0	LA12706-0	term-type	LA
+MTHU854705	MTHU854705	term-type	HC
+MTHU854705	MTHU854705	term-type	HS
+1650-1	1650-1	term-type	LN
+1650-1	1650-1	term-type	MTH_LN
+1650-1	1650-1	term-type	OSN
+1650-1	1650-1	term-type	LC
+1650-1	1650-1	term-type	DN
+11540-2	11540-2	term-type	MTH_LO
+11540-2	11540-2	term-type	OOSN
+11540-2	11540-2	term-type	LO
+11540-2	11540-2	term-type	OLC
+LA12706-0	LA12706-0	qualifier-synonym~ANSWER_CODE	Abdomen~2807001
+LA12706-0	LA12706-0	qualifier-synonym~OID	Abdomen~1.3.6.1.4.1.12009.10.1.1291
+LA10430-9	LA10430-9	qualifier-synonym~ANSWER_CODE_SYSTEM	AIDS~NNDSS
+1650-1	1650-1	qualifier-synonym~COMMON_TEST_RANK	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~0
+1650-1	1650-1	qualifier-synonym~COMMON_SI_TEST_RANK	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~0
+1650-1	1650-1	qualifier-synonym~COMMON_ORDER_RANK	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~0
+1650-1	1650-1	qualifier-synonym~LRN2	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Alfa; Alpha-1,4-glucan branching enzyme; Catalytic Concentration; Chemistry; Enz; Enzymes; GLGB; Glycogen branching enzyme; i; Leukocytes; Point in time; Q-Enzyme; QNT; Quan; Quant; Quantitative; Random; WBCs; White blood cells
+1650-1	1650-1	qualifier-synonym~VERSION_LAST_CHANGED	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~2.14
+1650-1	1650-1	qualifier-synonym~VERSION_FIRST_RELEASED	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1.0
+1650-1	1650-1	qualifier-synonym~CONSUMER_NAME	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1,4-Alpha Glucan Branching Enzyme, White Blood Cells (WBC)
+1650-1	1650-1	qualifier-synonym~LCT	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~MIN
+1650-1	1650-1	qualifier-synonym~LOINC_TIME_ASPECT	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Pt
+1650-1	1650-1	qualifier-synonym~LOINC_COMPONENT	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1,4-Alpha glucan branching enzyme
+1650-1	1650-1	qualifier-synonym~LCS	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~ACTIVE
+1650-1	1650-1	qualifier-synonym~LCL	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~CHEM
+1650-1	1650-1	qualifier-synonym~LCN	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1
+1650-1	1650-1	qualifier-synonym~LOINC_SCALE_TYP	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Qn
+1650-1	1650-1	qualifier-synonym~LOR	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Both
+1650-1	1650-1	qualifier-synonym~LOINC_PROPERTY	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~CCnc
+1650-1	1650-1	qualifier-synonym~LOINC_SYSTEM	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~WBC
+1650-1	1650-1	qualifier-synonym~LUR	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Y
+10191-5	10191-5	qualifier-synonym~LOINC_METHOD_TYP	Physical findings:Find:Pt:Abdomen:Nar:Observed~Observed
+11540-2	11540-2	qualifier-synonym~LOINC_COMPONENT	Deprecated CT Abdomen study~Study.total
+11540-2	11540-2	qualifier-synonym~COMMON_SI_TEST_RANK	Deprecated CT Abdomen study~0
+11540-2	11540-2	qualifier-synonym~LOINC_PROPERTY	Deprecated CT Abdomen study~Find
+11540-2	11540-2	qualifier-synonym~STATUS_TEXT	Deprecated CT Abdomen study~Duplicate concept
+11540-2	11540-2	qualifier-synonym~LCT	Deprecated CT Abdomen study~DEL
+11540-2	11540-2	qualifier-synonym~COMMON_ORDER_RANK	Deprecated CT Abdomen study~0
+11540-2	11540-2	qualifier-synonym~LOINC_SYSTEM	Deprecated CT Abdomen study~Abdomen
+11540-2	11540-2	qualifier-synonym~COMMON_TEST_RANK	Deprecated CT Abdomen study~0
+11540-2	11540-2	qualifier-synonym~LOINC_TIME_ASPECT	Deprecated CT Abdomen study~Pt
+11540-2	11540-2	qualifier-synonym~LCN	Deprecated CT Abdomen study~3
+11540-2	11540-2	qualifier-synonym~LCL	Deprecated CT Abdomen study~ATTACH.CLINRPT
+11540-2	11540-2	qualifier-synonym~LOINC_SCALE_TYP	Deprecated CT Abdomen study~Doc
+11540-2	11540-2	qualifier-synonym~STATUS_REASON	Deprecated CT Abdomen study~Duplicate
+11540-2	11540-2	qualifier-synonym~LOINC_METHOD_TYP	Deprecated CT Abdomen study~CT
+11540-2	11540-2	qualifier-synonym~LMP	Deprecated CT Abdomen study~41806-1
+11540-2	11540-2	qualifier-synonym~LCS	Deprecated CT Abdomen study~DEPRECATED
+11540-2	11540-2	qualifier-synonym~VERSION_LAST_CHANGED	Deprecated CT Abdomen study~2.40
+11540-2	11540-2	qualifier-synonym~LRN2	Deprecated CT Abdomen study~Abd; Abdo; Abdomen+; Abdominal; ATTACH; ATTACH.CLINRPT; CAT scan; Computed tomography; Computerized tomography; CT scan; Document; Finding; Findings; Point in time; Random; Study report; Tot; Totl
+11540-2	11540-2	qualifier-synonym~VERSION_FIRST_RELEASED	Deprecated CT Abdomen study~1.0j-a
+11777-0	11777-0	qualifier-synonym~SOS	Cross section:Area:Pt:Abdomen^Fetus:Qn:US.derived~Abdominal area derived from measurements of antero-posterior and transverse diameters
+11777-0	11777-0	qualifier-synonym~EXAMPLE_UNITS	Cross section:Area:Pt:Abdomen^Fetus:Qn:US.derived~cm2
+11777-0	11777-0	qualifier-synonym~EXAMPLE_UCUM_UNITS	Cross section:Area:Pt:Abdomen^Fetus:Qn:US.derived~cm2
+11849-7	11849-7	qualifier-synonym~LFO	Diameter.mean:Len:Pt:Abdomen^Fetus:Qn:Estimated from gestational age~ABDOMINAL DIAMETER [mm] = -29.525 + 0.6043653 * (gestational age [days]) - 0.000418794 * (gestational age [days]) ^ 2 + 0.000000214518 * (gestational age [days]) ^ 3
+12028-7	12028-7	qualifier-synonym~ANSWER_LIST_NAME	Study observation:Find:Pt:Abdomen^Fetus:Nom:US~Abdomen defects
+12028-7	12028-7	qualifier-synonym~ANSWER_LIST_ID	Study observation:Find:Pt:Abdomen^Fetus:Nom:US~LL2366-4
+24556-3	24556-3	qualifier-synonym~ASSOC_OBSERVATIONS	Multisection:Find:Pt:Abdomen:Doc:MR~81220-6;72230-6
+24556-3	24556-3	qualifier-synonym~CHANGE_REASON_PUBLIC	Multisection:Find:Pt:Abdomen:Doc:MR~The scale has been changed from "Nar" to "Doc" to fit with the CDA model.; Method of "MRI" was changed to "MR". The LOINC/RadLex Committee agreed to use a subset of the two-letter DICOM modality codes as the primary modality identifier.
+24556-3	24556-3	qualifier-synonym~HL7_ATTACHMENT_STRUCTURE	Multisection:Find:Pt:Abdomen:Doc:MR~IG exists
+24556-3	24556-3	qualifier-synonym~IMAGING_DOCUMENT_VALUE_SET	Multisection:Find:Pt:Abdomen:Doc:MR~TRUE
+30599-5	30599-5	qualifier-synonym~LOR	Deprecated Abdomen CT W contrast~Both
+30599-5	30599-5	qualifier-synonym~CHANGE_REASON_PUBLIC	Deprecated Abdomen CT W contrast~The scale has been changed from "Nar" to "Doc" to fit with the CDA model.
+30599-5	30599-5	qualifier-synonym~LUR	Deprecated Abdomen CT W contrast~N
+30599-5	30599-5	qualifier-synonym~ASSOC_OBSERVATIONS	Deprecated Abdomen CT W contrast~81220-6;72230-6
+30599-5	30599-5	qualifier-synonym~HL7_ATTACHMENT_STRUCTURE	Deprecated Abdomen CT W contrast~IG exists
+33145-4	33145-4	qualifier-synonym~LSU	Perimeter:Len:Pt:Abdomen^Fetus:Qn:US.estimated from ASUM 2000~mm
+39111-0	39111-0	qualifier-synonym~LEA	Body site:Anat:Pt:^Patient:Nom~Abdomen, Anus, Ankle, Arm , Axilla , Back, Body - Whole, Breast, Buttocks , Calf, Chest, Coccyx, Ear, Elbow, Eye, Face , Finger , Flank, Foot, Groin, Hand, Head, Heel , Hip, Inguinal, Jaw, Knee, Labia, Leg, Lip , Mouth, Neck, Nose, Pelvis, Penis, Perineum Sacrum, Scrotum, Shoulder, Stomach, Thumb, Toe, Tooth, Wrist
+58311-2	58311-2	qualifier-synonym~LQS	Radiation of chest discomfort:Anat:Pt:^Patient:Ord~PX040601090000
+67530-6	67530-6	qualifier-synonym~LQT	Physical findings:Find:Pt:Abdomen:Nom:NEMSIS~The assessment findings associated with the patients abdomen.
+MTHU010538	MTHU010538	Semantic_Type	Organic Chemical
+MTHU010538	MTHU010538	Semantic_Type	Pharmacologic Substance
+MTHU027241	MTHU027241	Semantic_Type	Amino Acid, Peptide, or Protein
+MTHU027241	MTHU027241	Semantic_Type	Enzyme
+MTHU001425	MTHU001425	Semantic_Type	Body Location or Region
+LA20354-9	LA20354-9	Semantic_Type	Congenital Abnormality
+LA10430-9	LA10430-9	Semantic_Type	Disease or Syndrome
+MTHU016717	MTHU016717	Semantic_Type	Body Part, Organ, or Organ Component
+LA22116-0	LA22116-0	Semantic_Type	Organism Function
+MTHU001048	MTHU001048	Semantic_Type	Body System
+MTHU002637	MTHU002637	Semantic_Type	Pathologic Function
+LA15411-4	LA15411-4	Semantic_Type	Diagnostic Procedure
+LA7200-4	LA7200-4	Semantic_Type	Functional Concept
+MTHU048139	MTHU048139	Semantic_Type	Sign or Symptom
+MTHU006795	MTHU006795	Semantic_Type	Antibiotic
+LA25063-1	LA25063-1	Semantic_Type	Finding
+LA25545-7	LA25545-7	Semantic_Type	Therapeutic or Preventive Procedure
+1650-1	1650-1	Semantic_Type	Clinical Attribute
+MTHU062919	MTHU062919	Semantic_Type	Research Activity
+MTHU032566	MTHU032566	Semantic_Type	Anatomical Structure
+LA18187-7	LA18187-7	Semantic_Type	Quantitative Concept
+LA15167-2	LA15167-2	Semantic_Type	Intellectual Product
+MTHU034033	MTHU034033	Semantic_Type	Classification
+MTHU001366	MTHU001366	Semantic_Type	Organism Attribute
+LA22535-1	LA22535-1	Semantic_Type	Occupation or Discipline
+42154-5	42154-5	Semantic_Type	Spatial Concept
+MTHU019696	MTHU019696	Semantic_Type	Body Space or Junction
+LA20362-2	LA20362-2	Semantic_Type	Acquired Abnormality
+LA7200-4	LA7200-4	DEFINITION	Nurses in this specialty provide physical and emotional support to patients and the families of patients with illnesses or disabilities that affect their ability to function normally and that may alter their lifestyle
+MTHU010538	MTHU010538	root
+MTHU027241	MTHU027241	root
+MTHU001425	MTHU001425	root
+LA12706-0	LA12706-0	root
+LA4238-7	LA4238-7	root
+MTHU854705	MTHU854705	root
+LA4584-4	LA4584-4	root
+LA4654-5	LA4654-5	root
+LA4690-9	LA4690-9	root
+LA16744-7	LA16744-7	root
+LA25063-1	LA25063-1	root
+LA18247-9	LA18247-9	root
+LA23814-9	LA23814-9	root
+1650-1	1650-1	root
+LA4441-7	LA4441-7	root
+10191-5	10191-5	root
+8694-2	8694-2	root
+11540-2	11540-2	root
+11540-2	11540-2	root
+11777-0	11777-0	root
+11777-0	11777-0	root
+11777-0	11777-0	root
+11818-2	11818-2	root
+11818-2	11818-2	root
+11818-2	11818-2	root
+11849-7	11849-7	root
+11849-7	11849-7	root
+11849-7	11849-7	root
+11862-0	11862-0	root
+11862-0	11862-0	root
+11862-0	11862-0	root
+11978-4	11978-4	root
+11978-4	11978-4	root
+11978-4	11978-4	root
+11979-2	11979-2	root
+11979-2	11979-2	root
+11979-2	11979-2	root
+11980-0	11980-0	root
+11980-0	11980-0	root
+11980-0	11980-0	root
+11981-8	11981-8	root
+11981-8	11981-8	root
+11981-8	11981-8	root
+11991-7	11991-7	root
+11991-7	11991-7	root
+11991-7	11991-7	root
+12029-5	12029-5	root
+12029-5	12029-5	root
+12029-5	12029-5	root
+12028-7	12028-7	root
+12028-7	12028-7	root
+12028-7	12028-7	root
+19797-0	19797-0	root
+19809-3	19809-3	root
+21853-7	21853-7	root
+21859-4	21859-4	root
+24556-3	24556-3	root
+24558-9	24558-9	root
+24794-0	24794-0	root
+30599-5	30599-5	root
+30601-9	30601-9	root
+30602-7	30602-7	root
+30668-8	30668-8	root
+33145-4	33145-4	root
+33145-4	33145-4	root
+33145-4	33145-4	root
+33146-2	33146-2	root
+33146-2	33146-2	root
+33146-2	33146-2	root
+33147-0	33147-0	root
+33147-0	33147-0	root
+33147-0	33147-0	root
+33148-8	33148-8	root
+33148-8	33148-8	root
+33148-8	33148-8	root
+33149-6	33149-6	root
+33149-6	33149-6	root
+33149-6	33149-6	root
+33150-4	33150-4	root
+33150-4	33150-4	root
+33150-4	33150-4	root
+33546-3	33546-3	root
+33546-3	33546-3	root
+33546-3	33546-3	root
+38069-1	38069-1	root
+35930-7	35930-7	root
+35930-7	35930-7	root
+36134-5	36134-5	root
+36267-3	36267-3	root
+37015-5	37015-5	root
+36424-0	36424-0	root
+36591-6	36591-6	root
+36984-3	36984-3	root
+36995-9	36995-9	root
+37210-2	37210-2	root
+37913-1	37913-1	root
+39111-0	39111-0	root
+39111-0	39111-0	root
+39694-5	39694-5	root
+39738-0	39738-0	root
+42129-7	42129-7	root
+42129-7	42129-7	root
+42154-5	42154-5	root
+41793-1	41793-1	root
+41810-3	41810-3	root
+41794-9	41794-9	root
+46330-7	46330-7	root
+49513-5	49513-5	root
+49513-5	49513-5	root
+49513-5	49513-5	root
+51390-3	51390-3	root
+67530-6	67530-6	root
+67530-6	67530-6	root
+67530-6	67530-6	root
+69083-4	69083-4	root
+71584-7	71584-7	root
+71584-7	71584-7	root
+71588-8	71588-8	root
+71588-8	71588-8	root
+71588-8	71588-8	root
+80271-0	80271-0	root
+80271-0	80271-0	root
+80271-0	80271-0	root
+79350-5	79350-5	root
+79066-7	79066-7	root
+42288-1	42288-1	root
+52790-3	52790-3	root
+69224-4	69224-4	root
+69240-0	69240-0	root

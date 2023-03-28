@@ -25,7 +25,7 @@ public class EmbeddedHierarchy {
 	static final String TERMINOLOGY_SUBSET_CODE = "C54443";
 
 	static final String parent_child_file = "parent_child.txt";
-	static final String vs_header_concept_file = "vs_header_concepts.txt";
+	static final String vs_header_concept_file = "P372.txt";
 
 	int multiple_count = 0;
 
@@ -355,13 +355,24 @@ public class EmbeddedHierarchy {
 			String line = (String) v.elementAt(i);
 			//SPL Shape Terminology|C54454|Publish_Value_Set|Yes
 			Vector u = StringUtils.parseData(line, '|');
-			String label = (String) u.elementAt(0);
-			String code = (String) u.elementAt(1);
-			String property = (String) u.elementAt(2);
-			String yes_no = (String) u.elementAt(3);
-			if (yes_no.compareTo("Yes") == 0) {
-				if (!hset.contains(code)) {
-					hset.add(code);
+			if (u.size() == 3) {
+				String code = (String) u.elementAt(0);
+				String property = (String) u.elementAt(1);
+				String yes_no = (String) u.elementAt(2);
+				if (yes_no.compareTo("Yes") == 0) {
+					if (!hset.contains(code)) {
+						hset.add(code);
+					}
+				}
+			} else {
+				String label = (String) u.elementAt(0);
+				String code = (String) u.elementAt(1);
+				String property = (String) u.elementAt(2);
+				String yes_no = (String) u.elementAt(3);
+				if (yes_no.compareTo("Yes") == 0) {
+					if (!hset.contains(code)) {
+						hset.add(code);
+					}
 				}
 			}
 		}

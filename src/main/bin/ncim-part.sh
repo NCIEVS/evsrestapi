@@ -182,6 +182,15 @@ if [[ $skip -eq 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1
     fi
+    
+    # Set the indexes to have a larger max_result_window
+    echo "  Set max result window to 150000 for concept_${lcterm}_${version}"
+    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${lcterm}_${version}/_settings" \
+         -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error setting max_result_window"
+        exit 1
+    fi
 fi
 
 # compute maxVersions from config

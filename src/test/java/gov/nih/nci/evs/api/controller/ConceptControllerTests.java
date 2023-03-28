@@ -917,6 +917,62 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(0).getTerminology()).isNotNull();
     assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(700);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=0&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    String origContent = content;
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=10&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(content).isNotEqualTo(origContent);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=1000&include=full";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isEmpty();
   }
 
   /**
@@ -933,6 +989,7 @@ public class ConceptControllerTests {
     String content = null;
     List<List<Concept>> list = null;
 
+    // C3224
     url = baseUrl + "/ncit/C3224/pathsToRoot";
     log.info("Testing url - " + url);
 
@@ -990,6 +1047,63 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getTerminology()).isNotNull();
     assertThat(list.get(0).get(0).getVersion()).isNotNull();
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isGreaterThan(700);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=0&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    String origContent = content;
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=10&pageSize=10";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isNotEmpty();
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(content).isNotEqualTo(origContent);
+
+    // C162271 - test large case
+    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=1000&include=full";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list).isEmpty();
 
   }
 
@@ -1071,7 +1185,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test that we don't have erroneous definitions or synonyms
+   * Test that we don't have erroneous definitions or synonyms.
    *
    * @throws Exception the exception
    */
@@ -1120,7 +1234,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test association entries API call
+   * Test association entries API call.
    *
    * @throws Exception the exception
    */
@@ -1215,7 +1329,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test getting subsets members for code and terminology
+   * Test getting subsets members for code and terminology.
    *
    * @throws Exception the exception
    */
@@ -1260,7 +1374,7 @@ public class ConceptControllerTests {
   }
 
   /**
-   * Test terminology versions
+   * Test terminology versions.
    *
    * @throws Exception the exception
    */

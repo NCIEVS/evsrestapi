@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.7.1.RELEASE] - 2023-03-15
+### Changed
+ - Fixed performance of content /pathToRoot, /pathFromRoot, and /pathToAncestor calls and added paging params
+ - Fixed performance of metadata/{terminology}/subsets call to more efficiently return all ncit subsets
+
 ## [1.7.0.RELEASE] - 2023-01-13
 ### Added
 - Added an additional "value" parameter that works with "property" and can also work with "term" 

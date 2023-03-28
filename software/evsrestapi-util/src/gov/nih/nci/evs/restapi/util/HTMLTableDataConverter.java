@@ -43,7 +43,7 @@ public class HTMLTableDataConverter {
 	}
 
 	public String convert(String inputfile, String outputfile, String title, String table,
-	    Vector th_vec) {
+	    Vector th_vec, char delimiter) {
 		Vector v = Utils.readFile(inputfile);
 
 		PrintWriter pw = null;
@@ -58,17 +58,46 @@ public class HTMLTableDataConverter {
 			pw.println("<data>");
 			for (int i=1; i<v.size(); i++) {
 				String t = (String) v.elementAt(i);
-				Vector u = StringUtils.parseData(t, '|');
+				Vector u = StringUtils.parseData(t, delimiter);
 				StringBuffer buf = new StringBuffer();
 				for (int j=0; j<u.size(); j++) {
 				    String s = (String) u.elementAt(j);
+
+				    /*
 				    boolean bool = isCode(s);
 				    if (bool) {
 						s = HyperlinkHelper.toHyperlink(s);
 					}
 					buf = buf.append(s);
 					if (j < u.size()-1) {
-						buf.append("|");
+						buf.append("" + delimiter);
+					}
+					*/
+					if (s.indexOf("|") != -1) {
+						StringBuffer buf2 = new StringBuffer();
+						Vector u2 = StringUtils.parseData(s, '|');
+						for (int k=0; k<u2.size(); k++) {
+							String s2 = (String) u2.elementAt(k);
+							boolean bool = isCode(s2);
+							if (bool) {
+								s2 = HyperlinkHelper.toHyperlink(s2);
+							}
+							buf2.append(s2);
+							if (k < u2.size()-1) {
+								buf2.append("|");
+							}
+						}
+						buf.append(buf2.toString() + delimiter);
+
+					} else {
+						boolean bool = isCode(s);
+						if (bool) {
+							s = HyperlinkHelper.toHyperlink(s);
+						}
+						buf = buf.append(s);
+						if (j < u.size()-1) {
+							buf.append("" + delimiter);
+						}
 					}
 				}
 				pw.println(buf.toString());
@@ -95,17 +124,20 @@ public class HTMLTableDataConverter {
 		String table = title;
 		Vector v = Utils.readFile(inputfile);
 		String firstLine = (String) v.elementAt(0);
-		Vector u = StringUtils.parseData(firstLine, '|');
+		char delimiter = '\t';
+		if (firstLine.indexOf("\t") == -1) {
+			delimiter = '|';
+		}
+		Vector u = StringUtils.parseData(firstLine, delimiter);
 		int numberOfColumns = u.size();
 		Vector th_vec = new Vector();
 		for (int i=0; i<numberOfColumns; i++) {
-			//th_vec.add("Column " + i);
 			th_vec.add((String) u.elementAt(i));
 		}
 		String outputfile = title + "_" + StringUtils.getToday() + ".txt";
 	    return convert(inputfile, outputfile,
 			title, table,
-			th_vec);
+			th_vec, delimiter);
 	}
 
 	public static void main(String[] args) {

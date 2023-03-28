@@ -380,11 +380,22 @@ public class ASCIITreeUtils {
 		return parent_child_vec;
 	}
 
+    public static void convert2HTMLTree(String asciitreefile, String title, String root) {
+		Vector parent_child_vec = Utils.readFile(asciitreefile);
+		parent_child_vec = new ASCIITreeUtils().get_parent_child_vec(parent_child_vec);
+		String datafile = "flattened_" + asciitreefile;
+		Utils.saveToFile(datafile, parent_child_vec);
+		HTMLHierarchy.run(datafile, title, root);
+    }
 
  	public static void main(String[] args) {
 		ASCIITreeUtils utils = new ASCIITreeUtils();
 		String asciitreefile = args[0];
 		TreeItem root = utils.createTreeItem(asciitreefile);
 		TreeItem.printTree(root, 0);
+
+		Vector w = Utils.readFile(asciitreefile);
+		w = utils.get_parent_child_vec(w);
+		Utils.saveToFile("parent_child_vs.txt", w);
 	}
 }
