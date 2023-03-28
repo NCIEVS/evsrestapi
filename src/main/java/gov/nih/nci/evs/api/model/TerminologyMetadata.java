@@ -1293,13 +1293,13 @@ public class TerminologyMetadata extends BaseModel {
     } else if (qual != null) {
       code = qual.getCode();
     } else
-      return null;
+      return "unknown";
 
     if (code.equals(preferredName)) {
       return "preferred name";
     } else if (code.equals(relationshipToTarget)) {
       return "relationship to target";
-    } else if (code.equals(code)) {
+    } else if (code.equals(this.code)) {
       return "code";
     } else if (code.equals(synonymTermType)) {
       return "synonym term type";
