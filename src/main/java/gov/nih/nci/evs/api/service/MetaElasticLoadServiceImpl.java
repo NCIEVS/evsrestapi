@@ -235,7 +235,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           if (!maps.containsKey(cui)) {
             maps.put(cui, new HashSet<>());
           }
-          logger.info("XXX add map = " + map);
           maps.get(cui).add(map);
         }
       }
