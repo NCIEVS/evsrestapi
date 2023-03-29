@@ -1299,8 +1299,6 @@ public class TerminologyMetadata extends BaseModel {
       return "preferred name";
     } else if (code.equals(relationshipToTarget)) {
       return "relationship to target";
-    } else if (code.equals(this.code)) {
-      return "code";
     } else if (code.equals(synonymTermType)) {
       return "synonym term type";
     } else if (code.equals(synonymSource)) {
@@ -1327,6 +1325,8 @@ public class TerminologyMetadata extends BaseModel {
       return "definition";
     } else if (md.getSynonym().contains(code)) {
       return "synonym";
+    } else if (code.equals(this.code)) {
+      return "code";
     } else if (prop != null) {
       return prop.getValue();
     } else {
