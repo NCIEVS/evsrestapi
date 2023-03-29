@@ -18,7 +18,7 @@ public class RestTemplateConfiguration {
   // See ElasticConfiguration instead
   // @Bean
   // public RestTemplate restTemplate(RestTemplateBuilder builder) {
-  // logger.info("XXX is this called?");
+  // logger.info(" XXX is this called?");
   // // Do any additional configuration here
   // return builder.build();
   // }
