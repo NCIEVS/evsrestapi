@@ -13,8 +13,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
- * Represents terminology metadata, which includes information about mapping
- * from OWL structures to the terminology model.
+ * Represents terminology metadata, which includes information about mapping from OWL structures to
+ * the terminology model.
  */
 @JsonInclude(Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -630,8 +630,7 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the synonym term group. This is a bridge to support naming convention
-   * normalization.
+   * Sets the synonym term group. This is a bridge to support naming convention normalization.
    *
    * @param synonymTermGroup the synonym term group
    */
@@ -805,8 +804,7 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the map target term group. This is a bridge to support naming
-   * convention normalization.
+   * Sets the map target term group. This is a bridge to support naming convention normalization.
    *
    * @param mapTargetTermGroup the map target term group
    */
@@ -974,8 +972,7 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the term groups. This is a bridge to support naming convention
-   * normalization.
+   * Sets the term groups. This is a bridge to support naming convention normalization.
    *
    * @param termGroups the term groups
    */
@@ -1062,7 +1059,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the unpublished.
+   * Returns the unpublished properties or qualifiers. These are things where the data defines the
+   * metadata but then no uses of that metadata occur.
    *
    * @return the unpublished
    */
@@ -1194,8 +1192,7 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Sets the preferred term groups. This is a bridge to support naming
-   * convention normalization.
+   * Sets the preferred term groups. This is a bridge to support naming convention normalization.
    *
    * @param preferredTermGroups the preferred term groups
    */
@@ -1287,6 +1284,54 @@ public class TerminologyMetadata extends BaseModel {
    */
   public boolean isUnpublished(final String code) {
     return getUnpublished().contains(code);
+  }
+
+  public String getRemodeledAsType(Property prop, Qualifier qual, TerminologyMetadata md) {
+    String code = null;
+    if (prop != null) {
+      code = prop.getCode();
+    } else if (qual != null) {
+      code = qual.getCode();
+    } else
+      return "unknown";
+
+    if (code.equals(preferredName)) {
+      return "preferred name";
+    } else if (code.equals(relationshipToTarget)) {
+      return "relationship to target";
+    } else if (code.equals(synonymTermType)) {
+      return "synonym term type";
+    } else if (code.equals(synonymSource)) {
+      return "synonym source";
+    } else if (code.equals(synonymCode)) {
+      return "synonym code";
+    } else if (code.equals(synonymSubSource)) {
+      return "synonym subsource";
+    } else if (code.equals(definitionSource)) {
+      return "definition source";
+    } else if (code.equals(mapRelation)) {
+      return "map relation";
+    } else if (code.equals(map)) {
+      return "map";
+    } else if (code.equals(mapTarget)) {
+      return "map target";
+    } else if (code.equals(mapTargetTermType)) {
+      return "map target term type";
+    } else if (code.equals(mapTargetTerminology)) {
+      return "map target terminology";
+    } else if (code.equals(mapTargetTerminologyVersion)) {
+      return "map target terminology version";
+    } else if (md.getDefinition().contains(code)) {
+      return "definition";
+    } else if (md.getSynonym().contains(code)) {
+      return "synonym";
+    } else if (code.equals(this.code)) {
+      return "code";
+    } else if (prop != null) {
+      return prop.getValue();
+    } else {
+      return qual.getValue();
+    }
   }
 
 }

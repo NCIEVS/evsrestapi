@@ -1673,20 +1673,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final TerminologyMetadata md = terminology.getMetadata();
     for (final Property property : properties) {
-      // Exclude properties that are redefined as synonyms or definitions
-      // any qualifiers, and also properties defined in the OWL but never used
-      if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())
-      // || qualifiers.contains(property.getCode()) ||
-      // qualifiers.contains(property.getUri())
-      // || neverUsed.contains(property.getCode()) ||
-      // neverUsed.contains(property.getUri())
-      ) {
-        continue;
-      }
 
       // Send URI or code
-      final Concept concept =
-          getProperty(property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
+      final Concept concept = getProperty(
+          property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
+      if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())) {
+        concept.getProperties().add(new Property("remodeled", "true"));
+        if (property.getCode() != null) {
+          concept.getProperties().add(new Property("remodeledDescription",
+              "Remodeled as a " + md.getRemodeledAsType(property, null, md)));
+        }
+      }
       concepts.add(concept);
     }
 
@@ -1839,15 +1836,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final TerminologyMetadata md = terminology.getMetadata();
     for (final Qualifier qualifier : qualifiers) {
-      // Exclude properties that are redefined as synonyms or definitions
-      if (md.isRemodeledQualifier(qualifier.getCode()) || md.isRemodeledQualifier(qualifier.getUri())
-          || md.isUnpublished(qualifier.getCode()) || md.isUnpublished(qualifier.getUri())) {
-        continue;
-      }
 
       // Send URI or code
-      final Concept concept =
-          getQualifier(qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(), terminology, ip);
+      final Concept concept = getQualifier(
+          qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(), terminology, ip);
+
+      if (md.isRemodeledQualifier(qualifier.getCode()) || md.isUnpublished(qualifier.getCode())
+          || md.isRemodeledQualifier(qualifier.getUri()) || md.isUnpublished(qualifier.getUri())) {
+        concept.getProperties().add(new Property("remodeled", "true"));
+        if (qualifier.getCode() != null) {
+          concept.getProperties().add(new Property("remodeledDescription",
+              "Remodeled as a " + md.getRemodeledAsType(null, qualifier, md)));
+        }
+      }
+
       concepts.add(concept);
     }
 
