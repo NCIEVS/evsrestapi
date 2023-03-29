@@ -971,8 +971,11 @@ public class OWLScanner {
 		}
 	}
 
-
     public Vector extractOWLRestrictions(Vector class_vec) {
+		return extractOWLRestrictions(class_vec, null);
+    }
+
+    public Vector extractOWLRestrictions(Vector class_vec, String restrictionCode) {
         Vector w = new Vector();
         boolean istart = false;
         boolean restriction_start = false;
@@ -1026,11 +1029,16 @@ public class OWLScanner {
 						someValueFrom = t.substring(1, n);
 						r.setSomeValuesFrom(someValueFrom);
 
-						if (!hset.contains(r.toString())) {
-							hset.add(r.toString());
-							w.add(r.toString());
-						} else {
-							//System.out.println("\tWARNING: Duplicate " + r.toString());
+						if (restrictionCode == null) {
+							if (!hset.contains(r.toString())) {
+								hset.add(r.toString());
+								w.add(r.toString());
+							}
+						} else if (r.getOnProperty().compareTo(restrictionCode) == 0) {
+							if (!hset.contains(r.toString())) {
+								hset.add(r.toString());
+								w.add(r.toString());
+							}
 						}
 						r = null;
 					}
