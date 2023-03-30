@@ -10,6 +10,12 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class Map extends BaseModel implements Comparable<Map> {
 
+  /** The source. */
+  private String source;
+
+  /** The source term type. */
+  private String sourceTermType;
+
   /** The source code. */
   private String sourceCode;
 
@@ -18,6 +24,9 @@ public class Map extends BaseModel implements Comparable<Map> {
 
   /** The type. */
   private String type;
+
+  /** The rank. */
+  private String rank;
 
   /** The target name. */
   private String targetName;
@@ -68,6 +77,34 @@ public class Map extends BaseModel implements Comparable<Map> {
   }
 
   /**
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * @param source the source to set
+   */
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  /**
+   * @return the sourceTermType
+   */
+  public String getSourceTermType() {
+    return sourceTermType;
+  }
+
+  /**
+   * @param sourceTermType the sourceTermType to set
+   */
+  public void setSourceTermType(String sourceTermType) {
+    this.sourceTermType = sourceTermType;
+  }
+
+  /**
    * Returns the type.
    *
    * @return the type
@@ -83,6 +120,20 @@ public class Map extends BaseModel implements Comparable<Map> {
    */
   public void setType(final String type) {
     this.type = type;
+  }
+
+  /**
+   * @return the rank
+   */
+  public String getRank() {
+    return rank;
+  }
+
+  /**
+   * @param rank the rank to set
+   */
+  public void setRank(String rank) {
+    this.rank = rank;
   }
 
   /**

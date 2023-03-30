@@ -61,6 +61,9 @@ public class IncludeParam extends BaseModel {
   /** The subset links */
   private boolean subsetLink;
 
+  /** The mapset links */
+  private boolean mapsetLink;
+
   /**
    * Instantiates an empty {@link IncludeParam}.
    */
@@ -117,6 +120,8 @@ public class IncludeParam extends BaseModel {
           extensions = true;
         } else if (part.equals("subsetLink")) {
           subsetLink = true;
+        } else if (part.equals("mapsetLink")) {
+          mapsetLink = true;
         } else {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "Invalid includes value = " + part + (part.equals(include) ? "" : "; " + include));
@@ -192,6 +197,7 @@ public class IncludeParam extends BaseModel {
     highlights = true;
     disjointWith = true;
     subsetLink = true;
+    mapsetLink = true;
 
     // Full doesn't include descendants and paths
     // descendants = true;
@@ -204,8 +210,9 @@ public class IncludeParam extends BaseModel {
    * @return true, if successful
    */
   public boolean hasAnyTrue() {
-    return synonyms || definitions || properties || children || descendants || parents || associations
-        || inverseAssociations || roles || inverseRoles || maps || disjointWith || paths || extensions;
+    return synonyms || definitions || properties || children || descendants || parents
+        || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
+        || paths || extensions;
   }
 
   /**
@@ -213,7 +220,8 @@ public class IncludeParam extends BaseModel {
    * 
    */
   public String[] getIncludedFields() {
-    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
+    List<String> fields =
+        new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
     if (synonyms) {
       fields.add("synonyms");
     }
@@ -252,6 +260,9 @@ public class IncludeParam extends BaseModel {
     }
     if (subsetLink) {
       fields.add("subsetLink");
+    }
+    if (mapsetLink) {
+      fields.add("mapsetLink");
     }
     if (paths) {
       fields.add("paths");
@@ -307,6 +318,9 @@ public class IncludeParam extends BaseModel {
     }
     if (!subsetLink) {
       fields.add("subsetLink");
+    }
+    if (!mapsetLink) {
+      fields.add("mapsetLink");
     }
     if (!paths) {
       fields.add("paths");
@@ -603,5 +617,23 @@ public class IncludeParam extends BaseModel {
    */
   public void setSubsetLink(boolean subsetLink) {
     this.subsetLink = subsetLink;
+  }
+
+  /**
+   * Indicates whether or not SubsetLink is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isMapsetLink() {
+    return mapsetLink;
+  }
+
+  /**
+   * Sets the subsetLink.
+   *
+   * @param subsetLink the subsetLink
+   */
+  public void setMapsetLink(boolean mapsetLink) {
+    this.mapsetLink = mapsetLink;
   }
 }

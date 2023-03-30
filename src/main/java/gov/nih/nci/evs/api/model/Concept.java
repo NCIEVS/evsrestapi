@@ -71,9 +71,13 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Keyword)
   private String normName;
 
-  /** The normName. */
+  /** The subset Link. */
   @Field(type = FieldType.Keyword)
   private String subsetLink;
+
+  /** The mapset Link. */
+  @Field(type = FieldType.Keyword)
+  private String mapsetLink;
 
   /** The concept status. */
   @JsonProperty(access = Access.READ_ONLY)
@@ -260,6 +264,7 @@ public class Concept extends ConceptMinimal {
     if (!subsetFlag) {
       subsetLink = other.getSubsetLink();
     }
+    mapsetLink = other.getMapsetLink();
     conceptStatus = other.getConceptStatus();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
@@ -355,6 +360,24 @@ public class Concept extends ConceptMinimal {
    */
   public void setSubsetLink(String subsetLink) {
     this.subsetLink = subsetLink;
+  }
+
+  /**
+   * Returns the mapset link.
+   *
+   * @return the mapsetLink
+   */
+  public String getMapsetLink() {
+    return mapsetLink;
+  }
+
+  /**
+   * Sets the mapset link.
+   *
+   * @param mapsetLink the mapsetLink to set
+   */
+  public void setMapsetLink(String mapsetLink) {
+    this.mapsetLink = mapsetLink;
   }
 
   /**
