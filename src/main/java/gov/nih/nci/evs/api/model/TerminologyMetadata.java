@@ -1293,44 +1293,46 @@ public class TerminologyMetadata extends BaseModel {
     } else if (qual != null) {
       code = qual.getCode();
     } else
-      return "unknown";
+      return " other";
 
     if (code.equals(preferredName)) {
-      return "preferred name";
+      return "a preferred name";
     } else if (code.equals(relationshipToTarget)) {
-      return "relationship to target";
+      return "a relationship to target";
     } else if (code.equals(synonymTermType)) {
-      return "synonym term type";
+      return "a synonym term type";
     } else if (code.equals(synonymSource)) {
-      return "synonym source";
+      return "a synonym source";
     } else if (code.equals(synonymCode)) {
-      return "synonym code";
+      return "a synonym code";
     } else if (code.equals(synonymSubSource)) {
-      return "synonym subsource";
+      return "a synonym subsource";
     } else if (code.equals(definitionSource)) {
-      return "definition source";
+      return "a definition source";
     } else if (code.equals(mapRelation)) {
-      return "map relation";
+      return "a map relation";
     } else if (code.equals(map)) {
-      return "map";
+      return "a map";
     } else if (code.equals(mapTarget)) {
-      return "map target";
+      return "a map target";
     } else if (code.equals(mapTargetTermType)) {
-      return "map target term type";
+      return "a map target term type";
     } else if (code.equals(mapTargetTerminology)) {
-      return "map target terminology";
+      return "a map target terminology";
     } else if (code.equals(mapTargetTerminologyVersion)) {
-      return "map target terminology version";
+      return "a map target terminology version";
     } else if (md.getDefinition().contains(code)) {
-      return "definition";
+      return "a definition";
     } else if (md.getSynonym().contains(code)) {
-      return "synonym";
+      return "a synonym";
     } else if (code.equals(this.code)) {
-      return "code";
-    } else if (prop != null) {
+      return "a code";
+    } else if (prop != null && prop.getValue() != null) {
       return prop.getValue();
-    } else {
+    } else if (qual != null && qual.getValue() != null) {
       return qual.getValue();
+    } else {
+      return " other";
     }
   }
 
