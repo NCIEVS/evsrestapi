@@ -30,6 +30,9 @@ public interface ElasticOperationsService {
   /** The type in ES for index metadata **/
   public static final String METADATA_TYPE = "evs_metadata";
 
+  /** The index in ES for index metadata *. */
+  public static final String MAPPING_INDEX = "evs_mapsets";
+
   /**
    * create index using the given index name.
    *
@@ -73,8 +76,8 @@ public interface ElasticOperationsService {
    * @param clazz the clazz
    * @throws IOException the io exception
    */
-  void index(Object object, String index, String type, @SuppressWarnings("rawtypes")
-  Class clazz) throws IOException;
+  void index(Object object, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
+    throws IOException;
 
   /**
    * load metrics.
