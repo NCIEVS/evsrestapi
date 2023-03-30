@@ -1681,7 +1681,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.getProperties().add(new Property("remodeled", "true"));
         if (property.getCode() != null) {
           concept.getProperties()
-              .add(new Property("remodeledDescription", "Remodeled as a " + md.getRemodeledAsType(property, null, md)));
+              .add(new Property("remodeledDescription", "Remodeled as " + md.getRemodeledAsType(property, null, md)));
         }
       }
       concepts.add(concept);

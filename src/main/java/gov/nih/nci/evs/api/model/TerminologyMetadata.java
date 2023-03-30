@@ -1326,7 +1326,7 @@ public class TerminologyMetadata extends BaseModel {
     } else if (md.getSynonym().contains(code)) {
       return "a synonym";
     } else if (code.equals(this.code)) {
-      return "a code";
+      return "a concept code";
     } else if (prop != null && prop.getValue() != null) {
       return prop.getValue();
     } else if (qual != null && qual.getValue() != null) {
