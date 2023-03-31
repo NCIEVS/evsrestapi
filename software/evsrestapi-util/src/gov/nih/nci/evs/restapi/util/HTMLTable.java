@@ -12,7 +12,8 @@ public class HTMLTable {
 	}
 
 	public static String generate(Vector v) {
-		return generate(v, '\t');
+		char delim = searchDelimiter(v);
+		return generate(v, delim);
 	}
 
 	public static String generate(Vector v, char delim) {
@@ -170,12 +171,27 @@ public class HTMLTable {
 		return calculateWideFieldWidth(numFields, numWideFields);
 	}
 
+	public static char searchDelimiter(Vector data_vec) {
+		for (int i=0; i<data_vec.size(); i++) {
+			String t = (String) data_vec.elementAt(i);
+			if (t.indexOf("\t") != -1) {
+				return '\t';
+			} else if (t.indexOf("|") != -1) {
+				return '|';
+			}
+		}
+		return '\t';
+	}
+
+/*
     public static void printTable(PrintWriter out,
         String tableLabel,
         Vector th_vec,
         Vector data_vec) {
-		printTable(out, tableLabel, th_vec, data_vec, '\t');
+		char delim = searchDelimiter(data_vec);
+		printTable(out, tableLabel, th_vec, data_vec, delim);
 	}
+*/
 
     public static void printTable(PrintWriter out,
         String tableLabel,
