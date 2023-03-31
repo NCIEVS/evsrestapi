@@ -240,49 +240,57 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           auiCodeMap.put(fields[7], code);
         }
 
+        // Cache mapsets
+        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM") && fields[14].contains("ICD10")) {
+          // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
+          // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
+          mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+        }
+
       }
 
-      // TODO: deal with MRMAP for SNOMED
-      // Loop through map lines and cache map objects (only in isMeta=true mode)
-      // while ((line = mrmap.readLine()) != null) {
-      // // MAPSETCUI,MAPSETSAB,MAPSUBSETID,MAPRANK,MAPID,MAPSID,FROMID,FROMSID,
-      // //
-      // FROMEXPR,FROMTYPE,FROMRULE,FROMRES,REL,RELA,TOID,TOSID,TOEXPR,TOTYPE,
-      // // TORULE,TORES,MAPRULE,MAPRES,MAPTYPE,MAPATN,MAPATV,CVF
-      // final String[] fields = line.split("\\|", -1);
-      //
-      // // Skip map sets not being tracked
-      // if (!mapsets.containsKey(fields[0])) {
-      // continue;
-      // }
-      //
-      // // Skip empty maps (or maps to the empty target: 100051
-      // if (fields[16].isEmpty() || fields[16].equals("100051")) {
-      // continue;
-      // }
-      //
-      // final gov.nih.nci.evs.api.model.Map map = new
-      // gov.nih.nci.evs.api.model.Map();
-      // map.setSourceCode(fields[8]);
-      // map.setSourceTerminology(fields[8]);
-      // map.setTargetCode(fields[16]);
-      // map.setTargetName(nameMap.get(fields[16]));
-      // map.setTargetTermType("PT");
-      // map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
-      // map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
-      // map.setType(fields[12]);
-      //
-      // // Fix target name if null
-      // if (map.getTargetName() == null) {
-      // map.setTargetName("Unable to determine name, code not present");
-      // }
-      //
-      // final String cui = codeCuiMap.get(fields[8]);
-      // if (!maps.containsKey(cui)) {
-      // maps.put(cui, new HashSet<>());
-      // }
-      // maps.get(cui).add(map);
-      // }
+      // Loop through map lines and cache map objects
+      while ((line = mrmap.readLine()) != null) {
+        // MAPSETCUI,MAPSETSAB,MAPSUBSETID,MAPRANK,MAPID,MAPSID,FROMID,FROMSID,
+        // FROMEXPR,FROMTYPE,FROMRULE,FROMRES,REL,RELA,TOID,TOSID,TOEXPR,TOTYPE,
+        // TORULE,TORES,MAPRULE,MAPRES,MAPTYPE,MAPATN,MAPATV,CVF
+        final String[] fields = line.split("\\|", -1);
+
+        // Skip non-matching SAB lines
+        if (!sabMatch(fields[1], terminology.getTerminology())) {
+          continue;
+        }
+
+        // Skip map sets not being tracked
+        if (!mapsets.containsKey(fields[0])) {
+          continue;
+        }
+
+        // Skip empty maps (or maps to the empty target: 100051
+        if (fields[16].isEmpty() || fields[16].equals("100051")) {
+          continue;
+        }
+
+        final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
+        map.setSourceCode(fields[8]);
+        map.setSourceTerminology(fields[1]);
+        map.setTargetCode(fields[16]);
+        map.setTargetName(nameMap.get(fields[16]));
+        map.setTargetTermType("PT");
+        map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
+        map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
+        map.setType(fields[12]);
+
+        // Fix target name if null
+        if (map.getTargetName() == null) {
+          map.setTargetName("Unable to determine name, code not present");
+        }
+
+        if (!maps.containsKey(map.getSourceCode())) {
+          maps.put(map.getSourceCode(), new HashSet<>());
+        }
+        maps.get(map.getSourceCode()).add(map);
+      }
 
       // Always read inverses from MRDOC
       while ((line = mrdoc.readLine()) != null) {
@@ -481,7 +489,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
               concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
               // Clear space/memory
               hierarchy.getPathsMap(terminology).remove(concept.getCode());
+              if (maps.containsKey(concept.getCode())) {
+                concept.getMaps().addAll(maps.get(concept.getCode()));
+              }
               handleConcept(concept, batch, false, terminology.getIndexName());
+              maps.remove(concept.getCode());
 
               // Count number of source concepts
               if (sourceConcepts++ % 5000 == 0) {
@@ -555,7 +567,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept.setLeaf(concept.getChildren().size() > 0);
             concept.setDescendants(hierarchy.getDescendants(code));
             concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
+            if (maps.containsKey(concept.getCode())) {
+              concept.getMaps().addAll(maps.get(concept.getCode()));
+            }
             handleConcept(concept, batch, true, terminology.getIndexName());
+            maps.remove(concept.getCode());
 
             // Count number of source concepts
             if (sourceConcepts++ % 5000 == 0) {

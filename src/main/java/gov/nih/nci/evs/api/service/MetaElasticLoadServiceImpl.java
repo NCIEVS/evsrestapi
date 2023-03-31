@@ -385,7 +385,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           handleRelationships(concept, mrrel, prevCui);
 
           if (maps.containsKey(cui)) {
-            logger.info("YYY maps = " + maps.get(cui));
             concept.getMaps().addAll(maps.get(cui));
           }
 
