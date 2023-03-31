@@ -387,19 +387,18 @@ public class MetadataServiceImpl implements MetadataService {
   public List<Concept> getSubsets(String terminology, Optional<String> include, Optional<String> list)
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    final IncludeParam ipWithoutProperties = new IncludeParam(include.orElse(null));
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
     final IncludeParam ipWithProperties = new IncludeParam(include.orElse(null));
 
-    // subsets should always return children
+    // subsets should always return children and subsetLink
     // (contributing source needed)
-    ipWithoutProperties.setChildren(true);
-    // ip.setProperties(true);
-    ipWithoutProperties.setSubsetLink(true);
     ipWithProperties.setChildren(true);
     ipWithProperties.setProperties(true);
     ipWithProperties.setSubsetLink(true);
+    ip.setChildren(true);
+    // avoid overwriting IP: ip.setProperties(false);
+    ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ipWithProperties);
-
     // No list of codes supplied
     if (!list.isPresent()) {
 
@@ -416,8 +415,8 @@ public class MetadataServiceImpl implements MetadataService {
               .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes")).count() == 0));
 
       // Apply include (without properties)
-      subsets.stream().flatMap(Concept::streamSelfAndChildren)
-          .peek(c -> ConceptUtils.applyInclude(c, ipWithoutProperties)).collect(Collectors.toList());
+      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> ConceptUtils.applyInclude(c, ip))
+          .collect(Collectors.toList());
 
       // Remove subsets if they are not publishable - should not be necessary
       // subsets.removeIf(c -> c.getProperties().stream()
@@ -427,11 +426,10 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     // List of codes supplied - first apply the filter.
-    subsets = ConceptUtils.applyListWithChildren(subsets, ipWithProperties, list.orElse(null)).stream()
-        .collect(Collectors.toSet()).stream().collect(Collectors.toList());
-    subsets.stream().flatMap(Concept::streamSelfAndChildren)
-        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ipWithProperties).get(), true))
-        .peek(c -> ConceptUtils.applyInclude(c, ipWithProperties)).collect(Collectors.toList());
+    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream().collect(Collectors.toSet())
+        .stream().collect(Collectors.toList());
+    subsets.stream().peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
+        .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
     return subsets;
 
