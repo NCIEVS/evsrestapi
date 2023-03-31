@@ -190,8 +190,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // Cache mapsets
-        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM") && fields[14].contains("ICD10CM")) {
+        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM") && fields[14].contains("ICD10")) {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
+          // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
           mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
         }
 
@@ -326,7 +327,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
-    logger.info("    maps = " + maps.size());
+    logger.info("    mapsets = " + mapsets.size());
+    logger.info("    maps = " + mapsets.size());
     logger.info("    ruiInverseMap = " + ruiInverseMap.size());
     logger.info("    ruiQualMap = " + ruiQualMap.size());
 
@@ -385,7 +387,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           handleRelationships(concept, mrrel, prevCui);
 
           if (maps.containsKey(cui)) {
-            logger.info("YYY maps = " + maps.get(cui));
             concept.getMaps().addAll(maps.get(cui));
           }
 
