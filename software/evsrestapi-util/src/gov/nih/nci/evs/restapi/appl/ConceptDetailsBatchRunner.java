@@ -74,10 +74,14 @@ import org.json.*;
 public class ConceptDetailsBatchRunner {
     JSONUtils jsonUtils = null;
     HTTPUtils httpUtils = null;
-    String named_graph = null;
+
     String prefixes = null;
-    String sparql_endpoint = null;
+    //String sparql_endpoint = null;
     String serviceUrl = null;
+    String named_graph = null;
+    String username = null;
+    String password = null;
+
     String named_graph_id = ":NHC0";
     String base_uri = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     TreeBuilder treeBuilder = null;//new TreeBuilder(this);
@@ -102,21 +106,24 @@ public class ConceptDetailsBatchRunner {
 	Vector disease_is_stage_vec = null;
 	Vector disease_is_grade_vec = null;
 
-	public ConceptDetailsBatchRunner(String sparql_endpoint) {
-        this.sparql_endpoint = sparql_endpoint;//"https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";
-        this.serviceUrl = sparql_endpoint + "?query=";
+	public ConceptDetailsBatchRunner(String serviceUrl, String named_graph, String username, String password) {
+        this.serviceUrl = serviceUrl;//"https://sparql-evs-dev.nci.nih.gov/ctrp/?query=";
+        this.named_graph = named_graph;
+        this.username = username;
+        this.password = password;
         initialize();
 	}
 
-	public MainTypeHierarchy createMainTypeHierarchy(String serviceUrl) {
+	public MainTypeHierarchy createMainTypeHierarchy() {
         long ms = System.currentTimeMillis();
         long ms0 = System.currentTimeMillis();
 		System.out.println("Instantiating MainTypeHierarchy. Please wait...");
-		MetadataUtils mdu = new MetadataUtils(sparql_endpoint);
-		String named_graph = mdu.getNamedGraph(NCI_THESAURUS);
+		MetadataUtils mdu = new MetadataUtils(serviceUrl, username, password);
+		//String named_graph = mdu.getNamedGraph(NCI_THESAURUS);
 		String ncit_version = mdu.getLatestVersion(NCI_THESAURUS);
-		gov.nih.nci.evs.restapi.util.OWLSPARQLUtils owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, null, null);
+		gov.nih.nci.evs.restapi.util.OWLSPARQLUtils owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, username, password);
 		owlSPARQLUtils.set_named_graph(named_graph);
+
 		String parent_child_file = "parent_child.txt";
 		if (parent_child_vec == null) {
 			File file = new File(parent_child_file);
@@ -153,7 +160,7 @@ public class ConceptDetailsBatchRunner {
 		HashMap gradeConceptHashMap = new ParserUtils().getCode2LabelHashMap(disease_is_grade_vec);
 		System.out.println("Number of grade terms: " + gradeConceptHashMap.keySet().size());
 
- 		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
+ 		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph, username, password);
 
 		main_type_set = mthd.get_main_type_set();
 		ctrp_biomarker_set = mthd.get_ctrp_biomarker_set();
@@ -183,13 +190,13 @@ public class ConceptDetailsBatchRunner {
 
     public void initialize() {
 		long ms = System.currentTimeMillis();
-        this.mth = createMainTypeHierarchy(serviceUrl);
-		this.httpUtils = new HTTPUtils(serviceUrl, null, null);
+        this.mth = createMainTypeHierarchy();
+		this.httpUtils = new HTTPUtils(serviceUrl, username, password);
         this.jsonUtils = new JSONUtils();
-		MetadataUtils mdu = new MetadataUtils(sparql_endpoint);
+		MetadataUtils mdu = new MetadataUtils(serviceUrl, username, password);
 		this.named_graph = mdu.getNamedGraph(NCI_THESAURUS);
 		this.ncit_version = mdu.getLatestVersion(NCI_THESAURUS);
-		this.owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, null, null);
+		this.owlSPARQLUtils = new gov.nih.nci.evs.restapi.util.OWLSPARQLUtils(serviceUrl, username, password);
 		this.owlSPARQLUtils.set_named_graph(named_graph);
         this.treeBuilder = new TreeBuilder(this.owlSPARQLUtils);
         this.exportUtils = new ExportUtils(this.owlSPARQLUtils);
@@ -260,8 +267,12 @@ public class ConceptDetailsBatchRunner {
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
-		String sparql_endpoint = args[0];//"https://sparql-evs-dev.nci.nih.gov/ctrp/";
-        ConceptDetailsBatchRunner cdbr = new ConceptDetailsBatchRunner(sparql_endpoint);
+		String serviceUrl = args[0];//"https://sparql-evs-dev.nci.nih.gov/ctrp/";
+		String named_graph = args[0];
+		String username = args[0];
+		String password = args[0];
+
+        ConceptDetailsBatchRunner cdbr = new ConceptDetailsBatchRunner(serviceUrl, named_graph, username, password);
         Vector codes = new Vector();
         /*
         codes.add("C3058");
