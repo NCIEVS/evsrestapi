@@ -275,7 +275,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
         map.setTargetCode(fields[16]);
-        map.setTargetName(nameMap.get(fields[16]));
+        // map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermType("PT");
         map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
@@ -402,6 +402,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
+    logger.info("    mapsets = " + mapsets.size());
+    logger.info("    maps = " + mapsets.size());
     logger.info("    parentChild = " + parentChild.size());
     logger.info("    ruiInverseMap = " + ruiInverseMap.size());
     logger.info("    ruiQualMap = " + ruiQualMap.size());
