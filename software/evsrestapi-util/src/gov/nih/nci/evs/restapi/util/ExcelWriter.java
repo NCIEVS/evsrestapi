@@ -601,6 +601,61 @@ public class ExcelWriter {
 		return true;
 	}
 
+    public void writeToXSSF(Vector datafile_vec, String excelfile, char delim, Vector sheetLabel_vec, String headerColor) {
+		String color = null;
+		if (headerColor == null) {
+			color = GREEN;
+		}
+		Workbook workbook = new XSSFWorkbook();
+		CreationHelper createHelper = workbook.getCreationHelper();
+
+		boolean bold = true;
+		int size = 14;
+
+		Font headerFont = createFont(workbook, bold, size, color);
+
+		CellStyle headerCellStyle = workbook.createCellStyle();
+		headerCellStyle.setFont(headerFont);
+
+		CellStyle dateCellStyle = workbook.createCellStyle();
+		dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-MM-yyyy"));
+
+		for (int lcv=0; lcv<datafile_vec.size(); lcv++) {
+			String datafile = (String) datafile_vec.elementAt(lcv);
+            Vector lines = Utils.readFile(datafile);
+			String heading = (String) lines.elementAt(0);
+			String[] columns = getColumnHeadings(heading, delim);
+			Sheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
+			Row headerRow = sheet.createRow(0);
+			for(int i = 0; i < columns.length; i++) {
+				Cell cell = headerRow.createCell(i);
+				cell.setCellValue(columns[i]);
+				cell.setCellStyle(headerCellStyle);
+			}
+			for (int i=1;i<lines.size(); i++) {
+				String line = (String) lines.elementAt(i);
+				Vector values = StringUtils.parseData(line, delim);
+				Row row = sheet.createRow(i);
+				for(int k = 0; k < values.size(); k++) {
+					row.createCell(k).setCellValue((String) values.elementAt(k));
+				}
+			}
+			for(int i = 0; i < columns.length; i++) {
+				sheet.autoSizeColumn(i);
+			}
+		}
+        try {
+			FileOutputStream fileOut = new FileOutputStream(excelfile);
+			workbook.write(fileOut);
+			fileOut.close();
+
+			workbook.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+    }
+
+
     public static void main(String[] args) throws IOException, InvalidFormatException {
 		ExcelWriter writer = new ExcelWriter();
 		Vector v = readFile(CONFIGFILE);

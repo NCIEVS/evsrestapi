@@ -350,7 +350,7 @@ public class MapsToReportWriter {
 		char delim = '|';
 		//String headerColor = ExcelWriter.RED;
 		String excelfile = label0 + "_(" + version + ")_" + StringUtils.getToday() + ".xlsx";
-		new ExcelWriter().writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec);
+		new ExcelWriter().writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec, null);
 		System.out.println(excelfile + " generated.");
 	}
 
