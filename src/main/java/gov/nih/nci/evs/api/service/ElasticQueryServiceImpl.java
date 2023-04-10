@@ -109,13 +109,16 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the concepts
    */
   @Override
-  public List<Concept> getConcepts(Collection<String> codes, Terminology terminology, IncludeParam ip) {
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termsQuery("_id", codes))
-        .withIndices(terminology.getIndexName()).withTypes(ElasticOperationsService.CONCEPT_TYPE)
+  public List<Concept> getConcepts(Collection<String> codes, Terminology terminology,
+    IncludeParam ip) {
+    NativeSearchQuery query = new NativeSearchQueryBuilder()
+        .withFilter(QueryBuilders.termsQuery("_id", codes)).withIndices(terminology.getIndexName())
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE)
         .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
         .withPageable(new EVSPageable(0, codes.size(), 0)).build();
 
-    List<Concept> concepts = operations.queryForPage(query, Concept.class, new EVSConceptResultMapper(ip)).toList();
+    List<Concept> concepts =
+        operations.queryForPage(query, Concept.class, new EVSConceptResultMapper(ip)).toList();
     return concepts;
   }
 
@@ -128,7 +131,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the concepts as map
    */
   @Override
-  public Map<String, Concept> getConceptsAsMap(Collection<String> codes, Terminology terminology, IncludeParam ip) {
+  public Map<String, Concept> getConceptsAsMap(Collection<String> codes, Terminology terminology,
+    IncludeParam ip) {
     List<Concept> concepts = getConcepts(codes, terminology, ip);
     if (CollectionUtils.isEmpty(concepts)) {
       return Collections.emptyMap();
@@ -220,7 +224,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     if (!hierarchy.isPresent())
       return Collections.emptyList();
     List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
-    ArrayList<Concept> concepts = new ArrayList<Concept>(getConcepts(hierarchyRoots, terminology, ip));
+    ArrayList<Concept> concepts =
+        new ArrayList<Concept>(getConcepts(hierarchyRoots, terminology, ip));
     concepts.sort(Comparator.comparing(Concept::getName));
     for (Concept c : concepts) {
       c.setLeaf(null);
@@ -318,7 +323,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @param terminology the terminology
    * @return the all child nodes recursive
    */
-  private void getAllChildNodesRecursive(String code, List<String> childCodes, Terminology terminology) {
+  private void getAllChildNodesRecursive(String code, List<String> childCodes,
+    Terminology terminology) {
     List<Concept> children = getSubclasses(code, terminology);
     if (children == null || children.size() == 0) {
       return;
@@ -598,13 +604,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the association entry list
    * @throws Exception Signals that an exception has occurred.
    */
-  public AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,
-    int pageSize) throws Exception {
+  public AssociationEntryResultList getAssociationEntries(String terminology, String label,
+    int fromRecord, int pageSize) throws Exception {
     AssociationEntryResultList al = new AssociationEntryResultList();
-    Optional<ElasticObject> esObject =
-        getElasticObject("associationEntries_" + label, termUtils.getTerminology(terminology, true));
+    Optional<ElasticObject> esObject = getElasticObject("associationEntries_" + label,
+        termUtils.getTerminology(terminology, true));
     // set params in object
-    List<String> params = Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));
+    List<String> params =
+        Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));
     SearchCriteria criteria = new SearchCriteria();
     criteria.setTerminology(params);
     criteria.setFromRecord(fromRecord);
@@ -768,8 +775,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
     }
 
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id))
-        .withIndices(terminology.getObjectIndexName()).withTypes(ElasticOperationsService.OBJECT_TYPE).build();
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id))
+            .withIndices(terminology.getObjectIndexName())
+            .withTypes(ElasticOperationsService.OBJECT_TYPE).build();
 
     List<ElasticObject> objects = operations.queryForList(query, ElasticObject.class);
 
@@ -785,6 +794,29 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<Concept> getSubsets(Terminology term, IncludeParam ip)
     throws JsonMappingException, JsonProcessingException {
     return getConceptList("subsets", term, ip);
+  }
+
+  @Override
+  public List<Concept> getMapsets(Terminology term, IncludeParam ip) throws Exception {
+
+    NativeSearchQuery query = new NativeSearchQueryBuilder().withIndices("evs_mappings")
+        .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+
+    return operations.queryForList(query, Concept.class);
+
+  }
+
+  @Override
+  public List<Concept> getMapset(Terminology term, String code, IncludeParam ip) throws Exception {
+
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", code))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .withIndices("evs_mappings").withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+
+    return operations.queryForList(query, Concept.class);
+
   }
 
 }
