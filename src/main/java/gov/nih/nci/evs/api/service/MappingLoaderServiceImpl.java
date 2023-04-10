@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
@@ -30,6 +31,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Autowired
   Environment env;
 
+  @Autowired
+  ApplicationProperties applicationProperties;
+
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
@@ -37,10 +41,11 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws IOException, Exception {
+    final String uri = applicationProperties.getConfigBaseUri();
     boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
     if (created) {
       operationsService.getElasticsearchOperations().putMapping(
-          ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.CONCEPT_TYPE,
+          ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
           Concept.class);
     }
 
