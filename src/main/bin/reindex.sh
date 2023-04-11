@@ -281,6 +281,14 @@ for x in `cat /tmp/y.$$.txt`; do
     pt=$term
 done
 
+# mapping indexes
+echo "java $local -Xm4096M -jar $jar --terminology mapping --realTime" | sed 's/^/      /'
+java $local -Xmx4096M -jar $jar --terminology mapping --realTime
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+fi
+
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
 
