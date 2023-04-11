@@ -2,6 +2,10 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +15,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
@@ -38,15 +44,68 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Autowired
   ElasticOperationsService operationsService;
 
+  public List<Map> buildMaps(String mappingData) {
+    List<Map> maps = new ArrayList<Map>();
+    String[] mappingDataList = mappingData.split("\n");
+    for (String conceptMap : mappingDataList) {
+      String[] conceptSplit = conceptMap.split("\t");
+      Map conceptToAdd = new Map();
+
+    }
+    return maps;
+  }
+
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws IOException, Exception {
     final String uri = applicationProperties.getConfigBaseUri();
+    final String mappingUri =
+        "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/bin/data/UnitTestData/mappings/";
     boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
     if (created) {
       operationsService.getElasticsearchOperations().putMapping(
           ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
           Concept.class);
+    }
+    List<String> allLines = Files.readAllLines(Paths.get("metadata/mapsets/mapsetMetadata.txt"));
+
+    for (String line : allLines) { // build each mapset
+      Concept map = new Concept();
+      String[] metadata = line.split("\t");
+      map.setName(metadata[0]);
+      map.setCode(metadata[0]);
+      if (!metadata[2].isEmpty()) { // version numbers
+        map.setVersion(metadata[2]);
+      } else {
+        map.setVersion(null);
+      }
+
+      // setting up metadata
+      if (!metadata[3].isEmpty()) { // welcome text
+        map.getProperties().add(new Property("welcomeText", uri + "/" + metadata[3]));
+        String mappingData = mappingUri + map.getName() + "_" + map.getVersion() + ".csv"; // build
+                                                                                           // map
+        map.setMaps(buildMaps(mappingData));
+
+      } else {
+        map.getProperties().add(new Property("welcomeText", null));
+      }
+
+      if (!metadata[1].isEmpty()) { // download links
+
+        map.getProperties().add(new Property("downloadOnly", "true"));
+        if (metadata[1].contains("ftp")) {
+          map.getProperties().add(new Property("mapsetLink", metadata[1]));
+        } else {
+          map.getProperties().add(new Property("mapsetLink", null));
+          String mappingData = mappingUri + map.getName() + "_" + map.getVersion() + ".csv"; // build
+                                                                                             // map
+          map.setMaps(buildMaps(mappingData));
+        }
+      } else {
+        map.getProperties().add(new Property("downloadOnly", "false"));
+      }
+
     }
 
   }

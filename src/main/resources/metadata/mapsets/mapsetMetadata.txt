@@ -1,17 +1,17 @@
-SNOMED_US_TO_ICD10CM		20220901
-SNOMED_US_TO_ICD10		20220901
-PDQ_TO_NCI		20160731
-NCI_TO_HGNC		1.0
-NCIT_TO_CHEBI	1.0
-MA_TO_NCI	1.0
-GO_TO_NCI	1.1
-NCIT_TO_SWISSPROT	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/NCIt-SwissProt_Mapping.txt	20230307	
-ICDO_TO_NCI_TOPOGRAPHY	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/ICD-O-3_Mappings/ICD-O-3.1-NCIt_Topography_Mapping.txt	
-ICDO_TO_NCI_MORPHOLOGY	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/ICD-O-3_Mappings/ICD-O-3.1-NCIt_Morphology_Mapping.txt	
-ICDO_TO_NCI_AXIS	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/ICD-O-3_Mappings/ICD-O-3.1-NCIt_Axis_Mappings.xls	
-NCI_MAPS_TO_GDC	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=GDC	
-NCI_MAPS_TO_ICD10	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD10%202016	2016
-NCI_MAPS_TO_ICD10CM	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD10CM%202017	2017
-NCI_MAPS_TO_ICD9M	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD9CM%202014	2014
-NCI_MAPS_TO_ICDO3	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICDO3	
-NCI_MAPS_TO_MEDDRA	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=MedDRA	
+SNOMED_US_TO_ICD10CM		20220901	mapping-snomed-icd10cm.html
+SNOMED_US_TO_ICD10		20220901	mapping-snomed-icd10.html
+PDQ_2016_07_31_TO_NCI_2016_10E		2016_07_31	mapping-pdq-nci.html
+NCIt_to_HGNC_Mapping		1.0	mapping-nci-hgnc.html
+NCIt_to_ChEBI_Mapping		1.0	mapping-chebi-nci.html
+MA_to_NCIt_Mapping		1.0	mapping-ma-nci.html
+GO_to_NCIt_Mapping		1.1	mapping-go-nci.html
+NCIT_TO_SWISSPROT	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/NCIt-SwissProt_Mapping.txt	20230307		
+ICDO_TO_NCI_TOPOGRAPHY	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/ICD-O-3_Mappings/ICD-O-3.1-NCIt_Topography_Mapping.txt		
+ICDO_TO_NCI_MORPHOLOGY	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/ICD-O-3_Mappings/ICD-O-3.1-NCIt_Morphology_Mapping.txt		
+ICDO_TO_NCI_AXIS	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&uri=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Mappings/ICD-O-3_Mappings/ICD-O-3.1-NCIt_Axis_Mappings.xls		
+NCIt_Maps_To_GDC	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=GDC		
+NCIt_Maps_To_ICD10	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD10%202016	2016	
+NCIt_Maps_To_ICD10CM	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD10CM%202017	2017	
+NCIt_Maps_To_ICD9M	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD9CM%202014	2014	
+NCIt_Maps_To_ICDO3	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICDO3		
+NCIt_Maps_To_MEDDRA	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=MedDRA		
