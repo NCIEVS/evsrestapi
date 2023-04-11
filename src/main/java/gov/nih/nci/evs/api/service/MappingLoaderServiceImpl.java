@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -54,16 +55,33 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     String[] mappingDataList = mappingData.split("\n");
     // welcomeText = true format
     if (!metadata[3].isEmpty()) {
-      for (String conceptMap : mappingDataList) {
+      for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         String[] conceptSplit = conceptMap.split("\t");
         Map conceptToAdd = new Map();
+        conceptToAdd.setSourceCode(conceptSplit[0]);
+        conceptToAdd.setSourceName(conceptSplit[1]);
+        conceptToAdd.setSource(conceptSplit[2]);
+        conceptToAdd.setType(conceptSplit[6]);
+        conceptToAdd.setRank(conceptSplit[7]);
+        conceptToAdd.setTargetCode(conceptSplit[8]);
+        conceptToAdd.setTargetName(conceptSplit[9]);
+        conceptToAdd.setTargetTerminology(conceptSplit[10]);
+        conceptToAdd.setTargetTerminologyVersion(conceptSplit[11]);
       }
     }
     // mapsetLink = null + downloadOnly format
     else if (!metadata[1].isEmpty() && !metadata[1].contains("ftp")) {
-      for (String conceptMap : mappingDataList) {
+      for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         String[] conceptSplit = conceptMap.split("\t");
         Map conceptToAdd = new Map();
+        conceptToAdd.setSourceCode(conceptSplit[0]);
+        conceptToAdd.setSourceName(conceptSplit[1]);
+        conceptToAdd.setType(conceptSplit[2]);
+        conceptToAdd.setTargetCode(conceptSplit[3]);
+        conceptToAdd.setTargetName(conceptSplit[4]);
+        conceptToAdd.setTargetTermType(conceptSplit[5]);
+        conceptToAdd.setTargetTerminology(conceptSplit[6]);
+        conceptToAdd.setTargetTerminologyVersion(conceptSplit[7]);
       }
     }
     // ftp format = direct download and no maps
@@ -125,6 +143,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
+      operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
+          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
 
     }
 

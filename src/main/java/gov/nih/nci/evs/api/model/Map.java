@@ -13,6 +13,9 @@ public class Map extends BaseModel implements Comparable<Map> {
   /** The source. */
   private String source;
 
+  /** The source name. */
+  private String sourceName;
+
   /** The source term type. */
   private String sourceTermType;
 
@@ -88,6 +91,20 @@ public class Map extends BaseModel implements Comparable<Map> {
    */
   public void setSource(String source) {
     this.source = source;
+  }
+
+  /**
+   * @return the sourceName
+   */
+  public String getSourceName() {
+    return sourceName;
+  }
+
+  /**
+   * @param sourceName the sourceName to set
+   */
+  public void setSourceName(String sourceName) {
+    this.sourceName = sourceName;
   }
 
   /**
