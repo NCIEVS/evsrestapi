@@ -437,19 +437,17 @@ public interface ElasticQueryService {
   /**
    * Returns mapsets.
    *
-   * @param terminology the terminology
    * @return the list of mapsets
    * @throws JsonProcessingException
    * @throws JsonMappingException
    * @throws ClassNotFoundException the class not found exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<Concept> getMapsets(Terminology term, IncludeParam ip) throws Exception;
+  List<Concept> getMapsets(IncludeParam ip) throws Exception;
 
   /**
    * Returns mapset by code filter.
    *
-   * @param terminology the terminology
    * @param code the code to filter
    * @return the list of mapsets
    * @throws JsonProcessingException
@@ -457,6 +455,6 @@ public interface ElasticQueryService {
    * @throws ClassNotFoundException the class not found exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<Concept> getMapset(Terminology term, String code, IncludeParam ip) throws Exception;
+  List<Concept> getMapset(String code, IncludeParam ip) throws Exception;
 
 }

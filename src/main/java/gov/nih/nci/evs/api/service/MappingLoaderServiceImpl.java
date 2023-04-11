@@ -15,6 +15,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -44,14 +45,32 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Autowired
   ElasticOperationsService operationsService;
 
-  public List<Map> buildMaps(String mappingData) {
+  /** The Elasticsearch operations service instance *. */
+  @Autowired
+  ElasticQueryService esQueryService;
+
+  public List<Map> buildMaps(String mappingData, String[] metadata) {
     List<Map> maps = new ArrayList<Map>();
     String[] mappingDataList = mappingData.split("\n");
-    for (String conceptMap : mappingDataList) {
-      String[] conceptSplit = conceptMap.split("\t");
-      Map conceptToAdd = new Map();
-
+    // welcomeText = true format
+    if (!metadata[3].isEmpty()) {
+      for (String conceptMap : mappingDataList) {
+        String[] conceptSplit = conceptMap.split("\t");
+        Map conceptToAdd = new Map();
+      }
     }
+    // mapsetLink = null + downloadOnly format
+    else if (!metadata[1].isEmpty() && !metadata[1].contains("ftp")) {
+      for (String conceptMap : mappingDataList) {
+        String[] conceptSplit = conceptMap.split("\t");
+        Map conceptToAdd = new Map();
+      }
+    }
+    // ftp format = direct download and no maps
+    else {
+      return null;
+    }
+
     return maps;
   }
 
@@ -68,6 +87,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           Concept.class);
     }
     List<String> allLines = Files.readAllLines(Paths.get("metadata/mapsets/mapsetMetadata.txt"));
+    List<Concept> currentMapsets = esQueryService.getMapsets(new IncludeParam("minimal"));
 
     for (String line : allLines) { // build each mapset
       Concept map = new Concept();
@@ -85,7 +105,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties().add(new Property("welcomeText", uri + "/" + metadata[3]));
         String mappingData = mappingUri + map.getName() + "_" + map.getVersion() + ".csv"; // build
                                                                                            // map
-        map.setMaps(buildMaps(mappingData));
+        map.setMaps(buildMaps(mappingData, metadata));
 
       } else {
         map.getProperties().add(new Property("welcomeText", null));
@@ -100,7 +120,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           map.getProperties().add(new Property("mapsetLink", null));
           String mappingData = mappingUri + map.getName() + "_" + map.getVersion() + ".csv"; // build
                                                                                              // map
-          map.setMaps(buildMaps(mappingData));
+          map.setMaps(buildMaps(mappingData, metadata));
         }
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
