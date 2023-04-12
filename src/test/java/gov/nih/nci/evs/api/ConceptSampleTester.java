@@ -115,10 +115,27 @@ public class ConceptSampleTester {
     url = baseMetadataUrl + term + "/qualifiers?include=minimal";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> qualifiers =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<Concept> qualifiers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    List<Concept> remodeledQualifiers =
+        qualifiers.stream().filter(x -> x.getProperties().stream().anyMatch(y -> y.getType().equals("remodeled")))
+            .collect(Collectors.toList());
+    qualifiers =
+        qualifiers.stream().filter(x -> x.getProperties().stream().noneMatch(y -> y.getType().equals("remodeled")))
+            .collect(Collectors.toList());
+
+    List<String> qualifiersString = qualifiers.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+    List<String> remodeledQualifierString = remodeledQualifiers.stream()
+        .filter(x -> x.getProperties().stream().anyMatch(y -> y.getType().equals("remodeled")))
+        .collect(Collectors.toList()).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+    for (String prop : remodeledQualifierString) {
+      if (!terminology.getMetadata().isRemodeledQualifier(prop)) {
+        errors.add("Qualifier " + prop + " listed as remodeled, but isn't");
+      }
+    }
 
     // get roles
     url = baseMetadataUrl + term + "/roles?include=minimal";
@@ -165,13 +182,31 @@ public class ConceptSampleTester {
         }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
 
     // get properties
-    url = baseMetadataUrl + term + "/properties?include=minimal";
+    url = baseMetadataUrl + term + "/properties?include=properties";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    List<String> properties =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        }).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+    List<Concept> properties = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    List<Concept> remodeledProperties =
+        properties.stream().filter(x -> x.getProperties().stream().anyMatch(y -> y.getType().equals("remodeled")))
+            .collect(Collectors.toList());
+
+    properties =
+        properties.stream().filter(x -> x.getProperties().stream().noneMatch(y -> y.getType().equals("remodeled")))
+            .collect(Collectors.toList());
+
+    List<String> propertiesString = properties.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+    List<String> remodeledPropertyString = remodeledProperties.stream()
+        .filter(x -> x.getProperties().stream().anyMatch(y -> y.getType().equals("remodeled")))
+        .collect(Collectors.toList()).stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+
+    for (String prop : remodeledPropertyString) {
+      if (!terminology.getMetadata().isRemodeledProperty(prop)) {
+        errors.add("Property " + prop + " listed as remodeled, but isn't");
+      }
+    }
 
     for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
       url = baseUrl + term + "/" + entry.getKey() + "?include=full";
@@ -234,22 +269,21 @@ public class ConceptSampleTester {
             errors.add("Definition Type error: " + sampleKey + " does not exist in " + term
                 + " definition types");
           }
-        } else if (properties.contains(sampleKey)) {
+        } else if (propertiesString.contains(sampleKey)) {
           url = baseMetadataUrl + term + "/property/" + sampleKey;
           if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
-            properties.remove(sampleKey);
+            propertiesString.remove(sampleKey);
           } else {
             errors
                 .add("Property error: " + sampleKey + " does not exist in " + term + " properties");
           }
-        } else if (properties.contains(term + ":" + sampleKey)) { // some terms
-                                                                  // actually do
-                                                                  // need the
-                                                                  // term name
+        } else if (propertiesString.contains(term + ":" + sampleKey)) { // some terms actually do
+                                                                        // need the
+                                                                        // term name
           String termNameAndTerm = term + ":" + sampleKey;
           url = baseMetadataUrl + term + "/property/" + termNameAndTerm;
           if (mvc.perform(get(url)).andExpect(status().isOk()) != null) {
-            properties.remove(termNameAndTerm);
+            propertiesString.remove(termNameAndTerm);
           } else {
             errors.add("Property error: " + termNameAndTerm + " does not exist in " + term
                 + " properties");

@@ -43,8 +43,7 @@ public class SampleTest {
    * @return the samples
    * @throws Exception the exception
    */
-  public static void loadSamples(final String terminology, final String sampleFile)
-    throws Exception {
+  public static void loadSamples(final String terminology, final String sampleFile) throws Exception {
 
     samples = new HashMap<>();
     SampleTest.terminology = terminology;

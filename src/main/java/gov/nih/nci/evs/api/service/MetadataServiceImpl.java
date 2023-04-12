@@ -93,7 +93,7 @@ public class MetadataServiceImpl implements MetadataService {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getAssociation(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many associations " + code + " found");
     }
     return Optional.empty();
   }
@@ -137,7 +137,7 @@ public class MetadataServiceImpl implements MetadataService {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getRole(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many roles " + code + " found");
     }
     return Optional.empty();
   }
@@ -163,6 +163,7 @@ public class MetadataServiceImpl implements MetadataService {
     return ConceptUtils.applyList(properties, ip, list.orElse(null));
   }
 
+  /* see superclass */
   @Override
   public List<Concept> getQualifiers(String terminology, Optional<String> include, Optional<String> list)
     throws Exception {
@@ -194,7 +195,7 @@ public class MetadataServiceImpl implements MetadataService {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getQualifier(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many qualifiers " + code + " found");
     }
     return Optional.empty();
   }
@@ -218,7 +219,7 @@ public class MetadataServiceImpl implements MetadataService {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getProperty(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many properties " + code + " found");
     }
     return Optional.empty();
   }
@@ -277,7 +278,7 @@ public class MetadataServiceImpl implements MetadataService {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final Map<String, Set<String>> map = esQueryService.getQualifierValues(term);
     if (map == null || !map.containsKey(code)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
     }
 
     return Optional.ofNullable(map.get(code).stream().sorted().collect(Collectors.toList()));
@@ -341,7 +342,7 @@ public class MetadataServiceImpl implements MetadataService {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getSynonymType(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Synonym type " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many synonym types " + code + " found");
     }
     return Optional.empty();
   }
@@ -371,7 +372,7 @@ public class MetadataServiceImpl implements MetadataService {
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getDefinitionType(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Definition type " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many definition types " + code + " found");
     }
     return Optional.empty();
   }
@@ -387,31 +388,48 @@ public class MetadataServiceImpl implements MetadataService {
   public List<Concept> getSubsets(String terminology, Optional<String> include, Optional<String> list)
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
+    final IncludeParam ipWithProperties = new IncludeParam(include.orElse(null));
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     // subsets should always return children
     // (contributing source needed)
+    ipWithProperties.setChildren(true);
+    ipWithProperties.setProperties(true);
+    ipWithProperties.setSubsetLink(true);
     ip.setChildren(true);
-    // ip.setProperties(true);
+    // avoid overwriting IP: ip.setProperties(false);
     ip.setSubsetLink(true);
-    List<Concept> subsets = esQueryService.getSubsets(term, ip);
-
+    List<Concept> subsets = esQueryService.getSubsets(term, ipWithProperties);
     // No list of codes supplied
     if (!list.isPresent()) {
+
       final Set<String> codes =
           subsets.stream().flatMap(Concept::streamSelfAndChildren).map(c -> c.getCode()).collect(Collectors.toSet());
-      final Map<String, Concept> conceptMap = esQueryService.getConceptsAsMap(codes, term, ip);
+      final Map<String, Concept> conceptMap = esQueryService.getConceptsAsMap(codes, term, ipWithProperties);
 
-      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.populateFrom(conceptMap.get(c.getCode())))
+      // Populate subset concepts (with properties)
+      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.populateFrom(conceptMap.get(c.getCode())));
+
+      // After populating all concepts, remove non-publishable children (based on properties)
+      subsets.stream().flatMap(Concept::streamSelfAndChildren)
+          .peek(c -> c.getChildren().removeIf(chd -> chd.getProperties().stream()
+              .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes")).count() == 0));
+
+      // Apply include (without properties)
+      subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
+      // Remove subsets if they are not publishable - should not be necessary
+      // subsets.removeIf(c -> c.getProperties().stream()
+      // .filter(p -> p.getType().equals("Publish_Value_Set") &&
+      // !p.getValue().equals("Yes")).count() == 0);
       return subsets;
     }
 
     // List of codes supplied - first apply the filter.
-    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream().collect(Collectors.toSet())
-        .stream().collect(Collectors.toList());
-    subsets.stream().flatMap(Concept::streamSelfAndChildren)
+    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
+        .collect(Collectors.toSet()).stream().collect(Collectors.toList());
+    subsets.stream()
         .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
         .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
@@ -428,7 +446,7 @@ public class MetadataServiceImpl implements MetadataService {
     if (list.size() == 1) {
       return Optional.of(list.get(0));
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found (2)");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many subsets " + code + " found");
     }
     return Optional.empty();
   }
