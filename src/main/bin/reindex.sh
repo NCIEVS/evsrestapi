@@ -93,7 +93,6 @@ if [[ $ct -eq 0 ]]; then
     exit 1
 fi
 
-
 # Prep query to read all version info
 echo "  Lookup terminology, version info in stardog"
 cat > /tmp/x.$$.txt << EOF
@@ -182,6 +181,14 @@ jar="../lib/evsrestapi.jar"
 if [[ $config -eq 0 ]]; then
     local="-Dspring.profiles.active=local"
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+fi
+
+# mapping indexes
+echo "java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
+java $local -Xmx4096M -jar $jar --terminology mapping
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
 fi
 
 for x in `cat /tmp/y.$$.txt`; do
@@ -280,14 +287,6 @@ for x in `cat /tmp/y.$$.txt`; do
     pv=$cv
     pt=$term
 done
-
-# mapping indexes
-echo "java $local -Xm4096M -jar $jar --terminology mapping --realTime" | sed 's/^/      /'
-java $local -Xmx4096M -jar $jar --terminology mapping --realTime
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building mapping indexes"
-    exit 1
-fi
 
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$

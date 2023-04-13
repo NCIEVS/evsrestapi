@@ -137,11 +137,14 @@ public class LoaderServiceImpl {
 
     try {
       // which indexing object do we need to use
+      if (cmd.getOptionValue("t").equals("mapping")) {
+        loadService = app.getBean(MappingLoaderServiceImpl.class);
+        loadService.loadObjects(null, null, null);
+        System.exit(0);
+      }
       if (cmd.hasOption('d')) {
         if (cmd.getOptionValue("t").equals("ncim")) {
           loadService = app.getBean(MetaElasticLoadServiceImpl.class);
-        } else if (cmd.getOptionValue("t").equals("mapping")) {
-          loadService = app.getBean(MappingLoaderServiceImpl.class);
         } else {
           loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
         }

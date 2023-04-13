@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +94,24 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     return maps;
   }
 
+  public Boolean mappingNeedsUpdate(String code, String version, List<String> mapsetsToAdd,
+    List<Concept> currentMapsets) {
+    if (!mapsetsToAdd.contains(code))
+      return false;
+    Optional<Concept> currentMapVersion =
+        currentMapsets.stream().filter(m -> m.getCode().equals(code)).findFirst();
+    // version number while current version number is null
+    if (!version.isEmpty() && currentMapVersion.isPresent()
+        && currentMapVersion.get().getVersion().isEmpty()) {
+      return true;
+    }
+    // newer version
+    if (!version.isEmpty() && currentMapVersion.isPresent()
+        && version.compareTo(currentMapVersion.get().getVersion()) > 0)
+      return true;
+    return false;
+  }
+
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws IOException, Exception {
@@ -104,12 +124,37 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
           Concept.class);
     }
-    List<String> allLines = Files.readAllLines(Paths.get("metadata/mapsets/mapsetMetadata.txt"));
+    logger.info(System.getProperty("user.dir"));
+    List<String> allLines =
+        Files.readAllLines(Paths.get("src/main/resources/metadata/mapsets/mapsetMetadata.txt"));
+    List<String> allCodes =
+        allLines.stream().map(l -> l.split("\t")[0]).collect(Collectors.toList());
+
     List<Concept> currentMapsets = esQueryService.getMapsets(new IncludeParam("minimal"));
+    List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("minimal"))
+        .stream().map(Concept::getCode).collect(Collectors.toList());
+
+    List<String> mapsetsToAdd =
+        allCodes.stream().filter(l -> !currentMapsets.contains(l)).collect(Collectors.toList());
+    logger.info("Mapsets to add = " + mapsetsToAdd.toString());
+
+    List<String> mapsetsToRemove = currentMapsetCodes.stream()
+        .filter(l -> !mapsetsToAdd.contains(l)).collect(Collectors.toList());
+    logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
+    System.exit(1);
 
     for (String line : allLines) { // build each mapset
-      Concept map = new Concept();
       String[] metadata = line.split("\t");
+      // remove and skip
+      if (mapsetsToRemove.contains(metadata[0])) {
+        // TODO: remove from index
+        continue;
+      }
+      // skip if no update needed
+      if (!mappingNeedsUpdate(metadata[0], metadata[2], mapsetsToAdd, currentMapsets)) {
+        continue;
+      }
+      Concept map = new Concept();
       map.setName(metadata[0]);
       map.setCode(metadata[0]);
       if (!metadata[2].isEmpty()) { // version numbers

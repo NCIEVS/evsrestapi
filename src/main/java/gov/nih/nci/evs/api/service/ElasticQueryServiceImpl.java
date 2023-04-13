@@ -799,9 +799,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<Concept> getMapsets(IncludeParam ip) throws Exception {
 
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withIndices("evs_mappings")
-        .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.MAPPING_INDEX)
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
 
     return operations.queryForList(query, Concept.class);
 
@@ -813,7 +814,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", code))
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
-            .withIndices("evs_mappings").withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+            .withIndices(ElasticOperationsService.MAPPING_INDEX)
+            .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
 
     return operations.queryForList(query, Concept.class);
 
