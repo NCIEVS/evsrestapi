@@ -147,7 +147,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       String[] metadata = line.split("\t");
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
-        // TODO: remove from index
+        operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
+            ElasticOperationsService.CONCEPT_TYPE, metadata[0]);
         continue;
       }
       // skip if no update needed

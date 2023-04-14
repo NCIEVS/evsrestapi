@@ -113,8 +113,8 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public void index(Object object, String index, String type, @SuppressWarnings("rawtypes")
-  Class clazz) throws IOException {
+  public void index(Object object, String index, String type,
+    @SuppressWarnings("rawtypes") Class clazz) throws IOException {
     IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object)).withIndexName(index)
         .withType(type).build();
 
@@ -130,5 +130,10 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   /* see superclass */
   public ElasticsearchOperations getElasticsearchOperations() {
     return operations;
+  }
+
+  @Override
+  public void delete(String indexName, String type, String id) {
+    operations.delete(indexName, type, id);
   }
 }
