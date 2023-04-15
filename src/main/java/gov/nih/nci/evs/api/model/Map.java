@@ -19,6 +19,15 @@ public class Map extends BaseModel implements Comparable<Map> {
   /** The type. */
   private String type;
 
+  /** The group. */
+  private String group;
+
+  /** The rank. */
+  private String rank;
+
+  /** The rule. */
+  private String rule;
+
   /** The target name. */
   private String targetName;
 
@@ -58,6 +67,9 @@ public class Map extends BaseModel implements Comparable<Map> {
   public void populateFrom(final Map other) {
     super.populateFrom(other);
     type = other.getType();
+    group = other.getGroup();
+    rank = other.getRank();
+    rule = other.getRule();
     targetName = other.getTargetName();
     targetTermType = other.getTargetTermType();
     sourceCode = other.getSourceCode();
@@ -83,6 +95,60 @@ public class Map extends BaseModel implements Comparable<Map> {
    */
   public void setType(final String type) {
     this.type = type;
+  }
+
+  /**
+   * Returns the group.
+   *
+   * @return the group
+   */
+  public String getGroup() {
+    return group;
+  }
+
+  /**
+   * Sets the group.
+   *
+   * @param group the group
+   */
+  public void setGroup(final String group) {
+    this.group = group;
+  }
+
+  /**
+   * Returns the rank.
+   *
+   * @return the rank
+   */
+  public String getRank() {
+    return rank;
+  }
+
+  /**
+   * Sets the rank.
+   *
+   * @param rank the rank
+   */
+  public void setRank(final String rank) {
+    this.rank = rank;
+  }
+
+  /**
+   * Returns the rule.
+   *
+   * @return the rule
+   */
+  public String getRule() {
+    return rule;
+  }
+
+  /**
+   * Sets the rule.
+   *
+   * @param rule the rule
+   */
+  public void setRule(final String rule) {
+    this.rule = rule;
   }
 
   /**
@@ -231,9 +297,11 @@ public class Map extends BaseModel implements Comparable<Map> {
     result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
     result = prime * result + ((targetTermType == null) ? 0 : targetTermType.hashCode());
     result = prime * result + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
-    result = prime * result
-        + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
+    result = prime * result + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
+    result = prime * result + ((group == null) ? 0 : group.hashCode());
+    result = prime * result + ((rank == null) ? 0 : rank.hashCode());
+    result = prime * result + ((rule == null) ? 0 : rule.hashCode());
     return result;
   }
 
@@ -306,14 +374,36 @@ public class Map extends BaseModel implements Comparable<Map> {
     } else if (!type.equals(other.type)) {
       return false;
     }
+    if (group == null) {
+      if (other.group != null) {
+        return false;
+      }
+    } else if (!group.equals(other.group)) {
+      return false;
+    }
+    if (rank == null) {
+      if (other.rank != null) {
+        return false;
+      }
+    } else if (!rank.equals(other.rank)) {
+      return false;
+    }
+    if (rule == null) {
+      if (other.rule != null) {
+        return false;
+      }
+    } else if (!rule.equals(other.rule)) {
+      return false;
+    }
     return true;
   }
 
   /* see superclass */
   @Override
   public int compareTo(Map o) {
-    return (sourceCode + sourceTerminology + targetName + targetCode).compareToIgnoreCase(
-        o.getSourceCode() + o.getSourceTerminology() + o.getTargetName() + o.getTargetCode());
+    return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
+        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
+            + o.getTargetName() + o.getTargetCode());
   }
 
 }

@@ -33,11 +33,6 @@ import gov.nih.nci.evs.api.model.Terminology;
 @AutoConfigureMockMvc
 public class NcitSampleTest extends SampleTest {
 
-  /**
-   * Setup class.
-   *
-   */
-
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 

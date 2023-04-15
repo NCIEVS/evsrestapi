@@ -215,6 +215,15 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           continue;
         }
 
+        // Skip entries with descendant rules
+        // OK: IFA 445518008 &#x7C; Age at onset of clinical finding (observable entity) &#x7C;
+        // OK: IFA 248152002 &#x7C; Female (finding) &#x7C;
+        // OK: IFA 248153007 &#x7C; Male (finding) &#x7C;
+        if (fields[20].startsWith("IFA") && !fields[20].startsWith("IFA 445518008")
+            && !fields[20].startsWith("IFA 248152002") && !fields[20].startsWith("IFA 248153007")) {
+          continue;
+        }
+
         final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
@@ -224,6 +233,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
         map.setType(fields[12]);
+        map.setGroup(fields[2]);
+        map.setRank(fields[3]);
+        map.setRule(fields[20]);
 
         // Fix target name if null
         if (map.getTargetName() == null) {
@@ -386,8 +398,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           handleAttributes(concept, mrsat, prevCui);
           handleRelationships(concept, mrrel, prevCui);
 
-          if (maps.containsKey(cui)) {
-            concept.getMaps().addAll(maps.get(cui));
+          if (maps.containsKey(prevCui)) {
+            concept.getMaps().addAll(maps.get(prevCui));
           }
 
           // There are not useful mappings in the UMLS at this point in time
@@ -441,6 +453,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       handleSemanticTypes(concept, mrsty, prevCui);
       handleAttributes(concept, mrsat, prevCui);
       handleRelationships(concept, mrrel, prevCui);
+
+      if (maps.containsKey(prevCui)) {
+        concept.getMaps().addAll(maps.get(prevCui));
+      }
+
       handleConcept(concept, batch, true, terminology.getIndexName());
 
       totalConcepts++;
