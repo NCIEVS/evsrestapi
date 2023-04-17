@@ -388,32 +388,47 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
+    final IncludeParam ipWithProperties = new IncludeParam(include.orElse(null));
 
-    // subsets should always return children
+    // subsets should always return children and subsetLink
     // (contributing source needed)
+    ipWithProperties.setChildren(true);
+    ipWithProperties.setProperties(true);
+    ipWithProperties.setSubsetLink(true);
     ip.setChildren(true);
-    // ip.setProperties(true);
+    // avoid overwriting IP: ip.setProperties(false);
     ip.setSubsetLink(true);
-    List<Concept> subsets = esQueryService.getSubsets(term, ip);
-
+    List<Concept> subsets = esQueryService.getSubsets(term, ipWithProperties);
     // No list of codes supplied
     if (!list.isPresent()) {
 
       final Set<String> codes =
           subsets.stream().flatMap(Concept::streamSelfAndChildren).map(c -> c.getCode()).collect(Collectors.toSet());
-      final Map<String, Concept> conceptMap = esQueryService.getConceptsAsMap(codes, term, ip);
+      final Map<String, Concept> conceptMap = esQueryService.getConceptsAsMap(codes, term, ipWithProperties);
 
-      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.populateFrom(conceptMap.get(c.getCode())))
-          .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
+      // Populate subset concepts (with properties)
+      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.populateFrom(conceptMap.get(c.getCode())));
 
+      // After populating all concepts, remove non-publishable children (based on properties)
+      subsets.stream().flatMap(Concept::streamSelfAndChildren)
+          .peek(c -> c.getChildren().removeIf(chd -> chd.getProperties().stream()
+              .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes")).count() == 0));
+
+      // Apply include (without properties)
+      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> ConceptUtils.applyInclude(c, ip))
+          .collect(Collectors.toList());
+
+      // Remove subsets if they are not publishable - should not be necessary
+      // subsets.removeIf(c -> c.getProperties().stream()
+      // .filter(p -> p.getType().equals("Publish_Value_Set") &&
+      // !p.getValue().equals("Yes")).count() == 0);
       return subsets;
     }
 
     // List of codes supplied - first apply the filter.
     subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream().collect(Collectors.toSet())
         .stream().collect(Collectors.toList());
-    subsets.stream().flatMap(Concept::streamSelfAndChildren)
-        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
+    subsets.stream().peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
         .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
     return subsets;
