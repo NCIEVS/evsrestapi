@@ -2,6 +2,8 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +59,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     List<Map> maps = new ArrayList<Map>();
     String[] mappingDataList = mappingData.split("\n");
     // welcomeText = true format
-    if (!metadata[3].isEmpty()) {
+    if (metadata[3] != null && !metadata[3].isEmpty()) {
       for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-        String[] conceptSplit = conceptMap.split("\t");
+        String[] conceptSplit = conceptMap.split(",");
         Map conceptToAdd = new Map();
         conceptToAdd.setSourceCode(conceptSplit[0]);
         conceptToAdd.setSourceName(conceptSplit[1]);
@@ -69,12 +72,13 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         conceptToAdd.setTargetName(conceptSplit[9]);
         conceptToAdd.setTargetTerminology(conceptSplit[10]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[11]);
+        maps.add(conceptToAdd);
       }
     }
     // mapsetLink = null + downloadOnly format
-    else if (!metadata[1].isEmpty() && !metadata[1].contains("ftp")) {
+    else if (metadata[1] != null && !metadata[1].isEmpty() && !metadata[1].contains("ftp")) {
       for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-        String[] conceptSplit = conceptMap.split("\t");
+        String[] conceptSplit = conceptMap.split(",");
         Map conceptToAdd = new Map();
         conceptToAdd.setSourceCode(conceptSplit[0]);
         conceptToAdd.setSourceName(conceptSplit[1]);
@@ -84,30 +88,38 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         conceptToAdd.setTargetTermType(conceptSplit[5]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[7]);
+        maps.add(conceptToAdd);
       }
     }
     // ftp format = direct download and no maps
     else {
       return null;
     }
-
+    logger.info(maps.toString());
     return maps;
   }
 
   public Boolean mappingNeedsUpdate(String code, String version, List<String> mapsetsToAdd,
-    List<Concept> currentMapsets) {
-    if (!mapsetsToAdd.contains(code))
+    List<String> currentMapsetCodes) {
+    if (!mapsetsToAdd.contains(code)) {
+      logger.info(code + " is not in mapsets to add list");
       return false;
-    Optional<Concept> currentMapVersion =
-        currentMapsets.stream().filter(m -> m.getCode().equals(code)).findFirst();
+    }
+
+    // adding for first time
+    if (currentMapsetCodes.isEmpty() || !currentMapsetCodes.contains(code)) {
+      return true;
+    }
+
+    Optional<String> currentMapVersion =
+        currentMapsetCodes.stream().filter(m -> m.equals(code)).findFirst();
     // version number while current version number is null
-    if (!version.isEmpty() && currentMapVersion.isPresent()
-        && currentMapVersion.get().getVersion().isEmpty()) {
+    if (!version.isEmpty() && currentMapVersion.isPresent() && currentMapVersion.get().isEmpty()) {
       return true;
     }
     // newer version
     if (!version.isEmpty() && currentMapVersion.isPresent()
-        && version.compareTo(currentMapVersion.get().getVersion()) > 0)
+        && version.compareTo(currentMapVersion.get()) > 0)
       return true;
     return false;
   }
@@ -135,60 +147,69 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         .stream().map(Concept::getCode).collect(Collectors.toList());
 
     List<String> mapsetsToAdd =
-        allCodes.stream().filter(l -> !currentMapsets.contains(l)).collect(Collectors.toList());
+        allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to add = " + mapsetsToAdd.toString());
 
     List<String> mapsetsToRemove = currentMapsetCodes.stream()
         .filter(l -> !mapsetsToAdd.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
-    System.exit(1);
 
     for (String line : allLines) { // build each mapset
-      String[] metadata = line.split("\t");
+      String[] metadata = line.split("\t", -1);
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
+        logger.info("delete " + metadata[0]);
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, metadata[0]);
         continue;
       }
       // skip if no update needed
-      if (!mappingNeedsUpdate(metadata[0], metadata[2], mapsetsToAdd, currentMapsets)) {
+      if (!mappingNeedsUpdate(metadata[0], metadata[2], mapsetsToAdd, currentMapsetCodes)) {
+        logger.info("no update needed for " + metadata[0]);
         continue;
       }
       Concept map = new Concept();
       map.setName(metadata[0]);
       map.setCode(metadata[0]);
-      if (!metadata[2].isEmpty()) { // version numbers
+      if (metadata[2] != null && !metadata[2].isEmpty()) { // version numbers
         map.setVersion(metadata[2]);
       } else {
         map.setVersion(null);
       }
 
       // setting up metadata
-      if (!metadata[3].isEmpty()) { // welcome text
-        map.getProperties().add(new Property("welcomeText", uri + "/" + metadata[3]));
-        String mappingData = mappingUri + map.getName() + "_" + map.getVersion() + ".csv"; // build
-                                                                                           // map
+      if (metadata[3] != null && !metadata[3].isEmpty()) { // welcome text
+        String welcomeText =
+            IOUtils.toString(new URL(uri + "/" + metadata[3]).openConnection().getInputStream(),
+                StandardCharsets.UTF_8);
+        map.getProperties().add(new Property("welcomeText", welcomeText));
+
+        String mappingDataUri = mappingUri + map.getName()
+            + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
+        // map
+        String mappingData = IOUtils.toString(
+            new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
         map.setMaps(buildMaps(mappingData, metadata));
 
-      } else {
-        map.getProperties().add(new Property("welcomeText", null));
       }
 
-      if (!metadata[1].isEmpty()) { // download links
+      if (metadata[1] != null && !metadata[1].isEmpty()) { // download links
 
         map.getProperties().add(new Property("downloadOnly", "true"));
         if (metadata[1].contains("ftp")) {
           map.getProperties().add(new Property("mapsetLink", metadata[1]));
         } else {
-          map.getProperties().add(new Property("mapsetLink", null));
-          String mappingData = mappingUri + map.getName() + "_" + map.getVersion() + ".csv"; // build
-                                                                                             // map
+          String mappingDataUri = mappingUri + map.getName()
+              + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
+          // map
+          String mappingData = IOUtils.toString(
+              new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
           map.setMaps(buildMaps(mappingData, metadata));
         }
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
+
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
 

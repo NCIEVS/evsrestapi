@@ -1,5 +1,5 @@
-SNOMED_US_TO_ICD10CM		20220901	mapping-snomed-icd10cm.html
-SNOMED_US_TO_ICD10		20220901	mapping-snomed-icd10.html
+SNOMEDCT_US_2022_09_01_TO_ICD10CM_2023		20220901	mapping-snomed-icd10cm.html
+SNOMEDCT_US_2022_09_01_TO_ICD10_2016		20220901	mapping-snomed-icd10.html
 PDQ_2016_07_31_TO_NCI_2016_10E		2016_07_31	mapping-pdq-nci.html
 NCIt_to_HGNC_Mapping		1.0	mapping-nci-hgnc.html
 NCIt_to_ChEBI_Mapping		1.0	mapping-chebi-nci.html
@@ -12,6 +12,6 @@ ICDO_TO_NCI_AXIS	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=exportMapping&
 NCIt_Maps_To_GDC	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=GDC		
 NCIt_Maps_To_ICD10	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD10%202016	2016	
 NCIt_Maps_To_ICD10CM	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD10CM%202017	2017	
-NCIt_Maps_To_ICD9M	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD9CM%202014	2014	
+NCIt_Maps_To_ICD9CM	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICD9CM%202014	2014	
 NCIt_Maps_To_ICDO3	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=ICDO3		
-NCIt_Maps_To_MEDDRA	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=MedDRA		
+NCIt_Maps_To_MedDRA	https://ncit.nci.nih.gov/ncitbrowser/ajax?action=export_maps_to_mapping&target=MedDRA		
