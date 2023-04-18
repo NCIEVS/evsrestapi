@@ -209,13 +209,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
       logger.info("indexing " + metadata[0]);
+      logger.info("metadata = " + metadata[1] + ", " + metadata[2] + ", " + metadata[3] + ", "
+          + map.getMaps().size());
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
 
     }
-    // NCIt_Maps_To_ICDO3
-    List<Concept> mapset = esQueryService.getMapset("NCIt_Maps_To_ICDO3", new IncludeParam("maps"));
-    logger.info(mapset.get(0).getMaps().get(0).toString());
   }
 
   @Override
