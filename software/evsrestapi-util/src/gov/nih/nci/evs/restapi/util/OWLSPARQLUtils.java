@@ -3010,8 +3010,8 @@ public class OWLSPARQLUtils {
 
 	public String construct_get_property_query(String named_graph, String propertyName) {
 		StringBuffer buf = new StringBuffer();
+		String prefixes = getPrefixes();
         buf.append(prefixes);
-
 		buf.append("SELECT distinct ?x_label ?x_code ?p_label ?y").append("\n");
 		buf.append("{").append("\n");
 		buf.append("graph <" + named_graph + ">").append("\n");
