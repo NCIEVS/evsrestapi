@@ -61,9 +61,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty()) {
       for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-        String[] conceptSplit = conceptMap.split(",");
+        String[] conceptSplit = conceptMap.split("\",\"");
         Map conceptToAdd = new Map();
-        conceptToAdd.setSourceCode(conceptSplit[0]);
+        conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
         conceptToAdd.setSourceName(conceptSplit[1]);
         conceptToAdd.setSource(conceptSplit[2]);
         conceptToAdd.setType(conceptSplit[6]);
@@ -71,23 +71,23 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         conceptToAdd.setTargetCode(conceptSplit[8]);
         conceptToAdd.setTargetName(conceptSplit[9]);
         conceptToAdd.setTargetTerminology(conceptSplit[10]);
-        conceptToAdd.setTargetTerminologyVersion(conceptSplit[11]);
+        conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
         maps.add(conceptToAdd);
       }
     }
     // mapsetLink = null + downloadOnly format
     else if (metadata[1] != null && !metadata[1].isEmpty() && !metadata[1].contains("ftp")) {
       for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-        String[] conceptSplit = conceptMap.split(",");
+        String[] conceptSplit = conceptMap.split("\",\"");
         Map conceptToAdd = new Map();
-        conceptToAdd.setSourceCode(conceptSplit[0]);
+        conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
         conceptToAdd.setSourceName(conceptSplit[1]);
         conceptToAdd.setType(conceptSplit[2]);
         conceptToAdd.setTargetCode(conceptSplit[3]);
         conceptToAdd.setTargetName(conceptSplit[4]);
         conceptToAdd.setTargetTermType(conceptSplit[5]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
-        conceptToAdd.setTargetTerminologyVersion(conceptSplit[7]);
+        conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
         maps.add(conceptToAdd);
       }
     }
@@ -95,14 +95,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     else {
       return null;
     }
-    logger.info(maps.toString());
     return maps;
   }
 
   public Boolean mappingNeedsUpdate(String code, String version, List<String> mapsetsToAdd,
     List<String> currentMapsetCodes) {
     if (!mapsetsToAdd.contains(code)) {
-      logger.info(code + " is not in mapsets to add list");
       return false;
     }
 
@@ -142,7 +140,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     List<String> allCodes =
         allLines.stream().map(l -> l.split("\t")[0]).collect(Collectors.toList());
 
+    logger.info(allCodes.toString());
     List<Concept> currentMapsets = esQueryService.getMapsets(new IncludeParam("minimal"));
+    logger.info(currentMapsets.toString());
     List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("minimal"))
         .stream().map(Concept::getCode).collect(Collectors.toList());
 
@@ -150,22 +150,21 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to add = " + mapsetsToAdd.toString());
 
-    List<String> mapsetsToRemove = currentMapsetCodes.stream()
-        .filter(l -> !mapsetsToAdd.contains(l)).collect(Collectors.toList());
+    List<String> mapsetsToRemove =
+        currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
 
     for (String line : allLines) { // build each mapset
       String[] metadata = line.split("\t", -1);
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
-        logger.info("delete " + metadata[0]);
+        logger.info("deleting " + metadata[0]);
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, metadata[0]);
         continue;
       }
       // skip if no update needed
       if (!mappingNeedsUpdate(metadata[0], metadata[2], mapsetsToAdd, currentMapsetCodes)) {
-        logger.info("no update needed for " + metadata[0]);
         continue;
       }
       Concept map = new Concept();
@@ -209,12 +208,14 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
-
+      logger.info("indexing " + metadata[0]);
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
 
     }
-
+    // NCIt_Maps_To_ICDO3
+    List<Concept> mapset = esQueryService.getMapset("NCIt_Maps_To_ICDO3", new IncludeParam("maps"));
+    logger.info(mapset.get(0).getMaps().get(0).toString());
   }
 
   @Override
