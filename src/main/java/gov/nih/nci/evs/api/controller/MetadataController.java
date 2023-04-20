@@ -21,9 +21,11 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
@@ -48,6 +50,10 @@ public class MetadataController extends BaseController {
   /** The metadata service. */
   @Autowired
   MetadataService metadataService;
+
+  /** The elasticquery service. */
+  @Autowired
+  ElasticQueryService esQueryService;
 
   /** The term utils. */
   /* The terminology utils */
@@ -1082,15 +1088,25 @@ public class MetadataController extends BaseController {
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>.",
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/mapsets",
       produces = "application/json")
   public @ResponseBody List<Concept> getMapsets(@PathVariable(value = "terminology")
-  final String terminology) throws Exception {
+  final String terminology, @RequestParam(required = false, name = "include")
+  final Optional<String> include) throws Exception {
     try {
-      return null;
+      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      return esQueryService.getMapsets(ip);
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -1115,16 +1131,26 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
           required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Mapset code", required = true,
-          dataTypeClass = String.class, paramType = "path")
+          dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>.",
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/mapset/{code}",
       produces = "application/json")
   public @ResponseBody Concept getMapsetByCode(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestParam(required = false, name = "include")
+  final Optional<String> include) throws Exception {
     try {
-      return null;
+      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      return esQueryService.getMapset(code, ip).get(0);
     } catch (Exception e) {
       handleException(e);
       return null;
@@ -1149,16 +1175,29 @@ public class MetadataController extends BaseController {
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
           required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Mapset code", required = true,
-          dataTypeClass = String.class, paramType = "path")
+          dataTypeClass = String.class, paramType = "path"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
+          example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "10",
+          example = "10")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/mapset/{code}/mappings", produces = "application/json")
   public @ResponseBody List<Map> getMapsetMappingsByCode(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestParam(required = false, name = "fromRecord")
+  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Optional<Integer> pageSize) throws Exception {
     try {
-      return null;
+      // default index 0 and page size 10
+      final Integer fromRecordParam = fromRecord.get() != null ? fromRecord.get() : 0;
+      final Integer pageSizeParam = pageSize.get() != null ? pageSize.get() : 10;
+      final IncludeParam ip = new IncludeParam("maps");
+      return esQueryService.getMapset(code, ip).get(0).getMaps().subList(fromRecordParam,
+          fromRecordParam + pageSizeParam);
     } catch (Exception e) {
       handleException(e);
       return null;

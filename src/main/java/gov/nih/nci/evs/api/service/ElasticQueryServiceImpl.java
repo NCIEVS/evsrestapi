@@ -803,7 +803,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.MAPPING_INDEX)
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
-            .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(PageRequest.of(0, 100))
+            // assuming pageSize < 10000, trying to get all mappings, 17 at the time of this comment
+            .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(PageRequest.of(0, 10000))
             .build();
 
     return operations.queryForList(query, Concept.class);
