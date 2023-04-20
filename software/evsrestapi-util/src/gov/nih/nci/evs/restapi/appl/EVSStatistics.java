@@ -1990,6 +1990,13 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
         spec_roots.add("C16203");
         spec_roots.add("C25218");
         spec_roots.add("C1909");
+
+		spec_roots.add("C62633");
+		spec_roots.add("C62634");
+		spec_roots.add("C16342");
+		spec_roots.add("C192880");
+		spec_roots.add("C192883");
+
         System.out.println("generateSubBranchData ...");
         Vector subbranchdata = generateSubBranchData(spec_roots);
         subbranchdata = new SortUtils().quickSort(subbranchdata);
