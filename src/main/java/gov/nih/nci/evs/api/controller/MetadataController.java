@@ -1194,7 +1194,7 @@ public class MetadataController extends BaseController {
   final Optional<Integer> pageSize, @RequestParam(required = false, name = "term")
   final Optional<String> term) throws Exception {
     try {
-      // default index 0 and page size full
+      // default index 0 and page size 10
       final Integer fromRecordParam = fromRecord.orElse(0);
       final Integer pageSizeParam = pageSize.orElse(10);
       final IncludeParam ip = new IncludeParam("maps");
@@ -1205,10 +1205,6 @@ public class MetadataController extends BaseController {
             .collect(Collectors.toList());
       }
       final Integer mapLength = mappings.size();
-      // get the whole thing
-      if (pageSizeParam == 0) {
-        return new MappingList(mapLength, mappings.subList(0, mapLength));
-      }
       return new MappingList(mapLength,
           mappings.subList(fromRecordParam, fromRecordParam + pageSizeParam));
     } catch (Exception e) {
