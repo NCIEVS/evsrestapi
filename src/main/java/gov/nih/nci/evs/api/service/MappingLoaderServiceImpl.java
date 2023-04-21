@@ -198,6 +198,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         if (metadata[1].contains("ftp")) {
           map.getProperties().add(new Property("mapsetLink", metadata[1]));
         } else {
+          map.getProperties().add(new Property("mapsetLink", null));
           String mappingDataUri = mappingUri + map.getName()
               + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
           // map
