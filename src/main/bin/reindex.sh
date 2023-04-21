@@ -266,9 +266,9 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
         # Set the indexes to have a larger max_result_window
-        echo "    Set max result window to 150000 for concept_${term}_$cv"
+        echo "    Set max result window to 250000 for concept_${term}_$cv"
         curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
-             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
+             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error setting max_result_window"
             exit 1
