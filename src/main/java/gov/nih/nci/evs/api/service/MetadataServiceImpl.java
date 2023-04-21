@@ -389,16 +389,16 @@ public class MetadataServiceImpl implements MetadataService {
     throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ipWithProperties = new IncludeParam(include.orElse(null));
-    final IncludeParam ipWithoutProperties = new IncludeParam(include.orElse(null));
+    final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     // subsets should always return children
     // (contributing source needed)
     ipWithProperties.setChildren(true);
     ipWithProperties.setProperties(true);
     ipWithProperties.setSubsetLink(true);
-    ipWithoutProperties.setChildren(true);
-    ipWithoutProperties.setProperties(true);
-    ipWithoutProperties.setSubsetLink(true);
+    ip.setChildren(true);
+    // avoid overwriting IP: ip.setProperties(false);
+    ip.setSubsetLink(true);
     List<Concept> subsets = esQueryService.getSubsets(term, ipWithProperties);
     // No list of codes supplied
     if (!list.isPresent()) {
@@ -417,7 +417,7 @@ public class MetadataServiceImpl implements MetadataService {
 
       // Apply include (without properties)
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
-          .peek(c -> ConceptUtils.applyInclude(c, ipWithoutProperties)).collect(Collectors.toList());
+          .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
       // Remove subsets if they are not publishable - should not be necessary
       // subsets.removeIf(c -> c.getProperties().stream()
@@ -427,11 +427,11 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     // List of codes supplied - first apply the filter.
-    subsets = ConceptUtils.applyListWithChildren(subsets, ipWithoutProperties, list.orElse(null)).stream()
+    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
         .collect(Collectors.toSet()).stream().collect(Collectors.toList());
     subsets.stream()
-        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ipWithoutProperties).get(), true))
-        .peek(c -> ConceptUtils.applyInclude(c, ipWithoutProperties)).collect(Collectors.toList());
+        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
+        .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
     return subsets;
 

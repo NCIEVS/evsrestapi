@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class StardogElasticLoadServiceImpl extends AbstractStardogLoadServiceImpl {
 
-  // n/a
+  // This loader is for reconciling data from stardog
+  // All functionality was moved to the superclass
+  // to support the StardogReport loader
   
 }
