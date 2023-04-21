@@ -1077,19 +1077,16 @@ public class MetadataController extends BaseController {
   /**
    * Returns the mapsets.
    *
-   * @param terminology the terminology
    * @return the mapsets
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the mapsets for the specified terminology", response = Concept.class)
+  @ApiOperation(value = "Get the loaded mapsets", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
@@ -1100,10 +1097,9 @@ public class MetadataController extends BaseController {
           defaultValue = "minimal")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/mapsets",
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/mapsets",
       produces = "application/json")
-  public @ResponseBody List<Concept> getMapsets(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam(required = false, name = "include")
+  public @ResponseBody List<Concept> getMapsets(@RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
@@ -1117,20 +1113,16 @@ public class MetadataController extends BaseController {
   /**
    * Returns the mapsets.
    *
-   * @param terminology the terminology
    * @return the mapsets
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the mapset for the specified terminology and code/name",
-      response = Concept.class)
+  @ApiOperation(value = "Get the mapset for the specified code/name", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Mapset code", required = true,
           dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
@@ -1143,10 +1135,9 @@ public class MetadataController extends BaseController {
           defaultValue = "minimal")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/mapset/{code}",
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/mapset/{code}",
       produces = "application/json")
-  public @ResponseBody Concept getMapsetByCode(@PathVariable(value = "terminology")
-  final String terminology, @PathVariable(value = "code")
+  public @ResponseBody Concept getMapsetByCode(@PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {
@@ -1161,11 +1152,10 @@ public class MetadataController extends BaseController {
   /**
    * Returns the mapset mappings.
    *
-   * @param terminology the terminology
    * @return the mapsets
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the mapset mappings for the specified terminology and code/name",
+  @ApiOperation(value = "Get the mapset mappings for the specified code/name",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -1173,8 +1163,6 @@ public class MetadataController extends BaseController {
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code", value = "Mapset code", required = true,
           dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
@@ -1185,10 +1173,9 @@ public class MetadataController extends BaseController {
           example = "10")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/mapset/{code}/mappings", produces = "application/json")
-  public @ResponseBody MappingList getMapsetMappingsByCode(@PathVariable(value = "terminology")
-  final String terminology, @PathVariable(value = "code")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/mapset/{code}/mappings",
+      produces = "application/json")
+  public @ResponseBody MappingList getMapsetMappingsByCode(@PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
   final Optional<Integer> pageSize, @RequestParam(required = false, name = "term")

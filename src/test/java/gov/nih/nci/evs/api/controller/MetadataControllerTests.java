@@ -1644,7 +1644,7 @@ public class MetadataControllerTests {
   public void testMappings() throws Exception {
     MvcResult result = null;
     String content = null;
-    String url = "/api/v1/metadata/ncit/";
+    String url = "/api/v1/metadata/";
     result = mvc.perform(get(url + "mapsets")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     List<Concept> metadataMappings =

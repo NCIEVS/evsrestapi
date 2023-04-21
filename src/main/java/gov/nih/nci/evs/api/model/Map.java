@@ -34,9 +34,6 @@ public class Map extends BaseModel implements Comparable<Map> {
   /** The group. */
   private String group;
 
-  /** The rank. */
-  private String rank;
-
   /** The rule. */
   private String rule;
 
@@ -351,7 +348,8 @@ public class Map extends BaseModel implements Comparable<Map> {
     result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
     result = prime * result + ((targetTermType == null) ? 0 : targetTermType.hashCode());
     result = prime * result + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
-    result = prime * result + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
+    result = prime * result
+        + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((group == null) ? 0 : group.hashCode());
     result = prime * result + ((rank == null) ? 0 : rank.hashCode());
@@ -456,8 +454,8 @@ public class Map extends BaseModel implements Comparable<Map> {
   @Override
   public int compareTo(Map o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
-        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
-            + o.getTargetName() + o.getTargetCode());
+        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup()
+            + o.getRank() + o.getTargetName() + o.getTargetCode());
   }
 
 }

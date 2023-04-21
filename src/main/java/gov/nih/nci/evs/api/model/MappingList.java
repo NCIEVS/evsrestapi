@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Represents a list of results with paging parameters.
  */
-public class MappingList extends BaseModel {
+public class MappingList {
 
   /** The total. */
   private Integer total;
