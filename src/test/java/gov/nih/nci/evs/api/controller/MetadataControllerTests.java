@@ -1661,7 +1661,7 @@ public class MetadataControllerTests {
     assertThat(metadataMappings.stream().map(Concept::getProperties)
         .noneMatch(properties -> properties == null || properties.isEmpty()));
 
-    // test mapset/{code}
+    // test mapset/{code} - downloadOnly = false
     result =
         mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1673,6 +1673,45 @@ public class MetadataControllerTests {
         && singleMetadataMap.getCode().equals("GO_to_NCIt_Mapping"));
     assertThat(singleMetadataMap.getProperties().stream()
         .filter(property -> "type".equals("downloadOnly") && "false".equals(property.getValue()))
+        .findFirst());
+    assertThat(singleMetadataMap.getProperties().stream()
+        .filter(property -> "type".equals("welcomeText") && property.getValue() != null)
+        .findFirst());
+
+    // test mapset/{code} - downloadOnly = true, mapsetLink available
+    result = mvc.perform(get(url + "mapset/ICDO_TO_NCI_TOPOGRAPHY")).andExpect(status().isOk())
+        .andReturn();
+    content = result.getResponse().getContentAsString();
+    singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(singleMetadataMap != null);
+    assertThat(singleMetadataMap.getName() != null
+        && singleMetadataMap.getName().equals("ICDO_TO_NCI_TOPOGRAPHY"));
+    assertThat(singleMetadataMap.getCode() != null
+        && singleMetadataMap.getCode().equals("ICDO_TO_NCI_TOPOGRAPHY"));
+    assertThat(singleMetadataMap.getProperties().stream()
+        .filter(property -> "type".equals("downloadOnly") && "true".equals(property.getValue()))
+        .findFirst());
+    assertThat(
+        singleMetadataMap
+            .getProperties().stream().filter(property -> "type".equals("mapsetLink")
+                && property.getValue() != null && property.getValue().endsWith(".txt"))
+            .findFirst());
+
+    // test mapset/{code} - downloadOnly = true, mapsetLink = null
+    result =
+        mvc.perform(get(url + "mapset/NCIt_Maps_To_GDC")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(singleMetadataMap != null);
+    assertThat(singleMetadataMap.getName() != null
+        && singleMetadataMap.getName().equals("NCIt_Maps_To_GDC"));
+    assertThat(singleMetadataMap.getCode() != null
+        && singleMetadataMap.getCode().equals("NCIt_Maps_To_GDC"));
+    assertThat(singleMetadataMap.getProperties().stream()
+        .filter(property -> "type".equals("downloadOnly") && "true".equals(property.getValue()))
+        .findFirst());
+    assertThat(singleMetadataMap.getProperties().stream()
+        .filter(property -> "type".equals("mapsetLink") && property.getValue().equals(null))
         .findFirst());
 
     // test mapset/{code}/mappings
