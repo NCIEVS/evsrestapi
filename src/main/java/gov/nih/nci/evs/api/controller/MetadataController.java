@@ -23,6 +23,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.MappingList;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
@@ -1186,18 +1187,26 @@ public class MetadataController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET,
       value = "/metadata/{terminology}/mapset/{code}/mappings", produces = "application/json")
-  public @ResponseBody List<Map> getMapsetMappingsByCode(@PathVariable(value = "terminology")
+  public @ResponseBody MappingList getMapsetMappingsByCode(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  final Optional<Integer> pageSize) throws Exception {
+  final Optional<Integer> pageSize, @RequestParam(required = false, name = "term")
+  final Optional<String> term) throws Exception {
     try {
       // default index 0 and page size 10
-      final Integer fromRecordParam = fromRecord.get() != null ? fromRecord.get() : 0;
-      final Integer pageSizeParam = pageSize.get() != null ? pageSize.get() : 10;
+      final Integer fromRecordParam = fromRecord.orElse(0);
+      final Integer pageSizeParam = pageSize.orElse(10);
       final IncludeParam ip = new IncludeParam("maps");
-      return esQueryService.getMapset(code, ip).get(0).getMaps().subList(fromRecordParam,
-          fromRecordParam + pageSizeParam);
+      List<Map> mappings = esQueryService.getMapset(code, ip).get(0).getMaps();
+      if (term.isPresent()) {
+        mappings = mappings.stream().filter(
+            o -> o.getSourceName().contains(term.get()) || o.getTargetName().contains(term.get()))
+            .collect(Collectors.toList());
+      }
+      final Integer mapLength = mappings.size();
+      return new MappingList(mapLength,
+          mappings.subList(fromRecordParam, fromRecordParam + pageSizeParam));
     } catch (Exception e) {
       handleException(e);
       return null;
