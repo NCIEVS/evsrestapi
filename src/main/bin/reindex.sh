@@ -93,7 +93,6 @@ if [[ $ct -eq 0 ]]; then
     exit 1
 fi
 
-
 # Prep query to read all version info
 echo "  Lookup terminology, version info in stardog"
 cat > /tmp/x.$$.txt << EOF
@@ -200,6 +199,61 @@ for x in `cat /tmp/y.$$.txt`; do
     fi
 
     exists=1
+	
+	# Check if downloading NCIT history data
+	if [[ term eq 'ncit' ]]; then
+	
+		# Set download dir if not set (regardless of mode)
+		if [[ -z $DOWNLOAD_DIR ]]; then
+			export DOWNLOAD_DIR=.
+		fi
+	 
+		if [[ ! -e $DOWNLOAD_DIR ]]; then
+			echo "ERROR: \$DOWNLOAD_DIR does not exist = $DOWNLOAD_DIR"
+			exit 1
+		fi
+
+		currentHistoryFileName="cumulative_history_23.03d.zip"
+		historyDirectory=$DOWNLOAD_DIR/NCIT_HISTORY
+		
+		echo "  Cleanup download directory"
+		/bin/rm -rf $DOWNLOAD_DIR/$currentHistoryFileName $historyDirectory
+		if [[ $? -ne 0 ]]; then
+			echo "ERROR: problem cleaning up \$DOWNLOAD_DIR = $DOWNLOAD_DIR"
+			exit 1
+		fi
+		mkdir $historyDirectory
+		
+		downloadHistoryFileName="cumulative_history_23.03d.zip"
+		url=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/$downloadHistoryFileName
+		
+		echo "  Download latest NCIt History"
+		echo "    url = $url"
+		curl -o $DOWNLOAD_DIR/$downloadHistoryFileName $url
+		if [[ $? -ne 0 ]]; then
+			echo "ERROR: problem downloading NCIt history"
+			exit 1
+		fi
+		
+		echo "  Unpack NCIt history"
+		echo "A" | unzip $DOWNLOAD_DIR/$downloadHistoryFileName -d $historyDirectory > /tmp/x.$$ 2>&1
+		if [[ $? -ne 0 ]]; then
+			cat /tmp/x.$$
+			echo "ERROR: problem unpacking $DOWNLOAD_DIR/$downloadHistoryFileName"
+			exit 1
+		fi
+
+		# Set $dir for later steps    
+		historyFile=$historyDirectory/cumulative_history_23.03d.txt
+		
+		echo "  Cleanup download directory"
+		/bin/rm -rf $DOWNLOAD_DIR/$downloadHistoryFileName
+		if [[ $? -ne 0 ]]; then
+			echo "ERROR: problem cleaning up \$DOWNLOAD_DIR = $DOWNLOAD_DIR"
+			exit 1
+		fi
+	fi
+	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
         # Check for index
