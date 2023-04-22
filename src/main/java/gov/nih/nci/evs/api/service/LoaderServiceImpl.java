@@ -134,7 +134,7 @@ public class LoaderServiceImpl {
 
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
     ElasticLoadService loadService = null;
-    logger.debug("**** LOADER cmd.getOptionValue(t): " + cmd.getOptionValue("t"));
+    
     try {
       // which indexing object do we need to use
       if (cmd.hasOption('d')) {

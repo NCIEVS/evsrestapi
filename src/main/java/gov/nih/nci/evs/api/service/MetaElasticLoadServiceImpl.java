@@ -1287,7 +1287,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                   // if the replacement is not yet a concept or in the history create the concept
                   if (replacementName == null && !historyCodes.contains(replacementCode)) {
                       
-                      logger.debug("!!!!!! COMPLETELY MISSING replacementCode");
+                      logger.debug("COMPLETELY MISSING replacementCode");
                       history.setReplacementName("Deleted concept");
                       
                       final Concept deletedConcept = new Concept();
@@ -1305,7 +1305,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                   // if the replacement is not yet a concept and is in the history store the info so we can revisit
                   else if (replacementName == null && historyCodes.contains(replacementCode)) {
                       
-                      logger.debug("!!!!!! NOT YET CREATED replacementCode");
+                      logger.debug("NOT YET CREATED replacementCode");
                       replacementMissingCodes.add(replacementCode);
                   }
               }
@@ -1330,7 +1330,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // add the replacement names for any history items that did not have it available before
       if (missingCodes.size() > 0) {
           
-          logger.debug("!!!!!! CONCEPTS TO UPDATE HISTORY: " + missingCodes.size());
+          logger.debug("CONCEPTS TO UPDATE HISTORY: " + missingCodes.size());
           int conceptsUpdated = 0;
           boolean lastConcept = false;
           final Set<Concept> conceptsMissingReplacementInfo = missingCodes.keySet();
