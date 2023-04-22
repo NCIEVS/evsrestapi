@@ -31,7 +31,7 @@ import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Map;
-import gov.nih.nci.evs.api.model.MappingList;
+import gov.nih.nci.evs.api.model.MapResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
@@ -1718,7 +1718,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/mappings")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();
-    MappingList mapList = new ObjectMapper().readValue(content, MappingList.class);
+    MapResultList mapList = new ObjectMapper().readValue(content, MapResultList.class);
     assertThat(mapList.getTotal() > 0);
     assertThat(mapList.getTotal().equals(mapList.getMaps().size()));
     Map tenFromZero = mapList.getMaps().get(9);
@@ -1727,7 +1727,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/mappings?fromRecord=9&pageSize=23"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MappingList.class);
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
     assertThat(mapList.getTotal() > 0);
     assertThat(mapList.getTotal().equals(mapList.getMaps().size()));
     assertThat(mapList.getTotal().equals(23));

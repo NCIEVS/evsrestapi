@@ -184,7 +184,9 @@ if [[ $config -eq 0 ]]; then
 fi
 
 # mapping indexes
-echo "java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
+export EVS_SERVER_PORT="8083"
+echo "    Generate mapping indexes"
+echo "      java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
 java $local -Xmx4096M -jar $jar --terminology mapping
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building mapping indexes"
@@ -265,7 +267,7 @@ for x in `cat /tmp/y.$$.txt`; do
         export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB ${term} $version"
 
-        echo "java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
+        echo "      java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
         java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
