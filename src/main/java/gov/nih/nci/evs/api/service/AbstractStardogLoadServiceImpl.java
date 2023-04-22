@@ -1,7 +1,13 @@
 
 package gov.nih.nci.evs.api.service;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -88,7 +95,19 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** the sparql query service impl. */
   @Autowired
   private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
-
+  
+  /** The name map. */
+  private Map<String, String> nameMap = new HashMap<>();
+  
+  /** The history map. */
+  private Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
+  
+  /** The simple date format. */
+  private SimpleDateFormat inputDateFormat = new SimpleDateFormat("dd-MMM-yy");
+  
+  /** The simple date format. */
+  private SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+  
   /* see superclass */
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
@@ -184,6 +203,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     int end = DOWNLOAD_BATCH_SIZE;
 
     Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
+    
+    // build up a map of concept codes and names to use for history
+    if (historyMap.size() > 0) {
+        
+        for (final Concept concept : allConcepts) {
+            nameMap.put(concept.getCode(), concept.getName());
+        }
+    }
 
     CountDownLatch latch = new CountDownLatch(taskSize.intValue());
     ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -198,17 +225,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
         logger.info("    finish reading {} to {}", start + 1, end);
 
-        logger.info("    start computing extensions {} to {}", start + 1, end);
+        logger.info("    start computing extensions and history {} to {}", start + 1, end);
         concepts.stream().forEach(c -> {
           // logger.info(" concept = " + c.getCode() + " " + c.getName());
           c.setExtensions(mainTypeHierarchy.getExtensions(c));
+          handleHistory(terminology, c);
           // if (c.getExtensions() != null) {
           // logger.info(" extensions " + c.getCode() + " = " +
           // c.getExtensions());
           // }
         });
         logger.info("    finish computing extensions {} to {}", start + 1, end);
-
+        
         int indexStart = 0;
         int indexEnd = INDEX_BATCH_SIZE;
         Double indexTotal = (double) concepts.size();
@@ -461,6 +489,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
     try {
+        
       // Load from config
       final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
       final TerminologyMetadata metadata =
@@ -477,6 +506,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       metadata.setSourceCt(metadata.getSources().size());
       metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
       term.setMetadata(metadata);
+      loadHistory(term, filepath);
 
       // Compute concept statuses
       if (metadata.getConceptStatus() != null) {
@@ -510,6 +540,101 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     }
 
     return term;
+  }
+  
+  /**
+   * Load the history files.
+   *
+   * @param terminology the terminology
+   * @param filepath the file path
+   */
+  private void loadHistory(final Terminology terminology, final String filepath) throws Exception {
+      
+      if (!terminology.getTerminology().equals("ncit") || filepath == null || filepath.isEmpty()) {
+          return;
+      }
+      
+      try {
+        
+          File file = new File(filepath);
+          logger.debug("Loading History for NCIT");
+          
+          try (BufferedReader reader = new BufferedReader( new InputStreamReader(new FileInputStream(file), "UTF8"));) {
+    
+            String line = null;
+            
+            // CODE, NA, ACTION, DATE, REPLACEMENT CODE
+            // Loop through lines until we reach "the end"
+            while ((line = reader.readLine()) != null) {
+                
+              final String[] fields = line.split("\\|", -1);
+              final String code = fields[0];
+              final String action = fields[2];
+              final String date = fields[3];
+              final String replacementCode = fields[4];
+              List<Map<String, String>> conceptHistory = new ArrayList<>();
+              final Map<String, String> historyItem = new HashMap<>();
+              
+              if (historyMap.containsKey(code)) {
+                  conceptHistory = historyMap.get(code);
+              }
+              
+              historyItem.put("action", action);
+              historyItem.put("date", date);
+              
+              if (replacementCode != null && !replacementCode.equals("null")) {
+                  historyItem.put("replacementCode", replacementCode);
+              }
+              
+              conceptHistory.add(historyItem);
+              historyMap.put(code, conceptHistory);
+            }
+          }
+      } catch (Exception e) {
+          throw new Exception("Unable to load history file for " + terminology.getName() + ": " + filepath, e);
+      }
+  }
+  
+  /**
+   * Handle history.
+   *
+   * @param terminology the terminology
+   * @param Concept the concept
+   * @throws Exception the exception
+   */
+  private void handleHistory(final Terminology terminology, final Concept concept) {
+
+      try {
+          
+          List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
+          
+          if (conceptHistory == null) {
+              return;
+          }
+          
+          for (final Map<String, String> historyItem: conceptHistory) {
+              
+              final History history = new History();
+              history.setCode(concept.getCode());
+              history.setAction(historyItem.get("action"));
+              
+              final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
+              history.setDate(date);
+              
+              final String replacementCode = historyItem.get("replacementCode");
+              
+              if (replacementCode != null && replacementCode != "") {
+                  
+                  history.setReplacementCode(replacementCode);
+                  history.setReplacementName(nameMap.get(replacementCode));
+              }
+              
+              concept.getHistory().add(history);
+          }
+          
+      } catch (Exception e) {
+          logger.error("Problem loading history for concept " + concept.getCode() + ".", e);
+      }
   }
 
   /* see superclass */

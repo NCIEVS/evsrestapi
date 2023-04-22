@@ -94,6 +94,9 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The hierarchy flag. */
   private Boolean hierarchy;
+  
+  /** The history flag. */
+  private Boolean history;
 
   /** The source ct. */
   @SuppressWarnings("unused")
@@ -188,6 +191,7 @@ public class TerminologyMetadata extends BaseModel {
     detailsColumns = new HashMap<>(other.getDetailsColumns());
     sourceCt = sources.size();
     hierarchy = other.getHierarchy();
+    history = other.getHistory();
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
     synonym = new HashSet<>(other.getSynonym());
     synonymCode = other.getSynonymCode();
@@ -1240,6 +1244,27 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setHierarchy(Boolean hierarchy) {
     this.hierarchy = hierarchy;
+  }
+  
+  /**
+   * Returns the history.
+   *
+   * @return the history
+   */
+  public Boolean getHistory() {
+      if (history == null) {
+          history = false;
+      }
+      return history;
+  }
+  
+  /**
+   * Sets the history.
+   *
+   * @param history the history to set
+   */
+  public void setHistory(Boolean history) {
+      this.history = history;
   }
 
   /**

@@ -56,5 +56,8 @@ public abstract class BaseResultMapper {
     if (!ip.isExtensions()) {
       sourceMap.put("extensions", null);
     }
+    if (!ip.isHistory()) {
+        sourceMap.put("history", null);
+      }
   }
 }

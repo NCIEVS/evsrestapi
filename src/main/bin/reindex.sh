@@ -13,12 +13,21 @@ while [[ "$#" -gt 0 ]]; do case $1 in
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
-if [ ${#arr[@]} -ne 0 ]; then
-  echo "Usage: $0 [--noconfig] [--force]"
+if [ ${#arr[@]} -gt 1 ]; then
+  echo "Usage: $0 [--noconfig] [--force] [<dir>]"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
+  echo "  e.g. $0 [<dir>]"
   exit 1
+fi
+
+if [ ${#arr[@]} -eq 1 ]; then
+  dir=${arr[0]}
+fi
+
+if [[ ! -e $dir ]]; then
+	dir="."
 fi
 
 # Set up ability to format json
@@ -201,56 +210,70 @@ for x in `cat /tmp/y.$$.txt`; do
     exists=1
 	
 	# Check if downloading NCIT history data
-	if [[ term eq 'ncit' ]]; then
-	
+	if [[ "$term" -eq "ncit" && (-z $DOWNLOAD_DIR || -z $dir) ]]; then
+		
+		useExistingHistory="false"
+		downloadHistoryZipName="cumulative_history_$version.zip"
+		downloadHistoryFileName="cumulative_history_$version.txt"
+		historyDirectory=$dir/NCIT_HISTORY
+		
 		# Set download dir if not set (regardless of mode)
-		if [[ -z $DOWNLOAD_DIR ]]; then
-			export DOWNLOAD_DIR=.
+		if [[ -n $DOWNLOAD_DIR ]]; then
+			dir = $DOWNLOAD_DIR
 		fi
 	 
-		if [[ ! -e $DOWNLOAD_DIR ]]; then
-			echo "ERROR: \$DOWNLOAD_DIR does not exist = $DOWNLOAD_DIR"
+		if [[ ! -e $dir ]]; then
+			echo "ERROR: \$dir does not exist = $dir"
 			exit 1
-		fi
-
-		currentHistoryFileName="cumulative_history_23.03d.zip"
-		historyDirectory=$DOWNLOAD_DIR/NCIT_HISTORY
+			
+		elif [[ -f $dir ]]; then
 		
-		echo "  Cleanup download directory"
-		/bin/rm -rf $DOWNLOAD_DIR/$currentHistoryFileName $historyDirectory
-		if [[ $? -ne 0 ]]; then
-			echo "ERROR: problem cleaning up \$DOWNLOAD_DIR = $DOWNLOAD_DIR"
-			exit 1
-		fi
-		mkdir $historyDirectory
+			echo "History existing file = $dir"
+			useExistingHistory="true"
+			historyFile=$dir
+			
+		elif [[ -e $historyDirectory/$downloadHistoryFileName ]]; then
 		
-		downloadHistoryFileName="cumulative_history_23.03d.zip"
-		url=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/$downloadHistoryFileName
-		
-		echo "  Download latest NCIt History"
-		echo "    url = $url"
-		curl -o $DOWNLOAD_DIR/$downloadHistoryFileName $url
-		if [[ $? -ne 0 ]]; then
-			echo "ERROR: problem downloading NCIt history"
-			exit 1
-		fi
-		
-		echo "  Unpack NCIt history"
-		echo "A" | unzip $DOWNLOAD_DIR/$downloadHistoryFileName -d $historyDirectory > /tmp/x.$$ 2>&1
-		if [[ $? -ne 0 ]]; then
-			cat /tmp/x.$$
-			echo "ERROR: problem unpacking $DOWNLOAD_DIR/$downloadHistoryFileName"
-			exit 1
-		fi
-
-		# Set $dir for later steps    
-		historyFile=$historyDirectory/cumulative_history_23.03d.txt
-		
-		echo "  Cleanup download directory"
-		/bin/rm -rf $DOWNLOAD_DIR/$downloadHistoryFileName
-		if [[ $? -ne 0 ]]; then
-			echo "ERROR: problem cleaning up \$DOWNLOAD_DIR = $DOWNLOAD_DIR"
-			exit 1
+			echo "History file matching version already exists = $dir/NCIT_HISTORY/$downloadHistoryFileName"
+			historyFile=$historyDirectory/$downloadHistoryFileName
+			
+		else
+			
+			echo "History download directory = $dir"
+			echo "  Cleanup download directory"
+			/bin/rm -rf $historyDirectory
+			if [[ $? -ne 0 ]]; then
+				echo "ERROR: problem cleaning up \$historyDirectory = $historyDirectory"
+				exit 1
+			fi
+			mkdir $historyDirectory
+			
+			url=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/$downloadHistoryZipName
+			
+			for i in {1..5}; do 
+			
+				echo "  Download latest NCIt History: attemp $i"
+				echo "    url = $url"
+				curl -o $historyDirectory/$downloadHistoryZipName $url
+				
+				if [[ $? -ne 0 ]]; then
+					echo "ERROR: problem downloading NCIt history"
+				else
+					
+					echo "  Unpack NCIt history"
+					echo "A" | unzip $historyDirectory/$downloadHistoryZipName -d $historyDirectory > /tmp/x.$$ 2>&1
+					if [[ $? -ne 0 ]]; then
+						cat /tmp/x.$$
+						echo "ERROR: problem unpacking $historyDirectory/$downloadHistoryZipName"
+					else
+					
+						# Set historyFile for later steps    
+						historyFile=$historyDirectory/$downloadHistoryFileName
+						break
+					fi
+				fi
+			done
+			
 		fi
 	fi
 	
@@ -311,9 +334,14 @@ for x in `cat /tmp/y.$$.txt`; do
         export STARDOG_DB=$db
         export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB ${term} $version"
+		dirFlag=""
+		
+		if [[ -n $historyFile ]]; then
+			dirFlag=" -d $historyFile"
+		fi
 
-        echo "java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
+        echo "java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $dirFlag" | sed 's/^/      /'
+        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $dirFlag
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
@@ -329,6 +357,10 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
     fi
+	
+	if [[ "$term" == "ncit" ]] && [[ "$useExistingHistory" == "false" ]]; then
+		/bin/rm -rf $historyDirectory
+	fi
     
     # track previous version, if next one is the same, don't index again.
     pv=$cv

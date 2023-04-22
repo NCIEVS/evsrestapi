@@ -98,7 +98,7 @@ public class ConceptController extends BaseController {
           dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
@@ -167,7 +167,7 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions, "
-              + "disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, "
+              + "disjointWith, history, inverseAssociations, inverseRoles, maps, parents, properties, "
               + "roles, synonyms. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
           required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
@@ -377,7 +377,7 @@ public class ConceptController extends BaseController {
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
@@ -732,6 +732,52 @@ public class ConceptController extends BaseController {
     }
 
   }
+  
+  /**
+   * Returns the history.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the concept with history
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get history for the specified terminology and code", response = Concept.class,
+      responseContainer = "List")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
+          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "code",
+          value = "Code in the specified terminology, e.g. "
+              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i> and <i>ncim</i>.",
+          required = true, dataTypeClass = String.class, paramType = "path")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/history",
+      produces = "application/json")
+  public @ResponseBody Concept getHistory(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
+
+    try {
+      final Terminology term = termUtils.getTerminology(terminology, true);
+
+      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("history"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+
+      return concept.get();
+    } catch (final Exception e) {
+      handleException(e);
+      return null;
+    }
+
+  }
 
   /**
    * Returns the disjoint with.
@@ -799,7 +845,7 @@ public class ConceptController extends BaseController {
           dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
@@ -858,7 +904,7 @@ public class ConceptController extends BaseController {
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>. For this call, it is recommended to avoid using this "
@@ -1134,7 +1180,7 @@ public class ConceptController extends BaseController {
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>. For this call, it is recommended to avoid using this "
@@ -1209,7 +1255,7 @@ public class ConceptController extends BaseController {
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>. For this call, it is recommended to avoid using this "
