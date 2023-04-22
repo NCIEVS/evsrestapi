@@ -109,42 +109,39 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       return true;
     }
 
-    Optional<String> currentMapVersion =
-        currentMapsetCodes.stream().filter(m -> m.equals(code)).findFirst();
+    Optional<String> currentMapVersion = currentMapsetCodes.stream().filter(m -> m.equals(code)).findFirst();
     // version number while current version number is null
     if (!version.isEmpty() && currentMapVersion.isPresent() && currentMapVersion.get().isEmpty()) {
       return true;
     }
     // newer version
-    if (!version.isEmpty() && currentMapVersion.isPresent()
-        && version.compareTo(currentMapVersion.get()) > 0)
+    if (!version.isEmpty() && currentMapVersion.isPresent() && version.compareTo(currentMapVersion.get()) > 0)
       return true;
     return false;
   }
 
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws IOException, Exception {
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws IOException, Exception {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri =
         "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/bin/data/UnitTestData/mappings/";
     boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
     if (created) {
-      operationsService.getElasticsearchOperations().putMapping(
-          ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
-          Concept.class);
+      operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.MAPPING_INDEX,
+          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
     }
     logger.info(System.getProperty("user.dir"));
-    List<String> allLines =
-        Files.readAllLines(Paths.get("src/main/resources/metadata/mapsets/mapsetMetadata.txt"));
-    List<String> allCodes =
-        allLines.stream().map(l -> l.split("\t")[0]).collect(Collectors.toList());
+    List<String> allLines = IOUtils
+        .readLines(getClass().getClassLoader().getResourceAsStream("metadata/mapsets/mapsetMetadata.txt"), "UTF-8");
+
+    List<String> allCodes = allLines.stream().map(l -> l.split("\t")[0]).collect(Collectors.toList());
 
     logger.info(allCodes.toString());
     List<Concept> currentMapsets = esQueryService.getMapsets(new IncludeParam("minimal"));
     logger.info(currentMapsets.toString());
-    List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("minimal"))
-        .stream().map(Concept::getCode).collect(Collectors.toList());
+    List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("minimal")).stream()
+        .map(Concept::getCode).collect(Collectors.toList());
 
     List<String> mapsetsToAdd =
         allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
@@ -159,8 +156,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
         logger.info("deleting " + metadata[0]);
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
-            ElasticOperationsService.CONCEPT_TYPE, metadata[0]);
+        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
+            metadata[0]);
         continue;
       }
       // skip if no update needed
@@ -178,16 +175,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
       // setting up metadata
       if (metadata[3] != null && !metadata[3].isEmpty()) { // welcome text
-        String welcomeText =
-            IOUtils.toString(new URL(uri + "/" + metadata[3]).openConnection().getInputStream(),
-                StandardCharsets.UTF_8);
+        String welcomeText = IOUtils.toString(new URL(uri + "/" + metadata[3]).openConnection().getInputStream(),
+            StandardCharsets.UTF_8);
         map.getProperties().add(new Property("welcomeText", welcomeText));
 
-        String mappingDataUri = mappingUri + map.getName()
-            + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
+        String mappingDataUri =
+            mappingUri + map.getName() + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
         // map
-        String mappingData = IOUtils.toString(
-            new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
+        String mappingData =
+            IOUtils.toString(new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
         map.setMaps(buildMaps(mappingData, metadata));
 
       }
@@ -199,35 +195,34 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           map.getProperties().add(new Property("mapsetLink", metadata[1]));
         } else {
           map.getProperties().add(new Property("mapsetLink", null));
-          String mappingDataUri = mappingUri + map.getName()
-              + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
+          String mappingDataUri =
+              mappingUri + map.getName() + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
           // map
-          String mappingData = IOUtils.toString(
-              new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
+          String mappingData =
+              IOUtils.toString(new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
           map.setMaps(buildMaps(mappingData, metadata));
         }
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
       logger.info("indexing " + metadata[0]);
-      logger.info("metadata = " + metadata[1] + ", " + metadata[2] + ", " + metadata[3] + ", "
-          + map.getMaps().size());
-      operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      logger.info("metadata = " + metadata[1] + ", " + metadata[2] + ", " + metadata[3] + ", " + map.getMaps().size());
+      operationsService.index(map, ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
+          Concept.class);
 
     }
   }
 
   @Override
-  public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws IOException, Exception {
+  public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws IOException, Exception {
     // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
-    String filepath, String termName, boolean forceDelete) throws Exception {
+  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, String filepath, String termName,
+    boolean forceDelete) throws Exception {
     // TODO Auto-generated method stub
     return null;
   }
