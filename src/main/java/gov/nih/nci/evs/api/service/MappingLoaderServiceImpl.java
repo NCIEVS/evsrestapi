@@ -4,8 +4,6 @@ package gov.nih.nci.evs.api.service;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +57,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     List<Map> maps = new ArrayList<Map>();
     String[] mappingDataList = mappingData.split("\n");
     // welcomeText = true format
-    if (metadata[3] != null && !metadata[3].isEmpty()) {
+    if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         String[] conceptSplit = conceptMap.split("\",\"");
         Map conceptToAdd = new Map();
@@ -127,22 +125,22 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     HierarchyUtils hierarchy) throws IOException, Exception {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri =
-        "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/bin/data/UnitTestData/mappings/";
+        "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/data/mappings/";
+    final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
+    List<String> allLines = new ArrayList<>(
+        Arrays.asList(IOUtils.toString(new URL(mapsetMetadataUri).openConnection().getInputStream(),
+            StandardCharsets.UTF_8).split("\n")));
+    // skip header line
+    allLines = allLines.subList(1, allLines.size());
     boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
     if (created) {
       operationsService.getElasticsearchOperations().putMapping(
           ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
           Concept.class);
     }
-    logger.info(System.getProperty("user.dir"));
-    List<String> allLines =
-        Files.readAllLines(Paths.get("src/main/resources/metadata/mapsets/mapsetMetadata.txt"));
     List<String> allCodes =
-        allLines.stream().map(l -> l.split("\t")[0]).collect(Collectors.toList());
+        allLines.stream().map(l -> l.split(",")[0]).collect(Collectors.toList());
 
-    logger.info(allCodes.toString());
-    List<Concept> currentMapsets = esQueryService.getMapsets(new IncludeParam("minimal"));
-    logger.info(currentMapsets.toString());
     List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("minimal"))
         .stream().map(Concept::getCode).collect(Collectors.toList());
 
@@ -155,7 +153,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
 
     for (String line : allLines) { // build each mapset
-      String[] metadata = line.split("\t", -1);
+      String[] metadata = line.split(",", -1);
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
         logger.info("deleting " + metadata[0]);
@@ -177,7 +175,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
 
       // setting up metadata
-      if (metadata[3] != null && !metadata[3].isEmpty()) { // welcome text
+      if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
+                                                                                       // text
         String welcomeText =
             IOUtils.toString(new URL(uri + "/" + metadata[3]).openConnection().getInputStream(),
                 StandardCharsets.UTF_8);
@@ -210,8 +209,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
       logger.info("indexing " + metadata[0]);
-      logger.info("metadata = " + metadata[1] + ", " + metadata[2] + ", " + metadata[3] + ", "
-          + map.getMaps().size());
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
 

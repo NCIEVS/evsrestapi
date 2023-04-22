@@ -1715,7 +1715,7 @@ public class MetadataControllerTests {
         .findFirst());
 
     // test mapset/{code}/mappings
-    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/mappings")).andExpect(status().isOk())
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();
     MapResultList mapList = new ObjectMapper().readValue(content, MapResultList.class);
@@ -1724,7 +1724,7 @@ public class MetadataControllerTests {
     Map tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord and pageSize
-    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/mappings?fromRecord=9&pageSize=23"))
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?fromRecord=9&pageSize=23"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, MapResultList.class);
