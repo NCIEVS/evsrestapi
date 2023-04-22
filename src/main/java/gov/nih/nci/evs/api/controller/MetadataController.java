@@ -4,6 +4,7 @@ package gov.nih.nci.evs.api.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -1129,13 +1131,51 @@ public class MetadataController extends BaseController {
       final IncludeParam ip = new IncludeParam("maps");
       List<Map> maps = esQueryService.getMapset(code, ip).get(0).getMaps();
       if (term.isPresent()) {
-        maps =
-            maps.stream().filter(o -> o.getSourceName().contains(term.get()) || o.getTargetName().contains(term.get()))
-                .collect(Collectors.toList());
+        final String t = term.get().trim().toLowerCase();
+        final List<String> words = ConceptUtils.wordind(t);
+        // Check single words
+        if (words.size() == 1) {
+          maps = maps.stream().filter(m ->
+          // Code match
+          m.getSourceCode().toLowerCase().contains(t) || m.getTargetCode().toLowerCase().contains(t) ||
+          // Lowercase word match (starting on a word boundary)
+              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
+              || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(t) + ".*")
+              || m.getTargetName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
+              || m.getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(t) + ".*"))
+              .collect(Collectors.toList());
+        }
+        // Check multiple words (make sure both are in the source OR both are in the target)
+        else if (words.size() > 1) {
+          maps = maps.stream().filter(m -> {
+            boolean sourceFlag = true;
+            boolean targetFlag = true;
+            for (final String word : words) {
+              if (!(
+              // Lowercase word match (starting on a word boundary)
+              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
+                  || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+                sourceFlag = false;
+              }
+              if (!(
+              // Lowercase word match (starting on a word boundary)
+              m.getTargetName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
+                  || m.getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+                targetFlag = false;
+              }
+            }
+            return sourceFlag || targetFlag;
+          }).collect(Collectors.toList());
+        }
       }
       final Integer mapLength = maps.size();
-      final MapResultList list =
-          new MapResultList(mapLength, maps.subList(fromRecordParam, fromRecordParam + pageSizeParam));
+      final MapResultList list = new MapResultList();
+      list.setTotal(mapLength);
+      // Get this page if we haven't gone over the end
+      if (fromRecordParam < mapLength) {
+        // on subList "toIndex" don't go past the end
+        list.setMaps(maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
+      }
       final SearchCriteria criteria = new SearchCriteria();
       criteria.setInclude(null);
       criteria.setType(null);
