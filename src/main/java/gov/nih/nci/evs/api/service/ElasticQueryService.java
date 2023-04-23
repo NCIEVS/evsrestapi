@@ -191,8 +191,7 @@ public interface ElasticQueryService {
   /**
    * Get {@link IndexMetadata} objects.
    *
-   * @param completedOnly boolean indicating to fetch metadata for complete
-   *          indexes only
+   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
    * @return the list of {@link IndexMetadata} objects
    */
   List<IndexMetadata> getIndexMetadata(boolean completedOnly);
@@ -434,5 +433,28 @@ public interface ElasticQueryService {
    */
   AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,
     int pageSize) throws Exception;
+
+  /**
+   * Returns mapsets.
+   *
+   * @return the list of mapsets
+   * @throws JsonProcessingException
+   * @throws JsonMappingException
+   * @throws ClassNotFoundException the class not found exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<Concept> getMapsets(IncludeParam ip) throws Exception;
+
+  /**
+   * Returns mapset by code filter.
+   *
+   * @param code the code to filter
+   * @return the list of mapsets
+   * @throws JsonProcessingException
+   * @throws JsonMappingException
+   * @throws ClassNotFoundException the class not found exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<Concept> getMapset(String code, IncludeParam ip) throws Exception;
 
 }

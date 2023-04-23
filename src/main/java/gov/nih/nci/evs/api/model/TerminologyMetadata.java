@@ -98,6 +98,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The history flag. */
   private Boolean history;
 
+  /** The mapsets flag. */
+  private Boolean mapsets;
+
   /** The source ct. */
   @SuppressWarnings("unused")
   private int sourceCt;
@@ -192,6 +195,7 @@ public class TerminologyMetadata extends BaseModel {
     sourceCt = sources.size();
     hierarchy = other.getHierarchy();
     history = other.getHistory();
+    mapsets = other.getMapsets();
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
     synonym = new HashSet<>(other.getSynonym());
     synonymCode = other.getSynonymCode();
@@ -1265,6 +1269,20 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setHistory(Boolean history) {
       this.history = history;
+  }
+
+  /**
+   * @return the mapsets
+   */
+  public Boolean getMapsets() {
+    return mapsets;
+  }
+
+  /**
+   * @param mapsets the mapsets to set
+   */
+  public void setMapsets(Boolean mapsets) {
+    this.mapsets = mapsets;
   }
 
   /**
