@@ -10,6 +10,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class Map extends BaseModel implements Comparable<Map> {
 
+  /** The source. */
+  private String source;
+
+  /** The source name. */
+  private String sourceName;
+
+  /** The source term type. */
+  private String sourceTermType;
+
   /** The source code. */
   private String sourceCode;
 
@@ -19,11 +28,11 @@ public class Map extends BaseModel implements Comparable<Map> {
   /** The type. */
   private String type;
 
-  /** The group. */
-  private String group;
-
   /** The rank. */
   private String rank;
+
+  /** The group. */
+  private String group;
 
   /** The rule. */
   private String rule;
@@ -77,6 +86,48 @@ public class Map extends BaseModel implements Comparable<Map> {
     targetCode = other.getTargetCode();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
+  }
+
+  /**
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * @param source the source to set
+   */
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  /**
+   * @return the sourceName
+   */
+  public String getSourceName() {
+    return sourceName;
+  }
+
+  /**
+   * @param sourceName the sourceName to set
+   */
+  public void setSourceName(String sourceName) {
+    this.sourceName = sourceName;
+  }
+
+  /**
+   * @return the sourceTermType
+   */
+  public String getSourceTermType() {
+    return sourceTermType;
+  }
+
+  /**
+   * @param sourceTermType the sourceTermType to set
+   */
+  public void setSourceTermType(String sourceTermType) {
+    this.sourceTermType = sourceTermType;
   }
 
   /**
@@ -297,7 +348,8 @@ public class Map extends BaseModel implements Comparable<Map> {
     result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
     result = prime * result + ((targetTermType == null) ? 0 : targetTermType.hashCode());
     result = prime * result + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
-    result = prime * result + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
+    result = prime * result
+        + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((group == null) ? 0 : group.hashCode());
     result = prime * result + ((rank == null) ? 0 : rank.hashCode());
@@ -402,8 +454,8 @@ public class Map extends BaseModel implements Comparable<Map> {
   @Override
   public int compareTo(Map o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
-        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
-            + o.getTargetName() + o.getTargetCode());
+        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup()
+            + o.getRank() + o.getTargetName() + o.getTargetCode());
   }
 
 }

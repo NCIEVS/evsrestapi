@@ -8,6 +8,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 import gov.nih.nci.evs.api.model.Metric;
 
+// TODO: Auto-generated Javadoc
 /**
  * The service for performing index related operations on Elasticsearch.
  *
@@ -27,8 +28,11 @@ public interface ElasticOperationsService {
   /** The index in ES for index metadata *. */
   public static final String METADATA_INDEX = "evs_metadata";
 
-  /** The type in ES for index metadata **/
+  /** The type in ES for index metadata *. */
   public static final String METADATA_TYPE = "evs_metadata";
+
+  /** The index in ES for index metadata *. */
+  public static final String MAPPING_INDEX = "evs_mapsets";
 
   /**
    * create index using the given index name.
@@ -73,8 +77,8 @@ public interface ElasticOperationsService {
    * @param clazz the clazz
    * @throws IOException the io exception
    */
-  void index(Object object, String index, String type, @SuppressWarnings("rawtypes")
-  Class clazz) throws IOException;
+  void index(Object object, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
+    throws IOException;
 
   /**
    * load metrics.
@@ -93,11 +97,20 @@ public interface ElasticOperationsService {
   ElasticsearchOperations getElasticsearchOperations();
 
   /**
-   * delete the index.
+   * Delete index.
    *
-   * @param index the index name
-   * @return {@literal true} if the index was deleted
+   * @param index the index
+   * @return true, if successful
    */
   boolean deleteIndex(String index);
+
+  /**
+   * Delete.
+   *
+   * @param indexName the index name
+   * @param type the type
+   * @param id the id
+   */
+  void delete(String indexName, String type, String id);
 
 }
