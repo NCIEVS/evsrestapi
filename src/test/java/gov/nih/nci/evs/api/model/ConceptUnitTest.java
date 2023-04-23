@@ -43,6 +43,12 @@ public class ConceptUnitTest {
 
   /** The d 2. */
   private List<Definition> d2;
+  
+  /** The h 1. */
+  private List<History> h1;
+  
+  /** The h 2. */
+  private List<History> h2;
 
   /** The p 1. */
   private List<Property> p1;
@@ -88,7 +94,7 @@ public class ConceptUnitTest {
     d1.add((Definition) tester2.createObject(1));
     d2 = new ArrayList<>();
     d2.add((Definition) tester2.createObject(2));
-
+    
     final ProxyTester tester3 = new ProxyTester(new Property());
     p1 = new ArrayList<>();
     p1.add((Property) tester3.createObject(1));
@@ -112,6 +118,12 @@ public class ConceptUnitTest {
     m1.add((Map) tester6.createObject(1));
     m2 = new ArrayList<>();
     m2.add((Map) tester6.createObject(2));
+    
+    final ProxyTester tester7 = new ProxyTester(new History());
+    h1 = new ArrayList<>();
+    h1.add((History) tester7.createObject(1));
+    h2 = new ArrayList<>();
+    h2.add((History) tester7.createObject(2));
 
   }
 
@@ -127,6 +139,8 @@ public class ConceptUnitTest {
     tester.proxy("synonyms", 2, s2);
     tester.proxy("definitions", 1, d1);
     tester.proxy("definitions", 2, d2);
+    tester.proxy("history", 1, h1);
+    tester.proxy("history", 2, h2);
     tester.proxy("propertys", 1, p1);
     tester.proxy("propertys", 2, p2);
     tester.proxy("associations", 1, a1);
@@ -140,7 +154,7 @@ public class ConceptUnitTest {
   }
 
   /**
-   * Test equals and hascode methods.
+   * Test equals and hashcode methods.
    *
    * @throws Exception the exception
    */
@@ -157,6 +171,8 @@ public class ConceptUnitTest {
     tester.proxy("synonyms", 2, s2);
     tester.proxy("definitions", 1, d1);
     tester.proxy("definitions", 2, d2);
+    tester.proxy("history", 1, h1);
+    tester.proxy("history", 2, h2);
     tester.proxy("propertys", 1, p1);
     tester.proxy("propertys", 2, p2);
     tester.proxy("associations", 1, a1);
@@ -185,6 +201,7 @@ public class ConceptUnitTest {
 
     tester.proxy("synonyms", 1, s1);
     tester.proxy("definitions", 1, d1);
+    tester.proxy("history", 1, h1);
     tester.proxy("propertys", 1, p1);
     tester.proxy("associations", 1, a1);
     tester.proxy("roles", 1, r1);
@@ -204,6 +221,7 @@ public class ConceptUnitTest {
 
     tester.proxy("synonyms", 1, s1);
     tester.proxy("definitions", 1, d1);
+    tester.proxy("history", 1, h1);
     tester.proxy("propertys", 1, p1);
     tester.proxy("associations", 1, a1);
     tester.proxy("roles", 1, r1);

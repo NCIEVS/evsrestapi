@@ -5,8 +5,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -120,7 +124,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The qual set. */
   private Map<String, Set<String>> qualMap = new HashMap<>();
-
+  
   private int batchSize = 0;
 
   /** the environment *. */
@@ -459,8 +463,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       handleConcept(concept, batch, true, terminology.getIndexName());
-
       totalConcepts++;
+      
+      // Process any retired concepts for history
+      totalConcepts += loadHistory(terminology);
 
       return totalConcepts;
 
@@ -469,7 +475,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }
 
   }
-
+  
   /**
    * Handle semantic types.
    *
@@ -1156,6 +1162,207 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }
 
   }
+  
+  /**
+   * Load the history files.
+   *
+   * @param terminology the terminology
+   * @return the number of retired concepts created
+   */
+  private int loadHistory(final Terminology terminology) throws Exception {
+      
+      if (!terminology.getTerminology().equals("ncim")) {
+          return 0;
+      }
+      
+      logger.debug("STARTING HISTORY PROCESSING");
+      final Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
+      final List<Concept> batch = new ArrayList<>();
+      int conceptsCreated = 0;
+      
+      SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMM");
+      SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+      
+      RrfReaders readers = new RrfReaders(this.getFilepath());
+      readers.openOriginalReaders("MR");
+      
+      try (final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI);) {
+
+        String line = null;
+        
+        // CODE, DATE, REL (ACTION), RELA, MAPREASON, REPLACEMENT CODE, MAPINSUB
+        // Action values: Broader (RB), Narrower (RN), Other Related (RO), Deleted (DEL), Removed from Subset (SUBX)
+        // Loop through lines until we reach "the end"
+        while ((line = mrcui.readLine()) != null) {
+
+          if (line.equals("")) {
+              continue;
+          }
+          
+          final String[] fields = line.split("\\|", -1);
+          final String code = fields[0];
+          final String date = fields[1];
+          final String action = fields[2];
+          final String replacementCode = fields[5];
+          final String replacementInSubset = fields[6];
+          List<Map<String, String>> conceptHistory = new ArrayList<>();
+          final Map<String, String> historyItem = new HashMap<>();
+          
+          if (action.equals("SUBX")) {
+              continue;
+          }
+          
+          if (historyMap.containsKey(code)) {
+              conceptHistory = historyMap.get(code);
+          }
+          
+          historyItem.put("action", action);
+          historyItem.put("date", date);
+          
+          if (replacementCode != null && !replacementCode.equals("null")) {
+              
+              if (replacementInSubset.equals("N")) {
+                  continue;
+              }
+              
+              historyItem.put("replacementCode", replacementCode);
+          }
+          
+          conceptHistory.add(historyItem);
+          historyMap.put(code, conceptHistory);
+        }
+        
+      } finally {
+          readers.closeReaders();
+      }
+      
+      
+      final Set<String> historyCodes = historyMap.keySet();
+      final Map<Concept, Set<String>> missingCodes = new HashMap<>();
+      int conceptsToCreateCount = historyCodes.size();
+      logger.info("HISTORY PROCESSING CONCEPT COUNT: " + conceptsToCreateCount);
+      
+      for (String code : historyCodes) {
+          
+          conceptsCreated++;
+          boolean lastConcept = false;
+          String name = "Retired concept";
+          final Set<String> replacementMissingCodes = new HashSet<>();
+          final Concept concept = new Concept();
+          concept.setCode(code);
+          concept.setTerminology(terminology.getTerminology());
+          concept.setVersion(terminology.getVersion());
+          // NO hierarchies for NCIM concepts, so set leaf to null
+          concept.setLeaf(null);
+          
+          for (final Map<String, String> historyItem: historyMap.get(code)) {
+              
+              if (historyItem.get("action").equals("DEL")) {
+                  name = "Deleted concept";
+              }
+              
+              // add info to name map
+              nameMap.put(code, name);
+              
+              final History history = new History();
+              history.setCode(code);
+              history.setAction(historyItem.get("action"));
+              
+              String date = "";
+              
+              if (historyItem.get("date") != null && !historyItem.get("date").equals("")) {
+                  date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
+              }
+              
+              history.setDate(date);
+              
+              final String replacementCode = historyItem.get("replacementCode");
+              final String replacementName = nameMap.get(replacementCode);
+              
+              if (replacementCode != null && !replacementCode.equals("")) {
+                  
+                  history.setReplacementCode(replacementCode);
+                  history.setReplacementName(replacementName);
+                  
+                  // if the replacement is not yet a concept or in the history create the concept
+                  if (replacementName == null && !historyCodes.contains(replacementCode)) {
+                      
+                      logger.debug("COMPLETELY MISSING replacementCode");
+                      history.setReplacementName("Deleted concept");
+                      
+                      final Concept deletedConcept = new Concept();
+                      deletedConcept.setCode(code);
+                      deletedConcept.setName("Deleted concept");
+                      deletedConcept.setTerminology(terminology.getTerminology());
+                      deletedConcept.setVersion(terminology.getVersion());
+                      deletedConcept.setLeaf(null);
+                      
+                      conceptsCreated++;;
+                      conceptsToCreateCount++;
+                      handleConcept(deletedConcept, batch, false, terminology.getIndexName());
+                  }
+                  
+                  // if the replacement is not yet a concept and is in the history store the info so we can revisit
+                  else if (replacementName == null && historyCodes.contains(replacementCode)) {
+                      
+                      logger.debug("NOT YET CREATED replacementCode");
+                      replacementMissingCodes.add(replacementCode);
+                  }
+              }
+              
+              concept.getHistory().add(history);
+          }
+          
+          concept.setName(name);
+          concept.setNormName(ConceptUtils.normalize(name));
+          
+          if (replacementMissingCodes.size() > 0) {
+              missingCodes.put(concept, replacementMissingCodes);
+          }
+          
+          if (conceptsCreated == conceptsToCreateCount) {
+              lastConcept = true;
+          }
+          
+          handleConcept(concept, batch, lastConcept, terminology.getIndexName());
+      }
+      
+      // add the replacement names for any history items that did not have it available before
+      if (missingCodes.size() > 0) {
+          
+          logger.debug("CONCEPTS TO UPDATE HISTORY: " + missingCodes.size());
+          int conceptsUpdated = 0;
+          boolean lastConcept = false;
+          final Set<Concept> conceptsMissingReplacementInfo = missingCodes.keySet();
+          
+          for (final Concept concept : conceptsMissingReplacementInfo) {
+              
+              conceptsUpdated++;
+              
+              for (final String replacementMissingCode : missingCodes.get(concept)) {
+                  
+                  for (final History history : concept.getHistory()) {
+                      
+                      if (history.getReplacementCode().equals(replacementMissingCode)) {
+                          
+                          history.setReplacementName(nameMap.get(history.getReplacementCode()));
+                          break;
+                      }
+                  }
+              }
+              
+              if (conceptsUpdated == conceptsMissingReplacementInfo.size()) {
+                  lastConcept = true;
+              }
+              
+              handleConcept(concept, batch, lastConcept, terminology.getIndexName());
+          }
+      }
+      
+      logger.info("HISTORY CONCEPTS CREATED: " + conceptsCreated);
+      return conceptsCreated;
+  }
+ 
 
   /* see superclass */
   @Override

@@ -243,9 +243,11 @@ if [[ $? -ne 0 ]]; then
 fi
 /bin/rm -f $dir/x.sh
 
+historyParam=$(find $dir -maxdepth 1 -type f -name "cumulative_history_*.txt" -printf "%f\n")
+
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
-src/main/bin/reindex.sh --noconfig | sed 's/^/    /'
+src/main/bin/reindex.sh --noconfig $dir/$historyParam | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem running reindex.sh script"
     exit 1

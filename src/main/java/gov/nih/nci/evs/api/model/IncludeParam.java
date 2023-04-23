@@ -57,6 +57,9 @@ public class IncludeParam extends BaseModel {
 
   /** The extensions. */
   private boolean extensions;
+  
+  /** The history. */
+  private boolean history;
 
   /** The subset links */
   private boolean subsetLink;
@@ -118,6 +121,8 @@ public class IncludeParam extends BaseModel {
           paths = true;
         } else if (part.equals("extensions")) {
           extensions = true;
+        } else if (part.equals("history")) {
+            history = true;
         } else if (part.equals("subsetLink")) {
           subsetLink = true;
         } else if (part.equals("mapsetLink")) {
@@ -160,6 +165,7 @@ public class IncludeParam extends BaseModel {
     disjointWith = other.isDisjointWith();
     paths = other.isPaths();
     extensions = other.isExtensions();
+    history = other.isHistory();
     subsetLink = other.isSubsetLink();
   }
 
@@ -186,6 +192,7 @@ public class IncludeParam extends BaseModel {
   public void populateFull() {
     synonyms = true;
     definitions = true;
+    history = true;
     properties = true;
     children = true;
     parents = true;
@@ -210,9 +217,9 @@ public class IncludeParam extends BaseModel {
    * @return true, if successful
    */
   public boolean hasAnyTrue() {
-    return synonyms || definitions || properties || children || descendants || parents
-        || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
-        || paths || extensions;
+    return synonyms || definitions || properties || children || descendants || parents || associations
+        || inverseAssociations || roles || inverseRoles || maps || disjointWith || paths || extensions
+        || history;
   }
 
   /**
@@ -227,6 +234,9 @@ public class IncludeParam extends BaseModel {
     }
     if (definitions) {
       fields.add("definitions");
+    }
+    if (history) {
+        fields.add("history");
     }
     if (properties) {
       fields.add("properties");
@@ -285,6 +295,9 @@ public class IncludeParam extends BaseModel {
     }
     if (!definitions) {
       fields.add("definitions");
+    }
+    if (!history) {
+        fields.add("history");
     }
     if (!properties) {
       fields.add("properties");
@@ -365,6 +378,24 @@ public class IncludeParam extends BaseModel {
    */
   public void setDefinitions(boolean definitions) {
     this.definitions = definitions;
+  }
+  
+  /**
+   * Indicates whether or not history is the case.
+   *
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public boolean isHistory() {
+      return history;
+  }
+  
+  /**
+   * Sets the history.
+   *
+   * @param history the history
+   */
+  public void setHistory(boolean history) {
+      this.history = history;
   }
 
   /**

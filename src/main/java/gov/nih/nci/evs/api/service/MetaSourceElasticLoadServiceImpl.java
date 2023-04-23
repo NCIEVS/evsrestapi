@@ -5,8 +5,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -848,7 +852,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     concept.getDefinitions().add(def);
     definitionCt++;
   }
-
+  
   /**
    * Handle relationships.
    *
@@ -1312,7 +1316,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
         // Set term name and description
         term.setName(metadata.getUiLabel() + " " + term.getVersion());
-        if (term.getDescription() == null || term.getDescription().isEmpty()) {
+        if (term.getDescription() == null || term.getDescription().isEmpty() && node.get("description") != null) {
           term.setDescription(node.get("description").asText());
         }
 
@@ -1321,6 +1325,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         metadata.setSourceCt(1);
         metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
         term.setMetadata(metadata);
+        
       } catch (Exception e) {
         throw new Exception("Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
             e);
