@@ -193,6 +193,9 @@ public final class ConceptUtils {
       if (ip.isSubsetLink()) {
         newConcept.setSubsetLink(concept.getSubsetLink());
       }
+      if (ip.isMapsetLink()) {
+        newConcept.setMapsetLink(concept.getMapsetLink());
+      }
 
       result.add(newConcept);
     }
@@ -480,4 +483,14 @@ public final class ConceptUtils {
     return string.substring(0, Math.min(len, string.length())) + (string.length() > len ? "..." : "");
   }
 
+  /**
+   * Wordind.
+   *
+   * @param name the name
+   * @return the list
+   */
+  public static List<String> wordind(final String name) {
+    final String[] tokens = name.split(PUNCTUATION_REGEX);
+    return Arrays.asList(tokens).stream().filter(s -> s.length() > 0).collect(Collectors.toList());
+  }
 }

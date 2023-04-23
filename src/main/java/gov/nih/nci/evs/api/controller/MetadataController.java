@@ -4,6 +4,7 @@ package gov.nih.nci.evs.api.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -21,9 +22,15 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.MapResultList;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -47,6 +54,10 @@ public class MetadataController extends BaseController {
   /** The metadata service. */
   @Autowired
   MetadataService metadataService;
+
+  /** The elasticquery service. */
+  @Autowired
+  ElasticQueryService esQueryService;
 
   /** The term utils. */
   /* The terminology utils */
@@ -178,7 +189,7 @@ public class MetadataController extends BaseController {
   @ApiOperation(value = "Get the association for the specified terminology and code/name", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), 
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
@@ -276,7 +287,7 @@ public class MetadataController extends BaseController {
   @ApiOperation(value = "Get the role for the specified terminology and code/name", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), 
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
@@ -377,7 +388,7 @@ public class MetadataController extends BaseController {
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request")
- })
+  })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets", produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
@@ -576,7 +587,7 @@ public class MetadataController extends BaseController {
   @ApiOperation(value = "Get the property for the specified terminology and code/name", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), 
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
@@ -628,10 +639,10 @@ public class MetadataController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the subset for the specified terminology and code/name", response = Concept.class)
+  @ApiOperation(value = "Get the subset for the specified terminology and code", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), 
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
@@ -748,7 +759,7 @@ public class MetadataController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")     
+      @ApiResponse(code = 400, message = "Bad request")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -869,7 +880,7 @@ public class MetadataController extends BaseController {
   @ApiOperation(value = "Get the synonym type for the specified terminology and code/name", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), 
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
@@ -969,7 +980,7 @@ public class MetadataController extends BaseController {
   @ApiOperation(value = "Get the definition type for the specified terminology and code/name", response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), 
+      @ApiResponse(code = 400, message = "Bad request"),
       @ApiResponse(code = 417, message = "Unexpected duplicate found")
   })
   @ApiImplicitParams({
@@ -1006,6 +1017,178 @@ public class MetadataController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Defininition type " + code + " not found");
 
       return concept.get();
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the mapsets.
+   *
+   * @return the mapsets
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get all mapsets (no terminology parameter is needed as mapsets connect codes "
+      + "in one terminology to another)", response = Concept.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>.",
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/mapsets", produces = "application/json")
+  public @ResponseBody List<Concept> getMapsets(@RequestParam(required = false, name = "include")
+  final Optional<String> include) throws Exception {
+    try {
+      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      return esQueryService.getMapsets(ip);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the mapsets.
+   *
+   * @return the mapsets
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get the mapset for the specified code (no terminology parameter is"
+      + " needed as mapsets connect codes in one terminology to another)", response = Concept.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "code", value = "Mapset code", required = true, dataTypeClass = String.class,
+          paramType = "path"),
+      @ApiImplicitParam(name = "include",
+          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>.",
+          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/mapset/{code}", produces = "application/json")
+  public @ResponseBody Concept getMapsetByCode(@PathVariable(value = "code")
+  final String code, @RequestParam(required = false, name = "include")
+  final Optional<String> include) throws Exception {
+    try {
+      final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
+      return esQueryService.getMapset(code, ip).get(0);
+    } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the mapset maps.
+   *
+   * @return the mapsets
+   * @throws Exception the exception
+   */
+  @ApiOperation(value = "Get the maps for the mapset specified by the code (no terminology "
+      + "parameter is needed as mapsets connect codes in one terminology to another)", response = Concept.class)
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  })
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "code", value = "Mapset code", required = true, dataTypeClass = String.class,
+          paramType = "path"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
+          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "10")
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/mapset/{code}/maps", produces = "application/json")
+  public @ResponseBody MapResultList getMapsetMappingsByCode(@PathVariable(value = "code")
+  final String code, @RequestParam(required = false, name = "fromRecord")
+  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Optional<Integer> pageSize, @RequestParam(required = false, name = "term")
+  final Optional<String> term) throws Exception {
+    try {
+      // default index 0 and page size 10
+      final Integer fromRecordParam = fromRecord.orElse(0);
+      final Integer pageSizeParam = pageSize.orElse(10);
+      final IncludeParam ip = new IncludeParam("maps");
+      List<Map> maps = esQueryService.getMapset(code, ip).get(0).getMaps();
+      if (term.isPresent()) {
+        final String t = term.get().trim().toLowerCase();
+        final List<String> words = ConceptUtils.wordind(t);
+        // Check single words
+        if (words.size() == 1) {
+          maps = maps.stream().filter(m ->
+          // Code match
+          m.getSourceCode().toLowerCase().contains(t) || m.getTargetCode().toLowerCase().contains(t) ||
+          // Lowercase word match (starting on a word boundary)
+              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
+              || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(t) + ".*")
+              || m.getTargetName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
+              || m.getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(t) + ".*"))
+              .collect(Collectors.toList());
+        }
+        // Check multiple words (make sure both are in the source OR both are in the target)
+        else if (words.size() > 1) {
+          maps = maps.stream().filter(m -> {
+            boolean sourceFlag = true;
+            boolean targetFlag = true;
+            for (final String word : words) {
+              if (!(
+              // Lowercase word match (starting on a word boundary)
+              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
+                  || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+                sourceFlag = false;
+              }
+              if (!(
+              // Lowercase word match (starting on a word boundary)
+              m.getTargetName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
+                  || m.getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+                targetFlag = false;
+              }
+            }
+            return sourceFlag || targetFlag;
+          }).collect(Collectors.toList());
+        }
+      }
+      final Integer mapLength = maps.size();
+      final MapResultList list = new MapResultList();
+      list.setTotal(mapLength);
+      // Get this page if we haven't gone over the end
+      if (fromRecordParam < mapLength) {
+        // on subList "toIndex" don't go past the end
+        list.setMaps(maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
+      }
+      final SearchCriteria criteria = new SearchCriteria();
+      criteria.setInclude(null);
+      criteria.setType(null);
+      if (fromRecord.isPresent()) {
+        criteria.setFromRecord(fromRecord.get());
+        list.setParameters(criteria);
+      }
+      if (pageSize.isPresent()) {
+        criteria.setPageSize(pageSize.get());
+        list.setParameters(criteria);
+      }
+
+      return list;
     } catch (Exception e) {
       handleException(e);
       return null;
