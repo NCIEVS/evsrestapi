@@ -1,34 +1,22 @@
 
 package gov.nih.nci.evs.api.controller;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.HistoryUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.annotations.Api;
@@ -50,25 +38,13 @@ public class HistoryController extends BaseController {
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
 
-  /** The sparql query manager service. */
-  @Autowired
-  SparqlQueryManagerService sparqlQueryManagerService;
-
   /** The elastic query service. */
   @Autowired
   ElasticQueryService elasticQueryService;
 
   /** The term utils. */
-  /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
-
-  /** The metadata service. */
-  /* The metadata service */
-  @Autowired
-  MetadataService metadataService;
-
-  
 
   /**
    * Returns suggested replacements for a retired concept.
@@ -78,8 +54,8 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Gets suggested replacements for a specified terminology and retired code", response = List.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Gets suggested replacements for a specified terminology and retired code",
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
@@ -100,28 +76,28 @@ public class HistoryController extends BaseController {
   final String code) throws Exception {
 
     try {
-        
+
       final Terminology term = termUtils.getTerminology(terminology, true);
       final List<String> replacementCodes = HistoryUtils.getReplacements(term, elasticQueryService, code);
-      
+
       return replacementCodes;
-      
+
     } catch (final Exception e) {
       handleException(e);
       return null;
     }
   }
-  
+
   /**
    * Returns suggested replacements for retired concepts.
    *
    * @param terminology the terminology
-   * @param codes the list of codes
+   * @param list the list of codes
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Gets suggested replacements for a specified terminology and a list of retired codes", response = Map.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Gets suggested replacements for a specified terminology and a list of retired codes",
+      response = Map.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
@@ -138,21 +114,20 @@ public class HistoryController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/history/{terminology}/replacements",
       produces = "application/json")
   public @ResponseBody Map<String, List<String>> getReplacements(@PathVariable(value = "terminology")
-  final String terminology, @RequestParam(required = true, name = "codes")
-  final List<String> codes) throws Exception {
+  final String terminology, @RequestParam(required = true, name = "list")
+  final List<String> list) throws Exception {
 
     try {
-        
+
       final Terminology term = termUtils.getTerminology(terminology, true);
-      final Map<String, List<String>> replacementCodes = HistoryUtils.getReplacements(term, elasticQueryService, codes);
-      
+      final Map<String, List<String>> replacementCodes = HistoryUtils.getReplacements(term, elasticQueryService, list);
+
       return replacementCodes;
-      
+
     } catch (final Exception e) {
       handleException(e);
       return null;
     }
   }
 
-  
 }

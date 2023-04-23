@@ -4,7 +4,6 @@ package gov.nih.nci.evs.api.service;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
@@ -53,8 +52,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 // @Service
 public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
-  private static final Logger logger =
-      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -95,29 +93,28 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** the sparql query service impl. */
   @Autowired
   private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
-  
+
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
-  
+
   /** The history map. */
   private Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-  
+
   /** The simple date format. */
   private SimpleDateFormat inputDateFormat = new SimpleDateFormat("dd-MMM-yy");
-  
+
   /** The simple date format. */
   private SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-  
+
   /* see superclass */
   @Override
-  public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws IOException {
+  public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws IOException {
 
-    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}",
-        terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE);
+    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName(),
+        ElasticOperationsService.CONCEPT_TYPE);
 
-    boolean result =
-        operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
+    boolean result = operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
@@ -126,17 +123,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // Get complex roles and inverse roles
     try {
       logger.info("Load complex roles");
-      hierarchy
-          .setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
+      hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
       logger.info("Load complex inverse roles");
-      hierarchy.setInverseRoleMap(
-          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
+      hierarchy.setInverseRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
       logger.info("Load all associations");
-      hierarchy.setAssociationMap(
-          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
+      hierarchy.setAssociationMap(sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
       logger.info("Load all inverse roles");
-      hierarchy.setInverseAssociationMap(
-          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
+      hierarchy.setInverseAssociationMap(sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
     } catch (Exception e1) {
       throw new IOException(e1);
     }
@@ -177,8 +170,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
    * @param hierarchy the hierarchy
    * @throws Exception the exception
    */
-  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology, HierarchyUtils hierarchy)
+    throws Exception {
     logger.info("  download batch size = " + DOWNLOAD_BATCH_SIZE);
     logger.info("  index batch size = " + INDEX_BATCH_SIZE);
 
@@ -203,13 +196,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     int end = DOWNLOAD_BATCH_SIZE;
 
     Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
-    
+
     // build up a map of concept codes and names to use for history
     if (historyMap.size() > 0) {
-        
-        for (final Concept concept : allConcepts) {
-            nameMap.put(concept.getCode(), concept.getName());
-        }
+
+      for (final Concept concept : allConcepts) {
+        nameMap.put(concept.getCode(), concept.getName());
+      }
     }
 
     CountDownLatch latch = new CountDownLatch(taskSize.intValue());
@@ -221,8 +214,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
         logger.info("  Processing {} to {}", start + 1, end);
         logger.info("    start reading {} to {}", start + 1, end);
-        List<Concept> concepts = sparqlQueryManagerService
-            .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
+        List<Concept> concepts =
+            sparqlQueryManagerService.getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
         logger.info("    finish reading {} to {}", start + 1, end);
 
         logger.info("    start computing extensions and history {} to {}", start + 1, end);
@@ -236,7 +229,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           // }
         });
         logger.info("    finish computing extensions {} to {}", start + 1, end);
-        
+
         int indexStart = 0;
         int indexEnd = INDEX_BATCH_SIZE;
         Double indexTotal = (double) concepts.size();
@@ -245,9 +238,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           if (indexTotal - indexStart <= INDEX_BATCH_SIZE)
             indexEnd = indexTotal.intValue();
 
-          futures.add(executor.submit(
-              new ConceptLoadTask(concepts.subList(indexStart, indexEnd), start + indexStart,
-                  start + indexEnd, terminology.getIndexName(), latch, taskSize.intValue())));
+          futures.add(executor.submit(new ConceptLoadTask(concepts.subList(indexStart, indexEnd), start + indexStart,
+              start + indexEnd, terminology.getIndexName(), latch, taskSize.intValue())));
 
           indexStart = indexEnd;
           indexEnd = indexEnd + INDEX_BATCH_SIZE;
@@ -281,8 +273,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws Exception {
     String indexName = terminology.getObjectIndexName();
     logger.info("Loading Elastic Objects");
     logger.debug("object index name: {}", indexName);
@@ -296,12 +288,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // ElasticOperationsService.OBJECT_TYPE, ElasticObjectMapping.class);
     // }
 
-    if (terminology.getMetadata().getHierarchy() != null
-        && terminology.getMetadata().getHierarchy()) {
+    if (terminology.getMetadata().getHierarchy() != null && terminology.getMetadata().getHierarchy()) {
       ElasticObject hierarchyObject = new ElasticObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
+      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
       logger.info("  Hierarchy loaded");
     } else {
       logger.info("  Hierarchy skipped");
@@ -310,19 +300,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
     ElasticObject ssObject = new ElasticObject("synonym_sources");
     ssObject.setConceptMinimals(synonymSources);
-    operationsService.index(ssObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(ssObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     logger.info("  Synonym Sources loaded");
 
-    List<Concept> qualifiers =
-        sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
+    List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
     ElasticObject conceptsObject = new ElasticObject("qualifiers");
     conceptsObject.setConcepts(qualifiers);
     // Get qualifier values by code and by qualifier name
     final Map<String, Set<String>> map = new HashMap<>();
     for (final Concept qualifier : qualifiers) {
-      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(),
-          terminology)) {
+      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(), terminology)) {
         if (!map.containsKey(qualifier.getCode())) {
           map.put(qualifier.getCode(), new HashSet<>());
         }
@@ -334,41 +321,32 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
     }
     conceptsObject.setMap(map);
-    operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     logger.info("  Qualifiers loaded");
 
-    List<Concept> properties =
-        sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
+    List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
     ElasticObject propertiesObject = new ElasticObject("properties");
     propertiesObject.setConcepts(properties);
-    operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     logger.info("  Properties loaded");
 
-    List<Concept> associations =
-        sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
+    List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
     ElasticObject associationsObject = new ElasticObject("associations");
     associationsObject.setConcepts(associations);
-    operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     logger.info("  Associations loaded");
 
-    List<Concept> roles =
-        sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
+    List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
     ElasticObject rolesObject = new ElasticObject("roles");
     rolesObject.setConcepts(roles);
-    operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     logger.info("  Roles loaded");
 
     // synonymTypes
-    List<Concept> synonymTypes =
-        sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
+    List<Concept> synonymTypes = sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
     ElasticObject synonymTypesObject = new ElasticObject("synonymTypes");
     synonymTypesObject.setConcepts(synonymTypes);
-    operationsService.index(synonymTypesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(synonymTypesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     logger.info("  Synonym Types loaded");
 
     // definitionTypes
@@ -384,8 +362,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     ElasticObject subsetsObject = new ElasticObject("subsets");
     subsetsObject.setConcepts(subsets);
-    operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
     logger.info("  Subsets loaded");
 
     // associationEntries
@@ -393,14 +370,12 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       logger.info(association.getName());
       if (association.getName().equals("Concept_In_Subset"))
         continue;
-      List<AssociationEntry> entries =
-          sparqlQueryManagerService.getAssociationEntries(terminology, association);
-      ElasticObject associationEntriesObject =
-          new ElasticObject("associationEntries_" + association.getName());
+      List<AssociationEntry> entries = sparqlQueryManagerService.getAssociationEntries(terminology, association);
+      ElasticObject associationEntriesObject = new ElasticObject("associationEntries_" + association.getName());
       logger.info("    add associationEntries_" + association.getName() + " = " + entries.size());
       associationEntriesObject.setAssociationEntries(entries);
-      operationsService.index(associationEntriesObject, indexName,
-          ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      operationsService.index(associationEntriesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
+          ElasticObject.class);
     }
     logger.info("  Association Entries loaded");
 
@@ -448,8 +423,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
      * @throws Exception the exception
      */
     @SuppressWarnings("rawtypes")
-    public ConceptLoadTask(List concepts, int start, int end, String indexName,
-        CountDownLatch latch, int taskSize) throws Exception {
+    public ConceptLoadTask(List concepts, int start, int end, String indexName, CountDownLatch latch, int taskSize)
+        throws Exception {
       this.concepts = concepts;
       this.startIndex = start;
       this.endIndex = end;
@@ -463,11 +438,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     public Void call() throws Exception {
       try {
         taskLogger.info("    start loading concepts: {} to {}", startIndex + 1, endIndex);
-        operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE,
-            Concept.class);
+        operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE, Concept.class);
         int progress = (int) Math.floor((1.0 - 1.0 * latch.getCount() / taskSize) * 100);
-        taskLogger.info("    finish loading concepts: {} to {} ({}% complete)", startIndex + 1,
-            endIndex, progress);
+        taskLogger.info("    finish loading concepts: {} to {} ({}% complete)", startIndex + 1, endIndex, progress);
       } catch (Throwable e) {
         throw new Exception(e);
       } finally {
@@ -481,19 +454,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
-    String filepath, String terminology, boolean forceDelete) throws Exception {
+  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, String filepath,
+    String terminology, boolean forceDelete) throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
     final Terminology term = termUtils.getTerminology(config.getTerminology(), false);
 
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
     try {
-        
+
       // Load from config
       final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
-      final TerminologyMetadata metadata =
-          new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+      final TerminologyMetadata metadata = new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
       // Set term name and description
       term.setName(metadata.getUiLabel() + " " + term.getVersion());
@@ -510,12 +482,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // Compute concept statuses
       if (metadata.getConceptStatus() != null) {
-        metadata.setConceptStatuses(
-            sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
+        metadata
+            .setConceptStatuses(sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
         // IF this is just the single value "true", then instead set to
         // "Retired_Concept"
-        if (metadata.getConceptStatuses().size() == 1
-            && "true".equals(metadata.getConceptStatuses().get(0))) {
+        if (metadata.getConceptStatuses().size() == 1 && "true".equals(metadata.getConceptStatuses().get(0))) {
           metadata.getConceptStatuses().clear();
           metadata.getConceptStatuses().add("Retired_Concept");
         }
@@ -523,14 +494,12 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // Compute definition sources
       if (metadata.getDefinitionSource() != null) {
-        metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term)
-            .stream().map(d -> d.getCode()).collect(Collectors.toSet()));
+        metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term).stream()
+            .map(d -> d.getCode()).collect(Collectors.toSet()));
       }
 
     } catch (Exception e) {
-      throw new Exception(
-          "Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
-          e);
+      throw new Exception("Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(), e);
     }
 
     // Compute tags because this is the new terminology
@@ -541,60 +510,63 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     return term;
   }
-  
+
   /**
-   * Load the history files.
+   * Load (and cache) the history info for all concepts.
    *
    * @param terminology the terminology
    * @param filepath the file path
+   * @throws Exception the exception
    */
   private void loadHistory(final Terminology terminology, final String filepath) throws Exception {
-      
-      if (!terminology.getTerminology().equals("ncit") || filepath == null || filepath.isEmpty()) {
-          return;
-      }
-      
-      try {
-        
-          File file = new File(filepath);
-          logger.debug("Loading History for NCIT");
-          
-          try (BufferedReader reader = new BufferedReader( new InputStreamReader(new FileInputStream(file), "UTF8"));) {
-    
-            String line = null;
-            
-            // CODE, NA, ACTION, DATE, REPLACEMENT CODE
-            // Loop through lines until we reach "the end"
-            while ((line = reader.readLine()) != null) {
-                
-              final String[] fields = line.split("\\|", -1);
-              final String code = fields[0];
-              final String action = fields[2];
-              final String date = fields[3];
-              final String replacementCode = fields[4];
-              List<Map<String, String>> conceptHistory = new ArrayList<>();
-              final Map<String, String> historyItem = new HashMap<>();
-              
-              if (historyMap.containsKey(code)) {
-                  conceptHistory = historyMap.get(code);
-              }
-              
-              historyItem.put("action", action);
-              historyItem.put("date", date);
-              
-              if (replacementCode != null && !replacementCode.equals("null")) {
-                  historyItem.put("replacementCode", replacementCode);
-              }
-              
-              conceptHistory.add(historyItem);
-              historyMap.put(code, conceptHistory);
-            }
+
+    // Only load history for NCI Thesaurus
+    if (!terminology.getTerminology().equals("ncit") || filepath == null || filepath.isEmpty()) {
+      return;
+    }
+
+    try {
+
+      File file = new File(filepath);
+      logger.debug("Loading History for NCIT");
+
+      // Assume this file is checked.  It's passed in by the reindex.sh
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));) {
+
+        String line = null;
+
+        // CODE, NA, ACTION, DATE, REPLACEMENT CODE
+        // Loop through lines until we reach "the end"
+        while ((line = reader.readLine()) != null) {
+
+          final String[] fields = line.split("\\|", -1);
+          final String code = fields[0];
+          final String action = fields[2];
+          final String date = fields[3];
+          final String replacementCode = fields[4];
+          List<Map<String, String>> conceptHistory = new ArrayList<>();
+          final Map<String, String> historyItem = new HashMap<>();
+
+          if (historyMap.containsKey(code)) {
+            conceptHistory = historyMap.get(code);
           }
-      } catch (Exception e) {
-          throw new Exception("Unable to load history file for " + terminology.getName() + ": " + filepath, e);
+
+          historyItem.put("action", action);
+          historyItem.put("date", date);
+
+          if (replacementCode != null && !replacementCode.equals("null")) {
+            historyItem.put("replacementCode", replacementCode);
+          }
+
+          conceptHistory.add(historyItem);
+          historyMap.put(code, conceptHistory);
+        }
       }
+    } catch (Exception e) {
+      throw new Exception("Unable to load history file for " + terminology.getName() + ": " + filepath, e);
+    }
   }
-  
+
   /**
    * Handle history.
    *
@@ -604,37 +576,37 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
    */
   private void handleHistory(final Terminology terminology, final Concept concept) {
 
-      try {
-          
-          List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
-          
-          if (conceptHistory == null) {
-              return;
-          }
-          
-          for (final Map<String, String> historyItem: conceptHistory) {
-              
-              final History history = new History();
-              history.setCode(concept.getCode());
-              history.setAction(historyItem.get("action"));
-              
-              final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
-              history.setDate(date);
-              
-              final String replacementCode = historyItem.get("replacementCode");
-              
-              if (replacementCode != null && replacementCode != "") {
-                  
-                  history.setReplacementCode(replacementCode);
-                  history.setReplacementName(nameMap.get(replacementCode));
-              }
-              
-              concept.getHistory().add(history);
-          }
-          
-      } catch (Exception e) {
-          logger.error("Problem loading history for concept " + concept.getCode() + ".", e);
+    try {
+
+      List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
+
+      if (conceptHistory == null) {
+        return;
       }
+
+      for (final Map<String, String> historyItem : conceptHistory) {
+
+        final History history = new History();
+        history.setCode(concept.getCode());
+        history.setAction(historyItem.get("action"));
+
+        final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
+        history.setDate(date);
+
+        final String replacementCode = historyItem.get("replacementCode");
+
+        if (replacementCode != null && replacementCode != "") {
+
+          history.setReplacementCode(replacementCode);
+          history.setReplacementName(nameMap.get(replacementCode));
+        }
+
+        concept.getHistory().add(history);
+      }
+
+    } catch (Exception e) {
+      logger.error("Problem loading history for concept " + concept.getCode() + ".", e);
+    }
   }
 
   /* see superclass */
