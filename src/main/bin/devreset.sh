@@ -248,7 +248,7 @@ historyFile=$dir/cumulative_history_21.06e.txt
 
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
-src/main/bin/reindex.sh --noconfig --history $dir/$historyFile | sed 's/^/    /'
+src/main/bin/reindex.sh --noconfig --history $historyFile | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem running reindex.sh script"
     exit 1
