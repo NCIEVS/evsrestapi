@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -1661,9 +1662,24 @@ public class MetadataControllerTests {
     assertThat(metadataMappings.stream().map(Concept::getProperties)
         .noneMatch(properties -> properties == null || properties.isEmpty()));
 
-    // test mapset/{code} - downloadOnly = false
-    result =
-        mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping")).andExpect(status().isOk()).andReturn();
+    // /mapsets with include params
+    result = mvc.perform(get(url + "mapsets").param("include", "properties"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    metadataMappings = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(metadataMappings.size() > 0);
+    assertThat(metadataMappings.stream().map(Concept::getName)
+        .noneMatch(name -> name == null || name.isEmpty()));
+    assertThat(metadataMappings.stream().map(Concept::getCode)
+        .noneMatch(code -> code == null || code.isEmpty()));
+    assertThat(metadataMappings.stream().map(Concept::getProperties)
+        .noneMatch(properties -> properties == null || properties.isEmpty()));
+
+    // test mapset/{code} - downloadOnly = false, include param properties
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping").param("include", "properties"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     Concept singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
     assertThat(singleMetadataMap != null);
@@ -1677,10 +1693,11 @@ public class MetadataControllerTests {
     assertThat(singleMetadataMap.getProperties().stream()
         .filter(property -> "type".equals("welcomeText") && property.getValue() != null)
         .findFirst());
+    assertThat(singleMetadataMap.getProperties() != null);
 
-    // test mapset/{code} - downloadOnly = true, mapsetLink available
-    result = mvc.perform(get(url + "mapset/ICDO_TO_NCI_TOPOGRAPHY")).andExpect(status().isOk())
-        .andReturn();
+    // test mapset/{code} - downloadOnly = true, mapsetLink available, include param maps
+    result = mvc.perform(get(url + "mapset/ICDO_TO_NCI_TOPOGRAPHY").param("include", "maps"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
     assertThat(singleMetadataMap != null);
@@ -1696,8 +1713,10 @@ public class MetadataControllerTests {
             .getProperties().stream().filter(property -> "type".equals("mapsetLink")
                 && property.getValue() != null && property.getValue().endsWith(".txt"))
             .findFirst());
+    // should be no maps indexed because of ftp storage
+    assertThat(singleMetadataMap.getMaps() == null);
 
-    // test mapset/{code} - downloadOnly = true, mapsetLink = null
+    // test mapset/{code} - downloadOnly = true, mapsetLink = null, include param maps
     result =
         mvc.perform(get(url + "mapset/NCIt_Maps_To_GDC")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1713,8 +1732,9 @@ public class MetadataControllerTests {
     assertThat(singleMetadataMap.getProperties().stream()
         .filter(property -> "type".equals("mapsetLink") && property.getValue().equals(null))
         .findFirst());
+    assertThat(singleMetadataMap.getMaps() != null);
 
-    // test mapset/{code}/mappings
+    // test mapset/{code}/maps
     result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();
@@ -1733,6 +1753,75 @@ public class MetadataControllerTests {
     assertThat(mapList.getTotal().equals(23));
     Map tenFromTen = mapList.getMaps().get(0);
     assertThat(tenFromTen.equals(tenFromZero));
+
+    // test mapset/{code}/maps, fromRecord off page size
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?fromRecord=1&pageSize=10"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(mapList.getTotal() > 0);
+    assertThat(mapList.getTotal().equals(mapList.getMaps().size()));
+    Map tenFromOne = mapList.getMaps().get(8);
+    assertThat(tenFromTen.equals(tenFromOne));
+
+    // test mapset/{code}/maps, fromRecord past the end
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?fromRecord=100000"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(mapList.getTotal() == 0);
+
+    // test mapset/{code}/maps, term with zero matches
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?term=XXXXXXX"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(mapList.getTotal() == 0);
+
+    // test mapset/{code}/maps, term with non-zero matches
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?term=act"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(mapList.getTotal() != 0);
+    assertThat(mapList.getMaps().stream()
+        .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
+            .anyMatch(name -> name.contains("act"));
+    Map sixFromZero = mapList.getMaps().get(5);
+
+    // test mapset/{code}/maps, term with non-zero matches, trim spacing
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?term=   act   "))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(mapList.getTotal() != 0);
+    assertThat(mapList.getMaps().stream()
+        .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
+            .anyMatch(name -> name.contains("act"));
+
+    // test mapset/{code}/maps, term with non-zero matches and different fromRecord/pageSize
+    result =
+        mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?term=act&fromRecord=3&pageSize=12"))
+            .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(mapList.getTotal() != 0);
+    assertThat(mapList.getTotal() == 12);
+    assertThat(mapList.getMaps().stream()
+        .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
+            .anyMatch(name -> name.contains("act"));
+    Map sixFromThree = mapList.getMaps().get(2);
+    assertThat(sixFromThree.equals(sixFromZero));
+
+    // test mapset/{code}/maps, code with non-zero matches
+    result = mvc.perform(get(url + "mapset/GO_to_NCIt_Mapping/maps?term=C17087"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(mapList.getTotal() != 0);
+    assertThat(mapList.getMaps().stream()
+        .flatMap(map -> Stream.of(map.getSourceCode(), map.getTargetCode())))
+            .anyMatch(name -> name.contains("C17087"));
 
   }
 
