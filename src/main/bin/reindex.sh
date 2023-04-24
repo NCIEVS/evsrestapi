@@ -11,7 +11,7 @@ historyFile=
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
-  --history) history=$2; shift;;
+  --history) historyFile=$2; shift;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
@@ -35,6 +35,9 @@ fi
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
+if [[ $historyFile ]]; then
+    echo "historyFile = $historyFile"
+fi
 echo ""
 
 # Setup configuration
@@ -242,7 +245,7 @@ for x in `cat /tmp/y.$$.txt`; do
                 fi
 
                 # Set historyFile for later steps    
-                historyFile=$historyDirectory/cumulative_history_$version.txt
+                historyFile=$dir/NCIT_HISTORY/cumulative_history_$version.txt
                 break
             fi
         done
