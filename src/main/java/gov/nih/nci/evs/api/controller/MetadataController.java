@@ -410,7 +410,8 @@ public class MetadataController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(
-      value = "Get all subsets (or those specified by list parameter) for the specified terminology",
+      value = "Get all subsets (or those specified by list parameter) for the specified terminology. "
+          + " Metadata subset endpoints will be deprecated in v2 in favor of top level subset endpoints.",
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -677,7 +678,8 @@ public class MetadataController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the subset for the specified terminology and code",
+  @ApiOperation(value = "Get the subset for the specified terminology and code"
+      + " Metadata subset endpoints will be deprecated in v2 in favor of top level subset endpoints.",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -1029,7 +1031,8 @@ public class MetadataController extends BaseController {
    * @return the definition type
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the definition type for the specified terminology and code/name",
+  @ApiOperation(value = "Get the definition type for the specified terminology and code/name."
+      + " Metadata mapset endpoints will be deprecated in v2 in favor of top level mapset endpoints.",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -1127,7 +1130,8 @@ public class MetadataController extends BaseController {
    */
   @ApiOperation(
       value = "Get the mapset for the specified code (no terminology parameter is"
-          + " needed as mapsets connect codes in one terminology to another)",
+          + " needed as mapsets connect codes in one terminology to another). "
+          + "Metadata mapset calls will be deprecated in v2 in favor of top level calls",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -1172,9 +1176,9 @@ public class MetadataController extends BaseController {
    * @return the mapsets
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get the maps for the mapset specified by the code (no terminology "
-          + "parameter is needed as mapsets connect codes in one terminology to another)",
+  @ApiOperation(value = "Get the maps for the mapset specified by the code (no terminology "
+      + "parameter is needed as mapsets connect codes in one terminology to another). "
+      + "Metadata mapset endpoints will be deprecated in v2 in favor of top level mapset endpoints.",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
