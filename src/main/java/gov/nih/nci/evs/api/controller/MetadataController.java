@@ -3,6 +3,8 @@ package gov.nih.nci.evs.api.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -1187,7 +1189,12 @@ public class MetadataController extends BaseController {
           example = "0"),
       @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
           required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "10",
-          example = "10")
+          example = "10"),
+      @ApiImplicitParam(name = "sort", value = "The search parameter to sort results by",
+          required = false, dataTypeClass = String.class, paramType = "query"),
+      @ApiImplicitParam(name = "ascending",
+          value = "Sort ascending (if true) or descending (if false)", required = false,
+          dataTypeClass = Boolean.class, paramType = "query")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/mapset/{code}/maps",
@@ -1196,7 +1203,9 @@ public class MetadataController extends BaseController {
   final String code, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
   final Optional<Integer> pageSize, @RequestParam(required = false, name = "term")
-  final Optional<String> term) throws Exception {
+  final Optional<String> term, @RequestParam(required = false, name = "ascending")
+  final Optional<Boolean> ascending, @RequestParam(required = false, name = "sort")
+  final Optional<String> sort) throws Exception {
     try {
       // default index 0 and page size 10
       final Integer fromRecordParam = fromRecord.orElse(0);
@@ -1268,6 +1277,18 @@ public class MetadataController extends BaseController {
       if (pageSize.isPresent()) {
         criteria.setPageSize(pageSize.get());
         list.setParameters(criteria);
+      }
+      if (sort.isPresent()) {
+        if (sort.get().equals("sourceName")) {
+          maps.sort(Comparator.comparing(Map::getSourceName));
+
+        } else if (sort.get().equals("targetName")) {
+          maps.sort(Comparator.comparing(Map::getTargetName));
+        }
+        if (ascending.isPresent() && !ascending.get()) {
+          Collections.reverse(maps);
+        }
+        list.setMaps(maps);
       }
 
       return list;
