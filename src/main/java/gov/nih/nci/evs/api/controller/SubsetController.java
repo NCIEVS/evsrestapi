@@ -68,7 +68,7 @@ public class SubsetController extends BaseController {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request")
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/{terminology}/subsets",
+  @RequestMapping(method = RequestMethod.GET, value = "/subsets/{terminology}",
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
@@ -131,7 +131,7 @@ public class SubsetController extends BaseController {
           defaultValue = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/{terminology}/subset/{code}",
+  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}/{code}",
       produces = "application/json")
   public @ResponseBody Concept getSubset(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
