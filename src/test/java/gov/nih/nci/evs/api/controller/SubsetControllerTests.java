@@ -74,7 +74,7 @@ public class SubsetControllerTests {
     Concept concept = null;
 
     // minimal
-    url = baseUrl + "/ncit/subset/C116978?include=minimal";
+    url = baseUrl + "subset/ncit/C116978?include=minimal";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -96,7 +96,7 @@ public class SubsetControllerTests {
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
 
-    url = baseUrl + "/ncit/subset/C116978?include=synonyms,properties";
+    url = baseUrl + "subset/ncit/C116978?include=synonyms,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -120,7 +120,7 @@ public class SubsetControllerTests {
             .isGreaterThan(0);
 
     // /subsets - minimal
-    url = baseUrl + "/ncit/subsets?include=properties";
+    url = baseUrl + "subsets/ncit?include=properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -151,7 +151,7 @@ public class SubsetControllerTests {
             .isGreaterThan(0);
 
     // /subsets - properties
-    url = baseUrl + "/ncit/subsets?include=synonyms,properties";
+    url = baseUrl + "subsets/ncit?include=synonyms,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -191,7 +191,7 @@ public class SubsetControllerTests {
    */
   @Test
   public void testTopLevelSubsetSearch() throws Exception {
-    String url = baseUrl + "/ncit/subsets?include=properties";
+    String url = baseUrl + "subsets/ncit?include=properties";
     MvcResult result = null;
     List<Concept> list = null;
     log.info("Testing url - " + url);
@@ -217,7 +217,7 @@ public class SubsetControllerTests {
    */
   @Test
   public void testSpecificSubsetSearch() throws Exception {
-    String url = baseUrl + "/ncit/subset/C167405";
+    String url = baseUrl + "subset/ncit/C167405";
     MvcResult result = null;
     Concept list = null;
     log.info("Testing url - " + url);
@@ -229,7 +229,7 @@ public class SubsetControllerTests {
     assertThat(list != null && list.getSubsetLink() == null).isTrue();
 
     // This value is specifically set in the unit test data via P374
-    url = baseUrl + "/ncit/subset/C100110?include=full";
+    url = baseUrl + "subset/ncit/C100110?include=full";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, Concept.class);
@@ -240,7 +240,7 @@ public class SubsetControllerTests {
     assertThat(list.getProperties()).isNotEmpty();
     assertThat(list.getLeaf()).isFalse();
 
-    url = baseUrl + "/ncit/subset/C116977";
+    url = baseUrl + "subset/ncit/C116977";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, Concept.class);
