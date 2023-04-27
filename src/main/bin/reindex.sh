@@ -310,8 +310,9 @@ for x in `cat /tmp/y.$$.txt`; do
         export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB ${term} $version"
         
+        # Set the history clause for "ncit"
         historyClause=""
-        if [[ $historyFile ]]; then
+        if [[ "$term" -eq "ncit" ]] && [[ $historyFile ]]; then
         	historyClause=" -d $historyFile"
         fi
 
