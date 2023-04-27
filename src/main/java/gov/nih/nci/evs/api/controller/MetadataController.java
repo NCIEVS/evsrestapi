@@ -982,7 +982,7 @@ public class MetadataController extends BaseController {
    */
   @ApiOperation(
       value = "Get all subsets (or those specified by list parameter) for the specified terminology. "
-          + " Metadata subset endpoints will be deprecated in v2 in favor of top level subset endpoints.",
+          + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.",
       response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
@@ -1029,7 +1029,7 @@ public class MetadataController extends BaseController {
    * @throws Exception the exception
    */
   @ApiOperation(value = "Get the subset for the specified terminology and code"
-      + " Metadata subset endpoints will be deprecated in v2 in favor of top level subset endpoints.",
+      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.",
       response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
