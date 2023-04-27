@@ -77,7 +77,7 @@ public class MapsetControllerTests {
           // n/a
         });
 
-    // test /mapsets
+    // test /mapset
     assert (metadataMappings.size() > 0);
     assert (metadataMappings.stream().map(Concept::getName)
         .noneMatch(name -> name == null || name.isEmpty()));
@@ -87,7 +87,7 @@ public class MapsetControllerTests {
     assert (metadataMappings.stream().map(Concept::getProperties)
         .allMatch(properties -> properties == null || properties.isEmpty()));
 
-    // /mapsets with include params
+    // /mapset with include params
     result = mvc.perform(get(baseUrl + "mapsets").param("include", "properties"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -243,7 +243,7 @@ public class MapsetControllerTests {
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
-            .anyMatch(name -> name.contains("act"));
+        .anyMatch(name -> name.contains("act"));
     Map sixFromZero = mapList.getMaps().get(5);
 
     // test mapset/{code}/maps, term with non-zero matches, trim spacing
@@ -254,7 +254,7 @@ public class MapsetControllerTests {
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
-            .anyMatch(name -> name.contains("act"));
+        .anyMatch(name -> name.contains("act"));
 
     // test mapset/{code}/maps, term with non-zero matches and different fromRecord/pageSize
     result = mvc
@@ -266,7 +266,7 @@ public class MapsetControllerTests {
     assert (mapList.getMaps().size() == 12);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
-            .anyMatch(name -> name.contains("act"));
+        .anyMatch(name -> name.contains("act"));
     Map sixFromThree = mapList.getMaps().get(2);
     assert (sixFromThree.equals(sixFromZero));
 
@@ -278,7 +278,7 @@ public class MapsetControllerTests {
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceCode(), map.getTargetCode())))
-            .anyMatch(name -> name.contains("C17087"));
+        .anyMatch(name -> name.contains("C17087"));
 
   }
 }

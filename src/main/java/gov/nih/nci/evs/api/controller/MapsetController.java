@@ -86,7 +86,7 @@ public class MapsetController extends BaseController {
           defaultValue = "minimal")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/mapsets", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/mapset", produces = "application/json")
   public @ResponseBody List<Concept> getMapsets(@RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
     try {

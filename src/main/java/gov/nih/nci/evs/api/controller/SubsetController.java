@@ -72,7 +72,7 @@ public class SubsetController extends BaseController {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
       @ApiResponse(code = 400, message = "Bad request")
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/subsets/{terminology}",
+  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}",
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",

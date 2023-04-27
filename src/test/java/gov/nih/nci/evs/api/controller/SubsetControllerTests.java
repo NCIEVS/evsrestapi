@@ -117,10 +117,10 @@ public class SubsetControllerTests {
     assertThat(concept.getMaps()).isEmpty();
     assertThat(
         concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+        .isGreaterThan(0);
 
-    // /subsets - minimal
-    url = baseUrl + "subsets/ncit?include=properties";
+    // /subset - minimal
+    url = baseUrl + "subset/ncit?include=properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -148,10 +148,10 @@ public class SubsetControllerTests {
     assertThat(concept.getMaps()).isEmpty();
     assertThat(
         concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+        .isGreaterThan(0);
 
-    // /subsets - properties
-    url = baseUrl + "subsets/ncit?include=synonyms,properties";
+    // /subset - properties
+    url = baseUrl + "subset/ncit?include=synonyms,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -180,7 +180,7 @@ public class SubsetControllerTests {
     assertThat(concept.getMaps()).isEmpty();
     assertThat(
         concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+        .isGreaterThan(0);
 
   }
 
@@ -191,7 +191,7 @@ public class SubsetControllerTests {
    */
   @Test
   public void testTopLevelSubsetSearch() throws Exception {
-    String url = baseUrl + "subsets/ncit?include=properties";
+    String url = baseUrl + "subset/ncit?include=properties";
     MvcResult result = null;
     List<Concept> list = null;
     log.info("Testing url - " + url);
