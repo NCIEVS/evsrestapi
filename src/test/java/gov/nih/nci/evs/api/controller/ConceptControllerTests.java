@@ -1340,7 +1340,7 @@ public class ConceptControllerTests {
     String content = null;
     List<Concept> subsetMembers;
 
-    url = baseUrl + "/ncit/subsetMembers/C2991";
+    url = baseUrl + "/subset/ncit/C2991/members";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1350,7 +1350,7 @@ public class ConceptControllerTests {
     });
     assertThat(subsetMembers.size()).isEqualTo(40);
 
-    url = baseUrl + "/ncit/subsetMembers/C2991?pageSize=10";
+    url = baseUrl + "/subset/ncit/C2991/members?pageSize=10";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1361,7 +1361,7 @@ public class ConceptControllerTests {
 
     assertThat(subsetMembers.size() == 10);
 
-    url = baseUrl + "/ncit/subsetMembers/C136564?pageSize=10";
+    url = baseUrl + "/subset/ncit/C136564/members?pageSize=10";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

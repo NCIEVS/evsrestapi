@@ -47,7 +47,6 @@ public class ConceptSampleTester {
   /** The term url. */
   private String termUrl = "/api/v1/metadata/terminologies";
 
-  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   private MockMvc testMvc;
 
   /** The terminology. */
@@ -1095,85 +1094,92 @@ public class ConceptSampleTester {
    */
   public void performSubsetsTests(final String term, final Map<String, List<SampleRecord>> sampleMap, final MockMvc mvc)
     throws Exception {
-    // Only perform these tests on ncit
-    if (!term.equals("ncit")) {
-      return;
-    }
+
+    // Instead of only performing on ncit, perform on all but require no entries for non-ncit
 
     MvcResult result = null;
     testMvc = mvc;
     lookupTerminology(term, testMvc);
 
-    String url = "/api/v1/metadata/" + terminology.getTerminology() + "/subsets?include=properties";
+    String url = "/api/v1/subset/" + terminology.getTerminology() + "?include=properties";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
 
-    Boolean leafChecked = false;
-    Boolean childChecked = false;
-    for (Concept root : roots) {
-      if (!root.getTerminology().equals("ncit")) {
-        errors.add(
-            "Subset root code " + root.getCode() + " has terminology " + root.getTerminology() + " instead of ncit");
-      }
-      if (!childChecked) {
-        if (root.getChildren().size() == 0) {
-          errors.add("Subset root code " + root.getCode() + " has no children");
-        }
-        childChecked = true;
-      }
+    // Check for "ncit"
+    if (term.equals("ncit")) {
 
-      if (!leafChecked) {
-        String leafCode = getLeafCode(root);
-        if (leafCode == null) {
-          errors.add("No leaf found in subset " + root.getCode());
-          break;
-        }
-        url = "/api/v1/metadata/" + terminology.getTerminology() + "/subset/" + leafCode + "?include=summary";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        Concept firstLeaf = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
-          // n/a
-        });
-        /*
-         * if (firstLeaf.getSubsetLink() == null) { errors.add("Subset leaf " + leafCode +
-         * " has no subset link"); }
-         */
-        String firstLeafDesc =
-            firstLeaf.getProperties().stream().filter(p -> p.getType().equals("Term_Browser_Value_Set_Description"))
-                .collect(Collectors.toList()).get(0).getValue();
-        if (root.getProperties().stream().noneMatch(
-            d -> d.getType().equals("Term_Browser_Value_Set_Description") && d.getValue().equals(firstLeafDesc))) {
+      Boolean leafChecked = false;
+      Boolean childChecked = false;
+      for (Concept root : roots) {
+        if (!root.getTerminology().equals("ncit")) {
           errors.add(
-              "No matching Term_Browser_Value_Set_Description property found in subset leaf " + firstLeaf.getCode());
+              "Subset root code " + root.getCode() + " has terminology " + root.getTerminology() + " instead of ncit");
         }
-        if (firstLeaf.getProperties().stream().anyMatch(p -> p.getType().equals("Value_Set_Location"))) {
-          errors.add("Value_Set_Location property found in subset leaf " + firstLeaf.getCode());
+        if (!childChecked) {
+          if (root.getChildren().size() == 0) {
+            errors.add("Subset root code " + root.getCode() + " has no children");
+          }
+          childChecked = true;
         }
 
-        url = "/api/v1/concept/" + terminology.getTerminology() + "/subsetMembers/" + leafCode
-            + "?include=minimal&fromRecord=0";
-        result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        List<Concept> firstLeafMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
-        if (firstLeafMembers.size() < 10) {
-          errors.add("Leaf Node " + firstLeaf.getCode() + " has fewer than 10 subsets containing it");
+        if (!leafChecked) {
+          String leafCode = getLeafCode(root);
+          if (leafCode == null) {
+            errors.add("No leaf found in subset " + root.getCode());
+            break;
+          }
+          url = "/api/v1/subset/" + terminology.getTerminology() + "/" + leafCode + "?include=summary";
+          result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+          content = result.getResponse().getContentAsString();
+          Concept firstLeaf = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
+            // n/a
+          });
+          /*
+           * if (firstLeaf.getSubsetLink() == null) { errors.add("Subset leaf " + leafCode +
+           * " has no subset link"); }
+           */
+          String firstLeafDesc =
+              firstLeaf.getProperties().stream().filter(p -> p.getType().equals("Term_Browser_Value_Set_Description"))
+                  .collect(Collectors.toList()).get(0).getValue();
+          if (root.getProperties().stream().noneMatch(
+              d -> d.getType().equals("Term_Browser_Value_Set_Description") && d.getValue().equals(firstLeafDesc))) {
+            errors.add(
+                "No matching Term_Browser_Value_Set_Description property found in subset leaf " + firstLeaf.getCode());
+          }
+          if (firstLeaf.getProperties().stream().anyMatch(p -> p.getType().equals("Value_Set_Location"))) {
+            errors.add("Value_Set_Location property found in subset leaf " + firstLeaf.getCode());
+          }
+
+          url = "/api/v1/subset/" + terminology.getTerminology() + "/" + leafCode
+              + "/members?include=minimal&fromRecord=0";
+          result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+          content = result.getResponse().getContentAsString();
+          List<Concept> firstLeafMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+          });
+          if (firstLeafMembers.size() < 10) {
+            errors.add("Leaf Node " + firstLeaf.getCode() + " has fewer than 10 subsets containing it");
+          }
+          leafChecked = true;
         }
-        leafChecked = true;
+      }
+      if (errors.size() > 0) {
+        log.error(
+            "SAMPLING ERRORS FOUND IN SUBSET SAMPLING FOR TERMINOLOGY " + terminology.getName() + ". SEE LOG BELOW");
+        for (final String err : errors) {
+          log.error(err);
+        }
+      } else {
+        log.info("No sampling errors found for terminology " + terminology.getName() + " in subset testing.");
       }
     }
-    if (errors.size() > 0) {
-      log.error(
-          "SAMPLING ERRORS FOUND IN SUBSET SAMPLING FOR TERMINOLOGY " + terminology.getName() + ". SEE LOG BELOW");
-      for (final String err : errors) {
-        log.error(err);
-      }
-    } else {
-      log.info("No sampling errors found for terminology " + terminology.getName() + " in subset testing.");
+
+    // Verify non-ncit
+    else {
+      assertThat(roots).isEmpty();
     }
   }
 

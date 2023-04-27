@@ -453,17 +453,6 @@ public class MdrControllerTests {
     // c.getCode()).collect(Collectors.toSet()))
     // .contains("SUPPRESS");
 
-    // Handle subsets - n/a
-    url = base + "/subsets";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(list).isEmpty();
-
     // Handle synonymSources - n/a - handled inline
     url = base + "/synonymSources";
     log.info("Testing url - " + url);

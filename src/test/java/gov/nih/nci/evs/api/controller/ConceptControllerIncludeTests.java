@@ -579,7 +579,7 @@ public class ConceptControllerIncludeTests {
     List<Concept> list = null;
 
     // Look up subset members with minimal
-    url = baseUrl + "/ncit/subsetMembers/C157225?include=minimal&fromRecord=0&pageSize=10";
+    url = baseUrl + "/subset/ncit/C157225/members?include=minimal&fromRecord=0&pageSize=10";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -599,7 +599,7 @@ public class ConceptControllerIncludeTests {
     assertThat(list.get(0).getProperties()).isEmpty();
 
     // Look up subset members with synonyms
-    url = baseUrl + "/ncit/subsetMembers/C157225?include=synonyms&fromRecord=0&pageSize=10";
+    url = baseUrl + "/subset/ncit/C157225/members?include=synonyms&fromRecord=0&pageSize=10";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
