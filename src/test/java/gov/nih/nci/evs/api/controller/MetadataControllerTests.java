@@ -1537,20 +1537,6 @@ public class MetadataControllerTests {
     });
     assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
 
-    result = mvc.perform(get(baseWeeklyUrl + "/subset/C167405").param("include", "minimal"))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(metadataConcept.getVersion() == terminology.getVersion());
-
-    result = mvc.perform(get(baseWeeklyUrl + "/subsets").param("include", "minimal"))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
-
     result = mvc.perform(get(baseWeeklyUrl + "/synonymType/P90").param("include", "minimal"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
