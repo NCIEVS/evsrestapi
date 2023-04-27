@@ -90,22 +90,26 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}",
+      produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
       @ApiImplicitParam(name = "list",
           value = "List (comma-separated) of codes to return concepts for, e.g."
-              + "<ul><li>'C2291,C3224' for <i>ncit</i></li>" + "<li>'C0010137,C0025202' for <i>ncim</i></li></ul>",
+              + "<ul><li>'C2291,C3224' for <i>ncit</i></li>"
+              + "<li>'C0010137,C0025202' for <i>ncim</i></li></ul>",
           required = true, dataTypeClass = String.class, paramType = "query")
   })
   @RecordMetric
@@ -124,7 +128,8 @@ public class ConceptController extends BaseController {
             "Maximum number of concepts to request at a time is 1000 = " + codes.length);
       }
 
-      final List<Concept> concepts = elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
+      final List<Concept> concepts =
+          elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
       return concepts;
     } catch (final Exception e) {
       handleException(e);
@@ -142,16 +147,19 @@ public class ConceptController extends BaseController {
    * @return the concept
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the concept for the specified terminology and code", response = Concept.class)
+  @ApiOperation(value = "Get the concept for the specified terminology and code",
+      response = Concept.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}",
+      produces = "application/json")
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
@@ -170,7 +178,8 @@ public class ConceptController extends BaseController {
               + "disjointWith, history, inverseAssociations, inverseRoles, maps, parents, properties, "
               + "roles, synonyms. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "summary")
   })
   public @ResponseBody Concept getConcept(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -188,7 +197,8 @@ public class ConceptController extends BaseController {
       }
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit must be between 1 and 100");
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
 
         }
         ConceptUtils.applyLimit(concept.get(), limit.get().intValue());
@@ -209,15 +219,16 @@ public class ConceptController extends BaseController {
    * @return the associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the associations for the specified terminology and code", response = Association.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get the associations for the specified terminology and code",
+      response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. <ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
@@ -233,7 +244,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -261,45 +273,52 @@ public class ConceptController extends BaseController {
       response = AssociationEntryResultList.class)
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "codeOrLabel",
-          value = "Code/label in the specified terminology, e.g. " + "'A5' or 'Has_Salt_Form' for <i>ncit</i>."
+          value = "Code/label in the specified terminology, e.g. "
+              + "'A5' or 'Has_Salt_Form' for <i>ncit</i>."
               + " This call is only meaningful for <i>ncit</i>.",
           required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "10")
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
+          example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "10",
+          example = "10")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/associations/{codeOrLabel}",
-      produces = "application/json")
-  public @ResponseBody AssociationEntryResultList getAssociationEntries(@PathVariable(value = "terminology")
-  final String terminology, @PathVariable(value = "codeOrLabel")
-  final String codeOrLabel, @RequestParam(required = false, name = "fromRecord")
-  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  final Optional<Integer> pageSize) throws Exception {
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/concept/{terminology}/associations/{codeOrLabel}", produces = "application/json")
+  public @ResponseBody AssociationEntryResultList getAssociationEntries(
+    @PathVariable(value = "terminology")
+    final String terminology, @PathVariable(value = "codeOrLabel")
+    final String codeOrLabel, @RequestParam(required = false, name = "fromRecord")
+    final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+    final Optional<Integer> pageSize) throws Exception {
     // Get the association "label"
     final Long startTime = System.currentTimeMillis();
 
     final Optional<Concept> association =
         metadataService.getAssociation(terminology, codeOrLabel, Optional.ofNullable("minimal"));
     if (!association.isPresent()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + codeOrLabel + " not found");
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "Association " + codeOrLabel + " not found");
     }
     final String label = association.get().getName();
     final String code = association.get().getCode();
-    if (termUtils.getTerminology(terminology, true).getMetadata().getSubsetMember().contains(code)) {
+    if (termUtils.getTerminology(terminology, true).getMetadata().getSubsetMember()
+        .contains(code)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Associations used to define subset membership are not resolved by this call");
     }
     // Getting the list
-    final AssociationEntryResultList list =
-        metadataService.getAssociationEntries(terminology, label, fromRecord.orElse(0), pageSize.orElse(10));
+    final AssociationEntryResultList list = metadataService.getAssociationEntries(terminology,
+        label, fromRecord.orElse(0), pageSize.orElse(10));
     list.setTimeTaken(System.currentTimeMillis() - startTime);
 
     return list;
@@ -313,23 +332,24 @@ public class ConceptController extends BaseController {
    * @return the inverse associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get inverse associations for the specified terminology and code", response = Association.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get inverse associations for the specified terminology and code",
+      response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
           required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseAssociations",
-      produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/concept/{terminology}/{code}/inverseAssociations", produces = "application/json")
   public @ResponseBody List<Association> getInverseAssociations(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code) throws Exception {
@@ -362,18 +382,19 @@ public class ConceptController extends BaseController {
    * @return the subsets
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get subset members for the specified terminology and code", response = Association.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get subset members for the specified terminology and code. "
+      + "Concept subset endpoints will be deprecated in v2 in favor of top level subset endpoints.",
+      response = Association.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code for a subset concept in the specified "
-              + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+      @ApiImplicitParam(name = "code", value = "Code for a subset concept in the specified "
+          + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, dataTypeClass = String.class, paramType = "path"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -381,11 +402,13 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", example = "10000"),
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
+          example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query", example = "10000"),
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
@@ -412,14 +435,17 @@ public class ConceptController extends BaseController {
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
-        final int toIndex = Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (final Association assn : concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
-          final Concept member = elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
+        final int toIndex =
+            Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
+        for (final Association assn : concept.get().getInverseAssociations().subList(fromIndex,
+            toIndex)) {
+          final Concept member =
+              elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {
             subsets.add(member);
           } else {
-            logger.warn("Unexpected subset member that could not be loaded as a concept = " + term.getTerminology()
-                + ", " + assn.getRelatedCode());
+            logger.warn("Unexpected subset member that could not be loaded as a concept = "
+                + term.getTerminology() + ", " + assn.getRelatedCode());
           }
         }
       }
@@ -444,7 +470,8 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
@@ -464,7 +491,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -486,11 +514,12 @@ public class ConceptController extends BaseController {
    * @return the inverse roles
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get inverse roles for the specified terminology and code", response = Role.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get inverse roles for the specified terminology and code",
+      response = Role.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
@@ -510,7 +539,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -531,15 +561,16 @@ public class ConceptController extends BaseController {
    * @return the parents
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get parent concepts for the specified terminology and code", response = ConceptMinimal.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get parent concepts for the specified terminology and code",
+      response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
@@ -555,7 +586,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -576,15 +608,16 @@ public class ConceptController extends BaseController {
    * @return the children
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get child concepts for the specified terminology and code", response = ConceptMinimal.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get child concepts for the specified terminology and code",
+      response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "code",
           value = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
@@ -600,7 +633,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("children"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("children"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -628,7 +662,8 @@ public class ConceptController extends BaseController {
       response = ConceptMinimal.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants",
@@ -640,12 +675,15 @@ public class ConceptController extends BaseController {
           value = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "50000", example = "50000"),
-      @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10000", example = "10000")
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
+          example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query",
+          defaultValue = "50000", example = "50000"),
+      @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query",
+          defaultValue = "10000", example = "10000")
   })
   public @ResponseBody List<Concept> getDescendants(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -660,7 +698,8 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      final List<Concept> baseList = new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+      final List<Concept> baseList =
+          new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
       final Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
       final List<Concept> list = baseList.stream().filter(byLevel).collect(Collectors.toList());
 
@@ -699,7 +738,8 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
@@ -719,7 +759,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -732,7 +773,7 @@ public class ConceptController extends BaseController {
     }
 
   }
-  
+
   /**
    * Returns the history.
    *
@@ -741,18 +782,18 @@ public class ConceptController extends BaseController {
    * @return the concept with history
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get history for the specified terminology and code", response = Concept.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get history for the specified terminology and code",
+      response = Concept.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
-              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i> and <i>ncim</i>.",
+      @ApiImplicitParam(name = "code", value = "Code in the specified terminology, e.g. "
+          + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i> and <i>ncim</i>.",
           required = true, dataTypeClass = String.class, paramType = "path")
   })
   @RecordMetric
@@ -765,7 +806,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("history"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("history"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -791,7 +833,8 @@ public class ConceptController extends BaseController {
       response = DisjointWith.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
@@ -810,7 +853,8 @@ public class ConceptController extends BaseController {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
+      final Optional<Concept> concept =
+          elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -835,21 +879,24 @@ public class ConceptController extends BaseController {
       responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots",
+      produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology",
-          value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
+          value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
+          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
       @ApiImplicitParam(name = "include",
           value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal")
   })
   public @ResponseBody List<Concept> getRoots(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
@@ -886,11 +933,12 @@ public class ConceptController extends BaseController {
    * @return the paths from root
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths from the hierarchy root to the specified concept.", response = List.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get paths from the hierarchy root to the specified concept.",
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot",
@@ -910,11 +958,13 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>. For this call, it is recommended to avoid using this "
               + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
               + "may produce very large payload results. ",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", example = "100")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
+          example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -937,7 +987,8 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0),
+            Math.min(paths.getPaths().size() - 1, toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
@@ -961,7 +1012,8 @@ public class ConceptController extends BaseController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree",
@@ -976,7 +1028,8 @@ public class ConceptController extends BaseController {
       @ApiImplicitParam(name = "limit",
           value = "If set to an integer (between <i>1</i> and <i>100</i>), subtrees and siblings "
               + "at each level will be limited to the specified number of entries. Thus a user "
-              + "interface can quickly retrieve initial data for a subtree and then call back " + "for more data. "
+              + "interface can quickly retrieve initial data for a subtree and then call back "
+              + "for more data. "
               + "An extra placeholder entry with just a <i>ct</i> field will be included "
               + "to indicate the total count.",
           required = false, dataTypeClass = Integer.class, paramType = "query", example = "100")
@@ -994,7 +1047,8 @@ public class ConceptController extends BaseController {
       }
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit must be between 1 and 100");
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
 
         }
       }
@@ -1010,7 +1064,8 @@ public class ConceptController extends BaseController {
       rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
 
       // Limit to 10 paths if a limit of >10 is used.
-      final int pathLimit = (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
+      final int pathLimit =
+          (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
       final List<Path> ps = paths.getPaths();
       int ct = 0;
       for (final Path path : ps) {
@@ -1030,8 +1085,10 @@ public class ConceptController extends BaseController {
         HierarchyNode previous = root;
         for (int j = concepts.size() - 2; j >= 0; j--) {
           final ConceptMinimal c = concepts.get(j);
-          if (!previous.getChildren().stream().anyMatch(n -> n.getCt() == null && n.getCode().equals(c.getCode()))) {
-            List<HierarchyNode> children = elasticQueryService.getChildNodes(previous.getCode(), 0, term);
+          if (!previous.getChildren().stream()
+              .anyMatch(n -> n.getCt() == null && n.getCode().equals(c.getCode()))) {
+            List<HierarchyNode> children =
+                elasticQueryService.getChildNodes(previous.getCode(), 0, term);
 
             // Apply the limit
             if (limit.isPresent() && children.size() > limit.get().intValue()) {
@@ -1066,8 +1123,9 @@ public class ConceptController extends BaseController {
             }
             previous.setExpanded(true);
           }
-          previous = previous.getChildren().stream().filter(n -> n.getCt() == null && n.getCode().equals(c.getCode()))
-              .findFirst().orElse(null);
+          previous = previous.getChildren().stream()
+              .filter(n -> n.getCt() == null && n.getCode().equals(c.getCode())).findFirst()
+              .orElse(null);
         }
       }
 
@@ -1098,11 +1156,12 @@ public class ConceptController extends BaseController {
       response = HierarchyNode.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree/children",
-      produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/concept/{terminology}/{code}/subtree/children", produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
           dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
@@ -1110,10 +1169,12 @@ public class ConceptController extends BaseController {
           value = "Code in the specified terminology, e.g. 'C3224' for <i>ncit</i>. "
               + "This call is only meaningful for <i>ncit</i>.",
           required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "limit", value = "If set to an integer (between <i>1</i> and <i>100</i>), children will "
-          + "be limited to the specified number of entries. Thus a user interface can "
-          + "quickly retrieve initial data for a subtree and then call back for more data. "
-          + "An extra placeholder entry with just a <i>ct</i> field will be included " + "to indicate the total count.",
+      @ApiImplicitParam(name = "limit",
+          value = "If set to an integer (between <i>1</i> and <i>100</i>), children will "
+              + "be limited to the specified number of entries. Thus a user interface can "
+              + "quickly retrieve initial data for a subtree and then call back for more data. "
+              + "An extra placeholder entry with just a <i>ct</i> field will be included "
+              + "to indicate the total count.",
           required = false, dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
@@ -1127,7 +1188,8 @@ public class ConceptController extends BaseController {
       }
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit must be between 1 and 100");
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+              "limit must be between 1 and 100");
 
         }
       }
@@ -1162,11 +1224,12 @@ public class ConceptController extends BaseController {
    * @return the paths to root
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths to the hierarchy root from the specified code", response = List.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get paths to the hierarchy root from the specified code",
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot",
@@ -1186,11 +1249,13 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>. For this call, it is recommended to avoid using this "
               + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
               + "may produce very large payload results. ",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", example = "100")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
+          example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -1211,7 +1276,8 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0),
+            Math.min(paths.getPaths().size() - 1, toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
@@ -1233,14 +1299,16 @@ public class ConceptController extends BaseController {
    * @return the paths to ancestor
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths from the specified code to the specified ancestor code", response = List.class,
-      responseContainer = "List")
+  @ApiOperation(value = "Get paths from the specified code to the specified ancestor code",
+      response = List.class, responseContainer = "List")
   @ApiResponses(value = {
       @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+      @ApiResponse(code = 400, message = "Bad request"),
+      @ApiResponse(code = 404, message = "Resource not found")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}",
+  @RequestMapping(method = RequestMethod.GET,
+      value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}",
       produces = "application/json")
   @ApiImplicitParams({
       @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
@@ -1261,11 +1329,13 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>. For this call, it is recommended to avoid using this "
               + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
               + "may produce very large payload results. ",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", example = "100")
+          required = false, dataTypeClass = String.class, paramType = "query",
+          defaultValue = "minimal"),
+      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
+          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
+          example = "0"),
+      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
+          required = false, dataTypeClass = Integer.class, paramType = "query", example = "100")
   })
   public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
@@ -1287,7 +1357,8 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0),
+            Math.min(paths.getPaths().size() - 1, toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
