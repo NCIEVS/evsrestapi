@@ -38,13 +38,11 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.support.ApplicationVersion;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -90,13 +88,17 @@ public class ConceptController extends BaseController {
    * @return the associations
    * @throws Exception the exception
    */
-  @Operation(summary = "Get concepts specified by list parameter", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = ApplicationVersion.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get concepts specified by list parameter")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
@@ -115,7 +117,7 @@ public class ConceptController extends BaseController {
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
-  final Optional<String> include, @RequestParam("list")
+  final Optional<String> include, @RequestParam(name = "list", required = true)
   final String list) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -148,10 +150,13 @@ public class ConceptController extends BaseController {
    */
   @Operation(summary = "Get the concept for the specified terminology and code")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = Concept.class))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -215,13 +220,13 @@ public class ConceptController extends BaseController {
    * @return the associations
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the associations for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Association.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get the associations for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -263,25 +268,26 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(
-      summary = "Get the association entries for the specified terminology and code. Associations used to define subset membership are not resolved by this call",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-              content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = ApplicationVersion.class))),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "404", description = "Resource not found")
-      }, parameters = {
-          @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
-              schema = @Schema(implementation = String.class), example = "ncit"),
-          @Parameter(name = "codeOrLabel",
-              description = "Code/label in the specified terminology, e.g. "
-                  + "'A5' or 'Has_Salt_Form' for <i>ncit</i>." + " This call is only meaningful for <i>ncit</i>.",
-              required = true, schema = @Schema(implementation = String.class)),
-          @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
-              schema = @Schema(implementation = Integer.class), example = "0"),
-          @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-              schema = @Schema(implementation = Integer.class), example = "10")
-      })
+      summary = "Get the association entries for the specified terminology and code. Associations used to define subset membership are not resolved by this call")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrLabel",
+          description = "Code/label in the specified terminology, e.g. " + "'A5' or 'Has_Salt_Form' for <i>ncit</i>."
+              + " This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "10")
+  })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/associations/{codeOrLabel}",
       produces = "application/json")
@@ -319,13 +325,13 @@ public class ConceptController extends BaseController {
    * @return the inverse associations
    * @throws Exception the exception
    */
-  @Operation(summary = "Get inverse associations for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Association.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get inverse associations for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -369,13 +375,15 @@ public class ConceptController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get subset members for the specified terminology and code. "
-      + "This endpoint will be deprecated in v2 in favor of a top level subset member endpoint.", responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-              content = @Content(mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = Concept.class)))),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+      + "This endpoint will be deprecated in v2 in favor of a top level subset member endpoint.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -447,13 +455,13 @@ public class ConceptController extends BaseController {
    * @return the roles
    * @throws Exception the exception
    */
-  @Operation(summary = "Get roles for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Role.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get roles for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -493,13 +501,13 @@ public class ConceptController extends BaseController {
    * @return the inverse roles
    * @throws Exception the exception
    */
-  @Operation(summary = "Get inverse roles for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Role.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get inverse roles for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -538,13 +546,13 @@ public class ConceptController extends BaseController {
    * @return the parents
    * @throws Exception the exception
    */
-  @Operation(summary = "Get parent concepts for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = ConceptMinimal.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get parent concepts for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -583,13 +591,13 @@ public class ConceptController extends BaseController {
    * @return the children
    * @throws Exception the exception
    */
-  @Operation(summary = "Get child concepts for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = ConceptMinimal.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get child concepts for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -631,13 +639,15 @@ public class ConceptController extends BaseController {
    * @return the descendants
    * @throws Exception the exception
    */
-  @Operation(summary = "Get descendant concepts for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Concept.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get descendant concepts for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit''", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -703,13 +713,13 @@ public class ConceptController extends BaseController {
    * @return the maps
    * @throws Exception the exception
    */
-  @Operation(summary = "Get maps for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Map.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get maps for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -749,13 +759,13 @@ public class ConceptController extends BaseController {
    * @return the concept with history
    * @throws Exception the exception
    */
-  @Operation(summary = "Get history for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Concept.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get history for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -795,13 +805,13 @@ public class ConceptController extends BaseController {
    * @return the disjoint with
    * @throws Exception the exception
    */
-  @Operation(summary = "Get \"disjoint with\" info for the specified terminology and code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = DisjointWith.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get \"disjoint with\" info for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -839,13 +849,15 @@ public class ConceptController extends BaseController {
    * @return the roots
    * @throws Exception the exception
    */
-  @Operation(summary = "Get root concepts for the specified terminology", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = Concept.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get root concepts for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology",
           description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
@@ -895,13 +907,15 @@ public class ConceptController extends BaseController {
    * @return the paths from root
    * @throws Exception the exception
    */
-  @Operation(summary = "Get paths from the hierarchy root to the specified concept.", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = List.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get paths from the hierarchy root to the specified concept.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -966,13 +980,15 @@ public class ConceptController extends BaseController {
    * @return the subtree
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the entire subtree from the root node to the specified code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = HierarchyNode.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get the entire subtree from the root node to the specified code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -1005,7 +1021,6 @@ public class ConceptController extends BaseController {
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit must be between 1 and 100");
-
         }
       }
       // final List<HierarchyNode> nodes =
@@ -1104,13 +1119,15 @@ public class ConceptController extends BaseController {
    * @return the subtree children
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the entire subtree from the root node to the specified code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = HierarchyNode.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get the entire subtree from the root node to the specified code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -1172,13 +1189,15 @@ public class ConceptController extends BaseController {
    * @return the paths to root
    * @throws Exception the exception
    */
-  @Operation(summary = "Get paths to the hierarchy root from the specified code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = List.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get paths to the hierarchy root from the specified code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -1243,13 +1262,15 @@ public class ConceptController extends BaseController {
    * @return the paths to ancestor
    * @throws Exception the exception
    */
-  @Operation(summary = "Get paths from the specified code to the specified ancestor code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = List.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Get paths from the specified code to the specified ancestor code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",

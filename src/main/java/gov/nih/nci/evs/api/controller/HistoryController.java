@@ -2,7 +2,6 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
+import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.util.HistoryUtils;
@@ -22,10 +22,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -56,13 +56,15 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @Operation(summary = "Gets suggested replacements for a specified terminology and retired code", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = String.class)))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
-  }, parameters = {
+  @Operation(summary = "Gets suggested replacements for a specified terminology and retired code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
@@ -73,16 +75,14 @@ public class HistoryController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/history/{terminology}/{code}/replacements",
       produces = "application/json")
-  public @ResponseBody List<String> getReplacements(@PathVariable(value = "terminology")
+  public @ResponseBody List<History> getReplacements(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code) throws Exception {
 
     try {
 
       final Terminology term = termUtils.getTerminology(terminology, true);
-      final List<String> replacementCodes = HistoryUtils.getReplacements(term, elasticQueryService, code);
-
-      return replacementCodes;
+      return HistoryUtils.getReplacements(term, elasticQueryService, code);
 
     } catch (final Exception e) {
       handleException(e);
@@ -98,12 +98,15 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @Operation(summary = "Gets suggested replacements for a specified terminology and a list of retired codes",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "404", description = "Resource not found")
-      })
+  @Operation(summary = "Gets suggested replacements for a specified terminology and a list of retired codes")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+
+  })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
@@ -115,16 +118,15 @@ public class HistoryController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/history/{terminology}/replacements",
       produces = "application/json")
-  public @ResponseBody Map<String, List<String>> getReplacements(@PathVariable(value = "terminology")
+  public @ResponseBody List<History> getReplacements(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = true, name = "list")
   final List<String> list) throws Exception {
 
     try {
 
       final Terminology term = termUtils.getTerminology(terminology, true);
-      final Map<String, List<String>> replacementCodes = HistoryUtils.getReplacements(term, elasticQueryService, list);
-
-      return replacementCodes;
+      return
+          HistoryUtils.getReplacements(term, elasticQueryService, list);
 
     } catch (final Exception e) {
       handleException(e);

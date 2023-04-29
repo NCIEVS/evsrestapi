@@ -64,7 +64,6 @@ dependencies {
     // Override spring-core version to handle vulnerabilities
 	compile 'org.springframework:spring-core:5.2.22.RELEASE'
     compile 'com.google.guava:guava:20.0'
-    compile 'org.apache.commons:commons-lang3:3.4'
     compile 'commons-io:commons-io:2.6'
     compile 'org.springframework.boot:spring-boot-properties-migrator'
     compile 'org.springframework:spring-aop'

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -30,12 +31,13 @@ public class VersionController {
    * @throws IOException Signals that an I/O exception has occurred.
    */
 
-  @Operation(summary = "Get the application version information", responses = {
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
-          content = @Content(mediaType = "application/json",
-              schema = @Schema(implementation = ApplicationVersion.class))),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "404", description = "Resource not found")
+  @Operation(summary = "Get the application version information")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/version", produces = "application/json")

@@ -29,8 +29,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -67,9 +69,12 @@ public class MetadataController extends BaseController {
    * @return the terminologies
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all available terminologies", responses = {
+  @Operation(summary = "Get all available terminologies")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(
+          responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "latest",
@@ -135,11 +140,14 @@ public class MetadataController extends BaseController {
    * @return the associations
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all associations (or those specified by list parameter) for the specified terminology",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request")
-      })
+  @Operation(summary = "Get all associations (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
@@ -178,10 +186,13 @@ public class MetadataController extends BaseController {
    * @return the association
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the association for the specified terminology and code/name", responses = {
+  @Operation(summary = "Get the association for the specified terminology and code/name")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -232,10 +243,12 @@ public class MetadataController extends BaseController {
    * @return the roles
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all roles (or those specified by list parameter) for the specified terminology",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information")
-      })
+  @Operation(summary = "Get all roles (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles", produces = "application/json")
   @Parameters({
       @Parameter(name = "terminology",
@@ -274,10 +287,13 @@ public class MetadataController extends BaseController {
    * @return the role
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the role for the specified terminology and code/name", responses = {
+  @Operation(summary = "Get the role for the specified terminology and code/name")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
@@ -328,11 +344,14 @@ public class MetadataController extends BaseController {
    * @return the properties
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all properties (or those specified by list parameter) for the specified terminology",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request")
-      })
+  @Operation(summary = "Get all properties (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
       produces = "application/json")
   @Parameters({
@@ -372,9 +391,13 @@ public class MetadataController extends BaseController {
    * @return the qualifiers
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all qualifiers (properties on properties) for the specified terminology", responses = {
+  @Operation(summary = "Get all qualifiers (properties on properties) for the specified terminology")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
       produces = "application/json")
@@ -415,9 +438,13 @@ public class MetadataController extends BaseController {
    * @return the qualifier
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the qualifier for the specified terminology and code/name", responses = {
+  @Operation(summary = "Get the qualifier for the specified terminology and code/name")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -466,9 +493,11 @@ public class MetadataController extends BaseController {
    * @return the term types
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all term types for the specified terminology", responses = {
+  @Operation(summary = "Get all term types for the specified terminology")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
       produces = "application/json")
@@ -494,9 +523,11 @@ public class MetadataController extends BaseController {
    * @return the welcome text
    * @throws Exception the exception
    */
-  @Operation(summary = "Get welcome text for the specified terminology", responses = {
+  @Operation(summary = "Get welcome text for the specified terminology")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/welcomeText", produces = "text/html")
   @Parameters({
@@ -523,10 +554,13 @@ public class MetadataController extends BaseController {
    * @return the property
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the property for the specified terminology and code/name", responses = {
+  @Operation(summary = "Get the property for the specified terminology and code/name")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -575,9 +609,11 @@ public class MetadataController extends BaseController {
    * @return the concept statuses
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all concept status values for the specified terminology", responses = {
+  @Operation(summary = "Get all concept status values for the specified terminology")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology",
@@ -610,9 +646,11 @@ public class MetadataController extends BaseController {
    * @return the definition sources
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all definition sources for the specified terminology", responses = {
+  @Operation(summary = "Get all definition sources for the specified terminology")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -638,9 +676,11 @@ public class MetadataController extends BaseController {
    * @return the synonym sources
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all synonym sources for the specified terminology", responses = {
+  @Operation(summary = "Get all synonym sources for the specified terminology")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -667,9 +707,11 @@ public class MetadataController extends BaseController {
    * @return the axiom qualifiers list
    * @throws Exception the exception
    */
-  @Operation(summary = "Get qualifier values for the specified terminology and code/name", responses = {
+  @Operation(summary = "Get qualifier values for the specified terminology and code/name")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -711,11 +753,14 @@ public class MetadataController extends BaseController {
    * @return the synonym types
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all synonym types (or those specified by list parameter) for the specified terminology",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request")
-      })
+  @Operation(summary = "Get all synonym types (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymTypes",
       produces = "application/json")
   @Parameters({
@@ -755,10 +800,13 @@ public class MetadataController extends BaseController {
    * @return the synonym type
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the synonym type for the specified terminology and code/name", responses = {
+  @Operation(summary = "Get the synonym type for the specified terminology and code/name")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -809,11 +857,14 @@ public class MetadataController extends BaseController {
    * @return the definition types
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all definition types (or those specified by list parameter) for the specified terminology",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request")
-      })
+  @Operation(summary = "Get all definition types (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionTypes",
       produces = "application/json")
   @Parameters({
@@ -853,10 +904,13 @@ public class MetadataController extends BaseController {
    * @return the definition type
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the definition type for the specified terminology and code/name.", responses = {
+  @Operation(summary = "Get the definition type for the specified terminology and code/name.")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -908,9 +962,13 @@ public class MetadataController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get all subsets (or those specified by list parameter) for the specified terminology. "
-      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.", responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request")
+      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets", produces = "application/json")
   @Parameters({
@@ -951,12 +1009,14 @@ public class MetadataController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get the subset for the specified terminology and code"
-      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.", responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'.", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),

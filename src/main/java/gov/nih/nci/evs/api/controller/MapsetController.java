@@ -12,12 +12,14 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
@@ -32,8 +34,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -68,10 +72,9 @@ public class MapsetController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get all mapsets (no terminology parameter is needed as mapsets connect codes "
-      + "in one terminology to another)", responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      + "in one terminology to another)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information")
   })
   @Parameters({
       @Parameter(name = "include",
@@ -104,10 +107,13 @@ public class MapsetController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get the mapset for the specified code (no terminology parameter is"
-      + " needed as mapsets connect codes in one terminology to another)", responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      + " needed as mapsets connect codes in one terminology to another)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "code", description = "Mapset code", required = true,
@@ -131,7 +137,7 @@ public class MapsetController extends BaseController {
       if (results.size() > 0) {
         return results.get(0);
       } else {
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
       }
     } catch (Exception e) {
       handleException(e);
@@ -152,10 +158,13 @@ public class MapsetController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get the maps for the mapset specified by the code (no terminology "
-      + "parameter is needed as mapsets connect codes in one terminology to another)", responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      + "parameter is needed as mapsets connect codes in one terminology to another)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "code", description = "Mapset code", required = true,
@@ -187,6 +196,8 @@ public class MapsetController extends BaseController {
       List<Concept> results = esQueryService.getMapset(code, ip);
       if (results.size() > 0) {
         maps = results.get(0).getMaps();
+      } else {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
       }
       if (term.isPresent()) {
         final String t = term.get().trim().toLowerCase();

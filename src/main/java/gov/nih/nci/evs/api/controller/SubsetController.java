@@ -28,8 +28,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -65,12 +67,12 @@ public class SubsetController extends BaseController {
    * @return the properties
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all subsets (or those specified by list parameter) for the specified terminology",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request")
-      })
-  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}", produces = "application/json")
+  @Operation(summary = "Get all subsets (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @Parameters({
       @Parameter(name = "terminology",
           description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
@@ -87,6 +89,7 @@ public class SubsetController extends BaseController {
           required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}", produces = "application/json")
   public @ResponseBody List<Concept> getSubsets(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "list")
@@ -108,10 +111,11 @@ public class SubsetController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @Operation(description = "Get the subset for the specified terminology and code", responses = {
+  @Operation(description = "Get the subset for the specified terminology and code")
+  @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(responseCode = "400", description = "Bad request"),
-      @ApiResponse(responseCode = "417", description = "Unexpected duplicate found")
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'.", required = true,
@@ -136,11 +140,12 @@ public class SubsetController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
       }
       Optional<Concept> concept = metadataService.getSubset(terminology, code, include);
-      if (!concept.isPresent())
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
+      }
       return concept.get();
     } catch (Exception e) {
       handleException(e);
@@ -160,10 +165,13 @@ public class SubsetController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get subset members for the specified terminology and code. "
-      + "Concept subset endpoints will be deprecated in v2 in favor of top level subset endpoints.", responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "404", description = "Resource not found")
+      + "Concept subset endpoints will be deprecated in v2 in favor of top level subset endpoints.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
@@ -201,7 +209,7 @@ public class SubsetController extends BaseController {
           elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
 
       if (!concept.isPresent()) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
       }
 
       final List<Concept> subsets = new ArrayList<>();

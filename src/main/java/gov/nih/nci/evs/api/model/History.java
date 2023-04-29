@@ -1,16 +1,13 @@
 
 package gov.nih.nci.evs.api.model;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Objects;
 
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 /**
  * Represents a synonym of a concept.
@@ -21,15 +18,15 @@ public class History extends BaseModel implements Comparable<History> {
   /** The concept code. */
   @Field(type = FieldType.Keyword)
   private String code;
-  
+
   /** The concept name. */
   @Field(type = FieldType.Keyword)
-  private String conceptName;
+  private String name;
 
   /** The action. */
   @Field(type = FieldType.Keyword)
   private String action;
-  
+
   /** The date. */
   @Field(type = FieldType.Keyword)
   private String date;
@@ -41,8 +38,7 @@ public class History extends BaseModel implements Comparable<History> {
   /** The name of the replacement concept. */
   @Field(type = FieldType.Text)
   private String replacementName;
-  
-  
+
   /**
    * Instantiates an empty {@link History}.
    */
@@ -67,7 +63,7 @@ public class History extends BaseModel implements Comparable<History> {
   public void populateFrom(final History other) {
     super.populateFrom(other);
     code = other.getCode();
-    conceptName = other.getConceptName();
+    name = other.getName();
     action = other.getAction();
     date = other.getDate();
     replacementCode = other.getReplacementCode();
@@ -109,23 +105,23 @@ public class History extends BaseModel implements Comparable<History> {
   public void setCode(final String code) {
     this.code = code;
   }
-  
+
   /**
    * Returns the concept name.
    *
    * @return the concept name
    */
-  public String getConceptName() {
-    return conceptName;
+  public String getName() {
+    return name;
   }
 
   /**
    * Sets the concept name.
    *
-   * @param conceptName the concept name
+   * @param name the concept name
    */
-  public void setConceptName(final String conceptName) {
-    this.conceptName = conceptName;
+  public void setName(final String name) {
+    this.name = name;
   }
 
   /**
@@ -145,7 +141,7 @@ public class History extends BaseModel implements Comparable<History> {
   public void setDate(final String date) {
     this.date = date;
   }
-  
+
   /**
    * Returns the code of the replacement concept.
    *
@@ -163,7 +159,7 @@ public class History extends BaseModel implements Comparable<History> {
   public void setReplacementCode(final String replacementCode) {
     this.replacementCode = replacementCode;
   }
-  
+
   /**
    * Returns the name of the replacement concept.
    *
@@ -190,15 +186,7 @@ public class History extends BaseModel implements Comparable<History> {
   /* see superclass */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((code == null) ? 0 : code.hashCode());
-    result = prime * result + ((conceptName == null) ? 0 : conceptName.hashCode());
-    result = prime * result + ((action == null) ? 0 : action.hashCode());
-    result = prime * result + ((date == null) ? 0 : date.hashCode());
-    result = prime * result + ((replacementCode == null) ? 0 : replacementCode.hashCode());
-    result = prime * result + ((replacementName == null) ? 0 : replacementName.hashCode());
-    return result;
+    return Objects.hash(code, name, action, date, replacementCode, replacementName);
   }
 
   /**
@@ -210,21 +198,21 @@ public class History extends BaseModel implements Comparable<History> {
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {
-      
+
     if (this == obj) {
       return true;
     }
-    
+
     if (obj == null) {
       return false;
     }
-    
+
     if (getClass() != obj.getClass()) {
       return false;
     }
-    
+
     final History other = (History) obj;
-    
+
     if (code == null) {
       if (other.code != null) {
         return false;
@@ -233,11 +221,11 @@ public class History extends BaseModel implements Comparable<History> {
       return false;
     }
 
-    if (conceptName == null) {
-      if (other.conceptName != null) {
+    if (name == null) {
+      if (other.name != null) {
         return false;
       }
-    } else if (!conceptName.equals(other.conceptName)) {
+    } else if (!name.equals(other.name)) {
       return false;
     }
 
@@ -278,7 +266,8 @@ public class History extends BaseModel implements Comparable<History> {
   /* see superclass */
   @Override
   public int compareTo(History o) {
-    return (code + action + date + replacementCode).compareTo(o.getCode() + o.getAction() + o.getDate() + o.getReplacementCode());
+    return (code + action + date + replacementCode)
+        .compareTo(o.getCode() + o.getAction() + o.getDate() + o.getReplacementCode());
   }
 
 }

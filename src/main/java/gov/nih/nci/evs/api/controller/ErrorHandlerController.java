@@ -5,7 +5,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
@@ -79,13 +79,13 @@ public class ErrorHandlerController implements ErrorController {
    */
   @RequestMapping()
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> handleErrorJson(HttpServletRequest request) {
+  public ResponseEntity<RestException> handleErrorJson(HttpServletRequest request) {
     HttpStatus status = getStatus(request);
     if (status == HttpStatus.NO_CONTENT) {
       return new ResponseEntity<>(status);
     }
-    Map<String, Object> body = getErrorAttributes(request, false);
-    return new ResponseEntity<>(body, status);
+    final RestException exception = new RestException(getErrorAttributes(request, false));
+    return new ResponseEntity<>(exception, status);
   }
 
   /**

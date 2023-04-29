@@ -34,8 +34,10 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
@@ -85,12 +87,14 @@ public class SearchController extends BaseController {
    * @throws Exception the exception
    */
   @Operation(summary = "Get concept search results for a specified terminology",
-      description = "Use cases for search range from very simple term searches, use of paging parameters, additional filters, searches properties, roles, and associations, and so on.  To further explore the range of search options, take a look at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>Github client SDK library created for the NCI EVS Rest API</a>.",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "404", description = "Resource not found")
-      })
+      description = "Use cases for search range from very simple term searches, use of paging parameters, additional filters, searches properties, roles, and associations, and so on.  To further explore the range of search options, take a look at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>Github client SDK library created for the NCI EVS Rest API</a>.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @Parameters({
       @Parameter(name = "terminology", description = "Single terminology to search, e.g. 'ncit' or 'ncim'",
           required = true, schema = @Schema(implementation = String.class), example = "ncit"),
@@ -214,12 +218,16 @@ public class SearchController extends BaseController {
           + "parameters, additional filters, searches properties, roles, and associations,"
           + " and so on.  To further explore the range of search options, take a look "
           + "at the <a href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>"
-          + "Github client SDK library created for the NCI EVS Rest API</a>.",
-      responses = {
-          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-          @ApiResponse(responseCode = "400", description = "Bad request"),
-          @ApiResponse(responseCode = "404", description = "Resource not found")
-      })
+          + "Github client SDK library created for the NCI EVS Rest API</a>.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
   @Parameters({
       @Parameter(name = "terminology",
           description = "Comma-separated list of terminologies to search, e.g. 'ncit' or 'ncim'", required = false,
