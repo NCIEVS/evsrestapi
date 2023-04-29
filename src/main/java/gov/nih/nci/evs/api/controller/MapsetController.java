@@ -12,12 +12,14 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
@@ -29,19 +31,21 @@ import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Controller for /mapset endpoints.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Api(tags = "Mapset endpoints")
+@Tag(name = "Mapset endpoints")
 public class MapsetController extends BaseController {
 
   /** Logger. */
@@ -63,27 +67,23 @@ public class MapsetController extends BaseController {
   /**
    * Returns the mapsets.
    *
+   * @param include the include
    * @return the mapsets
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all mapsets (no terminology parameter is needed as mapsets connect codes "
-          + "in one terminology to another)",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get all mapsets (no terminology parameter is needed as mapsets connect codes "
+      + "in one terminology to another)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information")
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/mapset", produces = "application/json")
@@ -101,33 +101,33 @@ public class MapsetController extends BaseController {
   /**
    * Returns the mapsets.
    *
+   * @param code the code
+   * @param include the include
    * @return the mapsets
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get the mapset for the specified code (no terminology parameter is"
-          + " needed as mapsets connect codes in one terminology to another)",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the mapset for the specified code (no terminology parameter is"
+      + " needed as mapsets connect codes in one terminology to another)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "code", value = "Mapset code", required = true,
-          dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "code", description = "Mapset code", required = true,
+          schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}",
-      produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}", produces = "application/json")
   public @ResponseBody Concept getMapsetByCode(@PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
@@ -137,7 +137,7 @@ public class MapsetController extends BaseController {
       if (results.size() > 0) {
         return results.get(0);
       } else {
-        return null;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
       }
     } catch (Exception e) {
       handleException(e);
@@ -148,36 +148,38 @@ public class MapsetController extends BaseController {
   /**
    * Returns the mapset maps.
    *
+   * @param code the code
+   * @param fromRecord the from record
+   * @param pageSize the page size
+   * @param term the term
+   * @param ascending the ascending
+   * @param sort the sort
    * @return the mapsets
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get the maps for the mapset specified by the code (no terminology "
-          + "parameter is needed as mapsets connect codes in one terminology to another)",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the maps for the mapset specified by the code (no terminology "
+      + "parameter is needed as mapsets connect codes in one terminology to another)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "code", value = "Mapset code", required = true,
-          dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results",
-          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "0",
-          example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return",
-          required = false, dataTypeClass = Integer.class, paramType = "query", defaultValue = "10",
-          example = "10"),
-      @ApiImplicitParam(name = "sort", value = "The search parameter to sort results by",
-          required = false, dataTypeClass = String.class, paramType = "query"),
-      @ApiImplicitParam(name = "ascending",
-          value = "Sort ascending (if true) or descending (if false)", required = false,
-          dataTypeClass = Boolean.class, paramType = "query")
+  @Parameters({
+      @Parameter(name = "code", description = "Mapset code", required = true,
+          schema = @Schema(implementation = String.class)),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "10"),
+      @Parameter(name = "sort", description = "The search parameter to sort results by", required = false,
+          schema = @Schema(implementation = String.class)),
+      @Parameter(name = "ascending", description = "Sort ascending (if true) or descending (if false)",
+          required = false, schema = @Schema(implementation = Boolean.class))
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}/maps",
-      produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}/maps", produces = "application/json")
   public @ResponseBody MapResultList getMapsetMappingsByCode(@PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
@@ -194,6 +196,8 @@ public class MapsetController extends BaseController {
       List<Concept> results = esQueryService.getMapset(code, ip);
       if (results.size() > 0) {
         maps = results.get(0).getMaps();
+      } else {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
       }
       if (term.isPresent()) {
         final String t = term.get().trim().toLowerCase();
@@ -202,9 +206,8 @@ public class MapsetController extends BaseController {
         if (words.size() == 1) {
           maps = maps.stream().filter(m ->
           // Code match
-          m.getSourceCode().toLowerCase().contains(t) || m.getTargetCode().toLowerCase().contains(t)
-              ||
-              // Lowercase word match (starting on a word boundary)
+          m.getSourceCode().toLowerCase().contains(t) || m.getTargetCode().toLowerCase().contains(t) ||
+          // Lowercase word match (starting on a word boundary)
               m.getSourceName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
               || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(t) + ".*")
               || m.getTargetName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
@@ -219,14 +222,14 @@ public class MapsetController extends BaseController {
             for (final String word : words) {
               if (!(
               // Lowercase word match (starting on a word boundary)
-              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(word) + ".*") || m
-                  .getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
+                  || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
                 sourceFlag = false;
               }
               if (!(
               // Lowercase word match (starting on a word boundary)
-              m.getTargetName().toLowerCase().matches("^" + Pattern.quote(word) + ".*") || m
-                  .getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+              m.getTargetName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
+                  || m.getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
                 targetFlag = false;
               }
             }
@@ -240,8 +243,7 @@ public class MapsetController extends BaseController {
       // Get this page if we haven't gone over the end
       if (fromRecordParam < mapLength) {
         // on subList "toIndex" don't go past the end
-        list.setMaps(
-            maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
+        list.setMaps(maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
       } else {
         list.setTotal(0);
         list.setMaps(new ArrayList<Map>());

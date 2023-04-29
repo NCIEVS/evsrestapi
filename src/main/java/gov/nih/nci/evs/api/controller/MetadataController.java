@@ -26,19 +26,21 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Controller for /metadata endpoints.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Api(tags = "Metadata endpoints")
+@Tag(name = "Metadata endpoints")
 public class MetadataController extends BaseController {
 
   /** The Constant log. */
@@ -67,49 +69,42 @@ public class MetadataController extends BaseController {
    * @return the terminologies
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all available terminologies", response = Terminology.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all available terminologies")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "latest",
-          value = "Return terminologies with matching <i>latest</i> value. e.g. true or false",
-          required = false, dataTypeClass = Boolean.class, paramType = "query",
-          defaultValue = "true"),
-      @ApiImplicitParam(name = "tag",
-          value = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
-          required = false, dataTypeClass = String.class, paramType = "query"),
-      @ApiImplicitParam(name = "terminology",
-          value = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'",
-          required = false, dataTypeClass = String.class, paramType = "query")
+  @Parameters({
+      @Parameter(name = "latest",
+          description = "Return terminologies with matching <i>latest</i> value. e.g. true or false", required = false,
+          schema = @Schema(implementation = Boolean.class), example = "true"),
+      @Parameter(name = "tag",
+          description = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
+          required = false, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "terminology", description = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies",
-      produces = "application/json")
-  public @ResponseBody List<Terminology> getTerminologies(
-    @RequestParam(required = false, name = "latest")
-    final Optional<Boolean> latest, @RequestParam(required = false, name = "tag")
-    final Optional<String> tag, @RequestParam(required = false, name = "terminology")
-    final Optional<String> terminology) throws Exception {
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/terminologies", produces = "application/json")
+  public @ResponseBody List<Terminology> getTerminologies(@RequestParam(required = false, name = "latest")
+  final Optional<Boolean> latest, @RequestParam(required = false, name = "tag")
+  final Optional<String> tag, @RequestParam(required = false, name = "terminology")
+  final Optional<String> terminology) throws Exception {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
       List<Terminology> terms = termUtils.getTerminologies(true);
 
       if (latest.isPresent()) {
-        terms = terms.stream().filter(f -> f.getLatest().equals(latest.get()))
-            .collect(Collectors.toList());
+        terms = terms.stream().filter(f -> f.getLatest().equals(latest.get())).collect(Collectors.toList());
       }
 
       if (tag.isPresent() && tagList.contains(tag.get())) {
-        terms = terms.stream().filter(f -> "true".equals(f.getTags().get(tag.get())))
-            .collect(Collectors.toList());
+        terms = terms.stream().filter(f -> "true".equals(f.getTags().get(tag.get()))).collect(Collectors.toList());
       }
 
       if (terminology.isPresent()) {
-        terms = terms.stream().filter(f -> f.getTerminology().equals(terminology.get()))
-            .collect(Collectors.toList());
+        terms = terms.stream().filter(f -> f.getTerminology().equals(terminology.get())).collect(Collectors.toList());
       }
 
       for (Terminology term : terms) {
@@ -144,31 +139,31 @@ public class MetadataController extends BaseController {
    * @return the associations
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all associations (or those specified by list parameter) for the specified terminology",
-      response = Concept.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all associations (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations",
-      produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return associations for (or leave blank for all). If invalid values are passed, the result will simply include no entries for those invalid values.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List of codes or labels to return associations for (or leave blank for all). If invalid values are passed, the result will simply include no entries for those invalid values.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/associations",
+      produces = "application/json")
   public @ResponseBody List<Concept> getAssociations(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "list")
@@ -190,33 +185,32 @@ public class MetadataController extends BaseController {
    * @return the association
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the association for the specified terminology and code/name",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the association for the specified terminology and code/name")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrName",
-          value = "Association code (or name), e.g. "
-              + "<ul><li>'A10' or 'Has_CDRH_Parent' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrName",
+          description = "Association code (or name), e.g. " + "<ul><li>'A10' or 'Has_CDRH_Parent' for <i>ncit</i></li>"
               + "<li>'RB' or 'has a broader relationship' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/association/{codeOrName}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/association/{codeOrName}",
+      produces = "application/json")
   public @ResponseBody Concept getAssociation(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
   final String code, @RequestParam(required = false, name = "include")
@@ -225,14 +219,12 @@ public class MetadataController extends BaseController {
 
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Association " + code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + code + " not found");
       }
 
       Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
       if (!concept.isPresent())
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Association " + code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + code + " not found");
 
       return concept.get();
     } catch (Exception e) {
@@ -250,29 +242,27 @@ public class MetadataController extends BaseController {
    * @return the roles
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all roles (or those specified by list parameter) for the specified terminology",
-      response = Concept.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information")
+  @Operation(summary = "Get all roles (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles",
-      produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology",
-          value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles", produces = "application/json")
+  @Parameters({
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return roles for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List of codes or labels to return roles for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   public @ResponseBody List<Concept> getRoles(@PathVariable(value = "terminology")
@@ -296,29 +286,29 @@ public class MetadataController extends BaseController {
    * @return the role
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the role for the specified terminology and code/name",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the role for the specified terminology and code/name")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrName",
-          value = "Role code (or name), e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrName",
+          description = "Role code (or name), e.g. "
               + "'R123' or 'Chemotherapy_Regimen_Has_Component' for <i>ncit</i>. "
               + "This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/role/{codeOrName}",
@@ -353,29 +343,29 @@ public class MetadataController extends BaseController {
    * @return the properties
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all properties (or those specified by list parameter) for the specified terminology",
-      response = Concept.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all properties (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return properties for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List of codes or labels to return properties for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   public @ResponseBody List<Concept> getProperties(@PathVariable(value = "terminology")
@@ -400,29 +390,29 @@ public class MetadataController extends BaseController {
    * @return the qualifiers
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all qualifiers (properties on properties) for the specified terminology",
-      response = Concept.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all qualifiers (properties on properties) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return qualifiers for (or leave blank for all)",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List of codes or labels to return qualifiers for (or leave blank for all)", required = false,
+          schema = @Schema(implementation = String.class))
 
   })
   @RecordMetric
@@ -447,32 +437,32 @@ public class MetadataController extends BaseController {
    * @return the qualifier
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the qualifier for the specified terminology and code/name",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get the qualifier for the specified terminology and code/name")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrName",
-          value = "Qualifier code (or name), e.g."
-              + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrName",
+          description = "Qualifier code (or name), e.g." + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
               + "<li>'RG' or 'Relationship group' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/qualifier/{codeOrName}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifier/{codeOrName}",
+      produces = "application/json")
   public @ResponseBody Concept getQualifier(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
   final String code, @RequestParam(required = false, name = "include")
@@ -502,17 +492,17 @@ public class MetadataController extends BaseController {
    * @return the term types
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all term types for the specified terminology",
-      response = ConceptMinimal.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all term types for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   public @ResponseBody List<ConceptMinimal> getTermTypes(@PathVariable(value = "terminology")
@@ -532,16 +522,16 @@ public class MetadataController extends BaseController {
    * @return the welcome text
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get welcome text for the specified terminology", response = String.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get welcome text for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/welcomeText",
-      produces = "text/html")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/welcomeText", produces = "text/html")
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   public @ResponseBody String getWelcomeText(@PathVariable(value = "terminology")
@@ -563,33 +553,32 @@ public class MetadataController extends BaseController {
    * @return the property
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the property for the specified terminology and code/name",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the property for the specified terminology and code/name")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrName",
-          value = "Property code (or name), e.g. "
-              + "<ul><li>'P216' or 'BioCarta_ID' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrName",
+          description = "Property code (or name), e.g. " + "<ul><li>'P216' or 'BioCarta_ID' for <i>ncit</i></li>"
               + "<li>'BioCarta_ID' or ''BioCarta ID' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/property/{codeOrName}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/property/{codeOrName}",
+      produces = "application/json")
   public @ResponseBody Concept getProperty(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
   final String code, @RequestParam(required = false, name = "include")
@@ -619,16 +608,16 @@ public class MetadataController extends BaseController {
    * @return the concept statuses
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all concept status values for the specified terminology",
-      response = String.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all concept status values for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology",
-          value = "Terminology, e.g. 'ncit'. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+  @Parameters({
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit'. This call is only meaningful for <i>ncit</i>.", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/conceptStatuses",
@@ -656,22 +645,21 @@ public class MetadataController extends BaseController {
    * @return the definition sources
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all definition sources for the specified terminology",
-      response = ConceptMinimal.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all definition sources for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionSources",
       produces = "application/json")
-  public @ResponseBody List<ConceptMinimal> getDefinitionSources(
-    @PathVariable(value = "terminology")
-    final String terminology) throws Exception {
+  public @ResponseBody List<ConceptMinimal> getDefinitionSources(@PathVariable(value = "terminology")
+  final String terminology) throws Exception {
     try {
       return metadataService.getDefinitionSources(terminology);
     } catch (Exception e) {
@@ -687,15 +675,15 @@ public class MetadataController extends BaseController {
    * @return the synonym sources
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get all synonym sources for the specified terminology",
-      response = ConceptMinimal.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all synonym sources for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit")
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymSources",
@@ -718,24 +706,22 @@ public class MetadataController extends BaseController {
    * @return the axiom qualifiers list
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get qualifier values for the specified terminology and code/name",
-      response = String.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get qualifier values for the specified terminology and code/name")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrName",
-          value = "Qualifier code (or name), e.g."
-              + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrName",
+          description = "Qualifier code (or name), e.g." + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
               + "<li>'RG' or 'Relationship group' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/qualifier/{codeOrName}/values",
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifier/{codeOrName}/values",
       produces = "application/json")
   public @ResponseBody List<String> getQualifierValues(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
@@ -766,29 +752,29 @@ public class MetadataController extends BaseController {
    * @return the synonym types
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all synonym types (or those specified by list parameter) for the specified terminology",
-      response = Concept.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all synonym types (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymTypes",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return synonym types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List of codes or labels to return synonym types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   public @ResponseBody List<Concept> getSynonymTypes(@PathVariable(value = "terminology")
@@ -813,33 +799,32 @@ public class MetadataController extends BaseController {
    * @return the synonym type
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the synonym type for the specified terminology and code/name",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the synonym type for the specified terminology and code/name")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrName",
-          value = "Synonym type code (or name), e.g."
-              + "<ul><li>'P90' or 'FULL_SYN' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrName",
+          description = "Synonym type code (or name), e.g." + "<ul><li>'P90' or 'FULL_SYN' for <i>ncit</i></li>"
               + "<li>'Preferred_Name' or 'Preferred name' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/synonymType/{codeOrName}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymType/{codeOrName}",
+      produces = "application/json")
   public @ResponseBody Concept getSynonymType(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
   final String code, @RequestParam(required = false, name = "include")
@@ -848,14 +833,12 @@ public class MetadataController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Synonym type " + code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Synonym type " + code + " not found");
       }
 
       Optional<Concept> concept = metadataService.getSynonymType(terminology, code, include);
       if (!concept.isPresent())
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Synonym type " + code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Synonym type " + code + " not found");
 
       return concept.get();
     } catch (Exception e) {
@@ -873,29 +856,29 @@ public class MetadataController extends BaseController {
    * @return the definition types
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all definition types (or those specified by list parameter) for the specified terminology",
-      response = Concept.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all definition types (or those specified by list parameter) for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionTypes",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return definition types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List of codes or labels to return definition types for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   public @ResponseBody List<Concept> getDefinitionTypes(@PathVariable(value = "terminology")
@@ -920,33 +903,32 @@ public class MetadataController extends BaseController {
    * @return the definition type
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the definition type for the specified terminology and code/name.",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the definition type for the specified terminology and code/name.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrName",
-          value = "Definition type code (or name), e.g."
-              + "<ul><li>'P325' or 'DEFINITION' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrName",
+          description = "Definition type code (or name), e.g." + "<ul><li>'P325' or 'DEFINITION' for <i>ncit</i></li>"
               + "<li>'DEFINITION' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET,
-      value = "/metadata/{terminology}/definitionType/{codeOrName}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionType/{codeOrName}",
+      produces = "application/json")
   public @ResponseBody Concept getDefinitionType(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrName")
   final String code, @RequestParam(required = false, name = "include")
@@ -955,14 +937,12 @@ public class MetadataController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Definition type " + code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Definition type " + code + " not found");
       }
 
       Optional<Concept> concept = metadataService.getDefinitionType(terminology, code, include);
       if (!concept.isPresent())
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-            "Defininition type " + code + " not found");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Defininition type " + code + " not found");
 
       return concept.get();
     } catch (Exception e) {
@@ -980,31 +960,30 @@ public class MetadataController extends BaseController {
    * @return the properties
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get all subsets (or those specified by list parameter) for the specified terminology. "
-          + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.",
-      response = Concept.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request")
+  @Operation(summary = "Get all subsets (or those specified by list parameter) for the specified terminology.",
+      description = "This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets",
-      produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology",
-          value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+  @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets", produces = "application/json")
+  @Parameters({
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List of codes or labels to return subsets for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
-          required = false, dataTypeClass = String.class, paramType = "query")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List of codes or labels to return subsets for (or leave blank for all).  If invalid values are passed, the result will simply include no entries for those invalid values.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   public @ResponseBody List<Concept> getSubsets(@PathVariable(value = "terminology")
@@ -1028,28 +1007,28 @@ public class MetadataController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the subset for the specified terminology and code"
-      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.",
-      response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 417, message = "Unexpected duplicate found")
+  @Operation(summary = "Get the subset for the specified terminology and code.",
+      description = "This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'.", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Subset code, e.g. 'C116978' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data tc return. Comma-separated list of any of the following values: "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'.", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Subset code, e.g. 'C116978' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data tc return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query",
-          defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subset/{code}",

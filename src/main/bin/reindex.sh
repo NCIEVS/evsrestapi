@@ -312,7 +312,7 @@ for x in `cat /tmp/y.$$.txt`; do
         
         # Set the history clause for "ncit"
         historyClause=""
-        if [[ "$term" -eq "ncit" ]] && [[ $historyFile ]]; then
+        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
         	historyClause=" -d $historyFile"
         fi
 

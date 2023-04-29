@@ -17,7 +17,7 @@ esac; shift; done
 
 if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
   echo "Usage: src/main/bin/devreset.sh \"c:/data/UnitTestData\""
-  echo "  e.g. src/main/bin/devreset.sh /data/UnitTestData"
+  echo "  e.g. src/main/bin/devreset.sh ../data/UnitTestData"
   exit 1
 fi
 dir=${arr[0]}

@@ -8,14 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.swagger.annotations.Api;
-
 /**
  * Controller for /metadata endpoints.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Api(tags = "Metadata endpoints")
 public class BaseController {
 
   /** The Constant log. */
@@ -26,6 +23,7 @@ public class BaseController {
    * Handle exception.
    *
    * @param e the e
+   * @throws Exception the exception
    */
   public void handleException(final Exception e) throws Exception {
     if (e instanceof ResponseStatusException) {
@@ -33,8 +31,7 @@ public class BaseController {
     }
 
     logger.error("Unexpected error", e);
-    final String errorMessage =
-        "An error occurred in the system. Please contact the NCI help desk.";
+    final String errorMessage = "An error occurred in the system. Please contact the NCI help desk.";
     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
   }
 

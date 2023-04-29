@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api;
 
+import org.springdoc.core.SpringDocUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -15,6 +16,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableScheduling
 public class Application extends SpringBootServletInitializer {
+
+  // This is an invocation to allow @Request/ResponseBody to be used on maps
+  static {
+    SpringDocUtils.getConfig().removeRequestWrapperToIgnore(java.util.Map.class);
+  }
 
   /* see superclass */
   @Override

@@ -14,7 +14,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
 import gov.nih.nci.evs.api.GetterSetterTester;
-import gov.nih.nci.evs.api.ProxyTester;
 import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 
@@ -27,8 +26,7 @@ public class HistoryUnitTest {
 
   /** The logger. */
   @SuppressWarnings("unused")
-  private static final Logger log =
-      LoggerFactory.getLogger(HistoryUnitTest.class);
+  private static final Logger log = LoggerFactory.getLogger(HistoryUnitTest.class);
 
   /** The model object to test. */
   private History object;
@@ -41,7 +39,6 @@ public class HistoryUnitTest {
   @Before
   public void setup() throws Exception {
     object = new History();
-    final ProxyTester tester = new ProxyTester(new Qualifier());
   }
 
   /**
@@ -64,7 +61,7 @@ public class HistoryUnitTest {
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("code");
-    tester.include("conceptName");
+    tester.include("name");
     tester.include("action");
     tester.include("replacementCode");
     tester.include("replacementName");
@@ -86,7 +83,7 @@ public class HistoryUnitTest {
   @Test
   public void testModelCopy() throws Exception {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
-    assertTrue(tester.testCopyConstructor(Definition.class));
+    assertTrue(tester.testCopyConstructor(History.class));
   }
 
   /**

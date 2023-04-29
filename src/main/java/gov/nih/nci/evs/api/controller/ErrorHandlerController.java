@@ -5,7 +5,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
@@ -21,11 +21,14 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 /**
  * Handler for errors when accessing API thru browser.
  */
 @Controller
 @RequestMapping("/error")
+@Hidden
 public class ErrorHandlerController implements ErrorController {
 
   /** Logger. */
@@ -76,13 +79,13 @@ public class ErrorHandlerController implements ErrorController {
    */
   @RequestMapping()
   @ResponseBody
-  public ResponseEntity<Map<String, Object>> handleErrorJson(HttpServletRequest request) {
+  public ResponseEntity<RestException> handleErrorJson(HttpServletRequest request) {
     HttpStatus status = getStatus(request);
     if (status == HttpStatus.NO_CONTENT) {
       return new ResponseEntity<>(status);
     }
-    Map<String, Object> body = getErrorAttributes(request, false);
-    return new ResponseEntity<>(body, status);
+    final RestException exception = new RestException(getErrorAttributes(request, false));
+    return new ResponseEntity<>(exception, status);
   }
 
   /**
@@ -110,8 +113,7 @@ public class ErrorHandlerController implements ErrorController {
    * @param includeStackTrace the include stack trace
    * @return the error attributes
    */
-  protected Map<String, Object> getErrorAttributes(HttpServletRequest request,
-    boolean includeStackTrace) {
+  protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
     WebRequest webRequest = new ServletWebRequest(request);
     Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
     if (body.containsKey("message")) {
