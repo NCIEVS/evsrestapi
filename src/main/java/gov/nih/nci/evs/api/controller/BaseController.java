@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Controller for /metadata endpoints.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Api(tags = "Metadata endpoints")
+@Tag(name = "Metadata endpoints")
 public class BaseController {
 
   /** The Constant log. */
@@ -33,8 +33,7 @@ public class BaseController {
     }
 
     logger.error("Unexpected error", e);
-    final String errorMessage =
-        "An error occurred in the system. Please contact the NCI help desk.";
+    final String errorMessage = "An error occurred in the system. Please contact the NCI help desk.";
     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
   }
 

@@ -21,11 +21,14 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 /**
  * Handler for errors when accessing API thru browser.
  */
 @Controller
 @RequestMapping("/error")
+@Hidden
 public class ErrorHandlerController implements ErrorController {
 
   /** Logger. */
@@ -110,8 +113,7 @@ public class ErrorHandlerController implements ErrorController {
    * @param includeStackTrace the include stack trace
    * @return the error attributes
    */
-  protected Map<String, Object> getErrorAttributes(HttpServletRequest request,
-    boolean includeStackTrace) {
+  protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
     WebRequest webRequest = new ServletWebRequest(request);
     Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
     if (body.containsKey("message")) {

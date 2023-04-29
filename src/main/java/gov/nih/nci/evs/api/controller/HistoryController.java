@@ -19,19 +19,21 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.util.HistoryUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Controller for /history endpoints.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Api(tags = "History endpoints")
+@Tag(name = "History endpoints")
 public class HistoryController extends BaseController {
 
   /** Logger. */
@@ -54,19 +56,19 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Gets suggested replacements for a specified terminology and retired code",
-      response = List.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
-  })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Operation(summary = "Gets suggested replacements for a specified terminology and retired code", responses = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = String.class)))),
+      @ApiResponse(responseCode = "400", description = "Bad request"),
+      @ApiResponse(responseCode = "404", description = "Resource not found")
+  }, parameters = {
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "'C3910' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/history/{terminology}/{code}/replacements",
@@ -96,19 +98,19 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Gets suggested replacements for a specified terminology and a list of retired codes",
-      response = Map.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
-  })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Operation(summary = "Gets suggested replacements for a specified terminology and a list of retired codes",
+      responses = {
+          @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+          @ApiResponse(responseCode = "400", description = "Bad request"),
+          @ApiResponse(responseCode = "404", description = "Resource not found")
+      })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "'C3910' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/history/{terminology}/replacements",

@@ -10,16 +10,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.support.ApplicationVersion;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Version controller.
  */
 @RestController
-@Api(tags = "Application version endpoint")
+@Tag(name = "Application version endpoint")
 public class VersionController {
 
   /**
@@ -28,19 +29,21 @@ public class VersionController {
    * @return the evs concept detail
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  @ApiOperation(value = "Get the application version information", response = ApplicationVersion.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"),
-      @ApiResponse(code = 404, message = "Resource not found")
+
+  @Operation(summary = "Get the application version information", responses = {
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = ApplicationVersion.class))),
+      @ApiResponse(responseCode = "400", description = "Bad request"),
+      @ApiResponse(responseCode = "404", description = "Resource not found")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/version", produces = "application/json")
   public @ResponseBody ApplicationVersion getApplicationVersion() throws IOException {
     final ApplicationVersion homePageData = new ApplicationVersion();
     homePageData.setName("NCI EVS Rest API");
-    homePageData.setDescription(
-        "Endpoints to support searching, metadata, and content retrieval for EVS terminologies. "
+    homePageData
+        .setDescription("Endpoints to support searching, metadata, and content retrieval for EVS terminologies. "
             + "To learn more about how to interact with this api, see the  "
             + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK' "
             + "target='_blank'>Github evsrestapi-client-SDK project</a>.<br/><br/>");
