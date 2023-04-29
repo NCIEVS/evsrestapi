@@ -111,7 +111,7 @@ public class SubsetController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @Operation(description = "Get the subset for the specified terminology and code")
+  @Operation(description = "Get the subset for the specified terminology and code.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",

@@ -72,8 +72,7 @@ public class MetadataController extends BaseController {
   @Operation(summary = "Get all available terminologies")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
-      @ApiResponse(
-          responseCode = "404", description = "Resource not found",
+      @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
@@ -146,7 +145,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
@@ -247,7 +246,7 @@ public class MetadataController extends BaseController {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/roles", produces = "application/json")
   @Parameters({
@@ -350,7 +349,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
       produces = "application/json")
@@ -397,7 +396,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
       produces = "application/json")
@@ -759,7 +758,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymTypes",
       produces = "application/json")
@@ -863,7 +862,7 @@ public class MetadataController extends BaseController {
       @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionTypes",
       produces = "application/json")
@@ -961,14 +960,14 @@ public class MetadataController extends BaseController {
    * @return the properties
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all subsets (or those specified by list parameter) for the specified terminology. "
-      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
+  @Operation(summary = "Get all subsets (or those specified by list parameter) for the specified terminology.",
+      description = "This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/subsets", produces = "application/json")
   @Parameters({
@@ -1008,8 +1007,8 @@ public class MetadataController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the subset for the specified terminology and code"
-      + " This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
+  @Operation(summary = "Get the subset for the specified terminology and code.",
+      description = "This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",

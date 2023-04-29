@@ -374,8 +374,8 @@ public class ConceptController extends BaseController {
    * @return the subsets
    * @throws Exception the exception
    */
-  @Operation(summary = "Get subset members for the specified terminology and code. "
-      + "This endpoint will be deprecated in v2 in favor of a top level subset member endpoint.")
+  @Operation(summary = "Get subset members for the specified terminology and code.",
+      description = "This endpoint will be deprecated in v2 in favor of a top level subset member endpoint.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",

@@ -96,6 +96,7 @@ public class SearchController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
+      @Parameter(name = "searchCriteria", hidden = true),
       @Parameter(name = "terminology", description = "Single terminology to search, e.g. 'ncit' or 'ncim'",
           required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "term", description = "The term, phrase, or code to be searched, e.g. 'melanoma'",
@@ -229,6 +230,7 @@ public class SearchController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
+      @Parameter(name = "searchCriteria", hidden = true),
       @Parameter(name = "terminology",
           description = "Comma-separated list of terminologies to search, e.g. 'ncit' or 'ncim'", required = false,
           schema = @Schema(implementation = String.class), example = "ncit"),

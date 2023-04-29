@@ -8,14 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
-
 /**
  * Controller for /metadata endpoints.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Tag(name = "Metadata endpoints")
 public class BaseController {
 
   /** The Constant log. */
@@ -26,6 +23,7 @@ public class BaseController {
    * Handle exception.
    *
    * @param e the e
+   * @throws Exception the exception
    */
   public void handleException(final Exception e) throws Exception {
     if (e instanceof ResponseStatusException) {

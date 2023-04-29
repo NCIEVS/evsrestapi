@@ -88,5 +88,5 @@ nci:
 springdoc:
     swagger-ui:
         tagsSorter: alpha
-        operationsSorter: method
+        operationsSorter: alpha
         doc-expansion: none

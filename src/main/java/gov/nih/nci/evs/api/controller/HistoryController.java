@@ -56,7 +56,8 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @Operation(summary = "Gets suggested replacements for a specified terminology and retired code")
+  @Operation(summary = "Gets suggested replacements for a specified terminology and retired code."
+      + " Active codes will return entries as well with an action of \"active\".")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "400", description = "Bad request",
@@ -98,7 +99,8 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @Operation(summary = "Gets suggested replacements for a specified terminology and a list of retired codes")
+  @Operation(summary = "Gets suggested replacements for a specified terminology and a list of retired codes. "
+      + " Active codes will return entries as well with an action of \"active\".")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "400", description = "Bad request",
@@ -125,8 +127,7 @@ public class HistoryController extends BaseController {
     try {
 
       final Terminology term = termUtils.getTerminology(terminology, true);
-      return
-          HistoryUtils.getReplacements(term, elasticQueryService, list);
+      return HistoryUtils.getReplacements(term, elasticQueryService, list);
 
     } catch (final Exception e) {
       handleException(e);
