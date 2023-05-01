@@ -31,10 +31,12 @@ if [[ $? -eq 0 ]]; then
 else
     jq="python -m json.tool"
 fi
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
+echo "DIR = $DIR"
 if [[ $historyFile ]]; then
     echo "historyFile = $historyFile"
 fi
@@ -250,6 +252,8 @@ for x in `cat /tmp/y.$$.txt`; do
             fi
         done
 
+        # cd back out
+        cd -
 	fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
@@ -296,7 +300,6 @@ for x in `cat /tmp/y.$$.txt`; do
             # Remove if this already exists
             version=`echo $cv | perl -pe 's/.*_//;'`
             echo "    Remove indexes for $term $version"
-            DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
             $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
             if [[ $? -ne 0 ]]; then
                 cat /tmp/x.$$ | sed 's/^/    /'
