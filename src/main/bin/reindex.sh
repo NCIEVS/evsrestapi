@@ -7,11 +7,11 @@
 #
 config=1
 force=0
-historyFile=
+historyFileOverride=
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
-  --history) historyFile=$2; shift;;
+  --history) historyFileOverride=$2; shift;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
@@ -37,8 +37,8 @@ echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
 echo "DIR = $DIR"
-if [[ $historyFile ]]; then
-    echo "historyFile = $historyFile"
+if [[ $historyFileOverride ]]; then
+    echo "historyFileOverride = $historyFileOverride"
 fi
 echo ""
 
@@ -219,8 +219,14 @@ for x in `cat /tmp/y.$$.txt`; do
 
     exists=1
 	
-    # Download history file if not specified
-    if [[ "$term" == "ncit" ]] && [[ ! $historyFile ]]; then
+    # Use override history file if specified
+    historyFile=""
+    if [[ "$term" == "ncit" ]] && [[ $historyFileOverride ]]; then
+
+        historyFile=$historyFileOverride
+
+    # Otherwise, download if ncit
+    elif [[ "$term" == "ncit" ]]; then
 	
         # Prep dir
         /bin/rm -rf $DIR/NCIT_HISTORY
@@ -326,6 +332,8 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "ERROR: unexpected error building indexes"
             exit 1
         fi
+ 
+        # Unset history file once done being used
 
         # Set the indexes to have a larger max_result_window
         echo "    Set max result window to 250000 for concept_${term}_$cv"
