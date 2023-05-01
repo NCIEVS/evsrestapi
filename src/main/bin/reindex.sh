@@ -220,7 +220,7 @@ for x in `cat /tmp/y.$$.txt`; do
     exists=1
 	
     # Download history file if not specified
-    if [[ "$term" -eq "ncit" ]] && [[ ! $historyFile ]]; then
+    if [[ "$term" == "ncit" ]] && [[ ! $historyFile ]]; then
 	
         # Prep dir
         /bin/rm -rf $DIR/NCIT_HISTORY
@@ -231,8 +231,9 @@ for x in `cat /tmp/y.$$.txt`; do
         for i in {1..5}; do 
 
         	echo "  Download latest NCIt History: attempt $i"
+        	url=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$version.zip
             echo "    url = $url"
-            curl -s -o cumulative_history_$version.zip https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$version.zip
+            curl -s -o cumulative_history_$version.zip $url
 
             if [[ $? -ne 0 ]]; then
                 echo "ERROR: problem downloading NCIt history (trying again $i)"
@@ -243,7 +244,7 @@ for x in `cat /tmp/y.$$.txt`; do
                 if [[ $? -ne 0 ]]; then
                     cat /tmp/x.$$
                     echo "ERROR: problem unpacking cumulative_history_$version.zip"
-                    exit 1
+                    break
                 fi
 
                 # Set historyFile for later steps    
