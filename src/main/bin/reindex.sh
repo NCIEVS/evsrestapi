@@ -221,9 +221,9 @@ for x in `cat /tmp/y.$$.txt`; do
     if [[ "$term" -eq "ncit" ]] && [[ ! $historyFile ]]; then
 	
         # Prep dir
-        /bin/rm -rf $dir/NCIT_HISTORY
-        mkdir $dir/NCIT_HISTORY
-        cd $dir/NCIT_HISTORY
+        /bin/rm -rf $DIR/NCIT_HISTORY
+        mkdir $DIR/NCIT_HISTORY
+        cd $DIR/NCIT_HISTORY
 
         # Download file (try 5 times)
         for i in {1..5}; do 
@@ -245,7 +245,7 @@ for x in `cat /tmp/y.$$.txt`; do
                 fi
 
                 # Set historyFile for later steps    
-                historyFile=$dir/NCIT_HISTORY/cumulative_history_$version.txt
+                historyFile=$DIR/NCIT_HISTORY/cumulative_history_$version.txt
                 break
             fi
         done
@@ -335,8 +335,8 @@ for x in `cat /tmp/y.$$.txt`; do
     fi
 	
 	# Delete download directory for history file if it exists
-	if [[ -e $dir/NCIT_HISTORY ]]; then
-        /bin/rm -rf $dir/NCIT_HISTORY
+	if [[ -e $DIR/NCIT_HISTORY ]]; then
+        /bin/rm -rf $DIR/NCIT_HISTORY
 	fi
     
     # track previous version, if next one is the same, don't index again.
