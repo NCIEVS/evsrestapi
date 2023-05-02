@@ -239,10 +239,12 @@ for x in `cat /tmp/y.$$.txt`; do
         	echo "  Download latest NCIt History: attempt $i"
         	url=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$version.zip
             echo "    url = $url"
-            curl -s -o cumulative_history_$version.zip $url
-
+            curl -w "\n%{http_code}" -s -o cumulative_history_$version.zip $url > /tmp/x.$$
             if [[ $? -ne 0 ]]; then
                 echo "ERROR: problem downloading NCIt history (trying again $i)"
+            elif [[ `tail -y /tmp/x.$$` -eq 404 ]]; then
+                echo "ERROR: url does not exist, bail out"
+                break;
             else
 
                 echo "  Unpack NCIt history"
