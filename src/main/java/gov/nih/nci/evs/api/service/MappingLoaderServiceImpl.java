@@ -126,10 +126,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri =
         "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/data/mappings/";
-    final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
-    List<String> allLines = new ArrayList<>(
-        Arrays.asList(IOUtils.toString(new URL(mapsetMetadataUri).openConnection().getInputStream(),
-            StandardCharsets.UTF_8).split("\n")));
+    final String mapsetMetadataUri = uri + "/mapsetMetadata2.txt";
+    String rawMetadata = IOUtils.toString(
+        new URL(mapsetMetadataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
+    List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
     // skip header line
     allLines = allLines.subList(1, allLines.size());
     boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
@@ -138,10 +138,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
           Concept.class);
     }
-    List<String> allCodes =
-        allLines.stream().map(l -> l.split(",")[0]).collect(Collectors.toList());
 
-    List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("minimal"))
+    List<String> allCodes = new ArrayList<String>();
+    for (String line : allLines) {
+      if (line.split(",")[4].contains("MappingLoadServiceImpl")) {
+        allCodes.add(line.split(",")[0]);
+      }
+    }
+
+    List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("properties"))
         .stream().map(Concept::getCode).collect(Collectors.toList());
 
     List<String> mapsetsToAdd =
@@ -173,6 +178,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else {
         map.setVersion(null);
       }
+      map.getProperties().add(new Property("loader", metadata[4]));
 
       // setting up metadata
       if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
