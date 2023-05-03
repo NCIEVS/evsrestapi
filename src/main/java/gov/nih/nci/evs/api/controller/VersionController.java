@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @RestController
 @Tag(name = "Application version endpoint")
-public class VersionController {
+public class VersionController extends BaseController {
 
   /**
    * Returns the evs concept detail.
