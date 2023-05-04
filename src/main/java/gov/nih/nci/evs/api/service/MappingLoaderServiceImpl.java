@@ -126,7 +126,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri =
         "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/data/mappings/";
-    final String mapsetMetadataUri = uri + "/mapsetMetadata2.txt";
+    final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
     String rawMetadata = IOUtils.toString(
         new URL(mapsetMetadataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
