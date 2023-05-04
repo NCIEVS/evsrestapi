@@ -139,14 +139,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           Concept.class);
     }
 
-    // all codes in the metadata file that this deals with
     List<String> allCodes = new ArrayList<String>();
     for (String line : allLines) {
       if (line.split(",")[4].contains("MappingLoadServiceImpl")) {
         allCodes.add(line.split(",")[0]);
       }
     }
-
     // all the current codes that this deals with
     List<String> currentMapsetCodes =
         esQueryService.getMapsets(new IncludeParam("properties")).stream()
@@ -223,6 +221,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
       logger.info("indexing " + metadata[0]);
+
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
 
