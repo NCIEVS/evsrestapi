@@ -139,7 +139,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           Concept.class);
     }
 
-    // all codes in the metadata file that this deals with
     List<String> allCodes = new ArrayList<String>();
     for (String line : allLines) {
       if (line.split(",")[4].contains("MappingLoadServiceImpl")) {
