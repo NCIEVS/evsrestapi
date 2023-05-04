@@ -75,6 +75,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    */
   public void populateFrom(final Map other) {
     super.populateFrom(other);
+    source = other.getSource();
     type = other.getType();
     group = other.getGroup();
     rank = other.getRank();
@@ -82,8 +83,10 @@ public class Map extends BaseModel implements Comparable<Map> {
     targetName = other.getTargetName();
     targetTermType = other.getTargetTermType();
     sourceCode = other.getSourceCode();
+    sourceName = other.getSourceName();
     sourceTerminology = other.getSourceTerminology();
     targetCode = other.getTargetCode();
+    targetName = other.getTargetName();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
   }
@@ -342,7 +345,9 @@ public class Map extends BaseModel implements Comparable<Map> {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + ((source == null) ? 0 : source.hashCode());
     result = prime * result + ((sourceCode == null) ? 0 : sourceCode.hashCode());
+    result = prime * result + ((sourceName == null) ? 0 : sourceName.hashCode());
     result = prime * result + ((sourceTerminology == null) ? 0 : sourceTerminology.hashCode());
     result = prime * result + ((targetCode == null) ? 0 : targetCode.hashCode());
     result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
