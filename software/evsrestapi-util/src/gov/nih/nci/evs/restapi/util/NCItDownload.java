@@ -154,6 +154,26 @@ public class NCItDownload {
         unzip(zipFilePath, currentWorkingDirectory);
 	}
 
+    public static void downLoadNCIt(String year, String version) {
+		String currentWorkingDirectory = System.getProperty("user.dir");
+		String NCIT_ZIP_FILE = "ThesaurusInf_" + version + ".OWL.zip";
+		String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
+		System.out.println(zipFilePath);
+		String NCIt_URI = "https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/archive/" + year + "/" + version + "_Release/";
+        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
+        unzip(zipFilePath, currentWorkingDirectory);
+        Vector files = listFilesInDirectory();
+        Utils.dumpVector("listFilesInDirectory", files);
+        String from = "ThesaurusInferred.owl";
+        String to = "ThesaurusInferred_forTS_" + version + ".owl";
+        copyFile(from, to);
+	}
+
+	public static void copyFile(String from, String to) {
+		Vector v = Utils.readFile(from);
+		Utils.saveToFile(to, v);
+	}
+
     public static void main(String[] args) {
 		String currentWorkingDirectory = System.getProperty("user.dir");
 
