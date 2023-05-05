@@ -11,6 +11,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -315,6 +317,17 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             Concept.class);
       }
       for (final Concept mapset : mapsetMap.values()) {
+        Collections.sort(mapset.getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
+          @Override
+          public int compare(final gov.nih.nci.evs.api.model.Map o1,
+            final gov.nih.nci.evs.api.model.Map o2) {
+            // Assume maps are not null
+            return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
+                + o1.getTargetName())
+                    .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                        + o2.getTargetName());
+          }
+        });
         operationsService.index(mapset, ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       }

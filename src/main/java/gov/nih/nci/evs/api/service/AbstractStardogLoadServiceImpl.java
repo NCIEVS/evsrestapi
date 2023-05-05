@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -235,14 +237,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           handleHistory(terminology, c);
           if (c.getMaps().size() > 0) {
             for (final gov.nih.nci.evs.api.model.Map map : c.getMaps()) {
-              if (mapsets.containsKey(map.getTargetTerminology()))
-
-              {
+              if (mapsets.containsKey(map.getTargetTerminology().split(" ")[0])) {
                 final gov.nih.nci.evs.api.model.Map copy = new gov.nih.nci.evs.api.model.Map(map);
                 copy.setSourceCode(c.getCode());
                 copy.setSourceName(c.getName());
                 copy.setSourceTerminology(c.getTerminology());
-                mapsets.get(map.getTargetTerminology()).getMaps().add(copy);
+                if (map.getTargetTerminology().split(" ").length > 1) {
+                  copy.setTargetTerminology(map.getTargetTerminology().split(" ")[0]);
+                  copy.setTargetTerminologyVersion(map.getTargetTerminology().split(" ")[1]);
+                }
+                mapsets.get(map.getTargetTerminology().split(" ")[0]).getMaps().add(copy);
               }
             }
           }
@@ -282,6 +286,17 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       for (Map.Entry<String, Concept> map : mapsets.entrySet()) {
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, "NCIt_Maps_To_" + map.getKey());
+        Collections.sort(map.getValue().getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
+          @Override
+          public int compare(final gov.nih.nci.evs.api.model.Map o1,
+            final gov.nih.nci.evs.api.model.Map o2) {
+            // Assume maps are not null
+            return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
+                + o1.getTargetName())
+                    .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                        + o2.getTargetName());
+          }
+        });
         operationsService.index(map.getValue(), ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       }
