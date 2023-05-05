@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,8 +87,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The rui qual sabs. */
   private Set<String> ruiQualSabs = new HashSet<>();
 
-  /** The mapsets. */
-  private Map<String, String> mapsets = new HashMap<>();
+  /** The mapset "to terminology" map. */
+  private Map<String, String> mapsetToTerminologyMap = new HashMap<>();
+
+  /** The mapset name map. */
+  private Map<String, String> mapsetNameMap = new HashMap<>();
+
+  /** The mapset version map. */
+  private Map<String, String> mapsetVersionMap = new HashMap<>();
 
   /** The maps. */
   private Map<String, Set<gov.nih.nci.evs.api.model.Map>> maps = new HashMap<>();
@@ -122,7 +131,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The qual set. */
   private Map<String, Set<String>> qualMap = new HashMap<>();
-  
+
   private int batchSize = 0;
 
   /** the environment *. */
@@ -176,31 +185,45 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,SAB,TTY,CODE,STR,SRL,SUPPRESS,CVF
 
         // Cache concept preferred names
-        if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF") && fields[6].equalsIgnoreCase("Y")) {
+        if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
+            && fields[6].equalsIgnoreCase("Y")) {
           // Save the name map to dereference it while processing relationships
           nameMap.put(fields[0], fields[14]);
         }
 
         // Cache ICD10CM PT names for mapping data
+        // ICD10CM/ICD10 are always target fields as of now
         if (fields[11].equals("ICD10CM") && fields[12].equals("PT")) {
-          nameMap.put(fields[13], fields[14]);
+          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
+        }
+
+        // Cache ICD10CM PT names for mapping data
+        if (fields[11].equals("ICD10") && fields[12].equals("PT")) {
+          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
         }
 
         // Cache SNOMEDCT_US/PT SCUI -> CUI for maps
+        // SNOMEDCT_US is always source field as of now
         if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("PT") && fields[16].equals("N")) {
+          mapsetNameMap.put(fields[13], fields[14]);
           codeCuiMap.put(fields[13], fields[0]);
         }
 
         // Cache mapsets
-        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM") && fields[14].contains("ICD10")) {
+        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM")
+            && fields[14].contains("ICD10")) {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
           // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
-          mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+          mapsetToTerminologyMap.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+          mapsetNameMap.put(fields[0], fields[14]);
+          mapsetVersionMap.put(fields[0],
+              fields[14].replaceFirst("(.*) to .*", "$1").replaceFirst("SNOMEDCT_US_", ""));
         }
 
       }
 
       // Loop through map lines and cache map objects
+      final Map<String, Concept> mapsetMap = new HashMap<>();
       while ((line = mrmap.readLine()) != null) {
         // MAPSETCUI,MAPSETSAB,MAPSUBSETID,MAPRANK,MAPID,MAPSID,FROMID,FROMSID,
         // FROMEXPR,FROMTYPE,FROMRULE,FROMRES,REL,RELA,TOID,TOSID,TOEXPR,TOTYPE,
@@ -208,7 +231,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         final String[] fields = line.split("\\|", -1);
 
         // Skip map sets not being tracked
-        if (!mapsets.containsKey(fields[0])) {
+        if (!mapsetToTerminologyMap.containsKey(fields[0])) {
           continue;
         }
 
@@ -227,17 +250,24 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
+        map.setSource("SNOMEDCT_US");
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
+        map.setSourceName(mapsetNameMap.get(fields[6]));
         map.setTargetCode(fields[16]);
-        map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermType("PT");
-        map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
-        map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
+        map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
+        map.setTargetTerminologyVersion(mapsetToTerminologyMap.get(fields[0]).split("_")[1]);
+        map.setTargetName(mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
         map.setType(fields[12]);
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
         map.setRule(fields[20]);
+
+        // Fix source name if null
+        if (map.getSourceName() == null) {
+          map.setSourceName("Unable to determine name, code not present");
+        }
 
         // Fix target name if null
         if (map.getTargetName() == null) {
@@ -252,7 +282,45 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           }
           maps.get(cui).add(map);
         }
+
+        // Handle mapsets
+        if (!mapsetMap.containsKey(fields[0])) {
+          final Concept mapset = new Concept();
+          // populate the mapset details.
+          final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
+          mapset.setCode(code);
+          mapset.setName(mapsetNameMap.get(fields[0]));
+          mapset.setTerminology("SNOMEDCT_US");
+          mapset.setVersion(mapsetVersionMap.get(fields[0]));
+          // set other fields and properties as needed (to match other mapsets and needs of ui)
+          mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
+          final String mapsetUri = applicationProperties.getConfigBaseUri() + "/mapping-snomed-"
+              + mapsetToTerminologyMap.get(fields[0]).split("_")[0].toLowerCase() + ".html";
+          final String welcomeText = IOUtils.toString(
+              new URL(mapsetUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
+          mapset.getProperties().add(new Property("welcomeText", welcomeText));
+          mapset.getProperties().add(new Property("mapsetLink", null));
+          mapset.getProperties().add(new Property("downloadOnly", "false"));
+          mapsetMap.put(fields[0], mapset);
+        }
+        mapsetMap.get(fields[0]).getMaps().add(map);
       }
+
+      // Here - create the map index and index the mapsets
+      boolean created =
+          operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
+      if (created) {
+        operationsService.getElasticsearchOperations().putMapping(
+            ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
+            Concept.class);
+      }
+      for (final Concept mapset : mapsetMap.values()) {
+        operationsService.index(mapset, ElasticOperationsService.MAPPING_INDEX,
+            ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      }
+      // free up memory
+      mapsetMap.clear();
+      mapsetNameMap.clear();
 
       // read inverses from MRDOC
       while ((line = mrdoc.readLine()) != null) {
@@ -318,7 +386,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           // C4229995|A5970983|AUI|PAR|C4229995|A5963886|AUI||R91875256||MDR|MDR|||N||
           final String key = fields[1] + fields[5] + fields[3] + fields[7];
           helper.put(key, fields[8]);
-          final String key2 = fields[5] + fields[1] + relInverseMap.get(fields[3]) + relaInverseMap.get(fields[7]);
+          final String key2 =
+              fields[5] + fields[1] + relInverseMap.get(fields[3]) + relaInverseMap.get(fields[7]);
           if (helper.containsKey(key2)) {
             ruiInverseMap.put(fields[8], helper.get(key2));
             ruiInverseMap.put(helper.get(key2), fields[8]);
@@ -341,8 +410,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
-    logger.info("    mapsets = " + mapsets.size());
-    logger.info("    maps = " + mapsets.size());
+    logger.info("    mapsets = " + mapsetToTerminologyMap.size());
+    logger.info("    maps = " + mapsetToTerminologyMap.size());
     logger.info("    ruiInverseMap = " + ruiInverseMap.size());
     logger.info("    ruiQualMap = " + ruiQualMap.size());
 
@@ -350,12 +419,13 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
-    throws Exception {
+  public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
+    HierarchyUtils hierarchy) throws Exception {
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
     // Put the mapping
-    boolean result = operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
+    boolean result =
+        operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
@@ -462,7 +532,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       handleConcept(concept, batch, true, terminology.getIndexName());
       totalConcepts++;
-      
+
       // Process any retired concepts for history
       totalConcepts += loadHistory(terminology);
 
@@ -473,7 +543,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }
 
   }
-  
+
   /**
    * Handle semantic types.
    *
@@ -482,8 +552,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleSemanticTypes(final Concept concept, final PushBackReader mrsty, final String prevCui)
-    throws Exception {
+  public void handleSemanticTypes(final Concept concept, final PushBackReader mrsty,
+    final String prevCui) throws Exception {
     String line;
     while ((line = mrsty.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -505,8 +575,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleAttributes(final Concept concept, final PushBackReader mrsat, final String prevCui)
-    throws Exception {
+  public void handleAttributes(final Concept concept, final PushBackReader mrsat,
+    final String prevCui) throws Exception {
 
     // Track seen to avoid duplicates
     final Set<String> seen = new HashSet<>();
@@ -566,8 +636,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         qualMap.get(atn).add(atv);
 
         // find synonym
-        final Synonym syn =
-            concept.getSynonyms().stream().filter(s -> s.getUri().equals(fields[3])).findFirst().orElse(null);
+        final Synonym syn = concept.getSynonyms().stream().filter(s -> s.getUri().equals(fields[3]))
+            .findFirst().orElse(null);
         if (syn == null) {
           throw new Exception("Synonym for attribute cannot be resolved = " + line);
         }
@@ -598,7 +668,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param source the source
    * @return the property
    */
-  private void buildProperty(final Concept concept, final String type, final String value, final String source) {
+  private void buildProperty(final Concept concept, final String type, final String value,
+    final String source) {
     final Property prop = new Property();
     prop.setValue(value);
     prop.setType(type);
@@ -618,8 +689,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  private void handleDefinitions(final Terminology terminology, final Concept concept, final PushBackReader mrdef,
-    final String prevCui) throws Exception {
+  private void handleDefinitions(final Terminology terminology, final Concept concept,
+    final PushBackReader mrdef, final String prevCui) throws Exception {
     String line;
     while ((line = mrdef.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -640,7 +711,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @return the definition
    */
-  private void buildDefinition(final Terminology terminology, final Concept concept, final String[] fields) {
+  private void buildDefinition(final Terminology terminology, final Concept concept,
+    final String[] fields) {
     final String definition = fields[5];
     final String source = fields[4];
 
@@ -660,8 +732,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleRelationships(final Concept concept, final PushBackReader mrrel, final String prevCui)
-    throws Exception {
+  public void handleRelationships(final Concept concept, final PushBackReader mrrel,
+    final String prevCui) throws Exception {
     Set<String> seen = new HashSet<>();
     String line;
     while ((line = mrrel.readLine()) != null) {
@@ -679,8 +751,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       final String toCode = fields[0];
 
       // Skip certain situations
-      if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")
-          || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
+      if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
+          || rel.equals("BRO") || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
 
@@ -761,7 +833,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @return the concept
    * @throws Exception the exception
    */
-  private Concept buildParentChildHelper(final Concept concept, final String[] fields) throws Exception {
+  private Concept buildParentChildHelper(final Concept concept, final String[] fields)
+    throws Exception {
 
     // C2584594|A9570455|SCUI|PAR|C0203464|A3803453|SCUI|inverse_isa|R105418833|4727926024|SNOMEDCT_US|SNOMEDCT_US||N|N||
     // final String cui1 = fields[0];
@@ -864,7 +937,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(inverseRui)) {
       for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
-        association.getQualifiers().add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
+        association.getQualifiers()
+            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
     }
 
@@ -909,7 +983,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(inverseRui)) {
       for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
-        iassociation.getQualifiers().add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
+        iassociation.getQualifiers()
+            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
       ruiQualMap.remove(inverseRui);
       ruiInverseMap.remove(fields[8]);
@@ -927,7 +1002,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param name the name
    * @return the concept
    */
-  private Concept buildMetadata(final Terminology terminology, final String code, final String name) {
+  private Concept buildMetadata(final Terminology terminology, final String code,
+    final String name) {
     final Concept propMeta = new Concept();
     propMeta.setCode(code);
     propMeta.setName(code);
@@ -951,8 +1027,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
-    throws Exception {
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology,
+    HierarchyUtils hierarchy) throws Exception {
 
     final String indexName = terminology.getObjectIndexName();
 
@@ -971,7 +1047,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     for (final String rel : relSet) {
       associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
     }
-    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     // Hanlde "concept statuses" - n/a
 
@@ -984,7 +1061,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     final ElasticObject defTypes = new ElasticObject("definitionTypes");
     defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
-    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     //
     // Handle properties
@@ -998,7 +1076,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     //
     // Handle qualifiers
@@ -1017,19 +1096,22 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }
     qualifiers.setMap(qualMap);
 
-    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     //
     // Handle roles - n/a
     //
     final ElasticObject roles = new ElasticObject("roles");
-    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     //
     // Handle subsets - n/a
     //
     final ElasticObject subsets = new ElasticObject("subsets");
-    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     //
     // Handle synonymSources - n/a - handled inline
@@ -1041,7 +1123,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject syTypes = new ElasticObject("synonymTypes");
     syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
     syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
-    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
+        ElasticObject.class);
 
     //
     // Handle termTypes - n/a - handled inline
@@ -1058,7 +1141,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param indexName the index name
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName) throws IOException {
+  private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
+    throws IOException {
 
     // Remove synonym "uris" as no longer needed
     concept.getSynonyms().forEach(s -> s.setUri(null));
@@ -1078,8 +1162,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
-      operationsService.bulkIndex(new ArrayList<>(batch), indexName, ElasticOperationsService.CONCEPT_TYPE,
-          Concept.class);
+      operationsService.bulkIndex(new ArrayList<>(batch), indexName,
+          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       batch.clear();
       batchSize = 0;
     }
@@ -1088,15 +1172,16 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, String filepath,
-    String terminology, boolean forceDelete) throws Exception {
+  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
+    String filepath, String terminology, boolean forceDelete) throws Exception {
     // will eventually read and build differently
     this.setFilepath(new File(filepath));
     if (!this.getFilepath().exists()) {
       throw new Exception("Given filepath does not exist");
     }
     try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
-        final BufferedReader in = new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
+        final BufferedReader in =
+            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
 
       String line;
       Terminology term = new Terminology();
@@ -1135,7 +1220,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Load from config
         final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
-        final TerminologyMetadata metadata = new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+        final TerminologyMetadata metadata =
+            new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
         // Set term name and description
         term.setName(metadata.getUiLabel() + " " + term.getVersion());
@@ -1150,8 +1236,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         term.setMetadata(metadata);
 
       } catch (Exception e) {
-        throw new Exception("Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
-            e);
+        throw new Exception("Unexpected error trying to load metadata = "
+            + applicationProperties.getConfigBaseUri(), e);
       }
 
       return term;
@@ -1160,7 +1246,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }
 
   }
-  
+
   /**
    * Load the history files.
    *
@@ -1168,199 +1254,200 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @return the number of retired concepts created
    */
   private int loadHistory(final Terminology terminology) throws Exception {
-      
-      if (!terminology.getTerminology().equals("ncim")) {
-          return 0;
-      }
-      
-      logger.debug("STARTING HISTORY PROCESSING");
-      final Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-      final List<Concept> batch = new ArrayList<>();
-      int conceptsCreated = 0;
-      
-      SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMM");
-      SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-      
-      RrfReaders readers = new RrfReaders(this.getFilepath());
-      readers.openOriginalReaders("MR");
-      
-      try (final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI);) {
 
-        String line = null;
-        
-        // CODE, DATE, REL (ACTION), RELA, MAPREASON, REPLACEMENT CODE, MAPINSUB
-        // Action values: Broader (RB), Narrower (RN), Other Related (RO), Deleted (DEL), Removed from Subset (SUBX)
-        // Loop through lines until we reach "the end"
-        while ((line = mrcui.readLine()) != null) {
+    if (!terminology.getTerminology().equals("ncim")) {
+      return 0;
+    }
 
-          if (line.equals("")) {
-              continue;
-          }
-          
-          final String[] fields = line.split("\\|", -1);
-          final String code = fields[0];
-          final String date = fields[1];
-          final String action = fields[2];
-          final String replacementCode = fields[5];
-          final String replacementInSubset = fields[6];
-          List<Map<String, String>> conceptHistory = new ArrayList<>();
-          final Map<String, String> historyItem = new HashMap<>();
-          
-          if (action.equals("SUBX")) {
-              continue;
-          }
-          
-          if (historyMap.containsKey(code)) {
-              conceptHistory = historyMap.get(code);
-          }
-          
-          historyItem.put("action", action);
-          historyItem.put("date", date);
-          
-          if (replacementCode != null && !replacementCode.equals("null")) {
-              
-              if (replacementInSubset.equals("N")) {
-                  continue;
-              }
-              
-              historyItem.put("replacementCode", replacementCode);
-          }
-          
-          conceptHistory.add(historyItem);
-          historyMap.put(code, conceptHistory);
+    logger.debug("STARTING HISTORY PROCESSING");
+    final Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
+    final List<Concept> batch = new ArrayList<>();
+    int conceptsCreated = 0;
+
+    SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMM");
+    SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+    RrfReaders readers = new RrfReaders(this.getFilepath());
+    readers.openOriginalReaders("MR");
+
+    try (final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI);) {
+
+      String line = null;
+
+      // CODE, DATE, REL (ACTION), RELA, MAPREASON, REPLACEMENT CODE, MAPINSUB
+      // Action values: Broader (RB), Narrower (RN), Other Related (RO), Deleted (DEL), Removed from
+      // Subset (SUBX)
+      // Loop through lines until we reach "the end"
+      while ((line = mrcui.readLine()) != null) {
+
+        if (line.equals("")) {
+          continue;
         }
-        
-      } finally {
-          readers.closeReaders();
+
+        final String[] fields = line.split("\\|", -1);
+        final String code = fields[0];
+        final String date = fields[1];
+        final String action = fields[2];
+        final String replacementCode = fields[5];
+        final String replacementInSubset = fields[6];
+        List<Map<String, String>> conceptHistory = new ArrayList<>();
+        final Map<String, String> historyItem = new HashMap<>();
+
+        if (action.equals("SUBX")) {
+          continue;
+        }
+
+        if (historyMap.containsKey(code)) {
+          conceptHistory = historyMap.get(code);
+        }
+
+        historyItem.put("action", action);
+        historyItem.put("date", date);
+
+        if (replacementCode != null && !replacementCode.equals("null")) {
+
+          if (replacementInSubset.equals("N")) {
+            continue;
+          }
+
+          historyItem.put("replacementCode", replacementCode);
+        }
+
+        conceptHistory.add(historyItem);
+        historyMap.put(code, conceptHistory);
       }
-      
-      
-      final Set<String> historyCodes = historyMap.keySet();
-      final Map<Concept, Set<String>> missingCodes = new HashMap<>();
-      int conceptsToCreateCount = historyCodes.size();
-      logger.info("HISTORY PROCESSING CONCEPT COUNT: " + conceptsToCreateCount);
-      
-      for (String code : historyCodes) {
-          
-          conceptsCreated++;
-          boolean lastConcept = false;
-          String name = "Retired concept";
-          final Set<String> replacementMissingCodes = new HashSet<>();
-          final Concept concept = new Concept();
-          concept.setCode(code);
-          concept.setTerminology(terminology.getTerminology());
-          concept.setVersion(terminology.getVersion());
-          // NO hierarchies for NCIM concepts, so set leaf to null
-          concept.setLeaf(null);
-          
-          for (final Map<String, String> historyItem: historyMap.get(code)) {
-              
-              if (historyItem.get("action").equals("DEL")) {
-                  name = "Deleted concept";
-              }
-              
-              // add info to name map
-              nameMap.put(code, name);
-              
-              final History history = new History();
-              history.setCode(code);
-              history.setAction(historyItem.get("action"));
-              
-              String date = "";
-              
-              if (historyItem.get("date") != null && !historyItem.get("date").equals("")) {
-                  date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
-              }
-              
-              history.setDate(date);
-              
-              final String replacementCode = historyItem.get("replacementCode");
-              final String replacementName = nameMap.get(replacementCode);
-              
-              if (replacementCode != null && !replacementCode.equals("")) {
-                  
-                  history.setReplacementCode(replacementCode);
-                  history.setReplacementName(replacementName);
-                  
-                  // if the replacement is not yet a concept or in the history create the concept
-                  if (replacementName == null && !historyCodes.contains(replacementCode)) {
-                      
-                      logger.debug("COMPLETELY MISSING replacementCode");
-                      history.setReplacementName("Deleted concept");
-                      
-                      final Concept deletedConcept = new Concept();
-                      deletedConcept.setCode(code);
-                      deletedConcept.setName("Deleted concept");
-                      deletedConcept.setTerminology(terminology.getTerminology());
-                      deletedConcept.setVersion(terminology.getVersion());
-                      deletedConcept.setLeaf(null);
-                      
-                      conceptsCreated++;;
-                      conceptsToCreateCount++;
-                      handleConcept(deletedConcept, batch, false, terminology.getIndexName());
-                  }
-                  
-                  // if the replacement is not yet a concept and is in the history store the info so we can revisit
-                  else if (replacementName == null && historyCodes.contains(replacementCode)) {
-                      
-                      logger.debug("NOT YET CREATED replacementCode");
-                      replacementMissingCodes.add(replacementCode);
-                  }
-              }
-              
-              concept.getHistory().add(history);
+
+    } finally {
+      readers.closeReaders();
+    }
+
+    final Set<String> historyCodes = historyMap.keySet();
+    final Map<Concept, Set<String>> missingCodes = new HashMap<>();
+    int conceptsToCreateCount = historyCodes.size();
+    logger.info("HISTORY PROCESSING CONCEPT COUNT: " + conceptsToCreateCount);
+
+    for (String code : historyCodes) {
+
+      conceptsCreated++;
+      boolean lastConcept = false;
+      String name = "Retired concept";
+      final Set<String> replacementMissingCodes = new HashSet<>();
+      final Concept concept = new Concept();
+      concept.setCode(code);
+      concept.setTerminology(terminology.getTerminology());
+      concept.setVersion(terminology.getVersion());
+      // NO hierarchies for NCIM concepts, so set leaf to null
+      concept.setLeaf(null);
+
+      for (final Map<String, String> historyItem : historyMap.get(code)) {
+
+        if (historyItem.get("action").equals("DEL")) {
+          name = "Deleted concept";
+        }
+
+        // add info to name map
+        nameMap.put(code, name);
+
+        final History history = new History();
+        history.setCode(code);
+        history.setAction(historyItem.get("action"));
+
+        String date = "";
+
+        if (historyItem.get("date") != null && !historyItem.get("date").equals("")) {
+          date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
+        }
+
+        history.setDate(date);
+
+        final String replacementCode = historyItem.get("replacementCode");
+        final String replacementName = nameMap.get(replacementCode);
+
+        if (replacementCode != null && !replacementCode.equals("")) {
+
+          history.setReplacementCode(replacementCode);
+          history.setReplacementName(replacementName);
+
+          // if the replacement is not yet a concept or in the history create the concept
+          if (replacementName == null && !historyCodes.contains(replacementCode)) {
+
+            logger.debug("COMPLETELY MISSING replacementCode");
+            history.setReplacementName("Deleted concept");
+
+            final Concept deletedConcept = new Concept();
+            deletedConcept.setCode(code);
+            deletedConcept.setName("Deleted concept");
+            deletedConcept.setTerminology(terminology.getTerminology());
+            deletedConcept.setVersion(terminology.getVersion());
+            deletedConcept.setLeaf(null);
+
+            conceptsCreated++;
+            ;
+            conceptsToCreateCount++;
+            handleConcept(deletedConcept, batch, false, terminology.getIndexName());
           }
-          
-          concept.setName(name);
-          concept.setNormName(ConceptUtils.normalize(name));
-          
-          if (replacementMissingCodes.size() > 0) {
-              missingCodes.put(concept, replacementMissingCodes);
+
+          // if the replacement is not yet a concept and is in the history store the info so we can
+          // revisit
+          else if (replacementName == null && historyCodes.contains(replacementCode)) {
+
+            logger.debug("NOT YET CREATED replacementCode");
+            replacementMissingCodes.add(replacementCode);
           }
-          
-          if (conceptsCreated == conceptsToCreateCount) {
-              lastConcept = true;
-          }
-          
-          handleConcept(concept, batch, lastConcept, terminology.getIndexName());
+        }
+
+        concept.getHistory().add(history);
       }
-      
-      // add the replacement names for any history items that did not have it available before
-      if (missingCodes.size() > 0) {
-          
-          logger.debug("CONCEPTS TO UPDATE HISTORY: " + missingCodes.size());
-          int conceptsUpdated = 0;
-          boolean lastConcept = false;
-          final Set<Concept> conceptsMissingReplacementInfo = missingCodes.keySet();
-          
-          for (final Concept concept : conceptsMissingReplacementInfo) {
-              
-              conceptsUpdated++;
-              
-              for (final String replacementMissingCode : missingCodes.get(concept)) {
-                  
-                  for (final History history : concept.getHistory()) {
-                      
-                      if (history.getReplacementCode().equals(replacementMissingCode)) {
-                          
-                          history.setReplacementName(nameMap.get(history.getReplacementCode()));
-                          break;
-                      }
-                  }
-              }
-              
-              if (conceptsUpdated == conceptsMissingReplacementInfo.size()) {
-                  lastConcept = true;
-              }
-              
-              handleConcept(concept, batch, lastConcept, terminology.getIndexName());
-          }
+
+      concept.setName(name);
+      concept.setNormName(ConceptUtils.normalize(name));
+
+      if (replacementMissingCodes.size() > 0) {
+        missingCodes.put(concept, replacementMissingCodes);
       }
-      
-      logger.info("HISTORY CONCEPTS CREATED: " + conceptsCreated);
-      return conceptsCreated;
+
+      if (conceptsCreated == conceptsToCreateCount) {
+        lastConcept = true;
+      }
+
+      handleConcept(concept, batch, lastConcept, terminology.getIndexName());
+    }
+
+    // add the replacement names for any history items that did not have it available before
+    if (missingCodes.size() > 0) {
+
+      logger.debug("CONCEPTS TO UPDATE HISTORY: " + missingCodes.size());
+      int conceptsUpdated = 0;
+      boolean lastConcept = false;
+      final Set<Concept> conceptsMissingReplacementInfo = missingCodes.keySet();
+
+      for (final Concept concept : conceptsMissingReplacementInfo) {
+
+        conceptsUpdated++;
+
+        for (final String replacementMissingCode : missingCodes.get(concept)) {
+
+          for (final History history : concept.getHistory()) {
+
+            if (history.getReplacementCode().equals(replacementMissingCode)) {
+
+              history.setReplacementName(nameMap.get(history.getReplacementCode()));
+              break;
+            }
+          }
+        }
+
+        if (conceptsUpdated == conceptsMissingReplacementInfo.size()) {
+          lastConcept = true;
+        }
+
+        handleConcept(concept, batch, lastConcept, terminology.getIndexName());
+      }
+    }
+
+    logger.info("HISTORY CONCEPTS CREATED: " + conceptsCreated);
+    return conceptsCreated;
   }
- 
 
   /* see superclass */
   @Override

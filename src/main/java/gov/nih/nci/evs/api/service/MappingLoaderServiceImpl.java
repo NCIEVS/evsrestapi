@@ -113,9 +113,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     if (!version.isEmpty() && currentMapVersion.isPresent() && currentMapVersion.get().isEmpty()) {
       return true;
     }
-    // newer version
+    // different version
     if (!version.isEmpty() && currentMapVersion.isPresent()
-        && version.compareTo(currentMapVersion.get()) > 0)
+        && !version.equals(currentMapVersion.get()))
       return true;
     return false;
   }
@@ -126,7 +126,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri =
         "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/data/mappings/";
-    final String mapsetMetadataUri = uri + "/mapsetMetadata2.txt";
+    final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
     String rawMetadata = IOUtils.toString(
         new URL(mapsetMetadataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
@@ -146,13 +146,20 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
     }
 
-    List<String> currentMapsetCodes = esQueryService.getMapsets(new IncludeParam("properties"))
-        .stream().map(Concept::getCode).collect(Collectors.toList());
+    // all the current codes that this deals with
+    List<String> currentMapsetCodes =
+        esQueryService.getMapsets(new IncludeParam("properties")).stream()
+            .filter(concept -> concept.getProperties().stream()
+                .anyMatch(property -> property.getType().equals("loader")
+                    && property.getValue().contains("MappingLoadServiceImpl")))
+            .map(Concept::getCode).collect(Collectors.toList());
 
+    // mapsets to add (not in current index and should be)
     List<String> mapsetsToAdd =
         allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to add = " + mapsetsToAdd.toString());
 
+    // mapsets to remove (in current index and shouldn't be)
     List<String> mapsetsToRemove =
         currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
@@ -178,7 +185,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else {
         map.setVersion(null);
       }
-      map.getProperties().add(new Property("loader", metadata[4]));
+      map.getProperties().add(new Property("loader", "MappingLoadServiceImpl"));
 
       // setting up metadata
       if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
