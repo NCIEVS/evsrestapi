@@ -192,12 +192,20 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // Cache ICD10CM PT names for mapping data
+        // ICD10CM/ICD10 are always target fields as of now
         if (fields[11].equals("ICD10CM") && fields[12].equals("PT")) {
-          nameMap.put(fields[13], fields[14]);
+          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
+        }
+
+        // Cache ICD10CM PT names for mapping data
+        if (fields[11].equals("ICD10") && fields[12].equals("PT")) {
+          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
         }
 
         // Cache SNOMEDCT_US/PT SCUI -> CUI for maps
+        // SNOMEDCT_US is always source field as of now
         if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("PT") && fields[16].equals("N")) {
+          mapsetNameMap.put(fields[13], fields[14]);
           codeCuiMap.put(fields[13], fields[0]);
         }
 
@@ -242,17 +250,24 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
+        map.setSource("SNOMEDCT_US");
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
+        map.setSourceName(mapsetNameMap.get(fields[6]));
         map.setTargetCode(fields[16]);
-        map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermType("PT");
         map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsetToTerminologyMap.get(fields[0]).split("_")[1]);
+        map.setTargetName(mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
         map.setType(fields[12]);
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
         map.setRule(fields[20]);
+
+        // Fix source name if null
+        if (map.getSourceName() == null) {
+          map.setSourceName("Unable to determine name, code not present");
+        }
 
         // Fix target name if null
         if (map.getTargetName() == null) {
@@ -305,6 +320,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       }
       // free up memory
       mapsetMap.clear();
+      mapsetNameMap.clear();
 
       // read inverses from MRDOC
       while ((line = mrdoc.readLine()) != null) {
