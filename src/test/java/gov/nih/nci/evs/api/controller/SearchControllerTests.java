@@ -430,6 +430,56 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test page size license restricted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeLicenseRestricted() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Legal page size
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=mdr&term=cancer&pageSize=10");
+    result = this.mvc.perform(get(url).param("terminology", "mdr").param("term", "cancer").param("pageSize", "10"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    // Over limit
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=mdr&term=cancer&pageSize=11");
+    result = this.mvc.perform(get(url).param("terminology", "mdr").param("term", "cancer").param("pageSize", "11"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // Legal page size
+    url = "/api/v1/concept/mdr/search";
+    log.info("Testing url - /api/v1/concept/mdr/search?term=cancer&pageSize=10");
+    result = this.mvc.perform(get(url).param("term", "cancer").param("pageSize", "10")).andExpect(status().isOk())
+        .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    // Over limit
+    url = "/api/v1/concept/mdr/search";
+    log.info("Testing url - /api/v1/concept/mdr/search?term=cancer&pageSize=11");
+    result = this.mvc.perform(get(url).param("term", "cancer").param("pageSize", "11"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+  }
+
+  /**
    * Returns the search property.
    *
    * @throws Exception the exception
