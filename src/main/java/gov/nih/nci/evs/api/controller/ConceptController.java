@@ -130,6 +130,14 @@ public class ConceptController extends BaseController {
             "Maximum number of concepts to request at a time is 1000 = " + codes.length);
       }
 
+      // Restrict paging for license-restricted terminologies
+      if (term.getMetadata().getLicenseText() != null && codes.length > 10) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            term.getMetadata().getUiLabel()
+                + " has license restrictions and so bulk operations are limited to working on 10 things at a time = "
+                + codes.length);
+      }
+
       final List<Concept> concepts = elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
       return concepts;
     } catch (final Exception e) {

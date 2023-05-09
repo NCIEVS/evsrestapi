@@ -252,6 +252,45 @@ public class ConceptControllerTests {
   }
 
   /**
+   * Test get concepts with list with license restriction.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptsWithListWithLicenseRestriction() throws Exception {
+
+    MvcResult result = null;
+    String content = null;
+    String url = null;
+    List<Concept> list = null;
+
+    // Try MDR with 10 codes
+    // grep MDR MRCONSO.RRF  | cut -d\| -f 14
+    url = baseUrl + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
+        + "10030182,10017924&include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    // 2 codes must be
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(list.get(0).getTerminology()).isEqualTo("mdr");
+    assertThat(list.get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).getDefinitions()).isEmpty();
+
+    url = baseUrl + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
+        + "10030182,10017924,10017884&include=minimal";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
+
+  }
+
+  /**
    * Test get concept associations.
    *
    * @throws Exception the exception
