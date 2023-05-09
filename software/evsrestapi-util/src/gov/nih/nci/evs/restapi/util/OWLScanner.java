@@ -3030,22 +3030,29 @@ C4910|<NHC0>C4910</NHC0>
 			String termSource = "";
 			String subsourceName = "";
 			String sourceCode = "";
-			for (int j=4; j<n; j++) {
-				String t = (String) u.elementAt(j);
-				Vector u2 = StringUtils.parseData(t, '$');
-				String prop_code = (String) u2.elementAt(0);
-				String prop_value = (String) u2.elementAt(1);
-				if (prop_code.compareTo("P383") == 0) {
-					termType = prop_value;
-				} else if (prop_code.compareTo("P384") == 0) {
-					termSource = prop_value;
-				} else if (prop_code.compareTo("P386") == 0) {
-					subsourceName = prop_value;
-				} else if (prop_code.compareTo("P385") == 0) {
-					sourceCode = prop_value;
+			String t = null;
+			try {
+				for (int j=4; j<n; j++) {
+					t = (String) u.elementAt(j);
+					Vector u2 = StringUtils.parseData(t, '$');
+					String prop_code = (String) u2.elementAt(0);
+					String prop_value = (String) u2.elementAt(1);
+					if (prop_code.compareTo("P383") == 0) {
+						termType = prop_value;
+					} else if (prop_code.compareTo("P384") == 0) {
+						termSource = prop_value;
+					} else if (prop_code.compareTo("P386") == 0) {
+						subsourceName = prop_value;
+					} else if (prop_code.compareTo("P385") == 0) {
+						sourceCode = prop_value;
+					}
 				}
+				w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
+		    } catch (Exception ex) {
+				System.out.println("line: " + line);
+				System.out.println("t: " + t);
+				ex.printStackTrace();
 			}
-			w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
 		}
 		String outputfile = "FULL_SYN.txt";
 		v.clear();
