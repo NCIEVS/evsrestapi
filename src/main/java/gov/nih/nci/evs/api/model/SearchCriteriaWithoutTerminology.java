@@ -578,9 +578,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     // Restrict paging for license-restricted terminologies
     if (terminology.getMetadata().getLicenseText() != null && pageSize > 10) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          terminology.getMetadata().getUiLabel()
-              + " has license restrictions and so bulk operations are limited to working on 10 things at a time = "
-              + pageSize);
+          terminology.getMetadata().getUiLabel().replaceFirst(":.*", "")
+              + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
+              + "(page size = " + pageSize + ")");
     }
 
     // Validate concept status
