@@ -71,10 +71,12 @@ public class MapsetController extends BaseController {
    * @return the mapsets
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all mapsets (no terminology parameter is needed as mapsets connect codes "
-      + "in one terminology to another)")
+  @Operation(
+      summary = "Get all mapsets (no terminology parameter is needed as mapsets connect codes "
+          + "in one terminology to another)")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information")
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information")
   })
   @Parameters({
       @Parameter(name = "include",
@@ -109,11 +111,14 @@ public class MapsetController extends BaseController {
   @Operation(summary = "Get the mapset for the specified code (no terminology parameter is"
       + " needed as mapsets connect codes in one terminology to another)")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "code", description = "Mapset code", required = true,
@@ -127,7 +132,8 @@ public class MapsetController extends BaseController {
           required = false, schema = @Schema(implementation = String.class), example = "minimal")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}",
+      produces = "application/json")
   public @ResponseBody Concept getMapsetByCode(@PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
@@ -137,7 +143,8 @@ public class MapsetController extends BaseController {
       if (results.size() > 0) {
         return results.get(0);
       } else {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Mapset not found for code = " + code);
       }
     } catch (Exception e) {
       handleException(e);
@@ -160,26 +167,31 @@ public class MapsetController extends BaseController {
   @Operation(summary = "Get the maps for the mapset specified by the code (no terminology "
       + "parameter is needed as mapsets connect codes in one terminology to another)")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "code", description = "Mapset code", required = true,
           schema = @Schema(implementation = String.class)),
-      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
-          schema = @Schema(implementation = Integer.class), example = "0"),
-      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-          schema = @Schema(implementation = Integer.class), example = "10"),
-      @Parameter(name = "sort", description = "The search parameter to sort results by", required = false,
-          schema = @Schema(implementation = String.class)),
-      @Parameter(name = "ascending", description = "Sort ascending (if true) or descending (if false)",
-          required = false, schema = @Schema(implementation = Boolean.class))
+      @Parameter(name = "fromRecord", description = "Start index of the search results",
+          required = false, schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return",
+          required = false, schema = @Schema(implementation = Integer.class), example = "10"),
+      @Parameter(name = "sort", description = "The search parameter to sort results by",
+          required = false, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "ascending",
+          description = "Sort ascending (if true) or descending (if false)", required = false,
+          schema = @Schema(implementation = Boolean.class))
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}/maps", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}/maps",
+      produces = "application/json")
   public @ResponseBody MapResultList getMapsetMappingsByCode(@PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
@@ -197,17 +209,19 @@ public class MapsetController extends BaseController {
       if (results.size() > 0) {
         maps = results.get(0).getMaps();
       } else {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Mapset not found for code = " + code);
       }
       if (term.isPresent()) {
         final String t = term.get().trim().toLowerCase();
         final List<String> words = ConceptUtils.wordind(t);
         // Check single words
-        if (words.size() == 1) {
+        if (words.size() == 1 || ConceptUtils.isCode(t)) {
           maps = maps.stream().filter(m ->
           // Code match
-          m.getSourceCode().toLowerCase().contains(t) || m.getTargetCode().toLowerCase().contains(t) ||
-          // Lowercase word match (starting on a word boundary)
+          m.getSourceCode().toLowerCase().contains(t) || m.getTargetCode().toLowerCase().contains(t)
+              ||
+              // Lowercase word match (starting on a word boundary)
               m.getSourceName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
               || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(t) + ".*")
               || m.getTargetName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
@@ -222,14 +236,14 @@ public class MapsetController extends BaseController {
             for (final String word : words) {
               if (!(
               // Lowercase word match (starting on a word boundary)
-              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
-                  || m.getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(word) + ".*") || m
+                  .getSourceName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
                 sourceFlag = false;
               }
               if (!(
               // Lowercase word match (starting on a word boundary)
-              m.getTargetName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
-                  || m.getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
+              m.getTargetName().toLowerCase().matches("^" + Pattern.quote(word) + ".*") || m
+                  .getTargetName().toLowerCase().matches(".*\\b" + Pattern.quote(word) + ".*"))) {
                 targetFlag = false;
               }
             }
@@ -243,7 +257,8 @@ public class MapsetController extends BaseController {
       // Get this page if we haven't gone over the end
       if (fromRecordParam < mapLength) {
         // on subList "toIndex" don't go past the end
-        list.setMaps(maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
+        list.setMaps(
+            maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
       } else {
         list.setTotal(0);
         list.setMaps(new ArrayList<Map>());
