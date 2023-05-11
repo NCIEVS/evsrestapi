@@ -1451,7 +1451,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // EVSUtils.getQualifiedCodeFromUri(value));
         break;
       default:
-        final String labelValue = EVSUtils.getLabelFromUri(value);
+        final String labelValue = value;
+        
+        if (!propertyCode.equals("oboInOwl:hasDbXref")){
+            EVSUtils.getLabelFromUri(value);
+        }
+        
         // Skip the "type property
         if (propertyCode.contains("rdf-syntax-ns") && propertyCode.contains("type")) {
           return;
