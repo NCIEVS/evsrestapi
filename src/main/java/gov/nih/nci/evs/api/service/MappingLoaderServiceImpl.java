@@ -6,6 +6,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -222,6 +224,18 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
       logger.info("indexing " + metadata[0]);
+
+      Collections.sort(map.getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
+        @Override
+        public int compare(final gov.nih.nci.evs.api.model.Map o1,
+          final gov.nih.nci.evs.api.model.Map o2) {
+          // Assume maps are not null
+          return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
+              + o1.getTargetName())
+              .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                  + o2.getTargetName());
+        }
+      });
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
 
