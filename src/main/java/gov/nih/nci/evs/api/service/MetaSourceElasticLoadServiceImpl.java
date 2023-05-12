@@ -215,6 +215,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           srcAuis.add(fields[7]);
         }
 
+        // Correct MTHICD9 to ICD9CM
+        if (fields[11].equals("MTHICD9")) {
+          fields[11] = "ICD9CM";
+        }
+
         // Cache concept preferred names
         int rank = terminology.getMetadata().getPreferredTermTypes().indexOf(fields[12]);
         if (sabMatch(fields[11], terminology.getTerminology()) && rank != -1) {
@@ -369,6 +374,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // parent is not an SRC atom
         // codes of AUI1 and AUI2 do not match (self-referential)
 
+        // Correct MTHICD9 to ICD9CM
+        if (fields[10].equals("MTHICD9")) {
+          fields[10] = "ICD9CM";
+        }
+
         if (!sabMatch(fields[10], terminology.getTerminology())) {
           continue;
         }
@@ -462,9 +472,16 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
+
+        // Correct MTHICD9 to ICD9CM
+        if (fields[11].equals("MTHICD9")) {
+          fields[11] = "ICD9CM";
+        }
+
         final String cui = fields[0];
         final String sab = fields[11];
 
+        
         // Test assumption that the file is in order (when considering
         // |)
         if (prevCui != null && (cui + "|").compareTo(prevCui + "|") < 0) {
@@ -868,6 +885,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       if (!fields[0].equals(prevCui)) {
         mrrel.push(line);
         break;
+      }
+
+      // Correct MTHICD9 to ICD9CM
+      if (fields[10].equals("MTHICD9")) {
+        fields[10] = "ICD9CM";
       }
 
       // Skip non-matching SAB lines
