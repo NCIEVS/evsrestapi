@@ -1451,7 +1451,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // EVSUtils.getQualifiedCodeFromUri(value));
         break;
       default:
-        final String labelValue = EVSUtils.getLabelFromUri(value);
+
+        // For "hasDbXref" if there is a url, just let that url be the value
+        // this was done to handle situations where GO had blank "database_cross_reference"
+        // qualifiers.
+        final String labelValue = propertyCode.equals("oboInOwl:hasDbXref") ? value : EVSUtils.getLabelFromUri(value);
+
         // Skip the "type property
         if (propertyCode.contains("rdf-syntax-ns") && propertyCode.contains("type")) {
           return;
