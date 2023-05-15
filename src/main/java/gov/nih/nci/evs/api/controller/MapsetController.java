@@ -280,6 +280,10 @@ public class MapsetController extends BaseController {
 
         } else if (sort.get().equals("targetName")) {
           maps.sort(Comparator.comparing(Map::getTargetName));
+        } else if (sort.get().equals("sourceCode")) {
+          maps.sort(Comparator.comparing(Map::getSourceCode));
+        } else if (sort.get().equals("targetCode")) {
+          maps.sort(Comparator.comparing(Map::getTargetCode));
         }
         if (ascending.isPresent() && !ascending.get()) {
           Collections.reverse(maps);
