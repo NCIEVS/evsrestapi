@@ -536,7 +536,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             .map(d -> d.getCode()).collect(Collectors.toSet()));
       }
 
-      if (term.getTerminology() == "ncit" && mapsets.size() == 0) {
+      if (term.getTerminology() == "ncit" && term.getTags().containsKey("monthly")
+          && term.getTags().get("monthly").equals("true")) {
         // setup mappings
         Concept ncitMapsToGdc = setupMap("GDC", term.getTerminologyVersion());
         Concept ncitMapsToIcd10 = setupMap("ICD10", term.getTerminologyVersion());
