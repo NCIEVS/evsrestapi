@@ -575,8 +575,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
     }
 
-    // Restrict paging for license-restricted terminologies
-    if (terminology.getMetadata().getLicenseText() != null && pageSize > 10) {
+    // Restrict paging for license-restricted terminologies (unless term is set)
+    if (terminology.getMetadata().getLicenseText() != null && (term == null || term.isEmpty()) && pageSize > 10) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           terminology.getMetadata().getUiLabel().replaceFirst(":.*", "")
               + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
