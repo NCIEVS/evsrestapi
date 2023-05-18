@@ -169,7 +169,7 @@ public class SearchController extends BaseController {
               + "meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymTermType",
-          description = "Single synonym term type value to restrict search results by. "
+          description = "Comma-separated list of synonym term type values to restrict search results by. "
               + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
               + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
@@ -304,7 +304,7 @@ public class SearchController extends BaseController {
               + "meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymTermType",
-          description = "Single synonym term type value to restrict search results by. "
+          description = "Comma-separated list of synonym term type values to restrict search results by. "
               + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
               + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
