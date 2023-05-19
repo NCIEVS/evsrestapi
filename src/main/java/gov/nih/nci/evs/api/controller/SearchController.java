@@ -121,16 +121,16 @@ public class SearchController extends BaseController {
           schema = @Schema(implementation = Integer.class), example = "10"),
       @Parameter(name = "conceptStatus",
           description = "Comma-separated list of concept status values to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "property",
           description = "Comma-separated list of properties to restrict search results by (see also <i>value</i>). e.g."
               + "<ul><li>'P106,P322' for <i>terminology=ncit</i></li>"
               + "<li>'COLOR,SHAPE' for <i>terminology=ncim</i></li></ul>"
-              + "<p><a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/properties' target='_blank'>Click here for a "
               + "list of NCI Thesaurus properties</a>.</p>"
-              + "<p><a href='api/v1/metadata/ncim/properties' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/properties' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus properties</a>.</p> " + "The properties can be specified as code or name. "
               + "NOTE: This feature works with <i>value</i> to find concepts having one of the specified "
               + "properties with an exact value matching the <i>value</i> parameter.  Using a <i>term</i> "
@@ -144,35 +144,35 @@ public class SearchController extends BaseController {
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "definitionSource",
           description = "Comma-separated list of definition sources to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p>"
-              + "<p><a href='api/v1/metadata/ncim/definitionSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/definitionSources' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "definitionType",
           description = "Comma-separated list of definition types to restrict search results by, e.g. "
               + "'DEFINITION,ALT_DEFINITION' for <i>terminology=ncit</i>. "
-              + "<p><a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymSource",
           description = "Comma-separated list of synonym sources to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/synonymSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/synonymSources' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymType",
           description = "Comma-separated list of synonym types to restrict search results by, e.g. "
-              + "'FULL_SYN'. <p><a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>"
+              + "'FULL_SYN'. <p><a href='/api/v1/metadata/ncit/synonymTypes' target='_blank'>"
               + "Click here for a list of NCI Thesaurus values</a>. This parameter is only "
               + "meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymTermType",
           description = "Comma-separated list of synonym term type values to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "subset",
@@ -188,12 +188,12 @@ public class SearchController extends BaseController {
   // "query", example = "false"),
   // @Parameter(name = "association", description = "Comma-separated list
   // of associations to search. e.g A10,A215. <a
-  // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
+  // href='/api/v1/metadata/ncit/associations' target='_blank'>Click here for
   // a list of NCI Thesaurus associations</a>. The associations can be
   // specified as code or name", required = false, schema = @Schema(implementation = String.class),
   // paramType = "query"),
   // @Parameter(name = "role", description = "Comma-separated list of roles
-  // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
+  // to search. e.g R15,R193. <a href='/api/v1/metadata/ncit/roles'
   // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
   // roles can be specified as code or name", required = false, dataTypeClass =
   // String.class)
@@ -256,16 +256,16 @@ public class SearchController extends BaseController {
           schema = @Schema(implementation = Integer.class), example = "10"),
       @Parameter(name = "conceptStatus",
           description = "Comma-separated list of concept status values to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/conceptStatuses' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "property",
           description = "Comma-separated list of properties to restrict search results by (see also <i>value</i>). e.g."
               + "<ul><li>'P106,P322' for <i>terminology=ncit</i></li>"
               + "<li>'COLOR,SHAPE' for <i>terminology=ncim</i></li></ul>"
-              + "<p><a href='api/v1/metadata/ncit/properties' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/properties' target='_blank'>Click here for a "
               + "list of NCI Thesaurus properties</a>.</p>"
-              + "<p><a href='api/v1/metadata/ncim/properties' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/properties' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus properties</a>.</p> " + "The properties can be specified as code or name. "
               + "NOTE: This feature works with <i>value</i> to find concepts having one of the specified "
               + "properties with an exact value matching the <i>value</i> parameter.  Using a <i>term</i> "
@@ -279,35 +279,35 @@ public class SearchController extends BaseController {
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "definitionSource",
           description = "Comma-separated list of definition sources to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/definitionSources' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p>"
-              + "<p><a href='api/v1/metadata/ncim/definitionSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/definitionSources' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "definitionType",
           description = "Comma-separated list of definition types to restrict search results by, e.g. "
               + "'DEFINITION,ALT_DEFINITION' for <i>terminology=ncit</i>. "
-              + "<p><a href='api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/definitionTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>. This parameter is only meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymSource",
           description = "Comma-separated list of synonym sources to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/synonymSources' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/synonymSources' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/synonymSources' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymType",
           description = "Comma-separated list of synonym types to restrict search results by, e.g. "
-              + "'FULL_SYN'. <p><a href='api/v1/metadata/ncit/synonymTypes' target='_blank'>"
+              + "'FULL_SYN'. <p><a href='/api/v1/metadata/ncit/synonymTypes' target='_blank'>"
               + "Click here for a list of NCI Thesaurus values</a>. This parameter is only "
               + "meaningful for <i>terminology=ncit</i>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "synonymTermType",
           description = "Comma-separated list of synonym term type values to restrict search results by. "
-              + "<p><a href='api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncit/termTypes' target='_blank'>Click here for a "
               + "list of NCI Thesaurus values</a>.</p> "
-              + "<p><a href='api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
+              + "<p><a href='/api/v1/metadata/ncim/termTypes' target='_blank'>Click here for a "
               + "list of NCI Metathesaurus values</a>.</p>",
           required = false, schema = @Schema(implementation = String.class)),
       @Parameter(name = "subset",
@@ -323,12 +323,12 @@ public class SearchController extends BaseController {
   // "query", example = "false"),
   // @Parameter(name = "association", value = "Comma-separated list
   // of associations to search. e.g A10,A215. <a
-  // href='api/v1/metadata/ncit/associations' target='_blank'>Click here for
+  // href='/api/v1/metadata/ncit/associations' target='_blank'>Click here for
   // a list of NCI Thesaurus associations</a>. The associations can be
   // specified as code or name", required = false, schema = @Schema(implementation = String.class),
   // paramType = "query"),
   // @Parameter(name = "role", value = "Comma-separated list of roles
-  // to search. e.g R15,R193. <a href='api/v1/metadata/ncit/roles'
+  // to search. e.g R15,R193. <a href='/api/v1/metadata/ncit/roles'
   // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
   // roles can be specified as code or name", required = false, dataTypeClass =
   // String.class)
