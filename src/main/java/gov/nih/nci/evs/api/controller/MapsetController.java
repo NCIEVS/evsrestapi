@@ -254,6 +254,22 @@ public class MapsetController extends BaseController {
       final Integer mapLength = maps.size();
       final MapResultList list = new MapResultList();
       list.setTotal(mapLength);
+      if (sort.isPresent()) {
+        if (sort.get().equals("sourceName")) {
+          maps.sort(Comparator.comparing(Map::getSourceName));
+
+        } else if (sort.get().equals("targetName")) {
+          maps.sort(Comparator.comparing(Map::getTargetName));
+        } else if (sort.get().equals("sourceCode")) {
+          maps.sort(Comparator.comparing(Map::getSourceCode));
+        } else if (sort.get().equals("targetCode")) {
+          maps.sort(Comparator.comparing(Map::getTargetCode));
+        }
+        if (ascending.isPresent() && !ascending.get()) {
+          Collections.reverse(maps);
+        }
+        list.setMaps(maps);
+      }
       // Get this page if we haven't gone over the end
       if (fromRecordParam < mapLength) {
         // on subList "toIndex" don't go past the end
@@ -273,22 +289,6 @@ public class MapsetController extends BaseController {
       if (pageSize.isPresent()) {
         criteria.setPageSize(pageSize.get());
         list.setParameters(criteria);
-      }
-      if (sort.isPresent()) {
-        if (sort.get().equals("sourceName")) {
-          maps.sort(Comparator.comparing(Map::getSourceName));
-
-        } else if (sort.get().equals("targetName")) {
-          maps.sort(Comparator.comparing(Map::getTargetName));
-        } else if (sort.get().equals("sourceCode")) {
-          maps.sort(Comparator.comparing(Map::getSourceCode));
-        } else if (sort.get().equals("targetCode")) {
-          maps.sort(Comparator.comparing(Map::getTargetCode));
-        }
-        if (ascending.isPresent() && !ascending.get()) {
-          Collections.reverse(maps);
-        }
-        list.setMaps(maps);
       }
 
       return list;
