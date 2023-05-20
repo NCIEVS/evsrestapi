@@ -36,6 +36,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -680,6 +681,46 @@ public class ConceptControllerTests {
       // n/a
     });
     assertThat(list).isEmpty();
+  }
+  
+  /**
+   * Test get concept history.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptHistory() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // NOTE, this is a concept that has replaced other concepts and is retired itself
+    url = baseUrl + "/ncit/C14615/history";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    log.info("  list = " + concept.getHistory().size());
+    assertThat(concept.getHistory()).isNotEmpty();
+    boolean foundRetiredThis = false;
+    boolean foundReplacedAnother = false;
+    
+    for (final History history : concept.getHistory()) {
+        
+        if (history.getAction().equals("retire") && history.getCode().equals("C14615")) {
+            foundRetiredThis = true;
+            
+        } else if (history.getAction().equals("retire") && !history.getCode().equals("C14615") 
+            && history.getReplacementCode().equals("C14615")) {
+            foundReplacedAnother = true;
+        }
+    }
+
+    assertThat(foundRetiredThis && foundReplacedAnother).isTrue();
   }
 
   /**

@@ -1299,6 +1299,21 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           }
 
           historyItem.put("replacementCode", replacementCode);
+          
+          // create history entry for the replacement concept if it isn't merging with itself
+          if (!replacementCode.equals(code)) {
+              
+              List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+              final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+              
+              if (historyMap.containsKey(replacementCode)) {
+                  replacementConceptHistory = historyMap.get(replacementCode);
+              }
+              
+              replacementHistoryItem.put("code", code);
+              replacementConceptHistory.add(replacementHistoryItem);
+              historyMap.put(replacementCode, replacementConceptHistory);
+          }
         }
 
         conceptHistory.add(historyItem);
@@ -1337,7 +1352,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         nameMap.put(code, name);
 
         final History history = new History();
-        history.setCode(code);
+        
+        // replacement concept history items will contain a key for code
+        if (historyItem.containsKey("code")) {
+            history.setCode(historyItem.get("code"));
+        } else {
+            history.setCode(code);
+        }
+        
         history.setAction(historyItem.get("action"));
 
         String date = "";
