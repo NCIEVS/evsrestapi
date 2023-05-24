@@ -627,7 +627,23 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           historyItem.put("date", date);
 
           if (replacementCode != null && !replacementCode.equals("null")) {
+              
             historyItem.put("replacementCode", replacementCode);
+            
+            // create history entry for the replacement concept if it isn't merging with itself
+            if (!replacementCode.equals(code)) {
+
+                List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+                final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+                
+                if (historyMap.containsKey(replacementCode)) {
+                    replacementConceptHistory = historyMap.get(replacementCode);
+                }
+                
+                replacementHistoryItem.put("code", code);
+                replacementConceptHistory.add(replacementHistoryItem);
+                historyMap.put(replacementCode, replacementConceptHistory);
+            }
           }
 
           conceptHistory.add(historyItem);
@@ -659,7 +675,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       for (final Map<String, String> historyItem : conceptHistory) {
 
         final History history = new History();
-        history.setCode(concept.getCode());
+        
+        // replacement concept history items will contain a key for code
+        if (historyItem.containsKey("code")) {
+            history.setCode(historyItem.get("code"));
+        } else {
+            history.setCode(concept.getCode());
+        }
+        
         history.setAction(historyItem.get("action"));
 
         final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));

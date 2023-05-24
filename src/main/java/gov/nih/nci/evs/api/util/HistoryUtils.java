@@ -57,13 +57,13 @@ public final class HistoryUtils {
 
     for (final History history : concept.get().getHistory()) {
 
-      // If there is a "retired" entry, we are done
-      if (RETIRED_ACTIONS.contains(history.getAction())) {
+      // If there is a "retired" entry for the concept being looked up we are done
+      if (RETIRED_ACTIONS.contains(history.getAction()) && history.getCode().equals(code)) {
         replacements.add(history);
         return replacements;
       }
 
-      else if (history.getReplacementCode() != null && !history.getReplacementCode().isEmpty()) {
+      else if (history.getReplacementCode() != null && !history.getReplacementCode().isEmpty() && history.getCode().equals(code)) {
         replacements.add(history);
       }
 
