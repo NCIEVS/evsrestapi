@@ -706,13 +706,18 @@ public class ConceptControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     log.info("  list = " + concept.getHistory().size());
     assertThat(concept.getHistory()).isNotEmpty();
+    
     boolean foundRetiredThis = false;
     boolean foundReplacedAnother = false;
+    boolean foundModify = false;
     
     for (final History history : concept.getHistory()) {
         
         if (history.getAction().equals("retire") && history.getCode().equals("C14615")) {
             foundRetiredThis = true;
+            
+        } else if (history.getAction().equals("modify") && history.getCode().equals("C14615")) {
+            foundModify = true;
             
         } else if (history.getAction().equals("retire") && !history.getCode().equals("C14615") 
             && history.getReplacementCode().equals("C14615")) {
@@ -720,7 +725,19 @@ public class ConceptControllerTests {
         }
     }
 
-    assertThat(foundRetiredThis && foundReplacedAnother).isTrue();
+    assertThat(foundRetiredThis && foundReplacedAnother && foundModify).isTrue();
+    
+
+    // NOTE, this is a concept that should not have history
+    url = baseUrl + "/ncim/C0005768/history";
+    log.info("Testing url - " + url);
+    
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    log.info("  list = " + concept.getHistory().size());
+    assertThat(concept.getHistory()).isEmpty();
   }
 
   /**
