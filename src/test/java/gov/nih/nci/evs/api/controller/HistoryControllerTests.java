@@ -92,21 +92,6 @@ public class HistoryControllerTests {
     assertThat(list.get(0).getAction()).isEqualTo("active");
 
     // NCIt "retire" - N/A only weekly will have these
-
-    // NCIt "merge" -
-    url = baseUrl + "/history/ncit/C27789/replacements";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
-    assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(2);
-    assertThat(list.get(0).getCode()).isEqualTo("C27789");
-    assertThat(list.get(0).getAction()).isEqualTo("merge");
-    assertThat(list.get(0).getReplacementCode()).isEqualTo("C27789");
     
     // NCIt "merge" - C13320
     url = baseUrl + "/history/ncit/C13320/replacements";
@@ -118,12 +103,12 @@ public class HistoryControllerTests {
         // n/a
     });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C13320");
     assertThat(list.get(0).getAction()).isEqualTo("merge");
     assertThat(list.get(0).getReplacementCode()).isEqualTo("C12756");
     
-    // NCIt "merge" - C12756
+    // NCIt "active" has merge but only with itself- C12756
     url = baseUrl + "/history/ncit/C12756/replacements";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -135,8 +120,7 @@ public class HistoryControllerTests {
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C12756");
-    assertThat(list.get(0).getAction()).isEqualTo("merge");
-    assertThat(list.get(0).getReplacementCode()).isEqualTo("C12756");
+    assertThat(list.get(0).getAction()).isEqualTo("active");
     
     // NCIt Active - C17610
     url = baseUrl + "/history/ncit/C17610/replacements";
@@ -152,6 +136,20 @@ public class HistoryControllerTests {
     assertThat(list.get(0).getCode()).isEqualTo("C17610");
     assertThat(list.get(0).getAction()).isEqualTo("active");
 
+    // NCIt retire - C4631
+    url = baseUrl + "/history/ncit/C4631/replacements";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.get(0).getCode()).isEqualTo("C4631");
+    assertThat(list.get(0).getAction()).isEqualTo("retire");
+    
     // NCIm DEL - C0278390
     url = baseUrl + "/history/ncim/C0278390/replacements";
     log.info("Testing url - " + url);
@@ -159,7 +157,7 @@ public class HistoryControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
+        // n/a
     });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
