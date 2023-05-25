@@ -8,6 +8,8 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.History;
@@ -52,7 +54,7 @@ public final class HistoryUtils {
 
     // Ignore bad codes
     if (!concept.isPresent()) {
-      return replacements;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
     }
 
     for (final History history : concept.get().getHistory()) {
