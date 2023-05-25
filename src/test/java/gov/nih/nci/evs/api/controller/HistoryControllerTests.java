@@ -107,6 +107,50 @@ public class HistoryControllerTests {
     assertThat(list.get(0).getCode()).isEqualTo("C27789");
     assertThat(list.get(0).getAction()).isEqualTo("merge");
     assertThat(list.get(0).getReplacementCode()).isEqualTo("C27789");
+    
+    // NCIt "merge" - C13320
+    url = baseUrl + "/history/ncit/C13320/replacements";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
+        // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.get(0).getCode()).isEqualTo("C13320");
+    assertThat(list.get(0).getAction()).isEqualTo("merge");
+    assertThat(list.get(0).getReplacementCode()).isEqualTo("C12756");
+    
+    // NCIt "merge" - C12756
+    url = baseUrl + "/history/ncit/C12756/replacements";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
+        // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.get(0).getCode()).isEqualTo("C12756");
+    assertThat(list.get(0).getAction()).isEqualTo("merge");
+    assertThat(list.get(0).getReplacementCode()).isEqualTo("C12756");
+    
+    // NCIt Active - C17610
+    url = baseUrl + "/history/ncit/C17610/replacements";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
+        // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.get(0).getCode()).isEqualTo("C17610");
+    assertThat(list.get(0).getAction()).isEqualTo("active");
 
     // NCIm DEL - C0278390
     url = baseUrl + "/history/ncim/C0278390/replacements";
@@ -121,7 +165,22 @@ public class HistoryControllerTests {
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C0278390");
     assertThat(list.get(0).getAction()).isEqualTo("DEL");
-
+    
+    // NCIm SY - C0003962
+    url = baseUrl + "/history/ncim/C0003962/replacements";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
+      // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.get(0).getCode()).isEqualTo("C0003962");
+    assertThat(list.get(0).getAction()).isEqualTo("SY");
+    assertThat(list.get(0).getReplacementCode()).isEqualTo("C3554541");
+    
     // NCIm SY - CL511651
     url = baseUrl + "/history/ncim/CL511651/replacements";
     log.info("Testing url - " + url);
@@ -136,6 +195,20 @@ public class HistoryControllerTests {
     assertThat(list.get(0).getCode()).isEqualTo("CL511651");
     assertThat(list.get(0).getAction()).isEqualTo("SY");
     assertThat(list.get(0).getReplacementCode()).isEqualTo("C4273882");
+    
+    // NCIm Active - C3554541
+    url = baseUrl + "/history/ncim/C3554541/replacements";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
+        // n/a
+    });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.get(0).getCode()).isEqualTo("C3554541");
+    assertThat(list.get(0).getAction()).isEqualTo("active");
 
   }
 
