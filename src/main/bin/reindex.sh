@@ -237,7 +237,8 @@ for x in `cat /tmp/y.$$.txt`; do
         for i in {1..5}; do 
 
         	echo "  Download latest NCIt History: attempt $i"
-        	url=https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$version.zip
+        	# Use the upload directory because this is where we can control it from
+        	url=https://evs.nci.nih.gov/ftp1/upload/cumulative_history_$version.zip
             echo "    url = $url"
             curl -w "\n%{http_code}" -s -o cumulative_history_$version.zip $url > /tmp/x.$$
             if [[ $? -ne 0 ]]; then

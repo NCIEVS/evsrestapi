@@ -8,6 +8,8 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.History;
@@ -52,19 +54,26 @@ public final class HistoryUtils {
 
     // Ignore bad codes
     if (!concept.isPresent()) {
-      return replacements;
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
     }
 
     for (final History history : concept.get().getHistory()) {
 
-      // If there is a "retired" entry for the concept being looked up we are done
-      if (RETIRED_ACTIONS.contains(history.getAction()) && history.getCode().equals(code)) {
+      // If there is a "retired" entry for the concept being looked up we are done - but only include these if
+      // there are no other replacement entries or the "retired" entry has a replacement listed
+      if (RETIRED_ACTIONS.contains(history.getAction()) && history.getCode().equals(code)
+          && (replacements.isEmpty() || (history.getReplacementCode() != null && !history.getReplacementCode().isEmpty()))) {
+          
+        history.setName(concept.get().getName());
         replacements.add(history);
         return replacements;
       }
 
-      else if (history.getReplacementCode() != null && !history.getReplacementCode().isEmpty() && history.getCode().equals(code)) {
-        replacements.add(history);
+      else if (history.getReplacementCode() != null && !history.getReplacementCode().isEmpty() && history.getCode().equals(code)
+          && !history.getReplacementCode().equals(code)) {
+        
+          history.setName(concept.get().getName());
+          replacements.add(history);
       }
 
     }
