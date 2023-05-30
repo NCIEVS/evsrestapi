@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.8.0.RELEASE] - 2023-05-31
+### Added
+ - Sampling QA for all terminologies loaded into the dev and deploy environments
+ - Support for additional RRF terminolologies, including ICD10CM, ICD9CM.
+ - New mapset endpoints for interacting with cross-terminology mapping data
+ - Support for loading cross-terminology mapping data sets
+ - New history endpoints for interacting with terminology history information
+ - New "history" field of Concept objects to represent individual history elements for a concept
+ - New subsets endpoints for accessing subset/value set data independenty of the metadata endpoints
+### Changed
+ - Limit page size to 10 for terminologies with license restrictions - to discourage bulk downloading
+ - Update to swagger libraries and some tuning of documentation
+ - Various bug fixes to searching and subset/member performance
+
 ## [1.7.2.RELEASE] - 2023-03-31
 ### Changed
  - Fixed logic of /subsets call to avoid returning Publish_Value_Set=No
