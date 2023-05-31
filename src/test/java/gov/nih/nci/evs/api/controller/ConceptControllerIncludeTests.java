@@ -573,7 +573,7 @@ public class ConceptControllerIncludeTests {
   @Test
   public void testSubsetMembersInclude() throws Exception {
 
-    String url = "/ap1/v1";
+    String url = "/api/v1";
     MvcResult result = null;
     String content = null;
     List<Concept> list = null;
@@ -599,6 +599,7 @@ public class ConceptControllerIncludeTests {
     assertThat(list.get(0).getProperties()).isEmpty();
 
     // Look up subset members with synonyms
+    url = "/api/v1";
     url = url + "/subset/ncit/C157225/members?include=synonyms&fromRecord=0&pageSize=10";
     log.info("Testing url - " + url);
 

@@ -1118,12 +1118,12 @@ public class ConceptSampleTester {
 
     // test fromRecord and page size
     url = "/api/v1/concept/search?include=minimal&terminology=" + terminology.getTerminology()
-        + "&term=" + testConcept.getName() + "&pageSize=12";
+        + "&term=" + testConcept.getName() + "&pageSize=6";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
-    assertThat(list.getConcepts().size()).isLessThanOrEqualTo(12);
+    assertThat(list.getConcepts().size()).isLessThanOrEqualTo(6);
     if (list.getConcepts().size() > 10) {
       Concept eleventhConcept = list.getConcepts().get(10);
 
@@ -1173,7 +1173,7 @@ public class ConceptSampleTester {
     testMvc = mvc;
     lookupTerminology(term, testMvc);
 
-    String url = "/api/v1/subset/" + terminology.getTerminology() + "?include=properties";
+    String url = "/api/v1/subset/" + terminology.getTerminology() + "?include=full";
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -1269,7 +1269,7 @@ public class ConceptSampleTester {
    * @return the leaf code
    */
   public String getLeafCode(Concept root) {
-    if (root == null) {
+    if (root == null || root.getLeaf() == null) {
       return null;
     }
     if (root.getLeaf()) {

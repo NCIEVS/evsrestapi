@@ -74,7 +74,7 @@ public class GoSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("go")).findFirst().get();
     assertThat(go.getTerminology()).isEqualTo("go");
     assertThat(go.getMetadata().getUiLabel()).isEqualTo("GO: Gene Ontology");
-    assertThat(go.getName()).isEqualTo("Gene Ontology 2022-07-01");
+    assertThat(go.getName()).isEqualTo("GO: Gene Ontology 2022-07-01");
     assertThat(go.getDescription()).isNotEmpty();
 
     assertThat(go.getMetadata().getLoader()).isEqualTo("rdf");
