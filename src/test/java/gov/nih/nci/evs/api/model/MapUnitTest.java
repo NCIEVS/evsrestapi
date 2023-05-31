@@ -63,10 +63,7 @@ public class MapUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("type");
     tester.include("group");
-<<<<<<< Updated upstream
-=======
     tester.include("rank");
->>>>>>> Stashed changes
     tester.include("rule");
     tester.include("targetName");
     tester.include("source");
