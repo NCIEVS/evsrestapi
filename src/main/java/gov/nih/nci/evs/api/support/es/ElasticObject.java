@@ -52,7 +52,7 @@ public class ElasticObject extends BaseModel {
   private List<AssociationEntry> associationEntries;
 
   /** The map. Store this as a string to avoid complicated indexing */
-  @Field(type = FieldType.Keyword, index = false)
+  @Field(type = FieldType.Keyword)
   private String map;
 
   /**

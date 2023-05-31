@@ -147,7 +147,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
-  
+
   /** The elastic query service. */
   @Autowired
   ElasticQueryService elasticQueryService;
@@ -365,7 +365,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         final String[] fields = line.split("\\|", -1);
         // e.g.
         // C4227882|||R114264673|RUI||AT148954088||SMQ_TERM_LEVEL|MDR|5|N||
-
+        // Skip high volume qualifiers for relationships
         if (fields[4].equals("RUI") && !fields[8].equals("MODIFIER_ID")
             && !fields[8].equals("CHARACTERISTIC_TYPE_ID")) {
           final String atn = fields[8];
@@ -1074,8 +1074,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject properties = new ElasticObject("properties");
 
     // MRSAT: property metadata for MRSAT
-    // Remove ATNs that are qualifiers
-    atnSet.removeAll(qualMap.keySet());
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -1098,7 +1096,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     qualifiers.setMap(qualMap);
-
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
@@ -1282,11 +1279,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         final String[] fields = line.split("\\|", -1);
         final String code = fields[0];
-        
+
         if (code.equals("")) {
-            continue;
+          continue;
         }
-        
+
         final String date = fields[1];
         final String action = fields[2];
         final String replacementCode = fields[5];
@@ -1312,20 +1309,20 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           }
 
           historyItem.put("replacementCode", replacementCode);
-          
+
           // create history entry for the replacement concept if it isn't merging with itself
           if (!replacementCode.equals(code)) {
-              
-              List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
-              final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
-              
-              if (historyMap.containsKey(replacementCode)) {
-                  replacementConceptHistory = historyMap.get(replacementCode);
-              }
-              
-              replacementHistoryItem.put("code", code);
-              replacementConceptHistory.add(replacementHistoryItem);
-              historyMap.put(replacementCode, replacementConceptHistory);
+
+            List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+            final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+
+            if (historyMap.containsKey(replacementCode)) {
+              replacementConceptHistory = historyMap.get(replacementCode);
+            }
+
+            replacementHistoryItem.put("code", code);
+            replacementConceptHistory.add(replacementHistoryItem);
+            historyMap.put(replacementCode, replacementConceptHistory);
           }
         }
 
@@ -1349,34 +1346,35 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       final Set<String> replacementMissingCodes = new HashSet<>();
       Concept concept;
       boolean isActiveConcept = true;
-      
+
       // if any history item doesn't have a code then this concept is not active
       for (final Map<String, String> historyItem : historyMap.get(code)) {
-          
-          if (!historyItem.containsKey("code") || code.equals("")) {
-              
-              isActiveConcept = false;
-              break;
-          }
-      }
-      
-      if (!isActiveConcept) {
-          
-          concept = new Concept();
-          concept.setCode(code);
-          concept.setTerminology(terminology.getTerminology());
-          concept.setVersion(terminology.getVersion());
-          // NO hierarchies for NCIM concepts, so set leaf to null
-          concept.setLeaf(null);
-      } else {
-          
-          final Optional<Concept> possibleConcept = elasticQueryService.getConcept(code, terminology, new IncludeParam("full"));
 
-          if (!possibleConcept.isPresent() || possibleConcept.get().getCode() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-          }
-          
-          concept = possibleConcept.get();
+        if (!historyItem.containsKey("code") || code.equals("")) {
+
+          isActiveConcept = false;
+          break;
+        }
+      }
+
+      if (!isActiveConcept) {
+
+        concept = new Concept();
+        concept.setCode(code);
+        concept.setTerminology(terminology.getTerminology());
+        concept.setVersion(terminology.getVersion());
+        // NO hierarchies for NCIM concepts, so set leaf to null
+        concept.setLeaf(null);
+      } else {
+
+        final Optional<Concept> possibleConcept =
+            elasticQueryService.getConcept(code, terminology, new IncludeParam("full"));
+
+        if (!possibleConcept.isPresent() || possibleConcept.get().getCode() == null) {
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+        }
+
+        concept = possibleConcept.get();
       }
 
       for (final Map<String, String> historyItem : historyMap.get(code)) {
@@ -1386,14 +1384,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         final History history = new History();
-        
+
         // replacement concept history items will contain a key for code
         if (historyItem.containsKey("code")) {
-            history.setCode(historyItem.get("code"));
+          history.setCode(historyItem.get("code"));
         } else {
-            history.setCode(code);
+          history.setCode(code);
         }
-        
+
         history.setAction(historyItem.get("action"));
 
         String date = "";
@@ -1443,15 +1441,15 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       if (!isActiveConcept) {
-          
-          conceptsCreated++;
-          concept.setName(name);
-          concept.setNormName(ConceptUtils.normalize(name));
-          
-          // add info to name map
-          nameMap.put(code, name);
+
+        conceptsCreated++;
+        concept.setName(name);
+        concept.setNormName(ConceptUtils.normalize(name));
+
+        // add info to name map
+        nameMap.put(code, name);
       }
-      
+
       if (replacementMissingCodes.size() > 0) {
         missingCodes.put(concept, replacementMissingCodes);
       }
