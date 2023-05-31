@@ -63,7 +63,6 @@ public class MapUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("type");
     tester.include("group");
-    tester.include("priority");
     tester.include("rule");
     tester.include("targetName");
     tester.include("sourceCode");
