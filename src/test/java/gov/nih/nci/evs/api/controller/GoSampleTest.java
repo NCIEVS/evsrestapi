@@ -33,60 +33,57 @@ import gov.nih.nci.evs.api.model.Terminology;
 @AutoConfigureMockMvc
 public class GoSampleTest extends SampleTest {
 
-    /**
-     * Setup class.
-     *
-     * @throws Exception the exception
-     */
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
 
-    /** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(GoSampleTest.class);
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(GoSampleTest.class);
 
-    /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-    @Autowired
-    private MockMvc testMvc;
+  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+  @Autowired
+  private MockMvc testMvc;
 
-    @BeforeClass
-    public static void setupClass() throws Exception {
-        loadSamples("go", "src/test/resources/samples/go-samples.txt");
-    }
+  @BeforeClass
+  public static void setupClass() throws Exception {
+    loadSamples("go", "src/test/resources/samples/go-samples.txt");
+  }
 
-    @Test
-    public void testGOTerminology() throws Exception {
-        String url = null;
-        MvcResult result = null;
-        String content = null;
+  @Test
+  public void testGOTerminology() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-        url = "/api/v1/metadata/terminologies";
-        log.info("Testing url - " + url);
-        result = testMvc.perform(
-                get(url).param("latest", "true").param("terminology", "go"))
-                .andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        log.info(" content = " + content);
+    url = "/api/v1/metadata/terminologies";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "go"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
 
-        final List<Terminology> terminologies = new ObjectMapper().readValue(content,
-                new TypeReference<List<Terminology>>() {
-                });
-        assertThat(terminologies.size()).isGreaterThan(0);
-        assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("go")).count())
-                .isEqualTo(1);
-        final Terminology go = terminologies.stream().filter(t -> t.getTerminology().equals("go")).findFirst()
-                .get();
-        assertThat(go.getTerminology()).isEqualTo("go");
-        assertThat(go.getMetadata().getUiLabel()).isEqualTo("Gene Ontology");
-        assertThat(go.getName()).isEqualTo("Gene Ontology 2022-07-01");
-        assertThat(go.getDescription()).isNotEmpty();
+    final List<Terminology> terminologies =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        });
+    assertThat(terminologies.size()).isGreaterThan(0);
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("go")).count())
+        .isEqualTo(1);
+    final Terminology go =
+        terminologies.stream().filter(t -> t.getTerminology().equals("go")).findFirst().get();
+    assertThat(go.getTerminology()).isEqualTo("go");
+    assertThat(go.getMetadata().getUiLabel()).isEqualTo("GO: Gene Ontology");
+    assertThat(go.getName()).isEqualTo("Gene Ontology 2022-07-01");
+    assertThat(go.getDescription()).isNotEmpty();
 
-        assertThat(go.getMetadata().getLoader()).isEqualTo("rdf");
-        assertThat(go.getMetadata().getSourceCt()).isEqualTo(0);
-        assertThat(go.getMetadata().getLicenseText()).isNull();
-        assertThat(go.getDescription())
-                .isEqualTo(
-                        "The Gene Ontology (GO) provides a framework and set" +
-                                " of concepts for describing the functions of gene products from all organisms.");
+    assertThat(go.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(go.getMetadata().getSourceCt()).isEqualTo(0);
+    assertThat(go.getMetadata().getLicenseText()).isNull();
+    assertThat(go.getDescription()).isEqualTo("The Gene Ontology (GO) provides a framework and set"
+        + " of concepts for describing the functions of gene products from all organisms.");
 
-        assertThat(go.getLatest()).isTrue();
-    }
+    assertThat(go.getLatest()).isTrue();
+  }
 
 }

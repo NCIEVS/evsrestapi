@@ -300,7 +300,7 @@ public class MetadataControllerTests {
 
     // NOTE, this includes a middle association label that is bogus.
     final String url =
-        baseUrl + "/ncit/associations?list=Concept_In_Subset,XYZ,A10&include=summary";
+        baseUrl + "/ncit/associations?list=Concept_In_Subset,XYZ,A23&include=summary";
     log.info("Testing url - " + url);
 
     final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -1237,7 +1237,7 @@ public class MetadataControllerTests {
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(7);
+    assertThat(terminologies.size()).isEqualTo(11);
 
     result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1441,7 +1441,7 @@ public class MetadataControllerTests {
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(7);
+    assertThat(terminologies.size()).isEqualTo(11);
 
   }
 

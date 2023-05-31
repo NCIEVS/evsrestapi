@@ -1269,6 +1269,9 @@ public class ConceptSampleTester {
    * @return the leaf code
    */
   public String getLeafCode(Concept root) {
+    if (root == null) {
+      return null;
+    }
     if (root.getLeaf()) {
       return root.getCode();
     }

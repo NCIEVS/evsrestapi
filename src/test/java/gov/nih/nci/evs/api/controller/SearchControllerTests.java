@@ -655,7 +655,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code&term=Toluene");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
-            .param("include", "properties,synonyms").param("term", "Toluene"))
+            .param("include", "properties,synonyms,definitions").param("term", "Toluene"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
