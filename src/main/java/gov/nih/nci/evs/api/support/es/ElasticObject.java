@@ -12,6 +12,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -53,7 +54,7 @@ public class ElasticObject extends BaseModel {
 
   /** The map. Store this as a string to avoid complicated indexing */
   @Field(type = FieldType.Keyword)
-  private String map;
+  private String mapString;
 
   /**
    * Instantiates an empty {@link ElasticObject}.
@@ -191,18 +192,18 @@ public class ElasticObject extends BaseModel {
    * @return the map
    * @throws Exception the exception
    */
+  @JsonIgnore
   public Map<String, Set<String>> getMap() throws Exception {
 
     // The X is to trick elasticsearch into avoiding trying to index this like a
     // map
-    if (map == null || !map.startsWith("X")) {
+    if (mapString == null || !mapString.startsWith("X")) {
       return new HashMap<>();
     }
     // Turn back into a map
-    return new ObjectMapper().readValue(map.substring(1),
-        new TypeReference<Map<String, Set<String>>>() {
-          // n/a
-        });
+    return new ObjectMapper().readValue(mapString.substring(1), new TypeReference<Map<String, Set<String>>>() {
+      // n/a
+    });
   }
 
   /**
@@ -213,12 +214,31 @@ public class ElasticObject extends BaseModel {
    */
   public void setMap(Map<String, Set<String>> map) throws Exception {
     if (map == null) {
-      this.map = null;
+      this.mapString = null;
     } else {
       // The X is to trick elasticsearch into avoiding trying to index this like
       // a map
-      this.map = new ObjectMapper().writeValueAsString("X" + map);
+      this.mapString = "X" + new ObjectMapper().writeValueAsString(map);
     }
+  }
+
+  /**
+   * Returns the map string.
+   *
+   * @return the map string
+   * @throws Exception the exception
+   */
+  public String getMapString() throws Exception {
+    return this.mapString;
+  }
+
+  /**
+   * Sets the map string.
+   *
+   * @param mapString the map string
+   */
+  public void setMapString(final String mapString) {
+    this.mapString = mapString;
   }
 
 }

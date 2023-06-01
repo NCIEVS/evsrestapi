@@ -1096,6 +1096,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     qualifiers.setMap(qualMap);
+    logger.info("XXX qualmap = " + qualifiers.getMap());
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
@@ -1252,7 +1253,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       return 0;
     }
 
-    logger.debug("STARTING HISTORY PROCESSING");
+    logger.debug("  STARTING HISTORY PROCESSING");
     final Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
     final List<Concept> batch = new ArrayList<>();
     int conceptsCreated = 0;
@@ -1337,7 +1338,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     final Set<String> historyCodes = historyMap.keySet();
     final Map<Concept, Set<String>> missingCodes = new HashMap<>();
     int conceptsToCreateCount = historyCodes.size();
-    logger.info("HISTORY PROCESSING CONCEPT COUNT: " + conceptsToCreateCount);
+    logger.info("  HISTORY PROCESSING CONCEPT COUNT: " + conceptsToCreateCount);
 
     for (String code : historyCodes) {
 
@@ -1413,7 +1414,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           // if the replacement is not yet a concept or in the history create the concept
           if (replacementName == null && !historyCodes.contains(replacementCode)) {
 
-            logger.debug("COMPLETELY MISSING replacementCode");
+            logger.debug("    COMPLETELY MISSING replacementCode = " + replacementCode);
             history.setReplacementName("Deleted concept");
 
             final Concept deletedConcept = new Concept();
@@ -1432,7 +1433,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           // revisit
           else if (replacementName == null && historyCodes.contains(replacementCode)) {
 
-            logger.debug("NOT YET CREATED replacementCode");
+            logger.debug("    NOT YET CREATED replacementCode = " + replacementCode);
             replacementMissingCodes.add(replacementCode);
           }
         }
@@ -1464,7 +1465,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // add the replacement names for any history items that did not have it available before
     if (missingCodes.size() > 0) {
 
-      logger.debug("CONCEPTS TO UPDATE HISTORY: " + missingCodes.size());
+      logger.debug("  CONCEPTS TO UPDATE HISTORY = " + missingCodes.size());
       int conceptsUpdated = 0;
       boolean lastConcept = false;
       final Set<Concept> conceptsMissingReplacementInfo = missingCodes.keySet();
@@ -1493,7 +1494,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       }
     }
 
-    logger.info("HISTORY CONCEPTS CREATED: " + conceptsCreated);
+    logger.info("  HISTORY CONCEPTS CREATED = " + conceptsCreated);
     return conceptsCreated;
   }
 
