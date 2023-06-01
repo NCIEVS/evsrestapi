@@ -33,59 +33,57 @@ import gov.nih.nci.evs.api.model.Terminology;
 @AutoConfigureMockMvc
 public class HgncSampleTest extends SampleTest {
 
-    /**
-     * Setup class.
-     *
-     * @throws Exception the exception
-     */
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
 
-    /** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(HgncSampleTest.class);
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(HgncSampleTest.class);
 
-    /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-    @Autowired
-    private MockMvc testMvc;
+  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+  @Autowired
+  private MockMvc testMvc;
 
-    @BeforeClass
-    public static void setupClass() throws Exception {
-        loadSamples("hgnc", "src/test/resources/samples/hgnc-samples.txt");
-    }
+  @BeforeClass
+  public static void setupClass() throws Exception {
+    loadSamples("hgnc", "src/test/resources/samples/hgnc-samples.txt");
+  }
 
-    @Test
-    public void testHGNCTerminology() throws Exception {
-        String url = null;
-        MvcResult result = null;
-        String content = null;
+  @Test
+  public void testHGNCTerminology() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-        url = "/api/v1/metadata/terminologies";
-        log.info("Testing url - " + url);
-        result = testMvc.perform(
-                get(url).param("latest", "true").param("terminology", "hgnc"))
-                .andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        log.info(" content = " + content);
+    url = "/api/v1/metadata/terminologies";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "hgnc"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
 
-        final List<Terminology> terminologies = new ObjectMapper().readValue(content,
-                new TypeReference<List<Terminology>>() {
-                });
-        assertThat(terminologies.size()).isGreaterThan(0);
-        assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).count())
-                .isEqualTo(1);
-        final Terminology hgnc = terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).findFirst()
-                .get();
-        assertThat(hgnc.getTerminology()).isEqualTo("hgnc");
-        assertThat(hgnc.getMetadata().getUiLabel()).isEqualTo("HGNC");
-        assertThat(hgnc.getName()).isEqualTo("HGNC 202209");
-        assertThat(hgnc.getDescription()).isNotEmpty();
+    final List<Terminology> terminologies =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        });
+    assertThat(terminologies.size()).isGreaterThan(0);
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).count())
+        .isEqualTo(1);
+    final Terminology hgnc =
+        terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).findFirst().get();
+    assertThat(hgnc.getTerminology()).isEqualTo("hgnc");
+    assertThat(hgnc.getMetadata().getUiLabel()).isEqualTo("HGNC: HUGO Gene Nomenclature Committee");
+    assertThat(hgnc.getName()).isEqualTo("HGNC 202209");
+    assertThat(hgnc.getDescription()).isNotEmpty();
 
-        assertThat(hgnc.getMetadata().getLoader()).isEqualTo("rdf");
-        assertThat(hgnc.getMetadata().getSourceCt()).isEqualTo(0);
-        assertThat(hgnc.getMetadata().getLicenseText()).isNull();
-        assertThat(hgnc.getDescription())
-                .isEqualTo(
-                        "HGNC, published by the HUGO Gene Nomenclature Committee" +
-                                " at the European Bioinformatics Institute.");
+    assertThat(hgnc.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(hgnc.getMetadata().getSourceCt()).isEqualTo(0);
+    assertThat(hgnc.getMetadata().getLicenseText()).isNull();
+    assertThat(hgnc.getDescription())
+        .isEqualTo("HGNC, published by the HUGO Gene Nomenclature Committee"
+            + " at the European Bioinformatics Institute.");
 
-        assertThat(hgnc.getLatest()).isTrue();
-    }
+    assertThat(hgnc.getLatest()).isTrue();
+  }
 }
