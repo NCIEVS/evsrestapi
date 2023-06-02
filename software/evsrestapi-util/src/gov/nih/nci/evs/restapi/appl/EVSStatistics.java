@@ -1857,6 +1857,9 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 
     public void generateTableData() {
 		System.out.println("generateTableData...");
+
+
+
 		Vector v = new Vector();
 		String tableName = null;
 		Vector th_vec = null;
@@ -1966,8 +1969,11 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 	    addFooter();
 
         System.out.println("getAssociations ...");
+        /*
         v = getAssociations(named_graph);
         Vector association_knt_vec = getRelationsipCounts(v);
+        */
+        Vector association_knt_vec = getAssociationCountData();
 
 	    tableName = addTableNumber("Associations");
 	    th_vec = new Vector();
@@ -2057,6 +2063,30 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 
     public Vector findConceptsWithPropertyMatching(String named_graph, String property_name, String property_value) {
 		return owlSPARQLUtils.findConceptsWithPropertyMatching(named_graph, property_name, property_value);
+	}
+
+	public Vector getAssociationCountData() {
+		Vector v = Utils.readFile("properties.txt");
+		Vector w = new Vector();
+		int total = 0;
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String prop_code = (String) u.elementAt(1);
+			if (prop_code.startsWith("A")) {
+				Integer knt_obj = (Integer) propertyCode2CountMap.get(prop_code);
+				if (knt_obj == null) {
+					//System.out.println("WARNING: " + prop_code + " count not found.");
+				} else {
+					int knt = knt_obj.intValue();
+					w.add((String) u.elementAt(0) + " (" + (String) u.elementAt(1) + ")|" + knt);
+					total = total + knt;
+				}
+			}
+		}
+		w = new SortUtils().quickSort(w);
+		w.add("Total| " + total);
+		return w;
 	}
 
 
