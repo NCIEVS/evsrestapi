@@ -280,6 +280,9 @@ public class IncludeParam extends BaseModel {
     if (descendants) {
       fields.add("descendants");
     }
+    if (extensions) {
+      fields.add("extensions");
+    }
     return fields.toArray(new String[fields.size()]);
   }
 
@@ -340,6 +343,9 @@ public class IncludeParam extends BaseModel {
     }
     if (!descendants) {
       fields.add("descendants");
+    }
+    if (!extensions) {
+      fields.add("extensions");
     }
     return fields.toArray(new String[fields.size()]);
   }
