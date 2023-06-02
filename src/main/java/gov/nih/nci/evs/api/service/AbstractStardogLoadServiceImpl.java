@@ -536,8 +536,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             .map(d -> d.getCode()).collect(Collectors.toSet()));
       }
 
-      if (term.getTerminology() == "ncit" && term.getTags().containsKey("monthly")
-          && term.getTags().get("monthly").equals("true")) {
+      // Setup maps if this is a "monthly" version
+      // Determine by checking against the stardog db we are loading from
+      if (term.getTerminology() == "ncit" && stardogProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
+
         // setup mappings
         Concept ncitMapsToGdc = setupMap("GDC", term.getTerminologyVersion());
         Concept ncitMapsToIcd10 = setupMap("ICD10", term.getTerminologyVersion());
@@ -627,22 +629,22 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           historyItem.put("date", date);
 
           if (replacementCode != null && !replacementCode.equals("null")) {
-              
+
             historyItem.put("replacementCode", replacementCode);
-            
+
             // create history entry for the replacement concept if it isn't merging with itself
             if (!replacementCode.equals(code)) {
 
-                List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
-                final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
-                
-                if (historyMap.containsKey(replacementCode)) {
-                    replacementConceptHistory = historyMap.get(replacementCode);
-                }
-                
-                replacementHistoryItem.put("code", code);
-                replacementConceptHistory.add(replacementHistoryItem);
-                historyMap.put(replacementCode, replacementConceptHistory);
+              List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+              final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+
+              if (historyMap.containsKey(replacementCode)) {
+                replacementConceptHistory = historyMap.get(replacementCode);
+              }
+
+              replacementHistoryItem.put("code", code);
+              replacementConceptHistory.add(replacementHistoryItem);
+              historyMap.put(replacementCode, replacementConceptHistory);
             }
           }
 
@@ -675,14 +677,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       for (final Map<String, String> historyItem : conceptHistory) {
 
         final History history = new History();
-        
+
         // replacement concept history items will contain a key for code
         if (historyItem.containsKey("code")) {
-            history.setCode(historyItem.get("code"));
+          history.setCode(historyItem.get("code"));
         } else {
-            history.setCode(concept.getCode());
+          history.setCode(concept.getCode());
         }
-        
+
         history.setAction(historyItem.get("action"));
 
         final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
