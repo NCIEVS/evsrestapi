@@ -441,7 +441,7 @@ public class QualifierTests {
         });
     assertThat(list).isNotEmpty();
 
-    // Assert that properties don't contain any "remodeled qualifiers"
+    // Assert that properties do contain any "remodeled qualifiers"
     url = metaBaseUrl + "/terminologies";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -451,7 +451,7 @@ public class QualifierTests {
         }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(list.stream()
         .filter(c -> terminology.getMetadata().isRemodeledQualifier(c.getCode())).count())
-            .isEqualTo(0);
+            .isEqualTo(10);
 
     // Take the each qualifier and look it up as a qualifier, expect 200
     for (final Concept qualifier : list) {
