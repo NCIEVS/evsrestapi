@@ -74,7 +74,7 @@ public class HgncSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).findFirst().get();
     assertThat(hgnc.getTerminology()).isEqualTo("hgnc");
     assertThat(hgnc.getMetadata().getUiLabel()).isEqualTo("HGNC: HUGO Gene Nomenclature Committee");
-    assertThat(hgnc.getName()).isEqualTo("HGNC 202209");
+    assertThat(hgnc.getName()).isEqualTo("HGNC: HUGO Gene Nomenclature Committee 202209");
     assertThat(hgnc.getDescription()).isNotEmpty();
 
     assertThat(hgnc.getMetadata().getLoader()).isEqualTo("rdf");
