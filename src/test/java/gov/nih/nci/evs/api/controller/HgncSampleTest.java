@@ -59,8 +59,8 @@ public class HgncSampleTest extends SampleTest {
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "hgnc"))
-        .andExpect(status().isOk()).andReturn();
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "hgnc")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
@@ -68,21 +68,18 @@ public class HgncSampleTest extends SampleTest {
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).count())
-        .isEqualTo(1);
-    final Terminology hgnc =
-        terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).count()).isEqualTo(1);
+    final Terminology hgnc = terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).findFirst().get();
     assertThat(hgnc.getTerminology()).isEqualTo("hgnc");
     assertThat(hgnc.getMetadata().getUiLabel()).isEqualTo("HGNC: HUGO Gene Nomenclature Committee");
-    assertThat(hgnc.getName()).isEqualTo("HGNC 202209");
+    assertThat(hgnc.getName()).isEqualTo("HGNC: HUGO Gene Nomenclature Committee 202209");
     assertThat(hgnc.getDescription()).isNotEmpty();
 
     assertThat(hgnc.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(hgnc.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(hgnc.getMetadata().getLicenseText()).isNull();
-    assertThat(hgnc.getDescription())
-        .isEqualTo("HGNC, published by the HUGO Gene Nomenclature Committee"
-            + " at the European Bioinformatics Institute.");
+    assertThat(hgnc.getDescription()).isEqualTo(
+        "HGNC, published by the HUGO Gene Nomenclature Committee" + " at the European Bioinformatics Institute.");
 
     assertThat(hgnc.getLatest()).isTrue();
   }

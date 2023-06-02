@@ -511,7 +511,7 @@ public class MdrControllerTests {
     List<String> list = null;
 
     // NCIM qualifier values
-    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_CAT/values";
+    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_LEVEL/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -520,7 +520,7 @@ public class MdrControllerTests {
       // n/a
     });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.size()).isEqualTo(2);
 
   }
 

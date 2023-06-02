@@ -709,7 +709,7 @@ public class NcimControllerTests {
       // n/a
     });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.size()).isEqualTo(2);
 
   }
 
