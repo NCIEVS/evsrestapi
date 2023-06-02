@@ -733,20 +733,6 @@ public class MetadataControllerTests {
     MvcResult result = null;
     String content = null;
 
-    // P90 should no longer be a property
-    url = baseUrl + "/ncit/property/P90";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-
-    // P97 should no longer be a property
-    url = baseUrl + "/ncit/property/P97";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-
     // Bad terminology
     url = baseUrl + "/ncitXXX/property/P350";
     log.info("Testing url - " + url);
@@ -982,13 +968,6 @@ public class MetadataControllerTests {
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
 
-    // P383 should no longer be a property
-    url = baseUrl + "/ncit/qualifier/P383";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-
   }
 
   /**
@@ -1197,6 +1176,17 @@ public class MetadataControllerTests {
           // n/a
         }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
 
+    url = baseUrl + "/terminologies";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    properties = properties.stream().filter(c -> !terminology.getMetadata().isRemodeledProperty(c))
+        .collect(Collectors.toSet());
+    qualifiers = qualifiers.stream().filter(c -> !terminology.getMetadata().isRemodeledQualifier(c))
+        .collect(Collectors.toSet());
     // All sets are mutually exclusive with respect to each other.
     assertThat(Sets.intersection(properties, qualifiers)).isEmpty();
     assertThat(Sets.intersection(properties, synonymTypes)).isEmpty();
