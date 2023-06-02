@@ -239,12 +239,7 @@ public class HTMLTable {
 
 			for (int j=0; j<u.size(); j++) {
 				String value = (String) u.elementAt(j);
-
-				System.out.println("value: " + value);
-
 				int percent = getWidth(num_fields, num_wide_fields, (String) th_vec.elementAt(j));
-
-
 				out.println("<td width=\"" + percent + "%\">");
 				out.println(value);
 				out.println("</td>");
