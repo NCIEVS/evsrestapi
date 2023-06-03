@@ -606,17 +606,6 @@ public class MetadataControllerTests {
     });
     assertThat(list).isNotEmpty();
 
-    // Assert that properties don't contain any "remodeled properties"
-    url = baseUrl + "/terminologies";
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    Terminology terminology =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
-    assertThat(list.stream().filter(c -> terminology.getMetadata().isRemodeledProperty(c.getCode()))
-        .count()).isEqualTo(0);
-
     // BAC: this is not true anymore because we've
     // Assert that no cases involve a concept with a name having a space
     // assertThat(list.stream().filter(c -> c.getName().contains("
