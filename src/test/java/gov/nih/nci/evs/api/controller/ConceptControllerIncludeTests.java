@@ -573,13 +573,13 @@ public class ConceptControllerIncludeTests {
   @Test
   public void testSubsetMembersInclude() throws Exception {
 
-    String url = null;
+    String url = "/api/v1";
     MvcResult result = null;
     String content = null;
     List<Concept> list = null;
 
     // Look up subset members with minimal
-    url = baseUrl + "/subset/ncit/C157225/members?include=minimal&fromRecord=0&pageSize=10";
+    url = url + "/subset/ncit/C157225/members?include=minimal&fromRecord=0&pageSize=10";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -599,7 +599,8 @@ public class ConceptControllerIncludeTests {
     assertThat(list.get(0).getProperties()).isEmpty();
 
     // Look up subset members with synonyms
-    url = baseUrl + "/subset/ncit/C157225/members?include=synonyms&fromRecord=0&pageSize=10";
+    url = "/api/v1";
+    url = url + "/subset/ncit/C157225/members?include=synonyms&fromRecord=0&pageSize=10";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();

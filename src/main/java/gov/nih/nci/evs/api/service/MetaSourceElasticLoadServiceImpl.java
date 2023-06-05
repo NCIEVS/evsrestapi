@@ -1191,8 +1191,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     atnMap.put("Semantic_Type", "Semantic Type");
 
     // MRSAT: property metadata for MRSAT
-    // Remove ATNs that are qualifiers
-    atnSet.removeAll(qualMap.keySet());
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
@@ -1216,7 +1214,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     qualifiers.setMap(qualMap);
-
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //

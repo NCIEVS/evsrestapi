@@ -173,7 +173,7 @@ public class MapsetControllerTests {
     assert (singleMetadataMap.getMaps() != null);
 
     // test mapset/{code} - invalid code param
-    result = mvc.perform(get(baseUrl + "/noMap")).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(baseUrl + "/noMap")).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
     assert (content.length() == 0);
   }

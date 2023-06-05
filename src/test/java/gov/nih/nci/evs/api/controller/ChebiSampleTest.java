@@ -33,60 +33,59 @@ import gov.nih.nci.evs.api.model.Terminology;
 @AutoConfigureMockMvc
 public class ChebiSampleTest extends SampleTest {
 
-    /**
-     * Setup class.
-     *
-     * @throws Exception the exception
-     */
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
 
-    /** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(ChebiSampleTest.class);
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(ChebiSampleTest.class);
 
-    /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-    @Autowired
-    private MockMvc testMvc;
+  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+  @Autowired
+  private MockMvc testMvc;
 
-    @BeforeClass
-    public static void setupClass() throws Exception {
-        loadSamples("chebi", "src/test/resources/samples/chebi-samples.txt");
-    }
+  @BeforeClass
+  public static void setupClass() throws Exception {
+    loadSamples("chebi", "src/test/resources/samples/chebi-samples.txt");
+  }
 
-    @Test
-    public void testCHEBITerminology() throws Exception {
-        String url = null;
-        MvcResult result = null;
-        String content = null;
+  @Test
+  public void testCHEBITerminology() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
 
-        url = "/api/v1/metadata/terminologies";
-        log.info("Testing url - " + url);
-        result = testMvc.perform(
-                get(url).param("latest", "true").param("terminology", "chebi"))
-                .andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        log.info(" content = " + content);
+    url = "/api/v1/metadata/terminologies";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "chebi"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
 
-        final List<Terminology> terminologies = new ObjectMapper().readValue(content,
-                new TypeReference<List<Terminology>>() {
-                });
-        assertThat(terminologies.size()).isGreaterThan(0);
-        assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("chebi")).count())
-                .isEqualTo(1);
-        final Terminology chebi = terminologies.stream().filter(t -> t.getTerminology().equals("chebi")).findFirst()
-                .get();
-        assertThat(chebi.getTerminology()).isEqualTo("chebi");
-        assertThat(chebi.getMetadata().getUiLabel()).isEqualTo("ChEBI");
-        assertThat(chebi.getName()).isEqualTo("ChEBI 213");
-        assertThat(chebi.getDescription()).isNotEmpty();
+    final List<Terminology> terminologies =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        });
+    assertThat(terminologies.size()).isGreaterThan(0);
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("chebi")).count())
+        .isEqualTo(1);
+    final Terminology chebi =
+        terminologies.stream().filter(t -> t.getTerminology().equals("chebi")).findFirst().get();
+    assertThat(chebi.getTerminology()).isEqualTo("chebi");
+    assertThat(chebi.getMetadata().getUiLabel())
+        .isEqualTo("ChEBI: Chemical Entities of Biological Interest");
+    assertThat(chebi.getName()).isEqualTo("ChEBI: Chemical Entities of Biological Interest 213");
+    assertThat(chebi.getDescription()).isNotEmpty();
 
-        assertThat(chebi.getMetadata().getLoader()).isEqualTo("rdf");
-        assertThat(chebi.getMetadata().getSourceCt()).isEqualTo(0);
-        assertThat(chebi.getMetadata().getLicenseText()).isNull();
-        assertThat(chebi.getDescription())
-                .isEqualTo(
-                        "Chemical Entities of Biological Interest (ChEBI) is a freely available dictionary" +
-                                " of molecular entities focused on 'small' chemical compounds.");
+    assertThat(chebi.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(chebi.getMetadata().getSourceCt()).isEqualTo(0);
+    assertThat(chebi.getMetadata().getLicenseText()).isNull();
+    assertThat(chebi.getDescription()).isEqualTo(
+        "Chemical Entities of Biological Interest (ChEBI) is a freely available dictionary"
+            + " of molecular entities focused on 'small' chemical compounds.");
 
-        assertThat(chebi.getLatest()).isTrue();
-    }
+    assertThat(chebi.getLatest()).isTrue();
+  }
 
 }

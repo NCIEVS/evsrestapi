@@ -37,8 +37,7 @@ import gov.nih.nci.evs.api.support.ApplicationVersion;
 public class VersionControllerTests {
 
   /** The logger. */
-  private static final Logger log =
-      LoggerFactory.getLogger(VersionControllerTests.class);
+  private static final Logger log = LoggerFactory.getLogger(VersionControllerTests.class);
 
   /** The mvc. */
   @Autowired
@@ -52,7 +51,7 @@ public class VersionControllerTests {
   private ObjectMapper objectMapper;
 
   /** The base url. */
-  private String baseUrl = "";
+  private String baseUrl = "/api/v1";
 
   /**
    * Sets the up.
@@ -84,8 +83,7 @@ public class VersionControllerTests {
     result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     assertThat(content).isNotEmpty();
-    final ApplicationVersion data =
-        new ObjectMapper().readValue(content, ApplicationVersion.class);
+    final ApplicationVersion data = new ObjectMapper().readValue(content, ApplicationVersion.class);
     final String buildGradleVersion = getBuildGradleVersion();
     assertThat(data.getVersion()).isEqualTo(buildGradleVersion);
 
