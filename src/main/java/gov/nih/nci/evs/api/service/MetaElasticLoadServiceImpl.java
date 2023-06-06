@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,7 +16,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 
@@ -28,9 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,12 +88,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** The rui qual sabs. */
   private Set<String> ruiQualSabs = new HashSet<>();
-
-  /** The mapset "to terminology" map. */
-  private Map<String, String> mapsetToTerminologyMap = new HashMap<>();
-
-  /** The mapset name map. */
-  private Map<String, String> mapsetNameMap = new HashMap<>();
 
   /** The mapset version map. */
   private Map<String, String> mapsetVersionMap = new HashMap<>();
@@ -178,6 +168,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   private void cacheMaps() throws Exception {
 
     logger.info("  START cache maps");
+    int mapsetCt = 0;
+    int mapCt = 0;
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
@@ -188,6 +180,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
 
       String line = null;
+      final Map<String, String> mapsetNameMap = new HashMap<>();
+      final Map<String, String> mapsetToTerminologyMap = new HashMap<>();
+
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
@@ -270,6 +265,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
         map.setRule(fields[20]);
+        mapCt++;
 
         // Fix source name if null
         if (map.getSourceName() == null) {
@@ -309,6 +305,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
           mapsetMap.put(fields[0], mapset);
+          mapsetCt++;
         }
         mapsetMap.get(fields[0]).getMaps().add(map);
       }
@@ -423,8 +420,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
-    logger.info("    mapsets = " + mapsetToTerminologyMap.size());
-    logger.info("    maps = " + mapsetToTerminologyMap.size());
+    logger.info("    mapsets = " + mapsetCt);
+    logger.info("    maps = " + mapCt);
     logger.info("    ruiInverseMap = " + ruiInverseMap.size());
     logger.info("    ruiQualMap = " + ruiQualMap.size());
 
@@ -474,7 +471,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // check if we've hit a new concept then process the other files for the
         // "prevCui"
-        if (!cui.equals(prevCui)) {
+        if (prevCui != null && !cui.equals(prevCui)) {
 
           // Process data
           handleDefinitions(terminology, concept, mrdef, prevCui);
@@ -482,8 +479,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           handleAttributes(concept, mrsat, prevCui);
           handleRelationships(concept, mrrel, prevCui);
 
+          // Add maps
           if (maps.containsKey(prevCui)) {
             concept.getMaps().addAll(maps.get(prevCui));
+            // Clear memory as we do not need this anymore
+            maps.remove(prevCui);
           }
 
           // There are not useful mappings in the UMLS at this point in time
@@ -540,6 +540,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       if (maps.containsKey(prevCui)) {
         concept.getMaps().addAll(maps.get(prevCui));
+        // Clear memory as we do not need this anymore
+        maps.remove(prevCui);
       }
 
       handleConcept(concept, batch, true, terminology.getIndexName());
@@ -1252,13 +1254,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       return 0;
     }
 
-    logger.debug("  STARTING HISTORY PROCESSING");
-    final Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-    final List<Concept> batch = new ArrayList<>();
-    int conceptsCreated = 0;
+    logger.debug("  STARTING HISTORY PROCESSING (wait 5 sec for elasticsearch to finish)");
+    Thread.sleep(5000);
 
-    SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMM");
-    SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    final List<Concept> batch = new ArrayList<>();
+    int totalConcepts = 0;
 
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
@@ -1266,6 +1266,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     try (final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI);) {
 
       String line = null;
+      Concept concept = new Concept();
+      String prevCui = null;
 
       // CODE, DATE, REL (ACTION), RELA, MAPREASON, REPLACEMENT CODE, MAPINSUB
       // Action values: Broader (RB), Narrower (RN), Other Related (RO), Deleted (DEL), Removed from
@@ -1273,228 +1275,97 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // Loop through lines until we reach "the end"
       while ((line = mrcui.readLine()) != null) {
 
-        if (line.equals("")) {
-          continue;
-        }
-
         final String[] fields = line.split("\\|", -1);
-        final String code = fields[0];
-
-        if (code.equals("")) {
-          continue;
-        }
-
+        final String cui = fields[0];
         final String date = fields[1];
         final String action = fields[2];
-        final String replacementCode = fields[5];
+        final String replacementCui = fields[5];
         final String replacementInSubset = fields[6];
-        List<Map<String, String>> conceptHistory = new ArrayList<>();
-        final Map<String, String> historyItem = new HashMap<>();
 
+        // Skip things removed by Metamorphosys
         if (action.equals("SUBX")) {
           continue;
         }
 
-        if (historyMap.containsKey(code)) {
-          conceptHistory = historyMap.get(code);
+        // Skip things where CUI2 is not in the subset
+        if (replacementInSubset.equals("N")) {
+          continue;
         }
 
-        historyItem.put("action", action);
-        historyItem.put("date", date);
-
-        if (replacementCode != null && !replacementCode.equals("null")) {
-
-          if (replacementInSubset.equals("N")) {
-            continue;
-          }
-
-          historyItem.put("replacementCode", replacementCode);
-
-          // create history entry for the replacement concept if it isn't merging with itself
-          if (!replacementCode.equals(code)) {
-
-            List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
-            final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
-
-            if (historyMap.containsKey(replacementCode)) {
-              replacementConceptHistory = historyMap.get(replacementCode);
-            }
-
-            replacementHistoryItem.put("code", code);
-            replacementConceptHistory.add(replacementHistoryItem);
-            historyMap.put(replacementCode, replacementConceptHistory);
-          }
+        // Test assumption that the file is in order (when considering
+        // |)
+        if (prevCui != null && (cui + "|").compareTo(prevCui + "|") < 0) {
+          throw new Exception("File is unexpectedly out of order = " + prevCui + ", " + cui);
         }
 
-        conceptHistory.add(historyItem);
-        historyMap.put(code, conceptHistory);
+        // If prev cui doesn't match, make a concept
+        // check if we've hit a new concept then process the other files for the
+        // "prevCui"
+        if (prevCui != null && !cui.equals(prevCui)) {
+
+          // Handle the previous concept here (and repeat outside the block)
+          handleConcept(concept, batch, false, terminology.getIndexName());
+
+          if (totalConcepts++ % 5000 == 0) {
+            logger.info("    count = " + totalConcepts);
+          }
+
+          // Create new concept for this code
+          concept = new Concept();
+          concept.setName("Retired concept");
+          concept.setNormName(ConceptUtils.normalize("Retired concept"));
+          concept.setCode(cui);
+          concept.setTerminology(terminology.getTerminology());
+          concept.setVersion(terminology.getVersion());
+          // NO hierarchies for NCIM concepts, so set leaf to null
+          concept.setLeaf(null);
+
+        }
+
+        // Make a history entry from this line
+        final History history = new History();
+        history.setCode(cui);
+        // We don't know the names of retired concepts
+        history.setName("Retired concept");
+        history.setAction(action);
+        history.setDate(date);
+        if (!replacementCui.isEmpty()) {
+          history.setReplacementCode(replacementCui);
+          history.setReplacementName(nameMap.get(replacementCui));
+
+          // Get the concept
+          final Concept replConcept =
+              elasticQueryService.getConcept(replacementCui, terminology, new IncludeParam("*")).orElse(null);
+
+          if (replConcept == null) {
+            throw new Exception("Unable to find replacement CUI = " + replacementCui);
+          }
+
+          // Copy the history object
+          replConcept.getHistory().add(new History(history));
+
+          // Index the object (rather than using batch, just send it up)
+          operationsService.index(replConcept, terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE,
+              Concept.class);
+
+        }
+
+        concept.getHistory().add(history);
+
+        // Save prev cui for next round
+        prevCui = cui;
+
       }
+
+      handleConcept(concept, batch, false, terminology.getIndexName());
+      totalConcepts++;
 
     } finally {
       readers.closeReaders();
     }
 
-    final Set<String> historyCodes = historyMap.keySet();
-    final Map<Concept, Set<String>> missingCodes = new HashMap<>();
-    int conceptsToCreateCount = historyCodes.size();
-    logger.info("  HISTORY PROCESSING CONCEPT COUNT: " + conceptsToCreateCount);
-
-    for (String code : historyCodes) {
-
-      boolean lastConcept = false;
-      String name = "Retired concept";
-      final Set<String> replacementMissingCodes = new HashSet<>();
-      Concept concept;
-      boolean isActiveConcept = true;
-
-      // if any history item doesn't have a code then this concept is not active
-      for (final Map<String, String> historyItem : historyMap.get(code)) {
-
-        if (!historyItem.containsKey("code") || code.equals("")) {
-
-          isActiveConcept = false;
-          break;
-        }
-      }
-
-      if (!isActiveConcept) {
-
-        concept = new Concept();
-        concept.setCode(code);
-        concept.setTerminology(terminology.getTerminology());
-        concept.setVersion(terminology.getVersion());
-        // NO hierarchies for NCIM concepts, so set leaf to null
-        concept.setLeaf(null);
-      } else {
-
-        final Optional<Concept> possibleConcept =
-            elasticQueryService.getConcept(code, terminology, new IncludeParam("full"));
-
-        if (!possibleConcept.isPresent() || possibleConcept.get().getCode() == null) {
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
-        }
-
-        concept = possibleConcept.get();
-      }
-
-      for (final Map<String, String> historyItem : historyMap.get(code)) {
-
-        if (historyItem.get("action").equals("DEL")) {
-          name = "Deleted concept";
-        }
-
-        final History history = new History();
-
-        // replacement concept history items will contain a key for code
-        if (historyItem.containsKey("code")) {
-          history.setCode(historyItem.get("code"));
-        } else {
-          history.setCode(code);
-        }
-
-        history.setAction(historyItem.get("action"));
-
-        String date = "";
-
-        if (historyItem.get("date") != null && !historyItem.get("date").equals("")) {
-          date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
-        }
-
-        history.setDate(date);
-
-        final String replacementCode = historyItem.get("replacementCode");
-        final String replacementName = nameMap.get(replacementCode);
-
-        if (replacementCode != null && !replacementCode.equals("")) {
-
-          history.setReplacementCode(replacementCode);
-          history.setReplacementName(replacementName);
-
-          // if the replacement is not yet a concept or in the history create the concept
-          if (replacementName == null && !historyCodes.contains(replacementCode)) {
-
-            logger.debug("    COMPLETELY MISSING replacementCode = " + replacementCode);
-            history.setReplacementName("Deleted concept");
-
-            final Concept deletedConcept = new Concept();
-            deletedConcept.setCode(code);
-            deletedConcept.setName("Deleted concept");
-            deletedConcept.setTerminology(terminology.getTerminology());
-            deletedConcept.setVersion(terminology.getVersion());
-            deletedConcept.setLeaf(null);
-
-            conceptsCreated++;
-            conceptsToCreateCount++;
-            handleConcept(deletedConcept, batch, false, terminology.getIndexName());
-          }
-
-          // if the replacement is not yet a concept and is in the history store the info so we can
-          // revisit
-          else if (replacementName == null && historyCodes.contains(replacementCode)) {
-
-            logger.debug("    NOT YET CREATED replacementCode = " + replacementCode);
-            replacementMissingCodes.add(replacementCode);
-          }
-        }
-
-        concept.getHistory().add(history);
-      }
-
-      if (!isActiveConcept) {
-
-        conceptsCreated++;
-        concept.setName(name);
-        concept.setNormName(ConceptUtils.normalize(name));
-
-        // add info to name map
-        nameMap.put(code, name);
-      }
-
-      if (replacementMissingCodes.size() > 0) {
-        missingCodes.put(concept, replacementMissingCodes);
-      }
-
-      if (conceptsCreated == conceptsToCreateCount) {
-        lastConcept = true;
-      }
-
-      handleConcept(concept, batch, lastConcept, terminology.getIndexName());
-    }
-
-    // add the replacement names for any history items that did not have it available before
-    if (missingCodes.size() > 0) {
-
-      logger.debug("  CONCEPTS TO UPDATE HISTORY = " + missingCodes.size());
-      int conceptsUpdated = 0;
-      boolean lastConcept = false;
-      final Set<Concept> conceptsMissingReplacementInfo = missingCodes.keySet();
-
-      for (final Concept concept : conceptsMissingReplacementInfo) {
-
-        conceptsUpdated++;
-
-        for (final String replacementMissingCode : missingCodes.get(concept)) {
-
-          for (final History history : concept.getHistory()) {
-
-            if (history.getReplacementCode().equals(replacementMissingCode)) {
-
-              history.setReplacementName(nameMap.get(history.getReplacementCode()));
-              break;
-            }
-          }
-        }
-
-        if (conceptsUpdated == conceptsMissingReplacementInfo.size()) {
-          lastConcept = true;
-        }
-
-        handleConcept(concept, batch, lastConcept, terminology.getIndexName());
-      }
-    }
-
-    logger.info("  HISTORY CONCEPTS CREATED = " + conceptsCreated);
-    return conceptsCreated;
+    logger.info("    totalCount = " + totalConcepts);
+    return totalConcepts;
   }
 
   /* see superclass */
