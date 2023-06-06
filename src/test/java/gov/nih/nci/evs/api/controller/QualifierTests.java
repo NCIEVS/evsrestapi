@@ -32,8 +32,8 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
- * Integration tests for ContentController organized around proper handling of
- * property qualifiers. This is based on work from EVSRESTAPI-69.
+ * Integration tests for ContentController organized around proper handling of property qualifiers.
+ * This is based on work from EVSRESTAPI-69.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -374,17 +374,16 @@ public class QualifierTests {
 
     for (final String name : new String[] {
         // "Maps_To", - this one removed for ReportWriter
-        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", 
-        "label"
+        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "label"
     }) {
       // skip name and label
       if (name.equals("name") || name.equals("label")) {
         continue;
       }
-      // Try P98 - expect to not find it as a property
+      // expect to find common properties
       url = metaBaseUrl + "/ncit/property/" + name;
       log.info("Testing url - " + url);
-      result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     }
 
   }
@@ -442,7 +441,7 @@ public class QualifierTests {
         });
     assertThat(list).isNotEmpty();
 
-    // Assert that properties don't contain any "remodeled properties"
+    // Assert that properties do contain any "remodeled qualifiers"
     url = metaBaseUrl + "/terminologies";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -452,7 +451,7 @@ public class QualifierTests {
         }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(list.stream()
         .filter(c -> terminology.getMetadata().isRemodeledQualifier(c.getCode())).count())
-            .isEqualTo(0);
+            .isEqualTo(10);
 
     // Take the each qualifier and look it up as a qualifier, expect 200
     for (final Concept qualifier : list) {

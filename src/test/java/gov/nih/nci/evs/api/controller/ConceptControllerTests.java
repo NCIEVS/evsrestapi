@@ -153,7 +153,8 @@ public class ConceptControllerTests {
     String url = null;
 
     // Test lookup of >500 codes
-    url = baseUrl + "/ncit?list=" + IntStream.range(1, 1002).mapToObj(String::valueOf).collect(Collectors.joining(","));
+    url = baseUrl + "/ncit?list="
+        + IntStream.range(1, 1002).mapToObj(String::valueOf).collect(Collectors.joining(","));
     log.info("Testing url - " + url);
     mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
     // content is blank because of MockMvc
@@ -241,9 +242,10 @@ public class ConceptControllerTests {
     final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    final List<Concept> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(2);
     assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
@@ -266,8 +268,9 @@ public class ConceptControllerTests {
     List<Concept> list = null;
 
     // Try MDR with 10 codes
-    // grep MDR MRCONSO.RRF  | cut -d\| -f 14
-    url = baseUrl + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
+    // grep MDR MRCONSO.RRF | cut -d\| -f 14
+    url = baseUrl
+        + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
         + "10030182,10017924&include=minimal";
     log.info("Testing url - " + url);
 
@@ -284,7 +287,8 @@ public class ConceptControllerTests {
     assertThat(list.get(0).getSynonyms()).isEmpty();
     assertThat(list.get(0).getDefinitions()).isEmpty();
 
-    url = baseUrl + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
+    url = baseUrl
+        + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
         + "10030182,10017924,10017884&include=minimal";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
@@ -682,7 +686,7 @@ public class ConceptControllerTests {
     });
     assertThat(list).isEmpty();
   }
-  
+
   /**
    * Test get concept history.
    *
@@ -706,32 +710,31 @@ public class ConceptControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     log.info("  list = " + concept.getHistory().size());
     assertThat(concept.getHistory()).isNotEmpty();
-    
+
     boolean foundRetiredThis = false;
     boolean foundReplacedAnother = false;
     boolean foundModify = false;
-    
+
     for (final History history : concept.getHistory()) {
-        
-        if (history.getAction().equals("retire") && history.getCode().equals("C14615")) {
-            foundRetiredThis = true;
-            
-        } else if (history.getAction().equals("modify") && history.getCode().equals("C14615")) {
-            foundModify = true;
-            
-        } else if (history.getAction().equals("retire") && !history.getCode().equals("C14615") 
-            && history.getReplacementCode().equals("C14615")) {
-            foundReplacedAnother = true;
-        }
+
+      if (history.getAction().equals("retire") && history.getCode().equals("C14615")) {
+        foundRetiredThis = true;
+
+      } else if (history.getAction().equals("modify") && history.getCode().equals("C14615")) {
+        foundModify = true;
+
+      } else if (history.getAction().equals("retire") && !history.getCode().equals("C14615")
+          && history.getReplacementCode().equals("C14615")) {
+        foundReplacedAnother = true;
+      }
     }
 
     assertThat(foundRetiredThis && foundReplacedAnother && foundModify).isTrue();
-    
 
     // NOTE, this is a concept that should not have history
     url = baseUrl + "/ncim/C0005768/history";
     log.info("Testing url - " + url);
-    
+
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -765,7 +768,8 @@ public class ConceptControllerTests {
     });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
-    assertThat(list.stream().filter(d -> d.getRelatedCode().equals("C7057")).count()).isGreaterThan(0);
+    assertThat(list.stream().filter(d -> d.getRelatedCode().equals("C7057")).count())
+        .isGreaterThan(0);
 
     // Test case without disjointWith
     url = baseUrl + "/ncit/C2291/disjointWith";
@@ -878,14 +882,15 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
     // check that subtree is properly expanded
-    assertThat(list.stream().filter(n -> n.getExpanded() != null && n.getExpanded()).count()).isGreaterThan(0);
+    assertThat(list.stream().filter(n -> n.getExpanded() != null && n.getExpanded()).count())
+        .isGreaterThan(0);
     // something should have children
     assertThat(list.stream().filter(c -> c.getChildren().size() > 0).count()).isGreaterThan(0);
     // none should have "level" set
     assertThat(list.stream().filter(c -> c.getLevel() != null).count()).isEqualTo(0);
     // children should not have "level" set
-    assertThat(list.stream().flatMap(c -> c.getChildren().stream()).filter(c -> c.getLevel() != null).count())
-        .isEqualTo(0);
+    assertThat(list.stream().flatMap(c -> c.getChildren().stream())
+        .filter(c -> c.getLevel() != null).count()).isEqualTo(0);
     // there should be a leaf node in the hierarchy
     assertThat(hasLeafNode(list)).isTrue();
     // something should have grand children
@@ -973,7 +978,8 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C3224");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
-    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel()).isEqualTo(list.get(0).size() - 1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size() - 1);
 
     url = baseUrl + "/ncit/C3224/pathsFromRoot?include=summary";
     log.info("Testing url - " + url);
@@ -997,7 +1003,8 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C3224");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
-    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel()).isEqualTo(list.get(0).size() - 1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size() - 1);
 
     url = baseUrl + "/ncit/C3224/pathsFromRoot?include=minimal";
     log.info("Testing url - " + url);
@@ -1110,7 +1117,8 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C7057");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
-    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel()).isEqualTo(list.get(0).size() - 1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size() - 1);
 
     url = baseUrl + "/ncit/C3224/pathsToRoot?include=summary";
     log.info("Testing url - " + url);
@@ -1129,7 +1137,8 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C7057");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
-    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel()).isEqualTo(list.get(0).size() - 1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size() - 1);
 
     url = baseUrl + "/ncit/C3224/pathsToRoot?include=minimal";
     log.info("Testing url - " + url);
@@ -1242,7 +1251,8 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C2991");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
-    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel()).isEqualTo(list.get(0).size() - 1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size() - 1);
 
     url = baseUrl + "/ncit/C3224/pathsToAncestor/C2991?include=summary";
     log.info("Testing url - " + url);
@@ -1261,7 +1271,8 @@ public class ConceptControllerTests {
     assertThat(list.get(0).get(list.get(0).size() - 1).getCode()).isEqualTo("C2991");
     // Assert that numbers count in order, starting at 1 and ending in legnth
     assertThat(list.get(0).get(0).getLevel()).isEqualTo(0);
-    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel()).isEqualTo(list.get(0).size() - 1);
+    assertThat(list.get(0).get(list.get(0).size() - 1).getLevel())
+        .isEqualTo(list.get(0).size() - 1);
 
     url = baseUrl + "/ncit/C3224/pathsToAncestor/C3224?include=minimal";
     log.info("Testing url - " + url);
@@ -1437,7 +1448,7 @@ public class ConceptControllerTests {
     String content = null;
     List<Concept> subsetMembers;
 
-    url = baseUrl + "/subset/ncit/C2991/members";
+    url = baseUrl + "/ncit/subsetMembers/C157225";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1445,9 +1456,9 @@ public class ConceptControllerTests {
     subsetMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    assertThat(subsetMembers.size()).isEqualTo(40);
+    assertThat(subsetMembers.size()).isGreaterThan(1);
 
-    url = baseUrl + "/subset/ncit/C2991/members?pageSize=10";
+    url = baseUrl + "/ncit/subsetMembers/C157225?pageSize=10";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1458,7 +1469,7 @@ public class ConceptControllerTests {
 
     assertThat(subsetMembers.size() == 10);
 
-    url = baseUrl + "/subset/ncit/C136564/members?pageSize=10";
+    url = baseUrl + "/ncit/subsetMembers/C1111?pageSize=10";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1481,19 +1492,22 @@ public class ConceptControllerTests {
     MvcResult result = null;
     String content = null;
     url = "/api/v1/metadata/terminologies";
-    result = mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly")).andExpect(status().isOk())
-        .andReturn();
+    result = mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    Terminology terminology = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-    }).get(0);
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+        }).get(0);
     String weeklyTerm = terminology.getTerminologyVersion();
     String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;
 
-    result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(baseWeeklyUrl).param("list", "C3224")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
-    List<Concept> conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    List<Concept> conceptResults =
+        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+          // n/a
+        });
     assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
 
     result = mvc.perform(get(baseWeeklyUrl + "/C3224")).andExpect(status().isOk()).andReturn();
@@ -1501,7 +1515,8 @@ public class ConceptControllerTests {
     Concept concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept.getVersion() == terminology.getVersion());
 
-    result = mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     conceptResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a

@@ -63,15 +63,19 @@ public class MapUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("type");
     tester.include("group");
-    tester.include("priority");
+    tester.include("rank");
     tester.include("rule");
     tester.include("targetName");
+    tester.include("source");
     tester.include("sourceCode");
+    tester.include("sourceName");
+    tester.include("sourceTermType");
     tester.include("sourceTerminology");
     tester.include("targetCode");
     tester.include("targetTermType");
     tester.include("targetTerminology");
     tester.include("targetTerminologyVersion");
+    
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());

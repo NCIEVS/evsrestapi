@@ -231,16 +231,17 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           handleHistory(terminology, c);
           if (c.getMaps().size() > 0) {
             for (final gov.nih.nci.evs.api.model.Map map : c.getMaps()) {
-              if (mapsets.containsKey(map.getTargetTerminology().split(" ")[0])) {
+              final String mapterm = map.getTargetTerminology().split(" ")[0];
+              if (mapsets.containsKey(mapterm)) {
                 final gov.nih.nci.evs.api.model.Map copy = new gov.nih.nci.evs.api.model.Map(map);
                 copy.setSourceCode(c.getCode());
                 copy.setSourceName(c.getName());
                 copy.setSourceTerminology(c.getTerminology());
                 if (map.getTargetTerminology().split(" ").length > 1) {
-                  copy.setTargetTerminology(map.getTargetTerminology().split(" ")[0]);
+                  copy.setTargetTerminology(mapterm);
                   copy.setTargetTerminologyVersion(map.getTargetTerminology().split(" ")[1]);
                 }
-                mapsets.get(map.getTargetTerminology().split(" ")[0]).getMaps().add(copy);
+                mapsets.get(mapterm).getMaps().add(copy);
               }
             }
           }
@@ -283,10 +284,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       executor.awaitTermination(30, TimeUnit.SECONDS);
 
       // resetting and indexing mapsets
-      for (Map.Entry<String, Concept> map : mapsets.entrySet()) {
+      for (Map.Entry<String, Concept> mapset : mapsets.entrySet()) {
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
-            "NCIt_Maps_To_" + map.getKey());
-        Collections.sort(map.getValue().getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
+            "NCIt_Maps_To_" + mapset.getKey());
+        Collections.sort(mapset.getValue().getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
           @Override
           public int compare(final gov.nih.nci.evs.api.model.Map o1, final gov.nih.nci.evs.api.model.Map o2) {
             // Assume maps are not null
@@ -294,8 +295,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank() + o2.getTargetName());
           }
         });
-        logger.info("    Index map = " + map.getValue().getName());
-        operationsService.index(map.getValue(), ElasticOperationsService.MAPPING_INDEX,
+        logger.info("    Index map = " + mapset.getValue().getName() + ", " + mapset.getValue().getMaps().size());
+        operationsService.index(mapset.getValue(), ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       }
 
@@ -536,8 +537,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             .map(d -> d.getCode()).collect(Collectors.toSet()));
       }
 
-      if (term.getTerminology() == "ncit" && term.getTags().containsKey("monthly")
-          && term.getTags().get("monthly").equals("true")) {
+      // Setup maps if this is a "monthly" version
+      // Determine by checking against the stardog db we are loading from
+      if (term.getTerminology() == "ncit" && stardogProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
+
         // setup mappings
         Concept ncitMapsToGdc = setupMap("GDC", term.getTerminologyVersion());
         Concept ncitMapsToIcd10 = setupMap("ICD10", term.getTerminologyVersion());
@@ -551,6 +554,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         mapsets.put("ICD9CM", ncitMapsToIcd9cm);
         mapsets.put("ICDO3", ncitMapsToIcdo3);
         mapsets.put("MedDRA", ncitMapsToMeddra);
+        logger.info("mapsets = " + mapsets.size());
       }
 
     } catch (Exception e) {
@@ -627,22 +631,22 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           historyItem.put("date", date);
 
           if (replacementCode != null && !replacementCode.equals("null")) {
-              
+
             historyItem.put("replacementCode", replacementCode);
-            
+
             // create history entry for the replacement concept if it isn't merging with itself
             if (!replacementCode.equals(code)) {
 
-                List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
-                final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
-                
-                if (historyMap.containsKey(replacementCode)) {
-                    replacementConceptHistory = historyMap.get(replacementCode);
-                }
-                
-                replacementHistoryItem.put("code", code);
-                replacementConceptHistory.add(replacementHistoryItem);
-                historyMap.put(replacementCode, replacementConceptHistory);
+              List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+              final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+
+              if (historyMap.containsKey(replacementCode)) {
+                replacementConceptHistory = historyMap.get(replacementCode);
+              }
+
+              replacementHistoryItem.put("code", code);
+              replacementConceptHistory.add(replacementHistoryItem);
+              historyMap.put(replacementCode, replacementConceptHistory);
             }
           }
 
@@ -675,14 +679,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       for (final Map<String, String> historyItem : conceptHistory) {
 
         final History history = new History();
-        
+
         // replacement concept history items will contain a key for code
         if (historyItem.containsKey("code")) {
-            history.setCode(historyItem.get("code"));
+          history.setCode(historyItem.get("code"));
         } else {
-            history.setCode(concept.getCode());
+          history.setCode(concept.getCode());
         }
-        
+
         history.setAction(historyItem.get("action"));
 
         final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
