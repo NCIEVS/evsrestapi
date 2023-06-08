@@ -1149,7 +1149,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     for (final String qual : qualMap.keySet()) {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
-    qualifiers.setMap(qualMap);
     for (final String key : qualMap.keySet()) {
       // Truncate additional values
       if (qualMap.get(key).size() > 1000) {
@@ -1159,6 +1158,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         qualMap.get(key).add("... additional values ...");
       }
     }
+    // Do this after truncating because it gets turned into a String
+    qualifiers.setMap(qualMap);
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
