@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -35,7 +36,6 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -128,6 +128,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The qual set. */
   private Map<String, Set<String>> qualMap = new HashMap<>();
 
+  /** The history map. */
+  private Map<String, Set<History>> replHistoryMap = new HashMap<>();
+
   private int batchSize = 0;
 
   /** the environment *. */
@@ -177,7 +180,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         final PushBackReader mrsat = readers.getReader(RrfReaders.Keys.MRSAT);
         final PushBackReader mrmap = readers.getReader(RrfReaders.Keys.MRMAP);
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
-        final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
+        final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);
+        final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI);) {
 
       String line = null;
       final Map<String, String> mapsetNameMap = new HashMap<>();
@@ -416,6 +420,41 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
       }
 
+      // Prepare history entries for active "replacement" concepts
+      // CODE, DATE, REL (ACTION), RELA, MAPREASON, REPLACEMENT CODE, MAPINSUB
+      // Action values: Broader (RB), Narrower (RN), Other Related (RO), Deleted (DEL), Removed from
+      // Subset (SUBX)
+      // Loop through lines until we reach "the end"
+      while ((line = mrcui.readLine()) != null) {
+
+        final String[] fields = line.split("\\|", -1);
+        final String cui = fields[0];
+        final String date = fields[1];
+        final String action = fields[2];
+        final String replacementCui = fields[5];
+        final String inSubset = fields[6];
+
+        // Skip things where CUI2 is not in the subset or is blank
+        if (replacementCui.isEmpty() || inSubset.equals("N")) {
+          continue;
+        }
+
+        // Make a history entry from this line
+        final History history = new History();
+        history.setCode(cui);
+        // We don't know the names of retired concepts
+        history.setName("Retired concept");
+        history.setAction(action);
+        history.setDate(date);
+        history.setReplacementCode(replacementCui);
+        history.setReplacementName(nameMap.get(replacementCui));
+
+        if (!replHistoryMap.containsKey(replacementCui)) {
+          replHistoryMap.put(replacementCui, new HashSet<>(5));
+        }
+        replHistoryMap.get(replacementCui).add(history);
+      }
+
     } finally {
       readers.closeReaders();
     }
@@ -424,6 +463,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     logger.info("    maps = " + mapCt);
     logger.info("    ruiInverseMap = " + ruiInverseMap.size());
     logger.info("    ruiQualMap = " + ruiQualMap.size());
+    logger.info("    replHistoryMap = " + replHistoryMap.size());
 
   }
 
@@ -478,13 +518,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           handleSemanticTypes(concept, mrsty, prevCui);
           handleAttributes(concept, mrsat, prevCui);
           handleRelationships(concept, mrrel, prevCui);
-
-          // Add maps
-          if (maps.containsKey(prevCui)) {
-            concept.getMaps().addAll(maps.get(prevCui));
-            // Clear memory as we do not need this anymore
-            maps.remove(prevCui);
-          }
+          handleMapsAndHistory(concept, prevCui);
 
           // There are not useful mappings in the UMLS at this point in time
           // handleMapping(concept, mrmap, prevCui);
@@ -537,12 +571,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       handleSemanticTypes(concept, mrsty, prevCui);
       handleAttributes(concept, mrsat, prevCui);
       handleRelationships(concept, mrrel, prevCui);
-
-      if (maps.containsKey(prevCui)) {
-        concept.getMaps().addAll(maps.get(prevCui));
-        // Clear memory as we do not need this anymore
-        maps.remove(prevCui);
-      }
+      handleMapsAndHistory(concept, prevCui);
 
       handleConcept(concept, batch, true, terminology.getIndexName());
       totalConcepts++;
@@ -809,6 +838,29 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         buildAssociations(concept, fields);
       }
 
+    }
+  }
+
+  /**
+   * Handle maps and history.
+   *
+   * @param concept the concept
+   * @param prevCui the prev cui
+   * @throws Exception the exception
+   */
+  public void handleMapsAndHistory(final Concept concept, final String prevCui) throws Exception {
+
+    // Add maps
+    if (maps.containsKey(prevCui)) {
+      concept.getMaps().addAll(maps.get(prevCui));
+      // Clear memory as we do not need this anymore
+      maps.remove(prevCui);
+    }
+
+    // Add history
+    if (replHistoryMap.containsKey(prevCui)) {
+      concept.getHistory().addAll(replHistoryMap.get(prevCui));
+      replHistoryMap.remove(prevCui);
     }
   }
 
@@ -1098,6 +1150,15 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     qualifiers.setMap(qualMap);
+    for (final String key : qualMap.keySet()) {
+      // Truncate additional values
+      if (qualMap.get(key).size() > 1000) {
+        logger.info("      truncate qualifier values list at 1000 = " + key + ", " + qualMap.get(key).size());
+        qualMap.put(key, qualMap.get(key).stream().collect(Collectors.toList()).subList(0, 1000).stream()
+            .collect(Collectors.toSet()));
+        qualMap.get(key).add("... additional values ...");
+      }
+    }
     operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
@@ -1247,6 +1308,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    *
    * @param terminology the terminology
    * @return the number of retired concepts created
+   * @throws Exception the exception
    */
   private int loadHistory(final Terminology terminology) throws Exception {
 
@@ -1332,24 +1394,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         if (!replacementCui.isEmpty()) {
           history.setReplacementCode(replacementCui);
           history.setReplacementName(nameMap.get(replacementCui));
-
-          // Get the concept
-          final Concept replConcept =
-              elasticQueryService.getConcept(replacementCui, terminology, new IncludeParam("*")).orElse(null);
-
-          if (replConcept == null) {
-            throw new Exception("Unable to find replacement CUI = " + replacementCui);
-          }
-
-          // Copy the history object
-          replConcept.getHistory().add(new History(history));
-
-          // Index the object (rather than using batch, just send it up)
-          operationsService.index(replConcept, terminology.getIndexName(), ElasticOperationsService.CONCEPT_TYPE,
-              Concept.class);
-
         }
-
         concept.getHistory().add(history);
 
         // Save prev cui for next round
