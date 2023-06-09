@@ -1403,7 +1403,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       }
 
-      handleConcept(concept, batch, false, terminology.getIndexName());
+      handleConcept(concept, batch, true, terminology.getIndexName());
       totalConcepts++;
 
     } finally {
