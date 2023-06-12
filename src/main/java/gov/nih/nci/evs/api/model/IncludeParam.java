@@ -57,14 +57,14 @@ public class IncludeParam extends BaseModel {
 
   /** The extensions. */
   private boolean extensions;
-  
+
   /** The history. */
   private boolean history;
 
-  /** The subset links */
+  /** The subset links. */
   private boolean subsetLink;
 
-  /** The mapset links */
+  /** The mapset links. */
   private boolean mapsetLink;
 
   /**
@@ -91,6 +91,8 @@ public class IncludeParam extends BaseModel {
           populateSummary();
         } else if (part.equals("full")) {
           populateFull();
+        } else if (part.equals("*")) {
+          populateEverything();
         } else if (part.equals("synonyms")) {
           synonyms = true;
         } else if (part.equals("definitions")) {
@@ -122,7 +124,7 @@ public class IncludeParam extends BaseModel {
         } else if (part.equals("extensions")) {
           extensions = true;
         } else if (part.equals("history")) {
-            history = true;
+          history = true;
         } else if (part.equals("subsetLink")) {
           subsetLink = true;
         } else if (part.equals("mapsetLink")) {
@@ -212,23 +214,32 @@ public class IncludeParam extends BaseModel {
   }
 
   /**
+   * Populate everything.
+   */
+  public void populateEverything() {
+    populateFull();
+    descendants = true;
+    paths = true;
+    extensions = true;
+  }
+
+  /**
    * Checks for anything set.
    *
    * @return true, if successful
    */
   public boolean hasAnyTrue() {
     return synonyms || definitions || properties || children || descendants || parents || associations
-        || inverseAssociations || roles || inverseRoles || maps || disjointWith || paths || extensions
-        || history;
+        || inverseAssociations || roles || inverseRoles || maps || disjointWith || paths || extensions || history;
   }
 
   /**
-   * Returns included fields
-   * 
+   * Returns included fields.
+   *
+   * @return the included fields
    */
   public String[] getIncludedFields() {
-    List<String> fields =
-        new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
+    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
     if (synonyms) {
       fields.add("synonyms");
     }
@@ -236,7 +247,7 @@ public class IncludeParam extends BaseModel {
       fields.add("definitions");
     }
     if (history) {
-        fields.add("history");
+      fields.add("history");
     }
     if (properties) {
       fields.add("properties");
@@ -287,8 +298,9 @@ public class IncludeParam extends BaseModel {
   }
 
   /**
-   * Returns excluded fields
-   * 
+   * Returns excluded fields.
+   *
+   * @return the excluded fields
    */
   public String[] getExcludedFields() {
     List<String> fields = new ArrayList<>();
@@ -300,7 +312,7 @@ public class IncludeParam extends BaseModel {
       fields.add("definitions");
     }
     if (!history) {
-        fields.add("history");
+      fields.add("history");
     }
     if (!properties) {
       fields.add("properties");
@@ -385,23 +397,23 @@ public class IncludeParam extends BaseModel {
   public void setDefinitions(boolean definitions) {
     this.definitions = definitions;
   }
-  
+
   /**
    * Indicates whether or not history is the case.
    *
    * @return <code>true</code> if so, <code>false</code> otherwise
    */
   public boolean isHistory() {
-      return history;
+    return history;
   }
-  
+
   /**
    * Sets the history.
    *
    * @param history the history
    */
   public void setHistory(boolean history) {
-      this.history = history;
+    this.history = history;
   }
 
   /**
@@ -668,7 +680,7 @@ public class IncludeParam extends BaseModel {
   /**
    * Sets the subsetLink.
    *
-   * @param subsetLink the subsetLink
+   * @param mapsetLink the mapset link
    */
   public void setMapsetLink(boolean mapsetLink) {
     this.mapsetLink = mapsetLink;
