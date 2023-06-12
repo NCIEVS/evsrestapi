@@ -378,7 +378,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
     final String uri = applicationProperties.getConfigBaseUri() + "/"
-        + terminology.replaceFirst("_.*", "") + ".json";
+        + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
     final URL url = new URL(uri);
 
@@ -397,7 +397,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
     final String uri = applicationProperties.getConfigBaseUri() + "/"
-        + terminology.replaceFirst("_.*", "") + ".html";
+        + termUtils.getTerminologyName(terminology) + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
     return IOUtils.toString(new URL(uri).openConnection().getInputStream(), StandardCharsets.UTF_8);
   }
