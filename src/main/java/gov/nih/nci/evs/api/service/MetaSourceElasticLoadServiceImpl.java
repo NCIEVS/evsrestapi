@@ -1304,7 +1304,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
         if (terminology.equals(fields[3]) && !fields[0].isEmpty()) {
           sourceMap.put(fields[3], fields[4]);
-          term.setTerminology(terminology.toLowerCase().replaceFirst("_us", ""));
+          term.setTerminology(terminology.toLowerCase());
           term.setVersion(fields[6]);
           // No info about the date
           term.setDate(null);
