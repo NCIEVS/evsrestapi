@@ -255,7 +255,7 @@ public class MdrControllerTests {
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     assertThat(concept.getProperties().stream()
         .filter(p -> p.getType().equals("PRIMARY_SOC") && p.getValue().equals("10005329")).count())
-            .isEqualTo(1);
+        .isEqualTo(1);
 
     // RELA concept in MRSAT - 10036030
     url = baseUrl + "/mdr/10036030?include=associations,inverseAssociations";
@@ -269,17 +269,17 @@ public class MdrControllerTests {
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
     assertThat(
         concept.getAssociations().stream().filter(a -> a.getQualifiers().size() >= 1).count())
-            .isGreaterThanOrEqualTo(1);
+        .isGreaterThanOrEqualTo(1);
     assertThat(concept.getAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
         .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("RELA")).count())
-            .isGreaterThanOrEqualTo(1);
+        .isGreaterThanOrEqualTo(1);
 
     assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
     assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
         .count()).isGreaterThanOrEqualTo(1);
     assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
         .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("RELA")).count())
-            .isGreaterThanOrEqualTo(1);
+        .isGreaterThanOrEqualTo(1);
 
   }
 
@@ -357,10 +357,6 @@ public class MdrControllerTests {
     });
     assertThat(list).isNotNull();
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RQ");
-    // assertThat(list.stream().map(c ->
-    // c.getCode()).collect(Collectors.toSet())).contains("RB");
-    // assertThat(list.stream().map(c ->
-    // c.getCode()).collect(Collectors.toSet())).contains("RN");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("SY");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
