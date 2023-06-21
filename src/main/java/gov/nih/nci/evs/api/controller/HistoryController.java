@@ -1,6 +1,7 @@
 
 package gov.nih.nci.evs.api.controller;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -69,8 +70,8 @@ public class HistoryController extends BaseController {
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
-          description = "Code in the specified terminology, e.g. "
-              + "'C3910' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
+          description = "Code in the specified terminology, e.g. " + "<ul><li>'C4654' for <i>ncit</i></li>"
+              + "<li>'C0000733' for <i>ncim</i></li></ul>.",
           required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
@@ -99,7 +100,8 @@ public class HistoryController extends BaseController {
    * @return the replacement codes
    * @throws Exception the exception
    */
-  @Operation(summary = "Gets suggested replacements for a specified terminology and a list of retired codes. "
+  @Operation(summary = "Gets suggested replacements for a specified terminology and"
+      + " a comma-separated list of retired codes. "
       + " Active codes will return entries as well with an action of \"active\".")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
@@ -112,22 +114,22 @@ public class HistoryController extends BaseController {
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
-      @Parameter(name = "code",
-          description = "Code in the specified terminology, e.g. "
-              + "'C3910' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
+      @Parameter(name = "list",
+          description = "Comma-separated list of codes, e.g. " + "<ul><li>'C4654,C40117' for <i>ncit</i></li>"
+              + "<li>'C0000733,C3551741' for <i>ncim</i></li></ul>.",
           required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/history/{terminology}/replacements",
       produces = "application/json")
-  public @ResponseBody List<History> getReplacements(@PathVariable(value = "terminology")
+  public @ResponseBody List<History> getReplacementsFromList(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = true, name = "list")
-  final List<String> list) throws Exception {
+  final String list) throws Exception {
 
     try {
 
       final Terminology term = termUtils.getTerminology(terminology, true);
-      return HistoryUtils.getReplacements(term, elasticQueryService, list);
+      return HistoryUtils.getReplacements(term, elasticQueryService, Arrays.asList(list.split(",")));
 
     } catch (final Exception e) {
       handleException(e);
