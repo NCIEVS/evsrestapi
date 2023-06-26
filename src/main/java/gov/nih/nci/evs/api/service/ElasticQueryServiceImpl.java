@@ -225,6 +225,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     if (!hierarchy.isPresent())
       return Collections.emptyList();
     List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
+    if (hierarchyRoots.size() < 1) {
+      return new ArrayList<Concept>();
+    }
     ArrayList<Concept> concepts =
         new ArrayList<Concept>(getConcepts(hierarchyRoots, terminology, ip));
     concepts.sort(Comparator.comparing(Concept::getName));
