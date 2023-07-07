@@ -112,6 +112,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<Concept> getConcepts(Collection<String> codes, Terminology terminology,
     IncludeParam ip) {
+    if (codes == null || codes.size()==0) {
+      return new ArrayList<>();
+    }
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withFilter(QueryBuilders.termsQuery("_id", codes)).withIndices(terminology.getIndexName())
         .withTypes(ElasticOperationsService.CONCEPT_TYPE)

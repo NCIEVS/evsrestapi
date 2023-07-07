@@ -968,7 +968,7 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
@@ -1248,7 +1248,7 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
@@ -1327,7 +1327,7 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
