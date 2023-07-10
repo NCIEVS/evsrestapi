@@ -30,6 +30,11 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   @Field(type = FieldType.Keyword)
   private String normName;
 
+  /** The stemName. */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Keyword)
+  private String stemName;
+
   /** The highlight. */
   @Transient
   @JsonSerialize
@@ -94,6 +99,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
     type = other.getType();
     typeCode = other.getTypeCode();
     normName = other.getNormName();
+    stemName = other.getStemName();
     source = other.getSource();
     code = other.getCode();
     subSource = other.getSubSource();
@@ -138,6 +144,20 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   }
 
   /**
+   * @return the stemName
+   */
+  public String getStemName() {
+    return stemName;
+  }
+
+  /**
+   * @param stemName the stemName to set
+   */
+  public void setStemName(String stemName) {
+    this.stemName = stemName;
+  }
+
+  /**
    * Returns the highlight.
    *
    * @return the highlight
@@ -174,8 +194,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   }
 
   /**
-   * Sets the term group. This is a bridge to support naming convention
-   * normalization.
+   * Sets the term group. This is a bridge to support naming convention normalization.
    *
    * @param termGroup the term group
    */
