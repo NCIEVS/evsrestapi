@@ -318,7 +318,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           // .should(nameQuery)
 
           // Text queries on "norm name" and synonym "norm name"
-          .should(normNameQuery).should(nestedSynonymNormNameQuery);
+          .should(normNameQuery).should(nestedSynonymNormNameQuery)
+
+          // Text queries on "stem name" and synonym "stem name"
+          .should(stemNameQuery).should(nestedSynonymStemNameQuery);
     }
 
     // Use phrase queries with higher boost than fixname queries
