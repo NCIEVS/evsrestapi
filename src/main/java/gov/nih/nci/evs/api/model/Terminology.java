@@ -337,7 +337,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    */
   public String getIndexName() {
     if (StringUtils.isEmpty(indexName)) {
-      indexName = "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+      indexName = "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return indexName;
   }

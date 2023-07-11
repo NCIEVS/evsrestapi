@@ -1315,7 +1315,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           term.setGraph(null);
           term.setSource(null);
           term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
-          term.setIndexName("concept_" + term.getTerminologyVersion());
+          term.setIndexName("concept_" + term.getTerminologyVersion().toLowerCase());
           term.setLatest(true);
           term.setSparqlFlag(false);
           break;
