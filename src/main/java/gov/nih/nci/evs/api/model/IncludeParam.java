@@ -239,7 +239,7 @@ public class IncludeParam extends BaseModel {
    * @return the included fields
    */
   public String[] getIncludedFields() {
-    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
+    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri", "active", "conceptStatus"));
     if (synonyms) {
       fields.add("synonyms");
     }

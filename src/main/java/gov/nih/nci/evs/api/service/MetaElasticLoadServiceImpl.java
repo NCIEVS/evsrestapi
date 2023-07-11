@@ -542,6 +542,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           concept.setVersion(terminology.getVersion());
           // NO hierarchies for NCIM concepts, so set leaf to null
           concept.setLeaf(null);
+          concept.setActive(true);
         }
 
         // Each line of MRCONSO is a synonym
@@ -1382,7 +1383,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           concept.setVersion(terminology.getVersion());
           // NO hierarchies for NCIM concepts, so set leaf to null
           concept.setLeaf(null);
-
+          setConceptInactive(terminology, concept);
         }
 
         // Make a history entry from this line

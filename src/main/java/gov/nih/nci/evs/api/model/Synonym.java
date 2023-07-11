@@ -64,6 +64,10 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   /** The qualifiers - not NCIT, but could be other terminologies. */
   @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
+  
+  /** The active flag. */
+  @Field(type = FieldType.Boolean)
+  private Boolean active;
 
   /**
    * Instantiates an empty {@link Synonym}.
@@ -98,6 +102,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
     code = other.getCode();
     subSource = other.getSubSource();
     qualifiers = new ArrayList<>(other.getQualifiers());
+    active = other.isActive();
   }
 
   /**
@@ -293,6 +298,24 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }
+  
+  /**
+   * Returns the active flag.
+   *
+   * @return the active flag
+   */
+  public Boolean isActive() {
+      return active;
+  }
+  
+  /**
+   * Sets the active flag.
+   *
+   * @param active the active flag
+   */
+  public void setActive(final Boolean active) {
+      this.active = active;
+  }
 
   /**
    * Hash code.
@@ -310,6 +333,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
     result = prime * result + ((subSource == null) ? 0 : subSource.hashCode());
     result = prime * result + ((termType == null) ? 0 : termType.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
+    result = prime * result + ((active == null) ? 0 : active.hashCode());
     return result;
   }
 
@@ -367,6 +391,13 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
       }
     } else if (!type.equals(other.type)) {
       return false;
+    }
+    if (active == null) {
+        if (other.active != null) {
+            return false;
+        }
+    } else if (!active.equals(other.active)) {
+        return false;
     }
     return true;
   }
