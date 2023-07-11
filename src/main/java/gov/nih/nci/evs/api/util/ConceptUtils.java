@@ -77,7 +77,9 @@ public final class ConceptUtils {
   public static String normalizeWithStemming(final String value) {
     String norm = normalize(value);
     SnowballStemmer stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
-    return norm != null ? stemmer.stem(norm).toString() : "";
+    // split by spaces and stem everything, then rejoin
+    return norm != null
+        ? Arrays.stream(norm.split(" ")).map(stemmer::stem).collect(Collectors.joining(" ")) : "";
   }
 
   /**

@@ -2455,6 +2455,41 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search with stemming.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchWithStemming() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    List<String> names = null;
+
+    // check stem in partial
+    log.info("Testing url - " + url + "?terminology=ncit&term=All%20Site&type=AND");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "All Site")
+        .param("type", "AND").param("pageSize", "50")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    names = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    assert (names.contains("All Sites"));
+
+    // check stem in full
+    log.info("Testing url - " + url + "?terminology=ncit&term=All%20Sites&type=AND");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "All Sites")
+        .param("type", "AND").param("pageSize", "50")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    names = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    assert (names.contains("All Sites"));
+
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
