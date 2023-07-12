@@ -331,7 +331,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       ElasticObject hierarchyObject = new ElasticObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
       operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
-      logger.info("  Hierarchy loaded");
+      logger.info("  Hierarchy loaded = " + hierarchy.getHierarchyRoots());
     } else {
       logger.info("  Hierarchy skipped");
     }
