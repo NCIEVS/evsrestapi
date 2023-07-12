@@ -358,7 +358,8 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    */
   public String getObjectIndexName() {
     if (StringUtils.isEmpty(objectIndexName)) {
-      objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+      // Replace non-alphanumeric and _ chars and also lowercase
+      objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return objectIndexName;
   }
