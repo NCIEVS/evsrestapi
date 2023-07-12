@@ -2469,8 +2469,10 @@ public class SearchControllerTests {
 
     // check stem in partial
     log.info("Testing url - " + url + "?terminology=ncit&term=All%20Site&type=AND");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "All Site")
-        .param("type", "AND").param("pageSize", "50")).andExpect(status().isOk()).andReturn();
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "All Site").param("type", "AND"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2479,8 +2481,10 @@ public class SearchControllerTests {
 
     // check stem in full
     log.info("Testing url - " + url + "?terminology=ncit&term=All%20Sites&type=AND");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "All Sites")
-        .param("type", "AND").param("pageSize", "50")).andExpect(status().isOk()).andReturn();
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "All Sites").param("type", "AND"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2494,7 +2498,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getCt() > 100);
+    assert (list.getTotal() > 100);
 
     // check match
     log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
@@ -2503,7 +2507,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getCt().equals(0));
+    assert (list.getTotal().equals(0));
 
     // check startsWith
     log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
@@ -2512,7 +2516,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getCt().equals(0));
+    assert (list.getTotal().equals(0));
 
     // check phrase
     log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
@@ -2521,7 +2525,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getCt().equals(0));
+    assert (list.getTotal().equals(0));
 
     // check AND
     log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
@@ -2530,7 +2534,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getCt() > 100);
+    assert (list.getTotal() > 100);
 
   }
 
