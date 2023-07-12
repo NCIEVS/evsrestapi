@@ -61,4 +61,26 @@ public class ConceptUtilsTest {
 
   }
 
+  @Test
+  public void testNormalizeWithStemming() {
+    // change working into asserts
+    // two categories of working and not working
+    // cancerous > 100 contains
+    // connecting tissue none in match, phrase, startswith
+    // >100 in AND
+    log.info(ConceptUtils.normalizeWithStemming("fungi"));
+    log.info(ConceptUtils.normalizeWithStemming("fungal growth"));
+    log.info(ConceptUtils.normalizeWithStemming("fungal"));
+    log.info(ConceptUtils.normalizeWithStemming("cactus"));
+    log.info(ConceptUtils.normalizeWithStemming("cacti"));
+    log.info(ConceptUtils.normalizeWithStemming("appendix"));
+
+    assert (ConceptUtils.normalizeWithStemming("appendices").equals("appendic"));
+    assert (ConceptUtils.normalizeWithStemming("connecting").equals("connect"));
+    assert (ConceptUtils.normalizeWithStemming("connective").equals("connect"));
+    assert (ConceptUtils.normalizeWithStemming("connecting tissue").equals("connect tissu"));
+    assert (ConceptUtils.normalizeWithStemming("All sites").equals("all site"));
+    assert (ConceptUtils.normalizeWithStemming("cancerous").equals("cancer"));
+  }
+
 }

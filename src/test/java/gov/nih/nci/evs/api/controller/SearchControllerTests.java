@@ -2487,6 +2487,51 @@ public class SearchControllerTests {
     names = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
     assert (names.contains("All Sites"));
 
+    // check contains
+    log.info("Testing url - " + url + "?terminology=ncit&term=cancerous");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "cancerous"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getCt() > 100);
+
+    // check match
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "match")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getCt().equals(0));
+
+    // check startsWith
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "startsWith")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getCt().equals(0));
+
+    // check phrase
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "phrase")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getCt().equals(0));
+
+    // check AND
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "phrase")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getCt() > 100);
+
   }
 
   /**
