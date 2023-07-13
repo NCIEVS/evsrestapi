@@ -73,7 +73,7 @@ public class Concept extends ConceptMinimal {
 
   /** The stemName. */
   @JsonProperty(access = Access.READ_ONLY)
-  @Field(type = FieldType.Keyword)
+  @Field(type = FieldType.Text)
   private String stemName;
 
   /** The subset Link. */
