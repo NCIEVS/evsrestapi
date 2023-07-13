@@ -199,6 +199,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         term.setTerminology("hgnc");
       } else if (term.getSource().endsWith("/chebi.owl")) {
         term.setTerminology("chebi");
+      } else if (term.getSource().endsWith("/umlssemnet.owl")) {
+        term.setTerminology("umlssemnet");
+      } else {
+        log.info("  UNKNOWN ontology = " + term.getSource());
       }
       termList.add(term);
     }
@@ -286,6 +290,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Concept concept = new Concept();
     concept.setTerminology(terminology.getTerminology());
     concept.setVersion(terminology.getVersion());
+    concept.setActive(true);
 
     final List<Property> properties = getProperties(conceptCode, terminology);
 
@@ -364,6 +369,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             // Set to retired if it matches config
             if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
               concept.setConceptStatus("Retired_Concept");
+              concept.setActive(false);
             } else {
               concept.setConceptStatus(property.getValue());
             }
@@ -591,6 +597,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           // Set to retired if it matches config
           if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
             concept.setConceptStatus("Retired_Concept");
+            concept.setActive(false);
           } else {
             concept.setConceptStatus(property.getValue());
           }
@@ -2375,6 +2382,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       c.setVersion(terminology.getVersion());
       // Use label if found, or compute from rdf:about otherwise
       c.setName(EVSUtils.getConceptLabel(b));
+      c.setActive(true);
       concepts.add(c);
     }
 
@@ -2409,6 +2417,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       c.setVersion(terminology.getVersion());
       // Use label if found, or compute from rdf:about otherwise
       c.setName(EVSUtils.getConceptLabel(b));
+      c.setActive(true);
       concepts.add(c);
     }
 

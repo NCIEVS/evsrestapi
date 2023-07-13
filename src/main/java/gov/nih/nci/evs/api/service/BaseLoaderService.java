@@ -26,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -239,7 +240,14 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         logger.info("  " + iMeta.getTerminologyVersion() + " = latest false");
         iMeta.getTerminology().setLatest(false);
       }
-
+      
+      // see if Concept Statuses needs to be updated
+      if (!iMeta.getTerminology().getMetadata().getConceptStatuses()
+              .equals(terminology.getMetadata().getConceptStatuses())) {
+          
+          iMeta.getTerminology().getMetadata()
+              .setConceptStatuses(terminology.getMetadata().getConceptStatuses());
+      }
     }
 
     operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
@@ -354,6 +362,22 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     return;
 
   }
+  
+  /**
+   * Take care of all needed steps to set a concept to inactive.
+   *
+   * @param term the Terminology
+   * @param concept the concept
+   */
+  protected void setConceptInactive(final Terminology term, final Concept concept) {
+      
+      concept.setActive(false);
+      concept.setConceptStatus("Retired_Concept");
+      
+      if (!term.getMetadata().getConceptStatuses().contains("Retired_Concept")) {
+          term.getMetadata().getConceptStatuses().add("Retired_Concept");
+      }
+  }
 
   /**
    * Returns the metadata.
@@ -378,7 +402,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
     final String uri = applicationProperties.getConfigBaseUri() + "/"
-        + terminology.replaceFirst("_.*", "") + ".json";
+        + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
     final URL url = new URL(uri);
 
@@ -397,7 +421,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
     final String uri = applicationProperties.getConfigBaseUri() + "/"
-        + terminology.replaceFirst("_.*", "") + ".html";
+        + termUtils.getTerminologyName(terminology) + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
     return IOUtils.toString(new URL(uri).openConnection().getInputStream(), StandardCharsets.UTF_8);
   }

@@ -524,7 +524,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
               if (maps.containsKey(concept.getCode())) {
                 concept.getMaps().addAll(maps.get(concept.getCode()));
               }
-              handleConcept(concept, batch, false, terminology.getIndexName());
+              handleConcept(terminology, concept, batch, false, terminology.getIndexName());
               maps.remove(concept.getCode());
 
               // Count number of source concepts
@@ -564,6 +564,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept.setStemName(ConceptUtils.normalizeWithStemming(nameMap.get(code)));
             concept.setTerminology(terminology.getTerminology());
             concept.setVersion(terminology.getVersion());
+            concept.setActive(true);
             if (concept.getName() == null) {
               throw new Exception(
                   "Unable to find preferred name, likely TTY issue (" + terminology.getTerminology()
@@ -604,7 +605,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             if (maps.containsKey(concept.getCode())) {
               concept.getMaps().addAll(maps.get(concept.getCode()));
             }
-            handleConcept(concept, batch, true, terminology.getIndexName());
+            handleConcept(terminology, concept, batch, true, terminology.getIndexName());
             maps.remove(concept.getCode());
 
             // Count number of source concepts
@@ -666,6 +667,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     sy.setName(fields[14]);
     sy.setNormName(ConceptUtils.normalize(fields[14]));
     sy.setStemName(ConceptUtils.normalizeWithStemming(fields[14]));
+
+    if (fields[16].equals("O")) {
+      sy.setActive(false);
+    } else {
+      sy.setActive(true);
+    }
+
     concept.getSynonyms().add(sy);
   }
 
@@ -784,6 +792,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           seen.add(key);
 
           buildProperty(concept, atn, atv, sab);
+
+          if (atn.equalsIgnoreCase("active") && atv.equals("0")) {
+            setConceptInactive(terminology, concept);
+          }
         }
       }
     }
@@ -813,6 +825,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         .isEmpty()) {
       return;
     }
+
     concept.getProperties().add(prop);
   }
 
@@ -1280,8 +1293,25 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param indexName the index name
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
-    throws IOException {
+
+  private void handleConcept(Terminology terminology, Concept concept, List<Concept> batch,
+    boolean flag, String indexName) throws IOException {
+
+    boolean hasActiveSynonyms = false;
+
+    // check for inactive concepts
+    for (final Synonym synonym : concept.getSynonyms()) {
+
+      if (synonym.isActive()) {
+
+        hasActiveSynonyms = true;
+        break;
+      }
+    }
+
+    if (!hasActiveSynonyms) {
+      setConceptInactive(terminology, concept);
+    }
 
     // Remove synonym "uris" as no longer needed
     concept.getSynonyms().forEach(s -> s.setUri(null));
@@ -1331,7 +1361,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
         if (terminology.equals(fields[3]) && !fields[0].isEmpty()) {
           sourceMap.put(fields[3], fields[4]);
-          term.setTerminology(terminology.toLowerCase().replaceFirst("_us", ""));
+          term.setTerminology(terminology.toLowerCase());
           term.setVersion(fields[6]);
           // No info about the date
           term.setDate(null);
@@ -1342,7 +1372,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           term.setGraph(null);
           term.setSource(null);
           term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
-          term.setIndexName("concept_" + term.getTerminologyVersion());
+          term.setIndexName("concept_" + term.getTerminologyVersion().toLowerCase());
           term.setLatest(true);
           term.setSparqlFlag(false);
           break;
