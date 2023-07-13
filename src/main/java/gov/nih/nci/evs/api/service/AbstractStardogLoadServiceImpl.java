@@ -617,6 +617,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     map.setCode("NCIt_Maps_To_" + term);
     map.setName("NCIt_Maps_To_" + term);
     map.setVersion(version);
+    map.setActive(true);
     map.getProperties().add(new Property("downloadOnly", "true"));
     map.getProperties().add(new Property("mapsetLink", null));
     map.getProperties().add(new Property("loader", "AbstractStardogLoadServiceImpl"));

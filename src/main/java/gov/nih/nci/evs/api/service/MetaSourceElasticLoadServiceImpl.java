@@ -521,7 +521,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
               if (maps.containsKey(concept.getCode())) {
                 concept.getMaps().addAll(maps.get(concept.getCode()));
               }
-              handleConcept(concept, batch, false, terminology.getIndexName());
+              handleConcept(terminology, concept, batch, false, terminology.getIndexName());
               maps.remove(concept.getCode());
 
               // Count number of source concepts
@@ -560,6 +560,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept.setNormName(ConceptUtils.normalize(nameMap.get(code)));
             concept.setTerminology(terminology.getTerminology());
             concept.setVersion(terminology.getVersion());
+            concept.setActive(true);
             if (concept.getName() == null) {
               throw new Exception("Unable to find preferred name, likely TTY issue (" + terminology.getTerminology()
                   + ".json) = " + terminology.getTerminology().toUpperCase() + ", " + code);
@@ -599,7 +600,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             if (maps.containsKey(concept.getCode())) {
               concept.getMaps().addAll(maps.get(concept.getCode()));
             }
-            handleConcept(concept, batch, true, terminology.getIndexName());
+            handleConcept(terminology, concept, batch, true, terminology.getIndexName());
             maps.remove(concept.getCode());
 
             // Count number of source concepts
@@ -658,6 +659,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     terminology.getMetadata().getTermTypes().put(fields[12], ttyMap.get(fields[12]));
     sy.setName(fields[14]);
     sy.setNormName(ConceptUtils.normalize(fields[14]));
+    
+    if (fields[16].equals("O")) {
+        sy.setActive(false);
+    } else {
+        sy.setActive(true);
+    }
+    
     concept.getSynonyms().add(sy);
   }
 
@@ -776,6 +784,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           seen.add(key);
 
           buildProperty(concept, atn, atv, sab);
+          
+          if (atn.equalsIgnoreCase("active") && atv.equals("0")) {
+              setConceptInactive(terminology, concept);
+          }
         }
       }
     }
@@ -803,6 +815,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         .filter(p -> p.getType().equals("Semantic_Type") && p.getValue().equals(value)).findFirst().isEmpty()) {
       return;
     }
+    
     concept.getProperties().add(prop);
   }
 
@@ -1255,8 +1268,24 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param indexName the index name
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName) throws IOException {
+  private void handleConcept(Terminology terminology, Concept concept, List<Concept> batch, boolean flag, String indexName) throws IOException {
 
+    boolean hasActiveSynonyms = false;
+    
+    // check for inactive concepts
+    for (final Synonym synonym: concept.getSynonyms()) {
+        
+        if (synonym.isActive()) {
+            
+            hasActiveSynonyms = true;
+            break;
+        }
+    }
+    
+    if (!hasActiveSynonyms) {
+        setConceptInactive(terminology, concept);
+    }
+    
     // Remove synonym "uris" as no longer needed
     concept.getSynonyms().forEach(s -> s.setUri(null));
 

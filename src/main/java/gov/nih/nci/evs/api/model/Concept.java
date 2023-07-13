@@ -80,7 +80,6 @@ public class Concept extends ConceptMinimal {
   private String mapsetLink;
 
   /** The concept status. */
-  @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String conceptStatus;
 
@@ -91,6 +90,12 @@ public class Concept extends ConceptMinimal {
   /** The leaf. */
   @Field(type = FieldType.Boolean)
   private Boolean leaf;
+  
+  /** The active flag. 
+   *  Intentionally not on ConceptMinimal to avoid parents/children having to have flag maintained
+   * */
+  @Field(type = FieldType.Boolean)
+  private Boolean active;
 
   /** The synonyms. */
   @Field(type = FieldType.Nested)
@@ -264,6 +269,7 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
+    active = other.isActive();
     normName = other.getNormName();
     if (!subsetFlag) {
       subsetLink = other.getSubsetLink();
@@ -419,6 +425,24 @@ public class Concept extends ConceptMinimal {
    */
   public void setLeaf(final Boolean leaf) {
     this.leaf = leaf;
+  }
+  
+  /**
+   * Returns the active flag.
+   *
+   * @return the active flag
+   */
+  public Boolean isActive() {
+      return active;
+  }
+  
+  /**
+   * Sets the active flag.
+   *
+   * @param active the active flag
+   */
+  public void setActive(final Boolean active) {
+      this.active = active;
   }
 
   /**

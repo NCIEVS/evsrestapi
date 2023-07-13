@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
@@ -86,6 +87,32 @@ public class ChebiSampleTest extends SampleTest {
             + " of molecular entities focused on 'small' chemical compounds.");
 
     assertThat(chebi.getLatest()).isTrue();
+  }
+  
+  /**
+   * Test concept active status.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testActive() throws Exception {
+      
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test active
+    url = "/api/v1/concept/chebi/CHEBI:104926";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CHEBI:104926");
+    assertThat(concept.getTerminology()).isEqualTo("chebi");
+    assertThat(concept.isActive()).isTrue();
   }
 
 }
