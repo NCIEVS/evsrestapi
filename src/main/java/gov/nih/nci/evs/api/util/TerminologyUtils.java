@@ -162,6 +162,17 @@ public final class TerminologyUtils {
     terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
   }
+  
+  /**
+   * Returns the terminology name without the version.
+   *
+   * @param terminology the terminology
+   * @return the terminology name
+   * @throws Exception the exception
+   */
+  public String getTerminologyName(final String terminology) throws Exception {
+    return terminology.replaceFirst("(?<!snomedct)_.*", "");
+  }
 
   /**
    * As set.
