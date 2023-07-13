@@ -244,7 +244,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NestedQueryBuilder nestedSynonymFixNameQuery =
         QueryBuilders.nestedQuery("synonyms", synonymFixNormNameQuery, ScoreMode.Max);
     final NestedQueryBuilder nestedSynonymStemNameQuery =
-        QueryBuilders.nestedQuery("synonyms.stemName", synonymStemNameQuery, ScoreMode.Max);
+        QueryBuilders.nestedQuery("synonyms", synonymStemNameQuery, ScoreMode.Max);
 
     // Definition query
     final QueryStringQueryBuilder definitionQuery =

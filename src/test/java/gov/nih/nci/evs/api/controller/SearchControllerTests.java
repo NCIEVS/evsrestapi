@@ -2501,7 +2501,7 @@ public class SearchControllerTests {
     assert (list.getTotal() > 100);
 
     // check match
-    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=match");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
         .param("type", "match")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -2510,7 +2510,7 @@ public class SearchControllerTests {
     assert (list.getTotal().equals(0));
 
     // check startsWith
-    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=startsWith");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
         .param("type", "startsWith")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -2519,7 +2519,7 @@ public class SearchControllerTests {
     assert (list.getTotal().equals(0));
 
     // check phrase
-    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=phrase");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
         .param("type", "phrase")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -2528,13 +2528,13 @@ public class SearchControllerTests {
     assert (list.getTotal().equals(0));
 
     // check AND
-    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue");
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=AND");
     result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
-        .param("type", "phrase")).andExpect(status().isOk()).andReturn();
+        .param("type", "AND")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getTotal() > 100);
+    assert (list.getTotal() > 50);
 
   }
 
