@@ -79,6 +79,8 @@ public class ConceptUtilsTest {
     assert (ConceptUtils.normalizeWithStemming("connecting").equals("connect"));
     assert (ConceptUtils.normalizeWithStemming("connective").equals("connect"));
     assert (ConceptUtils.normalizeWithStemming("connecting tissue").equals("connect tissu"));
+    assert (ConceptUtils.normalizeWithStemming("cancerous sites").equals("cancer site"));
+    assert (ConceptUtils.normalizeWithStemming("subsets displays").equals("subset display"));
     assert (ConceptUtils.normalizeWithStemming("All sites").equals("all site"));
     assert (ConceptUtils.normalizeWithStemming("cancerous").equals("cancer"));
   }

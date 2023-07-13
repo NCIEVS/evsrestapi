@@ -2498,6 +2498,24 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 1000);
+
+    // check another contains
+    log.info("Testing url - " + url + "?terminology=ncit&term=cancerous%20sites");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "cancerous sites"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 5000);
+
+    // check a third contains
+    log.info("Testing url - " + url + "?terminology=ncit&term=subsets%20displays");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "subsets displays"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 100);
 
     // check match
@@ -2535,6 +2553,26 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 50);
+
+    // check another AND
+    log.info("Testing url - " + url + "?terminology=ncit&term=polyp%%20%site&type=AND");
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "polyp site").param("type", "AND"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+
+    // check a third AND
+    log.info("Testing url - " + url + "?terminology=ncit&term=subsets%20terminology&type=AND");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "subsets terminology")
+        .param("type", "AND")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
 
   }
 
