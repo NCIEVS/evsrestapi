@@ -165,6 +165,7 @@ public class MapsetControllerTests {
         && singleMetadataMap.getName().equals("NCIt_Maps_To_GDC"));
     assert (singleMetadataMap.getCode() != null
         && singleMetadataMap.getCode().equals("NCIt_Maps_To_GDC"));
+    assert (!singleMetadataMap.getVersion().contains("ncit_"));
     assert (singleMetadataMap.getProperties().stream().filter(
         property -> property.getType().equals("downloadOnly") && "true".equals(property.getValue()))
         .findFirst().isPresent());
