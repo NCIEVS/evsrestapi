@@ -71,6 +71,11 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Keyword)
   private String normName;
 
+  /** The stemName. */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Text)
+  private String stemName;
+
   /** The subset Link. */
   @Field(type = FieldType.Keyword)
   private String subsetLink;
@@ -104,7 +109,7 @@ public class Concept extends ConceptMinimal {
   /** The definitions. */
   @Field(type = FieldType.Nested)
   private List<Definition> definitions;
-  
+
   /** The history. */
   @Field(type = FieldType.Nested)
   private List<History> history;
@@ -271,6 +276,7 @@ public class Concept extends ConceptMinimal {
     leaf = other.getLeaf();
     active = other.isActive();
     normName = other.getNormName();
+    stemName = other.getStemName();
     if (!subsetFlag) {
       subsetLink = other.getSubsetLink();
     }
@@ -353,6 +359,20 @@ public class Concept extends ConceptMinimal {
    */
   public void setNormName(String normName) {
     this.normName = normName;
+  }
+
+  /**
+   * @return the stemName
+   */
+  public String getStemName() {
+    return stemName;
+  }
+
+  /**
+   * @param stemName the stemName to set
+   */
+  public void setStemName(String stemName) {
+    this.stemName = stemName;
   }
 
   /**
@@ -486,26 +506,26 @@ public class Concept extends ConceptMinimal {
   public void setDefinitions(final List<Definition> definitions) {
     this.definitions = definitions;
   }
-  
+
   /**
    * Returns the history.
    *
    * @return the history
    */
   public List<History> getHistory() {
-      if (history == null) {
-          history = new ArrayList<>();
-      }
-      return history;
+    if (history == null) {
+      history = new ArrayList<>();
+    }
+    return history;
   }
-  
+
   /**
    * Sets the history.
    *
    * @param history the history
    */
   public void setHistory(final List<History> history) {
-      this.history = history;
+    this.history = history;
   }
 
   /**
@@ -805,7 +825,7 @@ public class Concept extends ConceptMinimal {
       Collections.sort(definitions);
     }
     if (history != null) {
-        Collections.sort(history);
+      Collections.sort(history);
     }
     if (properties != null) {
       Collections.sort(properties);

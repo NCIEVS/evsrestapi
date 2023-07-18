@@ -201,6 +201,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Generate variants to search with
     final String normTerm = ConceptUtils.normalize(term);
+    final String stemTerm = ConceptUtils.normalizeWithStemming(term);
     final String fixTerm = updateTermForType(term, type);
     final String fixNormTerm = updateTermForType(normTerm, type);
     final String codeTerm = term.toUpperCase();
@@ -215,7 +216,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NestedQueryBuilder nestedSynonymNormNameQuery = QueryBuilders.nestedQuery("synonyms",
         QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(39f), ScoreMode.Max);
 
-    // Phrase queries
+    // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
         QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(30f);
     final NestedQueryBuilder nestedSynonymPhraseNormNameQuery =
@@ -228,16 +229,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         QueryBuilders.queryStringQuery(fixTerm).field("name").boost(20f);
     final QueryStringQueryBuilder fixNormNameQuery =
         QueryBuilders.queryStringQuery(fixNormTerm).field("normName").boost(20f);
+    final QueryStringQueryBuilder stemNameQuery =
+        QueryBuilders.queryStringQuery(stemTerm).field("stemName").boost(15f);
 
     final QueryStringQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.queryStringQuery(String.join(" AND ", normTerm.split("\\s+")))
             .field("synonyms.name").defaultOperator(Operator.AND).boost(15f);
     final NestedQueryBuilder nestedSynonymFixNameAndQuery =
         QueryBuilders.nestedQuery("synonyms", synonymFixNameAndQuery, ScoreMode.Max);
-    final QueryStringQueryBuilder synonymFixNameQuery =
+    final QueryStringQueryBuilder synonymFixNormNameQuery =
         QueryBuilders.queryStringQuery(fixNormTerm).field("synonyms.normName").boost(10f);
+    final QueryStringQueryBuilder synonymStemNameQuery =
+        QueryBuilders.queryStringQuery(stemTerm).field("synonyms.stemName").boost(7f);
     final NestedQueryBuilder nestedSynonymFixNameQuery =
-        QueryBuilders.nestedQuery("synonyms", synonymFixNameQuery, ScoreMode.Max);
+        QueryBuilders.nestedQuery("synonyms", synonymFixNormNameQuery, ScoreMode.Max);
+    final NestedQueryBuilder nestedSynonymStemNameQuery =
+        QueryBuilders.nestedQuery("synonyms", synonymStemNameQuery, ScoreMode.Max);
 
     // Definition query
     final QueryStringQueryBuilder definitionQuery =
@@ -258,14 +265,18 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if ("fuzzy".equalsIgnoreCase(type)) {
       fixNameQuery.fuzziness(Fuzziness.ONE);
       fixNormNameQuery.fuzziness(Fuzziness.ONE);
+      stemNameQuery.fuzziness(Fuzziness.ONE);
       synonymFixNameAndQuery.fuzziness(Fuzziness.ONE);
-      synonymFixNameQuery.fuzziness(Fuzziness.ONE);
+      synonymFixNormNameQuery.fuzziness(Fuzziness.ONE);
+      synonymStemNameQuery.fuzziness(Fuzziness.ONE);
       definitionQuery.fuzziness(Fuzziness.ONE);
     } else {
       fixNameQuery.fuzziness(Fuzziness.ZERO);
       fixNormNameQuery.fuzziness(Fuzziness.ZERO);
+      stemNameQuery.fuzziness(Fuzziness.ZERO);
       synonymFixNameAndQuery.fuzziness(Fuzziness.ZERO);
-      synonymFixNameQuery.fuzziness(Fuzziness.ZERO);
+      synonymFixNormNameQuery.fuzziness(Fuzziness.ZERO);
+      synonymStemNameQuery.fuzziness(Fuzziness.ZERO);
       definitionQuery.fuzziness(Fuzziness.ZERO);
     }
 
@@ -273,7 +284,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if ("AND".equalsIgnoreCase(type)) {
       fixNameQuery.defaultOperator(Operator.AND);
       fixNormNameQuery.defaultOperator(Operator.AND);
-      synonymFixNameQuery.defaultOperator(Operator.AND);
+      stemNameQuery.defaultOperator(Operator.AND);
+      synonymFixNormNameQuery.defaultOperator(Operator.AND);
+      synonymStemNameQuery.defaultOperator(Operator.AND);
       definitionQuery.defaultOperator(Operator.AND);
     }
 
@@ -309,11 +322,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (!"phrase".equals(type.toLowerCase())) {
       termQuery
 
-          // Text queries on "name" and "norm name" using fix names
-          .should(fixNameQuery).should(fixNormNameQuery)
+          // Text queries on "name" and "norm name" and "stem name" using fix names
+          .should(fixNameQuery).should(fixNormNameQuery).should(stemNameQuery)
 
-          // Text query on synonym "name" using fix query
+          // Text query on synonym "name" and "stem name" using fix query
           .should(nestedSynonymFixNameAndQuery).should(nestedSynonymFixNameQuery)
+          .should(nestedSynonymStemNameQuery)
 
           // definition match
           .should(nestedDefinitionQuery);
