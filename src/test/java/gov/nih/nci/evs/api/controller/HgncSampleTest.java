@@ -37,7 +37,6 @@ public class HgncSampleTest extends SampleTest {
   /**
    * Setup class.
    *
-   * @throws Exception the exception
    */
 
   /** The logger. */
@@ -47,11 +46,21 @@ public class HgncSampleTest extends SampleTest {
   @Autowired
   private MockMvc testMvc;
 
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
   @BeforeClass
   public static void setupClass() throws Exception {
     loadSamples("hgnc", "src/test/resources/samples/hgnc-samples.txt");
   }
 
+  /**
+   * Test HGNC terminology.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testHGNCTerminology() throws Exception {
     String url = null;
@@ -84,7 +93,7 @@ public class HgncSampleTest extends SampleTest {
 
     assertThat(hgnc.getLatest()).isTrue();
   }
-  
+
   /**
    * Test concept active status.
    *
@@ -92,7 +101,7 @@ public class HgncSampleTest extends SampleTest {
    */
   @Test
   public void testActive() throws Exception {
-      
+
     String url = null;
     MvcResult result = null;
     String content = null;
