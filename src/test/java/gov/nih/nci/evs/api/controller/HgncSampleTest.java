@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
@@ -36,7 +37,6 @@ public class HgncSampleTest extends SampleTest {
   /**
    * Setup class.
    *
-   * @throws Exception the exception
    */
 
   /** The logger. */
@@ -46,11 +46,21 @@ public class HgncSampleTest extends SampleTest {
   @Autowired
   private MockMvc testMvc;
 
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
   @BeforeClass
   public static void setupClass() throws Exception {
     loadSamples("hgnc", "src/test/resources/samples/hgnc-samples.txt");
   }
 
+  /**
+   * Test HGNC terminology.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testHGNCTerminology() throws Exception {
     String url = null;
@@ -82,5 +92,31 @@ public class HgncSampleTest extends SampleTest {
         "HGNC, published by the HUGO Gene Nomenclature Committee" + " at the European Bioinformatics Institute.");
 
     assertThat(hgnc.getLatest()).isTrue();
+  }
+
+  /**
+   * Test concept active status.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testActive() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test active
+    url = "/api/v1/concept/hgnc/HGNC:11231";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("HGNC:11231");
+    assertThat(concept.getTerminology()).isEqualTo("hgnc");
+    assertThat(concept.isActive()).isTrue();
   }
 }

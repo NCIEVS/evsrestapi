@@ -2455,6 +2455,128 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search with stemming.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchWithStemming() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    List<String> names = null;
+
+    // check stem in partial
+    log.info("Testing url - " + url + "?terminology=ncit&term=All%20Site&type=AND");
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "All Site").param("type", "AND"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    names = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    assert (names.contains("All Sites"));
+
+    // check stem in full
+    log.info("Testing url - " + url + "?terminology=ncit&term=All%20Sites&type=AND");
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "All Sites").param("type", "AND"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    names = list.getConcepts().stream().map(c -> c.getName()).collect(Collectors.toList());
+    assert (names.contains("All Sites"));
+
+    // check contains
+    log.info("Testing url - " + url + "?terminology=ncit&term=cancerous");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "cancerous"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 1000);
+
+    // check another contains
+    log.info("Testing url - " + url + "?terminology=ncit&term=cancerous%20sites");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "cancerous sites"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 5000);
+
+    // check a third contains
+    log.info("Testing url - " + url + "?terminology=ncit&term=subsets%20displays");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "subsets displays"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 100);
+
+    // check match
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=match");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "match")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal().equals(0));
+
+    // check startsWith
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=startsWith");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "startsWith")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal().equals(0));
+
+    // check phrase
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=phrase");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "phrase")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal().equals(0));
+
+    // check AND
+    log.info("Testing url - " + url + "?terminology=ncit&term=connecting%20tissue&type=AND");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "connecting tissue")
+        .param("type", "AND")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 50);
+
+    // check another AND
+    log.info("Testing url - " + url + "?terminology=ncit&term=polyp%%20%site&type=AND");
+    result = mvc
+        .perform(
+            get(url).param("terminology", "ncit").param("term", "polyp site").param("type", "AND"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+
+    // check a third AND
+    log.info("Testing url - " + url + "?terminology=ncit&term=subsets%20terminology&type=AND");
+    result = mvc.perform(get(url).param("terminology", "ncit").param("term", "subsets terminology")
+        .param("type", "AND")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response

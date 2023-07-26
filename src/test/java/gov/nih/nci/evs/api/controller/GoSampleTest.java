@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
@@ -84,6 +85,32 @@ public class GoSampleTest extends SampleTest {
         + " of concepts for describing the functions of gene products from all organisms.");
 
     assertThat(go.getLatest()).isTrue();
+  }
+  
+  /**
+   * Test concept active status.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testActive() throws Exception {
+      
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test active
+    url = "/api/v1/concept/go/GO:0002451";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("GO:0002451");
+    assertThat(concept.getTerminology()).isEqualTo("go");
+    assertThat(concept.isActive()).isTrue();
   }
 
 }

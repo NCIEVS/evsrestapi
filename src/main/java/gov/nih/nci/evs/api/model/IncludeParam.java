@@ -229,8 +229,9 @@ public class IncludeParam extends BaseModel {
    * @return true, if successful
    */
   public boolean hasAnyTrue() {
-    return synonyms || definitions || properties || children || descendants || parents || associations
-        || inverseAssociations || roles || inverseRoles || maps || disjointWith || paths || extensions || history;
+    return synonyms || definitions || properties || children || descendants || parents
+        || associations || inverseAssociations || roles || inverseRoles || maps || disjointWith
+        || paths || extensions || history;
   }
 
   /**
@@ -239,7 +240,8 @@ public class IncludeParam extends BaseModel {
    * @return the included fields
    */
   public String[] getIncludedFields() {
-    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
+    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf",
+        "version", "uri", "active", "conceptStatus"));
     if (synonyms) {
       fields.add("synonyms");
     }
@@ -305,6 +307,7 @@ public class IncludeParam extends BaseModel {
   public String[] getExcludedFields() {
     List<String> fields = new ArrayList<>();
     fields.add("normName"); // normName always excluded
+    fields.add("stemName"); // stemName always excluded
     if (!synonyms) {
       fields.add("synonyms");
     }
