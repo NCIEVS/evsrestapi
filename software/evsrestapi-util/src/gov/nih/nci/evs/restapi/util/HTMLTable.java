@@ -12,6 +12,11 @@ public class HTMLTable {
 	}
 
 	public static String generate(Vector v) {
+		char delim = searchDelimiter(v);
+		return generate(v, delim);
+	}
+
+	public static String generate(Vector v, char delim) {
 		String title = null;
 		String table = null;
 		String outputfile = null;
@@ -44,7 +49,7 @@ public class HTMLTable {
 			} else if (t.startsWith("<data>")) {
 				data_vec = new Vector();
 			} else if (t.startsWith("</table>")) {
-				printTable(pw, table, th_vec, data_vec);
+				printTable(pw, table, th_vec, data_vec, delim);
 				table = null;
                 th_vec = new Vector();
 				data_vec = new Vector();
@@ -166,10 +171,33 @@ public class HTMLTable {
 		return calculateWideFieldWidth(numFields, numWideFields);
 	}
 
+	public static char searchDelimiter(Vector data_vec) {
+		for (int i=0; i<data_vec.size(); i++) {
+			String t = (String) data_vec.elementAt(i);
+			if (t.indexOf("\t") != -1) {
+				return '\t';
+			} else if (t.indexOf("|") != -1) {
+				return '|';
+			}
+		}
+		return '\t';
+	}
+
+/*
     public static void printTable(PrintWriter out,
         String tableLabel,
         Vector th_vec,
         Vector data_vec) {
+		char delim = searchDelimiter(data_vec);
+		printTable(out, tableLabel, th_vec, data_vec, delim);
+	}
+*/
+
+    public static void printTable(PrintWriter out,
+        String tableLabel,
+        Vector th_vec,
+        Vector data_vec,
+        char delim) {
 
 		int num_wide_fields = 0;
 		int num_fields = th_vec.size();
@@ -203,21 +231,15 @@ public class HTMLTable {
 
 		for (int i=0; i<data_vec.size(); i++) {
 			String data = (String) data_vec.elementAt(i);
-
-
-			System.out.println(data);
+			//System.out.println(data);
 
 			out.println("<tr>");
-			Vector u = StringUtils.parseData(data, '\t');
+			//Vector u = StringUtils.parseData(data, '\t');
+			Vector u = StringUtils.parseData(data, delim);
 
 			for (int j=0; j<u.size(); j++) {
 				String value = (String) u.elementAt(j);
-
-				System.out.println("value: " + value);
-
 				int percent = getWidth(num_fields, num_wide_fields, (String) th_vec.elementAt(j));
-
-
 				out.println("<td width=\"" + percent + "%\">");
 				out.println(value);
 				out.println("</td>");
@@ -303,11 +325,12 @@ public class HTMLTable {
         Utils.saveToFile(datafile, w0);
         String outputfile = new HTMLTableDataConverter().convert(datafile);
 		Vector v = Utils.readFile(outputfile);
-		outputfile = new HTMLTable().generate(v);
+		outputfile = new HTMLTable().generate(v, '\t');
 		System.out.println(outputfile + " generated.");
 	}
 
 	public static void main(String[] args) {
+		/*
 		String serviceUrl = args[0];
 		String named_graph = args[1];
 		String username = args[2];
@@ -315,8 +338,11 @@ public class HTMLTable {
 		String inputfile = args[4];
 		String outputfile = new HTMLTableDataConverter(serviceUrl, named_graph, username, password).convert(inputfile);
 		System.out.println(outputfile + " generated.");
+		*/
+
+		String outputfile = "table_data_03-27-2023.txt";
 		Vector v = Utils.readFile(outputfile);
-		outputfile = new HTMLTable().generate(v);
+		outputfile = new HTMLTable().generate(v, '|');
 		System.out.println(outputfile + " generated.");
 	}
 }

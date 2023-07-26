@@ -971,8 +971,11 @@ public class OWLScanner {
 		}
 	}
 
-
     public Vector extractOWLRestrictions(Vector class_vec) {
+		return extractOWLRestrictions(class_vec, null);
+    }
+
+    public Vector extractOWLRestrictions(Vector class_vec, String restrictionCode) {
         Vector w = new Vector();
         boolean istart = false;
         boolean restriction_start = false;
@@ -1026,11 +1029,16 @@ public class OWLScanner {
 						someValueFrom = t.substring(1, n);
 						r.setSomeValuesFrom(someValueFrom);
 
-						if (!hset.contains(r.toString())) {
-							hset.add(r.toString());
-							w.add(r.toString());
-						} else {
-							//System.out.println("\tWARNING: Duplicate " + r.toString());
+						if (restrictionCode == null) {
+							if (!hset.contains(r.toString())) {
+								hset.add(r.toString());
+								w.add(r.toString());
+							}
+						} else if (r.getOnProperty().compareTo(restrictionCode) == 0) {
+							if (!hset.contains(r.toString())) {
+								hset.add(r.toString());
+								w.add(r.toString());
+							}
 						}
 						r = null;
 					}
@@ -3022,22 +3030,29 @@ C4910|<NHC0>C4910</NHC0>
 			String termSource = "";
 			String subsourceName = "";
 			String sourceCode = "";
-			for (int j=4; j<n; j++) {
-				String t = (String) u.elementAt(j);
-				Vector u2 = StringUtils.parseData(t, '$');
-				String prop_code = (String) u2.elementAt(0);
-				String prop_value = (String) u2.elementAt(1);
-				if (prop_code.compareTo("P383") == 0) {
-					termType = prop_value;
-				} else if (prop_code.compareTo("P384") == 0) {
-					termSource = prop_value;
-				} else if (prop_code.compareTo("P386") == 0) {
-					subsourceName = prop_value;
-				} else if (prop_code.compareTo("P385") == 0) {
-					sourceCode = prop_value;
+			String t = null;
+			try {
+				for (int j=4; j<n; j++) {
+					t = (String) u.elementAt(j);
+					Vector u2 = StringUtils.parseData(t, '$');
+					String prop_code = (String) u2.elementAt(0);
+					String prop_value = (String) u2.elementAt(1);
+					if (prop_code.compareTo("P383") == 0) {
+						termType = prop_value;
+					} else if (prop_code.compareTo("P384") == 0) {
+						termSource = prop_value;
+					} else if (prop_code.compareTo("P386") == 0) {
+						subsourceName = prop_value;
+					} else if (prop_code.compareTo("P385") == 0) {
+						sourceCode = prop_value;
+					}
 				}
+				w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
+		    } catch (Exception ex) {
+				System.out.println("line: " + line);
+				System.out.println("t: " + t);
+				ex.printStackTrace();
 			}
-			w.add(label + "|" + code + "|FULL_SYN|" + term + "|" + termType + "|" + termSource + "|" + subsourceName + "|" + sourceCode);
 		}
 		String outputfile = "FULL_SYN.txt";
 		v.clear();

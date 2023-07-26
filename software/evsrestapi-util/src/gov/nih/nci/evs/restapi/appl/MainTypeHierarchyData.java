@@ -47,20 +47,21 @@ public class MainTypeHierarchyData {
 	String version = null;
 	String named_graph = null;
 
-
-//Vector getConceptsInSubset(String named_graph, String code)
-
-    public MainTypeHierarchyData(String serviceUrl, String named_graph) {
-		if (!serviceUrl.endsWith("?query=")) {
-			serviceUrl = serviceUrl + "?query=";
-		}
-		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+    public MainTypeHierarchyData(String serviceUrl, String named_graph, String username, String password) {
+		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
         this.named_graph = named_graph;
+        owlSPARQLUtils.set_named_graph(named_graph);
 		this.disease_main_types = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTS_API_Disease_Main_Type_Terminology_Code);
+		System.out.println("disease_main_types: "+ disease_main_types.length);
+
 		this.disease_broad_categories = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTS_API_Disease_Broad_Category_Terminology_Code);
+		System.out.println("disease_broad_categories: "+ disease_broad_categories.length);
 
 		this.ctrp_biomarkers = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTRP_BIOMARKER_TERMINOLOGY_CODE);
+		System.out.println("ctrp_biomarkers: "+ ctrp_biomarkers.length);
+
 		this.ctrp_reference_genes = owlSPARQLUtils.get_concept_in_subset_codes(named_graph, CTRP_REFERENCE_GENE_TERMINOLOGY_CODE);
+		System.out.println("ctrp_reference_genes: "+ ctrp_reference_genes.length);
 
         main_type_set = new HashSet();
         for (int i=0; i<disease_main_types.length; i++) {
@@ -87,11 +88,20 @@ public class MainTypeHierarchyData {
 			broad_category_list.add(code);
 			broad_category_vec.add(code);
 		}
+
 		version = owlSPARQLUtils.get_ontology_version(named_graph);
+		System.out.println("generate_parent_child_vec: " + named_graph);
+
 		parent_child_vec = generate_parent_child_vec(named_graph);
+		System.out.println("parent_child_vec: " + parent_child_vec.size());
+
 		this.hh = new HierarchyHelper(parent_child_vec);
 		disease_is_stage_code_vec = generateDiseaseIsStageSourceCodes(named_graph);
+		System.out.println("disease_is_stage_code_vec: " + disease_is_stage_code_vec.size());
+
 		disease_is_grade_code_vec = generateDiseaseIsGradeSourceCodes(named_graph);
+		System.out.println("disease_is_grade_code_vec: " + disease_is_grade_code_vec.size());
+
     }
 
     public Vector get_parent_child_vec() {
@@ -138,17 +148,67 @@ public class MainTypeHierarchyData {
 		return this.broad_category_vec;
 	}
 
+	public Vector getHierarchicalRelationships(String named_graph) {
+        String query = construct_get_hierarchical_relationships(named_graph);
+        Vector v = owlSPARQLUtils.executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        v = new ParserUtils().getResponseValues(v);
+        return new SortUtils().quickSort(v);
+	}
+
+	public Vector getHierarchicalRelationships(String named_graph, boolean raw_data) {
+		Vector v = owlSPARQLUtils.executeQuery(construct_get_hierarchical_relationships(named_graph));
+		if (raw_data) return v;
+        v = new ParserUtils().getResponseValues(v);
+        v = new SortUtils().quickSort(v);
+        return v;
+	}
+
+	public String construct_get_hierarchical_relationships(String named_graph) {
+        String prefixes = owlSPARQLUtils.getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        //buf.append("select distinct ?x_label ?x_code ?y_label ?y_code").append("\n");
+        //buf.append("select distinct ?x_code ?y_code").append("\n");
+        buf.append("select distinct ?y_label ?y_code ?x_label ?x_code ").append("\n");
+        buf.append("from <" + named_graph + ">").append("\n");
+        buf.append("where  { ").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?y a owl:Class .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ").append("\n");
+        buf.append("                ?x (rdfs:subClassOf|owl:equivalentClass/owl:intersectionOf/rdf:rest*/rdf:first) ?y .  ").append("\n");
+        buf.append("    } UNION {").append("\n");
+        buf.append("    ").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("").append("\n");
+        buf.append("                ?y a owl:Class .").append("\n");
+        buf.append("                ?y :NHC0 ?y_code .").append("\n");
+        buf.append("                ?y rdfs:label ?y_label .").append("\n");
+        buf.append("                ").append("\n");
+        buf.append("                ?x (rdfs:subClassOf/owl:intersectionOf/rdf:rest*/rdf:first) ?y .  ").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        buf.append("").append("\n");
+        return buf.toString();
+	}
+
 	public Vector<String> generate_parent_child_vec(String named_graph) {
 		Vector parent_child_vec = null;
         File f = new File("parent_child.txt");
 		if(f.exists() && !f.isDirectory()) {
 		    parent_child_vec = Utils.readFile("parent_child.txt");
-
 		} else {
-			System.out.println("Generating parent_child.txt...");
 			Vector parent_child_data = owlSPARQLUtils.getHierarchicalRelationships(named_graph);
-			parent_child_vec = new ParserUtils().getResponseValues(parent_child_data);
-			parent_child_vec = new SortUtils().quickSort(parent_child_vec);
 			Utils.saveToFile("parent_child.txt", parent_child_vec);
 		}
 		return parent_child_vec;
@@ -156,15 +216,15 @@ public class MainTypeHierarchyData {
 
     public Vector<String> generateDiseaseIsStageSourceCodes(String named_graph) {
 		Vector v1 = owlSPARQLUtils.getDiseaseIsStageSourceCodes(named_graph);
-		v1 = new ParserUtils().getResponseValues(v1);
-		v1 = new SortUtils().quickSort(v1);
+		//v1 = new ParserUtils().getResponseValues(v1);
+		//v1 = new SortUtils().quickSort(v1);
 		return v1;
 	}
 
     public Vector<String> generateDiseaseIsGradeSourceCodes(String named_graph) {
 		Vector v2 = owlSPARQLUtils.getDiseaseIsGradeSourceCodes(named_graph);
-		v2 = new ParserUtils().getResponseValues(v2);
-		v2 = new SortUtils().quickSort(v2);
+		//v2 = new ParserUtils().getResponseValues(v2);
+		//v2 = new SortUtils().quickSort(v2);
 		return v2;
 	}
 
@@ -209,22 +269,21 @@ public class MainTypeHierarchyData {
 
 	public static void main(String[] args) {
 		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+
 		System.out.println(serviceUrl);
-		MetadataUtils test = new MetadataUtils(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
 		String codingScheme = "NCI_Thesaurus";
 		long ms = System.currentTimeMillis();
 		String version = test.getLatestVersion(codingScheme);
 		System.out.println(codingScheme);
 		System.out.println(version);
-		String named_graph = test.getNamedGraph(codingScheme);
+		//String named_graph = test.getNamedGraph(codingScheme);
 		System.out.println(named_graph);
 
-		/*
-		String serviceUrl = args[0];
-		String named_graph = args[1];
-		*/
-
-		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
+		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph, username, password);
 		version = mthd.getVersion();
 		System.out.println("version " + version);
 		Vector broad_category_vec = mthd.get_broad_category_vec();

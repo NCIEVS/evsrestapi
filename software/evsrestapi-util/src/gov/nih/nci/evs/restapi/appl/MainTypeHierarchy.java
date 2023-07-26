@@ -22,13 +22,13 @@ public class MainTypeHierarchy {
 	static String MAIN_TYPE_TREE = "main_type_tree";
 	static String SUBTYPE_TREE = "subtype_tree";
 	static String STAGE_TREE = "stage_tree";
-	static String DISEASE_DISORDER_OR_FINDING_CODE = "C7057";
+	public static String DISEASE_DISORDER_OR_FINDING_CODE = "C7057";
 
 
 	static String FINDING_CODE = "C3367";
 
-	static String DISEASES_AND_DISORDERS_CODE = "C2991";
-	static String NEOPLASM_CODE = "C3262";
+	public static String DISEASES_AND_DISORDERS_CODE = "C2991";
+	public static String NEOPLASM_CODE = "C3262";
 	static Vector main_type_hierarchy_data = null;
 
 	static String RECURRENT = "recurrent";
@@ -211,16 +211,6 @@ public class MainTypeHierarchy {
 		return main_type_set.contains(code);
 	}
 
-    public boolean isBiomarker(String code) {
-		if (ctrp_biomarker_set == null) return false;
-		return ctrp_biomarker_set.contains(code);
-	}
-
-    public boolean isReferenceGene(String code) {
-		if (ctrp_reference_gene_set == null) return false;
-		return ctrp_reference_gene_set.contains(code);
-	}
-
     public boolean isDiseaseGrade(String code) {
 		return gradeConceptHashMap.containsKey(code);
 	}
@@ -249,6 +239,16 @@ public class MainTypeHierarchy {
 		return !isNotDisease(code);
 	}
 
+
+    public boolean isBiomarker(String code) {
+		if (ctrp_biomarker_set == null) return false;
+		return ctrp_biomarker_set.contains(code);
+	}
+
+    public boolean isReferenceGene(String code) {
+		if (ctrp_reference_gene_set == null) return false;
+		return ctrp_reference_gene_set.contains(code);
+	}
 
     public boolean isSubtype(String code) {
 		try {
@@ -633,11 +633,14 @@ public class MainTypeHierarchy {
 
 
 	public void getCTRPResponse(PrintWriter pw, String code) {
+		boolean isDisease = isDisease(code);
         boolean isMainType = isMainType(code);
         boolean isSubtype = isSubtype(code);
         boolean isDiseaseStage = isDiseaseStage(code);
         boolean isDiseaseGrade = isDiseaseGrade(code);
-        boolean isDisease = isDisease(code);
+        boolean isBiomarker = isBiomarker(code);
+        boolean isReferenceGene = isReferenceGene(code);
+
         String label = hh.getLabel(code);
         if (label == null) return;
         pw.println("\n" + label + " (" + code + ")");
@@ -667,6 +670,8 @@ public class MainTypeHierarchy {
 		pw.println("\tIs disease stage? " + isDiseaseStage);
 		pw.println("\tIs disease grade? " + isDiseaseGrade);
 		pw.println("\tIs disease? " + isDisease);
+		pw.println("\tis Biomarker? " + isBiomarker);
+		pw.println("\tis ReferenceGene? " + isReferenceGene);
   	}
 
   	public String getHeading() {
@@ -674,11 +679,13 @@ public class MainTypeHierarchy {
 		buf.append("Label").append("\t");
 		buf.append("Code").append("\t");
 		buf.append("Main Menu Ancestor(s)").append("\t");
+		buf.append("Is Disease?").append("\t");
 		buf.append("Is Main Type?").append("\t");
 		buf.append("Is Subtype?").append("\t");
 		buf.append("Is Disease Stage?").append("\t");
 		buf.append("Is Disease Grade?").append("\t");
-		buf.append("Is Disease?").append("\t");
+		buf.append("Is Biomarker?").append("\t");
+		buf.append("Is ReferenceGene?").append("\t");
 		return buf.toString();
 	}
 
@@ -706,10 +713,14 @@ public class MainTypeHierarchy {
 	public void get_ctrp_response(PrintWriter pw, String code) {
 		StringBuffer buf = new StringBuffer();
 	    Vector v = findMainMenuAncestors(code);
+	    boolean isDisease = isDisease(code);
         boolean isMainType = isMainType(code);
         boolean isSubtype = isSubtype(code);
         boolean isDiseaseStage = isDiseaseStage(code);
         boolean isDiseaseGrade = isDiseaseGrade(code);
+        boolean isBiomarker = isBiomarker(code);
+        boolean isReferenceGene = isReferenceGene(code);
+
         String label = hh.getLabel(code);
         if (label == null) {
 			return;
@@ -735,10 +746,14 @@ public class MainTypeHierarchy {
 		} else {
 			buf.append("None").append("\t");
 		}
+		buf.append(isDisease).append("\t");
 		buf.append(isMainType).append("\t");
 		buf.append(isSubtype).append("\t");
 		buf.append(isDiseaseStage).append("\t");
-		buf.append(isDiseaseGrade);
+		buf.append(isDiseaseGrade).append("\t");
+		buf.append(isBiomarker).append("\t");
+		buf.append(isReferenceGene);
+
 		String t = buf.toString();
 		pw.println(t);
   	}
@@ -1254,27 +1269,31 @@ Disease or Disorder (C2991)
     }
 
 	public static void main(String[] args) {
-		/*
 		String serviceUrl = args[0];
 		String named_graph = args[1];
-		*/
-
-		String serviceUrl = args[0];
+		String username = args[2];
+		String password = args[3];
+/*
+		String serviceUrl = ConfigurationController.serviceUrl;
+		String named_graph = ConfigurationController.namedGraph;
+		String username = ConfigurationController.username;
+		String password = ConfigurationController.password;
+*/
 		System.out.println(serviceUrl);
-		MetadataUtils test = new MetadataUtils(serviceUrl);
+		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
 		String codingScheme = "NCI_Thesaurus";
 		long ms = System.currentTimeMillis();
 		String version = test.getLatestVersion(codingScheme);
 		System.out.println(codingScheme);
 		System.out.println(version);
-		String named_graph = test.getNamedGraph(codingScheme);
+		//String named_graph = test.getNamedGraph(codingScheme);
 		System.out.println(named_graph);
 
-		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph);
+		MainTypeHierarchyData mthd = new MainTypeHierarchyData(serviceUrl, named_graph, username, password);
+
 		String ncit_version = mthd.getVersion();
 		System.out.println("version " + ncit_version);
 		Vector broad_category_vec = mthd.get_broad_category_vec();
-		//StringUtils.dumpVector("broad_category_vec", broad_category_vec);
 		HashSet main_type_set = mthd.get_main_type_set();
 		Vector<String> parent_child_vec = mthd.get_parent_child_vec(named_graph);
 		Vector v1 = mthd.getDiseaseIsStageSourceCodes(named_graph);

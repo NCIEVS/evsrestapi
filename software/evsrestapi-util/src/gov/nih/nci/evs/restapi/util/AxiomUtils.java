@@ -276,23 +276,6 @@ public class AxiomUtils {
 			String code = (String) u.elementAt(2);
 			String propertyName = (String) u.elementAt(3);
 
-//bnode_301c03a7_663e_49c8_be4e_8726b4fc92ea_380278|Hepatic Infection, CTCAE|C143541|Maps_To|P375|Hepatic infection|Target_Code|P395|10056522
-/*
-	(1) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205001|Ciliary Body|C12345|Maps_To|Ciliary body|Relationship_to_Target|Has Synonym
-	(2) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_204999|Ciliary Body|C12345|Maps_To|Ciliary body|Relationship_to_Target|Has Synonym
-	(3) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205000|Ciliary Body|C12345|Maps_To|Ciliary body|Relationship_to_Target|Has Synonym
-	(4) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_204999|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Term_Type|PT
-	(5) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205001|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Term_Type|PT
-	(6) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205000|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Term_Type|PT
-	(7) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_204999|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Code|PRAS
-	(8) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205001|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Code|TOO
-	(9) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205000|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Code|SRB
-	(10) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205000|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Terminology|GDC
-	(11) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_205001|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Terminology|GDC
-	(12) bnode_a5affcae_8273_49eb_aa9d_d77fe34e555a_204999|Ciliary Body|C12345|Maps_To|Ciliary body|Target_Terminology|GDC
-*/
-
-			//String propertyCode = (String) u.elementAt(4);
 			String targetName = (String) u.elementAt(4);
 			String qualifier_name = (String) u.elementAt(5);
 			//String qualifier_code = (String) u.elementAt(7);
