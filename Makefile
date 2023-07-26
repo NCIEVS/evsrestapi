@@ -34,3 +34,6 @@ rmtag:
 
 version:
 	@echo $(APP_VERSION)
+
+devreset: build
+	./src/main/bin/devreset.sh ../data/UnitTestData > log 2>&1 &

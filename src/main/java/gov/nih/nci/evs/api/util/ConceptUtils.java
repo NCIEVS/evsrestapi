@@ -43,6 +43,7 @@ public final class ConceptUtils {
     // n/a
   }
 
+  /** The Constant PUNCTUATION_REGEX. */
   public static final String PUNCTUATION_REGEX =
       "[ \\t\\-\\(\\{\\[\\)\\}\\]_!@#%&\\*\\\\:;\\\"',\\.\\?\\/~\\+=\\|<>$`^]";
 
@@ -153,6 +154,9 @@ public final class ConceptUtils {
       if (ip.isDefinitions()) {
         newConcept.setDefinitions(concept.getDefinitions());
       }
+      if (ip.isHistory()) {
+        newConcept.setHistory(concept.getHistory());
+      }
       if (ip.isProperties()) {
         newConcept.setProperties(concept.getProperties());
       }
@@ -192,6 +196,9 @@ public final class ConceptUtils {
       if (ip.isSubsetLink()) {
         newConcept.setSubsetLink(concept.getSubsetLink());
       }
+      if (ip.isMapsetLink()) {
+        newConcept.setMapsetLink(concept.getMapsetLink());
+      }
 
       result.add(newConcept);
     }
@@ -204,12 +211,14 @@ public final class ConceptUtils {
    *
    * @param concept the concept
    * @param limit the limit
+   * @throws Exception the exception
    */
   public static void applyLimit(final Concept concept, final int limit) throws Exception {
 
     concept.setAssociations(sublist(concept.getAssociations(), 0, limit));
     concept.setChildren(sublist(concept.getChildren(), 0, limit));
     concept.setDefinitions(sublist(concept.getDefinitions(), 0, limit));
+    concept.setHistory(sublist(concept.getHistory(), 0, limit));
     concept.setDescendants(sublist(concept.getDescendants(), 0, limit));
     concept.setDisjointWith(sublist(concept.getDisjointWith(), 0, limit));
     concept.setInverseAssociations(sublist(concept.getInverseAssociations(), 0, limit));
@@ -233,6 +242,7 @@ public final class ConceptUtils {
    * @param fromIndex the from index
    * @param maxElements the max elements
    * @return the list
+   * @throws Exception the exception
    */
   @SuppressWarnings("unchecked")
   public static <T extends BaseModel> List<T> sublist(List<T> list, final int fromIndex, final int maxElements)
@@ -257,7 +267,7 @@ public final class ConceptUtils {
   /**
    * Apply include.
    *
-   * @param concepts the list of concepts
+   * @param concept the concept
    * @param ip the include param
    * @return the result concepts
    */
@@ -272,6 +282,9 @@ public final class ConceptUtils {
     }
     if (!ip.isDefinitions()) {
       concept.setDefinitions(null);
+    }
+    if (!ip.isHistory()) {
+      concept.setHistory(null);
     }
     if (!ip.isProperties()) {
       concept.setProperties(null);
@@ -421,7 +434,6 @@ public final class ConceptUtils {
     // Most of the top level concepts are all the same
     final Set<String> codes = list.stream().flatMap(l -> l.stream()).map(c -> c.getCode()).collect(Collectors.toSet());
     final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
-
     // final java.util.Map<String, Concept> cache = new HashMap<>();
     for (final List<Concept> concepts : list) {
       for (final Concept concept : concepts) {
@@ -463,4 +475,38 @@ public final class ConceptUtils {
     return map;
   }
 
+  /**
+   * Substr.
+   *
+   * @param string the string
+   * @param len the len
+   * @return the string
+   */
+  public static String substr(final String string, final int len) {
+    if (len >= string.length()) {
+      return string;
+    }
+    return string.substring(0, Math.min(len, string.length())) + (string.length() > len ? "..." : "");
+  }
+
+  /**
+   * Wordind.
+   *
+   * @param name the name
+   * @return the list
+   */
+  public static List<String> wordind(final String name) {
+    final String[] tokens = name.split(PUNCTUATION_REGEX);
+    return Arrays.asList(tokens).stream().filter(s -> s.length() > 0).collect(Collectors.toList());
+  }
+
+  /**
+   * isCode.
+   *
+   * @param code the code
+   * @return is given string a code
+   */
+  public static boolean isCode(final String code) {
+    return code != null && code.toUpperCase().matches("[A-Z]{0,5}:?\\d*[-\\.X\\?]?\\d*/?\\d*[A-Za-z_]*[A-Z]?");
+  }
 }

@@ -65,6 +65,8 @@ public class Property extends BaseModel implements Comparable<Property> {
    * @param value the value
    */
   public Property(final String type, final String value) {
+    this.type = type;
+    this.value = value;
     // n/a
   }
 
@@ -93,8 +95,7 @@ public class Property extends BaseModel implements Comparable<Property> {
   }
 
   /**
-   * Returns the code. This is really for internal use for connecting qualifiers
-   * to properties.
+   * Returns the code. This is really for internal use for connecting qualifiers to properties.
    *
    * @return the code
    */

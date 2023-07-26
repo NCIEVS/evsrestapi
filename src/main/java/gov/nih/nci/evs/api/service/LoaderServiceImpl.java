@@ -134,12 +134,19 @@ public class LoaderServiceImpl {
 
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
     ElasticLoadService loadService = null;
-
+    
     try {
       // which indexing object do we need to use
+      if (cmd.getOptionValue("t").equals("mapping")) {
+        loadService = app.getBean(MappingLoaderServiceImpl.class);
+        loadService.loadObjects(null, null, null);
+        System.exit(0);
+      }
       if (cmd.hasOption('d')) {
         if (cmd.getOptionValue("t").equals("ncim")) {
           loadService = app.getBean(MetaElasticLoadServiceImpl.class);
+        } else if (cmd.getOptionValue("t").startsWith("ncit")) {
+            loadService = app.getBean(StardogElasticLoadServiceImpl.class);
         } else {
           loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
         }

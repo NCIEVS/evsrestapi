@@ -30,8 +30,7 @@ import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 
 /**
- * Utilities for handling the "include" flag, and converting EVSConcept to
- * Concept.
+ * Utilities for handling the "include" flag, and converting EVSConcept to Concept.
  */
 @Component
 public final class TerminologyUtils {
@@ -56,8 +55,8 @@ public final class TerminologyUtils {
   /**
    * Returns all terminologies.
    * 
-   * @param indexed use {@literal true} to get indexed terminologies as opposed
-   *          to terminologies from stardog
+   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies
+   *          from stardog
    * @return the terminologies
    * @throws Exception Signals that an exception has occurred.
    */
@@ -90,8 +89,8 @@ public final class TerminologyUtils {
    * @return the stale terminologies
    * @throws Exception the exception
    */
-  public List<IndexMetadata> getStaleStardogTerminologies(final List<String> dbs,
-    final Terminology terminology) throws Exception {
+  public List<IndexMetadata> getStaleStardogTerminologies(final List<String> dbs, final Terminology terminology)
+    throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
     if (CollectionUtils.isEmpty(iMetas)) {
@@ -118,12 +117,10 @@ public final class TerminologyUtils {
   /**
    * Returns the terminology.
    * 
-   * Set {@literal true} for {@code indexedOnly} param to lookup in indexed
-   * terminologies.
+   * Set {@literal true} for {@code indexedOnly} param to lookup in indexed terminologies.
    *
    * @param terminology the terminology
-   * @param indexed use {@literal true} to lookup in indexed terminologies as
-   *          opposed to stardog
+   * @param indexed use {@literal true} to lookup in indexed terminologies as opposed to stardog
    * @return the terminology
    * @throws Exception the exception
    */
@@ -140,31 +137,30 @@ public final class TerminologyUtils {
     }
 
     // Find terminologyVersion match
-    final Terminology tv = terminologies.stream()
-        .filter(t -> t.getTerminologyVersion().equals(terminology)).findFirst().orElse(null);
+    final Terminology tv =
+        terminologies.stream().filter(t -> t.getTerminologyVersion().equals(terminology)).findFirst().orElse(null);
     if (tv != null) {
       return tv;
     }
 
     // Find "latest" match
     final Terminology latest = terminologies.stream()
-        .filter(
-            t -> t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest())
-        .findFirst().orElse(null);
+        .filter(t -> t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()).findFirst()
+        .orElse(null);
     if (latest != null) {
       return latest;
     }
 
     // Find the "first"
-    final Terminology first = terminologies.stream()
-        .filter(t -> t.getTerminology().equals(terminology)).findFirst().orElse(null);
+    final Terminology first =
+        terminologies.stream().filter(t -> t.getTerminology().equals(terminology)).findFirst().orElse(null);
     if (first != null) {
       return first;
     }
 
     // IF we get this far, something is weird, show all terminologies
     terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND, terminology + " not found");
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
   }
 
   /**
@@ -212,8 +208,7 @@ public final class TerminologyUtils {
     // If the stardogProperties "db" matches the terminology metadata
     // "monthlyDb"
     // then continue, we're good.
-    if (terminology.getMetadata() != null && db != null
-        && db.equals(terminology.getMetadata().getMonthlyDb())) {
+    if (terminology.getMetadata() != null && db != null && db.equals(terminology.getMetadata().getMonthlyDb())) {
       logger.info("  stardog monthly db found = " + db);
       monthly = true;
     }
@@ -221,8 +216,7 @@ public final class TerminologyUtils {
     // If the ncit.json "monthlyDb" isn't set, then calculate
     // NOTE: this wont' handle exceptions like 20210531 being
     // the 5th Monday of May in 2021 but also a holiday
-    else if (terminology.getMetadata() == null
-        || terminology.getMetadata().getMonthlyDb() == null) {
+    else if (terminology.getMetadata() == null || terminology.getMetadata().getMonthlyDb() == null) {
       final Date d = fmt.parse(terminology.getDate());
       Calendar cal = GregorianCalendar.getInstance();
       cal.setTime(d);

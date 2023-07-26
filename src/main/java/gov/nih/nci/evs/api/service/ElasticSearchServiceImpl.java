@@ -23,12 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
@@ -86,7 +88,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // Append concept status clause
-    boolQuery.should(QueryBuilders.matchQuery("conceptStatus", "Retired_Concept").boost(-200f));
+    boolQuery.should(QueryBuilders.matchQuery("conceptStatus", "Retired_Concept").boost(-2000f));
 
     // append terminology query
     final QueryBuilder terminologyQuery = getTerminologyQuery(terminologies);
@@ -105,10 +107,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // build final search query
     final NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
         .withIndices(buildIndicesArray(searchCriteria))
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable);
-    // .withSourceFilter(new FetchSourceFilter(new String[] {
-    // "name", "code", "leaf", "terminology", "version"
-    // }, null));
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable).withSourceFilter(
+            new FetchSourceFilter(new IncludeParam(searchCriteria.getInclude()).getIncludedFields(),
+                new String[] {}));
 
     // avoid setting min score
     // .withMinScore(0.01f);
@@ -216,11 +217,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Phrase queries
     final QueryStringQueryBuilder phraseNormNameQuery =
-        QueryBuilders.queryStringQuery("\"" + normTerm + "\"").field("normName").boost(30f);
+        QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(30f);
     final NestedQueryBuilder nestedSynonymPhraseNormNameQuery =
         QueryBuilders.nestedQuery("synonyms",
-            QueryBuilders.queryStringQuery("\"" + normTerm + "\"").field("synonyms.normName"),
-            ScoreMode.Max).boost(29);
+            QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(29f),
+            ScoreMode.Max);
 
     // Word queries
     final QueryStringQueryBuilder fixNameQuery =

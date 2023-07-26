@@ -7,14 +7,20 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -79,11 +86,17 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The rui qual map. */
   private Map<String, Set<String>> ruiQualMap = new HashMap<>();
 
-  /** The mapsets. */
-  private Map<String, String> mapsets = new HashMap<>();
+  /** The rui qual sabs. */
+  private Set<String> ruiQualSabs = new HashSet<>();
+
+  /** The mapset version map. */
+  private Map<String, String> mapsetVersionMap = new HashMap<>();
 
   /** The maps. */
   private Map<String, Set<gov.nih.nci.evs.api.model.Map>> maps = new HashMap<>();
+
+  /** The rui inverse map. */
+  private Map<String, String> ruiInverseMap = new HashMap<>();
 
   /** The rel inverse map. */
   private Map<String, String> relInverseMap = new HashMap<>();
@@ -115,6 +128,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The qual set. */
   private Map<String, Set<String>> qualMap = new HashMap<>();
 
+  /** The history map. */
+  private Map<String, Set<History>> replHistoryMap = new HashMap<>();
+
   private int batchSize = 0;
 
   /** the environment *. */
@@ -124,6 +140,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The Elasticsearch operations service instance *. */
   @Autowired
   ElasticOperationsService operationsService;
+
+  /** The elastic query service. */
+  @Autowired
+  ElasticQueryService elasticQueryService;
 
   /**
    * Returns the filepath.
@@ -151,14 +171,22 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   private void cacheMaps() throws Exception {
 
     logger.info("  START cache maps");
+    int mapsetCt = 0;
+    int mapCt = 0;
     RrfReaders readers = new RrfReaders(this.getFilepath());
     readers.openOriginalReaders("MR");
     try (final PushBackReader mrconso = readers.getReader(RrfReaders.Keys.MRCONSO);
+        final PushBackReader mrrel = readers.getReader(RrfReaders.Keys.MRREL);
+        final PushBackReader mrsat = readers.getReader(RrfReaders.Keys.MRSAT);
         final PushBackReader mrmap = readers.getReader(RrfReaders.Keys.MRMAP);
         final PushBackReader mrdoc = readers.getReader(RrfReaders.Keys.MRDOC);
-        final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
+        final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);
+        final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI);) {
 
       String line = null;
+      final Map<String, String> mapsetNameMap = new HashMap<>();
+      final Map<String, String> mapsetToTerminologyMap = new HashMap<>();
+
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
@@ -166,32 +194,42 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,SAB,TTY,CODE,STR,SRL,SUPPRESS,CVF
 
         // Cache concept preferred names
-        if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF")
-            && fields[6].equalsIgnoreCase("Y")) {
+        if (fields[2].equalsIgnoreCase("P") && fields[4].equalsIgnoreCase("PF") && fields[6].equalsIgnoreCase("Y")) {
           // Save the name map to dereference it while processing relationships
           nameMap.put(fields[0], fields[14]);
         }
 
         // Cache ICD10CM PT names for mapping data
+        // ICD10CM/ICD10 are always target fields as of now
         if (fields[11].equals("ICD10CM") && fields[12].equals("PT")) {
-          nameMap.put(fields[13], fields[14]);
+          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
+        }
+
+        // Cache ICD10CM PT names for mapping data
+        if (fields[11].equals("ICD10") && fields[12].equals("PT")) {
+          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
         }
 
         // Cache SNOMEDCT_US/PT SCUI -> CUI for maps
+        // SNOMEDCT_US is always source field as of now
         if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("PT") && fields[16].equals("N")) {
+          mapsetNameMap.put(fields[13], fields[14]);
           codeCuiMap.put(fields[13], fields[0]);
         }
 
         // Cache mapsets
-        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM")
-            && fields[14].contains("ICD10CM")) {
+        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM") && fields[14].contains("ICD10")) {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
-          mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+          // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
+          mapsetToTerminologyMap.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
+          mapsetNameMap.put(fields[0], fields[14]);
+          mapsetVersionMap.put(fields[0], fields[14].replaceFirst("(.*) to .*", "$1").replaceFirst("SNOMEDCT_US_", ""));
         }
 
       }
 
       // Loop through map lines and cache map objects
+      final Map<String, Concept> mapsetMap = new HashMap<>();
       while ((line = mrmap.readLine()) != null) {
         // MAPSETCUI,MAPSETSAB,MAPSUBSETID,MAPRANK,MAPID,MAPSID,FROMID,FROMSID,
         // FROMEXPR,FROMTYPE,FROMRULE,FROMRES,REL,RELA,TOID,TOSID,TOEXPR,TOTYPE,
@@ -199,7 +237,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         final String[] fields = line.split("\\|", -1);
 
         // Skip map sets not being tracked
-        if (!mapsets.containsKey(fields[0])) {
+        if (!mapsetToTerminologyMap.containsKey(fields[0])) {
           continue;
         }
 
@@ -208,15 +246,35 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           continue;
         }
 
+        // Skip entries with descendant rules
+        // OK: IFA 445518008 &#x7C; Age at onset of clinical finding (observable entity) &#x7C;
+        // OK: IFA 248152002 &#x7C; Female (finding) &#x7C;
+        // OK: IFA 248153007 &#x7C; Male (finding) &#x7C;
+        if (fields[20].startsWith("IFA") && !fields[20].startsWith("IFA 445518008")
+            && !fields[20].startsWith("IFA 248152002") && !fields[20].startsWith("IFA 248153007")) {
+          continue;
+        }
+
         final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
+        map.setSource("SNOMEDCT_US");
         map.setSourceCode(fields[8]);
-        map.setSourceTerminology(fields[8]);
+        map.setSourceTerminology(fields[1]);
+        map.setSourceName(mapsetNameMap.get(fields[6]));
         map.setTargetCode(fields[16]);
-        map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermType("PT");
-        map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
-        map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
+        map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
+        map.setTargetTerminologyVersion(mapsetToTerminologyMap.get(fields[0]).split("_")[1]);
+        map.setTargetName(mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
         map.setType(fields[12]);
+        map.setGroup(fields[2]);
+        map.setRank(fields[3]);
+        map.setRule(fields[20]);
+        mapCt++;
+
+        // Fix source name if null
+        if (map.getSourceName() == null) {
+          map.setSourceName("Unable to determine name, code not present");
+        }
 
         // Fix target name if null
         if (map.getTargetName() == null) {
@@ -224,11 +282,60 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         final String cui = codeCuiMap.get(fields[8]);
-        if (!maps.containsKey(cui)) {
-          maps.put(cui, new HashSet<>());
+        // Some MRMAP entries in sample meta will not resolve to a CUI given the subset.
+        if (cui != null) {
+          if (!maps.containsKey(cui)) {
+            maps.put(cui, new HashSet<>());
+          }
+          maps.get(cui).add(map);
         }
-        maps.get(cui).add(map);
+
+        // Handle mapsets
+        if (!mapsetMap.containsKey(fields[0])) {
+          final Concept mapset = new Concept();
+          // populate the mapset details.
+          final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
+          mapset.setCode(code);
+          mapset.setName(mapsetNameMap.get(fields[0]));
+          mapset.setTerminology("SNOMEDCT_US");
+          mapset.setVersion(mapsetVersionMap.get(fields[0]));
+          // set other fields and properties as needed (to match other mapsets and needs of ui)
+          mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
+          final String mapsetUri = applicationProperties.getConfigBaseUri() + "/mapping-snomed-"
+              + mapsetToTerminologyMap.get(fields[0]).split("_")[0].toLowerCase() + ".html";
+          final String welcomeText =
+              IOUtils.toString(new URL(mapsetUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
+          mapset.getProperties().add(new Property("welcomeText", welcomeText));
+          mapset.getProperties().add(new Property("mapsetLink", null));
+          mapset.getProperties().add(new Property("downloadOnly", "false"));
+          mapsetMap.put(fields[0], mapset);
+          mapsetCt++;
+        }
+        mapsetMap.get(fields[0]).getMaps().add(map);
       }
+
+      // Here - create the map index and index the mapsets
+      boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
+      if (created) {
+        operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.MAPPING_INDEX,
+            ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      }
+      for (final Concept mapset : mapsetMap.values()) {
+        Collections.sort(mapset.getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
+          @Override
+          public int compare(final gov.nih.nci.evs.api.model.Map o1, final gov.nih.nci.evs.api.model.Map o2) {
+            // Assume maps are not null
+            return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank() + o1.getTargetName())
+                .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank() + o2.getTargetName());
+          }
+        });
+        logger.info("    Index map = " + mapset.getName());
+        operationsService.index(mapset, ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
+            Concept.class);
+      }
+      // free up memory
+      mapsetMap.clear();
+      mapsetNameMap.clear();
 
       // read inverses from MRDOC
       while ((line = mrdoc.readLine()) != null) {
@@ -254,22 +361,120 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         colMap.put(fields[0], fields[1]);
       }
 
+      // Handle RUI attributes
+      while ((line = mrsat.readLine()) != null) {
+        final String[] fields = line.split("\\|", -1);
+        // e.g.
+        // C4227882|||R114264673|RUI||AT148954088||SMQ_TERM_LEVEL|MDR|5|N||
+        // Skip high volume qualifiers for relationships
+        if (fields[4].equals("RUI") && !fields[8].equals("MODIFIER_ID")
+            && !fields[8].equals("CHARACTERISTIC_TYPE_ID")) {
+          final String atn = fields[8];
+          final String atv = fields[10];
+          if (!qualMap.containsKey(atn)) {
+            qualMap.put(atn, new HashSet<>());
+          }
+          qualMap.get(atn).add(atv);
+
+          if (!ruiQualMap.containsKey(fields[3])) {
+            ruiQualMap.put(fields[3], new HashSet<>(4));
+          }
+          ruiQualMap.get(fields[3]).add(atn + "|" + atv);
+          ruiQualSabs.add(fields[9]);
+        }
+
+      }
+
+      logger.info("    ruiQualMap = " + ruiQualMap.size());
+      final Map<String, String> helper = new HashMap<>();
+      // Prepare parent/child relationships for getHierarchyUtils
+      while ((line = mrrel.readLine()) != null) {
+        final String[] fields = line.split("\\|", -1);
+
+        // Only keep inverse RUI map for sources that have qualifiers
+        if (!ruiQualSabs.contains(fields[10])) {
+          continue;
+        }
+
+        // for non parent/children, build inverse rui map.
+        if (!fields[3].equals("PAR") && !fields[3].equals("CHD")) {
+          // C4229995|A5970983|AUI|PAR|C4229995|A5963886|AUI||R91875256||MDR|MDR|||N||
+          final String key = fields[1] + fields[5] + fields[3] + fields[7];
+          helper.put(key, fields[8]);
+          final String key2 = fields[5] + fields[1] + relInverseMap.get(fields[3]) + relaInverseMap.get(fields[7]);
+          if (helper.containsKey(key2)) {
+            ruiInverseMap.put(fields[8], helper.get(key2));
+            ruiInverseMap.put(helper.get(key2), fields[8]);
+            helper.remove(key);
+            helper.remove(key2);
+          }
+        }
+      }
+
+      // Remove any entries ruiInverseMap where the inverse RUIs do not have RUI
+      // qualifiers
+      for (final String key : new HashSet<>(ruiInverseMap.keySet())) {
+        final String value = ruiInverseMap.get(key);
+        if (!ruiQualMap.containsKey(value)) {
+          ruiInverseMap.remove(key);
+        }
+      }
+
+      // Prepare history entries for active "replacement" concepts
+      // CODE, DATE, REL (ACTION), RELA, MAPREASON, REPLACEMENT CODE, MAPINSUB
+      // Action values: Broader (RB), Narrower (RN), Other Related (RO), Deleted (DEL), Removed from
+      // Subset (SUBX)
+      // Loop through lines until we reach "the end"
+      while ((line = mrcui.readLine()) != null) {
+
+        final String[] fields = line.split("\\|", -1);
+        final String cui = fields[0];
+        final String date = fields[1];
+        final String action = fields[2];
+        final String replacementCui = fields[5];
+        final String inSubset = fields[6];
+
+        // Skip things where CUI2 is not in the subset or is blank
+        if (replacementCui.isEmpty() || inSubset.equals("N")) {
+          continue;
+        }
+
+        // Make a history entry from this line
+        final History history = new History();
+        history.setCode(cui);
+        // We don't know the names of retired concepts
+        history.setName("Retired concept");
+        history.setAction(action);
+        history.setDate(date);
+        history.setReplacementCode(replacementCui);
+        history.setReplacementName(nameMap.get(replacementCui));
+
+        if (!replHistoryMap.containsKey(replacementCui)) {
+          replHistoryMap.put(replacementCui, new HashSet<>(5));
+        }
+        replHistoryMap.get(replacementCui).add(history);
+      }
+
     } finally {
       readers.closeReaders();
     }
     logger.info("  FINISH cache maps");
+    logger.info("    mapsets = " + mapsetCt);
+    logger.info("    maps = " + mapCt);
+    logger.info("    ruiInverseMap = " + ruiInverseMap.size());
+    logger.info("    ruiQualMap = " + ruiQualMap.size());
+    logger.info("    replHistoryMap = " + replHistoryMap.size());
 
   }
 
   /* see superclass */
   @Override
-  public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws Exception {
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
     // Put the mapping
-    boolean result =
-        operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
+    boolean result = operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
@@ -306,17 +511,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // check if we've hit a new concept then process the other files for the
         // "prevCui"
-        if (!cui.equals(prevCui)) {
+        if (prevCui != null && !cui.equals(prevCui)) {
 
           // Process data
           handleDefinitions(terminology, concept, mrdef, prevCui);
           handleSemanticTypes(concept, mrsty, prevCui);
           handleAttributes(concept, mrsat, prevCui);
           handleRelationships(concept, mrrel, prevCui);
-
-          if (maps.containsKey(cui)) {
-            concept.getMaps().addAll(maps.get(cui));
-          }
+          handleMapsAndHistory(concept, prevCui);
 
           // There are not useful mappings in the UMLS at this point in time
           // handleMapping(concept, mrmap, prevCui);
@@ -344,6 +546,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Each line of MRCONSO is a synonym
         final Synonym sy = new Synonym();
+
+        // Put the AUI into the URI field for the time being (to be removed
+        // later)
+        sy.setUri(fields[7]);
         sy.setType(fields[14].equals(concept.getName()) ? "Preferred_Name" : "Synonym");
         if (!fields[13].equals("NOCODE")) {
           sy.setCode(fields[13]);
@@ -365,9 +571,13 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       handleSemanticTypes(concept, mrsty, prevCui);
       handleAttributes(concept, mrsat, prevCui);
       handleRelationships(concept, mrrel, prevCui);
-      handleConcept(concept, batch, true, terminology.getIndexName());
+      handleMapsAndHistory(concept, prevCui);
 
+      handleConcept(concept, batch, true, terminology.getIndexName());
       totalConcepts++;
+
+      // Process any retired concepts for history
+      totalConcepts += loadHistory(terminology);
 
       return totalConcepts;
 
@@ -385,8 +595,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleSemanticTypes(final Concept concept, final PushBackReader mrsty,
-    final String prevCui) throws Exception {
+  public void handleSemanticTypes(final Concept concept, final PushBackReader mrsty, final String prevCui)
+    throws Exception {
     String line;
     while ((line = mrsty.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -408,8 +618,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleAttributes(final Concept concept, final PushBackReader mrsat,
-    final String prevCui) throws Exception {
+  public void handleAttributes(final Concept concept, final PushBackReader mrsat, final String prevCui)
+    throws Exception {
 
     // Track seen to avoid duplicates
     final Set<String> seen = new HashSet<>();
@@ -458,20 +668,27 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       final String sab = fields[9];
       final String atv = fields[10];
 
-      // RUI Attributes
-      if (fields[4].equals("RUI")) {
+      // RUI attributes handled in cacheMaps
+
+      // Handle AUI attributes as qualifiers on synonyms
+      if (fields[4].equals("AUI")) {
+        // Add entry to qualifier map for metadata
         if (!qualMap.containsKey(atn)) {
           qualMap.put(atn, new HashSet<>());
         }
         qualMap.get(atn).add(atv);
-        if (!ruiQualMap.containsKey(fields[3])) {
-          ruiQualMap.put(fields[3], new HashSet<>());
+
+        // find synonym
+        final Synonym syn =
+            concept.getSynonyms().stream().filter(s -> s.getUri().equals(fields[3])).findFirst().orElse(null);
+        if (syn == null) {
+          throw new Exception("Synonym for attribute cannot be resolved = " + line);
         }
-        ruiQualMap.get(fields[3]).add(atn + "|" + atv);
+        syn.getQualifiers().add(new Qualifier(atn, ConceptUtils.substr(atv, 1000)));
       }
 
-      // Handle other attributes
-      else {
+      // Otherwise handle as a concept attribute
+      else if (!fields[4].equals("RUI")) {
 
         // De-duplicate concept attributes
         final String key = sab + atn + atv;
@@ -494,8 +711,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param source the source
    * @return the property
    */
-  private void buildProperty(final Concept concept, final String type, final String value,
-    final String source) {
+  private void buildProperty(final Concept concept, final String type, final String value, final String source) {
     final Property prop = new Property();
     prop.setValue(value);
     prop.setType(type);
@@ -515,8 +731,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  private void handleDefinitions(final Terminology terminology, final Concept concept,
-    final PushBackReader mrdef, final String prevCui) throws Exception {
+  private void handleDefinitions(final Terminology terminology, final Concept concept, final PushBackReader mrdef,
+    final String prevCui) throws Exception {
     String line;
     while ((line = mrdef.readLine()) != null) {
       final String[] fields = line.split("\\|", -1);
@@ -537,8 +753,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @return the definition
    */
-  private void buildDefinition(final Terminology terminology, final Concept concept,
-    final String[] fields) {
+  private void buildDefinition(final Terminology terminology, final Concept concept, final String[] fields) {
     final String definition = fields[5];
     final String source = fields[4];
 
@@ -558,8 +773,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleRelationships(final Concept concept, final PushBackReader mrrel,
-    final String prevCui) throws Exception {
+  public void handleRelationships(final Concept concept, final PushBackReader mrrel, final String prevCui)
+    throws Exception {
     Set<String> seen = new HashSet<>();
     String line;
     while ((line = mrrel.readLine()) != null) {
@@ -577,8 +792,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       final String toCode = fields[0];
 
       // Skip certain situations
-      if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB")
-          || rel.equals("BRO") || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
+      if (fromCode.equals(toCode) || rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")
+          || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
 
@@ -627,6 +842,29 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
+   * Handle maps and history.
+   *
+   * @param concept the concept
+   * @param prevCui the prev cui
+   * @throws Exception the exception
+   */
+  public void handleMapsAndHistory(final Concept concept, final String prevCui) throws Exception {
+
+    // Add maps
+    if (maps.containsKey(prevCui)) {
+      concept.getMaps().addAll(maps.get(prevCui));
+      // Clear memory as we do not need this anymore
+      maps.remove(prevCui);
+    }
+
+    // Add history
+    if (replHistoryMap.containsKey(prevCui)) {
+      concept.getHistory().addAll(replHistoryMap.get(prevCui));
+      replHistoryMap.remove(prevCui);
+    }
+  }
+
+  /**
    * Handle building concept property.
    *
    * @param concept the concept
@@ -659,8 +897,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @return the concept
    * @throws Exception the exception
    */
-  private Concept buildParentChildHelper(final Concept concept, final String[] fields)
-    throws Exception {
+  private Concept buildParentChildHelper(final Concept concept, final String[] fields) throws Exception {
 
     // C2584594|A9570455|SCUI|PAR|C0203464|A3803453|SCUI|inverse_isa|R105418833|4727926024|SNOMEDCT_US|SNOMEDCT_US||N|N||
     // final String cui1 = fields[0];
@@ -758,10 +995,12 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (!rela.isEmpty()) {
       association.getQualifiers().add(new Qualifier("RELA", relaInverseMap.get(rela)));
     }
-    if (ruiQualMap.containsKey(fields[8])) {
-      for (final String atnatv : ruiQualMap.get(fields[8])) {
+
+    final String inverseRui = ruiInverseMap.get(fields[8]);
+    if (ruiQualMap.containsKey(inverseRui)) {
+      for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
-        association.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+        association.getQualifiers().add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
     }
 
@@ -803,12 +1042,13 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // }
     // association.getQualifiers().add(new Qualifier("SUPPRESS", suppress));
 
-    if (ruiQualMap.containsKey(fields[8])) {
-      for (final String atnatv : ruiQualMap.get(fields[8])) {
+    if (ruiQualMap.containsKey(inverseRui)) {
+      for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
-        iassociation.getQualifiers().add(new Qualifier(parts[0], parts[1]));
+        iassociation.getQualifiers().add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
-      ruiQualMap.remove(fields[8]);
+      ruiQualMap.remove(inverseRui);
+      ruiInverseMap.remove(fields[8]);
     }
 
     concept.getInverseAssociations().add(iassociation);
@@ -823,8 +1063,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param name the name
    * @return the concept
    */
-  private Concept buildMetadata(final Terminology terminology, final String code,
-    final String name) {
+  private Concept buildMetadata(final Terminology terminology, final String code, final String name) {
     final Concept propMeta = new Concept();
     propMeta.setCode(code);
     propMeta.setName(code);
@@ -848,8 +1087,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws Exception {
 
     final String indexName = terminology.getObjectIndexName();
 
@@ -868,8 +1107,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     for (final String rel : relSet) {
       associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
     }
-    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     // Hanlde "concept statuses" - n/a
 
@@ -882,26 +1120,19 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     final ElasticObject defTypes = new ElasticObject("definitionTypes");
     defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
-    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle properties
     //
     final ElasticObject properties = new ElasticObject("properties");
 
-    // MRSTY: Semantic_Type property
-    properties.getConcepts().add(buildMetadata(terminology, "Semantic_Type", "Semantic type"));
-
     // MRSAT: property metadata for MRSAT
-    // Remove ATNs that are qualifiers
-    atnSet.removeAll(qualMap.keySet());
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle qualifiers
@@ -918,24 +1149,30 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     for (final String qual : qualMap.keySet()) {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
+    for (final String key : qualMap.keySet()) {
+      // Truncate additional values
+      if (qualMap.get(key).size() > 1000) {
+        logger.info("      truncate qualifier values list at 1000 = " + key + ", " + qualMap.get(key).size());
+        qualMap.put(key, qualMap.get(key).stream().collect(Collectors.toList()).subList(0, 1000).stream()
+            .collect(Collectors.toSet()));
+        qualMap.get(key).add("... additional values ...");
+      }
+    }
+    // Do this after truncating because it gets turned into a String
     qualifiers.setMap(qualMap);
-
-    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle roles - n/a
     //
     final ElasticObject roles = new ElasticObject("roles");
-    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle subsets - n/a
     //
     final ElasticObject subsets = new ElasticObject("subsets");
-    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle synonymSources - n/a - handled inline
@@ -947,8 +1184,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject syTypes = new ElasticObject("synonymTypes");
     syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
     syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
-    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle termTypes - n/a - handled inline
@@ -965,8 +1201,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    * @param indexName the index name
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName)
-    throws IOException {
+  private void handleConcept(Concept concept, List<Concept> batch, boolean flag, String indexName) throws IOException {
+
+    // Remove synonym "uris" as no longer needed
+    concept.getSynonyms().forEach(s -> s.setUri(null));
 
     // Put concept lists in natural sort order
     concept.sortLists();
@@ -983,8 +1221,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
-      operationsService.bulkIndex(new ArrayList<>(batch), indexName,
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      operationsService.bulkIndex(new ArrayList<>(batch), indexName, ElasticOperationsService.CONCEPT_TYPE,
+          Concept.class);
       batch.clear();
       batchSize = 0;
     }
@@ -993,16 +1231,15 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
-    String filepath, String terminology, boolean forceDelete) throws Exception {
+  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, String filepath,
+    String terminology, boolean forceDelete) throws Exception {
     // will eventually read and build differently
     this.setFilepath(new File(filepath));
     if (!this.getFilepath().exists()) {
       throw new Exception("Given filepath does not exist");
     }
     try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
-        final BufferedReader in =
-            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
+        final BufferedReader in = new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
 
       String line;
       Terminology term = new Terminology();
@@ -1041,8 +1278,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Load from config
         final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
-        final TerminologyMetadata metadata =
-            new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+        final TerminologyMetadata metadata = new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
         // Set term name and description
         term.setName(metadata.getUiLabel() + " " + term.getVersion());
@@ -1057,8 +1293,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         term.setMetadata(metadata);
 
       } catch (Exception e) {
-        throw new Exception("Unexpected error trying to load metadata = "
-            + applicationProperties.getConfigBaseUri(), e);
+        throw new Exception("Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
+            e);
       }
 
       return term;
@@ -1066,6 +1302,116 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       throw new Exception("Could not load terminology ncim");
     }
 
+  }
+
+  /**
+   * Load the history files.
+   *
+   * @param terminology the terminology
+   * @return the number of retired concepts created
+   * @throws Exception the exception
+   */
+  private int loadHistory(final Terminology terminology) throws Exception {
+
+    if (!terminology.getTerminology().equals("ncim")) {
+      return 0;
+    }
+
+    logger.debug("  STARTING HISTORY PROCESSING (wait 5 sec for elasticsearch to finish)");
+    Thread.sleep(5000);
+
+    final List<Concept> batch = new ArrayList<>();
+    int totalConcepts = 0;
+
+    RrfReaders readers = new RrfReaders(this.getFilepath());
+    readers.openOriginalReaders("MR");
+
+    try (final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI);) {
+
+      String line = null;
+      Concept concept = new Concept();
+      String prevCui = null;
+
+      // CODE, DATE, REL (ACTION), RELA, MAPREASON, REPLACEMENT CODE, MAPINSUB
+      // Action values: Broader (RB), Narrower (RN), Other Related (RO), Deleted (DEL), Removed from
+      // Subset (SUBX)
+      // Loop through lines until we reach "the end"
+      while ((line = mrcui.readLine()) != null) {
+
+        final String[] fields = line.split("\\|", -1);
+        final String cui = fields[0];
+        final String date = fields[1];
+        final String action = fields[2];
+        final String replacementCui = fields[5];
+        final String replacementInSubset = fields[6];
+
+        // Skip things removed by Metamorphosys
+        if (action.equals("SUBX")) {
+          continue;
+        }
+
+        // Skip things where CUI2 is not in the subset
+        if (replacementInSubset.equals("N")) {
+          continue;
+        }
+
+        // Test assumption that the file is in order (when considering
+        // |)
+        if (prevCui != null && (cui + "|").compareTo(prevCui + "|") < 0) {
+          throw new Exception("File is unexpectedly out of order = " + prevCui + ", " + cui);
+        }
+
+        // If prev cui doesn't match, make a concept
+        // check if we've hit a new concept then process the other files for the
+        // "prevCui"
+        if (prevCui != null && !cui.equals(prevCui)) {
+
+          // Handle the previous concept here (and repeat outside the block)
+          handleConcept(concept, batch, false, terminology.getIndexName());
+
+          if (totalConcepts++ % 5000 == 0) {
+            logger.info("    count = " + totalConcepts);
+          }
+
+          // Create new concept for this code
+          concept = new Concept();
+          concept.setName("Retired concept");
+          concept.setNormName(ConceptUtils.normalize("Retired concept"));
+          concept.setCode(cui);
+          concept.setTerminology(terminology.getTerminology());
+          concept.setVersion(terminology.getVersion());
+          // NO hierarchies for NCIM concepts, so set leaf to null
+          concept.setLeaf(null);
+
+        }
+
+        // Make a history entry from this line
+        final History history = new History();
+        history.setCode(cui);
+        // We don't know the names of retired concepts
+        history.setName("Retired concept");
+        history.setAction(action);
+        history.setDate(date);
+        if (!replacementCui.isEmpty()) {
+          history.setReplacementCode(replacementCui);
+          history.setReplacementName(nameMap.get(replacementCui));
+        }
+        concept.getHistory().add(history);
+
+        // Save prev cui for next round
+        prevCui = cui;
+
+      }
+
+      handleConcept(concept, batch, true, terminology.getIndexName());
+      totalConcepts++;
+
+    } finally {
+      readers.closeReaders();
+    }
+
+    logger.info("    totalCount = " + totalConcepts);
+    return totalConcepts;
   }
 
   /* see superclass */

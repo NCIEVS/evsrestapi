@@ -36,6 +36,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -248,6 +249,45 @@ public class ConceptControllerTests {
     assertThat(list.get(0).getTerminology()).isEqualTo("ncit");
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
     assertThat(list.get(0).getDefinitions()).isNotEmpty();
+
+  }
+
+  /**
+   * Test get concepts with list with license restriction.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptsWithListWithLicenseRestriction() throws Exception {
+
+    MvcResult result = null;
+    String content = null;
+    String url = null;
+    List<Concept> list = null;
+
+    // Try MDR with 10 codes
+    // grep MDR MRCONSO.RRF | cut -d\| -f 14
+    url = baseUrl + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
+        + "10030182,10017924&include=minimal";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+      // n/a
+    });
+    assertThat(list).isNotEmpty();
+    // 2 codes must be
+    assertThat(list.size()).isEqualTo(10);
+    assertThat(list.get(0).getTerminology()).isEqualTo("mdr");
+    assertThat(list.get(0).getSynonyms()).isEmpty();
+    assertThat(list.get(0).getDefinitions()).isEmpty();
+
+    url = baseUrl + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
+        + "10030182,10017924,10017884&include=minimal";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
 
   }
 
@@ -644,6 +684,62 @@ public class ConceptControllerTests {
   }
 
   /**
+   * Test get concept history.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptHistory() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // NOTE, this is a concept that has replaced other concepts and is retired itself
+    url = baseUrl + "/ncit/C14615/history";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    log.info("  list = " + concept.getHistory().size());
+    assertThat(concept.getHistory()).isNotEmpty();
+
+    boolean foundRetiredThis = false;
+    boolean foundReplacedAnother = false;
+    boolean foundModify = false;
+
+    for (final History history : concept.getHistory()) {
+
+      if (history.getAction().equals("retire") && history.getCode().equals("C14615")) {
+        foundRetiredThis = true;
+
+      } else if (history.getAction().equals("modify") && history.getCode().equals("C14615")) {
+        foundModify = true;
+
+      } else if (history.getAction().equals("retire") && !history.getCode().equals("C14615")
+          && history.getReplacementCode().equals("C14615")) {
+        foundReplacedAnother = true;
+      }
+    }
+
+    assertThat(foundRetiredThis && foundReplacedAnother && foundModify).isTrue();
+
+    // NOTE, this is a concept that should not have history
+    url = baseUrl + "/ncim/C0005768/history";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    log.info("  list = " + concept.getHistory().size());
+    assertThat(concept.getHistory()).isEmpty();
+  }
+
+  /**
    * Test get concept disjoint with.
    *
    * @throws Exception the exception
@@ -962,7 +1058,7 @@ public class ConceptControllerTests {
     assertThat(content).isNotEqualTo(origContent);
 
     // C162271 - test large case
-    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=1000";
+    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=1000&include=full";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -974,6 +1070,44 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isEmpty();
 
+    // C98767 - test case with paging (for something with only 1)
+    url = baseUrl + "/ncit/C98767/pathsFromRoot?fromRecord=0&include=minimal&pageSize=100";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list.size()).isEqualTo(1);
+
+    // C4872 - test case with paging
+    url = baseUrl + "/ncit/C4872/pathsFromRoot?fromRecord=0&include=minimal&pageSize=2";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list.size()).isEqualTo(2);
+
+    // C4872 - test case with paging
+    url = baseUrl + "/ncit/C4872/pathsFromRoot?fromRecord=0&include=minimal&pageSize=100";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list.size()).isGreaterThan(2);
   }
 
   /**
@@ -1063,7 +1197,6 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(700);
 
-
     // C162271 - test large case
     url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=0&pageSize=10";
     log.info("Testing url - " + url);
@@ -1107,6 +1240,44 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isEmpty();
 
+    // C98767 - test case with paging (for something with only 1)
+    url = baseUrl + "/ncit/C98767/pathsToRoot?fromRecord=0&include=minimal&pageSize=100";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list.size()).isEqualTo(1);
+
+    // C4872 - test case with paging
+    url = baseUrl + "/ncit/C4872/pathsToRoot?fromRecord=0&include=minimal&pageSize=2";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list.size()).isEqualTo(2);
+
+    // C4872 - test case with paging
+    url = baseUrl + "/ncit/C4872/pathsToRoot?fromRecord=0&include=minimal&pageSize=100";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    // log.info(" content = " + content);
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+    log.info("  list = " + list.size());
+    assertThat(list.size()).isGreaterThan(2);
   }
 
   /**
@@ -1183,6 +1354,45 @@ public class ConceptControllerTests {
     assertThat(list.size() == 1); // single path
     assertThat(list.get(0).size() == 1); // single element in path
     assertThat(list.get(0).get(0).getLevel() == 0);
+
+    // Test case with paging
+    url = baseUrl + "/ncit/C98767/pathsToAncestor/C49237?fromRecord=0&include=minimal&pageSize=100";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+
+    // check format for ancestor of self
+    assertThat(list.size()).isEqualTo(1);
+
+    // Test case with paging (2 results)
+    url = baseUrl + "/ncit/C4872/pathsToAncestor/C7057?fromRecord=0&include=minimal&pageSize=2";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+
+    // check format for ancestor of self
+    assertThat(list.size()).isEqualTo(2);
+
+    // Test case with paging (2 results)
+    url = baseUrl + "/ncit/C4872/pathsToAncestor/C7057?fromRecord=0&include=minimal&pageSize=100";
+    log.info("Testing url - " + url);
+
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      // n/a
+    });
+
+    // check format for ancestor of self
+    assertThat(list.size()).isGreaterThan(2);
 
   }
 
@@ -1277,18 +1487,6 @@ public class ConceptControllerTests {
       assertThat(assoc.getAssociation().equals("Has_Target"));
     }
 
-    // Test with association with no data
-    url = baseUrl + "/ncit/associations/Has_CDRH_Parent";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
-    assertThat(resultList).isNotNull();
-    assertThat(resultList.getTimeTaken() > 0);
-    assertThat(resultList.getTotal() == 0);
-    assertThat(resultList.getParameters().getTerminology().contains("Has_CDRH_Parent"));
-
     // Test that concept subset is properly 404'd
     url = baseUrl + "/ncit/associations/A8";
     log.info("Testing url - " + url);
@@ -1354,7 +1552,7 @@ public class ConceptControllerTests {
     String content = null;
     List<Concept> subsetMembers;
 
-    url = baseUrl + "/ncit/subsetMembers/C2991";
+    url = baseUrl + "/ncit/subsetMembers/C157225";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1362,9 +1560,9 @@ public class ConceptControllerTests {
     subsetMembers = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    assertThat(subsetMembers.size()).isEqualTo(40);
+    assertThat(subsetMembers.size()).isGreaterThan(1);
 
-    url = baseUrl + "/ncit/subsetMembers/C2991?pageSize=10";
+    url = baseUrl + "/ncit/subsetMembers/C157225?pageSize=10";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1375,7 +1573,7 @@ public class ConceptControllerTests {
 
     assertThat(subsetMembers.size() == 10);
 
-    url = baseUrl + "/ncit/subsetMembers/C136564?pageSize=10";
+    url = baseUrl + "/ncit/subsetMembers/C1111?pageSize=10";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

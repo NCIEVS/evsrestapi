@@ -40,19 +40,21 @@ import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Controller for /concept endpoints.
  */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Api(tags = "Concept endpoints")
+@Tag(name = "Concept endpoints")
 public class ConceptController extends BaseController {
 
   /** Logger. */
@@ -86,32 +88,36 @@ public class ConceptController extends BaseController {
    * @return the associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get concepts specified by list parameter", response = Concept.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get concepts specified by list parameter")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}", produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "list",
-          value = "List (comma-separated) of codes to return concepts for, e.g."
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "list",
+          description = "List (comma-separated) of codes to return concepts for, e.g."
               + "<ul><li>'C2291,C3224' for <i>ncit</i></li>" + "<li>'C0010137,C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "query")
+          required = true, schema = @Schema(implementation = String.class))
   })
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}", produces = "application/json")
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
-  final Optional<String> include, @RequestParam("list")
+  final Optional<String> include, @RequestParam(name = "list", required = true)
   final String list) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
@@ -124,9 +130,17 @@ public class ConceptController extends BaseController {
             "Maximum number of concepts to request at a time is 1000 = " + codes.length);
       }
 
+      // Restrict paging for license-restricted terminologies
+      if (term.getMetadata().getLicenseText() != null && codes.length > 10) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            term.getMetadata().getUiLabel().replaceFirst(":.*", "")
+                + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
+                + "(code list has " + codes.length + " codes)");
+      }
+
       final List<Concept> concepts = elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
       return concepts;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -137,40 +151,46 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param limit the limit
    * @param include the include
    * @return the concept
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the concept for the specified terminology and code", response = Concept.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get the concept for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}", produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "limit",
-          value = "If set to an integer (between <i>1</i> and <i>100</i>), elements of the concept "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "limit",
+          description = "If set to an integer (between <i>1</i> and <i>100</i>), elements of the concept "
               + "should be limited to that specified number of entries. Thus a user interface can "
               + "quickly retrieve initial data for a concept (even with <i>include=full</i>) and "
               + "then call back for more data. "
               + "An extra placeholder entry with just a <i>ct</i> field will be included "
               + "to indicate the total count.",
-          required = false, dataTypeClass = Integer.class, paramType = "query"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the "
+          required = false, schema = @Schema(implementation = Integer.class), example = "100"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the "
               + "following values: minimal, summary, full, associations, children, definitions, "
-              + "disjointWith, inverseAssociations, inverseRoles, maps, parents, properties, "
+              + "disjointWith, history, inverseAssociations, inverseRoles, maps, parents, properties, "
               + "roles, synonyms. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}", produces = "application/json")
   public @ResponseBody Concept getConcept(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
@@ -180,7 +200,7 @@ public class ConceptController extends BaseController {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
+      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -193,7 +213,7 @@ public class ConceptController extends BaseController {
         ConceptUtils.applyLimit(concept.get(), limit.get().intValue());
       }
       return concept.get();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -208,19 +228,19 @@ public class ConceptController extends BaseController {
    * @return the associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the associations for the specified terminology and code", response = Association.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get the associations for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. <ul><li>'C3224' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. <ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations",
@@ -239,7 +259,7 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getAssociations();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -255,48 +275,50 @@ public class ConceptController extends BaseController {
    * @return the association antries
    * @throws Exception the exception
    */
-  @ApiOperation(
-      value = "Get the association entries for the specified terminology and code. Associations used to define subset membership are not resolved by this call",
-      response = AssociationEntryResultList.class)
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(
+      summary = "Get the association entries for the specified terminology and code. Associations used to define subset membership are not resolved by this call")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "codeOrLabel",
-          value = "Code/label in the specified terminology, e.g. " + "'A5' or 'Has_Salt_Form' for <i>ncit</i>."
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "codeOrLabel",
+          description = "Code/label in the specified terminology, e.g. " + "'A5' or 'Has_Salt_Form' for <i>ncit</i>."
               + " This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "10", example = "10")
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "10")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/associations/{codeOrLabel}",
       produces = "application/json")
   public @ResponseBody AssociationEntryResultList getAssociationEntries(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "codeOrLabel")
-  String codeOrLabel, @RequestParam(required = false, name = "fromRecord")
-  Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  Optional<Integer> pageSize) throws Exception {
+  final String codeOrLabel, @RequestParam(required = false, name = "fromRecord")
+  final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Optional<Integer> pageSize) throws Exception {
     // Get the association "label"
-    Long startTime = System.currentTimeMillis();
+    final Long startTime = System.currentTimeMillis();
 
-    Optional<Concept> association =
+    final Optional<Concept> association =
         metadataService.getAssociation(terminology, codeOrLabel, Optional.ofNullable("minimal"));
-    if (!association.isPresent())
+    if (!association.isPresent()) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + codeOrLabel + " not found");
-    String label = association.get().getName();
-    String code = association.get().getCode();
-    if (termUtils.getTerminology(terminology, true).getMetadata().getSubsetMember().contains(code)) {
+    }
+    final String label = association.get().getName();
+    if (termUtils.getTerminology(terminology, true).getMetadata().getSubsetMember().contains(codeOrLabel)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Associations used to define subset membership are not resolved by this call");
     }
     // Getting the list
-    AssociationEntryResultList list =
+    final AssociationEntryResultList list =
         metadataService.getAssociationEntries(terminology, label, fromRecord.orElse(0), pageSize.orElse(10));
     list.setTimeTaken(System.currentTimeMillis() - startTime);
 
@@ -311,19 +333,19 @@ public class ConceptController extends BaseController {
    * @return the inverse associations
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get inverse associations for the specified terminology and code", response = Association.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get inverse associations for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseAssociations",
@@ -342,7 +364,7 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getInverseAssociations();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -360,30 +382,33 @@ public class ConceptController extends BaseController {
    * @return the subsets
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get subset members for the specified terminology and code", response = Association.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get subset members for the specified terminology and code.",
+      description = "This endpoint will be deprecated in v2 in favor of a top level subset member endpoint.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code for a subset concept in the specified "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code for a subset concept in the specified "
               + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = String.class, paramType = "query", defaultValue = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = String.class, paramType = "query"),
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "10000"),
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
@@ -405,13 +430,13 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      List<Concept> subsets = new ArrayList<>();
-      int associationListSize = concept.get().getInverseAssociations().size();
+      final List<Concept> subsets = new ArrayList<>();
+      final int associationListSize = concept.get().getInverseAssociations().size();
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
         final int toIndex = Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (Association assn : concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
+        for (final Association assn : concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
           final Concept member = elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {
             subsets.add(member);
@@ -423,7 +448,7 @@ public class ConceptController extends BaseController {
       }
 
       return subsets;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -438,19 +463,19 @@ public class ConceptController extends BaseController {
    * @return the roles
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get roles for the specified terminology and code", response = Role.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get roles for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles",
@@ -469,7 +494,7 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getRoles();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -484,19 +509,19 @@ public class ConceptController extends BaseController {
    * @return the inverse roles
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get inverse roles for the specified terminology and code", response = Role.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get inverse roles for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles",
@@ -515,7 +540,7 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getInverseRoles();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -529,19 +554,19 @@ public class ConceptController extends BaseController {
    * @return the parents
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get parent concepts for the specified terminology and code", response = ConceptMinimal.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get parent concepts for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents",
@@ -560,7 +585,7 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getParents();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -574,19 +599,19 @@ public class ConceptController extends BaseController {
    * @return the children
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get child concepts for the specified terminology and code", response = ConceptMinimal.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get child concepts for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children",
@@ -605,7 +630,7 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getChildren();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -622,29 +647,32 @@ public class ConceptController extends BaseController {
    * @return the descendants
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get descendant concepts for the specified terminology and code",
-      response = ConceptMinimal.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get descendant concepts for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit''", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
+              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "50000"),
+      @Parameter(name = "maxLevel", description = "Max level of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "10000")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit''", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
-              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = String.class, paramType = "query", defaultValue = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = String.class, paramType = "query", defaultValue = "10000"),
-      @ApiImplicitParam(name = "maxLevel", value = "Max level of results to return", required = false,
-          dataTypeClass = String.class, paramType = "query", defaultValue = "10000")
-  })
+
   public @ResponseBody List<Concept> getDescendants(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "fromRecord")
@@ -659,10 +687,10 @@ public class ConceptController extends BaseController {
       }
 
       final List<Concept> baseList = new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
-      Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
+      final Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
       final List<Concept> list = baseList.stream().filter(byLevel).collect(Collectors.toList());
 
-      int fromIndex = fromRecord.orElse(0);
+      final int fromIndex = fromRecord.orElse(0);
       // Use a large default page size
       int toIndex = fromIndex + pageSize.orElse(50000);
       if (toIndex >= list.size()) {
@@ -679,7 +707,7 @@ public class ConceptController extends BaseController {
 
       return list.subList(fromIndex, toIndex);
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -693,19 +721,19 @@ public class ConceptController extends BaseController {
    * @return the maps
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get maps for the specified terminology and code", response = Map.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get maps for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
@@ -724,7 +752,53 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getMaps();
-    } catch (Exception e) {
+    } catch (final Exception e) {
+      handleException(e);
+      return null;
+    }
+
+  }
+
+  /**
+   * Returns the history.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the concept with history
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get history for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
+              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i> and <i>ncim</i>.",
+          required = true, schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/history",
+      produces = "application/json")
+  public @ResponseBody Concept getHistory(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "code")
+  final String code) throws Exception {
+
+    try {
+      final Terminology term = termUtils.getTerminology(terminology, true);
+
+      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("history"));
+
+      if (!concept.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
+      }
+
+      return concept.get();
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -739,19 +813,19 @@ public class ConceptController extends BaseController {
    * @return the disjoint with
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get \"disjoint with\" info for the specified terminology and code",
-      response = DisjointWith.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get \"disjoint with\" info for the specified terminology and code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "'C3910' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path")
+          required = true, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith",
@@ -769,7 +843,7 @@ public class ConceptController extends BaseController {
       }
 
       return concept.get().getDisjointWith();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -783,26 +857,29 @@ public class ConceptController extends BaseController {
    * @return the roots
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get root concepts for the specified terminology", response = Concept.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get root concepts for the specified terminology")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots", produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology",
-          value = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "include",
-          value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
+  @Parameters({
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal")
   })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots", produces = "application/json")
+
   public @ResponseBody List<Concept> getRoots(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include) throws Exception {
@@ -821,7 +898,7 @@ public class ConceptController extends BaseController {
       }
 
       return list;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -833,39 +910,43 @@ public class ConceptController extends BaseController {
    * @param terminology the terminology
    * @param code the code
    * @param include the include
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the paths from root
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths from the hierarchy root to the specified concept", response = List.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get paths from the hierarchy root to the specified concept.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
+              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>. For this call, it is recommended to avoid using this "
+              + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
+              + "may produce very large payload results. ",
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "100")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
-              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-          + "for detailed information</a>. For this call, it is recommended to avoid using this "
-          + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
-          + "may produce very large payload results. ",
-      required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", example = "100")
-  })
   public @ResponseBody List<List<Concept>> getPathsFromRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
@@ -887,11 +968,11 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -903,33 +984,37 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param limit the limit
    * @return the subtree
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the entire subtree from the root node to the specified code",
-      response = HierarchyNode.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get the entire subtree from the root node to the specified code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
-  @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree",
-      produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "limit",
-          value = "If set to an integer (between <i>1</i> and <i>100</i>), subtrees and siblings "
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "limit",
+          description = "If set to an integer (between <i>1</i> and <i>100</i>), subtrees and siblings "
               + "at each level will be limited to the specified number of entries. Thus a user "
               + "interface can quickly retrieve initial data for a subtree and then call back " + "for more data. "
               + "An extra placeholder entry with just a <i>ct</i> field will be included "
               + "to indicate the total count.",
-          required = false, dataTypeClass = Integer.class, paramType = "query")
+          required = false, schema = @Schema(implementation = Integer.class), example = "100")
   })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree",
+      produces = "application/json")
+
   public @ResponseBody List<HierarchyNode> getSubtree(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
@@ -944,22 +1029,21 @@ public class ConceptController extends BaseController {
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "limit must be between 1 and 100");
-
         }
       }
       // final List<HierarchyNode> nodes =
       // elasticQueryService.getPathInHierarchy(code, term);
       // return nodes;
 
-      List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(term);
-      Paths paths = elasticQueryService.getPathsToRoot(code, term);
+      final List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(term);
+      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
 
       // root hierarchy node map for quick look up
-      HashMap<String, HierarchyNode> rootNodeMap = new HashMap<>();
+      final HashMap<String, HierarchyNode> rootNodeMap = new HashMap<>();
       rootNodes.stream().forEach(n -> rootNodeMap.put(n.getCode(), n));
 
       // Limit to 10 paths if a limit of >10 is used.
-      int pathLimit = (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
+      final int pathLimit = (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
       final List<Path> ps = paths.getPaths();
       int ct = 0;
       for (final Path path : ps) {
@@ -978,7 +1062,7 @@ public class ConceptController extends BaseController {
         final HierarchyNode root = rootNodeMap.get(rootConcept.getCode());
         HierarchyNode previous = root;
         for (int j = concepts.size() - 2; j >= 0; j--) {
-          ConceptMinimal c = concepts.get(j);
+          final ConceptMinimal c = concepts.get(j);
           if (!previous.getChildren().stream().anyMatch(n -> n.getCt() == null && n.getCode().equals(c.getCode()))) {
             List<HierarchyNode> children = elasticQueryService.getChildNodes(previous.getCode(), 0, term);
 
@@ -1009,7 +1093,7 @@ public class ConceptController extends BaseController {
               }
             }
 
-            for (HierarchyNode child : children) {
+            for (final HierarchyNode child : children) {
               child.setLevel(null);
               previous.getChildren().add(child);
             }
@@ -1028,7 +1112,7 @@ public class ConceptController extends BaseController {
 
       return rootNodes;
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -1039,31 +1123,34 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param limit the limit
    * @return the subtree children
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get the entire subtree from the root node to the specified code",
-      response = HierarchyNode.class, responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get the entire subtree from the root node to the specified code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. 'C3224' for <i>ncit</i>. "
+              + "This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "limit", description = "If set to an integer (between <i>1</i> and <i>100</i>), children will "
+          + "be limited to the specified number of entries. Thus a user interface can "
+          + "quickly retrieve initial data for a subtree and then call back for more data. "
+          + "An extra placeholder entry with just a <i>ct</i> field will be included " + "to indicate the total count.",
+          required = false, schema = @Schema(implementation = Integer.class), example = "100")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree/children",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. 'C3224' for <i>ncit</i>. "
-              + "This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "limit", value = "If set to an integer (between <i>1</i> and <i>100</i>), children will "
-          + "be limited to the specified number of entries. Thus a user interface can "
-          + "quickly retrieve initial data for a subtree and then call back for more data. "
-          + "An extra placeholder entry with just a <i>ct</i> field will be included " + "to indicate the total count.",
-          required = false, dataTypeClass = Integer.class, paramType = "query")
-  })
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
@@ -1092,7 +1179,7 @@ public class ConceptController extends BaseController {
       }
       return nodes;
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -1105,39 +1192,43 @@ public class ConceptController extends BaseController {
    * @param terminology the terminology
    * @param code the code
    * @param include the include
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the paths to root
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths to the hierarchy root from the specified code", response = List.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get paths to the hierarchy root from the specified code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g. "
+              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>. For this call, it is recommended to avoid using this "
+              + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
+              + "may produce very large payload results. ",
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "100")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g. "
-              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-          + "for detailed information</a>. For this call, it is recommended to avoid using this "
-          + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
-          + "may produce very large payload results. ",
-      required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", example = "100")
-  })
   public @ResponseBody List<List<Concept>> getPathsToRoot(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
@@ -1157,11 +1248,11 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
@@ -1174,43 +1265,48 @@ public class ConceptController extends BaseController {
    * @param code the code
    * @param ancestorCode the ancestor code
    * @param include the include
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @return the paths to ancestor
    * @throws Exception the exception
    */
-  @ApiOperation(value = "Get paths from the specified code to the specified ancestor code", response = List.class,
-      responseContainer = "List")
-  @ApiResponses(value = {
-      @ApiResponse(code = 200, message = "Successfully retrieved the requested information"),
-      @ApiResponse(code = 400, message = "Bad request"), @ApiResponse(code = 404, message = "Resource not found")
+  @Operation(summary = "Get paths from the specified code to the specified ancestor code")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
+          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "code",
+          description = "Code in the specified terminology, e.g."
+              + " 'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "ancestorCode",
+          description = "Ancestor code of the other specified code, e.g. "
+              + "'C2991' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "include",
+          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
+              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
+              + "inverseRoles, maps, parents, properties, roles, synonyms. "
+              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
+              + "for detailed information</a>. For this call, it is recommended to avoid using this "
+              + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
+              + "may produce very large payload results. ",
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
+          schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
+          schema = @Schema(implementation = Integer.class), example = "100")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}",
       produces = "application/json")
-  @ApiImplicitParams({
-      @ApiImplicitParam(name = "terminology", value = "Terminology, e.g. 'ncit'", required = true,
-          dataTypeClass = String.class, paramType = "path", defaultValue = "ncit"),
-      @ApiImplicitParam(name = "code",
-          value = "Code in the specified terminology, e.g."
-              + " 'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "ancestorCode",
-          value = "Ancestor code of the other specified code, e.g. "
-              + "'C2991' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, dataTypeClass = String.class, paramType = "path"),
-      @ApiImplicitParam(name = "include",
-      value = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-          + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
-          + "inverseRoles, maps, parents, properties, roles, synonyms. "
-          + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-          + "for detailed information</a>. For this call, it is recommended to avoid using this "
-          + "parameter unless you need it for a specific use case.  Any value other than 'minimal' "
-          + "may produce very large payload results. ",
-      required = false, dataTypeClass = String.class, paramType = "query", defaultValue = "minimal"),
-      @ApiImplicitParam(name = "fromRecord", value = "Start index of the search results", required = false,
-          dataTypeClass = Integer.class, paramType = "query", defaultValue = "0", example = "0"),
-      @ApiImplicitParam(name = "pageSize", value = "Max number of results to return", required = false,
-          dataTypeClass = Integer.class, paramType = "query", example = "100")
-  })
+
   public @ResponseBody List<List<Concept>> getPathsToAncestor(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @PathVariable(value = "ancestorCode")
@@ -1231,17 +1327,18 @@ public class ConceptController extends BaseController {
         return new ArrayList<>();
       } else if (pageSize.isPresent()) {
         final int toIndex = fromRecord.orElse(0) + pageSize.get();
-        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size() - 1, toIndex)));
+        paths.setPaths(paths.getPaths().subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       handleException(e);
       return null;
     }
   }
 
+  // Used for QA to expose a mechanism to calculate extension for a single case.
   // @Autowired
   // MainTypeHierarchy mainTypeHierarchy;
   //

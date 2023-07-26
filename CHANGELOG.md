@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.8.0.RELEASE] - 2023-05-31
+### Added
+- Sampling QA for all terminologies loaded into the dev and deploy environments
+- Support for additional RRF terminolologies, including ICD10CM, ICD9CM.
+- New mapset endpoints for interacting with cross-terminology mapping data
+- Support for loading cross-terminology mapping data sets
+- New history endpoints for interacting with terminology history information
+- New "history" field of Concept objects to represent individual history elements for a concept
+- New subsets endpoints for accessing subset/value set data independenty of the metadata endpoints
+- Some endpoints now have a "limit" parameter that causes less information to be loaded and allowing for a "load more later" approach
+### Changed
+- Metadata for remodeled properties is now being included with information about how it is remodeled.
+- Limit page size to 10 for terminologies with license restrictions - to discourage bulk downloading
+- Update to swagger libraries and some tuning of documentation
+- Various bug fixes to searching, loading of qualifiers with URL values, and subset/member performance
+
+## [1.7.2.RELEASE] - 2023-03-31
+### Changed
+- Fixed logic of /subsets call to avoid returning Publish_Value_Set=No
+
+## [1.7.1.RELEASE] - 2023-03-15
+### Changed
+- Fixed performance of content /pathToRoot, /pathFromRoot, and /pathToAncestor calls and added paging params
+- Fixed performance of metadata/{terminology}/subsets call to more efficiently return all ncit subsets
+
 ## [1.7.0.RELEASE] - 2023-01-13
 ### Added
 - Added an additional "value" parameter that works with "property" and can also work with "term" 

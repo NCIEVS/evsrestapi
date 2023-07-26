@@ -17,7 +17,7 @@ esac; shift; done
 
 if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
   echo "Usage: src/main/bin/devreset.sh \"c:/data/UnitTestData\""
-  echo "  e.g. src/main/bin/devreset.sh /data/UnitTestData"
+  echo "  e.g. src/main/bin/devreset.sh ../data/UnitTestData"
   exit 1
 fi
 dir=${arr[0]}
@@ -196,13 +196,17 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Reindex ncim - MDR
-echo "  Reindex ncim - MDR"
-src/main/bin/ncim-part.sh --noconfig $dir/NCIM --terminology MDR| sed 's/^/    /'
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem running ncim-part.sh for MDR"
-    exit 1
-fi
+# Reindex ncim - individual terminologies
+for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US; do
+
+    # Keep the NCIM folder around while we run
+    echo "Load $t (from downloaded data)"
+    src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t | sed 's/^/    /'
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: loading $t"
+        exit 1
+    fi
+done
 
 # Clean and load stardog
 echo "  Remove stardog databases and load monthly/weekly"
@@ -239,9 +243,12 @@ if [[ $? -ne 0 ]]; then
 fi
 /bin/rm -f $dir/x.sh
 
+# Hardcode the history file
+historyFile=$dir/cumulative_history_21.06e.txt
+
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
-src/main/bin/reindex.sh --noconfig | sed 's/^/    /'
+src/main/bin/reindex.sh --noconfig --history $historyFile | sed 's/^/    /'
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem running reindex.sh script"
     exit 1

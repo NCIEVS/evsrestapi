@@ -43,8 +43,7 @@ public class SampleTest {
    * @return the samples
    * @throws Exception the exception
    */
-  public static void loadSamples(final String terminology, final String sampleFile)
-    throws Exception {
+  public static void loadSamples(final String terminology, final String sampleFile) throws Exception {
 
     samples = new HashMap<>();
     SampleTest.terminology = terminology;
@@ -96,33 +95,42 @@ public class SampleTest {
 
   /**
    * Test paths subtree and roots.
+   *
+   * @throws Exception the exception
    */
   @Test
-  public void testPathsSubtreeAndRoots() {
+  public void testPathsSubtreeAndRoots() throws Exception {
     conceptSampleTester.performPathsSubtreeAndRootsTests(terminology, samples, mvc);
   }
 
   /**
    * Test search.
+   *
+   * @throws Exception the exception
    */
   @Test
-  public void testSearch() {
+  public void testSearch() throws Exception {
     conceptSampleTester.performSearchTests(terminology, samples, mvc);
   }
 
   /**
    * Test subsets.
+   *
+   * @throws Exception the exception
    */
   @Test
-  public void testSubsets() {
-    conceptSampleTester.performSearchTests(terminology, samples, mvc);
+  public void testSubsets() throws Exception {
+    conceptSampleTester.performSubsetsTests(terminology, samples, mvc);
   }
 
   /**
    * Test association entries.
+   *
+   * @throws Exception the exception
    */
   @Test
-  public void testAssociationEntries() {
+  public void testAssociationEntries() throws Exception {
     conceptSampleTester.performAssociationEntryTests(terminology, samples, mvc);
   }
+
 }

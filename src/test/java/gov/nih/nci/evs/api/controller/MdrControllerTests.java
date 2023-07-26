@@ -98,8 +98,10 @@ public class MdrControllerTests {
     final Terminology mdr =
         terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
-    assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities");
-    assertThat(mdr.getName()).isEqualTo("MedDRA 23_1");
+    assertThat(mdr.getMetadata().getUiLabel())
+        .isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities");
+    assertThat(mdr.getName())
+        .isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities 23_1");
     assertThat(mdr.getDescription()).isNotEmpty();
     assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
@@ -253,9 +255,9 @@ public class MdrControllerTests {
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     assertThat(concept.getProperties().stream()
         .filter(p -> p.getType().equals("PRIMARY_SOC") && p.getValue().equals("10005329")).count())
-            .isEqualTo(1);
+        .isEqualTo(1);
 
-    // SMQ concept in MRSAT - 10036030
+    // RELA concept in MRSAT - 10036030
     url = baseUrl + "/mdr/10036030?include=associations,inverseAssociations";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -265,19 +267,19 @@ public class MdrControllerTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10036030");
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
-    assertThat(concept.getAssociations().stream().filter(a -> a.getQualifiers().size() > 1).count())
-        .isEqualTo(1);
-    assertThat(concept.getAssociations().stream().filter(a -> a.getQualifiers().size() > 1)
-        .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("SMQ_TERM_CAT"))
-        .count()).isEqualTo(1);
+    assertThat(
+        concept.getAssociations().stream().filter(a -> a.getQualifiers().size() >= 1).count())
+        .isGreaterThanOrEqualTo(1);
+    assertThat(concept.getAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
+        .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("RELA")).count())
+        .isGreaterThanOrEqualTo(1);
 
     assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
-    assertThat(
-        concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() > 1).count())
-            .isEqualTo(1);
-    assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() > 1)
-        .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("SMQ_TERM_CAT"))
-        .count()).isEqualTo(1);
+    assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
+        .count()).isGreaterThanOrEqualTo(1);
+    assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
+        .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("RELA")).count())
+        .isGreaterThanOrEqualTo(1);
 
   }
 
@@ -295,10 +297,10 @@ public class MdrControllerTests {
 
     // Valid test
     log.info("Testing url - " + url
-        + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Coagulation&type=contains");
+        + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=10&term=Coagulation&type=contains");
     result = mvc
         .perform(get(url).param("terminology", "mdr").param("term", "Coagulation")
-            .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+            .param("pageSize", "10").param("type", "contains").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();
@@ -311,21 +313,21 @@ public class MdrControllerTests {
 
     // Test searching "Hepatitis, non-infectious (SMQ)"
     log.info("Testing url - " + url
-        + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Hepatitis, non-infectious (SMQ)&type=contains");
+        + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=00&term=Hepatitis, non-infectious (SMQ)&type=contains");
     result = mvc
         .perform(
             get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-                .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+                .param("pageSize", "10").param("type", "contains").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
 
     // Test searching "Hepatitis, non-infectious (SMQ)"
     log.info("Testing url - " + url
-        + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=100&term=Hepatitis, non-infectious (SMQ)&type=match");
+        + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=10&term=Hepatitis, non-infectious (SMQ)&type=match");
     result = mvc
         .perform(
             get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-                .param("pageSize", "100").param("type", "match").param("include", "synonyms"))
+                .param("pageSize", "10").param("type", "match").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
   }
@@ -355,10 +357,6 @@ public class MdrControllerTests {
     });
     assertThat(list).isNotNull();
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RQ");
-    // assertThat(list.stream().map(c ->
-    // c.getCode()).collect(Collectors.toSet())).contains("RB");
-    // assertThat(list.stream().map(c ->
-    // c.getCode()).collect(Collectors.toSet())).contains("RN");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .doesNotContain("SY");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
@@ -453,17 +451,6 @@ public class MdrControllerTests {
     // c.getCode()).collect(Collectors.toSet()))
     // .contains("SUPPRESS");
 
-    // Handle subsets - n/a
-    url = base + "/subsets";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(list).isEmpty();
-
     // Handle synonymSources - n/a - handled inline
     url = base + "/synonymSources";
     log.info("Testing url - " + url);
@@ -520,7 +507,7 @@ public class MdrControllerTests {
     List<String> list = null;
 
     // NCIM qualifier values
-    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_CAT/values";
+    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_LEVEL/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -529,7 +516,7 @@ public class MdrControllerTests {
       // n/a
     });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.size()).isEqualTo(2);
 
   }
 

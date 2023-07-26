@@ -153,7 +153,6 @@ public interface ElasticQueryService {
    */
   List<String> getAllChildNodes(String code, Terminology terminology);
 
- 
   /**
    * Returns the path to root.
    *
@@ -192,8 +191,7 @@ public interface ElasticQueryService {
   /**
    * Get {@link IndexMetadata} objects.
    *
-   * @param completedOnly boolean indicating to fetch metadata for complete
-   *          indexes only
+   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
    * @return the list of {@link IndexMetadata} objects
    */
   List<IndexMetadata> getIndexMetadata(boolean completedOnly);
@@ -235,9 +233,9 @@ public interface ElasticQueryService {
    * @return the qualifier values
    * @throws JsonMappingException the json mapping exception
    * @throws JsonProcessingException the json processing exception
+   * @throws Exception
    */
-  Map<String, Set<String>> getQualifierValues(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException;
+  Map<String, Set<String>> getQualifierValues(Terminology terminology) throws Exception;
 
   /**
    * Get qualifier.
@@ -435,5 +433,28 @@ public interface ElasticQueryService {
    */
   AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,
     int pageSize) throws Exception;
+
+  /**
+   * Returns mapsets.
+   *
+   * @return the list of mapsets
+   * @throws JsonProcessingException
+   * @throws JsonMappingException
+   * @throws ClassNotFoundException the class not found exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<Concept> getMapsets(IncludeParam ip) throws Exception;
+
+  /**
+   * Returns mapset by code filter.
+   *
+   * @param code the code to filter
+   * @return the list of mapsets
+   * @throws JsonProcessingException
+   * @throws JsonMappingException
+   * @throws ClassNotFoundException the class not found exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<Concept> getMapset(String code, IncludeParam ip) throws Exception;
 
 }

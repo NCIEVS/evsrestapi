@@ -265,9 +265,9 @@ public class NcimControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0000005");
     assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().get(1).getType()).isEqualTo("Semantic_Type");
-    assertThat(concept.getProperties().get(1).getValue())
-        .isEqualTo("Amino Acid, Peptide, or Protein");
+    // Confirm STY "Amino Acid, Peptide, or Protein"
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")
+        && p.getValue().equals("Amino Acid, Peptide, or Protein")).count()).isEqualTo(1);
 
     // test random concept with property
     url = baseUrl + "/ncim/C0718043";
@@ -505,10 +505,10 @@ public class NcimControllerTests {
 
     // Valid test
     log.info("Testing url - " + url
-        + "?fromRecord=0&include=synonyms&pageSize=100&term=aspirin&type=contains");
+        + "?fromRecord=0&include=synonyms&pageSize=10&term=aspirin&type=contains");
     result = mvc
         .perform(get(url).param("terminology", "ncim").param("term", "aspirin")
-            .param("pageSize", "100").param("type", "contains").param("include", "synonyms"))
+            .param("pageSize", "10").param("type", "contains").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();
@@ -517,7 +517,7 @@ public class NcimControllerTests {
     assertThat(list).isNotNull();
     // Look for the Aspirin CUI.
     assertThat(list.getConcepts().stream().filter(c -> c.getCode().equals("C0004057"))
-        .collect(Collectors.toList()).size()).isEqualTo(1);
+        .collect(Collectors.toList()).size()).isGreaterThanOrEqualTo(1);
 
   }
 
@@ -613,7 +613,8 @@ public class NcimControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("Semantic_Type");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("SCORE");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
+        .contains("HAS_VERSION");
 
     // Handle qualifiers
     url = base + "/qualifiers";
@@ -642,17 +643,6 @@ public class NcimControllerTests {
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet()))
     // .contains("SUPPRESS");
-
-    // Handle subsets - n/a
-    url = base + "/subsets";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(list).isEmpty();
 
     // Handle synonymSources - n/a - handled inline
     url = base + "/synonymSources";
@@ -710,7 +700,7 @@ public class NcimControllerTests {
     List<String> list = null;
 
     // NCIM qualifier values
-    url = "/api/v1/metadata/ncim/qualifier/SMQ_TERM_CAT/values";
+    url = "/api/v1/metadata/ncim/qualifier/SMQ_TERM_LEVEL/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -719,7 +709,7 @@ public class NcimControllerTests {
       // n/a
     });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(1);
+    assertThat(list.size()).isEqualTo(2);
 
   }
 

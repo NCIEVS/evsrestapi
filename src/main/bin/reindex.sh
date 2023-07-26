@@ -7,17 +7,20 @@
 #
 config=1
 force=0
+historyFileOverride=
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
+  --history) historyFileOverride=$2; shift;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
 if [ ${#arr[@]} -ne 0 ]; then
-  echo "Usage: $0 [--noconfig] [--force]"
+  echo "Usage: $0 [--noconfig] [--force] [--history <history file>]"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
+  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/cumulative_history_21.06e.txt"
   exit 1
 fi
 
@@ -28,10 +31,15 @@ if [[ $? -eq 0 ]]; then
 else
     jq="python -m json.tool"
 fi
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 echo "--------------------------------------------------"
 echo "Starting ...`/bin/date`"
 echo "--------------------------------------------------"
+echo "DIR = $DIR"
+if [[ $historyFileOverride ]]; then
+    echo "historyFileOverride = $historyFileOverride"
+fi
 echo ""
 
 # Setup configuration
@@ -79,8 +87,9 @@ fi
 
 curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
     "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" |\
-    $jq | perl -ne 's/\r//; $x=0 if /\]/; if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
-                    $x=1 if/\[/;' > /tmp/db.$$.txt
+    $jq | perl -ne 's/\r//; $x=0 if /\]/; 
+            if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
+            $x=1 if/\[/;' > /tmp/db.$$.txt
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected problem listing databases"
     exit 1
@@ -92,7 +101,6 @@ if [[ $ct -eq 0 ]]; then
     echo "ERROR: no stardog databases, this is unexpected"
     exit 1
 fi
-
 
 # Prep query to read all version info
 echo "  Lookup terminology, version info in stardog"
@@ -184,6 +192,16 @@ if [[ $config -eq 0 ]]; then
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 fi
 
+# mapping indexes
+export EVS_SERVER_PORT="8083"
+echo "    Generate mapping indexes"
+echo "      java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
+java $local -Xmx4096M -jar $jar --terminology mapping
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+fi
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
@@ -200,6 +218,54 @@ for x in `cat /tmp/y.$$.txt`; do
     fi
 
     exists=1
+	
+    # Use override history file if specified
+    historyFile=""
+    if [[ "$term" == "ncit" ]] && [[ $historyFileOverride ]]; then
+
+        historyFile=$historyFileOverride
+
+    # Otherwise, download if ncit
+    elif [[ "$term" == "ncit" ]]; then
+	
+        # Prep dir
+        /bin/rm -rf $DIR/NCIT_HISTORY
+        mkdir $DIR/NCIT_HISTORY
+        cd $DIR/NCIT_HISTORY
+
+        # Download file (try 5 times)
+        for i in {1..5}; do 
+
+        	echo "  Download latest NCIt History: attempt $i"
+        	# Use the upload directory because this is where we can control it from
+        	url=https://evs.nci.nih.gov/ftp1/upload/cumulative_history_$version.zip
+            echo "    url = $url"
+            curl -w "\n%{http_code}" -s -o cumulative_history_$version.zip $url > /tmp/x.$$
+            if [[ $? -ne 0 ]]; then
+                echo "ERROR: problem downloading NCIt history (trying again $i)"
+            elif [[ `tail -1 /tmp/x.$$` -eq 404 ]]; then
+                echo "ERROR: url does not exist, bail out"
+                break;
+            else
+
+                echo "  Unpack NCIt history"
+                unzip cumulative_history_$version.zip > /tmp/x.$$ 2>&1
+                if [[ $? -ne 0 ]]; then
+                    cat /tmp/x.$$
+                    echo "ERROR: problem unpacking cumulative_history_$version.zip"
+                    break
+                fi
+
+                # Set historyFile for later steps    
+                historyFile=$DIR/NCIT_HISTORY/cumulative_history_$version.txt
+                break
+            fi
+        done
+
+        # cd back out
+        cd -
+	fi
+	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
         # Check for index
@@ -244,7 +310,6 @@ for x in `cat /tmp/y.$$.txt`; do
             # Remove if this already exists
             version=`echo $cv | perl -pe 's/.*_//;'`
             echo "    Remove indexes for $term $version"
-            DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
             $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
             if [[ $? -ne 0 ]]; then
                 cat /tmp/x.$$ | sed 's/^/    /'
@@ -257,24 +322,37 @@ for x in `cat /tmp/y.$$.txt`; do
         export STARDOG_DB=$db
         export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB ${term} $version"
+        
+        # Set the history clause for "ncit"
+        historyClause=""
+        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+        	historyClause=" -d $historyFile"
+        fi
 
-        echo "java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex" | sed 's/^/      /'
-        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex
+        echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause" | sed 's/^/      /'
+        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
         fi
+ 
+        # Unset history file once done being used
 
         # Set the indexes to have a larger max_result_window
-        echo "    Set max result window to 150000 for concept_${term}_$cv"
+        echo "    Set max result window to 250000 for concept_${term}_$cv"
         curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
-             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 150000 } }' >> /dev/null
+             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error setting max_result_window"
             exit 1
         fi
 
     fi
+	
+	# Delete download directory for history file if it exists
+	if [[ -e $DIR/NCIT_HISTORY ]]; then
+        /bin/rm -rf $DIR/NCIT_HISTORY
+	fi
     
     # track previous version, if next one is the same, don't index again.
     pv=$cv

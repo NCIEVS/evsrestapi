@@ -83,3 +83,10 @@ nci:
         port: ${ES_PORT:9200}
         scheme: ${ES_SCHEME:http}
       timeout: 200000
+
+# Springdoc
+springdoc:
+    swagger-ui:
+        tagsSorter: alpha
+        operationsSorter: alpha
+        doc-expansion: none

@@ -1,0 +1,96 @@
+740-759.99	740-759.99	synonym	CONGENITAL ANOMALIES
+740-759.99	740-759.99	term-type	HT
+759.9	759.9	term-type	AB
+759.9	759.9	term-type	PT
+713.5	713.5	qualifier-synonym~ICE	Arthropathy associated with neurological disorders~Charcot's arthropathy associated with diseases classifiable elsewhere; Neuropathic arthritis associated with diseases classifiable elsewhere
+713.5	713.5	qualifier-synonym~ICN	Arthropathy associated with neurological disorders~Code first underlying disease, as: {neuropathic joint disease [Charcot's joints]: NOS (094.0); diabetic (249.6, 250.6); syringomyelic (336.0); tabetic [syphilitic] (094.0)}
+595	595	qualifier-synonym~ICA	Cystitis~Use additional code to identify organism, such as Escherichia coli [E. coli] (041.41-041.49)
+595	595	qualifier-synonym~SOS	Cystitis~Excludes: prostatocystitis (601.3)
+239.0	239.0	qualifier-synonym~SOS	Neoplasm of unspecified nature of digestive system~Excludes: anus: {margin (239.2); skin (239.2)}; perianal skin (239.2)
+716.9	716.9	qualifier-synonym~ICE	Arthropathy, unspecified~Arthritis, (acute) (chronic) (subacute); Arthropathy, (acute) (chronic) (subacute); Articular rheumatism, (chronic); Inflammation of joint, NOS
+868	868	qualifier-synonym~ICF	Injury to other intra-abdominal organs~The following fifth-digit subclassification is for use with category 868: {0 unspecified intra-abdominal organ; 1 adrenal gland; 2 bile duct and gallbladder; 3 peritoneum; 4 retroperitoneum; 9 other and multiple intra-abdominal organs}
+538	538	qualifier-synonym~ICA	Gastrointestinal mucositis (ulcerative)~Use additional E code to identify adverse effects of therapy, such as: {antineoplastic and immunosuppressive drugs (E930.7, E933.1); radiation therapy (E879.2)}
+740-759.99	740-759.99	Semantic_Type	Congenital Abnormality
+039.2	039.2	Semantic_Type	Disease or Syndrome
+239.0	239.0	Semantic_Type	Neoplastic Process
+977.9	977.9	Semantic_Type	Injury or Poisoning
+459.0	459.0	Semantic_Type	Pathologic Function
+787.0	787.0	Semantic_Type	Sign or Symptom
+54.21	54.21	Semantic_Type	Diagnostic Procedure
+787.4	787.4	Semantic_Type	Finding
+550-553.99	550-553.99	Semantic_Type	Anatomical Abnormality
+54.91	54.91	Semantic_Type	Therapeutic or Preventive Procedure
+551.9	551.9	Semantic_Type	Acquired Abnormality
+759.9	759.9	root
+740-759.99	740-759.99	root
+039.2	039.2	root
+713.5	713.5	root
+576.9	576.9	root
+579.0	579.0	root
+286.1	286.1	root
+279.06	279.06	root
+595.9	595.9	root
+595	595	root
+520-579.99	520-579.99	root
+239.0	239.0	root
+977.9	977.9	root
+259.9	259.9	root
+530.9	530.9	root
+289.9	289.9	root
+280-289.99	280-289.99	root
+459.0	459.0	root
+287.9	287.9	root
+279.3	279.3	root
+560.9	560.9	root
+719.90	719.90	root
+716.90	716.90	root
+719.9	719.9	root
+626.6	626.6	root
+787.01	787.01	root
+787.0	787.0	root
+349.9	349.9	root
+577.9	577.9	root
+568.9	568.9	root
+54.21	54.21	root
+567.9	567.9	root
+528.2	528.2	root
+54.11	54.11	root
+195.2	195.2	root
+569	569	root
+777.9	777.9	root
+777	777	root
+787.4	787.4	root
+787.5	787.5	root
+789.40	789.40	root
+789.4	789.4	root
+270-279.99	270-279.99	root
+54.91	54.91	root
+789.7	789.7	root
+789.60	789.60	root
+789.6	789.6	root
+551.9	551.9	root
+567.82	567.82	root
+868	868	root
+789.67	789.67	root
+789.07	789.07	root
+747.61	747.61	root
+789.47	789.47	root
+88.01	88.01	root
+537.9	537.9	root
+279.09	279.09	root
+87.78	87.78	root
+528.6	528.6	root
+674.14	674.14	root
+525.9	525.9	root
+751.9	751.9	root
+564.00	564.00	root
+573.9	573.9	root
+789.00	789.00	root
+759.3	759.3	root
+569.9	569.9	root
+279.00	279.00	root
+538	538	root
+279.9	279.9	root
+714.9	714.9	root
+530.81	530.81	root
+740-759.99	740-759.99	parent-count1

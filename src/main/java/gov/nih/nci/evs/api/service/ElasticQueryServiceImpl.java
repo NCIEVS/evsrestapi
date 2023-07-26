@@ -18,9 +18,11 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
+import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -40,7 +42,7 @@ import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.EVSConceptMultiGetResultMapper;
+import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
@@ -110,17 +112,17 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<Concept> getConcepts(Collection<String> codes, Terminology terminology,
     IncludeParam ip) {
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withIds(codes)
-        .withIndices(terminology.getIndexName()).withTypes(ElasticOperationsService.CONCEPT_TYPE)
-        // .withSourceFilter(new FetchSourceFilter(new String[] {
-        // "name", "code", "leaf", "terminology", "version"
-        // }, new String[] {
-        // "normName"
-        // }))
-        .build();
+    if (codes == null || codes.size()==0) {
+      return new ArrayList<>();
+    }
+    NativeSearchQuery query = new NativeSearchQueryBuilder()
+        .withFilter(QueryBuilders.termsQuery("_id", codes)).withIndices(terminology.getIndexName())
+        .withTypes(ElasticOperationsService.CONCEPT_TYPE)
+        .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+        .withPageable(new EVSPageable(0, codes.size(), 0)).build();
 
     List<Concept> concepts =
-        operations.multiGet(query, Concept.class, new EVSConceptMultiGetResultMapper(ip));
+        operations.queryForPage(query, Concept.class, new EVSConceptResultMapper(ip)).toList();
     return concepts;
   }
 
@@ -226,7 +228,11 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     if (!hierarchy.isPresent())
       return Collections.emptyList();
     List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
-    List<Concept> concepts = getConcepts(hierarchyRoots, terminology, ip);
+    if (hierarchyRoots.size() < 1) {
+      return new ArrayList<Concept>();
+    }
+    ArrayList<Concept> concepts =
+        new ArrayList<Concept>(getConcepts(hierarchyRoots, terminology, ip));
     concepts.sort(Comparator.comparing(Concept::getName));
     for (Concept c : concepts) {
       c.setLeaf(null);
@@ -433,8 +439,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /**
    * see superclass *.
    * 
-   * @param completedOnly boolean indicating to fetch metadata for complete
-   *          indexes only
+   * @param completedOnly boolean indicating to fetch metadata for complete indexes only
    * @return the list of {@link IndexMetadata} objects
    */
   @Override
@@ -503,8 +508,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
   /* see superclass */
   @Override
-  public Map<String, Set<String>> getQualifierValues(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException {
+  public Map<String, Set<String>> getQualifierValues(Terminology terminology) throws Exception {
     Optional<ElasticObject> esObject = getElasticObject("qualifiers", terminology);
     if (!esObject.isPresent()) {
       return new HashMap<>();
@@ -797,6 +801,33 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<Concept> getSubsets(Terminology term, IncludeParam ip)
     throws JsonMappingException, JsonProcessingException {
     return getConceptList("subsets", term, ip);
+  }
+
+  @Override
+  public List<Concept> getMapsets(IncludeParam ip) throws Exception {
+
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.MAPPING_INDEX)
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            // assuming pageSize < 10000, trying to get all maps, 17 at the time of this comment
+            .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(PageRequest.of(0, 10000))
+            .build();
+
+    return operations.queryForList(query, Concept.class);
+
+  }
+
+  @Override
+  public List<Concept> getMapset(String code, IncludeParam ip) throws Exception {
+
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", code))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .withIndices(ElasticOperationsService.MAPPING_INDEX)
+            .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+
+    return operations.queryForList(query, Concept.class);
+
   }
 
 }

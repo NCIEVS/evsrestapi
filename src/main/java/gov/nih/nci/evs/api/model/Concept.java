@@ -71,9 +71,13 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Keyword)
   private String normName;
 
-  /** The normName. */
+  /** The subset Link. */
   @Field(type = FieldType.Keyword)
   private String subsetLink;
+
+  /** The mapset Link. */
+  @Field(type = FieldType.Keyword)
+  private String mapsetLink;
 
   /** The concept status. */
   @JsonProperty(access = Access.READ_ONLY)
@@ -95,6 +99,10 @@ public class Concept extends ConceptMinimal {
   /** The definitions. */
   @Field(type = FieldType.Nested)
   private List<Definition> definitions;
+  
+  /** The history. */
+  @Field(type = FieldType.Nested)
+  private List<History> history;
 
   /** The properties. */
   @Field(type = FieldType.Nested, ignoreFields = {
@@ -260,9 +268,11 @@ public class Concept extends ConceptMinimal {
     if (!subsetFlag) {
       subsetLink = other.getSubsetLink();
     }
+    mapsetLink = other.getMapsetLink();
     conceptStatus = other.getConceptStatus();
     synonyms = new ArrayList<>(other.getSynonyms());
     definitions = new ArrayList<>(other.getDefinitions());
+    history = new ArrayList<>(other.getHistory());
     properties = new ArrayList<>(other.getProperties());
     qualifiers = new ArrayList<>(other.getQualifiers());
     source = other.getSource();
@@ -358,6 +368,24 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Returns the mapset link.
+   *
+   * @return the mapsetLink
+   */
+  public String getMapsetLink() {
+    return mapsetLink;
+  }
+
+  /**
+   * Sets the mapset link.
+   *
+   * @param mapsetLink the mapsetLink to set
+   */
+  public void setMapsetLink(String mapsetLink) {
+    this.mapsetLink = mapsetLink;
+  }
+
+  /**
    * Returns the concept status.
    *
    * @return the conceptStatus
@@ -433,6 +461,27 @@ public class Concept extends ConceptMinimal {
    */
   public void setDefinitions(final List<Definition> definitions) {
     this.definitions = definitions;
+  }
+  
+  /**
+   * Returns the history.
+   *
+   * @return the history
+   */
+  public List<History> getHistory() {
+      if (history == null) {
+          history = new ArrayList<>();
+      }
+      return history;
+  }
+  
+  /**
+   * Sets the history.
+   *
+   * @param history the history
+   */
+  public void setHistory(final List<History> history) {
+      this.history = history;
   }
 
   /**
@@ -730,6 +779,9 @@ public class Concept extends ConceptMinimal {
     }
     if (definitions != null) {
       Collections.sort(definitions);
+    }
+    if (history != null) {
+        Collections.sort(history);
     }
     if (properties != null) {
       Collections.sort(properties);

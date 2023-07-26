@@ -455,6 +455,60 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test page size license restricted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPageSizeLicenseRestricted() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Legal page size
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=mdr&term=cancer&pageSize=10");
+    result = this.mvc
+        .perform(
+            get(url).param("terminology", "mdr").param("term", "cancer").param("pageSize", "10"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    // Over limit
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=mdr&term=cancer&pageSize=11");
+    result = this.mvc
+        .perform(
+            get(url).param("terminology", "mdr").param("term", "cancer").param("pageSize", "11"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    // Legal page size
+    url = "/api/v1/concept/mdr/search";
+    log.info("Testing url - /api/v1/concept/mdr/search?term=cancer&pageSize=10");
+    result = this.mvc.perform(get(url).param("term", "cancer").param("pageSize", "10"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+    // Over limit
+    url = "/api/v1/concept/mdr/search";
+    log.info("Testing url - /api/v1/concept/mdr/search?term=cancer&pageSize=11");
+    result = this.mvc.perform(get(url).param("term", "cancer").param("pageSize", "11"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+  }
+
+  /**
    * Returns the search property.
    *
    * @throws Exception the exception
@@ -574,24 +628,26 @@ public class SearchControllerTests {
     assertThat(content).isEqualToIgnoringCase(content2);
 
     // BAD property type
-    // url = baseUrl;
-    // log.info("Testing url - " + url +
-    // "?terminology=ncit&value=XAV05295I5&property=P999999");
-    //
-    // result = mvc.perform(get(url).param("terminology",
-    // "ncit").param("value",
-    // "XAV05295I5")
-    // .param("property",
-    // "P999999")).andExpect(status().isBadRequest()).andReturn();
-    //
-    // // Test with single terminology form
-    // url = "/api/v1/concept/ncit/search";
-    // log.info("Testing url - " + url +
-    // "?value=XAV05295I5&property=P999999");
-    //
-    // result = this.mvc.perform(get(url).param("value",
-    // "XAV05295I5").param("property", "P999999"))
-    // .andExpect(status().isBadRequest()).andReturn();
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&value=XAV05295I5&property=P999999");
+
+    result = mvc.perform(get(url).param("terminology", "ncit").param("value", "XAV05295I5")
+        .param("property", "P999999")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal() == 0);
+
+    // Test with single terminology form
+    url = "/api/v1/concept/ncit/search";
+    log.info("Testing url - " + url + "?value=XAV05295I5&property=P999999");
+
+    result = this.mvc.perform(get(url).param("value", "XAV05295I5").param("property", "P999999"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal() == 0);
     log.info("Done Testing testSearchProperty ");
 
     // search by property and term
@@ -599,7 +655,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code&term=Toluene");
     result = mvc
         .perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
-            .param("include", "properties,synonyms").param("term", "Toluene"))
+            .param("include", "properties,synonyms,definitions").param("term", "Toluene"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -609,7 +665,9 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().stream().filter(
         c -> c.getProperties().stream().filter(p -> p.getType().equals("FDA_UNII_Code")).count() > 0
             && (c.getName().toLowerCase().contains("toluene") || c.getSynonyms().stream()
-                .filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0))
+                .filter(s -> s.getName().toLowerCase().contains("toluene")).count() > 0)
+            || c.getDefinitions().stream()
+                .filter(s -> s.getDefinition().toLowerCase().contains("toluene")).count() > 0)
         .count()).isEqualTo(list.getConcepts().size());
 
   }
@@ -1337,6 +1395,15 @@ public class SearchControllerTests {
       } else
         currentExact = false; // should be at end of exact matches
     }
+
+    // another valid test for bug fixing
+    log.info("Testing url - " + url + "?terminology=ncit&term=corona&type=phrase");
+    result = mvc.perform(get(url + "?terminology=ncit&term=corona&type=phrase"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    assertThat(conceptList.size()).isEqualTo(1);
 
   }
 

@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api.model;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -10,6 +12,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class Map extends BaseModel implements Comparable<Map> {
 
+  /** The source. */
+  private String source;
+
+  /** The source name. */
+  private String sourceName;
+
+  /** The source term type. */
+  private String sourceTermType;
+
   /** The source code. */
   private String sourceCode;
 
@@ -18,6 +29,15 @@ public class Map extends BaseModel implements Comparable<Map> {
 
   /** The type. */
   private String type;
+
+  /** The rank. */
+  private String rank;
+
+  /** The group. */
+  private String group;
+
+  /** The rule. */
+  private String rule;
 
   /** The target name. */
   private String targetName;
@@ -57,14 +77,75 @@ public class Map extends BaseModel implements Comparable<Map> {
    */
   public void populateFrom(final Map other) {
     super.populateFrom(other);
+    source = other.getSource();
     type = other.getType();
+    group = other.getGroup();
+    rank = other.getRank();
+    rule = other.getRule();
     targetName = other.getTargetName();
     targetTermType = other.getTargetTermType();
     sourceCode = other.getSourceCode();
+    sourceName = other.getSourceName();
+    sourceTermType = other.getSourceTermType();
     sourceTerminology = other.getSourceTerminology();
     targetCode = other.getTargetCode();
+    targetName = other.getTargetName();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
+  }
+
+  /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source to set
+   */
+  public void setSource(String source) {
+    this.source = source;
+  }
+
+  /**
+   * Returns the source name.
+   *
+   * @return the sourceName
+   */
+  public String getSourceName() {
+    return sourceName;
+  }
+
+  /**
+   * Sets the source name.
+   *
+   * @param sourceName the sourceName to set
+   */
+  public void setSourceName(String sourceName) {
+    this.sourceName = sourceName;
+  }
+
+  /**
+   * Returns the source term type.
+   *
+   * @return the sourceTermType
+   */
+  public String getSourceTermType() {
+    return sourceTermType;
+  }
+
+  /**
+   * Sets the source term type.
+   *
+   * @param sourceTermType the sourceTermType to set
+   */
+  public void setSourceTermType(String sourceTermType) {
+    this.sourceTermType = sourceTermType;
   }
 
   /**
@@ -83,6 +164,60 @@ public class Map extends BaseModel implements Comparable<Map> {
    */
   public void setType(final String type) {
     this.type = type;
+  }
+
+  /**
+   * Returns the group.
+   *
+   * @return the group
+   */
+  public String getGroup() {
+    return group;
+  }
+
+  /**
+   * Sets the group.
+   *
+   * @param group the group
+   */
+  public void setGroup(final String group) {
+    this.group = group;
+  }
+
+  /**
+   * Returns the rank.
+   *
+   * @return the rank
+   */
+  public String getRank() {
+    return rank;
+  }
+
+  /**
+   * Sets the rank.
+   *
+   * @param rank the rank
+   */
+  public void setRank(final String rank) {
+    this.rank = rank;
+  }
+
+  /**
+   * Returns the rule.
+   *
+   * @return the rule
+   */
+  public String getRule() {
+    return rule;
+  }
+
+  /**
+   * Sets the rule.
+   *
+   * @param rule the rule
+   */
+  public void setRule(final String rule) {
+    this.rule = rule;
   }
 
   /**
@@ -223,97 +358,35 @@ public class Map extends BaseModel implements Comparable<Map> {
   /* see superclass */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((sourceCode == null) ? 0 : sourceCode.hashCode());
-    result = prime * result + ((sourceTerminology == null) ? 0 : sourceTerminology.hashCode());
-    result = prime * result + ((targetCode == null) ? 0 : targetCode.hashCode());
-    result = prime * result + ((targetName == null) ? 0 : targetName.hashCode());
-    result = prime * result + ((targetTermType == null) ? 0 : targetTermType.hashCode());
-    result = prime * result + ((targetTerminology == null) ? 0 : targetTerminology.hashCode());
-    result = prime * result
-        + ((targetTerminologyVersion == null) ? 0 : targetTerminologyVersion.hashCode());
-    result = prime * result + ((type == null) ? 0 : type.hashCode());
-    return result;
+    return Objects.hash(group, rank, rule, source, sourceCode, sourceName, sourceTermType, sourceTerminology,
+        targetCode, targetName, targetTermType, targetTerminology, targetTerminologyVersion, type);
   }
 
   /* see superclass */
   @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
+  public boolean equals(Object obj) {
+    if (this == obj)
       return true;
-    }
-    if (obj == null) {
+    if (obj == null)
       return false;
-    }
-    if (getClass() != obj.getClass()) {
+    if (getClass() != obj.getClass())
       return false;
-    }
-    final Map other = (Map) obj;
-    if (sourceCode == null) {
-      if (other.sourceCode != null) {
-        return false;
-      }
-    } else if (!sourceCode.equals(other.sourceCode)) {
-      return false;
-    }
-    if (sourceTerminology == null) {
-      if (other.sourceTerminology != null) {
-        return false;
-      }
-    } else if (!sourceTerminology.equals(other.sourceTerminology)) {
-      return false;
-    }
-    if (targetCode == null) {
-      if (other.targetCode != null) {
-        return false;
-      }
-    } else if (!targetCode.equals(other.targetCode)) {
-      return false;
-    }
-    if (targetName == null) {
-      if (other.targetName != null) {
-        return false;
-      }
-    } else if (!targetName.equals(other.targetName)) {
-      return false;
-    }
-    if (targetTermType == null) {
-      if (other.targetTermType != null) {
-        return false;
-      }
-    } else if (!targetTermType.equals(other.targetTermType)) {
-      return false;
-    }
-    if (targetTerminology == null) {
-      if (other.targetTerminology != null) {
-        return false;
-      }
-    } else if (!targetTerminology.equals(other.targetTerminology)) {
-      return false;
-    }
-    if (targetTerminologyVersion == null) {
-      if (other.targetTerminologyVersion != null) {
-        return false;
-      }
-    } else if (!targetTerminologyVersion.equals(other.targetTerminologyVersion)) {
-      return false;
-    }
-    if (type == null) {
-      if (other.type != null) {
-        return false;
-      }
-    } else if (!type.equals(other.type)) {
-      return false;
-    }
-    return true;
+    Map other = (Map) obj;
+    return Objects.equals(group, other.group) && Objects.equals(rank, other.rank) && Objects.equals(rule, other.rule)
+        && Objects.equals(source, other.source) && Objects.equals(sourceCode, other.sourceCode)
+        && Objects.equals(sourceName, other.sourceName) && Objects.equals(sourceTermType, other.sourceTermType)
+        && Objects.equals(sourceTerminology, other.sourceTerminology) && Objects.equals(targetCode, other.targetCode)
+        && Objects.equals(targetName, other.targetName) && Objects.equals(targetTermType, other.targetTermType)
+        && Objects.equals(targetTerminology, other.targetTerminology)
+        && Objects.equals(targetTerminologyVersion, other.targetTerminologyVersion) && Objects.equals(type, other.type);
   }
 
   /* see superclass */
   @Override
   public int compareTo(Map o) {
-    return (sourceCode + sourceTerminology + targetName + targetCode).compareToIgnoreCase(
-        o.getSourceCode() + o.getSourceTerminology() + o.getTargetName() + o.getTargetCode());
+    return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
+        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
+            + o.getTargetName() + o.getTargetCode());
   }
 
 }

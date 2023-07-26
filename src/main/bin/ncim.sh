@@ -27,12 +27,17 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-echo "Load MDR (from downloaded data)"
-$DIR/ncim-part.sh ./NCIM/META --terminology MDR | sed 's/^/    /'
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: loading ncim"
-    exit 1
-fi
+# Keep LNC and SNOMEDCT_US out of this for now.
+# NOTE: devreset.sh still loads LNC and SNOMEDCT_US for local dev
+for t in MDR ICD10CM ICD9CM; do
+    # Keep the NCIM folder around while we run
+    echo "Load $t (from downloaded data)"
+    $DIR/ncim-part.sh ./NCIM/META --keep --terminology $t | sed 's/^/    /'
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: loading $t"
+        exit 1
+    fi
+done
 
 echo "Cleanup"
 /bin/rm -rf ./NCIM

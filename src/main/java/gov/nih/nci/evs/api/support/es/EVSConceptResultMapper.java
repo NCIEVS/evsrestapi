@@ -50,8 +50,7 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
       "rawtypes", "unchecked"
   })
   @Override
-  public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz,
-    Pageable pageable) {
+  public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz, Pageable pageable) {
     if (response.getHits().getHits().length <= 0) {
       return new AggregatedPageImpl(Collections.emptyList(), pageable, 0L);
     }
@@ -89,8 +88,7 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
         }
         for (Text text : field.getFragments()) {
           String highlight = text.string();
-          concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""),
-              highlight);
+          concept.getHighlights().put(highlight.replaceAll("<em>", "").replaceAll("</em>", ""), highlight);
         }
       }
 

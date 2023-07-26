@@ -300,7 +300,7 @@ public class MetadataControllerTests {
 
     // NOTE, this includes a middle association label that is bogus.
     final String url =
-        baseUrl + "/ncit/associations?list=Concept_In_Subset,XYZ,A10&include=summary";
+        baseUrl + "/ncit/associations?list=Concept_In_Subset,XYZ,A23&include=summary";
     log.info("Testing url - " + url);
 
     final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -606,17 +606,6 @@ public class MetadataControllerTests {
     });
     assertThat(list).isNotEmpty();
 
-    // Assert that properties don't contain any "remodeled properties"
-    url = baseUrl + "/terminologies";
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    Terminology terminology =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
-    assertThat(list.stream().filter(c -> terminology.getMetadata().isRemodeledProperty(c.getCode()))
-        .count()).isEqualTo(0);
-
     // BAC: this is not true anymore because we've
     // Assert that no cases involve a concept with a name having a space
     // assertThat(list.stream().filter(c -> c.getName().contains("
@@ -732,20 +721,6 @@ public class MetadataControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-
-    // P90 should no longer be a property
-    url = baseUrl + "/ncit/property/P90";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-
-    // P97 should no longer be a property
-    url = baseUrl + "/ncit/property/P97";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
 
     // Bad terminology
     url = baseUrl + "/ncitXXX/property/P350";
@@ -982,13 +957,6 @@ public class MetadataControllerTests {
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
 
-    // P383 should no longer be a property
-    url = baseUrl + "/ncit/qualifier/P383";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-
   }
 
   /**
@@ -1197,6 +1165,17 @@ public class MetadataControllerTests {
           // n/a
         }).stream().map(c -> c.getCode()).collect(Collectors.toSet());
 
+    url = baseUrl + "/terminologies";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Terminology terminology =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        }).stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    properties = properties.stream().filter(c -> !terminology.getMetadata().isRemodeledProperty(c))
+        .collect(Collectors.toSet());
+    qualifiers = qualifiers.stream().filter(c -> !terminology.getMetadata().isRemodeledQualifier(c))
+        .collect(Collectors.toSet());
     // All sets are mutually exclusive with respect to each other.
     assertThat(Sets.intersection(properties, qualifiers)).isEmpty();
     assertThat(Sets.intersection(properties, synonymTypes)).isEmpty();
@@ -1204,66 +1183,6 @@ public class MetadataControllerTests {
     assertThat(Sets.intersection(qualifiers, synonymTypes)).isEmpty();
     assertThat(Sets.intersection(qualifiers, definitionTypes)).isEmpty();
     assertThat(Sets.intersection(synonymTypes, definitionTypes)).isEmpty();
-
-  }
-
-  /**
-   * Test top level of subsets.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testTopLevelSubsetSearch() throws Exception {
-    String url = baseUrl + "/ncit/subsets";
-    MvcResult result = null;
-    List<Concept> list = null;
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(list != null && list.size() > 0).isTrue();
-
-  }
-
-  /**
-   * Test specific subset search.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testSpecificSubsetSearch() throws Exception {
-    String url = baseUrl + "/ncit/subset/C167405";
-    MvcResult result = null;
-    Concept list = null;
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    String content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(list != null && list.getChildren().size() > 0).isTrue();
-    // check that no subsetLink (no valid download)
-    assertThat(list.getSubsetLink() == null);
-
-    // This value is specifically set in the unit test data via P374
-    url = baseUrl + "/ncit/subset/C100110";
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, Concept.class);
-    // make sure there is a valid and correct subset link
-    assertThat(list.getSubsetLink() != null && list.getSubsetLink().equals("CDISC/SDTM/"));
-
-    url = baseUrl + "/ncit/subset/C116977";
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, Concept.class);
-    List<Property> sources = list.getProperties();
-    for (Property source : sources) {
-      if (source.getType() == "Contributing_Source") {
-        assertThat(source.getValue() == "CTRP");
-        break;
-      }
-    }
 
   }
 
@@ -1297,7 +1216,7 @@ public class MetadataControllerTests {
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(7);
+    assertThat(terminologies.size()).isEqualTo(11);
 
     result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1501,7 +1420,7 @@ public class MetadataControllerTests {
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(7);
+    assertThat(terminologies.size()).isEqualTo(11);
 
   }
 
@@ -1590,20 +1509,6 @@ public class MetadataControllerTests {
     assertThat(metadataConcept.getVersion() == terminology.getVersion());
 
     result = mvc.perform(get(baseWeeklyUrl + "/roles").param("include", "minimal"))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
-
-    result = mvc.perform(get(baseWeeklyUrl + "/subset/C167405").param("include", "minimal"))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(metadataConcept.getVersion() == terminology.getVersion());
-
-    result = mvc.perform(get(baseWeeklyUrl + "/subsets").param("include", "minimal"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     metadataResults = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
