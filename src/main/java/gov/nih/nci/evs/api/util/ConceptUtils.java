@@ -38,8 +38,6 @@ public final class ConceptUtils {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConceptUtils.class);
 
-  private static final SnowballStemmer stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
-
   /**
    * Instantiates an empty {@link ConceptUtils}.
    */
@@ -77,6 +75,7 @@ public final class ConceptUtils {
    * @return the string
    */
   public static String normalizeWithStemming(final String value) {
+    final SnowballStemmer stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
     String norm = normalize(value);
     // split by spaces and stem everything, then rejoin
     return norm != null
