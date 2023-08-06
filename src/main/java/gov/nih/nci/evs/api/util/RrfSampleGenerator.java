@@ -114,7 +114,7 @@ public class RrfSampleGenerator {
         throw new Exception("Codes file does not exist = " + cuisFile);
       }
       final Set<String> inputCuis = new HashSet<>(FileUtils.readLines(new File(cuisFile), "UTF-8").stream()
-          .filter(s -> s.isEmpty() || s.startsWith("#")).collect(Collectors.toList()));
+          .filter(s -> !s.isEmpty() && !s.startsWith("#")).collect(Collectors.toList()));
       logger.info("  input cuis = " + inputCuis);
 
       // Open the readers
