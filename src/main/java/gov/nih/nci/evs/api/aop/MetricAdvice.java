@@ -1,7 +1,6 @@
 
 package gov.nih.nci.evs.api.aop;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.Date;
@@ -11,7 +10,6 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,22 +64,21 @@ public class MetricAdvice {
    */
   @PostConstruct
   public void postInit() throws Exception {
-    File file = new File(applicationProperties.getMetricsDir() + "/GeoLite2-City.mmdb");
-    this.databaseFound = file.exists();
-    if (databaseFound) {
-      dbReader = new DatabaseReader.Builder(file).build();
-    } else {
-      logger.warn("GeoLite Database was not found = " + applicationProperties.getMetricsDir());
-    }
 
-    String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
-
-    boolean result = operationsService.createIndex(indexName, false);
-    if (result) {
-      operationsService.getElasticsearchOperations().putMapping(indexName,
-          ElasticOperationsService.METRIC_TYPE, Metric.class);
-    }
+    // NO longer do this
+    /**
+     * File file = new File(applicationProperties.getMetricsDir() + "/GeoLite2-City.mmdb");
+     * this.databaseFound = file.exists(); if (databaseFound) { dbReader = new
+     * DatabaseReader.Builder(file).build(); } else { logger.warn("GeoLite Database was not found =
+     * " + applicationProperties.getMetricsDir()); }
+     * 
+     * String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) +
+     * "-" + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
+     * 
+     * boolean result = operationsService.createIndex(indexName, false); if (result) {
+     * operationsService.getElasticsearchOperations().putMapping(indexName,
+     * ElasticOperationsService.METRIC_TYPE, Metric.class); }
+     **/
   }
 
   /**
@@ -92,10 +89,9 @@ public class MetricAdvice {
    * @return the object
    * @throws Throwable the throwable
    */
-
-  @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetric)")
-  private Object recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric)
-    throws Throwable {
+  // @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetric)")
+  @SuppressWarnings("unused")
+  private Object recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric) throws Throwable {
 
     // get the request
     final HttpServletRequest request =
@@ -127,8 +123,7 @@ public class MetricAdvice {
     metric.setDuration(duration);
 
     // get the ip address of the remote user
-    final ServletRequestAttributes attr =
-        (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+    final ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
 
     final String userIpAddress = attr.getRequest().getRemoteAddr();
     metric.setRemoteIpAddress(userIpAddress);
@@ -143,8 +138,7 @@ public class MetricAdvice {
       logger.info("database found: " + this.databaseFound);
       try {
         CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
-        metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(),
-            response.getLocation().getLongitude()));
+        metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(), response.getLocation().getLongitude()));
       } catch (Exception e) {
         logger.warn("GeoPoint could not find IP");
       }
@@ -155,9 +149,8 @@ public class MetricAdvice {
     metric.setEndTime(endDate);
 
     // get the parameters
-    operationsService.loadMetric(metric,
-        "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
+    operationsService.loadMetric(metric, "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
+        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
 
     logger.debug("metric = " + metric);
     return retval;
