@@ -26,6 +26,20 @@ repositories {
 
 ext['log4j2.version'] = '2.17.1'
 
+// Extra Properties
+ext {
+  // Parameters
+  if (!project.hasProperty("inputPath")) {
+    inputPath = "na"
+  }
+  if (!project.hasProperty("listFile")) {
+    listFile = "na"
+  }
+  if (!project.hasProperty("terminology")) {
+    terminology = "na"
+  }
+}
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'war'
@@ -93,6 +107,17 @@ test {
      */
     testLogging.showStandardStreams = true
 }
+
+// ./gradlew rrfSample -Pterminology=ICD10CM,ICD9CM,SNOMEDCT_US,RXNORM,LNC,MDR -PlistFile=src/main/resources/cuis.txt -PinputPath=../data/NCIM
+task rrfSample(type: JavaExec) {
+   classpath = sourceSets.main.runtimeClasspath
+   main = "gov.nih.nci.evs.api.service.SamplingApplication"
+   systemProperties System.getProperties()
+   // arguments to pass to the application
+   args ("rrfSample", inputPath, listFile, terminology)
+   jvmArgs "-Xmx4G"
+}
+
 
 task zipFile(type: Zip) {
     def zipFileRootDirectory = "${project.name}-${project.version}"
