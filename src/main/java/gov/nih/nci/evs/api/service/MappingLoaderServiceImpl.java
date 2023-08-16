@@ -28,6 +28,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The implementation for {@link LoaderService}.
@@ -55,24 +56,69 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Autowired
   ElasticQueryService esQueryService;
 
-  public List<Map> buildMaps(String mappingData, String[] metadata) {
+  /** The terminology utils */
+  @Autowired
+  TerminologyUtils termUtils;
+
+  public List<Map> buildMaps(String mappingData, String[] metadata) throws Exception {
     List<Map> maps = new ArrayList<Map>();
     String[] mappingDataList = mappingData.split("\n");
     // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
-      for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-        String[] conceptSplit = conceptMap.split("\",\"");
-        Map conceptToAdd = new Map();
-        conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
-        conceptToAdd.setSourceName(conceptSplit[1]);
-        conceptToAdd.setSource(conceptSplit[2]);
-        conceptToAdd.setType(conceptSplit[6]);
-        conceptToAdd.setRank(conceptSplit[7]);
-        conceptToAdd.setTargetCode(conceptSplit[8]);
-        conceptToAdd.setTargetName(conceptSplit[9]);
-        conceptToAdd.setTargetTerminology(conceptSplit[10]);
-        conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
-        maps.add(conceptToAdd);
+      if (metadata[5].equals(".csv")) {
+        for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+          String[] conceptSplit = conceptMap.split("\",\"");
+          Map conceptToAdd = new Map();
+          conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
+          conceptToAdd.setSourceName(conceptSplit[1]);
+          conceptToAdd.setSource(conceptSplit[2]);
+          conceptToAdd.setType(conceptSplit[6]);
+          conceptToAdd.setRank(conceptSplit[7]);
+          conceptToAdd.setTargetCode(conceptSplit[8]);
+          conceptToAdd.setTargetName(conceptSplit[9]);
+          conceptToAdd.setTargetTerminology(conceptSplit[10]);
+          conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
+          maps.add(conceptToAdd);
+        }
+      } else if (metadata[5].equals(".txt")) {
+        for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+          String[] conceptSplit = conceptMap.split("\t");
+
+          // Determine "source"
+          final String source = "ncit from NCIt_to_HGNC_Mapping";
+          final Terminology sourceTerminology = termUtils.getTerminology(source, true);
+          final Concept sourceConcept = esQueryService
+              .getConcept(conceptSplit[0], sourceTerminology, new IncludeParam()).orElse(null);
+          String sourceName = "Unable to determine name";
+          if (sourceConcept != null) {
+            sourceName = sourceConcept.getName();
+          }
+
+          // Determine "target" terminology
+          final String target = "hgnc from NCIt_to_HGNC_Mapping";
+          final Terminology targetTerminology = termUtils.getTerminology(target, true);
+          final Concept targetConcept = esQueryService
+              .getConcept(conceptSplit[1], targetTerminology, new IncludeParam()).orElse(null);
+          String targetName = "Unable to determine name";
+          if (targetConcept != null) {
+            targetName = targetConcept.getName();
+          }
+
+          Map conceptToAdd = new Map();
+          conceptToAdd.setSourceCode(conceptSplit[0]);
+          conceptToAdd.setSourceName(sourceName);
+          conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
+          conceptToAdd.setType("mapsTo");
+          conceptToAdd.setRank("1");
+          conceptToAdd.setTargetCode(conceptSplit[1]);
+          conceptToAdd.setTargetName(targetName);
+          conceptToAdd.setTargetTerminology(
+              targetTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
+          conceptToAdd.setTargetTerminologyVersion(targetTerminology.getVersion());
+          maps.add(conceptToAdd);
+        }
+      } else {
+        throw new Exception("Unexepcted file extension in metadata = " + metadata[5]);
       }
     }
     // mapsetLink = null + downloadOnly format
@@ -232,8 +278,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Assume maps are not null
           return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
               + o1.getTargetName())
-              .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                  + o2.getTargetName());
+                  .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                      + o2.getTargetName());
         }
       });
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
