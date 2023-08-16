@@ -1,0 +1,71 @@
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	Semantic_Type	STY
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	Preferred_Name	Organism
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	Synonym	orgm
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	STN	A1.1
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	DEF	Generally, a living individual, including all plants and animals.
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	rdfs:subClassOf/owl:Restriction~interacts_with	T001
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	rdfs:subClassOf/owl:Restriction~issue_in	T090
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T002	T002	rdfs:subClassOf/owl:Restriction~location_of	T123
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T004	T004	rdfs:subClassOf/owl:Restriction~causes	T046
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T005	T005	rdfs:subClassOf/owl:Restriction~associated_with	T123
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T008	T008	rdfs:subClassOf/owl:Restriction~exhibits	T053
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T010	T010	UN	Few concepts will be assigned to this broad type.
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T017	T017	NH	Y
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T017	T017	rdfs:subClassOf/owl:Restriction~part_of	T001
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T018	T018	rdfs:subClassOf/owl:Restriction~contains	T031
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T018	T018	rdfs:subClassOf/owl:Restriction~interconnects	T018
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T018	T018	rdfs:subClassOf/owl:Restriction~surrounds	T018
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T018	T018	rdfs:subClassOf/owl:Restriction~developmental_form_of	T018
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T019	T019	rdfs:subClassOf/owl:Restriction~co-occurs_with	T019
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T019	T019	rdfs:subClassOf/owl:Restriction~complicates	T019
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T019	T019	rdfs:subClassOf/owl:Restriction~manifestation_of	T038
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T019	T019	rdfs:subClassOf/owl:Restriction~affects	T001
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T019	T019	rdfs:subClassOf/owl:Restriction~occurs_in	T096
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T019	T019	rdfs:subClassOf/owl:Restriction~result_of	T019
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T021	T021	rdfs:subClassOf/owl:Restriction~produces	T031
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T022	T022	rdfs:subClassOf/owl:Restriction~conceptual_part_of	T021
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T023	T023	rdfs:subClassOf/owl:Restriction~consists_of	T023
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T023	T023	rdfs:subClassOf/owl:Restriction~adjacent_to	T023
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T023	T023	rdfs:subClassOf/owl:Restriction~connected_to	T023
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T023	T023	rdfs:subClassOf/owl:Restriction~traverses	T023
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T023	T023	rdfs:subClassOf/owl:Restriction~branch_of	T023
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T023	T023	rdfs:subClassOf/owl:Restriction~tributary_of	T023
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T028	T028	rdfs:subClassOf/owl:Restriction~carries_out	T044
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T031	T031	rdfs:subClassOf/owl:Restriction~derivative_of	T024
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T031	T031	rdfs:subClassOf/owl:Restriction~ingredient_of	T200
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T032	T032	rdfs:subClassOf/owl:Restriction~property_of	T001
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T032	T032	rdfs:subClassOf/owl:Restriction~degree_of	T032
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T032	T032	rdfs:subClassOf/owl:Restriction~measurement_of	T039
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T033	T033	rdfs:subClassOf/owl:Restriction~evaluation_of	T032
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T034	T034	rdfs:subClassOf/owl:Restriction~indicates	T019
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T037	T037	rdfs:subClassOf/owl:Restriction~disrupts	T018
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T038	T038	rdfs:subClassOf/owl:Restriction~process_of	T001
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T039	T039	rdfs:subClassOf/owl:Restriction~precedes	T039
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T047	T047	rdfs:subClassOf/owl:Restriction~conceptually_related_to	T050
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T057	T057	rdfs:subClassOf/owl:Restriction~method_of	T090
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T059	T059	rdfs:subClassOf/owl:Restriction~measures	T031
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T059	T059	rdfs:subClassOf/owl:Restriction~diagnoses	T019
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T059	T059	rdfs:subClassOf/owl:Restriction~assesses_effect_of	T038
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T059	T059	rdfs:subClassOf/owl:Restriction~analyzes	T031
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T060	T060	rdfs:subClassOf/owl:Restriction~uses	T073
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T061	T061	rdfs:subClassOf/owl:Restriction~prevents	T046
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T061	T061	rdfs:subClassOf/owl:Restriction~treats	T019
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T093	T093	rdfs:subClassOf/owl:Restriction~manages	T101
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T096	T096	rdfs:subClassOf/owl:Restriction~performs	T052
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T097	T097	rdfs:subClassOf/owl:Restriction~practices	T090
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T132	T132	RTN	R1
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T132	T132	RI	physically_related_to
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	parent-style1	T071
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T071	child-style1	T001
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T071	T071	max-children	91
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T052	T052	parent-count1
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T001	T001	parent-count2
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T005	T005	parent-count3
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T002	T002	parent-count4
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T010	T010	parent-count5
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T011	T011	parent-count6
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T016	T016	parent-count7
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T051	T051	root
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T071	T071	root
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T166	T166	root
+http://www.nlm.nih.gov/research/umls/umlssemnet.owl#T186	T186	root
