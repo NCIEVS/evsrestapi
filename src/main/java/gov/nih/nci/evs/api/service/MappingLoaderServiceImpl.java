@@ -65,7 +65,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     String[] mappingDataList = mappingData.split("\n");
     // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
-      if (metadata[5].equals(".csv")) {
+      if (metadata[5].strip().equals(".csv")) {
         for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           String[] conceptSplit = conceptMap.split("\",\"");
           Map conceptToAdd = new Map();
@@ -80,37 +80,41 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
           maps.add(conceptToAdd);
         }
-      } else if (metadata[5].equals(".txt")) {
+      } else if (metadata[5].strip().equals(".txt")) {
         for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           String[] conceptSplit = conceptMap.split("\t");
 
           // Determine "source"
-          final String source = "ncit from NCIt_to_HGNC_Mapping";
-          final Terminology sourceTerminology = termUtils.getTerminology(source, true);
+          final String source = metadata[0].split("_")[0];
+          final Terminology sourceTerminology =
+              termUtils.getTerminology(source.toLowerCase(), true);
           final Concept sourceConcept = esQueryService
-              .getConcept(conceptSplit[0], sourceTerminology, new IncludeParam()).orElse(null);
+              .getConcept(conceptSplit[0].strip(), sourceTerminology, new IncludeParam())
+              .orElse(null);
           String sourceName = "Unable to determine name";
           if (sourceConcept != null) {
             sourceName = sourceConcept.getName();
           }
 
           // Determine "target" terminology
-          final String target = "hgnc from NCIt_to_HGNC_Mapping";
-          final Terminology targetTerminology = termUtils.getTerminology(target, true);
+          final String target = metadata[0].split("_")[2];
+          final Terminology targetTerminology =
+              termUtils.getTerminology(target.toLowerCase(), true);
           final Concept targetConcept = esQueryService
-              .getConcept(conceptSplit[1], targetTerminology, new IncludeParam()).orElse(null);
+              .getConcept(conceptSplit[1].strip(), targetTerminology, new IncludeParam())
+              .orElse(null);
           String targetName = "Unable to determine name";
           if (targetConcept != null) {
             targetName = targetConcept.getName();
           }
 
           Map conceptToAdd = new Map();
-          conceptToAdd.setSourceCode(conceptSplit[0]);
+          conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
           conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
           conceptToAdd.setType("mapsTo");
           conceptToAdd.setRank("1");
-          conceptToAdd.setTargetCode(conceptSplit[1]);
+          conceptToAdd.setTargetCode(conceptSplit[1].strip());
           conceptToAdd.setTargetName(targetName);
           conceptToAdd.setTargetTerminology(
               targetTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
@@ -173,7 +177,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     HierarchyUtils hierarchy) throws IOException, Exception {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri =
-        "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/data/mappings/";
+        "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/data/mappings/";
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
     String rawMetadata = IOUtils.toString(
         new URL(mapsetMetadataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
@@ -244,7 +248,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties().add(new Property("welcomeText", welcomeText));
 
         String mappingDataUri = mappingUri + map.getName()
-            + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
+            + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + metadata[5]; // build
         // map
         String mappingData = IOUtils.toString(
             new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
@@ -278,8 +282,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Assume maps are not null
           return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
               + o1.getTargetName())
-                  .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                      + o2.getTargetName());
+              .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                  + o2.getTargetName());
         }
       });
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
