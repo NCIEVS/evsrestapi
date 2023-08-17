@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -148,19 +149,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     return maps;
   }
 
-  public Boolean mappingNeedsUpdate(String code, String version, List<String> mapsetsToAdd,
-    List<String> currentMapsetCodes) {
-    if (!mapsetsToAdd.contains(code)) {
-      return false;
-    }
+  public Boolean mappingNeedsUpdate(String code, String version,
+    java.util.Map<String, String> currentMapsets) {
 
     // adding for first time
-    if (currentMapsetCodes.isEmpty() || !currentMapsetCodes.contains(code)) {
+    if (currentMapsets.keySet().isEmpty() || !currentMapsets.keySet().contains(code)) {
       return true;
     }
 
-    Optional<String> currentMapVersion =
-        currentMapsetCodes.stream().filter(m -> m.equals(code)).findFirst();
+    Optional<String> currentMapVersion = Optional.ofNullable(currentMapsets.get(code));
     // version number while current version number is null
     if (!version.isEmpty() && currentMapVersion.isPresent() && currentMapVersion.get().isEmpty()) {
       return true;
@@ -176,8 +173,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   public void loadObjects(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws IOException, Exception {
     final String uri = applicationProperties.getConfigBaseUri();
-    final String mappingUri =
-        "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/data/mappings/";
+    final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
     String rawMetadata = IOUtils.toString(
         new URL(mapsetMetadataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
@@ -206,6 +202,17 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                     && property.getValue().contains("MappingLoadServiceImpl")))
             .map(Concept::getCode).collect(Collectors.toList());
 
+    List<String> currentMapsetVersions =
+        esQueryService.getMapsets(new IncludeParam("properties")).stream()
+            .filter(concept -> concept.getProperties().stream()
+                .anyMatch(property -> property.getType().equals("loader")
+                    && property.getValue().contains("MappingLoadServiceImpl")))
+            .map(Concept::getVersion).collect(Collectors.toList());
+
+    java.util.Map<String, String> currentMapsets =
+        IntStream.range(0, currentMapsetCodes.size()).boxed().collect(
+            Collectors.toMap(t -> currentMapsetCodes.get(t), t -> currentMapsetVersions.get(t)));
+
     // mapsets to add (not in current index and should be)
     List<String> mapsetsToAdd =
         allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
@@ -226,8 +233,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         continue;
       }
       // skip if no update needed
-      if (!mappingNeedsUpdate(metadata[0], metadata[2], mapsetsToAdd, currentMapsetCodes)) {
+      if (!mappingNeedsUpdate(metadata[0], metadata[2], currentMapsets)) {
         continue;
+      } else if (!mapsetsToAdd.contains(metadata[0])) {
+        logger.info(metadata[0] + " needs update to version: " + metadata[2]);
       }
       Concept map = new Concept();
       map.setName(metadata[0]);
