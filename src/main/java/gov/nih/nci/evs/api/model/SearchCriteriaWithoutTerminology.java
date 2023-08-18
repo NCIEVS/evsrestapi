@@ -22,7 +22,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The Constant logger. */
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
 
   /** The term. */
   private String term;
@@ -44,6 +45,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The page size. */
   private Integer pageSize = 10;
+
+  /** The export flag. */
+  private Boolean export = false;
 
   /** The concept status. */
   private List<String> conceptStatus;
@@ -111,6 +115,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     include = other.getInclude();
     sort = other.getSort();
     ascending = other.getAscending();
+    export = other.getExport();
     // inverse = other.getInverse();
     pageSize = other.getPageSize();
     property = new ArrayList<>(other.getProperty());
@@ -249,6 +254,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void setPageSize(final Integer pageSize) {
     this.pageSize = pageSize;
+  }
+
+  /**
+   * @return the export
+   */
+  public Boolean getExport() {
+    return export;
+  }
+
+  /**
+   * @param export the export to set
+   */
+  public void setExport(Boolean export) {
+    this.export = export;
   }
 
   /**
@@ -554,20 +573,23 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @param metadataService the metadata service
    * @throws Exception the exception
    */
-  public void validate(final Terminology terminology, final MetadataService metadataService) throws Exception {
+  public void validate(final Terminology terminology, final MetadataService metadataService)
+    throws Exception {
     // if (getTerm() == null) {
     // throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
     // "Required parameter 'term' is missing");
     // }
 
-    if (!TerminologyUtils.asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
+    if (!TerminologyUtils
+        .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
         .contains(getType())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'type' has an invalid value = " + type);
     }
 
     if (fromRecord < 0) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
     if ((pageSize < 1) || (pageSize > 1000)) {
@@ -576,11 +598,12 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
 
     // Restrict paging for license-restricted terminologies (unless term is set)
-    if (terminology.getMetadata().getLicenseText() != null && (term == null || term.isEmpty()) && pageSize > 10) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          terminology.getMetadata().getUiLabel().replaceFirst(":.*", "")
-              + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
-              + "(page size = " + pageSize + ")");
+    if (terminology.getMetadata().getLicenseText() != null && (term == null || term.isEmpty())
+        && pageSize > 10 && !export) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, terminology.getMetadata()
+          .getUiLabel().replaceFirst(":.*", "")
+          + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
+          + "(page size = " + pageSize + ")");
     }
 
     // Validate concept status
@@ -597,8 +620,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid synonym source
     if (getSynonymSource().size() > 0) {
-      final Set<String> synonymSources = metadataService.getSynonymSources(terminology.getTerminology()).stream()
-          .map(c -> c.getCode()).collect(Collectors.toSet());
+      final Set<String> synonymSources =
+          metadataService.getSynonymSources(terminology.getTerminology()).stream()
+              .map(c -> c.getCode()).collect(Collectors.toSet());
       for (final String ss : getSynonymSource()) {
         if (!synonymSources.contains(ss)) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -609,8 +633,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate definition source - must be a valid definition source
     if (getDefinitionSource().size() > 0) {
-      final Set<String> definitionSources = metadataService.getDefinitionSources(terminology.getTerminology()).stream()
-          .map(c -> c.getCode()).collect(Collectors.toSet());
+      final Set<String> definitionSources =
+          metadataService.getDefinitionSources(terminology.getTerminology()).stream()
+              .map(c -> c.getCode()).collect(Collectors.toSet());
       for (final String ss : getDefinitionSource()) {
         if (!definitionSources.contains(ss)) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -642,6 +667,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((ascending == null) ? 0 : ascending.hashCode());
     // result = prime * result + ((inverse == null) ? 0 : inverse.hashCode());
     result = prime * result + ((pageSize == null) ? 0 : pageSize.hashCode());
+    result = prime * result + ((export == null) ? 0 : export.hashCode());
     result = prime * result + ((property == null) ? 0 : property.hashCode());
     result = prime * result + ((value == null) ? 0 : value.hashCode());
     // result = prime * result + ((role == null) ? 0 : role.hashCode());
@@ -744,6 +770,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!value.equals(other.value)) {
+      return false;
+    }
+    if (export == null) {
+      if (other.export != null) {
+        return false;
+      }
+    } else if (!export.equals(other.export)) {
       return false;
     }
     // if (role == null) {
