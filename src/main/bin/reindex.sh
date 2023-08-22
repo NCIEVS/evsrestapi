@@ -192,16 +192,6 @@ if [[ $config -eq 0 ]]; then
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 fi
 
-# mapping indexes
-export EVS_SERVER_PORT="8083"
-echo "    Generate mapping indexes"
-echo "      java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
-java $local -Xmx4096M -jar $jar --terminology mapping
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building mapping indexes"
-    exit 1
-fi
-
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
@@ -354,10 +344,22 @@ for x in `cat /tmp/y.$$.txt`; do
         /bin/rm -rf $DIR/NCIT_HISTORY
 	fi
     
+    
+    
     # track previous version, if next one is the same, don't index again.
     pv=$cv
     pt=$term
 done
+
+# Reconcile mappings after loading terminologies
+export EVS_SERVER_PORT="8083"
+echo "    Generate mapping indexes"
+echo "      java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
+java $local -Xmx4096M -jar $jar --terminology mapping
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+fi
 
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$

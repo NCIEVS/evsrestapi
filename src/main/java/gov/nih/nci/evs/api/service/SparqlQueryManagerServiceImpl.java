@@ -368,7 +368,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
             // Set to retired if it matches config
             if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
-              concept.setConceptStatus("Retired_Concept");
+              concept.setConceptStatus(property.getValue());
               concept.setActive(false);
             } else {
               concept.setConceptStatus(property.getValue());

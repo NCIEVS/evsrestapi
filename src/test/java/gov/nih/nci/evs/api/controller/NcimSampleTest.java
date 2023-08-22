@@ -84,7 +84,7 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept.getMaps().get(1).getRule()).isEqualTo("TRUE");
     // TODO: test what the maps are
   }
-  
+
   /**
    * Test concept active status.
    *
@@ -92,7 +92,7 @@ public class NcimSampleTest extends SampleTest {
    */
   @Test
   public void testActive() throws Exception {
-      
+
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -109,7 +109,7 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("CL547438");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
     assertThat(concept.isActive()).isTrue();
-    
+
     // Test inactive
     url = "/api/v1/concept/ncim/C0278390?include=full";
     log.info("Testing url - " + url);
@@ -121,8 +121,8 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("C0278390");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
     assertThat(concept.isActive()).isFalse();
-    assertThat(concept.getConceptStatus()).isEqualTo("Retired_concept");
-   
+    assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
+
     // test that "Retired_Concept" was added to the list of concept statuses
     url = "/api/v1/terminologies?terminology=ncim&latest=true";
     log.info("Testing url - " + url);

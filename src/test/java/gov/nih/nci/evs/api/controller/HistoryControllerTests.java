@@ -240,7 +240,7 @@ public class HistoryControllerTests {
     // NCIt "retire" - N/A only weekly will have these
 
     // NCIt "merge" - C13320
-    url = baseUrl + "/history/ncit/replacements?list=C13320,C3224";
+    url = baseUrl + "/history/ncit/replacements?list=C169836,C3224";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -249,9 +249,9 @@ public class HistoryControllerTests {
       // n/a
     });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(1);
-    assertThat(list.get(0).getCode()).isEqualTo("C13320");
+    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.get(0).getCode()).isEqualTo("C169836");
     assertThat(list.get(0).getAction()).isEqualTo("merge");
-    assertThat(list.get(0).getReplacementCode()).isEqualTo("C12756");
+    assertThat(list.get(0).getReplacementCode()).isEqualTo("C120319");
   }
 }

@@ -381,7 +381,8 @@ public class MdrControllerTests {
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    assertThat(list).isEmpty();
+    // Entry for "Retired_Concept"
+    assertThat(list.size()).isEqualTo(1);
 
     // Handle definitionSources
     url = base + "/definitionSources";
