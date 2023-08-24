@@ -186,32 +186,32 @@ public class SearchController extends BaseController {
               + " The value '*' can also be used to return results that participate in at least one subset."
               + " This parameter is only meaningful for <i>terminology=ncit</i>",
           required = false, schema = @Schema(implementation = String.class))
-      // These are commented out because they are currently not supported
-      // @Parameter(name = "inverse", description = "Used with \"associations\"
-      // or \"roles\" when true to indicate that inverse associations or roles
-      // should be searched", required = false, schema = @Schema(implementation = String.class),
-      // paramType =
-      // "query", example = "false"),
-      // @Parameter(name = "association", description = "Comma-separated list
-      // of associations to search. e.g A10,A215. <a
-      // href='/api/v1/metadata/ncit/associations' target='_blank'>Click here for
-      // a list of NCI Thesaurus associations</a>. The associations can be
-      // specified as code or name", required = false, schema = @Schema(implementation =
-      // String.class),
-      // paramType = "query"),
-      // @Parameter(name = "role", description = "Comma-separated list of roles
-      // to search. e.g R15,R193. <a href='/api/v1/metadata/ncit/roles'
-      // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
-      // roles can be specified as code or name", required = false, dataTypeClass =
-      // String.class)
+  // These are commented out because they are currently not supported
+  // @Parameter(name = "inverse", description = "Used with \"associations\"
+  // or \"roles\" when true to indicate that inverse associations or roles
+  // should be searched", required = false, schema = @Schema(implementation = String.class),
+  // paramType =
+  // "query", example = "false"),
+  // @Parameter(name = "association", description = "Comma-separated list
+  // of associations to search. e.g A10,A215. <a
+  // href='/api/v1/metadata/ncit/associations' target='_blank'>Click here for
+  // a list of NCI Thesaurus associations</a>. The associations can be
+  // specified as code or name", required = false, schema = @Schema(implementation =
+  // String.class),
+  // paramType = "query"),
+  // @Parameter(name = "role", description = "Comma-separated list of roles
+  // to search. e.g R15,R193. <a href='/api/v1/metadata/ncit/roles'
+  // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
+  // roles can be specified as code or name", required = false, dataTypeClass =
+  // String.class)
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
     @PathVariable(value = "terminology")
-    final String terminology, @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
-    BindingResult bindingResult) throws Exception {
+    final String terminology, @ModelAttribute
+    SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult) throws Exception {
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult);
   }
 
@@ -330,30 +330,30 @@ public class SearchController extends BaseController {
               + " The value '*' can also be used to return results that participate in at least one subset."
               + " This parameter is only meaningful for <i>terminology=ncit</i>",
           required = false, schema = @Schema(implementation = String.class))
-      // These are commented out because they are currently not supported
-      // @Parameter(name = "inverse", value = "Used with \"associations\"
-      // or \"roles\" when true to indicate that inverse associations or roles
-      // should be searched", required = false, schema = @Schema(implementation = String.class),
-      // paramType =
-      // "query", example = "false"),
-      // @Parameter(name = "association", value = "Comma-separated list
-      // of associations to search. e.g A10,A215. <a
-      // href='/api/v1/metadata/ncit/associations' target='_blank'>Click here for
-      // a list of NCI Thesaurus associations</a>. The associations can be
-      // specified as code or name", required = false, schema = @Schema(implementation =
-      // String.class),
-      // paramType = "query"),
-      // @Parameter(name = "role", value = "Comma-separated list of roles
-      // to search. e.g R15,R193. <a href='/api/v1/metadata/ncit/roles'
-      // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
-      // roles can be specified as code or name", required = false, dataTypeClass =
-      // String.class)
+  // These are commented out because they are currently not supported
+  // @Parameter(name = "inverse", value = "Used with \"associations\"
+  // or \"roles\" when true to indicate that inverse associations or roles
+  // should be searched", required = false, schema = @Schema(implementation = String.class),
+  // paramType =
+  // "query", example = "false"),
+  // @Parameter(name = "association", value = "Comma-separated list
+  // of associations to search. e.g A10,A215. <a
+  // href='/api/v1/metadata/ncit/associations' target='_blank'>Click here for
+  // a list of NCI Thesaurus associations</a>. The associations can be
+  // specified as code or name", required = false, schema = @Schema(implementation =
+  // String.class),
+  // paramType = "query"),
+  // @Parameter(name = "role", value = "Comma-separated list of roles
+  // to search. e.g R15,R193. <a href='/api/v1/metadata/ncit/roles'
+  // target='_blank'>Click here for a list of NCI Thesaurus roles</a>. The
+  // roles can be specified as code or name", required = false, dataTypeClass =
+  // String.class)
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/search",
       produces = "application/json")
-  public @ResponseBody ConceptResultList search(@ModelAttribute SearchCriteria searchCriteria,
-    BindingResult bindingResult) throws Exception {
+  public @ResponseBody ConceptResultList search(@ModelAttribute
+  SearchCriteria searchCriteria, BindingResult bindingResult) throws Exception {
 
     // Check whether or not parameter binding was successful
     if (bindingResult.hasErrors()) {

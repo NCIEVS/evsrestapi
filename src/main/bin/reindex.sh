@@ -270,6 +270,15 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "    MISSING $y index"
             exists=0
         fi
+
+        if [[ $y == "evs_metadata" ]]; then
+            echo "Checking for existence of concept_${term}_$cv"
+            # Check whether the entry for this terminology exists        
+            if [[ `curl -s "${ES_SCHEME}://${ES_HOST}:${ES_PORT}/evs_metadata/_doc/concept_${term}_$cv" | grep '"found":false' | wc -l` -eq 1 ]]; then
+                echo "    MISSING evs_metadata entry for concept_${term}_$cv"
+                exists=0
+            fi
+        fi
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
