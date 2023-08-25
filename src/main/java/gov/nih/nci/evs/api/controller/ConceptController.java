@@ -99,8 +99,11 @@ public class ConceptController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
@@ -167,8 +170,11 @@ public class ConceptController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
@@ -235,8 +241,11 @@ public class ConceptController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. <ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
@@ -340,8 +349,11 @@ public class ConceptController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
@@ -561,8 +573,11 @@ public class ConceptController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
@@ -606,8 +621,11 @@ public class ConceptController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
