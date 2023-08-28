@@ -123,6 +123,8 @@ public class MetadataController extends BaseController {
           meta.setConceptStatus(null);
           meta.setDefinitionSourceSet(null);
           meta.setWelcomeText(null);
+          meta.setLicenseCheck(null);
+          meta.setLicenseFailText(null);
         }
       }
 

@@ -86,6 +86,7 @@ public final class TerminologyUtils {
    * Returns the stale terminologies.
    *
    * @param dbs the dbs
+   * @param terminology the terminology
    * @return the stale terminologies
    * @throws Exception the exception
    */
@@ -162,7 +163,7 @@ public final class TerminologyUtils {
     terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
   }
-  
+
   /**
    * Returns the terminology name without the version.
    *
@@ -255,6 +256,27 @@ public final class TerminologyUtils {
 
     // Every version is also a weekly
     terminology.getTags().put("weekly", "true");
+  }
+
+  /**
+   * Check license.
+   *
+   * @param terminology the terminology
+   * @param licenseKey the license key
+   * @throws Exception the exception
+   */
+  public void checkLicense(final Terminology terminology, final String licenseKey) throws Exception {
+
+    // Nothing to do if there is no license key.
+    if (terminology.getMetadata().getLicenseText() == null) {
+      return;
+    }
+
+    // Check the license key and fail
+    if (licenseKey == null) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, terminology.getMetadata().getLicenseFailText());
+    }
+
   }
 
 }

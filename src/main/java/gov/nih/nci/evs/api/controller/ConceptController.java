@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -201,9 +202,11 @@ public class ConceptController extends BaseController {
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
   final Optional<Integer> limit, @RequestParam(required = false, name = "include")
-  final Optional<String> include) throws Exception {
+  final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License", required = false)
+  String licenseKey) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, licenseKey);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);

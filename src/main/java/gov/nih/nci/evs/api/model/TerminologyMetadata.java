@@ -94,7 +94,7 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The hierarchy flag. */
   private Boolean hierarchy;
-  
+
   /** The history flag. */
   private Boolean history;
 
@@ -137,6 +137,12 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The license text. */
   private String licenseText;
+
+  /** The license fail text. */
+  private String licenseFailText;
+
+  /** The license check. */
+  private String licenseCheck;
 
   /** The meta concept field. */
   private String metaConceptField;
@@ -211,6 +217,8 @@ public class TerminologyMetadata extends BaseModel {
     unpublished = new HashSet<>(other.getUnpublished());
     monthlyDb = other.getMonthlyDb();
     licenseText = other.getLicenseText();
+    licenseFailText = other.getLicenseFailText();
+    licenseCheck = other.getLicenseCheck();
     metaConceptField = other.getMetaConceptField();
     preferredTermTypes = new ArrayList<>(other.getPreferredTermTypes());
     subset = new HashSet<>(other.getSubset());
@@ -231,10 +239,8 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((mapRelation == null) ? 0 : mapRelation.hashCode());
     result = prime * result + ((mapTarget == null) ? 0 : mapTarget.hashCode());
     result = prime * result + ((mapTargetTermType == null) ? 0 : mapTargetTermType.hashCode());
-    result =
-        prime * result + ((mapTargetTerminology == null) ? 0 : mapTargetTerminology.hashCode());
-    result = prime * result
-        + ((mapTargetTerminologyVersion == null) ? 0 : mapTargetTerminologyVersion.hashCode());
+    result = prime * result + ((mapTargetTerminology == null) ? 0 : mapTargetTerminology.hashCode());
+    result = prime * result + ((mapTargetTerminologyVersion == null) ? 0 : mapTargetTerminologyVersion.hashCode());
     result = prime * result + ((preferredName == null) ? 0 : preferredName.hashCode());
     result = prime * result + ((sources == null) ? 0 : sources.hashCode());
     result = prime * result + ((sourcesToRemove == null) ? 0 : sourcesToRemove.hashCode());
@@ -250,6 +256,8 @@ public class TerminologyMetadata extends BaseModel {
     result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
     result = prime * result + ((monthlyDb == null) ? 0 : monthlyDb.hashCode());
     result = prime * result + ((licenseText == null) ? 0 : licenseText.hashCode());
+    result = prime * result + ((licenseFailText == null) ? 0 : licenseFailText.hashCode());
+    result = prime * result + ((licenseCheck == null) ? 0 : licenseCheck.hashCode());
     result = prime * result + ((metaConceptField == null) ? 0 : metaConceptField.hashCode());
     result = prime * result + ((preferredTermTypes == null) ? 0 : preferredTermTypes.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
@@ -394,6 +402,16 @@ public class TerminologyMetadata extends BaseModel {
       if (other.licenseText != null)
         return false;
     } else if (!licenseText.equals(other.licenseText))
+      return false;
+    if (licenseFailText == null) {
+      if (other.licenseFailText != null)
+        return false;
+    } else if (!licenseFailText.equals(other.licenseFailText))
+      return false;
+    if (licenseCheck == null) {
+      if (other.licenseCheck != null)
+        return false;
+    } else if (!licenseCheck.equals(other.licenseCheck))
       return false;
     if (metaConceptField == null) {
       if (other.metaConceptField != null)
@@ -1125,6 +1143,42 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the license fail text.
+   *
+   * @return the license fail text
+   */
+  public String getLicenseFailText() {
+    return licenseFailText;
+  }
+
+  /**
+   * Sets the license fail text.
+   *
+   * @param licenseFailText the license fail text
+   */
+  public void setLicenseFailText(String licenseFailText) {
+    this.licenseFailText = licenseFailText;
+  }
+
+  /**
+   * Returns the license check.
+   *
+   * @return the license check
+   */
+  public String getLicenseCheck() {
+    return licenseCheck;
+  }
+
+  /**
+   * Sets the license check.
+   *
+   * @param licenseCheck the license check
+   */
+  public void setLicenseCheck(String licenseCheck) {
+    this.licenseCheck = licenseText;
+  }
+
+  /**
    * Returns the meta concept field.
    *
    * @return the meta concept field
@@ -1249,29 +1303,31 @@ public class TerminologyMetadata extends BaseModel {
   public void setHierarchy(Boolean hierarchy) {
     this.hierarchy = hierarchy;
   }
-  
+
   /**
    * Returns the history.
    *
    * @return the history
    */
   public Boolean getHistory() {
-      if (history == null) {
-          history = false;
-      }
-      return history;
+    if (history == null) {
+      history = false;
+    }
+    return history;
   }
-  
+
   /**
    * Sets the history.
    *
    * @param history the history to set
    */
   public void setHistory(Boolean history) {
-      this.history = history;
+    this.history = history;
   }
 
   /**
+   * Returns the mapsets.
+   *
    * @return the mapsets
    */
   public Boolean getMapsets() {
@@ -1279,6 +1335,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Sets the mapsets.
+   *
    * @param mapsets the mapsets to set
    */
   public void setMapsets(Boolean mapsets) {
@@ -1314,9 +1372,9 @@ public class TerminologyMetadata extends BaseModel {
       return false;
     }
     return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource)
-        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
-        || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
+        || code.equals(synonymSubSource) || code.equals(definitionSource) || code.equals(mapRelation)
+        || code.equals(mapTarget) || code.equals(mapTargetTermType) || code.equals(mapTargetTerminology)
+        || code.equals(mapTargetTerminologyVersion);
   }
 
   /**
@@ -1329,6 +1387,14 @@ public class TerminologyMetadata extends BaseModel {
     return getUnpublished().contains(code);
   }
 
+  /**
+   * Returns the remodeled as type.
+   *
+   * @param prop the prop
+   * @param qual the qual
+   * @param md the md
+   * @return the remodeled as type
+   */
   public String getRemodeledAsType(Property prop, Qualifier qual, TerminologyMetadata md) {
     String code = null;
     if (prop != null) {
